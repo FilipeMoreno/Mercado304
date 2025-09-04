@@ -1,8 +1,5 @@
-// src/app/produtos/page.tsx
-
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { Product } from "@/types"
 import Link from "next/link"
 import { ProductsClient } from "./products-client"
 
@@ -16,27 +13,36 @@ interface ProductsPageProps {
   }
 }
 
-async function fetchProductsData() {
+async function fetchProductsData(searchParams: any) {
+  const params = new URLSearchParams({
+    search: searchParams.search || '',
+    category: searchParams.category || '',
+    brand: searchParams.brand || '',
+    sort: searchParams.sort || 'name-asc',
+    page: searchParams.page || '1',
+    limit: '12'
+  })
+  
   const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-    fetch('http://localhost:3000/api/products', { cache: 'no-store' }),
+    fetch(`http://localhost:3000/api/products?${params.toString()}`, { cache: 'no-store' }),
     fetch('http://localhost:3000/api/categories', { cache: 'no-store' }),
     fetch('http://localhost:3000/api/brands', { cache: 'no-store' })
   ])
   
-  const [products, categories, brandsData] = await Promise.all([
+  const [productsData, categoriesData, brandsData] = await Promise.all([
     productsRes.json(),
     categoriesRes.json(),
     brandsRes.json()
   ])
   
-  // A API de marcas agora retorna um objeto com a propriedade 'brands'.
+  const categories = categoriesData.categories || [];
   const brands = brandsData.brands || [];
   
-  return { products, categories, brands };
+  return { productsData, categories, brands };
 }
 
 export default async function ProdutosPage({ searchParams }: ProductsPageProps) {
-  const { products, categories, brands } = await fetchProductsData()
+  const { productsData, categories, brands } = await fetchProductsData(searchParams)
   
   return (
     <div className="space-y-6">
@@ -56,7 +62,7 @@ export default async function ProdutosPage({ searchParams }: ProductsPageProps) 
       </div>
       
       <ProductsClient 
-        initialProducts={products}
+        productsData={productsData}
         categories={categories}
         brands={brands}
         searchParams={searchParams}

@@ -369,7 +369,7 @@ export default function NovaCompraPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="max-w-4xl">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
@@ -382,7 +382,6 @@ export default function NovaCompraPage() {
                 <Label htmlFor="marketId">Mercado *</Label>
                 <MarketSelect
                   value={formData.marketId}
-                  markets={markets}
                   onValueChange={(value) => {
                     setFormData(prev => ({ ...prev, marketId: value }))
                     // Verificar preços novamente quando mercado muda
@@ -409,7 +408,7 @@ export default function NovaCompraPage() {
           </CardContent>
         </Card>
 
-        <Card className="max-w-4xl">
+        <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">

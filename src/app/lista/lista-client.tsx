@@ -2,8 +2,8 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { List, Edit, Trash2, Eye, Plus, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react"
@@ -29,18 +29,22 @@ interface ListaClientProps {
 }
 
 export function ListaClient({ initialShoppingLists, initialTotalCount, searchParams }: ListaClientProps) {
-  const router = useRouter()
-  const urlSearchParams = useSearchParams()
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>(initialShoppingLists)
   const [totalCount, setTotalCount] = useState(initialTotalCount)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, list: ShoppingList | null }>({ show: false, list: null })
-  const [deleting, setDeleting] = useState(false)
-
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [sortBy, setSortBy] = useState(searchParams.sort || "date-desc")
-  const [listStatus, setListStatus] = useState(searchParams.status || "all")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
   const itemsPerPage = 12
+
+  const { remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<ShoppingList>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/lista',
+    initialValues: {
+      search: searchParams.search || "",
+      sort: searchParams.sort || "date-desc",
+      status: searchParams.status || "all",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
 
   const totalPages = Math.ceil(totalCount / itemsPerPage)
 
@@ -51,50 +55,23 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
     { value: "name-desc", label: "Nome (Z-A)" },
   ]
   
-  useEffect(() => {
+  React.useEffect(() => {
     setShoppingLists(initialShoppingLists)
     setTotalCount(initialTotalCount)
   }, [initialShoppingLists, initialTotalCount])
 
-  useEffect(() => {
-    const params = new URLSearchParams(urlSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (sortBy !== 'date-desc') params.set('sort', sortBy)
-    else params.delete('sort')
-    if (listStatus !== 'all') params.set('status', listStatus)
-    else params.delete('status')
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    else params.delete('page')
-
-    const newUrl = params.toString() ? `?${params.toString()}` : '/lista'
-    router.push(newUrl, { scroll: false })
-  }, [searchTerm, sortBy, listStatus, currentPage, router, urlSearchParams])
-
-  const confirmDelete = (list: ShoppingList) => {
-    setDeleteConfirm({ show: true, list })
-  }
-
   const deleteShoppingList = async () => {
-    if (!deleteConfirm.list) return
+    if (!deleteState.item) return
     
-    setDeleting(true)
-    try {
-      await fetch(`/api/shopping-lists/${deleteConfirm.list.id}`, { method: 'DELETE' })
-      setDeleteConfirm({ show: false, list: null })
-      router.refresh()
-      toast.success('Lista excluída com sucesso!')
-    } catch (error) {
-      console.error('Erro ao excluir lista:', error)
-      toast.error('Erro ao excluir lista')
-    } finally {
-      setDeleting(false)
-    }
+    await remove(`/api/shopping-lists/${deleteState.item.id}`, {
+      successMessage: 'Lista excluída com sucesso!',
+      onSuccess: closeDeleteConfirm
+    })
   }
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+      updateSingleValue('page', page)
     }
   }
 
@@ -133,19 +110,17 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
         )
       )
       toast.success(`Lista criada com ${items.length} itens!`)
-      router.refresh()
+      window.location.reload()
     } catch (error) {
       console.error('Erro ao criar lista:', error)
       throw error
     }
   }
 
-  const hasActiveFilters = searchTerm !== "" || sortBy !== "date-desc" || listStatus !== "all"
-
   const additionalFilters = (
     <div className="space-y-2">
       <Label>Status</Label>
-      <Select value={listStatus} onValueChange={setListStatus}>
+      <Select value={state.status} onValueChange={(value) => updateSingleValue('status', value)}>
         <SelectTrigger>
           <SelectValue placeholder="Todos" />
         </SelectTrigger>
@@ -166,21 +141,20 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Buscar listas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={state.search}
+              onChange={(e) => updateSingleValue('search', e.target.value)}
               className="pl-10"
             />
           </div>
           <FilterPopover
-            sortValue={sortBy}
-            onSortChange={setSortBy}
+            sortValue={state.sort}
+            onSortChange={(value) => updateSingleValue('sort', value)}
             sortOptions={sortOptions}
             additionalFilters={additionalFilters}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={() => {
-              setSearchTerm("")
-              setSortBy("date-desc")
-              setListStatus("all")
+              clearFilters()
+              updateSingleValue('page', 1)
             }}
           />
         </div>
@@ -197,9 +171,8 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
               </p>
               {hasActiveFilters && (
                 <Button variant="outline" onClick={() => {
-                  setSearchTerm("")
-                  setSortBy("date-desc")
-                  setListStatus("all")
+                  clearFilters()
+                  updateSingleValue('page', 1)
                 }}>
                   <Filter className="h-4 w-4 mr-2" />
                   Limpar Filtros
@@ -214,7 +187,7 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
                 Mostrando {shoppingLists.length} de {totalCount} listas
               </span>
               <span>
-                Página {currentPage} de {totalPages}
+                Página {state.page} de {totalPages}
               </span>
             </div>
             
@@ -257,7 +230,7 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => confirmDelete(list)}
+                        onClick={() => openDeleteConfirm(list)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -272,8 +245,8 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(state.page - 1)}
+                  disabled={state.page === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
@@ -281,14 +254,14 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
                 
                 <div className="flex gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+                    .filter(page => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
                     .map((page, index, array) => (
                       <React.Fragment key={page}>
                         {index > 0 && array[index - 1] !== page - 1 && (
                           <span className="px-2 py-1 text-gray-400">...</span>
                         )}
                         <Button
-                          variant={currentPage === page ? "default" : "outline"}
+                          variant={state.page === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
                           className="w-8 h-8 p-0"
@@ -303,8 +276,8 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(state.page + 1)}
+                  disabled={state.page === totalPages}
                 >
                   Próxima
                   <ChevronRight className="h-4 w-4" />
@@ -322,7 +295,7 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
         />
       </div>
 
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, list: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -332,7 +305,7 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir a lista <strong>{deleteConfirm.list?.name}</strong>?
+              Tem certeza que deseja excluir a lista <strong>{deleteState.item?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
               Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
@@ -341,15 +314,15 @@ export function ListaClient({ initialShoppingLists, initialTotalCount, searchPar
               <Button 
                 variant="destructive" 
                 onClick={deleteShoppingList}
-                disabled={deleting}
+                disabled={loading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {loading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, list: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

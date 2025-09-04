@@ -158,6 +158,10 @@ model StockMovement {
   notes       String?
   // Relacionamento com compra (se aplicável)
   purchaseItemId String?
+  // Campos para controle de desperdício
+  isWaste     Boolean         @default(false) // Se foi jogado fora
+  wasteReason String?         // Motivo do desperdício (vencido, estragado, etc)
+  wasteValue  Float?          // Valor monetário do desperdício
   stockItem   StockItem       @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
 
   @@map("stock_movements")
@@ -169,6 +173,7 @@ enum StockMovementType {
   AJUSTE      // Ajuste manual
   VENCIMENTO  // Produto vencido
   PERDA       // Produto perdido/danificado
+  DESPERDICIO // Produto jogado fora
 }
 
 model ExpirationAlert {

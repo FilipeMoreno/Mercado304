@@ -2,7 +2,9 @@
 
 import { ProductCombobox } from "@/components/ui/product-combobox"
 import { TempStorage } from "@/lib/temp-storage"
+import { useDataStore } from "@/store/useDataStore"
 import { Product } from "@/types"
+import { useEffect } from "react"
 
 interface ProductSelectProps {
   value?: string
@@ -24,9 +26,13 @@ export function ProductSelect({
   disabled = false,
   preserveFormData,
   itemIndex,
-  products = [],
-  loading = false
 }: ProductSelectProps) {
+
+  const { products, loading, fetchProducts } = useDataStore()
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   const handleCreateProduct = (name: string) => {
     if (preserveFormData) {
@@ -54,7 +60,7 @@ export function ProductSelect({
     }
   }
 
-  if (loading) {
+  if (loading.products && products.length === 0) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

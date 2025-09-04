@@ -440,16 +440,18 @@ export function ComparisonClient({ initialLists, initialMarkets, initialProducts
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {listComparison.markets
-                      .sort((a, b) => {
-                          if (a.availableItems === 0 && b.availableItems > 0) return 1;
-                          if (a.availableItems > 0 && b.availableItems === 0) return -1;
-                          return a.totalPrice - b.totalPrice;
-                      })
-                      .map((market, index) => {
-                        const isExpanded = expandedMarket === market.marketId;
-                        const cheapestTotal = listComparison.markets.filter(m => m.availableItems > 0).reduce((min, curr) => curr.totalPrice < min.totalPrice ? curr : min, { totalPrice: Infinity, marketId: null });
-                        const isCheapest = market.marketId === cheapestTotal.marketId && market.availableItems > 0;
+                    {(() => {
+                      const cheapestTotal = listComparison.markets.filter(m => m.availableItems > 0).reduce((min, curr) => curr.totalPrice < min.totalPrice ? curr : min, listComparison.markets.find(m => m.availableItems > 0) || { totalPrice: Infinity, marketId: '', marketName: '', availableItems: 0, missingItems: 0, savings: 0, items: [] });
+                      
+                      return listComparison.markets
+                        .sort((a, b) => {
+                            if (a.availableItems === 0 && b.availableItems > 0) return 1;
+                            if (a.availableItems > 0 && b.availableItems === 0) return -1;
+                            return a.totalPrice - b.totalPrice;
+                        })
+                        .map((market, index) => {
+                          const isExpanded = expandedMarket === market.marketId;
+                          const isCheapest = market.marketId === cheapestTotal.marketId && market.availableItems > 0;
                         return (
                           <div
                             key={market.marketId}
@@ -533,19 +535,24 @@ export function ComparisonClient({ initialLists, initialMarkets, initialProducts
                             )}
                           </div>
                         );
-                      })}
-                    {listComparison.markets.length > 1 && (
-                      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="font-medium text-blue-800 mb-2">💡 Recomendação</h4>
-                        <p className="text-blue-600 text-sm">
-                          Comprando no <strong>{cheapest.name}</strong>,
-                          você economiza <strong>R$ {(
-                            Math.max(...listComparison.markets.map(m => m.totalPrice)) -
-                            Math.min(...listComparison.markets.map(m => m.totalPrice))
-                          ).toFixed(2)}</strong> comparado ao mercado mais caro.
-                        </p>
-                      </div>
-                    )}
+                      })
+                    })()}
+                    {(() => {
+                      const cheapestTotal = listComparison.markets.filter(m => m.availableItems > 0).reduce((min, curr) => curr.totalPrice < min.totalPrice ? curr : min, listComparison.markets.find(m => m.availableItems > 0) || { totalPrice: Infinity, marketId: '', marketName: '', availableItems: 0, missingItems: 0, savings: 0, items: [] });
+                      
+                      return listComparison.markets.length > 1 && (
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h4 className="font-medium text-blue-800 mb-2">💡 Recomendação</h4>
+                          <p className="text-blue-600 text-sm">
+                            Comprando no <strong>{cheapestTotal.marketName}</strong>,
+                            você economiza <strong>R$ {(
+                              Math.max(...listComparison.markets.map(m => m.totalPrice)) -
+                              Math.min(...listComparison.markets.map(m => m.totalPrice))
+                            ).toFixed(2)}</strong> comparado ao mercado mais caro.
+                          </p>
+                        </div>
+                      )
+                    })()}
                   </div>
                 </CardContent>
               </Card>

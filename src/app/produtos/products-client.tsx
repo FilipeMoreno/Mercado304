@@ -2,26 +2,32 @@
 "use client"
 
 import * as React from "react"
-import { useState, useMemo, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect, useMemo } from "react"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Package, Tag, Edit, Trash2, BarChart3, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react"
-import { Product } from "@/types"
+import { Product, Category, Brand } from "@/types"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { filterProducts } from "@/lib/barcode-utils"
 import { Input } from "@/components/ui/input"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ProductsClientProps {
-  initialProducts: Product[]
-  categories: any[]
-  brands: any[]
+  productsData: {
+    products: Product[]
+    pagination: {
+      currentPage: number
+      totalPages: number
+      totalCount: number
+      hasMore: boolean
+    }
+  }
+  categories: Category[]
+  brands: Brand[]
   searchParams: {
     search?: string
     category?: string
@@ -31,18 +37,24 @@ interface ProductsClientProps {
   }
 }
 
-export function ProductsClient({ initialProducts, categories, brands, searchParams }: ProductsClientProps) {
-  const router = useRouter()
-  const urlSearchParams = useSearchParams()
-  const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, product: Product | null }>({ show: false, product: null })
-  const [deleting, setDeleting] = useState(false)
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.category || "")
-  const [selectedBrand, setSelectedBrand] = useState<string>(searchParams.brand || "")
-  const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "category" | "date-desc">(searchParams.sort as any || "name-asc")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
-  const itemsPerPage = 12
+export function ProductsClient({ productsData, categories, brands, searchParams }: ProductsClientProps) {
+  const [products, setProducts] = useState<Product[]>(productsData.products)
+  const [pagination, setPagination] = useState(productsData.pagination)
+  const [loading, setLoading] = useState(false)
+
+  const { remove, loading: deleteLoading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/produtos',
+    initialValues: {
+      search: searchParams.search || "",
+      category: searchParams.category || "all",
+      brand: searchParams.brand || "all",
+      sort: searchParams.sort || "name-asc",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
 
   const sortOptions = [
     { value: "name-asc", label: "Nome (A-Z)" },
@@ -62,95 +74,60 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
   ]), [brands])
 
 
-  const { filteredProducts, totalPages, paginatedProducts } = useMemo(() => {
-    let filtered = filterProducts(products, searchTerm)
-    
-    if (selectedCategory && selectedCategory !== "all") {
-      filtered = filtered.filter(p => p.categoryId === selectedCategory)
+  const fetchProducts = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        search: state.search,
+        category: state.category,
+        brand: state.brand,
+        sort: state.sort,
+        page: state.page.toString(),
+        limit: '12'
+      })
+      
+      const response = await fetch(`/api/products?${params.toString()}`)
+      if (!response.ok) throw new Error('Erro ao carregar produtos')
+      
+      const data = await response.json()
+      setProducts(data.products)
+      setPagination(data.pagination)
+    } catch (error) {
+      console.error('Erro:', error)
+    } finally {
+      setLoading(false)
     }
-    
-    if (selectedBrand && selectedBrand !== "all") {
-      filtered = filtered.filter(p => p.brandId === selectedBrand)
-    }
-    
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name-desc":
-          return b.name.localeCompare(a.name)
-        case "category":
-          return (a.category?.name || "").localeCompare(b.category?.name || "")
-        case "date-desc":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        default:
-          return a.name.localeCompare(b.name)
-      }
-    })
-    
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedProducts = filtered.slice(startIndex, endIndex)
-    const totalPages = Math.ceil(filtered.length / itemsPerPage)
-    
-    return { 
-      filteredProducts: filtered, 
-      totalPages, 
-      paginatedProducts 
-    }
-  }, [products, searchTerm, selectedCategory, selectedBrand, sortBy, currentPage])
-
-  useEffect(() => {
-    const params = new URLSearchParams(urlSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory)
-    else params.delete('category')
-    if (selectedBrand && selectedBrand !== 'all') params.set('brand', selectedBrand)
-    else params.delete('brand')
-    if (sortBy !== 'name-asc') params.set('sort', sortBy)
-    else params.delete('sort')
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : '/produtos'
-    router.push(newUrl, { scroll: false })
-  }, [searchTerm, selectedCategory, selectedBrand, sortBy, router, urlSearchParams])
-
-  const confirmDelete = (product: Product) => {
-    setDeleteConfirm({ show: true, product })
   }
+  
+  useEffect(() => {
+    fetchProducts()
+  }, [state.search, state.category, state.brand, state.sort, state.page])
 
   const deleteProduct = async () => {
-    if (!deleteConfirm.product) return
+    if (!deleteState.item) return
     
-    setDeleting(true)
-    try {
-      await fetch(`/api/products/${deleteConfirm.product.id}`, { method: 'DELETE' })
-      setProducts(products.filter(p => p.id !== deleteConfirm.product!.id))
-      setDeleteConfirm({ show: false, product: null })
-      toast.success('Produto excluído com sucesso!')
-    } catch (error) {
-      console.error('Erro ao excluir produto:', error)
-      toast.error('Erro ao excluir produto')
-    } finally {
-      setDeleting(false)
+    await remove(`/api/products/${deleteState.item.id}`, {
+      successMessage: 'Produto excluído com sucesso!',
+      onSuccess: () => {
+        // A API `router.refresh()` no hook de mutação já atualiza os dados
+        closeDeleteConfirm()
+      }
+    })
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      updateSingleValue('page', page)
     }
   }
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setSelectedCategory("")
-    setSelectedBrand("")
-    setSortBy("name-asc")
-    setCurrentPage(1)
-  }
-
-  const hasActiveFilters = searchTerm !== "" || selectedCategory !== "" || selectedBrand !== "" || sortBy !== "name-asc"
 
   const additionalFilters = (
     <>
       <SelectWithSearch
         label="Categoria"
         options={categoryOptions}
-        value={selectedCategory}
-        onValueChange={setSelectedCategory}
+        value={state.category}
+        onValueChange={(value) => updateSingleValue('category', value)}
         placeholder="Todas as categorias"
         emptyMessage="Nenhuma categoria encontrada."
         searchPlaceholder="Buscar categorias..."
@@ -159,14 +136,59 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
       <SelectWithSearch
         label="Marca"
         options={brandOptions}
-        value={selectedBrand}
-        onValueChange={setSelectedBrand}
+        value={state.brand}
+        onValueChange={(value) => updateSingleValue('brand', value)}
         placeholder="Todas as marcas"
         emptyMessage="Nenhuma marca encontrada."
         searchPlaceholder="Buscar marcas..."
       />
     </>
   )
+
+  const renderEmptyState = () => {
+    if (pagination.totalCount === 0) {
+      return (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Nenhum produto cadastrado</h3>
+            <p className="text-gray-600 mb-4">
+              Comece adicionando seu primeiro produto
+            </p>
+            <Link href="/produtos/novo">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Cadastrar Primeiro Produto
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    if (products.length === 0 && hasActiveFilters) {
+      return (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
+            <p className="text-gray-600 mb-4">
+              Tente ajustar os filtros de busca
+            </p>
+            <Button variant="outline" onClick={() => {
+              clearFilters()
+              updateSingleValue('page', 1)
+            }}>
+              <Filter className="h-4 w-4 mr-2" />
+              Limpar Filtros
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return null
+  }
 
   return (
     <>
@@ -175,65 +197,64 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Nome, código ou escaneie..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
         <FilterPopover
-          sortValue={sortBy}
-          onSortChange={setSortBy}
+          sortValue={state.sort}
+          onSortChange={(value) => updateSingleValue('sort', value)}
           sortOptions={sortOptions}
           additionalFilters={additionalFilters}
           hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={() => {
+            clearFilters()
+            updateSingleValue('page', 1)
+          }}
         />
       </div>
 
       <div className="space-y-4">
-        {paginatedProducts.length === 0 && products.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum produto cadastrado</h3>
-              <p className="text-gray-600 mb-4">
-                Comece adicionando seu primeiro produto
-              </p>
-              <Link href="/produtos/novo">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Cadastrar Primeiro Produto
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : paginatedProducts.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
-              <p className="text-gray-600 mb-4">
-                Tente ajustar os filtros de busca
-              </p>
-              <Button variant="outline" onClick={clearFilters}>
-                <Filter className="h-4 w-4 mr-2" />
-                Limpar Filtros
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5" />
+                    <Skeleton className="h-6 w-28" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <Skeleton className="h-3 w-3" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : products.length > 0 ? (
           <>
             <div className="flex justify-between items-center text-sm text-gray-600">
               <span>
-                Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
+                Mostrando {products.length} de {pagination.totalCount} produtos
               </span>
               <span>
-                Página {currentPage} de {totalPages}
+                Página {pagination.currentPage} de {pagination.totalPages}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedProducts.map((product) => (
+              {products.map((product) => (
                 <Card key={product.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -275,7 +296,7 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => confirmDelete(product)}
+                        onClick={() => openDeleteConfirm(product)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -285,24 +306,24 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
               ))}
             </div>
 
-            {totalPages > 1 && (
+            {pagination.totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 pt-6">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
                 
                 <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
                     .filter(page => 
                       page === 1 || 
-                      page === totalPages || 
-                      Math.abs(page - currentPage) <= 2
+                      page === pagination.totalPages || 
+                      Math.abs(page - pagination.currentPage) <= 2
                     )
                     .map((page, index, array) => (
                       <React.Fragment key={page}>
@@ -310,9 +331,9 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
                           <span className="px-2 py-1 text-gray-400">...</span>
                         )}
                         <Button
-                          variant={currentPage === page ? "default" : "outline"}
+                          variant={pagination.currentPage === page ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(page)}
+                          onClick={() => handlePageChange(page)}
                           className="w-8 h-8 p-0"
                         >
                           {page}
@@ -325,8 +346,8 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages}
                 >
                   Próxima
                   <ChevronRight className="h-4 w-4" />
@@ -334,10 +355,10 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
               </div>
             )}
           </>
-        )}
+        ) : renderEmptyState()}
       </div>
 
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, product: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -347,7 +368,7 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir o produto <strong>{deleteConfirm.product?.name}</strong>?
+              Tem certeza que deseja excluir o produto <strong>{deleteState.item?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
               Esta ação não pode ser desfeita e todas as informações relacionadas ao produto serão perdidas.
@@ -356,15 +377,15 @@ export function ProductsClient({ initialProducts, categories, brands, searchPara
               <Button 
                 variant="destructive" 
                 onClick={deleteProduct}
-                disabled={deleting}
+                disabled={deleteLoading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {deleteLoading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, product: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

@@ -22,6 +22,11 @@ export async function GET(request: Request) {
     const [brands, totalCount] = await prisma.$transaction([
       prisma.brand.findMany({
         where,
+        include: {
+          _count: {
+            select: { products: true }
+          }
+        },
         orderBy: {
           [orderBy === 'date' ? 'createdAt' : orderBy]: orderDirection as 'asc' | 'desc'
         },

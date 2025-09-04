@@ -17,6 +17,8 @@ async function fetchBrands(searchParams: MarcasPageProps["searchParams"]) {
 
   const response = await fetch(`http://localhost:3000/api/brands?${params.toString()}`, { cache: 'no-store' });
   const data = await response.json();
+  
+
   return { brands: data.brands, totalCount: data.totalCount };
 }
 

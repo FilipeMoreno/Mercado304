@@ -1,8 +1,11 @@
 "use client"
 
+import { useEffect } from "react"
 import { Combobox } from "@/components/ui/combobox"
 import { Category } from "@/types"
 import { toast } from "sonner"
+import { useDataStore } from "@/store/useDataStore"
+import { AppToasts } from "@/lib/toasts"
 
 interface CategorySelectProps {
   value?: string
@@ -10,9 +13,6 @@ interface CategorySelectProps {
   placeholder?: string
   className?: string
   disabled?: boolean
-  onCategoryCreated?: (category: Category) => void
-  categories?: Category[]
-  loading?: boolean
 }
 
 export function CategorySelect({
@@ -21,10 +21,13 @@ export function CategorySelect({
   placeholder = "Selecione uma categoria",
   className = "w-full",
   disabled = false,
-  onCategoryCreated,
-  categories = [],
-  loading = false
 }: CategorySelectProps) {
+  // Obter dados e actions do store
+  const { categories, loading, fetchCategories, addCategory } = useDataStore()
+
+  useEffect(() => {
+    fetchCategories() // Busca os dados se não estiverem em cache
+  }, [fetchCategories])
 
   const handleCreateCategory = async (name: string) => {
     try {
@@ -33,26 +36,25 @@ export function CategorySelect({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           name: name.trim(),
-          icon: '📦'
+          icon: '📦' // Ícone padrão
         })
       })
 
       if (response.ok) {
-        const newCategory = await response.json()
+        const newCategory: Category = await response.json()
+        addCategory(newCategory) // Adiciona a nova categoria ao store
         onValueChange?.(newCategory.id)
-        onCategoryCreated?.(newCategory)
-        toast.success('Categoria criada com sucesso!')
+        AppToasts.created("Categoria")
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Erro ao criar categoria')
+        AppToasts.error(error, "Erro ao criar categoria")
       }
     } catch (error) {
-      console.error('Erro ao criar categoria:', error)
-      toast.error('Erro ao criar categoria')
+      AppToasts.error(error, "Erro ao criar categoria")
     }
   }
 
-  if (loading) {
+  if (loading.categories && categories.length === 0) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

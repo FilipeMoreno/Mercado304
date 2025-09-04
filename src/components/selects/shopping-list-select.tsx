@@ -1,10 +1,11 @@
-// src/components/selects/shopping-list-select.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { Combobox } from "@/components/ui/combobox"
 import { ShoppingList } from "@/types"
-import { toast } from "sonner"
+import { useDataStore } from "@/store/useDataStore"
+import { AppToasts } from "@/lib/toasts"
+import { createShoppingList } from "@/services/shoppingListService"
 
 interface ShoppingListSelectProps {
   value?: string
@@ -21,57 +22,24 @@ export function ShoppingListSelect({
   className = "w-full",
   disabled = false
 }: ShoppingListSelectProps) {
-  const [lists, setLists] = useState<ShoppingList[]>([])
-  const [loading, setLoading] = useState(true)
+  const { shoppingLists, loading, fetchShoppingLists } = useDataStore()
 
   useEffect(() => {
-    fetchLists()
-  }, [])
-
-  const fetchLists = async () => {
-    try {
-      const response = await fetch('/api/shopping-lists')
-      if (response.ok) {
-        const data = await response.json()
-        setLists(data.lists)
-      } else {
-        setLists([])
-      }
-    } catch (error) {
-      console.error('Erro ao buscar listas:', error)
-      setLists([])
-    } finally {
-      setLoading(false)
-    }
-  }
+    fetchShoppingLists()
+  }, [fetchShoppingLists])
 
   const handleCreateList = async (name: string) => {
     try {
-      const response = await fetch('/api/shopping-lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          name: name.trim(),
-          isActive: true
-        })
-      })
-
-      if (response.ok) {
-        const newList = await response.json()
-        setLists(prev => [...prev, newList])
-        onValueChange?.(newList.id)
-        toast.success('Lista criada com sucesso!')
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao criar lista')
-      }
+      const newList = await createShoppingList({ name: name.trim(), isActive: true });
+      fetchShoppingLists(true); // Força a atualização da lista
+      onValueChange?.(newList.id)
+      AppToasts.created("Lista")
     } catch (error) {
-      console.error('Erro ao criar lista:', error)
-      toast.error('Erro ao criar lista')
+      AppToasts.error(error, "Erro ao criar lista")
     }
   }
 
-  if (loading) {
+  if (loading.shoppingLists && shoppingLists.length === 0) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )
@@ -79,7 +47,7 @@ export function ShoppingListSelect({
 
   return (
     <Combobox
-      options={lists.map(list => ({
+      options={shoppingLists.map(list => ({
         value: list.id,
         label: `${list.name} (${list.items?.length || 0} itens)`
       }))}

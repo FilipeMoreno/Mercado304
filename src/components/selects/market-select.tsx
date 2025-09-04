@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
 import { Combobox } from "@/components/ui/combobox"
-import { toast } from "sonner"
 import { Market } from "@/types"
+import { toast } from "sonner"
+import { useDataStore } from "@/store/useDataStore" // Importar o store
 
 interface MarketSelectProps {
   value?: string
@@ -10,9 +12,6 @@ interface MarketSelectProps {
   placeholder?: string
   className?: string
   disabled?: boolean
-  markets?: Market[]
-  loading?: boolean
-  onMarketCreated?: (market: Market) => void
 }
 
 export function MarketSelect({
@@ -20,11 +19,14 @@ export function MarketSelect({
   onValueChange,
   placeholder = "Selecione o mercado",
   className = "w-full",
-  disabled = false,
-  markets = [],
-  loading = false,
-  onMarketCreated
+  disabled = false
 }: MarketSelectProps) {
+  // Obter dados e actions do store
+  const { markets, loading, fetchMarkets, addMarket } = useDataStore()
+
+  useEffect(() => {
+    fetchMarkets() // Busca os mercados quando o componente é montado (se já não estiverem no cache)
+  }, [fetchMarkets])
 
   const handleCreateMarket = async (name: string) => {
     try {
@@ -35,21 +37,20 @@ export function MarketSelect({
       })
 
       if (response.ok) {
-        const newMarket = await response.json()
+        const newMarket: Market = await response.json()
+        addMarket(newMarket) // Adiciona o novo mercado ao store
         onValueChange?.(newMarket.id)
-        onMarketCreated?.(newMarket)
         toast.success('Mercado criado com sucesso!')
       } else {
         const error = await response.json()
         toast.error(error.error || 'Erro ao criar mercado')
       }
     } catch (error) {
-      console.error('Erro ao criar mercado:', error)
       toast.error('Erro ao criar mercado')
     }
   }
 
-  if (loading) {
+  if (loading.markets && markets.length === 0) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

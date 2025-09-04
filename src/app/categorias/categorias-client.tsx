@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,8 +11,9 @@ import { Plus, Tag, Edit, Trash2, Search, Filter, ChevronLeft, ChevronRight } fr
 import { FilterPopover } from "@/components/ui/filter-popover"
 
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
+import Link from "next/link"
 
 interface Category {
   id: string
@@ -27,7 +28,15 @@ interface Category {
 }
 
 interface CategoriasClientProps {
-  initialCategories: Category[];
+  categoriesData: {
+    categories: Category[]
+    pagination: {
+      currentPage: number
+      totalPages: number
+      totalCount: number
+      hasMore: boolean
+    }
+  }
   searchParams: {
     search?: string
     sort?: string
@@ -35,83 +44,63 @@ interface CategoriasClientProps {
   }
 }
 
-export function CategoriasClient({ initialCategories, searchParams }: CategoriasClientProps) {
-  const router = useRouter()
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [loading, setLoading] = useState(false) // Este loading agora é para ações como salvar/excluir
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [sortBy, setSortBy] = useState<"name" | "products" | "date">(searchParams.sort as any || "name")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
-  const itemsPerPage = 12
+export function CategoriasClient({ categoriesData, searchParams }: CategoriasClientProps) {
+  const [categories, setCategories] = useState<Category[]>(categoriesData.categories)
+  const [pagination, setPagination] = useState(categoriesData.pagination)
+  const [dataLoading, setDataLoading] = useState(false) // Variável renomeada
   const [showForm, setShowForm] = useState(false)
   const [newCategory, setNewCategory] = useState({ name: "", icon: "", color: "" })
-  const [saving, setSaving] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [editForm, setEditForm] = useState({ name: "", icon: "", color: "" })
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, category: Category | null }>({ show: false, category: null })
-  const [deleting, setDeleting] = useState(false)
+  const itemsPerPage = 12
 
-  // Sincronizar categorias com os dados iniciais do servidor
-  useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
+  // Hooks customizados
+  const { create, update, remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Category>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/categorias',
+    initialValues: {
+      search: searchParams.search || "",
+      sort: searchParams.sort || "name",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
 
-  // Atualizar a URL quando filtros ou paginação mudam
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (searchTerm) params.set('search', searchTerm)
-    if (sortBy !== 'name') params.set('sort', sortBy)
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    
-    router.push(`/categorias?${params.toString()}`, { scroll: false })
-  }, [searchTerm, sortBy, currentPage, router])
+  const fetchCategories = async () => {
+    setDataLoading(true) // Usando a nova variável
+    try {
+      const params = new URLSearchParams({
+        search: state.search,
+        sort: state.sort,
+        page: state.page.toString(),
+        limit: '12'
+      })
+      
+      const response = await fetch(`/api/categories?${params.toString()}`)
+      if (!response.ok) throw new Error('Erro ao carregar categorias')
+      
+      const data = await response.json()
+      setCategories(data.categories)
+      setPagination(data.pagination)
+    } catch (error) {
+      console.error('Erro:', error)
+    } finally {
+      setDataLoading(false) // Usando a nova variável
+    }
+  }
+  
+  React.useEffect(() => {
+    fetchCategories()
+  }, [state.search, state.sort, state.page])
+
 
   // Opções de ordenação para o FilterPopover
   const sortOptions = [
     { value: "name", label: "Nome" },
-    { value: "products", label: "N° Produtos" },
+    { value: "products", label: "Nº Produtos" },
     { value: "date", label: "Data" }
-  ];
-
-  // Filtros em memória para a paginação e a busca
-  const { filteredCategories, paginatedCategories, totalPages } = React.useMemo(() => {
-    let filtered = categories.filter(category => 
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name)
-        case "products":
-          return b._count.products - a._count.products
-        case "date":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        default:
-          return 0
-      }
-    })
-    
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedCategories = filtered.slice(startIndex, endIndex)
-    const totalPages = Math.ceil(filtered.length / itemsPerPage)
-    
-    return { 
-      filteredCategories: filtered, 
-      paginatedCategories, 
-      totalPages 
-    }
-  }, [categories, searchTerm, sortBy, currentPage])
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setSortBy("name")
-    setCurrentPage(1)
-  }
-  
-  const hasActiveFilters = searchTerm !== "" || sortBy !== "name"
-
+  ]
 
   const createCategory = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -121,27 +110,13 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
       return
     }
 
-    setSaving(true)
-    try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCategory)
-      })
-
-      if (response.ok) {
+    await create('/api/categories', newCategory, {
+      successMessage: 'Categoria criada com sucesso!',
+      onSuccess: () => {
         setNewCategory({ name: "", icon: "", color: "" })
         setShowForm(false)
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao criar categoria')
       }
-    } catch (error) {
-      toast.error('Erro ao criar categoria')
-    } finally {
-      setSaving(false)
-    }
+    })
   }
 
   const openEditDialog = (category: Category) => {
@@ -162,54 +137,28 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
     e.preventDefault()
     if (!editingCategory) return
 
-    setSaving(true)
-    try {
-      const response = await fetch(`/api/categories/${editingCategory.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      })
-
-      if (response.ok) {
-        closeEditDialog()
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao atualizar categoria')
-      }
-    } catch (error) {
-      toast.error('Erro ao atualizar categoria')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const confirmDelete = (category: Category) => {
-    setDeleteConfirm({ show: true, category })
+    await update(`/api/categories/${editingCategory.id}`, editForm, {
+      successMessage: 'Categoria atualizada com sucesso!',
+      onSuccess: closeEditDialog
+    })
   }
 
   const deleteCategory = async () => {
-    if (!deleteConfirm.category) return
+    if (!deleteState.item) return
     
-    setDeleting(true)
-    try {
-      const response = await fetch(`/api/categories/${deleteConfirm.category.id}`, { method: 'DELETE' })
-      
-      if (response.ok) {
-        setDeleteConfirm({ show: false, category: null })
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao excluir categoria')
-      }
-    } catch (error) {
-      toast.error('Erro ao excluir categoria')
-    } finally {
-      setDeleting(false)
+    await remove(`/api/categories/${deleteState.item.id}`, {
+      successMessage: 'Categoria excluída com sucesso!',
+      onSuccess: closeDeleteConfirm
+    })
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      updateSingleValue('page', page)
     }
   }
 
-  if (loading) {
+  if (dataLoading) { // Usando a nova variável aqui
     return <CategoriesSkeleton />
   }
 
@@ -234,93 +183,98 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar categorias..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
         <FilterPopover
-          sortValue={sortBy}
-          onSortChange={(value) => setSortBy(value as "name" | "products" | "date")}
+          sortValue={state.sort}
+          onSortChange={(value) => updateSingleValue('sort', value)}
           sortOptions={sortOptions}
           hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={() => {
+            clearFilters()
+            updateSingleValue('page', 1)
+          }}
         />
       </div>
 
       {/* Informações de Paginação */}
       <div className="flex justify-between items-center text-sm text-gray-600">
         <span>
-          Mostrando {paginatedCategories.length} de {filteredCategories.length} categorias
+          Mostrando {categories.length} de {pagination.totalCount} categorias
         </span>
         <span>
-          Página {currentPage} de {totalPages}
+          Página {pagination.currentPage} de {pagination.totalPages}
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedCategories.map((category) => (
+        {categories.map((category) => (
           <Card key={category.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {category.icon ? (
-                  <span className="text-lg">{category.icon}</span>
-                ) : (
-                  <Tag className="h-5 w-5" />
+            <Link href={`/categorias/${category.id}`} className="block">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {category.icon ? (
+                    <span className="text-lg">{category.icon}</span>
+                  ) : (
+                    <Tag className="h-5 w-5" />
+                  )}
+                  {category.name}
+                </CardTitle>
+                <CardDescription>
+                  {category._count.products} {category._count.products === 1 ? 'produto' : 'produtos'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openEditDialog(category)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => openDeleteConfirm(category)}
+                    disabled={category._count.products > 0}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                {category._count.products > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Não é possível excluir categoria com produtos
+                  </p>
                 )}
-                {category.name}
-              </CardTitle>
-              <CardDescription>
-                {category._count.products} {category._count.products === 1 ? 'produto' : 'produtos'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => openEditDialog(category)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => confirmDelete(category)}
-                  disabled={category._count.products > 0}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              {category._count.products > 0 && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Não é possível excluir categoria com produtos
-                </p>
-              )}
-            </CardContent>
+              </CardContent>
+            </Link>
           </Card>
         ))}
       </div>
 
       {/* Controles de Paginação */}
-      {totalPages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="flex justify-center items-center gap-2">
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
+            onClick={() => handlePageChange(pagination.currentPage - 1)}
+            disabled={pagination.currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
             Anterior
           </Button>
           
           <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
               .filter(page => 
                 page === 1 || 
-                page === totalPages || 
-                Math.abs(page - currentPage) <= 2
+                page === pagination.totalPages || 
+                Math.abs(page - pagination.currentPage) <= 2
               )
               .map((page, index, array) => (
                 <React.Fragment key={page}>
@@ -328,9 +282,9 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
                     <span className="px-2 py-1 text-gray-400">...</span>
                   )}
                   <Button
-                    variant={currentPage === page ? "default" : "outline"}
+                    variant={pagination.currentPage === page ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => handlePageChange(page)}
                     className="w-8 h-8 p-0"
                   >
                     {page}
@@ -343,8 +297,8 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(pagination.currentPage + 1)}
+            disabled={pagination.currentPage === pagination.totalPages}
           >
             Próxima
             <ChevronRight className="h-4 w-4" />
@@ -352,7 +306,7 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
         </div>
       )}
 
-      {filteredCategories.length === 0 && categories.length > 0 && (
+      {categories.length === 0 && pagination.totalCount > 0 && !dataLoading && (
         <Card>
           <CardContent className="text-center py-12">
             <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -360,7 +314,10 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
             <p className="text-gray-600 mb-4">
               Tente ajustar os filtros ou termo de busca
             </p>
-            <Button variant="outline" onClick={clearFilters}>
+            <Button variant="outline" onClick={() => {
+              clearFilters()
+              updateSingleValue('page', 1)
+            }}>
               <Filter className="mr-2 h-4 w-4" />
               Limpar filtros
             </Button>
@@ -368,7 +325,7 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
         </Card>
       )}
 
-      {categories.length === 0 && (
+      {pagination.totalCount === 0 && !dataLoading && (
         <Card>
           <CardContent className="text-center py-12">
             <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -419,8 +376,8 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
               />
             </div>
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={saving} className="flex-1">
-                {saving ? "Salvando..." : "Criar Categoria"}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Salvando..." : "Criar Categoria"}
               </Button>
               <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                 Cancelar
@@ -467,8 +424,8 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
               />
             </div>
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={saving} className="flex-1">
-                {saving ? "Salvando..." : "Salvar Alterações"}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Salvando..." : "Salvar Alterações"}
               </Button>
               <Button type="button" variant="outline" onClick={closeEditDialog}>
                 Cancelar
@@ -479,7 +436,7 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
       </Dialog>
 
       {/* Dialog de Confirmação de Exclusão */}
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, category: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -489,7 +446,7 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir a categoria <strong>{deleteConfirm.category?.name}</strong>?
+              Tem certeza que deseja excluir a categoria <strong>{deleteState.item?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
               Esta ação não pode ser desfeita.
@@ -498,15 +455,15 @@ export function CategoriasClient({ initialCategories, searchParams }: Categorias
               <Button 
                 variant="destructive" 
                 onClick={deleteCategory}
-                disabled={deleting}
+                disabled={loading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {loading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, category: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

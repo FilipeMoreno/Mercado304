@@ -38,28 +38,21 @@ export default function ProdutoDetalhesPage() {
 
   const fetchProductDetails = async () => {
     try {
-      const [productResponse, statsResponse] = await Promise.all([
-        fetch(`/api/products/${productId}`),
-        fetch(`/api/products/${productId}/stats`)
-      ])
+      const response = await fetch(`/api/products/${productId}?includeStats=true`)
 
-      if (!productResponse.ok) {
+      if (!response.ok) {
         toast.error('Produto não encontrado')
         router.push('/produtos')
         return
       }
 
-      const productData = await productResponse.json()
-      setProduct(productData)
-
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData.stats)
-        setPriceHistory(statsData.priceHistory || [])
-        setMarketComparison(statsData.marketComparison || [])
-        setRecentPurchases(statsData.recentPurchases || [])
-        setStockAlerts(statsData.stockAlerts)
-      }
+      const data = await response.json()
+      setProduct(data.product)
+      setStats(data.stats)
+      setPriceHistory(data.priceHistory || [])
+      setMarketComparison(data.marketComparison || [])
+      setRecentPurchases(data.recentPurchases || [])
+      setStockAlerts(data.stockAlerts)
     } catch (error) {
       console.error('Erro ao buscar detalhes do produto:', error)
       toast.error('Erro ao carregar detalhes do produto')

@@ -2,7 +2,26 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development'
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+      {
+        urlPattern: ({ url }) => url.origin === self.location.origin,
+        handler: 'NetworkOnly',
+        options: {
+          cacheName: 'offline-cache',
+          plugins: [
+            {
+              cacheKeyWillBeUsed: async ({ request }) => {
+                return request.url;
+              },
+              handlerDidError: async () => {
+                return Response.redirect('/offline', 302);
+              },
+            },
+          ],
+        },
+      },
+    ],
 })
 
 /** @type {import('next').NextConfig} */

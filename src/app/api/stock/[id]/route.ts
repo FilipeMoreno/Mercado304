@@ -1,6 +1,41 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// GET - Buscar item específico do estoque
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params
+
+    const stockItem = await prisma.stockItem.findUnique({
+      where: { id },
+      include: {
+        product: {
+          include: {
+            brand: true,
+            category: true
+          }
+        }
+      }
+    })
+
+    if (!stockItem) {
+      return NextResponse.json(
+        { error: 'Item de estoque não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(stockItem)
+
+  } catch (error) {
+    console.error('Erro ao buscar item do estoque:', error)
+    return NextResponse.json(
+      { error: 'Erro ao buscar item do estoque' },
+      { status: 500 }
+    )
+  }
+}
+
 // PUT - Atualizar item do estoque
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {

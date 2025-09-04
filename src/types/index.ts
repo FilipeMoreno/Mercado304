@@ -11,6 +11,9 @@ export interface Brand {
   name: string
   createdAt: Date
   updatedAt: Date
+  _count?: {
+    products: number
+  }
 }
 
 export interface Category {

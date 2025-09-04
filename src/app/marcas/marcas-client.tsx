@@ -1,18 +1,19 @@
+// src/app/marcas/marcas-client.tsx
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Tag, Edit, Trash2, Save, X, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Tag, Edit, Trash2, Search, Filter, ChevronLeft, ChevronRight, Factory } from "lucide-react"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Brand } from "@/types"
+import { useDataMutation, useUrlState, useDeleteConfirmation, usePagination } from "@/hooks"
 import { toast } from "sonner"
+import Link from "next/link"
 
 interface MarcasClientProps {
   initialBrands: Brand[]
@@ -25,60 +26,45 @@ interface MarcasClientProps {
 }
 
 export function MarcasClient({ initialBrands, initialTotalCount, searchParams }: MarcasClientProps) {
-  const router = useRouter()
-  const urlSearchParams = useSearchParams()
   const [brands, setBrands] = useState<Brand[]>(initialBrands)
-  const [totalCount, setTotalCount] = useState(initialTotalCount)
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [sortBy, setSortBy] = useState<"name" | "date">((searchParams.sort as any) || "name")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
-  const itemsPerPage = 12
   const [showForm, setShowForm] = useState(false)
   const [newBrandName, setNewBrandName] = useState("")
-  const [saving, setSaving] = useState(false)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
   const [editName, setEditName] = useState("")
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, brand: Brand | null }>({ show: false, brand: null })
-  const [deleting, setDeleting] = useState(false)
+  const itemsPerPage = 12
 
-  const totalPages = Math.ceil(totalCount / itemsPerPage)
+  // Hooks customizados
+  const { create, update, remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Brand>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/marcas',
+    initialValues: {
+      search: searchParams.search || "",
+      sort: searchParams.sort || "name",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
+
+  // Usando os dados iniciais do servidor como fonte para o hook de paginação
+  const { paginatedData: paginatedBrands, totalPages, filteredData } = usePagination({
+    data: brands,
+    itemsPerPage,
+    currentPage: state.page,
+    searchTerm: state.search,
+    sortBy: state.sort
+  })
+
+  // Sincronizar o estado interno com os dados iniciais do servidor
+  React.useEffect(() => {
+    setBrands(initialBrands);
+  }, [initialBrands]);
+
 
   const sortOptions = [
     { value: "name", label: "Nome" },
     { value: "date", label: "Data" }
   ]
-
-  useEffect(() => {
-    setBrands(initialBrands)
-    setTotalCount(initialTotalCount)
-  }, [initialBrands, initialTotalCount])
-
-  useEffect(() => {
-    const params = new URLSearchParams(urlSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (sortBy !== 'name') params.set('sort', sortBy)
-    else params.delete('sort')
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    else params.delete('page')
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : '/marcas'
-    router.push(newUrl, { scroll: false })
-  }, [searchTerm, sortBy, currentPage, router, urlSearchParams])
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
-    }
-  }
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setSortBy("name")
-    setCurrentPage(1)
-  }
-
-  const hasActiveFilters = searchTerm !== "" || sortBy !== "name"
 
   const createBrand = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,27 +72,19 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
       toast.error('Nome da marca é obrigatório')
       return
     }
-    setSaving(true)
-    try {
-      const response = await fetch('/api/brands', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newBrandName.trim() })
-      })
-      if (response.ok) {
-        setNewBrandName("")
-        setShowForm(false)
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao criar marca')
+    
+    await create('/api/brands', 
+      { name: newBrandName.trim() }, 
+      { 
+        successMessage: 'Marca criada com sucesso!',
+        onSuccess: () => {
+          setNewBrandName("")
+          setShowForm(false)
+          // Forçar um refresh para buscar os novos dados
+          window.location.reload(); 
+        }
       }
-    } catch (error) {
-      console.error('Erro ao criar marca:', error)
-      toast.error('Erro ao criar marca')
-    } finally {
-      setSaving(false)
-    }
+    )
   }
 
   const openEditDialog = (brand: Brand) => {
@@ -122,49 +100,30 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
   const updateBrand = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingBrand || !editName.trim()) return
-    setSaving(true)
-    try {
-      const response = await fetch(`/api/brands/${editingBrand.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName.trim() })
-      })
-      if (response.ok) {
-        closeEditDialog()
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao atualizar marca')
+    
+    await update(`/api/brands/${editingBrand.id}`, 
+      { name: editName.trim() }, 
+      { 
+        successMessage: 'Marca atualizada com sucesso!',
+        onSuccess: closeEditDialog 
       }
-    } catch (error) {
-      console.error('Erro ao atualizar marca:', error)
-      toast.error('Erro ao atualizar marca')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const confirmDelete = (brand: Brand) => {
-    setDeleteConfirm({ show: true, brand })
+    )
   }
 
   const deleteBrand = async () => {
-    if (!deleteConfirm.brand) return
-    setDeleting(true)
-    try {
-      await fetch(`/api/brands/${deleteConfirm.brand.id}`, { method: 'DELETE' })
-      setDeleteConfirm({ show: false, brand: null })
-      router.refresh()
-    } catch (error) {
-      console.error('Erro ao excluir marca:', error)
-      toast.error('Erro ao excluir marca')
-    } finally {
-      setDeleting(false)
-    }
+    if (!deleteState.item) return
+    
+    await remove(`/api/brands/${deleteState.item.id}`, {
+      successMessage: 'Marca excluída com sucesso!',
+      onSuccess: closeDeleteConfirm
+    })
   }
 
-  const showNoResultsMessage = brands.length === 0 && (searchTerm || sortBy !== "name")
-  const showNoBrandsMessage = brands.length === 0 && !searchTerm && sortBy === "name"
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      updateSingleValue('page', page)
+    }
+  }
 
   return (
     <>
@@ -187,139 +146,74 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar marcas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
         <FilterPopover
-          sortValue={sortBy}
-          onSortChange={(value) => setSortBy(value as "name" | "date")}
+          sortValue={state.sort}
+          onSortChange={(value) => updateSingleValue('sort', value)}
           sortOptions={sortOptions}
           hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={() => {
+            clearFilters()
+            updateSingleValue('page', 1)
+          }}
         />
       </div>
 
-      {showForm && (
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Tag className="h-5 w-5" />
-                Nova Marca
-              </span>
-              <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={createBrand} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="brandName">Nome da Marca *</Label>
-                <Input
-                  id="brandName"
-                  value={newBrandName}
-                  onChange={(e) => setNewBrandName(e.target.value)}
-                  placeholder="Ex: Nestlé"
-                  required
-                />
-              </div>
+      {/* Informações de Paginação */}
+      <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
+        <span>
+          Mostrando {paginatedBrands.length} de {filteredData.length} marcas
+        </span>
+        <span>
+          Página {state.page} de {totalPages}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {paginatedBrands.map((brand) => (
+          <Card key={brand.id} className="hover:shadow-md transition-shadow">
+            <Link href={`/marcas/${brand.id}`} className="block">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Factory className="h-5 w-5" />
+                  {brand.name}
+                </CardTitle>
+                <CardDescription>
+                  {brand._count?.products || 0} {brand._count?.products === 1 ? 'produto' : 'produtos'}
+                </CardDescription>
+              </CardHeader>
+            </Link>
+            <CardContent>
               <div className="flex gap-2">
-                <Button type="submit" disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? "Salvando..." : "Salvar"}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openEditDialog(brand)}
+                >
+                  <Edit className="h-4 w-4" />
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Cancelar
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => openDeleteConfirm(brand)}
+                  disabled={(brand._count?.products || 0) > 0}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {showNoResultsMessage || showNoBrandsMessage ? (
-        <div className="w-full">
-          {showNoResultsMessage && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhuma marca encontrada</h3>
-                <p className="text-gray-600 mb-4">
-                  Tente ajustar os filtros ou termo de busca
+              {(brand._count?.products || 0) > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Não é possível excluir marca com produtos
                 </p>
-                <Button variant="outline" onClick={clearFilters}>
-                  <Filter className="mr-2 h-4 w-4" />
-                  Limpar filtros
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-          {showNoBrandsMessage && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhuma marca cadastrada</h3>
-                <p className="text-gray-600 mb-4">
-                  Comece cadastrando as marcas dos seus produtos
-                </p>
-                <Button onClick={() => setShowForm(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Cadastrar Primeira Marca
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      ) : (
-        <>
-          {/* Informações de Paginação */}
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <span>
-              Mostrando {brands?.length || 0} de {totalCount || 0} marcas
-            </span>
-            <span>
-              Página {currentPage} de {totalPages || 0}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {brands.map((brand) => (
-              <Card key={brand.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
-                    {brand.name}
-                  </CardTitle>
-                  <CardDescription>
-                    Criada em {new Date(brand.createdAt).toLocaleDateString('pt-BR')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openEditDialog(brand)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => confirmDelete(brand)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Controles de Paginação */}
       {totalPages > 1 && (
@@ -327,8 +221,8 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
+            onClick={() => handlePageChange(state.page - 1)}
+            disabled={state.page === 1}
           >
             <ChevronLeft className="h-4 w-4" />
             Anterior
@@ -339,7 +233,7 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
               .filter(page => 
                 page === 1 || 
                 page === totalPages || 
-                Math.abs(page - currentPage) <= 2
+                Math.abs(page - state.page) <= 2
               )
               .map((page, index, array) => (
                 <React.Fragment key={page}>
@@ -347,7 +241,7 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
                     <span className="px-2 py-1 text-gray-400">...</span>
                   )}
                   <Button
-                    variant={currentPage === page ? "default" : "outline"}
+                    variant={state.page === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => handlePageChange(page)}
                     className="w-8 h-8 p-0"
@@ -362,8 +256,8 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(state.page + 1)}
+            disabled={state.page === totalPages}
           >
             Próxima
             <ChevronRight className="h-4 w-4" />
@@ -371,30 +265,85 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
         </div>
       )}
 
-      {/* Dialog de Edição */}
-      <Dialog open={!!editingBrand} onOpenChange={(open) => !open && closeEditDialog()}>
-        <DialogContent className="max-w-md">
+      {filteredData.length === 0 && brands.length > 0 && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Nenhuma marca encontrada</h3>
+            <p className="text-gray-600 mb-4">
+              Tente ajustar os filtros ou termo de busca
+            </p>
+            <Button variant="outline" onClick={clearFilters}>
+              <Filter className="mr-2 h-4 w-4" />
+              Limpar filtros
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {brands.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-2">Nenhuma marca cadastrada</h3>
+            <p className="text-gray-600 mb-4">Crie a primeira marca para seus produtos</p>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Marca
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialog de Nova Marca */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Edit className="h-5 w-5" />
-              Editar Marca
-            </DialogTitle>
+            <DialogTitle>Nova Marca</DialogTitle>
           </DialogHeader>
-          <form onSubmit={updateBrand} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="editBrandName">Nome da Marca *</Label>
+          <form onSubmit={createBrand} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome da Marca *</Label>
               <Input
-                id="editBrandName"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder="Ex: Nestlé"
+                id="name"
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                placeholder="Nome da marca"
                 required
               />
             </div>
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={saving} className="flex-1">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Salvando..." : "Salvar"}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Criando..." : "Criar Marca"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Edição */}
+      <Dialog open={!!editingBrand} onOpenChange={(open) => !open && closeEditDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Marca</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={updateBrand} className="space-y-4">
+            <div>
+              <Label htmlFor="editName">Nome da Marca *</Label>
+              <Input
+                id="editName"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Nome da marca"
+                required
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Salvando..." : "Salvar Alterações"}
               </Button>
               <Button type="button" variant="outline" onClick={closeEditDialog}>
                 Cancelar
@@ -405,7 +354,7 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
       </Dialog>
 
       {/* Dialog de Confirmação de Exclusão */}
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, brand: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -415,24 +364,24 @@ export function MarcasClient({ initialBrands, initialTotalCount, searchParams }:
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir a marca <strong>{deleteConfirm.brand?.name}</strong>?
+              Tem certeza que deseja excluir a marca <strong>{deleteState.item?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
-              Esta ação não pode ser desfeita e a marca será removida de todos os produtos.
+              Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-2 pt-4">
               <Button 
                 variant="destructive" 
                 onClick={deleteBrand}
-                disabled={deleting}
+                disabled={loading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {loading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, brand: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

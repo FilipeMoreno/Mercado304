@@ -8,10 +8,18 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const location = searchParams.get('location')
     const searchTerm = searchParams.get('search') || ''
+    const filter = searchParams.get('filter') // expired, expiring, low_stock, all
+    const includeExpired = searchParams.get('includeExpired') === 'true'
     
-    const where: any = {
-      isExpired: false,
-      quantity: { gt: 0 }
+    const where: any = {}
+    
+    // Filtros de status
+    if (!includeExpired && filter !== 'expired') {
+      where.isExpired = false
+    }
+    
+    if (filter !== 'expired') {
+      where.quantity = { gt: 0 }
     }
     
     if (location && location !== 'all') {
@@ -83,6 +91,24 @@ export async function GET(request: Request) {
       }
     })
 
+    // Aplicar filtros específicos após processamento
+    let filteredItems = itemsWithAlerts
+    
+    switch (filter) {
+      case 'expired':
+        filteredItems = itemsWithAlerts.filter(item => item.expirationStatus === 'expired')
+        break
+      case 'expiring':
+        filteredItems = itemsWithAlerts.filter(item => item.expirationStatus === 'expiring_soon')
+        break
+      case 'low_stock':
+        filteredItems = itemsWithAlerts.filter(item => item.stockStatus === 'low')
+        break
+      default:
+        // 'all' ou nenhum filtro específico
+        break
+    }
+
     const stats = {
       totalItems: stockItems.length,
       totalValue: stockItems.reduce((sum, item) => 
@@ -95,7 +121,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      items: itemsWithAlerts,
+      items: filteredItems,
       stats
     })
 

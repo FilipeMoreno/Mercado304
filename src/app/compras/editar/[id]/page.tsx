@@ -262,7 +262,6 @@ export default function EditarCompraPage() {
                 <MarketSelect
                   value={formData.marketId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, marketId: value }))}
-                  markets={markets}
                 />
               </div>
               <div className="space-y-2">

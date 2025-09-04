@@ -1,17 +1,62 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
-      include: {
-        _count: {
-          select: { products: true }
+    const { searchParams } = new URL(request.url)
+    
+    const search = searchParams.get('search') || ''
+    const sort = searchParams.get('sort') || 'name-asc'
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '12')
+    
+    const skip = (page - 1) * limit
+    
+    let where: any = {}
+    
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' }
+    }
+    
+    let orderBy: any = { name: 'asc' }
+    switch (sort) {
+      case 'name-desc':
+        orderBy = { name: 'desc' }
+        break
+      case 'products-count':
+        orderBy = { products: { _count: 'desc' } }
+        break
+      case 'date-desc':
+        orderBy = { createdAt: 'desc' }
+        break
+    }
+    
+    const [categories, totalCount] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: {
+          _count: {
+            select: { products: true }
+          }
         }
+      }),
+      prisma.category.count({ where })
+    ])
+    
+    const totalPages = Math.ceil(totalCount / limit)
+    
+    return NextResponse.json({
+      categories,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasMore: page < totalPages
       }
     })
-    return NextResponse.json(categories)
   } catch (error) {
     return NextResponse.json(
       { error: 'Erro ao buscar categorias' },

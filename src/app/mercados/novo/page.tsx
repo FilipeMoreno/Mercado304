@@ -77,7 +77,7 @@ export default function NovoMercadoPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Store className="h-5 w-5" />

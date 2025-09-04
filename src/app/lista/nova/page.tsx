@@ -323,7 +323,7 @@ export default function NovaListaPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="max-w-4xl">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <List className="h-5 w-5" />
@@ -345,7 +345,7 @@ export default function NovaListaPage() {
           </CardContent>
         </Card>
 
-        <Card className="max-w-4xl">
+        <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">

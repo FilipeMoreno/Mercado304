@@ -1,14 +1,18 @@
+// src/app/api/dashboard/stats/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    // Calcular comparação mensal
     const currentMonth = new Date()
     currentMonth.setDate(1) // Primeiro dia do mês atual
     
     const lastMonth = new Date(currentMonth)
     lastMonth.setMonth(lastMonth.getMonth() - 1)
+
+    // Período de 12 meses atrás para o novo gráfico
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
 
     const [
       totalPurchases,
@@ -20,7 +24,8 @@ export async function GET() {
       marketComparison,
       categoryStats,
       currentMonthStats,
-      lastMonthStats
+      lastMonthStats,
+      monthlySpending
     ] = await Promise.all([
       prisma.purchase.count(),
       
@@ -47,6 +52,7 @@ export async function GET() {
       
       prisma.purchaseItem.groupBy({
         by: ['productId'],
+        where: { productId: { not: null } }, // Garante que não pegamos itens sem produto
         _count: {
           productId: true
         },
@@ -79,7 +85,6 @@ export async function GET() {
         }
       }),
 
-      // Estatísticas por categoria - gastos por categoria
       prisma.$queryRaw`
         SELECT 
           c.name as "categoryName",
@@ -99,7 +104,6 @@ export async function GET() {
         LIMIT 10
       `,
       
-      // Estatísticas do mês atual
       prisma.purchase.aggregate({
         where: {
           purchaseDate: { gte: currentMonth }
@@ -108,7 +112,6 @@ export async function GET() {
         _sum: { totalAmount: true }
       }),
       
-      // Estatísticas do mês passado
       prisma.purchase.aggregate({
         where: {
           purchaseDate: { 
@@ -118,42 +121,59 @@ export async function GET() {
         },
         _count: { id: true },
         _sum: { totalAmount: true }
-      })
-    ])
+      }),
 
-    const topProductsWithNames = await Promise.all(
-      topProducts.map(async (item) => {
-        const product = item.productId ? await prisma.product.findUnique({
-          where: { id: item.productId },
-          include: { 
-            brand: true,
-            category: true
-          }
-        }) : null
-        return {
-          productId: item.productId,
-          productName: product?.name || 'Produto não encontrado',
-          unit: product?.unit || 'unidade',
-          totalPurchases: item._count.productId,
-          totalQuantity: item._sum.quantity || 0,
-          averagePrice: item._avg.unitPrice || 0
-        }
-      })
-    )
+      prisma.$queryRaw`
+        SELECT 
+          TO_CHAR(date_trunc('month', "purchaseDate"), 'YYYY-MM') as month,
+          SUM("totalAmount") as "totalSpent"
+        FROM "purchases"
+        WHERE "purchaseDate" >= ${twelveMonthsAgo}
+        GROUP BY month
+        ORDER BY month ASC
+      `
+    ]);
 
-    const marketComparisonWithNames = await Promise.all(
-      marketComparison.map(async (item) => {
-        const market = await prisma.market.findUnique({
-          where: { id: item.marketId }
-        })
-        return {
-          marketId: item.marketId,
-          marketName: market?.name || 'Mercado não encontrado',
-          totalPurchases: item._count.id,
-          averagePrice: item._avg.totalAmount || 0
+    // OTIMIZAÇÃO: Coletar todos os IDs de produtos e mercados
+    const productIds = topProducts.map(item => item.productId).filter((id): id is string => id !== null);
+    const marketIds = marketComparison.map(item => item.marketId);
+
+    // OTIMIZAÇÃO: Fazer duas consultas únicas para buscar todos os detalhes de uma vez
+    const [productsInfo, marketsInfo] = await Promise.all([
+      prisma.product.findMany({
+        where: { id: { in: productIds } },
+        include: { 
+          brand: true,
+          category: true
         }
+      }),
+      prisma.market.findMany({
+        where: { id: { in: marketIds } }
       })
-    )
+    ]);
+
+    // OTIMIZAÇÃO: Mapear os resultados em memória, sem novas consultas ao banco
+    const topProductsWithNames = topProducts.map((item) => {
+      const product = productsInfo.find(p => p.id === item.productId);
+      return {
+        productId: item.productId,
+        productName: product?.name || 'Produto não encontrado',
+        unit: product?.unit || 'unidade',
+        totalPurchases: item._count.productId,
+        totalQuantity: item._sum.quantity || 0,
+        averagePrice: item._avg.unitPrice || 0
+      };
+    });
+
+    const marketComparisonWithNames = marketComparison.map((item) => {
+      const market = marketsInfo.find(m => m.id === item.marketId);
+      return {
+        marketId: item.marketId,
+        marketName: market?.name || 'Mercado não encontrado',
+        totalPurchases: item._count.id,
+        averagePrice: item._avg.totalAmount || 0
+      };
+    });
 
     // Calcular comparação mensal
     const currentMonthTotal = currentMonthStats?._sum?.totalAmount || 0
@@ -188,6 +208,12 @@ export async function GET() {
       averagePrice: parseFloat(cat.averagePrice || '0')
     }))
 
+    // Processar dados do novo gráfico
+    const monthlySpendingProcessed = (monthlySpending as any[]).map(data => ({
+      ...data,
+      totalSpent: parseFloat(data.totalSpent)
+    }))
+
     const stats = {
       totalPurchases,
       totalSpent: totalSpent._sum.totalAmount || 0,
@@ -197,7 +223,8 @@ export async function GET() {
       topProducts: topProductsWithNames.filter(p => p.productId), // Filtrar produtos nulos
       marketComparison: marketComparisonWithNames,
       monthlyComparison,
-      categoryStats: categoryStatsProcessed
+      categoryStats: categoryStatsProcessed,
+      monthlySpending: monthlySpendingProcessed 
     }
 
     return NextResponse.json(stats)

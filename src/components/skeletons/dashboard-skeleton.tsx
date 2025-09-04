@@ -23,6 +23,16 @@ export function DashboardSkeleton() {
         ))}
       </div>
 
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 animate-pulse rounded-lg bg-gray-200" />
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

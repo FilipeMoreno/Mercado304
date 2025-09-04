@@ -2,8 +2,8 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useMemo } from "react"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
-import { ShoppingCart, Store, Calendar, Edit, Trash2, Eye, Search, CalendarDays, X, ChevronLeft, ChevronRight, Filter } from "lucide-react"
+import { ShoppingCart, Store, Calendar, Edit, Trash2, Eye, Search, ChevronLeft, ChevronRight, Filter } from "lucide-react"
 import { Purchase } from "@/types"
 import { format, subDays, startOfMonth } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -33,26 +33,30 @@ interface PurchasesClientProps {
 }
 
 export function PurchasesClient({ initialPurchases, initialMarkets, initialTotalCount, searchParams }: PurchasesClientProps) {
-  const router = useRouter()
-  const urlSearchParams = useSearchParams()
   const [purchases, setPurchases] = useState(initialPurchases)
   const [markets, setMarkets] = useState(initialMarkets)
   const [totalCount, setTotalCount] = useState(initialTotalCount)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, purchase: Purchase | null }>({ show: false, purchase: null })
-  const [deleting, setDeleting] = useState(false)
   const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null)
   const [purchaseDetails, setPurchaseDetails] = useState<any>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
-  
-  // Estados de filtro e paginação sincronizados com a URL
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [selectedMarket, setSelectedMarket] = useState(searchParams.market || "all")
-  const [sortBy, setSortBy] = useState(searchParams.sort || "date-desc")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
-  const [period, setPeriod] = useState(searchParams.period || "all")
-  const [dateFrom, setDateFrom] = useState(searchParams.dateFrom || "")
-  const [dateTo, setDateTo] = useState(searchParams.dateTo || "")
   const itemsPerPage = 12
+
+  // Hooks customizados
+  const { remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Purchase>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/compras',
+    initialValues: {
+      search: searchParams.search || "",
+      market: searchParams.market || "all",
+      sort: searchParams.sort || "date-desc",
+      period: searchParams.period || "all",
+      dateFrom: searchParams.dateFrom || "",
+      dateTo: searchParams.dateTo || "",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
 
   const totalPages = Math.ceil(totalCount / itemsPerPage)
 
@@ -69,45 +73,32 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
   ]), [markets])
 
   const handlePeriodChange = (value: string) => {
-    setPeriod(value)
+    updateSingleValue('period', value)
     if (value === "all") {
-      setDateFrom("")
-      setDateTo("")
+      updateSingleValue('dateFrom', "")
+      updateSingleValue('dateTo', "")
     } else if (value === "last7") {
-      setDateFrom(format(subDays(new Date(), 7), "yyyy-MM-dd"))
-      setDateTo(format(new Date(), "yyyy-MM-dd"))
+      updateSingleValue('dateFrom', format(subDays(new Date(), 7), "yyyy-MM-dd"))
+      updateSingleValue('dateTo', format(new Date(), "yyyy-MM-dd"))
     } else if (value === "last30") {
-      setDateFrom(format(subDays(new Date(), 30), "yyyy-MM-dd"))
-      setDateTo(format(new Date(), "yyyy-MM-dd"))
+      updateSingleValue('dateFrom', format(subDays(new Date(), 30), "yyyy-MM-dd"))
+      updateSingleValue('dateTo', format(new Date(), "yyyy-MM-dd"))
     } else if (value === "currentMonth") {
-      setDateFrom(format(startOfMonth(new Date()), "yyyy-MM-dd"))
-      setDateTo(format(new Date(), "yyyy-MM-dd"))
+      updateSingleValue('dateFrom', format(startOfMonth(new Date()), "yyyy-MM-dd"))
+      updateSingleValue('dateTo', format(new Date(), "yyyy-MM-dd"))
     } else {
-      // Período customizado, deixa os campos de data abertos
-      setDateFrom("")
-      setDateTo("")
+      updateSingleValue('dateFrom', "")
+      updateSingleValue('dateTo', "")
     }
-  }
-
-  const confirmDelete = (purchase: Purchase) => {
-    setDeleteConfirm({ show: true, purchase })
   }
 
   const deletePurchase = async () => {
-    if (!deleteConfirm.purchase) return
+    if (!deleteState.item) return
     
-    setDeleting(true)
-    try {
-      await fetch(`/api/purchases/${deleteConfirm.purchase.id}`, { method: 'DELETE' })
-      setDeleteConfirm({ show: false, purchase: null })
-      router.refresh()
-      toast.success('Compra excluída com sucesso!')
-    } catch (error) {
-      console.error('Erro ao excluir compra:', error)
-      toast.error('Erro ao excluir compra')
-    } finally {
-      setDeleting(false)
-    }
+    await remove(`/api/purchases/${deleteState.item.id}`, {
+      successMessage: 'Compra excluída com sucesso!',
+      onSuccess: closeDeleteConfirm
+    })
   }
 
   const viewPurchaseDetails = async (purchase: Purchase) => {
@@ -126,57 +117,23 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
   }
   
   // Sincronizar estado interno com dados iniciais do servidor
-  useEffect(() => {
+  React.useEffect(() => {
     setPurchases(initialPurchases)
     setTotalCount(initialTotalCount)
     setMarkets(initialMarkets)
   }, [initialPurchases, initialMarkets, initialTotalCount])
 
-  // Lógica para atualizar a URL com base nos filtros e paginação
-  useEffect(() => {
-    const params = new URLSearchParams(urlSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (selectedMarket && selectedMarket !== 'all') params.set('market', selectedMarket)
-    else params.delete('market')
-    if (sortBy !== 'date-desc') params.set('sort', sortBy)
-    else params.delete('sort')
-    if (period && period !== 'all') params.set('period', period)
-    else params.delete('period')
-    if (dateFrom) params.set('dateFrom', dateFrom)
-    else params.delete('dateFrom')
-    if (dateTo) params.set('dateTo', dateTo)
-    else params.delete('dateTo')
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    else params.delete('page')
-
-    const newUrl = params.toString() ? `?${params.toString()}` : '/compras'
-    router.push(newUrl, { scroll: false })
-  }, [searchTerm, selectedMarket, sortBy, period, dateFrom, dateTo, currentPage, router, urlSearchParams])
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setSelectedMarket("all")
-    setSortBy("date-desc")
-    setPeriod("all")
-    setDateFrom("")
-    setDateTo("")
-    setCurrentPage(1)
-  }
-
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+      updateSingleValue('page', page)
     }
   }
-  
-  const hasActiveFilters = searchTerm !== "" || selectedMarket !== "all" || sortBy !== "date-desc" || period !== "all" || dateFrom !== "" || dateTo !== ""
 
   const additionalFilters = (
     <>
       <div className="space-y-2">
         <Label>Mercado</Label>
-        <Select value={selectedMarket} onValueChange={setSelectedMarket}>
+        <Select value={state.market} onValueChange={(value) => updateSingleValue('market', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Todos os mercados" />
           </SelectTrigger>
@@ -191,7 +148,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
       </div>
       <div className="space-y-2">
         <Label>Período</Label>
-        <Select value={period} onValueChange={handlePeriodChange}>
+        <Select value={state.period} onValueChange={handlePeriodChange}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione um período" />
           </SelectTrigger>
@@ -204,15 +161,15 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
           </SelectContent>
         </Select>
       </div>
-      {(period === "custom" || (dateFrom && dateTo)) && (
+      {(state.period === "custom" || (state.dateFrom && state.dateTo)) && (
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-2">
             <Label htmlFor="dateFrom">De</Label>
             <Input
               type="date"
               id="dateFrom"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              value={state.dateFrom}
+              onChange={(e) => updateSingleValue('dateFrom', e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -220,8 +177,8 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
             <Input
               type="date"
               id="dateTo"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              value={state.dateTo}
+              onChange={(e) => updateSingleValue('dateTo', e.target.value)}
             />
           </div>
         </div>
@@ -236,18 +193,21 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar produtos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
         <FilterPopover
-          sortValue={sortBy}
-          onSortChange={setSortBy}
+          sortValue={state.sort}
+          onSortChange={(value) => updateSingleValue('sort', value)}
           sortOptions={sortOptions}
           additionalFilters={additionalFilters}
           hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={() => {
+            clearFilters()
+            updateSingleValue('page', 1)
+          }}
         />
       </div>
 
@@ -263,7 +223,10 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                 {hasActiveFilters ? 'Tente ajustar os filtros de busca' : 'Comece adicionando sua primeira compra'}
               </p>
               {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters}>
+                <Button variant="outline" onClick={() => {
+                  clearFilters()
+                  updateSingleValue('page', 1)
+                }}>
                   <Filter className="h-4 w-4 mr-2" />
                   Limpar Filtros
                 </Button>
@@ -277,7 +240,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                 Mostrando {purchases.length} de {totalCount} compras
               </span>
               <span>
-                Página {currentPage} de {totalPages}
+                Página {state.page} de {totalPages}
               </span>
             </div>
             
@@ -331,7 +294,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => confirmDelete(purchase)}
+                      onClick={() => openDeleteConfirm(purchase)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -345,22 +308,22 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(state.page - 1)}
+                  disabled={state.page === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
                 <div className="flex gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+                    .filter(page => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
                     .map((page, index, array) => (
                       <React.Fragment key={page}>
                         {index > 0 && array[index - 1] !== page - 1 && (
                           <span className="px-2 py-1 text-gray-400">...</span>
                         )}
                         <Button
-                          variant={currentPage === page ? "default" : "outline"}
+                          variant={state.page === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
                           className="w-8 h-8 p-0"
@@ -374,8 +337,8 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(state.page + 1)}
+                  disabled={state.page === totalPages}
                 >
                   Próxima
                   <ChevronRight className="h-4 w-4" />
@@ -447,7 +410,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, purchase: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -457,7 +420,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir esta compra de <strong>{deleteConfirm.purchase?.market?.name}</strong>?
+              Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
               Esta ação não pode ser desfeita e todos os itens da compra serão perdidos.
@@ -466,15 +429,15 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
               <Button 
                 variant="destructive" 
                 onClick={deletePurchase}
-                disabled={deleting}
+                disabled={loading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {loading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, purchase: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

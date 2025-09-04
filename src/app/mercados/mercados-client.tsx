@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FilterPopover } from "@/components/ui/filter-popover"
@@ -10,7 +10,6 @@ import { Store, MapPin, Edit, Trash2, BarChart3, Plus, ChevronLeft, ChevronRight
 import { Market } from "@/types"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 
 interface MercadosClientProps {
@@ -24,17 +23,22 @@ interface MercadosClientProps {
 }
 
 export function MercadosClient({ initialMarkets, initialTotalCount, searchParams }: MercadosClientProps) {
-  const router = useRouter()
-  const urlSearchParams = useSearchParams()
   const [markets, setMarkets] = useState<Market[]>(initialMarkets)
   const [totalCount, setTotalCount] = useState(initialTotalCount)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, market: Market | null }>({ show: false, market: null })
-  const [deleting, setDeleting] = useState(false)
-  
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [sortBy, setSortBy] = useState(searchParams.sort || "name-asc")
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.page || "1"))
   const itemsPerPage = 12
+
+  // Hooks customizados
+  const { remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Market>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/mercados',
+    initialValues: {
+      search: searchParams.search || "",
+      sort: searchParams.sort || "name-asc",
+      page: parseInt(searchParams.page || "1")
+    }
+  })
 
   const sortOptions = [
     { value: "name-asc", label: "Nome (A-Z)" },
@@ -46,52 +50,25 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
   
   const totalPages = Math.ceil(totalCount / itemsPerPage)
 
-  const confirmDelete = (market: Market) => {
-    setDeleteConfirm({ show: true, market })
-  }
-
   const deleteMarket = async () => {
-    if (!deleteConfirm.market) return
+    if (!deleteState.item) return
     
-    setDeleting(true)
-    try {
-      await fetch(`/api/markets/${deleteConfirm.market.id}`, { method: 'DELETE' })
-      setDeleteConfirm({ show: false, market: null })
-      router.refresh()
-      toast.success('Mercado excluído com sucesso!')
-    } catch (error) {
-      console.error('Erro ao excluir mercado:', error)
-      toast.error('Erro ao excluir mercado')
-    } finally {
-      setDeleting(false)
-    }
+    await remove(`/api/markets/${deleteState.item.id}`, {
+      successMessage: 'Mercado excluído com sucesso!',
+      onSuccess: closeDeleteConfirm
+    })
   }
-
-  useEffect(() => {
-    setMarkets(initialMarkets)
-    setTotalCount(initialTotalCount)
-  }, [initialMarkets, initialTotalCount])
-
-  useEffect(() => {
-    const params = new URLSearchParams(urlSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (sortBy !== 'name-asc') params.set('sort', sortBy)
-    else params.delete('sort')
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    else params.delete('page')
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : '/mercados'
-    router.push(newUrl, { scroll: false })
-  }, [searchTerm, sortBy, currentPage, router, urlSearchParams])
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+      updateSingleValue('page', page)
     }
   }
 
-  const hasActiveFilters = searchTerm !== "" || sortBy !== "name-asc"
+  React.useEffect(() => {
+    setMarkets(initialMarkets)
+    setTotalCount(initialTotalCount)
+  }, [initialMarkets, initialTotalCount])
 
   return (
     <>
@@ -100,26 +77,26 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar mercados..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
         <FilterPopover
-          sortValue={sortBy}
-          onSortChange={setSortBy}
+          sortValue={state.sort}
+          onSortChange={(value) => updateSingleValue('sort', value)}
           sortOptions={sortOptions}
           hasActiveFilters={hasActiveFilters}
           onClearFilters={() => {
-            setSearchTerm("")
-            setSortBy("name-asc")
+            clearFilters()
+            updateSingleValue('page', 1)
           }}
         />
       </div>
       
       <div className="space-y-4">
         {markets.length === 0 ? (
-          searchTerm || sortBy !== "name-asc" ? (
+          state.search || state.sort !== "name-asc" ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Store className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -130,8 +107,8 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setSearchTerm("")
-                    setSortBy("name-asc")
+                    clearFilters()
+                    updateSingleValue('page', 1)
                   }}
                 >
                   Limpar Filtros
@@ -162,7 +139,7 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                 Mostrando {markets.length} de {totalCount} mercados
               </span>
               <span>
-                Página {currentPage} de {totalPages}
+                Página {state.page} de {totalPages}
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -200,7 +177,7 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => confirmDelete(market)}
+                        onClick={() => openDeleteConfirm(market)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -215,8 +192,8 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(state.page - 1)}
+                  disabled={state.page === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
@@ -224,14 +201,14 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                 
                 <div className="flex gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+                    .filter(page => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
                     .map((page, index, array) => (
                       <React.Fragment key={page}>
                         {index > 0 && array[index - 1] !== page - 1 && (
                           <span className="px-2 py-1 text-gray-400">...</span>
                         )}
                         <Button
-                          variant={currentPage === page ? "default" : "outline"}
+                          variant={state.page === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
                           className="w-8 h-8 p-0"
@@ -246,8 +223,8 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(state.page + 1)}
+                  disabled={state.page === totalPages}
                 >
                   Próxima
                   <ChevronRight className="h-4 w-4" />
@@ -258,7 +235,7 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
         )}
       </div>
 
-      <Dialog open={deleteConfirm.show} onOpenChange={(open) => !open && setDeleteConfirm({ show: false, market: null })}>
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -268,7 +245,7 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              Tem certeza que deseja excluir o mercado <strong>{deleteConfirm.market?.name}</strong>?
+              Tem certeza que deseja excluir o mercado <strong>{deleteState.item?.name}</strong>?
             </p>
             <p className="text-sm text-gray-600">
               Esta ação não pode ser desfeita e todas as compras relacionadas a este mercado serão afetadas.
@@ -277,15 +254,15 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
               <Button 
                 variant="destructive" 
                 onClick={deleteMarket}
-                disabled={deleting}
+                disabled={loading}
                 className="flex-1"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {deleting ? "Excluindo..." : "Sim, Excluir"}
+                {loading ? "Excluindo..." : "Sim, Excluir"}
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setDeleteConfirm({ show: false, market: null })}
+                onClick={closeDeleteConfirm}
               >
                 Cancelar
               </Button>

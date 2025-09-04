@@ -7,7 +7,19 @@ export async function GET(
 ) {
   try {
     const brand = await prisma.brand.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: {
+        products: {
+          include: {
+            brand: true,
+            category: true
+          },
+          orderBy: { name: 'asc' }
+        },
+        _count: {
+          select: { products: true }
+        }
+      }
     })
 
     if (!brand) {
@@ -34,24 +46,25 @@ export async function PUT(
     const body = await request.json()
     const { name } = body
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'Nome é obrigatório' },
-        { status: 400 }
-      )
-    }
-
     const brand = await prisma.brand.update({
       where: { id: params.id },
-      data: { name: name.trim() }
+      data: {
+        name
+      }
     })
 
     return NextResponse.json(brand)
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
+  } catch (error: any) {
+    if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'Marca já existe' },
         { status: 400 }
+      )
+    }
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Marca não encontrada' },
+        { status: 404 }
       )
     }
     return NextResponse.json(
@@ -70,8 +83,14 @@ export async function DELETE(
       where: { id: params.id }
     })
 
-    return NextResponse.json({ message: 'Marca excluída com sucesso' })
-  } catch (error) {
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Marca não encontrada' },
+        { status: 404 }
+      )
+    }
     return NextResponse.json(
       { error: 'Erro ao excluir marca' },
       { status: 500 }

@@ -2,8 +2,9 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useDataMutation, useUrlState, useDeleteConfirmation } from "@/hooks"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +24,9 @@ import {
   Calendar,
   MapPin,
   DollarSign,
-  Filter
+  Filter,
+  History,
+  AlertCircle
 } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -31,6 +34,8 @@ import { ProductSelect } from "@/components/selects/product-select"
 import { TempStorage } from "@/lib/temp-storage"
 import { toast } from "sonner"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { StockHistory } from "@/components/stock-history"
+import { WasteDialog } from "@/components/waste-dialog"
 
 interface StockItem {
   id: string
@@ -74,13 +79,15 @@ interface EstoqueClientProps {
 
 export function EstoqueClient({ initialStockItems, initialStats, initialProducts, searchParams }: EstoqueClientProps) {
   const router = useRouter()
-  const currentSearchParams = useSearchParams()
   const [stockItems, setStockItems] = useState(initialStockItems)
   const [stats, setStats] = useState(initialStats)
   const [products, setProducts] = useState(initialProducts)
   const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [editingItem, setEditingItem] = useState<StockItem | null>(null)
+  const [showUseDialog, setShowUseDialog] = useState(false)
+  const [showWasteDialog, setShowWasteDialog] = useState(false)
+  const [useItem, setUseItem] = useState<StockItem | null>(null)
+  const [wasteItem, setWasteItem] = useState<StockItem | null>(null)
+  const [consumedQuantity, setConsumedQuantity] = useState('')
   const [saving, setSaving] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -93,26 +100,27 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
     notes: ''
   })
   
-  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
-  const [locationFilter, setLocationFilter] = useState(searchParams.location || "all")
+  const { create, remove, loading } = useDataMutation()
+  const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<StockItem>()
+  
+  const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+    basePath: '/estoque',
+    initialValues: {
+      search: searchParams.search || "",
+      location: searchParams.location || "all",
+      filter: "all",
+      includeExpired: "false"
+    }
+  })
 
-  useEffect(() => {
+  React.useEffect(() => {
     setStockItems(initialStockItems)
     setStats(initialStats)
     setProducts(initialProducts)
   }, [initialStockItems, initialStats, initialProducts])
-
-  useEffect(() => {
-    const params = new URLSearchParams(currentSearchParams)
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    if (locationFilter !== 'all') params.set('location', locationFilter)
-    else params.delete('location')
-    router.replace(`?${params.toString()}`, { scroll: false })
-  }, [searchTerm, locationFilter, router, currentSearchParams])
   
-  useEffect(() => {
-    const storageKey = currentSearchParams.get('storageKey')
+  React.useEffect(() => {
+    const storageKey = new URLSearchParams(window.location.search).get('storageKey')
     if (storageKey) {
       const preservedData = TempStorage.get(storageKey)
       if (preservedData) {
@@ -134,51 +142,70 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
         }
       }
     }
-  }, [currentSearchParams])
+  }, [])
 
   const handleAddStock = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     try {
-      const response = await fetch('/api/stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      await create('/api/stock', formData, {
+        successMessage: 'Item adicionado ao estoque!',
+        onSuccess: () => {
+          setShowAddDialog(false)
+          setFormData({
+            productId: '',
+            quantity: 1,
+            expirationDate: '',
+            batchNumber: '',
+            location: 'Despensa',
+            unitCost: 0,
+            notes: ''
+          })
+        }
       })
-      if (response.ok) {
-        setShowAddDialog(false)
-        setFormData({
-          productId: '',
-          quantity: 1,
-          expirationDate: '',
-          batchNumber: '',
-          location: 'Despensa',
-          unitCost: 0,
-          notes: ''
-        })
-        router.refresh()
-        toast.success('Item adicionado ao estoque!')
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao adicionar ao estoque')
-      }
     } catch (error) {
-      console.error('Erro ao adicionar ao estoque:', error)
-      toast.error('Erro ao adicionar ao estoque')
+      // Error already handled by the hook
     } finally {
       setSaving(false)
     }
   }
 
-  const handleConsumeItem = async (itemId: string, consumedQuantity: number) => {
+  const handleUseItem = (item: StockItem) => {
+    setUseItem(item)
+    setConsumedQuantity('')
+    setShowUseDialog(true)
+  }
+
+  const handleWasteItem = (item: StockItem) => {
+    setWasteItem(item)
+    setShowWasteDialog(true)
+  }
+
+  const handleConsumeItem = async () => {
+    if (!useItem || !consumedQuantity || parseFloat(consumedQuantity) <= 0) {
+      toast.error('Quantidade inválida')
+      return
+    }
+
+    const quantity = parseFloat(consumedQuantity)
+    if (quantity > useItem.quantity) {
+      toast.error(`Quantidade não pode ser maior que ${useItem.quantity} ${useItem.product.unit}`)
+      return
+    }
+
+    setSaving(true)
     try {
-      const response = await fetch(`/api/stock/${itemId}`, {
+      const response = await fetch(`/api/stock/${useItem.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed: consumedQuantity })
+        body: JSON.stringify({ consumed: quantity })
       })
       if (response.ok) {
-        router.refresh()
+        toast.success('Consumo registrado com sucesso!')
+        setShowUseDialog(false)
+        setUseItem(null)
+        setConsumedQuantity('')
+        window.location.reload()
       } else {
         const error = await response.json()
         toast.error(error.error || 'Erro ao registrar consumo')
@@ -186,23 +213,18 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
     } catch (error) {
       console.error('Erro ao registrar consumo:', error)
       toast.error('Erro ao registrar consumo')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Tem certeza que deseja remover este item do estoque?')) return
-    try {
-      const response = await fetch(`/api/stock/${itemId}`, { method: 'DELETE' })
-      if (response.ok) {
-        router.refresh()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erro ao remover do estoque')
-      }
-    } catch (error) {
-      console.error('Erro ao remover do estoque:', error)
-      toast.error('Erro ao remover do estoque')
-    }
+  const deleteStockItem = async () => {
+    if (!deleteState.item) return
+    
+    await remove(`/api/stock/${deleteState.item.id}`, {
+      successMessage: 'Item removido do estoque!',
+      onSuccess: closeDeleteConfirm
+    })
   }
 
   const getExpirationColor = (status: string) => {
@@ -212,19 +234,26 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
       default: return 'bg-green-100 text-green-800 border-green-200'
     }
   }
-  
-  const hasActiveFilters = searchTerm !== "" || locationFilter !== "all";
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setLocationFilter("all")
-  }
 
   const additionalFilters = (
     <>
       <div className="space-y-2">
+        <Label>Status dos Produtos</Label>
+        <Select value={state.filter} onValueChange={(value) => updateSingleValue('filter', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Todos os produtos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os produtos</SelectItem>
+            <SelectItem value="expired">Vencidos</SelectItem>
+            <SelectItem value="expiring">Vencendo em breve</SelectItem>
+            <SelectItem value="low_stock">Estoque baixo</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
         <Label>Localização</Label>
-        <Select value={locationFilter} onValueChange={setLocationFilter}>
+        <Select value={state.location} onValueChange={(value) => updateSingleValue('location', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Todas as localizações" />
           </SelectTrigger>
@@ -238,20 +267,36 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
       </div>
       <div className="space-y-2">
         <Label>Filtros Rápidos</Label>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button 
-            variant={locationFilter === 'Geladeira' ? 'default' : 'outline'} 
+            variant={state.location === 'Geladeira' ? 'default' : 'outline'} 
             size="sm"
-            onClick={() => setLocationFilter('Geladeira')}
+            onClick={() => updateSingleValue('location', 'Geladeira')}
           >
             Geladeira
           </Button>
           <Button 
-            variant={locationFilter === 'Despensa' ? 'default' : 'outline'} 
+            variant={state.location === 'Despensa' ? 'default' : 'outline'} 
             size="sm"
-            onClick={() => setLocationFilter('Despensa')}
+            onClick={() => updateSingleValue('location', 'Despensa')}
           >
             Despensa
+          </Button>
+          <Button 
+            variant={state.filter === 'expired' ? 'destructive' : 'outline'} 
+            size="sm"
+            onClick={() => updateSingleValue('filter', 'expired')}
+          >
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Vencidos
+          </Button>
+          <Button 
+            variant={state.filter === 'low_stock' ? 'destructive' : 'outline'} 
+            size="sm"
+            onClick={() => updateSingleValue('filter', 'low_stock')}
+          >
+            <TrendingDown className="h-3 w-3 mr-1" />
+            Baixo
           </Button>
         </div>
       </div>
@@ -315,8 +360,8 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar produtos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={state.search}
+            onChange={(e) => updateSingleValue('search', e.target.value)}
             className="pl-10"
           />
         </div>
@@ -358,10 +403,19 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
                     )}
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingItem(item); setShowEditDialog(true); }}>
+                    <StockHistory 
+                      productId={item.product.id}
+                      stockItemId={item.id}
+                      productName={item.product.name}
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => router.push(`/estoque/${item.id}`)}
+                    >
                       <Edit className="h-3 w-3" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteItem(item.id)}>
+                    <Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(item)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -419,17 +473,32 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
                   </div>
                 )}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const consumed = prompt(`Quanto foi consumido? (máx: ${item.quantity} ${item.product.unit})`)
-                    if (consumed && parseFloat(consumed) > 0) {
-                      handleConsumeItem(item.id, parseFloat(consumed))
-                    }
-                  }} className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleUseItem(item)} 
+                    className="flex-1"
+                  >
                     Usar
                   </Button>
-                  {item.expirationStatus === 'expired' && (
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteItem(item.id)} className="flex-1">
+                  {item.expirationStatus === 'expired' ? (
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => handleWasteItem(item)} 
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
                       Descartar
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleWasteItem(item)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   )}
                 </div>
@@ -533,6 +602,106 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showUseDialog} onOpenChange={setShowUseDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-blue-500" />
+              Usar Produto do Estoque
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {useItem && (
+              <>
+                <div className="space-y-2">
+                  <p className="font-medium">{useItem.product.name}</p>
+                  <p className="text-sm text-gray-600">
+                    Disponível: {useItem.quantity} {useItem.product.unit}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Quantidade consumida</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={useItem.quantity}
+                    value={consumedQuantity}
+                    onChange={(e) => setConsumedQuantity(e.target.value)}
+                    placeholder={`Máx: ${useItem.quantity} ${useItem.product.unit}`}
+                    disabled={saving}
+                  />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    onClick={handleConsumeItem}
+                    disabled={saving || !consumedQuantity || parseFloat(consumedQuantity) <= 0}
+                    className="flex-1"
+                  >
+                    {saving ? "Registrando..." : "Registrar Consumo"}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowUseDialog(false)}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Tem certeza que deseja remover <strong>{deleteState.item?.product?.name}</strong> do estoque?
+            </p>
+            <p className="text-sm text-gray-600">
+              Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                variant="destructive" 
+                onClick={deleteStockItem}
+                disabled={loading}
+                className="flex-1"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {loading ? "Removendo..." : "Sim, Remover"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={closeDeleteConfirm}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {wasteItem && (
+        <WasteDialog
+          stockItem={wasteItem}
+          open={showWasteDialog}
+          onOpenChange={setShowWasteDialog}
+          onSuccess={() => {
+            setWasteItem(null)
+            window.location.reload()
+          }}
+        />
+      )}
     </div>
   )
 }

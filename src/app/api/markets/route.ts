@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { AppError } from '@/lib/errors'
+import { handleApiError } from '@/lib/api-utils'
 
 export async function GET(request: Request) {
   try {
@@ -48,11 +50,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, location } = body
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'Nome é obrigatório' },
-        { status: 400 }
-      )
+    if (!name || !name.trim()) {
+      throw new AppError('MKT_001'); 
     }
 
     const market = await prisma.market.create({
@@ -64,9 +63,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(market, { status: 201 })
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Erro ao criar mercado' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

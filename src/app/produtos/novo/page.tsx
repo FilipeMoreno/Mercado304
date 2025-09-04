@@ -13,44 +13,20 @@ import { CategorySelect } from "@/components/selects/category-select"
 import { ArrowLeft, Package, Save, Camera } from "lucide-react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { TempStorage } from "@/lib/temp-storage"
-import { Brand } from "@/types"
 import Link from "next/link"
-import { toast } from "sonner"
-
-const categories = [
-  "Açougue",
-  "Padaria",
-  "Bebidas",
-  "Cereais",
-  "Congelados",
-  "Frutas",
-  "Higiene",
-  "Laticinios",
-  "Limpeza",
-  "Mercearia",
-  "Verduras"
-]
+import { AppToasts } from "@/lib/toasts"
 
 const units = [
-  "unidade",
-  "kg",
-  "g",
-  "litro",
-  "ml",
-  "pacote",
-  "caixa",
-  "garrafa",
-  "lata",
-  "saco"
+  "unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"
 ]
 
 export default function NovoProdutoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [brands, setBrands] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  
   const [loading, setLoading] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+  
   const [formData, setFormData] = useState({
     name: "",
     barcode: "",
@@ -65,36 +41,18 @@ export default function NovoProdutoPage() {
   })
 
   useEffect(() => {
-    // Preencher nome do produto se veio da URL
+    // Preenche o nome do produto se vier da URL (ex: ao criar a partir de um select)
     const nameParam = searchParams.get('name')
     if (nameParam) {
       setFormData(prev => ({ ...prev, name: nameParam }))
     }
   }, [searchParams])
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const [brandsRes, categoriesRes] = await Promise.all([
-        fetch('/api/brands'),
-        fetch('/api/categories')
-      ])
-      
-      if (brandsRes.ok) setBrands(await brandsRes.json())
-      if (categoriesRes.ok) setCategories(await categoriesRes.json())
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim()) {
-      toast.error("Nome do produto é obrigatório")
+      AppToasts.error("O nome do produto é obrigatório.")
       return
     }
 
@@ -121,25 +79,15 @@ export default function NovoProdutoPage() {
       if (response.ok) {
         const newProduct = await response.json()
         
-        // Verificar se tem página de retorno
         const returnTo = searchParams.get('returnTo')
         const storageKey = searchParams.get('storageKey')
         
         if (returnTo && storageKey) {
-          // Recuperar dados do localStorage
           const preservedData = TempStorage.get(storageKey)
-          
           if (preservedData) {
-            // Salvar novamente com o novo produto criado
-            const updatedData = {
-              ...preservedData,
-              newProductId: newProduct.id
-            }
+            const updatedData = { ...preservedData, newProductId: newProduct.id }
             const newStorageKey = TempStorage.save(updatedData)
-            
-            // Remover dados antigos
             TempStorage.remove(storageKey)
-            
             router.push(`${returnTo}?storageKey=${newStorageKey}`)
           } else {
             router.push(returnTo)
@@ -149,11 +97,10 @@ export default function NovoProdutoPage() {
         }
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Erro ao criar produto')
+        AppToasts.error(error, 'Erro ao criar produto')
       }
     } catch (error) {
-      console.error('Erro ao criar produto:', error)
-      toast.error('Erro ao criar produto')
+      AppToasts.error(error, 'Erro ao criar produto')
     } finally {
       setLoading(false)
     }
@@ -195,7 +142,7 @@ export default function NovoProdutoPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -240,7 +187,6 @@ export default function NovoProdutoPage() {
               <Label htmlFor="brandId">Marca</Label>
               <BrandSelect
                 value={formData.brandId}
-                brands={brands}
                 onValueChange={(value) => handleSelectChange("brandId", value)}
               />
             </div>
@@ -249,7 +195,6 @@ export default function NovoProdutoPage() {
               <Label htmlFor="categoryId">Categoria</Label>
               <CategorySelect
                 value={formData.categoryId}
-                categories={categories}
                 onValueChange={(value) => handleSelectChange("categoryId", value)}
               />
             </div>
@@ -364,7 +309,6 @@ export default function NovoProdutoPage() {
                   const storageKey = searchParams.get('storageKey')
                   
                   if (returnTo && storageKey) {
-                    // Limpar dados do localStorage ao cancelar
                     TempStorage.remove(storageKey)
                     router.push(returnTo)
                   } else {
