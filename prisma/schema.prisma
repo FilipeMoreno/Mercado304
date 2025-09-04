@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Market {
+  id          String     @id @default(cuid())
+  name        String
+  location    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  purchases   Purchase[]
+
+  @@map("markets")
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  icon      String?
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String          @id @default(cuid())
+  name          String
+  barcode       String?         @unique
+  categoryId    String?
+  brandId       String?
+  unit          String          @default("unidade")
+  // Controle de estoque
+  hasStock      Boolean         @default(false)
+  minStock      Float?          // Estoque mínimo para alerta
+  maxStock      Float?          // Estoque máximo recomendado
+  // Controle de validade
+  hasExpiration Boolean         @default(false)
+  defaultShelfLifeDays Int?     // Prazo de validade padrão em dias
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  category      Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand         Brand?          @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  purchaseItems PurchaseItem[]
+  listItems     ShoppingListItem[]
+  stockItems    StockItem[]
+
+  @@map("products")
+}
+
+model Purchase {
+  id           String         @id @default(cuid())
+  marketId     String
+  totalAmount  Float
+  purchaseDate DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  market       Market         @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  items        PurchaseItem[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id           String   @id @default(cuid())
+  purchaseId   String
+  productId    String?
+  quantity     Float
+  unitPrice    Float
+  totalPrice   Float
+  productName  String?
+  productUnit  String?
+  productCategory String?
+  brandName    String?
+  createdAt    DateTime @default(now())
+  purchase     Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@map("purchase_items")
+}
+
+model ShoppingList {
+  id        String             @id @default(cuid())
+  name      String
+  isActive  Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  items     ShoppingListItem[]
+
+  @@map("shopping_lists")
+}
+
+model ShoppingListItem {
+  id             String      @id @default(cuid())
+  listId         String
+  productId      String?
+  quantity       Float       @default(1)
+  estimatedPrice Float?
+  isChecked      Boolean     @default(false)
+  productName    String?
+  productUnit    String?
+  createdAt      DateTime    @default(now())
+  list           ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  product        Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@map("shopping_list_items")
+}
+
+model StockItem {
+  id                String    @id @default(cuid())
+  productId         String
+  quantity          Float     @default(0)
+  // Controle de validade
+  expirationDate    DateTime?
+  batchNumber       String?   // Lote para rastreamento
+  // Localização no estoque
+  location          String?   // Ex: "Geladeira", "Despensa", "Freezer"
+  // Preço para cálculo de valor do estoque
+  unitCost          Float?
+  // Metadados
+  addedDate         DateTime  @default(now())
+  lastUpdated       DateTime  @updatedAt
+  notes             String?
+  // Status
+  isExpired         Boolean   @default(false)
+  isLowStock        Boolean   @default(false)
+  // Relacionamentos
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  movements         StockMovement[]
+
+  @@map("stock_items")
+}
+
+model StockMovement {
+  id          String          @id @default(cuid())
+  stockItemId String
+  type        StockMovementType
+  quantity    Float
+  reason      String?         // Ex: "Compra", "Consumo", "Vencimento", "Ajuste"
+  date        DateTime        @default(now())
+  notes       String?
+  // Relacionamento com compra (se aplicável)
+  purchaseItemId String?
+  stockItem   StockItem       @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@map("stock_movements")
+}
+
+enum StockMovementType {
+  ENTRADA     // Adicionar ao estoque (compra)
+  SAIDA       // Remover do estoque (consumo)
+  AJUSTE      // Ajuste manual
+  VENCIMENTO  // Produto vencido
+  PERDA       // Produto perdido/danificado
+}
+
+model ExpirationAlert {
+  id          String   @id @default(cuid())
+  productId   String
+  stockItemId String
+  alertType   ExpirationAlertType
+  alertDate   DateTime
+  isResolved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("expiration_alerts")
+}
+
+enum ExpirationAlertType {
+  EXPIRING_SOON    // Vence em 3 dias
+  EXPIRING_TODAY   // Vence hoje
+  EXPIRED          // Já vencido
+}

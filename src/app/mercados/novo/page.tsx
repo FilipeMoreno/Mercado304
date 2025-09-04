@@ -1,0 +1,129 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { ArrowLeft, Store, Save } from "lucide-react"
+import Link from "next/link"
+import { toast } from "sonner"
+
+export default function NovoMercadoPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    location: ""
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!formData.name.trim()) {
+      toast.error("Nome do mercado é obrigatório")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/markets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          location: formData.location.trim() || null
+        })
+      })
+
+      if (response.ok) {
+        router.push('/mercados')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Erro ao criar mercado')
+      }
+    } catch (error) {
+      console.error('Erro ao criar mercado:', error)
+      toast.error('Erro ao criar mercado')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href="/mercados">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold">Novo Mercado</h1>
+          <p className="text-gray-600 mt-2">
+            Cadastre um novo mercado
+          </p>
+        </div>
+      </div>
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="h-5 w-5" />
+            Informações do Mercado
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome do Mercado *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Ex: Supermercado ABC"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Localização</Label>
+              <Textarea
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="Ex: Rua das Flores, 123 - Centro"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" disabled={loading}>
+                <Save className="h-4 w-4 mr-2" />
+                {loading ? "Salvando..." : "Salvar Mercado"}
+              </Button>
+              <Link href="/mercados">
+                <Button type="button" variant="outline">
+                  Cancelar
+                </Button>
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
