@@ -262,7 +262,7 @@ export default function Home() {
       )}
 
       {/* Comparação Mensal */}
-      {stats.monthlyComparison && (stats.monthlyComparison.currentMonth.totalPurchases > 0 || stats.monthlyComparison.lastMonth.totalPurchases > 0) && (
+      {stats.monthlyComparison && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -277,39 +277,55 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  R$ {stats.monthlyComparison.currentMonth.totalSpent.toFixed(2)}
+                  R$ {temporalData?.currentMonth.spent.toFixed(2)}
                 </div>
                 <div className="text-sm text-gray-600">Este Mês</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {stats.monthlyComparison.currentMonth.totalPurchases} compras
+                  {temporalData?.currentMonth.purchases} compras
                 </div>
               </div>
               
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-gray-600">
-                  R$ {stats.monthlyComparison.lastMonth.totalSpent.toFixed(2)}
+                  R$ {temporalData?.lastMonth.spent.toFixed(2)}
                 </div>
                 <div className="text-sm text-gray-600">Mês Passado</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {stats.monthlyComparison.lastMonth.totalPurchases} compras
+                  {temporalData?.lastMonth.purchases} compras
                 </div>
               </div>
               
               <div className="text-center p-4 border rounded-lg">
-                <div className={`text-2xl font-bold ${
-                  stats.monthlyComparison.spentChange > 0 ? 'text-red-600' : 
-                  stats.monthlyComparison.spentChange < 0 ? 'text-green-600' : 'text-gray-600'
-                }`}>
-                  {stats.monthlyComparison.spentChange > 0 ? '+' : ''}
-                  {stats.monthlyComparison.spentChange.toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600">
-                  {stats.monthlyComparison.spentChange > 0 ? 'Aumento' : 
-                   stats.monthlyComparison.spentChange < 0 ? 'Economia' : 'Estável'}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  vs. mês anterior
-                </div>
+                {temporalData?.lastMonth.purchases === 0 ? (
+                  <>
+                    <div className="text-2xl font-bold text-blue-600">
+                      Novo
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Primeiro mês
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      sem comparação
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={`text-2xl font-bold ${
+                      temporalData?.changes.spent > 0 ? 'text-red-600' : 
+                      temporalData?.changes.spent < 0 ? 'text-green-600' : 'text-gray-600'
+                    }`}>
+                      {temporalData?.changes.spent > 0 ? '+' : ''}
+                      {temporalData?.changes.spent.toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {temporalData?.changes.spent > 0 ? 'Aumento' : 
+                        temporalData?.changes.spent < 0 ? 'Economia' : 'Estável'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      vs. mês anterior
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
