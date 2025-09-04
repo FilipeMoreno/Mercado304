@@ -1,8 +1,8 @@
 "use client"
 
 import { Combobox } from "@/components/ui/combobox"
-import { useAppData } from "@/contexts/app-data-context"
 import { toast } from "sonner"
+import { Market } from "@/types"
 
 interface MarketSelectProps {
   value?: string
@@ -10,6 +10,9 @@ interface MarketSelectProps {
   placeholder?: string
   className?: string
   disabled?: boolean
+  markets?: Market[]
+  loading?: boolean
+  onMarketCreated?: (market: Market) => void
 }
 
 export function MarketSelect({
@@ -17,9 +20,11 @@ export function MarketSelect({
   onValueChange,
   placeholder = "Selecione o mercado",
   className = "w-full",
-  disabled = false
+  disabled = false,
+  markets = [],
+  loading = false,
+  onMarketCreated
 }: MarketSelectProps) {
-  const { markets, marketsLoading, addMarket } = useAppData()
 
   const handleCreateMarket = async (name: string) => {
     try {
@@ -31,8 +36,8 @@ export function MarketSelect({
 
       if (response.ok) {
         const newMarket = await response.json()
-        addMarket(newMarket)
         onValueChange?.(newMarket.id)
+        onMarketCreated?.(newMarket)
         toast.success('Mercado criado com sucesso!')
       } else {
         const error = await response.json()
@@ -44,7 +49,7 @@ export function MarketSelect({
     }
   }
 
-  if (marketsLoading) {
+  if (loading) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

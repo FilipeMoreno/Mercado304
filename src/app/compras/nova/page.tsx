@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, ShoppingCart, Save, Plus, Trash2, Package, Camera } from "lucide-react"
-import { MarketSelect, ProductSelect } from "@/components/selects"
+import { MarketSelect } from "@/components/selects/market-select"
+import { ProductSelect } from "@/components/selects/product-select"
 import { TempStorage } from "@/lib/temp-storage"
 import Link from "next/link"
-import { useAppData } from "@/contexts/app-data-context"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
 import { PriceAlert } from "@/components/price-alert"
@@ -37,8 +37,10 @@ interface QuickProduct {
 export default function NovaCompraPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { products, addProduct, isLoading: appDataLoading } = useAppData()
+  const [products, setProducts] = useState<any[]>([])
+  const [markets, setMarkets] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [dataLoading, setDataLoading] = useState(true)
   const [isRestoring, setIsRestoring] = useState(false)
   const restoredRef = React.useRef(false)
   const [showScanner, setShowScanner] = useState(false)
@@ -66,7 +68,7 @@ export default function NovaCompraPage() {
   useEffect(() => {
     // Restaurar dados preservados após criação de produto
     const storageKey = searchParams.get('storageKey')
-    if (storageKey && !restoredRef.current && !appDataLoading) {
+    if (storageKey && !restoredRef.current && !dataLoading) {
       restoredRef.current = true
       setIsRestoring(true)
       console.log('🔄 Restaurando dados com key:', storageKey)
@@ -116,7 +118,27 @@ export default function NovaCompraPage() {
         setIsRestoring(false)
       }
     }
-  }, [searchParams, appDataLoading])
+  }, [searchParams, dataLoading])
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [marketsRes, productsRes] = await Promise.all([
+        fetch('/api/markets'),
+        fetch('/api/products')
+      ])
+      
+      if (marketsRes.ok) setMarkets(await marketsRes.json())
+      if (productsRes.ok) setProducts(await productsRes.json())
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+    } finally {
+      setDataLoading(false)
+    }
+  }
 
   const addItem = () => {
     setItems([...items, { id: Math.random().toString(), productId: "", quantity: 1, unitPrice: 0, priceAlert: null, bestPriceAlert: null }])
@@ -261,7 +283,7 @@ export default function NovaCompraPage() {
 
       if (response.ok) {
         const newProduct = await response.json()
-        addProduct(newProduct)
+        setProducts(prev => [...prev, newProduct])
         
         if (quickProductForIndex !== null) {
           updateItem(quickProductForIndex, "productId", newProduct.id)
@@ -325,7 +347,7 @@ export default function NovaCompraPage() {
     }
   }
 
-  if (appDataLoading || isRestoring) {
+  if (dataLoading || isRestoring) {
     return <NovaCompraSkeleton />
   }
 
@@ -360,6 +382,7 @@ export default function NovaCompraPage() {
                 <Label htmlFor="marketId">Mercado *</Label>
                 <MarketSelect
                   value={formData.marketId}
+                  markets={markets}
                   onValueChange={(value) => {
                     setFormData(prev => ({ ...prev, marketId: value }))
                     // Verificar preços novamente quando mercado muda
@@ -408,6 +431,7 @@ export default function NovaCompraPage() {
                       <Label>Produto *</Label>
                       <ProductSelect
                         value={item.productId || ""}
+                        products={products}
                         onValueChange={(value) => updateItem(index, "productId", value)}
                         preserveFormData={{
                           formData,

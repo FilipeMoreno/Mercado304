@@ -2,6 +2,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { addDays } from 'date-fns'
 
 export async function GET(request: Request) {
   try {
@@ -11,22 +12,24 @@ export async function GET(request: Request) {
     const sort = searchParams.get('sort') || 'date-desc'
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
+    const page = parseInt(searchParams.get('page') || '1')
+    const itemsPerPage = parseInt(searchParams.get('itemsPerPage') || '12')
 
     const where: any = {}
     if (marketId && marketId !== 'all') {
       where.marketId = marketId
     }
 
-    // Filtro por data
     if (dateFrom || dateTo) {
       where.purchaseDate = {}
       if (dateFrom) {
-        where.purchaseDate.gte = new Date(dateFrom)
+        // Define a data inicial como 00:00:00 do dia selecionado
+        where.purchaseDate.gte = new Date(`${dateFrom}T00:00:00.000Z`)
       }
       if (dateTo) {
-        const endDate = new Date(dateTo)
-        endDate.setHours(23, 59, 59, 999) // Include the entire day
-        where.purchaseDate.lte = endDate
+        // Define a data final como 00:00:00 do dia seguinte para ser estritamente menor
+        const endDate = new Date(`${dateTo}T00:00:00.000Z`)
+        where.purchaseDate.lt = addDays(endDate, 1)
       }
     }
 
@@ -55,25 +58,34 @@ export async function GET(request: Request) {
       case 'value-desc':
         orderBy.totalAmount = 'desc'
         break
+      default:
+        orderBy.purchaseDate = 'desc'
+        break;
     }
     
-    const purchases = await prisma.purchase.findMany({
-      where,
-      include: {
-        market: true,
-        items: {
-          include: {
-            product: {
-              include: {
-                brand: true
+    const [purchases, totalCount] = await prisma.$transaction([
+      prisma.purchase.findMany({
+        where,
+        include: {
+          market: true,
+          items: {
+            include: {
+              product: {
+                include: {
+                  brand: true
+                }
               }
             }
           }
-        }
-      },
-      orderBy
-    })
-    return NextResponse.json(purchases)
+        },
+        orderBy,
+        skip: (page - 1) * itemsPerPage,
+        take: itemsPerPage,
+      }),
+      prisma.purchase.count({ where })
+    ])
+    
+    return NextResponse.json({ purchases, totalCount })
   } catch (error) {
     console.error('Erro ao buscar compras:', error)
     return NextResponse.json(
@@ -163,7 +175,7 @@ export async function POST(request: Request) {
       }
 
       if (stockEntries.length > 0) {
-        await fetch('/api/stock/auto-entry', {
+        await fetch('http://localhost:3000/api/stock/auto-entry', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

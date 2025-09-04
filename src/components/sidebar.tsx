@@ -1,3 +1,5 @@
+// src/components/sidebar.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -21,6 +23,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
+import { UserNav } from "./user-nav"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -44,7 +47,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 
   return (
     <div className={cn(
-      "h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-800 transition-all duration-300",
+      "flex h-full flex-col bg-accent transition-all duration-300",
       collapsed ? "w-16" : "w-64"
     )}>
       <div className={cn("p-6", collapsed && "p-4")}>
@@ -70,20 +73,22 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
       <nav className={cn("px-4 space-y-2", collapsed && "px-2")}>
         {navigation.map((item) => {
           const Icon = item.icon
+          const isActive = pathname === item.href
           return (
             <Link key={item.name} href={item.href}>
               <Button
-                variant={pathname === item.href ? "secondary" : "ghost"}
+                variant="ghost"
                 className={cn(
-                  "w-full justify-start",
-                  pathname === item.href
-                    ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white",
+                  "w-full justify-start h-auto py-3 px-4 rounded-xl",
+                  "text-muted-foreground",
+                  isActive
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "hover:bg-muted",
                   collapsed && "px-2 justify-center"
                 )}
                 title={collapsed ? item.name : undefined}
               >
-                <Icon className={cn("h-4 w-4", !collapsed && "mr-2")} />
+                <Icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
                 {!collapsed && item.name}
               </Button>
             </Link>
@@ -91,10 +96,8 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
         })}
       </nav>
       
-      <div className={cn("mt-auto p-4", collapsed && "p-2")}>
-        <div className={cn("flex", collapsed ? "justify-center" : "justify-start")}>
-          <ThemeToggle />
-        </div>
+      <div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
+        <UserNav collapsed={collapsed} />
       </div>
     </div>
   )

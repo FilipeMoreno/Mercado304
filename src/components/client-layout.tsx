@@ -1,17 +1,50 @@
+// src/components/client-layout.tsx
+
 "use client"
 
+import React, { useState, useEffect, useRef } from 'react'
 import { Sidebar } from "@/components/sidebar"
+import { cn } from "@/lib/utils"
 
 export function ClientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const mainRef = useRef<HTMLDivElement>(null)
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const element = mainRef.current
+      if (element) {
+        const atBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 1
+        setIsScrolledToBottom(atBottom)
+      }
+    }
+
+    const element = mainRef.current
+    if (element) {
+      element.addEventListener('scroll', handleScroll)
+      // Chamar no início para verificar a posição inicial
+      handleScroll() 
+    }
+
+    return () => {
+      if (element) {
+        element.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [])
+
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen bg-accent">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 ml-0 md:ml-0">
-        <div className="pt-16 md:pt-0">
+      <main ref={mainRef} className="flex-1 p-2 ml-0 md:ml-0 overflow-y-auto custom-scrollbar">
+        <div className={cn(
+          "bg-background rounded-xl overflow-x-hidden p-4 md:p-6 min-h-full",
+          { "rounded-b-none": !isScrolledToBottom }
+        )}>
           {children}
         </div>
       </main>

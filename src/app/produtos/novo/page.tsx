@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { BrandSelect, CategorySelect } from "@/components/selects"
+import { BrandSelect } from "@/components/selects/brand-select"
+import { CategorySelect } from "@/components/selects/category-select"
 import { ArrowLeft, Package, Save, Camera } from "lucide-react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { TempStorage } from "@/lib/temp-storage"
-import { useAppData } from "@/contexts/app-data-context"
 import { Brand } from "@/types"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -47,7 +47,8 @@ const units = [
 export default function NovoProdutoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { addProduct } = useAppData()
+  const [brands, setBrands] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
   const [formData, setFormData] = useState({
@@ -71,6 +72,23 @@ export default function NovoProdutoPage() {
     }
   }, [searchParams])
 
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [brandsRes, categoriesRes] = await Promise.all([
+        fetch('/api/brands'),
+        fetch('/api/categories')
+      ])
+      
+      if (brandsRes.ok) setBrands(await brandsRes.json())
+      if (categoriesRes.ok) setCategories(await categoriesRes.json())
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,9 +120,6 @@ export default function NovoProdutoPage() {
 
       if (response.ok) {
         const newProduct = await response.json()
-        
-        // Adicionar produto ao contexto global
-        addProduct(newProduct)
         
         // Verificar se tem página de retorno
         const returnTo = searchParams.get('returnTo')
@@ -225,6 +240,7 @@ export default function NovoProdutoPage() {
               <Label htmlFor="brandId">Marca</Label>
               <BrandSelect
                 value={formData.brandId}
+                brands={brands}
                 onValueChange={(value) => handleSelectChange("brandId", value)}
               />
             </div>
@@ -233,6 +249,7 @@ export default function NovoProdutoPage() {
               <Label htmlFor="categoryId">Categoria</Label>
               <CategorySelect
                 value={formData.categoryId}
+                categories={categories}
                 onValueChange={(value) => handleSelectChange("categoryId", value)}
               />
             </div>

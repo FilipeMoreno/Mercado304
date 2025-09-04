@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, ShoppingCart, Save, Plus, Trash2, Package, Edit } from "lucide-react"
-import { MarketSelect, ProductSelect } from "@/components/selects"
+import { MarketSelect } from "@/components/selects/market-select"
+import { ProductSelect } from "@/components/selects/product-select"
 import { TempStorage } from "@/lib/temp-storage"
 import Link from "next/link"
-import { useAppData } from "@/contexts/app-data-context"
 import { Market } from "@/types"
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
 import { BestPriceAlert } from "@/components/best-price-alert"
@@ -27,7 +27,7 @@ export default function EditarCompraPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { products, isLoading: appDataLoading } = useAppData()
+  const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [markets, setMarkets] = useState<Market[]>([])
   const [loadingData, setLoadingData] = useState(true)
@@ -82,14 +82,16 @@ export default function EditarCompraPage() {
 
   const fetchData = async () => {
     try {
-      const [marketsRes, purchaseRes] = await Promise.all([
+      const [marketsRes, purchaseRes, productsRes] = await Promise.all([
         fetch('/api/markets'),
-        fetch(`/api/purchases/${params.id}`)
+        fetch(`/api/purchases/${params.id}`),
+        fetch('/api/products')
       ])
       
-      const [marketsData, purchaseData] = await Promise.all([
+      const [marketsData, purchaseData, productsData] = await Promise.all([
         marketsRes.json(),
-        purchaseRes.json()
+        purchaseRes.json(),
+        productsRes.json()
       ])
       
       if (!purchaseRes.ok) {
@@ -99,6 +101,7 @@ export default function EditarCompraPage() {
       }
       
       setMarkets(marketsData)
+      setProducts(productsData)
       
       // Preencher dados da compra
       setFormData({
@@ -223,7 +226,7 @@ export default function EditarCompraPage() {
     }
   }
 
-  if (loadingData || appDataLoading) {
+  if (loadingData) {
     return <NovaCompraSkeleton />
   }
 
@@ -259,6 +262,7 @@ export default function EditarCompraPage() {
                 <MarketSelect
                   value={formData.marketId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, marketId: value }))}
+                  markets={markets}
                 />
               </div>
               <div className="space-y-2">
@@ -294,6 +298,7 @@ export default function EditarCompraPage() {
                       <ProductSelect
                         value={item.productId}
                         onValueChange={(value) => updateItem(index, "productId", value)}
+                        products={products}
                         preserveFormData={{
                           formData,
                           items,

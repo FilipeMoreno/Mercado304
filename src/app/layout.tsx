@@ -3,7 +3,6 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/lib/theme"
 import { ClientLayout } from "@/components/client-layout"
-import { AppDataProvider } from "@/contexts/app-data-context"
 import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -41,12 +40,10 @@ export default function RootLayout({
           defaultTheme="system"
           storageKey="mercado304-theme"
         >
-          <AppDataProvider>
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-            <Toaster richColors position="top-right" />
-          </AppDataProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>

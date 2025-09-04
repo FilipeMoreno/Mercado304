@@ -8,11 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, List, Save, Plus, Trash2, Camera } from "lucide-react"
 import Link from "next/link"
-import { useAppData } from "@/contexts/app-data-context"
 import { Product, Brand } from "@/types"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NovaListaSkeleton } from "@/components/skeletons/nova-lista-skeleton"
-import { ProductSelect } from "@/components/selects"
+import { ProductSelect } from "@/components/selects/product-select"
 import { TempStorage } from "@/lib/temp-storage"
 import { RelatedProductsCard } from "@/components/related-products-card"
 import { PriceAlert } from "@/components/price-alert"
@@ -29,7 +28,9 @@ interface ShoppingListItem {
 export default function NovaListaPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { products, addProduct, addBrand, isLoading: appDataLoading } = useAppData()
+  const [products, setProducts] = useState<any[]>([])
+  const [brands, setBrands] = useState<any[]>([])
+  const [dataLoading, setDataLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
   const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
@@ -81,6 +82,26 @@ export default function NovaListaPage() {
       }
     }
   }, [searchParams])
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [productsRes, brandsRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/brands')
+      ])
+      
+      if (productsRes.ok) setProducts(await productsRes.json())
+      if (brandsRes.ok) setBrands(await brandsRes.json())
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+    } finally {
+      setDataLoading(false)
+    }
+  }
 
 
   const addItem = () => {
@@ -254,7 +275,7 @@ export default function NovaListaPage() {
   }
 
   const handleQuickProductCreated = (newProduct: Product) => {
-    addProduct(newProduct);
+    setProducts(prev => [...prev, newProduct]);
     if (quickProductForIndex !== null) {
       updateItem(quickProductForIndex, "productId", newProduct.id);
     }
@@ -263,7 +284,7 @@ export default function NovaListaPage() {
   }
 
   const handleQuickBrandCreated = (newBrand: Brand) => {
-    addBrand(newBrand);
+    setBrands(prev => [...prev, newBrand]);
     toast.success(`Marca "${newBrand.name}" criada com sucesso!`);
     setShowQuickBrand(false);
   }
@@ -280,7 +301,7 @@ export default function NovaListaPage() {
     }, 0)
   }
 
-  if (appDataLoading) {
+  if (dataLoading) {
     return <NovaListaSkeleton />
   }
 
@@ -346,6 +367,7 @@ export default function NovaListaPage() {
                       <Label>Produto *</Label>
                       <ProductSelect
                         value={item.productId}
+                        products={products}
                         onValueChange={(value) => updateItem(index, "productId", value)}
                         preserveFormData={{
                           listName,

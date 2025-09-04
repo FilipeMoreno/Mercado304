@@ -12,6 +12,13 @@ export function PurchasesSkeleton() {
         <Skeleton className="h-10 w-32" />
       </div>
 
+      <div className="flex items-center gap-2 mb-6">
+        <div className="relative flex-1">
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <Skeleton className="h-9 w-9" />
+      </div>
+
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <Card key={i}>

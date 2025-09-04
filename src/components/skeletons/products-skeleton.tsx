@@ -12,6 +12,13 @@ export function ProductsSkeleton() {
         <Skeleton className="h-10 w-36" />
       </div>
 
+      <div className="flex items-center gap-2 mb-6">
+        <div className="relative flex-1">
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <Skeleton className="h-9 w-9" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 9 }).map((_, i) => (
           <Card key={i}>

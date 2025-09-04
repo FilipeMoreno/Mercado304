@@ -1,3 +1,4 @@
+// src/components/selects/shopping-list-select.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -32,10 +33,13 @@ export function ShoppingListSelect({
       const response = await fetch('/api/shopping-lists')
       if (response.ok) {
         const data = await response.json()
-        setLists(data)
+        setLists(data.lists)
+      } else {
+        setLists([])
       }
     } catch (error) {
       console.error('Erro ao buscar listas:', error)
+      setLists([])
     } finally {
       setLoading(false)
     }

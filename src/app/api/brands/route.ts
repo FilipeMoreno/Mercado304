@@ -1,15 +1,44 @@
+// src/app/api/brands/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const brands = await prisma.brand.findMany({
-      orderBy: { name: 'asc' }
+    const { searchParams } = new URL(request.url)
+    const searchTerm = searchParams.get('search') || ''
+    const sort = searchParams.get('sort') || 'name'
+    const page = parseInt(searchParams.get('page') || '1')
+    const itemsPerPage = parseInt(searchParams.get('itemsPerPage') || '12')
+
+    const [orderBy, orderDirection] = (sort.split('-').length === 2) ? sort.split('-') : [sort, 'asc'];
+
+    const where = {
+      name: {
+        contains: searchTerm,
+        mode: 'insensitive' as const
+      }
+    }
+    
+    const [brands, totalCount] = await prisma.$transaction([
+      prisma.brand.findMany({
+        where,
+        orderBy: {
+          [orderBy === 'date' ? 'createdAt' : orderBy]: orderDirection as 'asc' | 'desc'
+        },
+        skip: (page - 1) * itemsPerPage,
+        take: itemsPerPage,
+      }),
+      prisma.brand.count({ where })
+    ])
+
+    return NextResponse.json({
+      brands: brands || [],
+      totalCount: totalCount || 0
     })
-    return NextResponse.json(brands)
   } catch (error) {
+    console.error('Erro ao buscar marcas:', error)
     return NextResponse.json(
-      { error: 'Erro ao buscar marcas' },
+      { error: 'Erro ao buscar marcas', brands: [], totalCount: 0 },
       { status: 500 }
     )
   }

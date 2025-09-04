@@ -1,208 +1,52 @@
-"use client"
-
-import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Store, Package, ShoppingCart, RefreshCw, DollarSign, TrendingUp } from "lucide-react"
-import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
-import { PullToRefresh } from "@/components/pull-to-refresh"
+import { Store, Package, ShoppingCart, DollarSign, TrendingUp } from "lucide-react"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { toast } from "sonner"
 
-interface DashboardStats {
-  totalPurchases: number
-  totalSpent: number
-  totalProducts: number
-  totalMarkets: number
-  recentPurchases: any[]
-  topProducts: any[]
-  marketComparison: any[]
-  monthlyComparison: {
-    currentMonth: {
-      totalSpent: number
-      totalPurchases: number
-      averagePerPurchase: number
-    }
-    lastMonth: {
-      totalSpent: number
-      totalPurchases: number
-      averagePerPurchase: number
-    }
-    spentChange: number
-    purchasesChange: number
-  }
-  categoryStats: {
-    categoryId: string
-    categoryName: string
-    icon?: string
-    color?: string
-    totalSpent: number
-    totalPurchases: number
-    totalQuantity: number
-    averagePrice: number
-  }[]
+async function fetchDashboardData() {
+  const [statsRes, savingsRes, temporalRes, consumptionRes, expirationRes] = await Promise.all([
+    fetch('http://localhost:3000/api/dashboard/stats', { cache: 'no-store' }),
+    fetch('http://localhost:3000/api/savings', { cache: 'no-store' }),
+    fetch('http://localhost:3000/api/temporal-comparison', { cache: 'no-store' }),
+    fetch('http://localhost:3000/api/predictions/consumption-patterns', { cache: 'no-store' }),
+    fetch('http://localhost:3000/api/stock/expiration-alerts', { cache: 'no-store' })
+  ])
+  
+  const [stats, savingsData, temporalData, consumptionData, expirationData] = await Promise.all([
+    statsRes.json(),
+    savingsRes.json(),
+    temporalRes.json(),
+    consumptionRes.json(),
+    expirationRes.json()
+  ])
+  
+  return { stats, savingsData, temporalData, consumptionData, expirationData }
 }
 
-export default function Home() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [savingsData, setSavingsData] = useState<any>(null)
-  const [temporalData, setTemporalData] = useState<any>(null)
-  const [consumptionData, setConsumptionData] = useState<any>(null)
-  const [expirationData, setExpirationData] = useState<any>(null)
-  const [analyticsLoading, setAnalyticsLoading] = useState(true)
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const response = await fetch('/api/dashboard/stats', {
-        cache: 'no-store' // Force fresh data
-      })
-      const data = await response.json()
-      setStats(data)
-      setLastUpdated(new Date())
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
-  const fetchAnalytics = useCallback(async () => {
-    try {
-      const [savingsResponse, temporalResponse, consumptionResponse, expirationResponse] = await Promise.all([
-        fetch('/api/savings', { cache: 'no-store' }),
-        fetch('/api/temporal-comparison', { cache: 'no-store' }),
-        fetch('/api/predictions/consumption-patterns', { cache: 'no-store' }),
-        fetch('/api/stock/expiration-alerts', { cache: 'no-store' })
-      ])
-      
-      const [savings, temporal, consumption, expiration] = await Promise.all([
-        savingsResponse.json(),
-        temporalResponse.json(),
-        consumptionResponse.json(),
-        expirationResponse.json()
-      ])
-      
-      setSavingsData(savings)
-      setTemporalData(temporal)
-      setConsumptionData(consumption)
-      setExpirationData(expiration)
-    } catch (error) {
-      console.error('Erro ao buscar análises:', error)
-    } finally {
-      setAnalyticsLoading(false)
-    }
-  }, [])
-
-  const handleRefresh = async () => {
-    setRefreshing(true)
-    setAnalyticsLoading(true)
-    await Promise.all([fetchStats(), fetchAnalytics()])
-  }
-
-  const handleAddToShoppingList = async (productId: string, quantity: number) => {
-    try {
-      // Buscar ou criar lista de compras padrão
-      let shoppingList = await fetch('/api/shopping-lists?default=true').then(r => r.json())
-      
-      if (!shoppingList || shoppingList.length === 0) {
-        // Criar lista padrão se não existir
-        const createResponse = await fetch('/api/shopping-lists', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: 'Lista Inteligente',
-            description: 'Gerada automaticamente pela IA'
-          })
-        })
-        shoppingList = await createResponse.json()
-      } else {
-        shoppingList = shoppingList[0]
-      }
-
-      // Adicionar item à lista
-      await fetch(`/api/shopping-lists/${shoppingList.id}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId,
-          quantity,
-          notes: 'Adicionado pela IA'
-        })
-      })
-
-      toast.success('Item adicionado à lista de compras!')
-    } catch (error) {
-      console.error('Erro ao adicionar à lista:', error)
-      toast.error('Erro ao adicionar item à lista')
-    }
-  }
-
-  // Auto refresh when page gains focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (!loading) {
-        fetchStats()
-        fetchAnalytics()
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [fetchStats, fetchAnalytics, loading])
-
-  // Initial load
-  useEffect(() => {
-    fetchStats()
-    fetchAnalytics()
-  }, [fetchStats, fetchAnalytics])
-
-  if (loading) {
-    return <DashboardSkeleton />
-  }
+export default async function Home() {
+  const { stats, savingsData, temporalData, consumptionData, expirationData } = await fetchDashboardData()
 
   if (!stats) {
     return <div>Erro ao carregar dashboard</div>
   }
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Bem-vindo ao Mercado304</h1>
-          <p className="text-gray-600 mt-2 text-sm md:text-base">
-            Sistema completo de gerenciamento de compras de mercado
-          </p>
-          {lastUpdated && (
-            <p className="text-xs text-gray-500 mt-1">
-              Última atualização: {format(lastUpdated, "HH:mm:ss", { locale: ptBR })}
-            </p>
-          )}
-        </div>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline" 
-          size="sm"
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Atualizando...' : 'Atualizar'}
-        </Button>
+    <div className="space-y-4 md:space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold">Bem-vindo ao Mercado304</h1>
+        <p className="text-gray-600 mt-2 text-sm md:text-base">
+          Sistema completo de gerenciamento de compras de mercado
+        </p>
       </div>
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total de Compras</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -212,7 +56,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total Gasto</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -222,7 +66,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Produtos Cadastrados</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
@@ -232,7 +76,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Mercados Cadastrados</CardTitle>
             <Store className="h-4 w-4 text-muted-foreground" />
@@ -247,8 +91,8 @@ export default function Home() {
       {consumptionData && consumptionData.replenishmentAlerts && consumptionData.replenishmentAlerts.length > 0 && (
         <ReplenishmentAlerts 
           data={consumptionData} 
-          loading={analyticsLoading}
-          onAddToShoppingList={handleAddToShoppingList}
+          loading={false}
+          onAddToShoppingList={async () => {}}
         />
       )}
 
@@ -256,14 +100,14 @@ export default function Home() {
       {expirationData && expirationData.stats && (expirationData.stats.expired > 0 || expirationData.stats.expiringToday > 0 || expirationData.stats.expiringSoon > 0 || expirationData.stats.lowStock > 0) && (
         <ExpirationAlerts 
           data={expirationData} 
-          loading={analyticsLoading}
-          onRefresh={fetchAnalytics}
+          loading={false}
+          onRefresh={async () => {}}
         />
       )}
 
       {/* Comparação Mensal */}
       {stats.monthlyComparison && (
-        <Card>
+        <Card className="md:col-span-2 shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
@@ -334,13 +178,13 @@ export default function Home() {
 
       {/* Analytics Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <SavingsCard savingsData={savingsData} loading={analyticsLoading} />
-        <TemporalComparisonCard temporalData={temporalData} loading={analyticsLoading} />
+        <SavingsCard savingsData={savingsData} loading={false} />
+        <TemporalComparisonCard temporalData={temporalData} loading={false} />
       </div>
 
       {/* Estatísticas por Categoria */}
       {stats.categoryStats && stats.categoryStats.length > 0 && (
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -352,7 +196,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.categoryStats.slice(0, 8).map((category, index) => {
+              {stats.categoryStats.slice(0, 8).map((category: any, index: number) => {
                 const percentage = stats.totalSpent > 0 ? (category.totalSpent / stats.totalSpent) * 100 : 0
                 return (
                   <div key={category.categoryId} className="flex items-center justify-between">
@@ -381,7 +225,7 @@ export default function Home() {
 
       {/* Seções de Dados */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle>Produtos Mais Comprados</CardTitle>
             <CardDescription>Top 5 produtos mais frequentes</CardDescription>
@@ -423,7 +267,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle>Comparação de Mercados</CardTitle>
             <CardDescription>Média de preços por mercado</CardDescription>
@@ -443,7 +287,7 @@ export default function Home() {
               <div className="space-y-3">
                 {(stats.marketComparison || []).map((market: any, index: number) => {
                   const cheapest = stats.marketComparison?.length > 1 ? 
-                    stats.marketComparison.reduce((min, curr) => 
+                    stats.marketComparison.reduce((min: any, curr: any) => 
                       curr.averagePrice < min.averagePrice ? curr : min
                     ) : null
                   const isCheapest = cheapest && market.marketId === cheapest.marketId
@@ -483,7 +327,7 @@ export default function Home() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-lg transition-shadow">
         <CardHeader>
           <CardTitle>Compras Recentes</CardTitle>
           <CardDescription>Últimas 5 compras realizadas</CardDescription>
@@ -532,7 +376,6 @@ export default function Home() {
           )}
         </CardContent>
       </Card>
-      </div>
-    </PullToRefresh>
+    </div>
   )
 }

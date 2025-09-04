@@ -1,7 +1,6 @@
 "use client"
 
 import { Combobox } from "@/components/ui/combobox"
-import { useAppData } from "@/contexts/app-data-context"
 import { Category } from "@/types"
 import { toast } from "sonner"
 
@@ -12,6 +11,8 @@ interface CategorySelectProps {
   className?: string
   disabled?: boolean
   onCategoryCreated?: (category: Category) => void
+  categories?: Category[]
+  loading?: boolean
 }
 
 export function CategorySelect({
@@ -20,9 +21,10 @@ export function CategorySelect({
   placeholder = "Selecione uma categoria",
   className = "w-full",
   disabled = false,
-  onCategoryCreated
+  onCategoryCreated,
+  categories = [],
+  loading = false
 }: CategorySelectProps) {
-  const { categories, categoriesLoading, addCategory } = useAppData()
 
   const handleCreateCategory = async (name: string) => {
     try {
@@ -37,7 +39,6 @@ export function CategorySelect({
 
       if (response.ok) {
         const newCategory = await response.json()
-        addCategory(newCategory)
         onValueChange?.(newCategory.id)
         onCategoryCreated?.(newCategory)
         toast.success('Categoria criada com sucesso!')
@@ -51,7 +52,7 @@ export function CategorySelect({
     }
   }
 
-  if (categoriesLoading) {
+  if (loading) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

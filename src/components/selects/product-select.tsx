@@ -1,8 +1,8 @@
 "use client"
 
 import { ProductCombobox } from "@/components/ui/product-combobox"
-import { useAppData } from "@/contexts/app-data-context"
 import { TempStorage } from "@/lib/temp-storage"
+import { Product } from "@/types"
 
 interface ProductSelectProps {
   value?: string
@@ -12,6 +12,8 @@ interface ProductSelectProps {
   disabled?: boolean
   preserveFormData?: any
   itemIndex?: number
+  products?: Product[]
+  loading?: boolean
 }
 
 export function ProductSelect({
@@ -21,9 +23,10 @@ export function ProductSelect({
   className = "w-full",
   disabled = false,
   preserveFormData,
-  itemIndex
+  itemIndex,
+  products = [],
+  loading = false
 }: ProductSelectProps) {
-  const { products, productsLoading } = useAppData()
 
   const handleCreateProduct = (name: string) => {
     if (preserveFormData) {
@@ -51,7 +54,7 @@ export function ProductSelect({
     }
   }
 
-  if (productsLoading) {
+  if (loading) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

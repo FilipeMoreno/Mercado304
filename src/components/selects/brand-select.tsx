@@ -1,7 +1,6 @@
 "use client"
 
 import { Combobox } from "@/components/ui/combobox"
-import { useAppData } from "@/contexts/app-data-context"
 import { Brand } from "@/types"
 import { toast } from "sonner"
 
@@ -12,6 +11,8 @@ interface BrandSelectProps {
   className?: string
   disabled?: boolean
   onBrandCreated?: (brand: Brand) => void
+  brands?: Brand[]
+  loading?: boolean
 }
 
 export function BrandSelect({
@@ -20,9 +21,10 @@ export function BrandSelect({
   placeholder = "Selecione uma marca",
   className = "w-full",
   disabled = false,
-  onBrandCreated
+  onBrandCreated,
+  brands = [],
+  loading = false
 }: BrandSelectProps) {
-  const { brands, brandsLoading, addBrand } = useAppData()
 
   const handleCreateBrand = async (name: string) => {
     try {
@@ -34,7 +36,6 @@ export function BrandSelect({
 
       if (response.ok) {
         const newBrand = await response.json()
-        addBrand(newBrand)
         onValueChange?.(newBrand.id)
         onBrandCreated?.(newBrand)
         toast.success('Marca criada com sucesso!')
@@ -48,7 +49,7 @@ export function BrandSelect({
     }
   }
 
-  if (brandsLoading) {
+  if (loading) {
     return (
       <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
     )

@@ -108,35 +108,6 @@ export async function GET() {
         _sum: { totalAmount: true }
       }),
       
-      // Estatísticas por categoria - gastos por categoria
-      prisma.$queryRaw`
-        SELECT 
-          c.name as "categoryName",
-          c.id as "categoryId",
-          c.icon as "icon",
-          c.color as "color",
-          SUM(pi.quantity * pi."unitPrice") as "totalSpent",
-          COUNT(DISTINCT pi."purchaseId") as "totalPurchases",
-          SUM(pi.quantity) as "totalQuantity",
-          AVG(pi."unitPrice") as "averagePrice"
-        FROM "purchase_items" pi
-        LEFT JOIN "products" p ON pi."productId" = p.id
-        LEFT JOIN "categories" c ON p."categoryId" = c.id
-        WHERE c.name IS NOT NULL
-        GROUP BY c.id, c.name, c.icon, c.color
-        ORDER BY "totalSpent" DESC
-        LIMIT 10
-      `,
-      
-      // Estatísticas do mês atual
-      prisma.purchase.aggregate({
-        where: {
-          purchaseDate: { gte: currentMonth }
-        },
-        _count: { id: true },
-        _sum: { totalAmount: true }
-      }),
-      
       // Estatísticas do mês passado
       prisma.purchase.aggregate({
         where: {

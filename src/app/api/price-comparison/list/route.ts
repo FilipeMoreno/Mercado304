@@ -1,3 +1,4 @@
+// src/app/api/price-comparison/list/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -119,21 +120,29 @@ export async function POST(request: Request) {
         completionRate: (availableItems.length / marketItems.length) * 100
       }
     })
+    
+    // Filtra mercados que não têm itens disponíveis para calcular o preço mais barato
+    const marketsWithData = marketComparisons.filter(m => m.availableItems > 0);
+    const cheapestTotal = marketsWithData.length > 0 ? Math.min(...marketsWithData.map(m => m.totalPrice)) : 0;
 
-    // Calcular economia potencial para cada mercado
-    const cheapestTotal = Math.min(...marketComparisons.map(m => m.totalPrice))
     const marketsWithSavings = marketComparisons.map(market => ({
       ...market,
-      savings: market.totalPrice - cheapestTotal
+      savings: market.totalPrice > 0 ? market.totalPrice - cheapestTotal : 0
     }))
+    
+    const bestMarket = marketsWithData.length > 0 ? marketsWithData.find(m => m.totalPrice === cheapestTotal) : null;
 
     return NextResponse.json({
       listId: shoppingList.id,
       listName: shoppingList.name,
       totalItems: shoppingList.items.length,
-      markets: marketsWithSavings.sort((a, b) => a.totalPrice - b.totalPrice),
+      markets: marketsWithSavings.sort((a, b) => {
+          if (a.availableItems === 0 && b.availableItems > 0) return 1;
+          if (a.availableItems > 0 && b.availableItems === 0) return -1;
+          return a.totalPrice - b.totalPrice;
+      }),
       analysis: {
-        bestMarket: marketsWithSavings.find(m => m.totalPrice === cheapestTotal),
+        bestMarket,
         maxSavings: Math.max(...marketsWithSavings.map(m => m.savings)),
         avgCompletionRate: marketsWithSavings.reduce((sum, m) => sum + m.completionRate, 0) / marketsWithSavings.length
       }

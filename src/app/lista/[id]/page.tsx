@@ -11,9 +11,10 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ProductSelect, BrandSelect, CategorySelect } from "@/components/selects"
+import { ProductSelect } from "@/components/selects/product-select"
+import { BrandSelect } from "@/components/selects/brand-select"
+import { CategorySelect } from "@/components/selects/category-select"
 import { TempStorage } from "@/lib/temp-storage"
-import { useAppData } from "@/contexts/app-data-context"
 import { Product } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -54,7 +55,7 @@ export default function ListaDetalhesPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { products, addProduct } = useAppData()
+  const [products, setProducts] = useState<any[]>([])
   const listId = params.id as string
   
   const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -92,6 +93,21 @@ export default function ListaDetalhesPage() {
       fetchListDetails()
     }
   }, [listId])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products')
+      if (response.ok) {
+        setProducts(await response.json())
+      }
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error)
+    }
+  }
 
   useEffect(() => {
     // Restaurar dados preservados após criação de produto
@@ -425,7 +441,7 @@ export default function ListaDetalhesPage() {
 
       if (response.ok) {
         const newProduct = await response.json()
-        addProduct(newProduct)
+        setProducts(prev => [...prev, newProduct])
         setNewItem(prev => ({ ...prev, productId: newProduct.id }))
         setShowQuickProduct(false)
         toast.success('Produto criado com sucesso')
@@ -968,6 +984,7 @@ export default function ListaDetalhesPage() {
               </div>
               <ProductSelect
                 value={newItem.productId}
+                products={products}
                 onValueChange={(value) => setNewItem(prev => ({ ...prev, productId: value }))}
                 preserveFormData={{
                   listData: { id: listId, name: list?.name },
