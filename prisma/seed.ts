@@ -1,7 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+// prisma/seed.ts
+import { PrismaClient, UserRole } from '@prisma/client';
 
+// Inicializa o Prisma Client
 const prisma = new PrismaClient();
 
+// Lista de categorias padrão
 const categories = [
     { name: 'Hortifrúti', icon: '🥕', color: '#10b981', isFood: true },
     { name: 'Carnes, Aves e Peixes', icon: '🥩', color: '#dc2626', isFood: true },
@@ -18,7 +21,6 @@ const categories = [
     { name: 'Comidas Prontas e Rotisseria', icon: '🍲', color: '#facc15', isFood: true },
     { name: 'Produtos Infantis', icon: '👶', color: '#f472b6', isFood: true },
     { name: 'Produtos Importados', icon: '🌍', color: '#7c3aed', isFood: true },
-
     { name: 'Limpeza', icon: '🧽', color: '#0891b2', isFood: false },
     { name: 'Higiene e Perfumaria', icon: '🧴', color: '#0d9488', isFood: false },
     { name: 'Casa e Bazar', icon: '🏠', color: '#4338ca', isFood: false },
@@ -27,12 +29,23 @@ const categories = [
     { name: 'Papelaria e Escritório', icon: '📎', color: '#64748b', isFood: false },
     { name: 'Jardinagem e Floricultura', icon: '🌸', color: '#fb7185', isFood: false },
     { name: 'Automotivo', icon: '🚗', color: '#475569', isFood: false },
-
     { name: 'Outros', icon: '📦', color: '#6b7280', isFood: false }
 ];
 
 async function main() {
   console.log(`Iniciando o seed...`);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'eu@filipemoreno.com.br' },
+    update: {},
+    create: {
+      name: 'Filipe Moreno',
+      email: 'eu@filipemoreno.com.br',
+      role: UserRole.ADMIN,
+    },
+  });
+  console.log(`Utilizador admin criado ou atualizado: ${admin.name}`);
+
   for (const category of categories) {
     const newCategory = await prisma.category.upsert({
       where: { name: category.name },
@@ -41,6 +54,7 @@ async function main() {
     });
     console.log(`Categoria criada ou atualizada: ${newCategory.name}`);
   }
+  
   console.log(`Seed finalizado com sucesso.`);
 }
 

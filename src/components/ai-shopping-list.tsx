@@ -218,12 +218,11 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
                 </div>
               ))}
             </div>
-
-            {/* --- LINHA CORRIGIDA ABAIXO --- */}
-            {generatedList.suggestions?.length > 0 && (
+            
+            {generatedList?.suggestions?.length > 0 && (
               <div className="space-y-2">
                 <h5 className="font-medium text-sm">Sugestões Extras</h5>
-                {generatedList.suggestions.map((suggestion, index) => (
+                {generatedList?.suggestions?.map((suggestion, index) => (
                   <div key={index} className="bg-blue-50 border border-blue-200 rounded p-3">
                     <div className="font-medium text-sm text-blue-800">{suggestion.title}</div>
                     <div className="text-xs text-blue-600">{suggestion.description}</div>
