@@ -35,7 +35,7 @@ import { NutritionalInfo } from "@/types";
 import { parseOcrResult } from "@/lib/ocr-parser";
 import { toast } from "sonner";
 import { useDataStore } from "@/store/useDataStore";
-import { OcrDebugDialog } from "@/components/ocr-debug-dialog";
+import { OcrDebugDialog } from "@/components/orc-debug-dialog";
 
 const units = [
 	"unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco",
