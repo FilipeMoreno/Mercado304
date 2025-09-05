@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { CategorySelect } from "@/components/selects/category-select"
-import { ArrowLeft, Package, Save } from "lucide-react"
+import { ArrowLeft, Package, Save, ScanLine, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { Product } from "@/types"
+import { NutritionalScanner } from "@/components/nutritional-scanner"
 
 const units = [
   "unidade",
@@ -36,6 +37,8 @@ export default function EditarProdutoPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     categoryId: "",
@@ -145,6 +148,31 @@ export default function EditarProdutoPage() {
       [name]: value
     }))
   }
+
+  // Esta função agora recebe o TEXTO extraído pelo scanner
+  const handleScanComplete = async (extractedText: string) => {
+    setIsScanning(true);
+    try {
+      // Envia o TEXTO para a API, não mais a imagem
+      const response = await fetch(`/api/products/${productId}/scan-nutrition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: extractedText }) // Envia o texto
+      });
+
+      if (response.ok) {
+        toast.success('Informações nutricionais extraídas com sucesso!');
+        router.refresh(); 
+      } else {
+        const error = await response.json();
+        toast.error(error.error?.message || 'Falha ao analisar o texto do rótulo.');
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao processar o texto do rótulo.');
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
 
   if (loading) {
@@ -354,6 +382,44 @@ export default function EditarProdutoPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Card de Informações Nutricionais */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações Nutricionais</CardTitle>
+          <p className="text-sm text-gray-600">
+            Escaneie o rótulo do produto para extrair automaticamente as informações nutricionais e de alérgenos
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            type="button" 
+            onClick={() => setShowNutritionalScanner(true)} 
+            disabled={isScanning}
+            variant="outline"
+            className="w-full md:w-auto"
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                A guardar...
+              </>
+            ) : (
+              <>
+                <ScanLine className="mr-2 h-4 w-4" />
+                Escanear Rótulo
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Scanner Component */}
+      <NutritionalScanner
+        isOpen={showNutritionalScanner}
+        onClose={() => setShowNutritionalScanner(false)}
+        onScanComplete={handleScanComplete} // Propriedade atualizada
+      />
 
     </div>
   )

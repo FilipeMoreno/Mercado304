@@ -106,3 +106,23 @@ export interface ProductStats {
   averagePrice: number
   lastPurchaseDate: Date
 }
+
+export interface NutritionalInfo {
+  id: string
+  productId: string
+  servingSize?: string
+  calories?: number
+  proteins?: number
+  totalFat?: number
+  saturatedFat?: number
+  transFat?: number
+  carbohydrates?: number
+  totalSugars?: number
+  addedSugars?: number
+  fiber?: number
+  sodium?: number
+  allergensContains: string[]
+  allergensMayContain: string[]
+  createdAt: Date
+  updatedAt: Date
+}

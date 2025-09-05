@@ -7,19 +7,7 @@ export async function GET(
 ) {
   try {
     const brand = await prisma.brand.findUnique({
-      where: { id: params.id },
-      include: {
-        products: {
-          include: {
-            brand: true,
-            category: true
-          },
-          orderBy: { name: 'asc' }
-        },
-        _count: {
-          select: { products: true }
-        }
-      }
+      where: { id: params.id }
     })
 
     if (!brand) {
@@ -29,7 +17,19 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(brand)
+    const products = await prisma.product.findMany({
+      where: { brandId: params.id },
+      include: {
+        brand: true,
+        category: true
+      },
+      orderBy: { name: 'asc' }
+    })
+
+    return NextResponse.json({
+      ...brand,
+      products
+    })
   } catch (error) {
     return NextResponse.json(
       { error: 'Erro ao buscar marca' },

@@ -128,7 +128,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <Trash2 className="h-5 w-5" />
@@ -255,12 +255,12 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
           </div>
 
           {/* Botões */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 pt-4">
             <Button 
               type="submit" 
               variant="destructive"
               disabled={loading}
-              className="flex-1"
+              className="flex-1 w-full sm:w-auto"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {loading ? "Registrando..." : "Registrar Desperdício"}
@@ -270,6 +270,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
               variant="outline" 
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>

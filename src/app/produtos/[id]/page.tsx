@@ -8,7 +8,7 @@ import { ArrowLeft, Package, Edit, Trash2, TrendingUp, TrendingDown, ShoppingCar
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import Link from "next/link"
 import { toast } from "sonner"
-import { Product } from "@/types"
+import { Product, NutritionalInfo } from "@/types"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-skeleton"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -27,12 +27,14 @@ export default function ProdutoDetalhesPage() {
   const [marketComparison, setMarketComparison] = useState<any[]>([])
   const [recentPurchases, setRecentPurchases] = useState<any[]>([])
   const [stockAlerts, setStockAlerts] = useState<any>(null)
+  const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo | null>(null)
   const [purchasesPage, setPurchasesPage] = useState(1)
   const purchasesPerPage = 5
 
   useEffect(() => {
     if (productId) {
       fetchProductDetails()
+      fetchNutritionalInfo()
     }
   }, [productId])
 
@@ -59,6 +61,23 @@ export default function ProdutoDetalhesPage() {
       router.push('/produtos')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchNutritionalInfo = async () => {
+    try {
+      const response = await fetch(`/api/products/${productId}/scan-nutrition`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setNutritionalInfo(data)
+      } else {
+        // Não mostrar erro se não houver informações nutricionais
+        setNutritionalInfo(null)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar informações nutricionais:', error)
+      setNutritionalInfo(null)
     }
   }
 
@@ -433,6 +452,110 @@ export default function ProdutoDetalhesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Informações Nutricionais */}
+      {nutritionalInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações Nutricionais</CardTitle>
+            <CardDescription>
+              Valores por porção de {nutritionalInfo.servingSize || 'não informado'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {nutritionalInfo.calories && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-600 font-medium">Valor Energético</p>
+                  <p className="text-lg font-bold text-blue-800">{nutritionalInfo.calories} kcal</p>
+                </div>
+              )}
+              {nutritionalInfo.carbohydrates && (
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-sm text-orange-600 font-medium">Carboidratos</p>
+                  <p className="text-lg font-bold text-orange-800">{nutritionalInfo.carbohydrates}g</p>
+                </div>
+              )}
+              {nutritionalInfo.proteins && (
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-600 font-medium">Proteínas</p>
+                  <p className="text-lg font-bold text-green-800">{nutritionalInfo.proteins}g</p>
+                </div>
+              )}
+              {nutritionalInfo.totalFat && (
+                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p className="text-sm text-yellow-600 font-medium">Gorduras Totais</p>
+                  <p className="text-lg font-bold text-yellow-800">{nutritionalInfo.totalFat}g</p>
+                </div>
+              )}
+              {nutritionalInfo.saturatedFat && (
+                <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-600 font-medium">Gorduras Saturadas</p>
+                  <p className="text-lg font-bold text-red-800">{nutritionalInfo.saturatedFat}g</p>
+                </div>
+              )}
+              {nutritionalInfo.transFat && (
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-600 font-medium">Gorduras Trans</p>
+                  <p className="text-lg font-bold text-purple-800">{nutritionalInfo.transFat}g</p>
+                </div>
+              )}
+              {nutritionalInfo.fiber && (
+                <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                  <p className="text-sm text-teal-600 font-medium">Fibras</p>
+                  <p className="text-lg font-bold text-teal-800">{nutritionalInfo.fiber}g</p>
+                </div>
+              )}
+              {nutritionalInfo.sodium && (
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600 font-medium">Sódio</p>
+                  <p className="text-lg font-bold text-gray-800">{nutritionalInfo.sodium}mg</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Informações sobre Alérgenos */}
+      {nutritionalInfo && (nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Informações sobre Alérgenos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {nutritionalInfo.allergensContains?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-red-600 mb-2">CONTÉM:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {nutritionalInfo.allergensContains.map((allergen, index) => (
+                    <Badge key={index} variant="destructive">
+                      {allergen}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {nutritionalInfo.allergensMayContain?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-yellow-600 mb-2">PODE CONTER:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {nutritionalInfo.allergensMayContain.map((allergen, index) => (
+                    <Badge key={index} variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      {allergen}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   )
 }

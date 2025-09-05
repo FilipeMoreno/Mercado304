@@ -10,6 +10,7 @@ import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { MonthlySpendingChart } from "@/components/monthly-spending-chart"
+import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { AppToasts } from "@/lib/toasts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -190,9 +191,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <SavingsCard savingsData={savingsData} loading={false} />
         <TemporalComparisonCard temporalData={temporalData} loading={false} />
+        <NutritionSummaryCard />
       </div>
 
       {stats.categoryStats && stats.categoryStats.length > 0 && (

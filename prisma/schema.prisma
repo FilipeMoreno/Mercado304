@@ -61,6 +61,7 @@ model Product {
   purchaseItems PurchaseItem[]
   listItems     ShoppingListItem[]
   stockItems    StockItem[]
+  nutritionalInfo NutritionalInfo?
 
   @@map("products")
 }
@@ -192,4 +193,32 @@ enum ExpirationAlertType {
   EXPIRING_SOON    // Vence em 3 dias
   EXPIRING_TODAY   // Vence hoje
   EXPIRED          // Já vencido
+}
+
+model NutritionalInfo {
+  id                  String   @id @default(cuid())
+  productId           String   @unique
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Informações da Tabela Nutricional
+  servingSize         String?  // Ex: "200 ml" ou "30 g"
+  calories            Float?   // Valor energético em kcal
+  proteins            Float?   // Proteínas em g
+  totalFat            Float?   // Gorduras totais em g
+  saturatedFat        Float?   // Gorduras saturadas em g
+  transFat            Float?   // Gorduras trans em g
+  carbohydrates       Float?   // Carboidratos totais em g
+  totalSugars         Float?   // Açúcares totais em g
+  addedSugars         Float?   // Açúcares adicionados em g
+  fiber               Float?   // Fibra alimentar em g
+  sodium              Float?   // Sódio em mg
+
+  // Informações de Alérgenos
+  allergensContains   String[] // Alérgenos que o produto contém
+  allergensMayContain String[] // Alérgenos que pode conter
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("nutritional_info")
 }

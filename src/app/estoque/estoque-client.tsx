@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Package, 
   AlertTriangle, 
@@ -26,7 +27,9 @@ import {
   DollarSign,
   Filter,
   History,
-  AlertCircle
+  AlertCircle,
+  BarChart3,
+  TrendingUp
 } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -89,6 +92,8 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
   const [wasteItem, setWasteItem] = useState<StockItem | null>(null)
   const [consumedQuantity, setConsumedQuantity] = useState('')
   const [saving, setSaving] = useState(false)
+  const [wasteData, setWasteData] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState("stock")
 
   const [formData, setFormData] = useState({
     productId: '',
@@ -118,6 +123,24 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
     setStats(initialStats)
     setProducts(initialProducts)
   }, [initialStockItems, initialStats, initialProducts])
+
+  const fetchWasteData = React.useCallback(async () => {
+    if (activeTab === "waste") {
+      try {
+        const response = await fetch('/api/stock/waste-stats')
+        if (response.ok) {
+          const data = await response.json()
+          setWasteData(data)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados de desperdício:', error)
+      }
+    }
+  }, [activeTab])
+
+  React.useEffect(() => {
+    fetchWasteData()
+  }, [fetchWasteData])
   
   React.useEffect(() => {
     const storageKey = new URLSearchParams(window.location.search).get('storageKey')
@@ -317,6 +340,20 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
           Adicionar ao Estoque
         </Button>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="stock" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Estoque
+          </TabsTrigger>
+          <TabsTrigger value="waste" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Desperdícios
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="stock" className="space-y-6">
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -507,6 +544,151 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="waste" className="space-y-6">
+          {wasteData ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-gray-600">Total Desperdiçado</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">
+                      {wasteData.totalWasteItems || 0}
+                    </div>
+                    <p className="text-xs text-gray-600">itens</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-gray-600">Valor Perdido</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">
+                      R$ {(wasteData.totalWasteValue || 0).toFixed(2)}
+                    </div>
+                    <p className="text-xs text-gray-600">este mês</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-gray-600">Categoria Mais Desperdiçada</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-lg font-bold">
+                      {wasteData.topWasteCategory || 'N/A'}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-gray-600">Tendência</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className={`h-4 w-4 ${wasteData.wasteTrend === 'up' ? 'text-red-500' : 'text-green-500'}`} />
+                      <span className={`text-sm font-medium ${wasteData.wasteTrend === 'up' ? 'text-red-600' : 'text-green-600'}`}>
+                        {wasteData.wasteTrend === 'up' ? 'Aumentando' : 'Diminuindo'}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráfico de desperdícios por motivo */}
+              {wasteData.wasteByReason && wasteData.wasteByReason.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Desperdícios por Motivo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {wasteData.wasteByReason.map((item: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium">{item.reason}</span>
+                              <span className="text-sm text-gray-600">{item.percentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full transition-all"
+                                style={{ width: `${item.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <p className="text-sm font-medium">{item.count} itens</p>
+                            {item.value > 0 && (
+                              <p className="text-xs text-gray-600">R$ {item.value.toFixed(2)}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="h-5 w-5" />
+                    Histórico de Desperdícios
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {wasteData.recentWaste && wasteData.recentWaste.length > 0 ? (
+                    <div className="space-y-3">
+                      {wasteData.recentWaste.map((waste: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium">{waste.productName}</p>
+                            <p className="text-sm text-gray-600">
+                              Motivo: {waste.wasteReason}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {format(new Date(waste.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-red-600">
+                              {waste.quantity} {waste.unit}
+                            </p>
+                            {waste.value && (
+                              <p className="text-sm text-red-500">
+                                R$ {waste.value.toFixed(2)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Trash2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Nenhum desperdício registrado</h3>
+                      <p className="text-gray-600">
+                        Seus registros de desperdício aparecerão aqui
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 mt-4">Carregando dados de desperdício...</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="max-w-md">

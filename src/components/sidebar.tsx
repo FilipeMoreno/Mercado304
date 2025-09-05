@@ -21,7 +21,8 @@ import {
   Box,
   Menu,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Apple
 } from "lucide-react"
 import { UserNav } from "./user-nav"
 
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Compras", href: "/compras", icon: ShoppingCart },
   { name: "Lista de Compras", href: "/lista", icon: List },
   { name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
+  { name: "Análise Nutricional", href: "/nutricao", icon: Apple },
   { name: "Estoque", href: "/estoque", icon: Box },
 ]
 
