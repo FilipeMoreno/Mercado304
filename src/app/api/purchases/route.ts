@@ -1,8 +1,7 @@
-// src/app/api/purchases/route.ts
-
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { addDays } from 'date-fns'
+import API_BASE_URL from '@/lib/api'
 
 export async function GET(request: Request) {
   try {
@@ -175,7 +174,7 @@ export async function POST(request: Request) {
       }
 
       if (stockEntries.length > 0) {
-        await fetch('http://localhost:3000/api/stock/auto-entry', {
+        await fetch(`${API_BASE_URL}/stock/auto-entry`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

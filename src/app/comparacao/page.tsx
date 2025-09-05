@@ -1,10 +1,11 @@
+import API_BASE_URL from "@/lib/api";
 import { ComparisonClient } from "./comparison-client";
 
 async function fetchInitialData() {
   const [listsRes, marketsRes, productsRes] = await Promise.all([
-    fetch('http://localhost:3000/api/shopping-lists', { cache: 'no-store' }),
-    fetch('http://localhost:3000/api/markets', { cache: 'no-store' }),
-    fetch('http://localhost:3000/api/products', { cache: 'no-store' })
+    fetch(`${API_BASE_URL}/shopping-lists`, { cache: 'no-store' }),
+    fetch(`${API_BASE_URL}/markets`, { cache: 'no-store' }),
+    fetch(`${API_BASE_URL}/products`, { cache: 'no-store' })
   ]);
   
   const [lists, marketsData, products] = await Promise.all([

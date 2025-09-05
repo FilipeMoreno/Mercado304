@@ -1,3 +1,4 @@
+import API_BASE_URL from "@/lib/api";
 import { MarcasClient } from "./marcas-client";
 
 interface MarcasPageProps {
@@ -15,7 +16,7 @@ async function fetchBrands(searchParams: MarcasPageProps["searchParams"]) {
   if (searchParams.page) params.set('page', searchParams.page);
   params.set('itemsPerPage', '12');
 
-  const response = await fetch(`http://localhost:3000/api/brands?${params.toString()}`, { cache: 'no-store' });
+  const response = await fetch(`${API_BASE_URL}/brands?${params.toString()}`, { cache: 'no-store' });
   const data = await response.json();
   
 

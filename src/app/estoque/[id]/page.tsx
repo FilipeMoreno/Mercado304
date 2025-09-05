@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation'
 import { EditStockClient } from './edit-stock-client'
+import API_BASE_URL from '@/lib/api'
 
 interface EditStockPageProps {
   params: { id: string }
 }
 
 async function fetchStockItem(id: string) {
-  const response = await fetch(`http://localhost:3000/api/stock/${id}`, { cache: 'no-store' })
+  const response = await fetch(`${API_BASE_URL}/stock/${id}`, { cache: 'no-store' })
   if (!response.ok) {
     return null
   }
@@ -14,7 +15,7 @@ async function fetchStockItem(id: string) {
 }
 
 async function fetchProducts() {
-  const response = await fetch('http://localhost:3000/api/products', { cache: 'no-store' })
+  const response = await fetch(`${API_BASE_URL}/products`, { cache: 'no-store' })
   const products = await response.json()
   return products
 }

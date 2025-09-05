@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { MercadosClient } from "./mercados-client"
+import API_BASE_URL from "@/lib/api"
 
 interface MercadosPageProps {
   searchParams: {
@@ -18,7 +19,7 @@ async function fetchMarkets(searchParams: MercadosPageProps["searchParams"]) {
   if (searchParams.page) params.set('page', searchParams.page)
   params.set('itemsPerPage', '12') // Quantidade fixa por página
 
-  const response = await fetch(`http://localhost:3000/api/markets?${params.toString()}`, { cache: 'no-store' })
+  const response = await fetch(`${API_BASE_URL}/markets?${params.toString()}`, { cache: 'no-store' })
   const data = await response.json()
   return data
 }

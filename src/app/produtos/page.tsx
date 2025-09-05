@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { ProductsClient } from "./products-client"
+import API_BASE_URL from "@/lib/api"
+import API_BASE_URL from "@/lib/api"
 
 interface ProductsPageProps {
   searchParams: {
@@ -24,9 +26,9 @@ async function fetchProductsData(searchParams: any) {
   })
   
   const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-    fetch(`http://localhost:3000/api/products?${params.toString()}`, { cache: 'no-store' }),
-    fetch('http://localhost:3000/api/categories', { cache: 'no-store' }),
-    fetch('http://localhost:3000/api/brands', { cache: 'no-store' })
+    fetch(`${API_BASE_URL}/products?${params.toString()}`, { cache: 'no-store' }),
+    fetch(`${API_BASE_URL}/categories`, { cache: 'no-store' }),
+    fetch(`${API_BASE_URL}/brands`, { cache: 'no-store' })
   ])
   
   const [productsData, categoriesData, brandsData] = await Promise.all([

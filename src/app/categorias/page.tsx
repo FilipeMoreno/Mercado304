@@ -1,3 +1,4 @@
+import API_BASE_URL from "@/lib/api";
 import { CategoriasClient } from "./categorias-client";
 
 interface CategoriasPageProps {
@@ -16,7 +17,7 @@ async function fetchCategories(searchParams: CategoriasPageProps["searchParams"]
     limit: '12'
   });
   
-  const response = await fetch(`http://localhost:3000/api/categories?${params.toString()}`, { cache: 'no-store' });
+  const response = await fetch(`${API_BASE_URL}/categories?${params.toString()}`, { cache: 'no-store' });
   const categoriesData = await response.json();
   return categoriesData;
 }

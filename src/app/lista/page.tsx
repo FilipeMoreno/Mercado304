@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { ListaClient } from "./lista-client"
+import API_BASE_URL from "@/lib/api"
 
 interface ListaPageProps {
   searchParams: {
@@ -22,7 +23,7 @@ async function fetchShoppingLists(searchParams: ListaPageProps['searchParams']) 
   if (searchParams.status) params.set('status', searchParams.status)
   params.set('itemsPerPage', '12')
   
-  const response = await fetch(`http://localhost:3000/api/shopping-lists?${params.toString()}`, { cache: 'no-store' })
+  const response = await fetch(`${API_BASE_URL}/shopping-lists?${params.toString()}`, { cache: 'no-store' })
   const data = await response.json()
   return { lists: data.lists, totalCount: data.totalCount }
 }

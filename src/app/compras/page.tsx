@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { Purchase } from "@/types"
 import Link from "next/link"
 import { PurchasesClient } from "./purchases-client"
+import API_BASE_URL from "@/lib/api"
 
 interface ComprasPageProps {
   searchParams: {
@@ -27,8 +27,8 @@ async function fetchPurchasesData(searchParams: ComprasPageProps["searchParams"]
   params.set('itemsPerPage', '12')
 
   const [purchasesRes, marketsRes] = await Promise.all([
-    fetch(`http://localhost:3000/api/purchases?${params.toString()}`, { cache: 'no-store' }),
-    fetch('http://localhost:3000/api/markets', { cache: 'no-store' })
+    fetch(`${API_BASE_URL}/purchases?${params.toString()}`, { cache: 'no-store' }),
+    fetch(`${API_BASE_URL}/markets`, { cache: 'no-store' })
   ])
   
   let purchases = []

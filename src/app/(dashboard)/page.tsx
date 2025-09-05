@@ -1,14 +1,15 @@
+import API_BASE_URL from "@/lib/api";
 import { DashboardClient } from "./dashboard-client"
 
 // A função de busca de dados permanece a mesma, no servidor.
 async function fetchDashboardData() {
   try {
     const [statsRes, savingsRes, temporalRes, consumptionRes, expirationRes] = await Promise.all([
-      fetch('http://localhost:3000/api/dashboard/stats', { cache: 'no-store' }),
-      fetch('http://localhost:3000/api/savings', { cache: 'no-store' }),
-      fetch('http://localhost:3000/api/temporal-comparison', { cache: 'no-store' }),
-      fetch('http://localhost:3000/api/predictions/consumption-patterns', { cache: 'no-store' }),
-      fetch('http://localhost:3000/api/stock/expiration-alerts', { cache: 'no-store' })
+      fetch(`${API_BASE_URL}/dashboard/stats`, { cache: 'no-store' }),
+      fetch(`${API_BASE_URL}/savings`, { cache: 'no-store' }),
+      fetch(`${API_BASE_URL}/temporal-comparison`, { cache: 'no-store' }),
+      fetch(`${API_BASE_URL}/predictions/consumption-patterns`, { cache: 'no-store' }),
+      fetch(`${API_BASE_URL}/stock/expiration-alerts`, { cache: 'no-store' })
     ]);
     
     // Verificando se todas as respostas foram bem-sucedidas
