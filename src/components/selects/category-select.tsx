@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { Combobox } from "@/components/ui/combobox"
 import { Category } from "@/types"
-import { toast } from "sonner"
 import { useDataStore } from "@/store/useDataStore"
 import { AppToasts } from "@/lib/toasts"
 

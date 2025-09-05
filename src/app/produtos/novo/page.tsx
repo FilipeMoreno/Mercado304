@@ -34,6 +34,7 @@ import { NutritionalInfo } from "@/types";
 import { parseOcrResult } from "@/lib/ocr-parser"; // Importa o parser de OCR
 import { toast } from "sonner";
 import { useDataStore } from "@/store/useDataStore";
+import { OcrDebugDialog } from "@/components/orc-debug-dialog";
 
 const units = [
 	"unidade",
@@ -60,6 +61,10 @@ export default function NovoProdutoPage() {
 	// Novos estados para o scanner de rótulo
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
+
+	// Novos estados para o diálogo de debug
+	const [rawOcrText, setRawOcrText] = useState("");
+	const [showOcrDebugDialog, setShowOcrDebugDialog] = useState(false);
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -177,22 +182,46 @@ export default function NovoProdutoPage() {
 		setShowBarcodeScanner(false);
 	};
 
-	// Nova função para lidar com o resultado do scanner de rótulo
+	// // Nova função para lidar com o resultado do scanner de rótulo
+	// const handleNutritionalScanComplete = (extractedText: string) => {
+	// 	setIsScanning(true);
+	// 	try {
+	// 		// Usa o parser para converter texto em dados estruturados
+	// 		const parsedData = parseOcrResult(extractedText);
+	// 		setNutritionalData(parsedData); // Atualiza o estado do formulário nutricional
+	// 		toast.success("Dados nutricionais preenchidos!");
+	// 	} catch (error) {
+	// 		toast.error("Não foi possível processar o texto do rótulo.");
+	// 		console.error("Erro ao parsear OCR:", error);
+	// 	} finally {
+	// 		setIsScanning(false);
+	// 		setShowNutritionalScanner(false);
+	// 	}
+	// };
+
+// 3. Atualizar a função que lida com o scan
 	const handleNutritionalScanComplete = (extractedText: string) => {
 		setIsScanning(true);
-		try {
-			// Usa o parser para converter texto em dados estruturados
-			const parsedData = parseOcrResult(extractedText);
-			setNutritionalData(parsedData); // Atualiza o estado do formulário nutricional
-			toast.success("Dados nutricionais preenchidos!");
-		} catch (error) {
-			toast.error("Não foi possível processar o texto do rótulo.");
-			console.error("Erro ao parsear OCR:", error);
-		} finally {
-			setIsScanning(false);
-			setShowNutritionalScanner(false);
-		}
+        setRawOcrText(extractedText); // Salva o texto bruto
+        setShowOcrDebugDialog(true); // Abre o diálogo de debug
+        setShowNutritionalScanner(false); // Fecha o scanner
 	};
+
+	// 4. Nova função para confirmar o parsing após a depuração
+	const confirmOcrParsing = () => {
+			try {
+					const parsedData = parseOcrResult(rawOcrText);
+					setNutritionalData(parsedData);
+					toast.success("Dados nutricionais preenchidos!");
+			} catch (error) {
+					toast.error("Não foi possível processar o texto do rótulo.");
+					console.error("Erro ao parsear OCR:", error);
+			} finally {
+					setIsScanning(false);
+					setShowOcrDebugDialog(false); // Fecha o diálogo de debug
+					setRawOcrText(""); // Limpa o texto bruto
+			}
+	}
 
 	return (
 		<div className="space-y-6">
@@ -444,6 +473,16 @@ export default function NovoProdutoPage() {
 				isOpen={showNutritionalScanner}
 				onClose={() => setShowNutritionalScanner(false)}
 				onScanComplete={handleNutritionalScanComplete}
+			/>
+
+			<OcrDebugDialog
+				isOpen={showOcrDebugDialog}
+				rawText={rawOcrText}
+				onConfirm={confirmOcrParsing}
+				onCancel={() => {
+						setShowOcrDebugDialog(false);
+						setIsScanning(false);
+				}}
 			/>
 		</div>
 	);

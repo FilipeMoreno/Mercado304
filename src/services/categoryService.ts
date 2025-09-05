@@ -17,3 +17,11 @@ export const getCategories = async (searchParams?: URLSearchParams): Promise<Cat
   }
   return response.json();
 };
+
+export const getAllCategories = async (): Promise<Category[]> => {
+  const response = await fetch(`/api/categories/all`, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Erro ao buscar todas as categorias');
+  }
+  return response.json();
+};

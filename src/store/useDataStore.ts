@@ -91,7 +91,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     if (!force && get().categories.length > 0) return;
     set(state => ({ loading: { ...state.loading, categories: true } }));
     try {
-      const { categories } = await categoryService.getCategories();
+      const categories = await categoryService.getAllCategories(); 
       set({ categories });
     } catch (error) {
       console.error("Erro ao buscar categorias:", error);
