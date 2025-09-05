@@ -1,7 +1,8 @@
-// src/app/api/products/healthy-alternatives/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-utils';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
