@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 import { handleApiError } from '@/lib/api-utils';
-import { parseOcrResult } from '@/lib/ocr-parser';
+import { parseOcrText } from '@/lib/gemini-parser';
 
 export async function POST(
   request: Request,
@@ -16,7 +16,8 @@ export async function POST(
       throw new AppError('GEN_001', 'Texto não fornecido.');
     }
     
-    const parsedData = parseOcrResult(text);
+    // CORREÇÃO: Usando a nova função para processar texto bruto
+    const parsedData = parseOcrText(text);
 
     const nutritionalInfo = await prisma.nutritionalInfo.upsert({
       where: { productId },
@@ -33,7 +34,7 @@ export async function POST(
   }
 }
 
-// GET - Buscar informações nutricionais existentes
+// O resto do arquivo (GET e DELETE) permanece o mesmo.
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -65,7 +66,6 @@ export async function GET(
   }
 }
 
-// DELETE - Remover informações nutricionais
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }

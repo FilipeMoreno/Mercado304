@@ -38,8 +38,7 @@ const nextConfig = {
   },
   env: {
     OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY,
-    VERYFI_AUTHORIZATION_TOKEN: process.env.VERYFI_AUTHORIZATION_TOKEN,
-    VERYFI_CLIENT_ID: process.env.VERYFI_CLIENT_ID
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
 }
 

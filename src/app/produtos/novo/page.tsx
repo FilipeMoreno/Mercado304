@@ -32,8 +32,7 @@ import Link from "next/link";
 import { AppToasts } from "@/lib/toasts";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
 import { NutritionalInfo } from "@/types";
-import { parseOcrResult } from "@/lib/ocr-parser";
-import { parseVeryfiResponse } from "@/lib/veryfi-parser";
+import { parseGeminiResponse } from "@/lib/gemini-parser"; // Alterado para o parser do Gemini
 import { toast } from "sonner";
 import { useDataStore } from "@/store/useDataStore";
 import { OcrDebugDialog } from "@/components/orc-debug-dialog";
@@ -53,8 +52,9 @@ export default function NovoProdutoPage() {
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
     
+    // Estados para o fluxo do Gemini
     const [rawOcrText, setRawOcrText] = useState("");
-		const [veryfiFullResponse, setVeryfiFullResponse] = useState<any>(null);
+    const [geminiFullResponse, setGeminiFullResponse] = useState<any>(null);
     const [showOcrDebugDialog, setShowOcrDebugDialog] = useState(false);
 
 	const [formData, setFormData] = useState({
@@ -140,32 +140,32 @@ export default function NovoProdutoPage() {
 		setShowBarcodeScanner(false);
 	};
     
-	const handleNutritionalScanComplete = (veryfiResponse: any) => {
+	const handleNutritionalScanComplete = (geminiResponse: any) => {
 		setIsScanning(true);
-		setRawOcrText(veryfiResponse.text || "Nenhum texto extraído.");
-		setVeryfiFullResponse(veryfiResponse); // Armazena a resposta completa
-		setShowOcrDebugDialog(true);
-		setShowNutritionalScanner(false);
+        setRawOcrText(JSON.stringify(geminiResponse, null, 2)); 
+        setGeminiFullResponse(geminiResponse);
+        setShowOcrDebugDialog(true);
+        setShowNutritionalScanner(false);
 	};
 
-	const confirmOcrParsing = () => {
-		try {
-				if (!veryfiFullResponse) {
-					throw new Error("Resposta da API não encontrada.");
-				}
-				const parsedData = parseVeryfiResponse(veryfiFullResponse);
-				setNutritionalData(parsedData);
-				toast.success("Dados nutricionais preenchidos!");
-		} catch (error) {
-				toast.error("Não foi possível processar os dados do rótulo.");
-				console.error("Erro ao parsear Veryfi:", error);
-		} finally {
-				setIsScanning(false);
-				setShowOcrDebugDialog(false);
-				setRawOcrText("");
-				setVeryfiFullResponse(null); // Limpa o estado
-		}
-	}
+    const confirmOcrParsing = () => {
+        try {
+            if (!geminiFullResponse) {
+                throw new Error("Resposta da API não encontrada.");
+            }
+            const parsedData = parseGeminiResponse(geminiFullResponse);
+            setNutritionalData(parsedData);
+            toast.success("Dados nutricionais preenchidos pela IA!");
+        } catch (error) {
+            toast.error("A IA retornou um formato inesperado. Verifique o debug.");
+            console.error("Erro ao parsear resposta do Gemini:", error);
+        } finally {
+            setIsScanning(false);
+            setShowOcrDebugDialog(false);
+            setRawOcrText("");
+            setGeminiFullResponse(null);
+        }
+    }
 
 	return (
 		<div className="space-y-6">

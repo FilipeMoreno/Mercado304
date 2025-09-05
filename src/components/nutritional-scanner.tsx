@@ -7,7 +7,7 @@ import { Camera, Loader2 } from "lucide-react"
 // REMOVIDO: import { createWorker } from "tesseract.js"
 
 interface NutritionalScannerProps {
-  onScanComplete: (response: any) => void; // Altere para receber 'any' ou um tipo mais específico
+  onScanComplete: (response: any) => void; // Altere de 'string' para 'any'
   onClose: () => void;
 }
 

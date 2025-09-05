@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
 	Select,
 	SelectContent,
@@ -22,9 +23,9 @@ import { toast } from "sonner";
 import { Product, NutritionalInfo } from "@/types";
 import { NutritionalScanner } from "@/components/nutritional-scanner";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
-import { parseOcrResult } from "@/lib/ocr-parser";
+import { parseGeminiResponse } from "@/lib/gemini-parser"; // Alterado para o parser do Gemini
 import { useDataStore } from "@/store/useDataStore";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { OcrDebugDialog } from "@/components/orc-debug-dialog";
 
 const units = [
 	"unidade", "kg", "g", "litro", "ml", "pacote",
@@ -40,8 +41,14 @@ export default function EditarProdutoPage() {
 	const [product, setProduct] = useState<Product | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
+	
+    // Estados para o fluxo do Gemini
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
+    const [rawOcrText, setRawOcrText] = useState("");
+    const [geminiFullResponse, setGeminiFullResponse] = useState<any>(null);
+    const [showOcrDebugDialog, setShowOcrDebugDialog] = useState(false);
+
 	const [formData, setFormData] = useState({
 		name: "", categoryId: "", unit: "unidade", brandId: "", barcode: "",
 		hasStock: false, minStock: "", maxStock: "", hasExpiration: false,
@@ -149,20 +156,32 @@ export default function EditarProdutoPage() {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleScanComplete = (extractedText: string) => {
+	const handleNutritionalScanComplete = (geminiResponse: any) => {
 		setIsScanning(true);
-		try {
-			const parsedData = parseOcrResult(extractedText);
-			setNutritionalData(parsedData);
-			toast.success("Dados nutricionais preenchidos! Confirme e salve as alterações.");
-		} catch (error) {
-			toast.error("Não foi possível processar o texto do rótulo.");
-			console.error("Erro ao parsear OCR:", error);
-		} finally {
-			setIsScanning(false);
-			setShowNutritionalScanner(false);
-		}
+        setRawOcrText(JSON.stringify(geminiResponse, null, 2));
+        setGeminiFullResponse(geminiResponse);
+        setShowOcrDebugDialog(true);
+        setShowNutritionalScanner(false);
 	};
+
+    const confirmOcrParsing = () => {
+        try {
+            if (!geminiFullResponse) {
+                throw new Error("Resposta da API não encontrada.");
+            }
+            const parsedData = parseGeminiResponse(geminiFullResponse);
+            setNutritionalData(parsedData);
+            toast.success("Dados nutricionais preenchidos pela IA!");
+        } catch (error) {
+            toast.error("A IA retornou um formato inesperado. Verifique o debug.");
+            console.error("Erro ao parsear resposta do Gemini:", error);
+        } finally {
+            setIsScanning(false);
+            setShowOcrDebugDialog(false);
+            setRawOcrText("");
+            setGeminiFullResponse(null);
+        }
+    }
 
 	if (loading) {
         return (
@@ -208,12 +227,11 @@ export default function EditarProdutoPage() {
 						<Package className="h-8 w-8" />
 						Editar: {product.name}
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-2">
+					<p className="text-gray-600 mt-2">
 						Atualize as informações do produto
 					</p>
 				</div>
 			</div>
-
 
 			<form onSubmit={handleSubmit} className="space-y-6">
                 <Card>
@@ -278,7 +296,7 @@ export default function EditarProdutoPage() {
 									<div className="space-y-2">
 										<Label htmlFor="defaultShelfLifeDays">Prazo de Validade Padrão (dias)</Label>
 										<Input id="defaultShelfLifeDays" name="defaultShelfLifeDays" type="number" value={formData.defaultShelfLifeDays} onChange={handleChange} placeholder="Ex: 30" />
-										<p className="text-xs text-gray-500 dark:text-gray-400">Usado para calcular a validade ao adicionar ao estoque.</p>
+										<p className="text-xs text-gray-500">Usado para calcular a validade ao adicionar ao estoque.</p>
 									</div>
 								)}
 							</div>
@@ -322,10 +340,20 @@ export default function EditarProdutoPage() {
 				<DialogContent className="max-w-2xl">
 					<NutritionalScanner
 						onClose={() => setShowNutritionalScanner(false)}
-						onScanComplete={handleScanComplete}
+						onScanComplete={handleNutritionalScanComplete}
 					/>
 				</DialogContent>
 			</Dialog>
+            
+            <OcrDebugDialog 
+                isOpen={showOcrDebugDialog}
+                rawText={rawOcrText}
+                onConfirm={confirmOcrParsing}
+                onCancel={() => {
+                    setShowOcrDebugDialog(false);
+                    setIsScanning(false);
+                }}
+            />
 		</div>
 	);
 }

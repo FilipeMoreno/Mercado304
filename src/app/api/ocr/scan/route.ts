@@ -1,68 +1,100 @@
+// src/app/api/ocr/scan/route.ts
+
 import { NextResponse } from 'next/server';
+// Para usar o SDK oficial, seria necessário instalar com: npm install @google/generative-ai
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Função auxiliar para converter a imagem de Base64 para o formato da API do Gemini
+function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
+  const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+  if (!match) {
+    throw new Error("Formato de Data URL inválido");
+  }
+  return {
+    inlineData: { mimeType: match[1], data: match[2] },
+  };
+}
 
 export async function POST(request: Request) {
   try {
     const { imageUrl } = await request.json();
-    
-    // 1. Obter credenciais do ambiente
-    const clientId = process.env.VERYFI_CLIENT_ID;
-    const authToken = process.env.VERYFI_AUTHORIZATION_TOKEN;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!clientId || !authToken) {
-      console.error('Credenciais da Veryfi não configuradas no servidor.');
+    if (!apiKey) {
+      console.error('Chave da API do Gemini não configurada.');
       return NextResponse.json(
-        { error: 'Configuração de OCR ausente no servidor.' },
+        { error: 'Configuração de IA ausente no servidor.' },
         { status: 500 }
       );
     }
-    
+
     if (!imageUrl) {
-      return NextResponse.json(
-        { error: 'Nenhuma imagem fornecida.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Nenhuma imagem fornecida.' }, { status: 400 });
     }
-    
-    // 2. Preparar a requisição para a Veryfi
-    const headers = {
-      'CLIENT-ID': clientId,
-      'AUTHORIZATION': authToken,
-      'Content-Type': 'application/json',
-    };
 
-    const payload = {
-      // Usamos 'file_data' para enviar a imagem em base64
-      // A string base64 já vem com o cabeçalho "data:image/png;base64,"
-      file_data: imageUrl,
-      // Habilitamos o extrator de tabelas nutricionais
-      document_types: ["nutrition_label"]
-    };
-
-    // 3. Chamar a API da Veryfi
-    const response = await fetch('https://api.veryfi.com/api/v8/partner/documents', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(payload),
+    // Inicializa o cliente da IA com a sua chave
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash", // Modelo rápido e com boa capacidade multimodal
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Erro da API Veryfi:", errorData);
-      return NextResponse.json(
-        { error: 'Falha ao processar a imagem com a API externa.' },
-        { status: response.status }
-      );
-    }
+    // Este é o "coração" da nossa lógica: o prompt.
+    // Damos instruções claras ao Gemini sobre o que fazer e como formatar a resposta.
+    const prompt = `
+      Analise a imagem de uma tabela nutricional de um produto alimentício, possivelmente em português do Brasil.
+      Extraia as seguintes informações e retorne-as ESTRITAMENTE em formato JSON.
+      Se um valor não for encontrado na imagem, omita a chave ou use o valor null.
+      Os valores numéricos devem ser extraídos como números (number), usando ponto como separador decimal.
 
-    const veryfiResult = await response.json();
+      A estrutura do JSON de saída deve ser:
+      {
+        "servingSize": "string (ex: '100g', '200ml', '1 unidade')",
+        "calories": number,
+        "carbohydrates": number,
+        "totalSugars": number,
+        "addedSugars": number,
+        "proteins": number,
+        "totalFat": number,
+        "saturatedFat": number,
+        "transFat": number,
+        "fiber": number,
+        "sodium": number,
+        "allergensContains": ["string"],
+        "allergensMayContain": ["string"]
+      }
 
-    // 4. Retornar o resultado completo da Veryfi para o frontend
-    return NextResponse.json(veryfiResult);
+      Instruções detalhadas para extração:
+      - "Valor energético" corresponde a "calories". Extraia o valor em kcal.
+      - "Carboidratos" ou "Carboidratos totais" corresponde a "carbohydrates".
+      - "Açúcares totais" corresponde a "totalSugars".
+      - "Açúcares adicionados" corresponde a "addedSugars".
+      - "Proteínas" corresponde a "proteins".
+      - "Gorduras totais" corresponde a "totalFat".
+      - "Gorduras saturadas" corresponde a "saturatedFat".
+      - "Gorduras trans" corresponde a "transFat".
+      - "Fibra alimentar" corresponde a "fiber".
+      - "Sódio" corresponde a "sodium" (extrair em mg).
+      - Para "allergensContains", procure por textos como "ALÉRGICOS: CONTÉM...".
+      - Para "allergensMayContain", procure por textos como "PODE CONTER...".
+      - PRIORIZE os valores da coluna "100 g" ou "100 ml". Se essa coluna não existir, use os valores da coluna "por porção".
+    `;
+
+    const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl);
+
+    // Envia o prompt e a imagem para o Gemini
+    const result = await model.generateContent([prompt, imagePart]);
+    const responseText = result.response.text();
+
+    // O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
+    const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
+    const parsedJson = JSON.parse(jsonString);
+
+    return NextResponse.json(parsedJson);
 
   } catch (error) {
-    console.error('Erro no endpoint /api/ocr/scan:', error);
+    console.error('Erro na chamada da API Gemini:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor.' },
+      { error: 'Erro ao processar a imagem com a IA.' },
       { status: 500 }
     );
   }
