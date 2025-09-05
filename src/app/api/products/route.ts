@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, barcode, categoryId, brandId, unit } = body
+    const { name, barcode, categoryId, brandId, unit, hasStock, minStock, maxStock, hasExpiration, defaultShelfLifeDays, nutritionalInfo } = body
 
     if (!name) {
       return NextResponse.json(
@@ -95,16 +95,28 @@ export async function POST(request: Request) {
         barcode: barcode || null,
         categoryId: categoryId || null,
         brandId: brandId || null,
-        unit: unit || 'unidade'
+        unit: unit || 'unidade',
+        hasStock,
+        minStock,
+        maxStock,
+        hasExpiration,
+        defaultShelfLifeDays,
+        ...(nutritionalInfo && {
+          nutritionalInfo: {
+            create: nutritionalInfo
+          }
+        })
       },
       include: { 
         brand: true,
-        category: true
+        category: true,
+        nutritionalInfo: true
       }
     })
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {
+    console.error("Erro ao criar produto:", error)
     return NextResponse.json(
       { error: 'Erro ao criar produto' },
       { status: 500 }

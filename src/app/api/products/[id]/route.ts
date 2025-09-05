@@ -206,7 +206,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    const { name, categoryId, brandId, unit, barcode } = body
+    const { name, categoryId, brandId, unit, barcode, hasStock, minStock, maxStock, hasExpiration, defaultShelfLifeDays, nutritionalInfo } = body
 
     if (!name) {
       return NextResponse.json(
@@ -222,16 +222,31 @@ export async function PUT(
         categoryId: categoryId || null,
         brandId: brandId || null,
         unit: unit || 'unidade',
-        barcode: barcode || null
+        barcode: barcode || null,
+        hasStock,
+        minStock,
+        maxStock,
+        hasExpiration,
+        defaultShelfLifeDays,
+        ...(nutritionalInfo && {
+          nutritionalInfo: {
+            upsert: {
+              create: nutritionalInfo,
+              update: nutritionalInfo
+            }
+          }
+        })
       },
       include: {
         brand: true,
-        category: true
+        category: true,
+        nutritionalInfo: true
       }
     })
 
     return NextResponse.json(product)
   } catch (error) {
+    console.error("Erro ao atualizar produto:", error)
     return NextResponse.json(
       { error: 'Erro ao atualizar produto' },
       { status: 500 }
