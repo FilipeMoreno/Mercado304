@@ -39,7 +39,7 @@ export function OcrDebugDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="my-4">
-          <Label htmlFor="rawText">Texto Extraído:</Label>
+          <Label>Texto Extraído:</Label>
           <Textarea
             id="rawText"
             readOnly
