@@ -37,7 +37,8 @@ const nextConfig = {
     },
   },
   env: {
-    OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY
+    OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY,
+    OCR_SPACE_API_KEY: process.env.OCR_SPACE_API_KEY
   },
 }
 
