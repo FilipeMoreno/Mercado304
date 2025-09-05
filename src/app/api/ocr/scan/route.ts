@@ -1,3 +1,5 @@
+// src/app/api/ocr/scan/route.ts
+
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -19,11 +21,11 @@ export async function POST(request: Request) {
         );
     }
 
-    // A API do OCR.space espera os dados como FormData
     const formData = new FormData();
     formData.append('base64Image', imageUrl);
-    formData.append('language', 'por'); // Definir o idioma para Português
+    formData.append('language', 'por');
     formData.append('isOverlayRequired', 'false');
+    formData.append('OCREngine', '2'); // <-- ADICIONADO: Pede para usar o motor de OCR nº 2
 
     const response = await fetch('https://api.ocr.space/parse/image', {
       method: 'POST',
@@ -44,7 +46,6 @@ export async function POST(request: Request) {
 
     const ocrResult = await response.json();
     
-    // Verificar se o OCR teve sucesso
     if (ocrResult.IsErroredOnProcessing) {
         return NextResponse.json(
             { error: ocrResult.ErrorMessage.join(', ') },

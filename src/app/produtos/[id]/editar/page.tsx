@@ -22,27 +22,20 @@ import { toast } from "sonner";
 import { Product, NutritionalInfo } from "@/types";
 import { NutritionalScanner } from "@/components/nutritional-scanner";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
-import { parseOcrResult } from "@/lib/ocr-parser"; // Importa o parser de OCR
+import { parseOcrResult } from "@/lib/ocr-parser";
 import { useDataStore } from "@/store/useDataStore";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const units = [
-	"unidade",
-	"kg",
-	"g",
-	"litro",
-	"ml",
-	"pacote",
-	"caixa",
-	"garrafa",
-	"lata",
-	"saco",
+	"unidade", "kg", "g", "litro", "ml", "pacote",
+	"caixa", "garrafa", "lata", "saco",
 ];
 
 export default function EditarProdutoPage() {
 	const params = useParams();
 	const router = useRouter();
 	const productId = params.id as string;
-	const { categories, fetchCategories } = useDataStore(); // Obter categorias do store
+	const { categories, fetchCategories } = useDataStore();
 
 	const [product, setProduct] = useState<Product | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -50,33 +43,19 @@ export default function EditarProdutoPage() {
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
 	const [formData, setFormData] = useState({
-		name: "",
-		categoryId: "",
-		unit: "unidade",
-		brandId: "",
-		barcode: "",
-		hasStock: false,
-		minStock: "",
-		maxStock: "",
-		hasExpiration: false,
+		name: "", categoryId: "", unit: "unidade", brandId: "", barcode: "",
+		hasStock: false, minStock: "", maxStock: "", hasExpiration: false,
 		defaultShelfLifeDays: "",
 	});
 
-	// Estado para dados nutricionais
-	const [nutritionalData, setNutritionalData] = useState<Partial<
-		NutritionalInfo
-	> | null>(null);
+	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo> | null>(null);
 
-	// Busca as categorias ao montar o componente
 	useEffect(() => {
 		fetchCategories();
 	}, [fetchCategories]);
 
-	// Determina se os campos nutricionais devem ser exibidos
 	const showNutritionalFields = useMemo(() => {
-		if (!formData.categoryId || categories.length === 0) {
-			return false;
-		}
+		if (!formData.categoryId || categories.length === 0) return false;
 		const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
 		return selectedCategory?.isFood === true;
 	}, [formData.categoryId, categories]);
@@ -90,13 +69,11 @@ export default function EditarProdutoPage() {
 	const fetchData = async () => {
 		try {
 			const productRes = await fetch(`/api/products/${productId}`);
-
 			if (!productRes.ok) {
 				toast.error("Produto não encontrado");
 				router.push("/produtos");
 				return;
 			}
-
 			const productData = await productRes.json();
 			setProduct(productData);
 
@@ -110,22 +87,16 @@ export default function EditarProdutoPage() {
 				minStock: productData.minStock?.toString() || "",
 				maxStock: productData.maxStock?.toString() || "",
 				hasExpiration: productData.hasExpiration || false,
-				defaultShelfLifeDays:
-					productData.defaultShelfLifeDays?.toString() || "",
+				defaultShelfLifeDays: productData.defaultShelfLifeDays?.toString() || "",
 			});
-
-			// Busca os dados nutricionais existentes
-			const nutritionRes = await fetch(
-				`/api/products/${productId}/scan-nutrition`,
-			);
+			
+			const nutritionRes = await fetch(`/api/products/${productId}/scan-nutrition`);
 			if (nutritionRes.ok) {
-				const nutritionData = await nutritionRes.json();
-				setNutritionalData(nutritionData);
+				setNutritionalData(await nutritionRes.json());
 			}
 		} catch (error) {
 			console.error("Erro ao buscar dados:", error);
 			toast.error("Erro ao carregar dados");
-			router.push("/produtos");
 		} finally {
 			setLoading(false);
 		}
@@ -133,39 +104,27 @@ export default function EditarProdutoPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
 		if (!formData.name.trim()) {
 			toast.error("Nome do produto é obrigatório");
 			return;
 		}
-
 		setSaving(true);
 		try {
 			const hasNutritionalData = Object.values(nutritionalData || {}).some(
-				(v) =>
-					v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
+				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			);
-
 			const dataToSubmit = {
 				...formData,
-				name: formData.name.trim(),
-				categoryId: formData.categoryId || null,
-				brandId: formData.brandId || null,
-				barcode: formData.barcode.trim() || null,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays
-					? parseInt(formData.defaultShelfLifeDays)
-					: null,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
 			};
-
 			const response = await fetch(`/api/products/${productId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(dataToSubmit),
 			});
-
 			if (response.ok) {
 				toast.success("Produto atualizado com sucesso!");
 				router.push(`/produtos/${productId}`);
@@ -183,25 +142,18 @@ export default function EditarProdutoPage() {
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData((prev) => ({
-			...prev,
-			[e.target.name]: e.target.value,
-		}));
+		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 	};
 
 	const handleSelectChange = (name: string, value: string) => {
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleScanComplete = (extractedText: string) => {
 		setIsScanning(true);
 		try {
-			// Usa o parser para converter texto em dados estruturados
 			const parsedData = parseOcrResult(extractedText);
-			setNutritionalData(parsedData); // Atualiza o estado do formulário nutricional
+			setNutritionalData(parsedData);
 			toast.success("Dados nutricionais preenchidos! Confirme e salve as alterações.");
 		} catch (error) {
 			toast.error("Não foi possível processar o texto do rótulo.");
@@ -213,7 +165,7 @@ export default function EditarProdutoPage() {
 	};
 
 	if (loading) {
-		return (
+        return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
 					<div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
@@ -244,7 +196,7 @@ export default function EditarProdutoPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
 				<Link href={`/produtos/${productId}`}>
 					<Button variant="outline" size="sm">
 						<ArrowLeft className="h-4 w-4 mr-2" />
@@ -262,8 +214,9 @@ export default function EditarProdutoPage() {
 				</div>
 			</div>
 
+
 			<form onSubmit={handleSubmit} className="space-y-6">
-				<Card>
+                <Card>
 					<CardHeader>
 						<CardTitle>Informações do Produto</CardTitle>
 					</CardHeader>
@@ -271,188 +224,88 @@ export default function EditarProdutoPage() {
 						<div className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="name">Nome do Produto *</Label>
-								<Input
-									id="name"
-									name="name"
-									value={formData.name}
-									onChange={handleChange}
-									placeholder="Ex: Leite Integral"
-									required
-								/>
+								<Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Ex: Leite Integral" required />
 							</div>
-
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="brandId">Marca</Label>
-									<BrandSelect
-										value={formData.brandId}
-										onValueChange={(value) => handleSelectChange("brandId", value)}
-									/>
+									<BrandSelect value={formData.brandId} onValueChange={(value) => handleSelectChange("brandId", value)} />
 								</div>
-
 								<div className="space-y-2">
 									<Label htmlFor="categoryId">Categoria</Label>
-									<CategorySelect
-										value={formData.categoryId}
-										onValueChange={(value) =>
-											handleSelectChange("categoryId", value)
-										}
-									/>
+									<CategorySelect value={formData.categoryId} onValueChange={(value) => handleSelectChange("categoryId", value)} />
 								</div>
 							</div>
-
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>
-									<Select
-										value={formData.unit}
-										onValueChange={(value) => handleSelectChange("unit", value)}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{units.map((unit) => (
-												<SelectItem key={unit} value={unit}>
-													{unit}
-												</SelectItem>
-											))}
-										</SelectContent>
+									<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)} >
+										<SelectTrigger><SelectValue /></SelectTrigger>
+										<SelectContent>{units.map((unit) => (<SelectItem key={unit} value={unit}>{unit}</SelectItem>))}</SelectContent>
 									</Select>
 								</div>
-
 								<div className="space-y-2">
 									<Label htmlFor="barcode">Código de Barras</Label>
-									<Input
-										id="barcode"
-										name="barcode"
-										value={formData.barcode}
-										onChange={handleChange}
-										placeholder="Ex: 7891234567890"
-									/>
+									<Input id="barcode" name="barcode" value={formData.barcode} onChange={handleChange} placeholder="Ex: 7891234567890" />
 								</div>
 							</div>
-
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>
 								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="hasStock"
-										checked={formData.hasStock}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												hasStock: checked as boolean,
-											}))
-										}
-									/>
+									<Checkbox id="hasStock" checked={formData.hasStock} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, hasStock: checked as boolean, }))} />
 									<Label htmlFor="hasStock">Produto com controle de estoque</Label>
 								</div>
 								{formData.hasStock && (
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
 											<Label htmlFor="minStock">Estoque Mínimo</Label>
-											<Input
-												id="minStock"
-												name="minStock"
-												type="number"
-												step="0.01"
-												value={formData.minStock}
-												onChange={handleChange}
-												placeholder="Ex: 5"
-											/>
+											<Input id="minStock" name="minStock" type="number" step="0.01" value={formData.minStock} onChange={handleChange} placeholder="Ex: 5" />
 										</div>
 										<div className="space-y-2">
 											<Label htmlFor="maxStock">Estoque Máximo</Label>
-											<Input
-												id="maxStock"
-												name="maxStock"
-												type="number"
-												step="0.01"
-												value={formData.maxStock}
-												onChange={handleChange}
-												placeholder="Ex: 20"
-											/>
+											<Input id="maxStock" name="maxStock" type="number" step="0.01" value={formData.maxStock} onChange={handleChange} placeholder="Ex: 20" />
 										</div>
 									</div>
 								)}
 							</div>
-
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Validade</h3>
 								<div className="flex items-center space-x-2">
-									<Checkbox
-										id="hasExpiration"
-										checked={formData.hasExpiration}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												hasExpiration: checked as boolean,
-											}))
-										}
-									/>
+									<Checkbox id="hasExpiration" checked={formData.hasExpiration} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, hasExpiration: checked as boolean, }))} />
 									<Label htmlFor="hasExpiration">Produto com validade</Label>
 								</div>
 								{formData.hasExpiration && (
 									<div className="space-y-2">
-										<Label htmlFor="defaultShelfLifeDays">
-											Prazo de Validade Padrão (dias)
-										</Label>
-										<Input
-											id="defaultShelfLifeDays"
-											name="defaultShelfLifeDays"
-											type="number"
-											value={formData.defaultShelfLifeDays}
-											onChange={handleChange}
-											placeholder="Ex: 30"
-										/>
-										<p className="text-xs text-gray-500 dark:text-gray-400">
-											Usado para calcular a validade ao adicionar ao estoque.
-										</p>
+										<Label htmlFor="defaultShelfLifeDays">Prazo de Validade Padrão (dias)</Label>
+										<Input id="defaultShelfLifeDays" name="defaultShelfLifeDays" type="number" value={formData.defaultShelfLifeDays} onChange={handleChange} placeholder="Ex: 30" />
+										<p className="text-xs text-gray-500 dark:text-gray-400">Usado para calcular a validade ao adicionar ao estoque.</p>
 									</div>
 								)}
 							</div>
 						</div>
 					</CardContent>
 				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>Scanner de Rótulo</CardTitle>
-						<p className="text-sm text-gray-600">
-							Escaneie o rótulo para preencher ou atualizar os campos abaixo.
-						</p>
-					</CardHeader>
-					<CardContent>
-						<Button
-							type="button"
-							onClick={() => setShowNutritionalScanner(true)}
-							disabled={isScanning}
-							variant="outline"
-							className="w-full md:w-auto"
-						>
-							{isScanning ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Aguarde...
-								</>
-							) : (
-								<>
-									<ScanLine className="mr-2 h-4 w-4" />
-									Escanear Rótulo
-								</>
-							)}
-						</Button>
-					</CardContent>
-				</Card>
+				
 				{showNutritionalFields && (
 					<>
+						<Card>
+							<CardHeader>
+								<CardTitle>Scanner de Rótulo</CardTitle>
+								<p className="text-sm text-gray-600">Escaneie o rótulo para preencher ou atualizar os campos abaixo.</p>
+							</CardHeader>
+							<CardContent>
+								<Button type="button" onClick={() => setShowNutritionalScanner(true)} disabled={isScanning} variant="outline" className="w-full md:w-auto">
+									{isScanning ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Aguarde...</>) : (<><ScanLine className="mr-2 h-4 w-4" />Escanear Rótulo</>)}
+								</Button>
+							</CardContent>
+						</Card>
+
 						<NutritionalInfoForm
 							initialData={nutritionalData}
 							onDataChange={(data) => setNutritionalData(data)}
 						/>
 					</>
-					)}
+				)}
 
 				<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={saving}>
@@ -460,18 +313,19 @@ export default function EditarProdutoPage() {
 						{saving ? "Salvando..." : "Salvar Alterações"}
 					</Button>
 					<Link href={`/produtos/${productId}`}>
-						<Button type="button" variant="outline">
-							Cancelar
-						</Button>
+						<Button type="button" variant="outline">Cancelar</Button>
 					</Link>
 				</div>
 			</form>
-
-			<NutritionalScanner
-				isOpen={showNutritionalScanner}
-				onClose={() => setShowNutritionalScanner(false)}
-				onScanComplete={handleScanComplete}
-			/>
+            
+			<Dialog open={showNutritionalScanner} onOpenChange={setShowNutritionalScanner}>
+				<DialogContent className="max-w-2xl">
+					<NutritionalScanner
+						onClose={() => setShowNutritionalScanner(false)}
+						onScanComplete={handleScanComplete}
+					/>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
