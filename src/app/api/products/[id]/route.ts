@@ -201,57 +201,103 @@ export async function GET(
 }
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+	request: Request,
+	{ params }: { params: { id: string } },
 ) {
-  try {
-    const body = await request.json()
-    const { name, categoryId, brandId, unit, barcode, hasStock, minStock, maxStock, hasExpiration, defaultShelfLifeDays, nutritionalInfo } = body
+	try {
+		const body = await request.json();
+		const {
+			name,
+			categoryId,
+			brandId,
+			unit,
+			barcode,
+			hasStock,
+			minStock,
+			maxStock,
+			hasExpiration,
+			defaultShelfLifeDays,
+			nutritionalInfo, // Objeto completo vindo do frontend
+		} = body;
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'Nome é obrigatório' },
-        { status: 400 }
-      )
-    }
+		if (!name) {
+			return NextResponse.json(
+				{ error: "Nome é obrigatório" },
+				{ status: 400 },
+			);
+		}
+		let cleanNutritionalInfoData = null;
+		if (nutritionalInfo) {
+			const {
+				servingSize,
+				calories,
+				proteins,
+				totalFat,
+				saturatedFat,
+				transFat,
+				carbohydrates,
+				totalSugars,
+				addedSugars,
+				fiber,
+				sodium,
+				allergensContains,
+				allergensMayContain,
+			} = nutritionalInfo;
 
-    const product = await prisma.product.update({
-      where: { id: params.id },
-      data: {
-        name,
-        categoryId: categoryId || null,
-        brandId: brandId || null,
-        unit: unit || 'unidade',
-        barcode: barcode || null,
-        hasStock,
-        minStock,
-        maxStock,
-        hasExpiration,
-        defaultShelfLifeDays,
-        ...(nutritionalInfo && {
-          nutritionalInfo: {
-            upsert: {
-              create: nutritionalInfo,
-              update: nutritionalInfo
-            }
-          }
-        })
-      },
-      include: {
-        brand: true,
-        category: true,
-        nutritionalInfo: true
-      }
-    })
+			cleanNutritionalInfoData = {
+				servingSize,
+				calories,
+				proteins,
+				totalFat,
+				saturatedFat,
+				transFat,
+				carbohydrates,
+				totalSugars,
+				addedSugars,
+				fiber,
+				sodium,
+				allergensContains,
+				allergensMayContain,
+			};
+		}
 
-    return NextResponse.json(product)
-  } catch (error) {
-    console.error("Erro ao atualizar produto:", error)
-    return NextResponse.json(
-      { error: 'Erro ao atualizar produto' },
-      { status: 500 }
-    )
-  }
+		const product = await prisma.product.update({
+			where: { id: params.id },
+			data: {
+				name,
+				categoryId: categoryId || null,
+				brandId: brandId || null,
+				unit: unit || "unidade",
+				barcode: barcode || null,
+				hasStock,
+				minStock,
+				maxStock,
+				hasExpiration,
+				defaultShelfLifeDays,
+				...(cleanNutritionalInfoData && {
+					nutritionalInfo: {
+						upsert: {
+							create: cleanNutritionalInfoData,
+							update: cleanNutritionalInfoData,
+						},
+					},
+				}),
+			},
+			include: {
+				brand: true,
+				category: true,
+				nutritionalInfo: true,
+			},
+		});
+
+		return NextResponse.json(product);
+	} catch (error) {
+		console.error("Erro ao atualizar produto:", error);
+		return NextResponse.json(
+			{ error: "Erro ao atualizar produto" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function DELETE(

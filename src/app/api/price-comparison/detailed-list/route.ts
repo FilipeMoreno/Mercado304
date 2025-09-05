@@ -41,7 +41,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const productIds = shoppingList.items.map((item) => item.productId!);
+    // --- CORREÇÃO APLICADA AQUI ---
+    // Mapeia e depois filtra para garantir que não há IDs nulos
+    const productIds = shoppingList.items
+      .map((item) => item.productId)
+      .filter((id): id is string => !!id);
 
     const productsWithPrices = await Promise.all(
       productIds.map(async (productId) => {

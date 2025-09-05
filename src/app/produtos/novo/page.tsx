@@ -16,13 +16,23 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrandSelect } from "@/components/selects/brand-select";
 import { CategorySelect } from "@/components/selects/category-select";
-import { ArrowLeft, Package, Save, Camera } from "lucide-react";
+import {
+	ArrowLeft,
+	Package,
+	Save,
+	Camera,
+	ScanLine,
+	Loader2,
+} from "lucide-react";
 import { BarcodeScanner } from "@/components/barcode-scanner";
+import { NutritionalScanner } from "@/components/nutritional-scanner";
 import { TempStorage } from "@/lib/temp-storage";
 import Link from "next/link";
 import { AppToasts } from "@/lib/toasts";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
 import { NutritionalInfo } from "@/types";
+import { parseOcrResult } from "@/lib/ocr-parser"; // Importa o parser de OCR
+import { toast } from "sonner";
 
 const units = [
 	"unidade",
@@ -42,7 +52,11 @@ export default function NovoProdutoPage() {
 	const searchParams = useSearchParams();
 
 	const [loading, setLoading] = useState(false);
-	const [showScanner, setShowScanner] = useState(false);
+	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+
+	// Novos estados para o scanner de rótulo
+	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
+	const [isScanning, setIsScanning] = useState(false);
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -57,13 +71,11 @@ export default function NovoProdutoPage() {
 		defaultShelfLifeDays: "",
 	});
 
-	// Novo estado para informações nutricionais
 	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo>>(
 		{},
 	);
 
 	useEffect(() => {
-		// Preenche o nome do produto se vier da URL (ex: ao criar a partir de um select)
 		const nameParam = searchParams.get("name");
 		if (nameParam) {
 			setFormData((prev) => ({ ...prev, name: nameParam }));
@@ -81,9 +93,9 @@ export default function NovoProdutoPage() {
 		setLoading(true);
 
 		try {
-			// Verifica se algum campo nutricional foi preenchido
 			const hasNutritionalData = Object.values(nutritionalData).some(
-				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
+				(v) =>
+					v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			);
 
 			const dataToSubmit = {
@@ -104,14 +116,16 @@ export default function NovoProdutoPage() {
 
 			if (response.ok) {
 				const newProduct = await response.json();
-
 				const returnTo = searchParams.get("returnTo");
 				const storageKey = searchParams.get("storageKey");
 
 				if (returnTo && storageKey) {
 					const preservedData = TempStorage.get(storageKey);
 					if (preservedData) {
-						const updatedData = { ...preservedData, newProductId: newProduct.id };
+						const updatedData = {
+							...preservedData,
+							newProductId: newProduct.id,
+						};
 						const newStorageKey = TempStorage.save(updatedData);
 						TempStorage.remove(storageKey);
 						router.push(`${returnTo}?storageKey=${newStorageKey}`);
@@ -148,7 +162,24 @@ export default function NovoProdutoPage() {
 
 	const handleBarcodeScanned = (barcode: string) => {
 		setFormData((prev) => ({ ...prev, barcode }));
-		setShowScanner(false);
+		setShowBarcodeScanner(false);
+	};
+
+	// Nova função para lidar com o resultado do scanner de rótulo
+	const handleNutritionalScanComplete = (extractedText: string) => {
+		setIsScanning(true);
+		try {
+			// Usa o parser para converter texto em dados estruturados
+			const parsedData = parseOcrResult(extractedText);
+			setNutritionalData(parsedData); // Atualiza o estado do formulário nutricional
+			toast.success("Dados nutricionais preenchidos!");
+		} catch (error) {
+			toast.error("Não foi possível processar o texto do rótulo.");
+			console.error("Erro ao parsear OCR:", error);
+		} finally {
+			setIsScanning(false);
+			setShowNutritionalScanner(false);
+		}
 	};
 
 	return (
@@ -201,7 +232,7 @@ export default function NovoProdutoPage() {
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => setShowScanner(true)}
+										onClick={() => setShowBarcodeScanner(true)}
 									>
 										<Camera className="h-4 w-4" />
 									</Button>
@@ -220,7 +251,9 @@ export default function NovoProdutoPage() {
 								<Label htmlFor="categoryId">Categoria</Label>
 								<CategorySelect
 									value={formData.categoryId}
-									onValueChange={(value) => handleSelectChange("categoryId", value)}
+									onValueChange={(value) =>
+										handleSelectChange("categoryId", value)
+									}
 								/>
 							</div>
 
@@ -243,10 +276,8 @@ export default function NovoProdutoPage() {
 								</Select>
 							</div>
 
-							{/* Controle de Estoque */}
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>
-
 								<div className="flex items-center space-x-2">
 									<Checkbox
 										id="hasStock"
@@ -258,11 +289,8 @@ export default function NovoProdutoPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="hasStock">
-										Produto com controle de estoque
-									</Label>
+									<Label htmlFor="hasStock">Produto com controle de estoque</Label>
 								</div>
-
 								{formData.hasStock && (
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
@@ -293,10 +321,8 @@ export default function NovoProdutoPage() {
 								)}
 							</div>
 
-							{/* Controle de Validade */}
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Validade</h3>
-
 								<div className="flex items-center space-x-2">
 									<Checkbox
 										id="hasExpiration"
@@ -310,7 +336,6 @@ export default function NovoProdutoPage() {
 									/>
 									<Label htmlFor="hasExpiration">Produto com validade</Label>
 								</div>
-
 								{formData.hasExpiration && (
 									<div className="space-y-2">
 										<Label htmlFor="defaultShelfLifeDays">
@@ -325,8 +350,7 @@ export default function NovoProdutoPage() {
 											placeholder="Ex: 30"
 										/>
 										<p className="text-xs text-gray-500">
-											Usado para calcular automaticamente a validade quando o
-											produto for adicionado ao estoque
+											Usado para calcular a validade ao adicionar ao estoque.
 										</p>
 									</div>
 								)}
@@ -335,8 +359,42 @@ export default function NovoProdutoPage() {
 					</CardContent>
 				</Card>
 
-				{/* Formulário de Informações Nutricionais */}
-				<NutritionalInfoForm onDataChange={setNutritionalData} />
+				<Card>
+					<CardHeader>
+						<CardTitle>Scanner de Rótulo</CardTitle>
+						<p className="text-sm text-gray-600">
+							Escaneie o rótulo para preencher automaticamente os campos
+							nutricionais.
+						</p>
+					</CardHeader>
+					<CardContent>
+						<Button
+							type="button"
+							onClick={() => setShowNutritionalScanner(true)}
+							disabled={isScanning}
+							variant="outline"
+							className="w-full md:w-auto"
+						>
+							{isScanning ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Aguarde...
+								</>
+							) : (
+								<>
+									<ScanLine className="mr-2 h-4 w-4" />
+									Escanear Rótulo
+								</>
+							)}
+						</Button>
+					</CardContent>
+				</Card>
+
+				{/* O formulário agora é preenchido via estado */}
+				<NutritionalInfoForm
+					initialData={nutritionalData}
+					onDataChange={setNutritionalData}
+				/>
 
 				<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={loading}>
@@ -349,7 +407,6 @@ export default function NovoProdutoPage() {
 						onClick={() => {
 							const returnTo = searchParams.get("returnTo");
 							const storageKey = searchParams.get("storageKey");
-
 							if (returnTo && storageKey) {
 								TempStorage.remove(storageKey);
 								router.push(returnTo);
@@ -364,9 +421,14 @@ export default function NovoProdutoPage() {
 			</form>
 
 			<BarcodeScanner
-				isOpen={showScanner}
+				isOpen={showBarcodeScanner}
 				onScan={handleBarcodeScanned}
-				onClose={() => setShowScanner(false)}
+				onClose={() => setShowBarcodeScanner(false)}
+			/>
+			<NutritionalScanner
+				isOpen={showNutritionalScanner}
+				onClose={() => setShowNutritionalScanner(false)}
+				onScanComplete={handleNutritionalScanComplete}
 			/>
 		</div>
 	);

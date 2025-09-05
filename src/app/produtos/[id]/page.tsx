@@ -14,6 +14,7 @@ import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-s
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { AnvisaWarnings } from "@/components/anvisa-warnings"
 
 export default function ProdutoDetalhesPage() {
   const params = useParams()
@@ -94,8 +95,7 @@ export default function ProdutoDetalhesPage() {
       <div className="flex items-center gap-4">
         <Link href="/produtos">
           <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+            <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div className="flex-1">
@@ -130,6 +130,8 @@ export default function ProdutoDetalhesPage() {
           </Button>
         </div>
       </div>
+
+      <AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
 
       {/* Cards de Estatísticas Rápidas */}
       {stats && (

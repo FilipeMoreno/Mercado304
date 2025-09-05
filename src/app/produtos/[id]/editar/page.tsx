@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Product, NutritionalInfo } from "@/types";
 import { NutritionalScanner } from "@/components/nutritional-scanner";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
+import { parseOcrResult } from "@/lib/ocr-parser"; // Importa o parser de OCR
 
 const units = [
 	"unidade",
@@ -125,7 +126,8 @@ export default function EditarProdutoPage() {
 		setSaving(true);
 		try {
 			const hasNutritionalData = Object.values(nutritionalData || {}).some(
-				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
+				(v) =>
+					v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			);
 
 			const dataToSubmit = {
@@ -151,7 +153,7 @@ export default function EditarProdutoPage() {
 			if (response.ok) {
 				toast.success("Produto atualizado com sucesso!");
 				router.push(`/produtos/${productId}`);
-				router.refresh(); // Garante que a página de detalhes será atualizada
+				router.refresh();
 			} else {
 				const error = await response.json();
 				toast.error(error.error || "Erro ao atualizar produto");
@@ -178,30 +180,16 @@ export default function EditarProdutoPage() {
 		}));
 	};
 
-	const handleScanComplete = async (extractedText: string) => {
+	const handleScanComplete = (extractedText: string) => {
 		setIsScanning(true);
 		try {
-			const response = await fetch(
-				`/api/products/${productId}/scan-nutrition`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ text: extractedText }),
-				},
-			);
-
-			if (response.ok) {
-				const updatedNutritionData = await response.json();
-				setNutritionalData(updatedNutritionData); // Atualiza o formulário com os dados do scanner
-				toast.success("Informações nutricionais extraídas com sucesso!");
-			} else {
-				const error = await response.json();
-				toast.error(
-					error.error?.message || "Falha ao analisar o texto do rótulo.",
-				);
-			}
+			// Usa o parser para converter texto em dados estruturados
+			const parsedData = parseOcrResult(extractedText);
+			setNutritionalData(parsedData); // Atualiza o estado do formulário nutricional
+			toast.success("Dados nutricionais preenchidos! Confirme e salve as alterações.");
 		} catch (error) {
-			toast.error("Ocorreu um erro ao processar o texto do rótulo.");
+			toast.error("Não foi possível processar o texto do rótulo.");
+			console.error("Erro ao parsear OCR:", error);
 		} finally {
 			setIsScanning(false);
 			setShowNutritionalScanner(false);
@@ -329,10 +317,8 @@ export default function EditarProdutoPage() {
 								</div>
 							</div>
 
-							{/* Controle de Estoque */}
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>
-
 								<div className="flex items-center space-x-2">
 									<Checkbox
 										id="hasStock"
@@ -344,11 +330,8 @@ export default function EditarProdutoPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="hasStock">
-										Produto com controle de estoque
-									</Label>
+									<Label htmlFor="hasStock">Produto com controle de estoque</Label>
 								</div>
-
 								{formData.hasStock && (
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
@@ -379,10 +362,8 @@ export default function EditarProdutoPage() {
 								)}
 							</div>
 
-							{/* Controle de Validade */}
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Validade</h3>
-
 								<div className="flex items-center space-x-2">
 									<Checkbox
 										id="hasExpiration"
@@ -396,7 +377,6 @@ export default function EditarProdutoPage() {
 									/>
 									<Label htmlFor="hasExpiration">Produto com validade</Label>
 								</div>
-
 								{formData.hasExpiration && (
 									<div className="space-y-2">
 										<Label htmlFor="defaultShelfLifeDays">
@@ -411,8 +391,7 @@ export default function EditarProdutoPage() {
 											placeholder="Ex: 30"
 										/>
 										<p className="text-xs text-gray-500 dark:text-gray-400">
-											Usado para calcular automaticamente a validade quando o
-											produto for adicionado ao estoque
+											Usado para calcular a validade ao adicionar ao estoque.
 										</p>
 									</div>
 								)}
@@ -425,8 +404,7 @@ export default function EditarProdutoPage() {
 					<CardHeader>
 						<CardTitle>Scanner de Rótulo</CardTitle>
 						<p className="text-sm text-gray-600">
-							Escaneie o rótulo para preencher automaticamente os campos
-							abaixo.
+							Escaneie o rótulo para preencher ou atualizar os campos abaixo.
 						</p>
 					</CardHeader>
 					<CardContent>
@@ -454,7 +432,7 @@ export default function EditarProdutoPage() {
 
 				<NutritionalInfoForm
 					initialData={nutritionalData}
-					onDataChange={setNutritionalData}
+					onDataChange={(data) => setNutritionalData(data)}
 				/>
 
 				<div className="flex gap-3 pt-4">
