@@ -1,61 +1,63 @@
-// src/app/api/ocr/scan/route.ts
-
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     const { imageUrl } = await request.json();
-    const ocrApiKey = process.env.OCR_SPACE_API_KEY;
+    
+    // 1. Obter credenciais do ambiente
+    const clientId = process.env.VERYFI_CLIENT_ID;
+    const authToken = process.env.VERYFI_AUTHORIZATION_TOKEN;
 
-    if (!ocrApiKey) {
+    if (!clientId || !authToken) {
+      console.error('Credenciais da Veryfi não configuradas no servidor.');
       return NextResponse.json(
-        { error: 'Chave de API do OCR não configurada no servidor.' },
+        { error: 'Configuração de OCR ausente no servidor.' },
         { status: 500 }
       );
     }
     
     if (!imageUrl) {
-        return NextResponse.json(
-          { error: 'Nenhuma imagem fornecida.' },
-          { status: 400 }
-        );
+      return NextResponse.json(
+        { error: 'Nenhuma imagem fornecida.' },
+        { status: 400 }
+      );
     }
+    
+    // 2. Preparar a requisição para a Veryfi
+    const headers = {
+      'CLIENT-ID': clientId,
+      'AUTHORIZATION': authToken,
+      'Content-Type': 'application/json',
+    };
 
-    const formData = new FormData();
-    formData.append('base64Image', imageUrl);
-    formData.append('language', 'por');
-    formData.append('isOverlayRequired', 'false');
-    formData.append('OCREngine', '2'); // <-- ADICIONADO: Pede para usar o motor de OCR nº 2
+    const payload = {
+      // Usamos 'file_data' para enviar a imagem em base64
+      // A string base64 já vem com o cabeçalho "data:image/png;base64,"
+      file_data: imageUrl,
+      // Habilitamos o extrator de tabelas nutricionais
+      document_types: ["nutrition_label"]
+    };
 
-    const response = await fetch('https://api.ocr.space/parse/image', {
+    // 3. Chamar a API da Veryfi
+    const response = await fetch('https://api.veryfi.com/api/v8/partner/documents', {
       method: 'POST',
-      headers: {
-        'apikey': ocrApiKey,
-      },
-      body: formData,
+      headers: headers,
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Erro da API OCR.space:", errorData);
+      console.error("Erro da API Veryfi:", errorData);
       return NextResponse.json(
         { error: 'Falha ao processar a imagem com a API externa.' },
         { status: response.status }
       );
     }
 
-    const ocrResult = await response.json();
-    
-    if (ocrResult.IsErroredOnProcessing) {
-        return NextResponse.json(
-            { error: ocrResult.ErrorMessage.join(', ') },
-            { status: 500 }
-          );
-    }
+    const veryfiResult = await response.json();
 
-    const extractedText = ocrResult.ParsedResults[0]?.ParsedText || '';
-
-    return NextResponse.json({ text: extractedText });
+    // 4. Retornar o resultado completo da Veryfi para o frontend
+    return NextResponse.json(veryfiResult);
 
   } catch (error) {
     console.error('Erro no endpoint /api/ocr/scan:', error);

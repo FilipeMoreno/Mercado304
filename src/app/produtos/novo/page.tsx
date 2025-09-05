@@ -33,6 +33,7 @@ import { AppToasts } from "@/lib/toasts";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
 import { NutritionalInfo } from "@/types";
 import { parseOcrResult } from "@/lib/ocr-parser";
+import { parseVeryfiResponse } from "@/lib/veryfi-parser";
 import { toast } from "sonner";
 import { useDataStore } from "@/store/useDataStore";
 import { OcrDebugDialog } from "@/components/orc-debug-dialog";
@@ -53,6 +54,7 @@ export default function NovoProdutoPage() {
 	const [isScanning, setIsScanning] = useState(false);
     
     const [rawOcrText, setRawOcrText] = useState("");
+		const [veryfiFullResponse, setVeryfiFullResponse] = useState<any>(null);
     const [showOcrDebugDialog, setShowOcrDebugDialog] = useState(false);
 
 	const [formData, setFormData] = useState({
@@ -138,27 +140,32 @@ export default function NovoProdutoPage() {
 		setShowBarcodeScanner(false);
 	};
     
-	const handleNutritionalScanComplete = (extractedText: string) => {
+	const handleNutritionalScanComplete = (veryfiResponse: any) => {
 		setIsScanning(true);
-        setRawOcrText(extractedText);
-        setShowOcrDebugDialog(true);
-        setShowNutritionalScanner(false);
+		setRawOcrText(veryfiResponse.text || "Nenhum texto extraído.");
+		setVeryfiFullResponse(veryfiResponse); // Armazena a resposta completa
+		setShowOcrDebugDialog(true);
+		setShowNutritionalScanner(false);
 	};
 
-    const confirmOcrParsing = () => {
-        try {
-            const parsedData = parseOcrResult(rawOcrText);
-            setNutritionalData(parsedData);
-            toast.success("Dados nutricionais preenchidos!");
-        } catch (error) {
-            toast.error("Não foi possível processar o texto do rótulo.");
-            console.error("Erro ao parsear OCR:", error);
-        } finally {
-            setIsScanning(false);
-            setShowOcrDebugDialog(false);
-            setRawOcrText("");
-        }
-    }
+	const confirmOcrParsing = () => {
+		try {
+				if (!veryfiFullResponse) {
+					throw new Error("Resposta da API não encontrada.");
+				}
+				const parsedData = parseVeryfiResponse(veryfiFullResponse);
+				setNutritionalData(parsedData);
+				toast.success("Dados nutricionais preenchidos!");
+		} catch (error) {
+				toast.error("Não foi possível processar os dados do rótulo.");
+				console.error("Erro ao parsear Veryfi:", error);
+		} finally {
+				setIsScanning(false);
+				setShowOcrDebugDialog(false);
+				setRawOcrText("");
+				setVeryfiFullResponse(null); // Limpa o estado
+		}
+	}
 
 	return (
 		<div className="space-y-6">

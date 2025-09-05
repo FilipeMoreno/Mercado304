@@ -7,8 +7,8 @@ import { Camera, Loader2 } from "lucide-react"
 // REMOVIDO: import { createWorker } from "tesseract.js"
 
 interface NutritionalScannerProps {
-  onScanComplete: (text: string) => void
-  onClose: () => void
+  onScanComplete: (response: any) => void; // Altere para receber 'any' ou um tipo mais específico
+  onClose: () => void;
 }
 
 export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScannerProps) {
@@ -72,7 +72,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
         }
 
         const result = await response.json();
-        onScanComplete(result.text); // Enviar o texto recebido para a página
+        onScanComplete(result); // Enviar o texto recebido para a página
 
       } catch (error) {
         console.error("Erro ao chamar a API de OCR:", error)
