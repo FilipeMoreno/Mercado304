@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       Você é um chef de cozinha experiente. Baseado na lista de ingredientes fornecida, crie 3 sugestões de receitas (café da manhã, almoço e jantar).

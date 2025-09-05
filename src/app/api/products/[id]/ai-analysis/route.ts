@@ -25,7 +25,7 @@ export async function GET(
     }
     
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       Você é um assistente nutricional. Analise os seguintes dados nutricionais de um produto (valores por 100g/ml) e forneça uma avaliação curta e direta (2-3 frases) sobre seus prós e contras para uma dieta balanceada. Foque em açúcares adicionados, gorduras saturadas, sódio, fibras e proteínas. Seja claro e objetivo.
