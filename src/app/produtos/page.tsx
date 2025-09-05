@@ -3,7 +3,6 @@ import { Plus } from "lucide-react"
 import Link from "next/link"
 import { ProductsClient } from "./products-client"
 import API_BASE_URL from "@/lib/api"
-import API_BASE_URL from "@/lib/api"
 
 interface ProductsPageProps {
   searchParams: {
