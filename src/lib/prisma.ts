@@ -12,9 +12,9 @@ const prismaClientSingleton = () => {
     log: ['query'],
   })
   .$extends(withAccelerate())
-  .$extends(withOptimize({
-    apiKey: process.env.OPTIMIZE_API_KEY || '',
-  }));
+  // .$extends(withOptimize({
+  //   apiKey: process.env.OPTIMIZE_API_KEY || '',
+  // }));
 }
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>
