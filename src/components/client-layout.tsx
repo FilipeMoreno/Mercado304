@@ -38,7 +38,7 @@ export function ClientLayout({
   }, [])
 
   return (
-    <div className="flex h-screen bg-accent">
+    <div className="flex h-screen bg-accent overflow-hidden">
       <Sidebar />
       <main ref={mainRef} className="flex-1 p-2 ml-0 md:ml-0 overflow-y-auto custom-scrollbar">
         <div className={cn(

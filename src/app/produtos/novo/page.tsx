@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ import { NutritionalInfoForm } from "@/components/nutritional-info-form";
 import { NutritionalInfo } from "@/types";
 import { parseOcrResult } from "@/lib/ocr-parser"; // Importa o parser de OCR
 import { toast } from "sonner";
+import { useDataStore } from "@/store/useDataStore";
 
 const units = [
 	"unidade",
@@ -53,6 +54,8 @@ export default function NovoProdutoPage() {
 
 	const [loading, setLoading] = useState(false);
 	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+
+	const { categories, fetchCategories } = useDataStore(); // Obter categorias do store
 
 	// Novos estados para o scanner de rótulo
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
@@ -76,11 +79,20 @@ export default function NovoProdutoPage() {
 	);
 
 	useEffect(() => {
+		fetchCategories();
 		const nameParam = searchParams.get("name");
 		if (nameParam) {
 			setFormData((prev) => ({ ...prev, name: nameParam }));
 		}
-	}, [searchParams]);
+	}, [searchParams, fetchCategories]);
+
+	const showNutritionalFields = useMemo(() => {
+		if (!formData.categoryId || categories.length === 0) {
+			return false;
+		}
+		const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+		return selectedCategory?.isFood === true;
+	}, [formData.categoryId, categories]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -358,7 +370,8 @@ export default function NovoProdutoPage() {
 						</div>
 					</CardContent>
 				</Card>
-
+{showNutritionalFields && (
+					<>
 				<Card>
 					<CardHeader>
 						<CardTitle>Scanner de Rótulo</CardTitle>
@@ -395,6 +408,8 @@ export default function NovoProdutoPage() {
 					initialData={nutritionalData}
 					onDataChange={setNutritionalData}
 				/>
+									</>
+				)}
 
 				<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={loading}>

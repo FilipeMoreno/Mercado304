@@ -33,6 +33,7 @@ model Category {
   name      String    @unique
   icon      String?
   color     String?
+  isFood Boolean @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]

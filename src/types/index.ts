@@ -21,6 +21,7 @@ export interface Category {
   name: string
   icon?: string
   color?: string
+  isFood?: boolean
   createdAt: Date
   updatedAt: Date
 }

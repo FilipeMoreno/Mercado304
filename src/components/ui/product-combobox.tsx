@@ -55,12 +55,10 @@ export function ProductCombobox({
   const [open, setOpen] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Filtrar produtos baseado no termo de busca (nome, marca ou barcode)
   const filteredProducts = React.useMemo(() => {
     return filterProducts(products, searchTerm)
   }, [products, searchTerm])
 
-  // Converter produtos para opções do combobox
   const options: ProductComboboxOption[] = React.useMemo(() => {
     return filteredProducts.map(product => ({
       value: product.id,
@@ -70,7 +68,6 @@ export function ProductCombobox({
     }))
   }, [filteredProducts])
 
-  // Busca exata por barcode quando o termo parece ser um código de barras
   const exactBarcodeMatch = React.useMemo(() => {
     if (isBarcode(searchTerm)) {
       return products.find(product => product.barcode === searchTerm)
@@ -78,7 +75,6 @@ export function ProductCombobox({
     return null
   }, [products, searchTerm])
 
-  // Auto-selecionar se encontrar match exato por barcode
   React.useEffect(() => {
     if (exactBarcodeMatch && !value) {
       onValueChange?.(exactBarcodeMatch.id)
@@ -97,15 +93,17 @@ export function ProductCombobox({
           className={cn("w-full justify-between", className)}
           disabled={disabled}
         >
-          {value ? (
-            (() => {
-              const selectedProduct = products.find(p => p.id === value)
-              console.log('🔍 Procurando produto com ID:', value, 'Encontrado:', selectedProduct, 'Total produtos:', products.length)
-              return selectedProduct 
-                ? `${selectedProduct.name} ${selectedProduct.brand ? `- ${selectedProduct.brand.name}` : ""} (${selectedProduct.unit})`
-                : placeholder
-            })()
-          ) : placeholder}
+          {/* --- ALTERAÇÃO APLICADA AQUI --- */}
+          <span className="truncate flex-1 text-left font-normal">
+            {value ? (
+              (() => {
+                const selectedProduct = products.find(p => p.id === value)
+                return selectedProduct 
+                  ? `${selectedProduct.name} ${selectedProduct.brand ? `- ${selectedProduct.brand.name}` : ""} (${selectedProduct.unit})`
+                  : placeholder
+              })()
+            ) : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
