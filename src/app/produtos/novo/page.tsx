@@ -32,10 +32,10 @@ import Link from "next/link";
 import { AppToasts } from "@/lib/toasts";
 import { NutritionalInfoForm } from "@/components/nutritional-info-form";
 import { NutritionalInfo } from "@/types";
-import { parseGeminiResponse } from "@/lib/gemini-parser"; // Alterado para o parser do Gemini
+import { parseGeminiResponse } from "@/lib/gemini-parser";
 import { toast } from "sonner";
 import { useDataStore } from "@/store/useDataStore";
-import { OcrDebugDialog } from "@/components/orc-debug-dialog";
+// REMOVIDO: OcrDebugDialog não é mais necessário aqui
 
 const units = [
 	"unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco",
@@ -51,11 +51,6 @@ export default function NovoProdutoPage() {
 
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
 	const [isScanning, setIsScanning] = useState(false);
-    
-    // Estados para o fluxo do Gemini
-    const [rawOcrText, setRawOcrText] = useState("");
-    const [geminiFullResponse, setGeminiFullResponse] = useState<any>(null);
-    const [showOcrDebugDialog, setShowOcrDebugDialog] = useState(false);
 
 	const [formData, setFormData] = useState({
 		name: "", barcode: "", categoryId: "", brandId: "", unit: "unidade",
@@ -140,32 +135,27 @@ export default function NovoProdutoPage() {
 		setShowBarcodeScanner(false);
 	};
     
+	// --- FUNÇÃO ATUALIZADA ---
+	// Agora ela processa e preenche os dados diretamente, sem o diálogo de debug.
 	const handleNutritionalScanComplete = (geminiResponse: any) => {
 		setIsScanning(true);
-        setRawOcrText(JSON.stringify(geminiResponse, null, 2)); 
-        setGeminiFullResponse(geminiResponse);
-        setShowOcrDebugDialog(true);
-        setShowNutritionalScanner(false);
-	};
-
-    const confirmOcrParsing = () => {
+        setShowNutritionalScanner(false); // Fecha o modal da câmera
         try {
-            if (!geminiFullResponse) {
-                throw new Error("Resposta da API não encontrada.");
+            if (!geminiResponse) {
+                throw new Error("A API não retornou uma resposta.");
             }
-            const parsedData = parseGeminiResponse(geminiFullResponse);
+            // 1. Processa a resposta da API com o parser
+            const parsedData = parseGeminiResponse(geminiResponse);
+            // 2. Atualiza o estado do formulário nutricional
             setNutritionalData(parsedData);
             toast.success("Dados nutricionais preenchidos pela IA!");
         } catch (error) {
-            toast.error("A IA retornou um formato inesperado. Verifique o debug.");
-            console.error("Erro ao parsear resposta do Gemini:", error);
+            toast.error("Não foi possível processar os dados do rótulo.");
+            console.error("Erro ao processar resposta do Gemini:", error);
         } finally {
             setIsScanning(false);
-            setShowOcrDebugDialog(false);
-            setRawOcrText("");
-            setGeminiFullResponse(null);
         }
-    }
+	};
 
 	return (
 		<div className="space-y-6">
@@ -306,16 +296,6 @@ export default function NovoProdutoPage() {
 					/>
 				</DialogContent>
 			</Dialog>
-            
-            <OcrDebugDialog 
-                isOpen={showOcrDebugDialog}
-                rawText={rawOcrText}
-                onConfirm={confirmOcrParsing}
-                onCancel={() => {
-                    setShowOcrDebugDialog(false);
-                    setIsScanning(false);
-                }}
-            />
 		</div>
 	);
 }

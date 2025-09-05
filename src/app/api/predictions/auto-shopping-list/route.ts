@@ -1,259 +1,141 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(request: Request) {
   try {
-    const { type = 'weekly', includeUrgent = true, includeRegular = true } = await request.json()
+    const { type = 'weekly' } = await request.json();
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    // Buscar padrões de consumo diretamente
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Chave da API do Gemini não configurada.' }, { status: 500 });
+    }
+
+    // 1. BUSCAR E PROCESSAR OS DADOS (igual a antes)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const purchases = await prisma.purchaseItem.findMany({
       where: {
-        purchase: {
-          purchaseDate: { gte: sixMonthsAgo }
-        },
+        purchase: { purchaseDate: { gte: sixMonthsAgo } },
         productId: { not: null }
       },
       include: {
-        product: {
-          include: {
-            brand: true,
-            category: true
-          }
-        },
+        product: { include: { brand: true, category: true } },
         purchase: true
       },
-      orderBy: {
-        purchase: {
-          purchaseDate: 'asc'
-        }
-      }
-    })
+      orderBy: { purchase: { purchaseDate: 'asc' } }
+    });
 
-    // Processar padrões (mesmo código da API consumption-patterns)
     const productConsumption = purchases.reduce((acc: any, item) => {
-      const productId = item.productId!
+      const productId = item.productId!;
       if (!acc[productId]) {
         acc[productId] = {
           product: item.product,
           purchases: [],
-          totalQuantity: 0
-        }
+        };
       }
-      
       acc[productId].purchases.push({
         date: item.purchase.purchaseDate,
         quantity: item.quantity,
-        daysSinceEpoch: Math.floor(item.purchase.purchaseDate.getTime() / (1000 * 60 * 60 * 24))
-      })
-      acc[productId].totalQuantity += item.quantity
-      
-      return acc
-    }, {})
+      });
+      return acc;
+    }, {});
 
     const patterns = Object.values(productConsumption).map((product: any) => {
-      const purchases = product.purchases.sort((a: any, b: any) => a.daysSinceEpoch - b.daysSinceEpoch)
-      
-      if (purchases.length < 2) return null
+      const purchases = product.purchases.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      if (purchases.length < 2) return null;
 
-      const intervals = []
+      const intervals = [];
       for (let i = 1; i < purchases.length; i++) {
-        intervals.push(purchases[i].daysSinceEpoch - purchases[i-1].daysSinceEpoch)
+        const diff = (new Date(purchases[i].date).getTime() - new Date(purchases[i-1].date).getTime()) / (1000 * 60 * 60 * 24);
+        intervals.push(diff);
       }
 
-      const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
-      const avgQuantity = product.totalQuantity / purchases.length
-      const lastPurchase = purchases[purchases.length - 1]
-      const daysSinceLastPurchase = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) - lastPurchase.daysSinceEpoch
-      const nextPurchaseExpected = lastPurchase.daysSinceEpoch + avgInterval
-      const daysUntilNextPurchase = nextPurchaseExpected - Math.floor(Date.now() / (1000 * 60 * 60 * 24))
-      const urgency = Math.max(0, Math.min(100, ((avgInterval - daysUntilNextPurchase) / avgInterval) * 100))
+      const avgIntervalDays = intervals.reduce((sum, i) => sum + i, 0) / intervals.length;
+      const totalQuantity = purchases.reduce((sum: number, p: any) => sum + p.quantity, 0);
+      const avgQuantityPerPurchase = totalQuantity / purchases.length;
+      const lastPurchaseDate = new Date(purchases[purchases.length - 1].date);
+      const daysSinceLastPurchase = Math.floor((new Date().getTime() - lastPurchaseDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      const isRegularPurchase = purchases.length >= 3
-      const hasRegularPattern = intervals.length > 0 && 
-        (Math.max(...intervals) - Math.min(...intervals)) / avgInterval < 0.5
-
       return {
-        product: product.product,
-        consumption: {
-          totalPurchases: purchases.length,
-          avgIntervalDays: Math.round(avgInterval),
-          avgQuantityPerPurchase: avgQuantity,
-          lastPurchaseDate: lastPurchase.date,
-          daysSinceLastPurchase,
-          daysUntilNextPurchase: Math.round(daysUntilNextPurchase),
-          urgency: Math.round(urgency),
-          isRegularPurchase,
-          hasRegularPattern,
-          confidence: isRegularPurchase && hasRegularPattern ? 
-            Math.min(95, 60 + (purchases.length * 5)) : 30
-        }
-      }
-    }).filter(pattern => pattern !== null)
+        productId: product.product.id,
+        productName: product.product.name,
+        category: product.product.category?.name || 'Outros',
+        brandName: product.product.brand?.name,
+        unit: product.product.unit,
+        avgIntervalDays: Math.round(avgIntervalDays),
+        avgQuantityPerPurchase: parseFloat(avgQuantityPerPurchase.toFixed(2)),
+        daysSinceLastPurchase,
+      };
+    }).filter(p => p !== null);
 
-    const patternsData = { patterns }
-
-    if (!patternsData.patterns) {
-      return NextResponse.json({
-        success: false,
-        message: 'Não há dados suficientes para gerar lista automática'
-      })
+    if (patterns.length === 0) {
+      return NextResponse.json({ success: false, message: 'Não há dados suficientes para gerar a lista.' });
     }
 
-    // Filtrar produtos para incluir na lista
-    const candidateProducts = patternsData.patterns.filter((pattern: any) => {
-      const consumption = pattern.consumption
-      
-      // Incluir produtos urgentes (próximos de acabar)
-      if (includeUrgent && consumption.shouldReplenish && consumption.urgency >= 60) {
-        return true
-      }
-
-      // Incluir produtos com padrão regular baseado no tipo de lista
-      if (includeRegular && consumption.hasRegularPattern) {
-        if (type === 'weekly') {
-          // Para lista semanal: produtos com intervalo <= 10 dias
-          return consumption.avgIntervalDays <= 10 && consumption.daysUntilNextPurchase <= 3
-        } else if (type === 'monthly') {
-          // Para lista mensal: produtos com intervalo <= 35 dias
-          return consumption.avgIntervalDays <= 35 && consumption.daysUntilNextPurchase <= 7
-        }
-      }
-
-      return false
-    })
-
-    // Organizar por categorias
-    const itemsByCategory = candidateProducts.reduce((acc: any, pattern: any) => {
-      const categoryName = pattern.product.category?.name || 'Outros'
-      
-      if (!acc[categoryName]) {
-        acc[categoryName] = []
-      }
-      
-      acc[categoryName].push({
-        productId: pattern.product.id,
-        productName: pattern.product.name,
-        brandName: pattern.product.brand?.name,
-        unit: pattern.product.unit,
-        suggestedQuantity: Math.ceil(pattern.consumption.avgQuantityPerPurchase),
-        urgency: pattern.consumption.urgency,
-        confidence: pattern.consumption.confidence,
-        lastPurchased: pattern.consumption.lastPurchaseDate,
-        expectedNextPurchase: pattern.consumption.nextPurchaseExpected,
-        daysUntilNext: pattern.consumption.daysUntilNextPurchase
-      })
-      
-      return acc
-    }, {})
-
-    // Ordenar itens dentro de cada categoria por urgência
-    Object.keys(itemsByCategory).forEach(category => {
-      itemsByCategory[category].sort((a: any, b: any) => b.urgency - a.urgency)
-    })
-
-    // Criar sugestões inteligentes adicionais
-    const suggestions = []
-
-    // Analisar produtos frequentes que não foram comprados recentemente
-    const frequentProducts = patternsData.patterns
-      .filter((p: any) => p.consumption.totalPurchases >= 5 && p.consumption.daysSinceLastPurchase > 30)
-      .slice(0, 3)
-
-    if (frequentProducts.length > 0) {
-      suggestions.push({
-        type: 'forgotten_favorites',
-        title: 'Favoritos Esquecidos',
-        description: 'Produtos que você comprava frequentemente',
-        items: frequentProducts.map((p: any) => ({
-          productId: p.product.id,
-          productName: p.product.name,
-          lastPurchased: p.consumption.lastPurchaseDate,
-          daysSince: p.consumption.daysSinceLastPurchase,
-          totalPurchases: p.consumption.totalPurchases
-        }))
-      })
-    }
-
-    // Sugerir produtos sazonais ou de estoque
-    const seasonalSuggestions = await getSeasonalSuggestions()
-    if (seasonalSuggestions.length > 0) {
-      suggestions.push({
-        type: 'seasonal',
-        title: 'Sugestões Sazonais',
-        description: 'Produtos típicos para esta época',
-        items: seasonalSuggestions
-      })
-    }
-
-    const totalItems = Object.values(itemsByCategory).reduce((sum: number, items: any) => sum + items.length, 0)
-
-    return NextResponse.json({
-      success: true,
-      listType: type,
-      totalItems,
-      itemsByCategory,
-      suggestions,
-      metadata: {
-        generatedAt: new Date(),
-        basedOnPurchases: patternsData.patterns.length,
-        confidence: candidateProducts.length > 0 ? 
-          Math.round(candidateProducts.reduce((sum: number, p: any) => sum + p.consumption.confidence, 0) / candidateProducts.length) : 0
-      }
-    })
-
-  } catch (error) {
-    console.error('Erro ao gerar lista automática:', error)
-    return NextResponse.json(
-      { error: 'Erro ao gerar lista automática' },
-      { status: 500 }
-    )
-  }
-}
-
-async function getSeasonalSuggestions() {
-  try {
-    const currentMonth = new Date().getMonth() + 1
+    // 2. CHAMAR A API DO GEMINI COM OS DADOS COMO CONTEXTO
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
-    // Produtos sazonais simples baseados no mês
-    const seasonalMap: { [key: number]: string[] } = {
-      12: ['panetone', 'uva', 'tender', 'champagne'], // Dezembro
-      1: ['protetor solar', 'água', 'frutas'], // Janeiro
-      6: ['chocolate quente', 'sopa', 'vinho'], // Junho
-      // Adicionar mais conforme necessário
-    }
+    const prompt = `
+      Você é um assistente de compras pessoal e inteligente. Sua tarefa é analisar os padrões de consumo de um utilizador e gerar uma lista de compras ${type === 'weekly' ? 'semanal' : 'mensal'} inteligente e útil.
 
-    const seasonalKeywords = seasonalMap[currentMonth] || []
-    
-    if (seasonalKeywords.length === 0) return []
+      CONTEXTO (Padrões de Consumo do Utilizador):
+      ${JSON.stringify(patterns, null, 2)}
 
-    // Buscar produtos que contenham as palavras-chave sazonais
-    const seasonalProducts = await prisma.product.findMany({
-      where: {
-        OR: seasonalKeywords.map(keyword => ({
-          name: {
-            contains: keyword,
-            mode: 'insensitive'
+      INSTRUÇÕES:
+      1.  Analise cada produto no contexto. A chave é comparar "daysSinceLastPurchase" com "avgIntervalDays". Se "daysSinceLastPurchase" for próximo ou maior que "avgIntervalDays", o produto é um forte candidato para a lista.
+      2.  Crie uma lista de compras priorizando os itens mais urgentes.
+      3.  Para a quantidade ("suggestedQuantity"), arredonde para cima o valor de "avgQuantityPerPurchase".
+      4.  Crie 1 ou 2 sugestões criativas e úteis em "suggestions". Pode ser sobre um produto que não é comprado há muito tempo, um produto sazonal (estamos em ${new Date().toLocaleString('pt-BR', { month: 'long' })}) ou uma dica de economia.
+      5.  Retorne a resposta ESTRITAMENTE no seguinte formato JSON. Não adicione nenhum texto ou formatação fora do JSON.
+
+      FORMATO JSON DE SAÍDA:
+      {
+        "success": true,
+        "listType": "${type}",
+        "totalItems": <número total de itens na lista>,
+        "itemsByCategory": {
+          "<Nome da Categoria>": [
+            {
+              "productId": "<ID do produto>",
+              "productName": "<Nome do produto>",
+              "brandName": "<Nome da marca>",
+              "unit": "<unidade>",
+              "suggestedQuantity": <quantidade sugerida (número inteiro)>,
+              "urgency": <um score de urgência de 0 a 100>,
+              "confidence": <um score de confiança de 0 a 100>,
+              "daysUntilNext": <dias até a próxima compra (pode ser negativo se estiver atrasado)>
+            }
+          ]
+        },
+        "suggestions": [
+          {
+            "title": "<Título da Sugestão>",
+            "description": "<Descrição da Sugestão>"
           }
-        }))
-      },
-      include: {
-        brand: true,
-        category: true
-      },
-      take: 5
-    })
+        ],
+        "metadata": {
+          "generatedAt": "${new Date().toISOString()}",
+          "basedOnPurchases": ${patterns.length},
+          "confidence": <score médio de confiança geral>
+        }
+      }
+    `;
 
-    return seasonalProducts.map(product => ({
-      productId: product.id,
-      productName: product.name,
-      brandName: product.brand?.name,
-      reason: 'Produto sazonal típico para esta época'
-    }))
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
+    const parsedJson = JSON.parse(jsonString);
+
+    return NextResponse.json(parsedJson);
+
   } catch (error) {
-    console.error('Erro ao buscar sugestões sazonais:', error)
-    return []
+    console.error('Erro ao gerar lista automática com IA:', error);
+    return NextResponse.json(
+      { error: 'Erro ao gerar lista automática com IA' },
+      { status: 500 }
+    );
   }
 }

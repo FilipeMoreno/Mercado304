@@ -21,12 +21,12 @@ interface AutoListData {
   success: boolean
   listType: string
   totalItems: number
-  itemsByCategory: { [category: string]: AutoListItem[] }
-  suggestions: any[]
-  metadata: {
+  itemsByCategory?: { [category: string]: AutoListItem[] }
+  suggestions?: any[] // Tornando opcional
+  metadata?: {
     generatedAt: string
     basedOnPurchases: number
-    confidence: number
+    confidence?: number
   }
 }
 
@@ -47,7 +47,6 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
       const data = await onGenerateList(type)
       setGeneratedList(data)
       
-      // Selecionar automaticamente itens de alta urgência
       if (data?.itemsByCategory) {
         const highUrgencyItems = new Set<string>()
         Object.values(data.itemsByCategory).forEach((items: AutoListItem[]) => {
@@ -77,14 +76,14 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
   }
 
   const handleCreateList = async () => {
-    if (!generatedList || selectedItems.size === 0) return
+    if (!generatedList || selectedItems.size === 0 || !generatedList.itemsByCategory) return;
 
     setCreating(true)
     try {
       const selectedProducts: any[] = []
       
       Object.entries(generatedList.itemsByCategory).forEach(([category, items]) => {
-        items.forEach((item: AutoListItem) => {
+        (items as AutoListItem[]).forEach((item) => {
           if (selectedItems.has(item.productId)) {
             selectedProducts.push({
               productId: item.productId,
@@ -168,7 +167,8 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
               <div>
                 <h4 className="font-medium">Lista {generatedList.listType === 'weekly' ? 'Semanal' : 'Mensal'} Gerada</h4>
                 <p className="text-xs text-gray-500">
-                  {generatedList.totalItems} itens • {generatedList.metadata.confidence}% confiança
+                  {generatedList.totalItems} itens
+                  {generatedList.metadata?.confidence && ` • ${generatedList.metadata.confidence}% confiança`}
                 </p>
               </div>
               <Badge variant="secondary">
@@ -177,7 +177,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
             </div>
 
             <div className="max-h-96 overflow-y-auto space-y-4">
-              {Object.entries(generatedList.itemsByCategory).map(([category, items]) => (
+              {generatedList.itemsByCategory && Object.entries(generatedList.itemsByCategory).map(([category, items]) => (
                 <div key={category} className="space-y-2">
                   <h5 className="font-medium text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded">
                     {category}
@@ -219,7 +219,8 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
               ))}
             </div>
 
-            {generatedList.suggestions.length > 0 && (
+            {/* --- LINHA CORRIGIDA ABAIXO --- */}
+            {generatedList.suggestions?.length > 0 && (
               <div className="space-y-2">
                 <h5 className="font-medium text-sm">Sugestões Extras</h5>
                 {generatedList.suggestions.map((suggestion, index) => (
@@ -265,37 +266,4 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
       </CardContent>
     </Card>
   )
-}
-
-// Função auxiliar para sugestões sazonais
-async function getSeasonalSuggestions() {
-  const currentMonth = new Date().getMonth() + 1
-  const currentSeason = getSeason(currentMonth)
-  
-  // Retornar sugestões baseadas na estação
-  const seasonalItems: { [key: string]: any[] } = {
-    summer: [
-      { name: 'Protetor Solar', reason: 'Essencial para o verão' },
-      { name: 'Água', reason: 'Hidratação no calor' }
-    ],
-    winter: [
-      { name: 'Chocolate Quente', reason: 'Perfeito para o frio' },
-      { name: 'Sopa', reason: 'Aquece nos dias frios' }
-    ],
-    spring: [
-      { name: 'Frutas da Estação', reason: 'Frutas frescas da primavera' }
-    ],
-    autumn: [
-      { name: 'Chá', reason: 'Reconfortante no outono' }
-    ]
-  }
-
-  return seasonalItems[currentSeason] || []
-}
-
-function getSeason(month: number): string {
-  if (month >= 12 || month <= 2) return 'summer' // Verão no Brasil
-  if (month >= 3 && month <= 5) return 'autumn'  // Outono
-  if (month >= 6 && month <= 8) return 'winter'  // Inverno
-  return 'spring' // Primavera
 }

@@ -15,6 +15,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
+import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
 
 export default function ProdutoDetalhesPage() {
   const params = useParams()
@@ -518,6 +519,8 @@ export default function ProdutoDetalhesPage() {
           </CardContent>
         </Card>
       )}
+
+      <NutritionAiAnalysis productId={productId} />
 
       {/* Informações sobre Alérgenos */}
       {nutritionalInfo && (nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (

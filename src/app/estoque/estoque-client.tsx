@@ -39,6 +39,7 @@ import { toast } from "sonner"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { StockHistory } from "@/components/stock-history"
 import { WasteDialog } from "@/components/waste-dialog"
+import { RecipeSuggester } from "@/components/recipe-suggester"
 
 interface StockItem {
   id: string
@@ -117,6 +118,10 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
       includeExpired: "false"
     }
   })
+
+  const stockIngredients = React.useMemo(() => {
+    return initialStockItems.map(item => item.product.name);
+  }, [initialStockItems]);
 
   React.useEffect(() => {
     setStockItems(initialStockItems)
@@ -335,6 +340,10 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
             Gerencie seu estoque doméstico e validades
           </p>
         </div>
+        <RecipeSuggester
+          ingredientList={stockIngredients} 
+          buttonText="O que cozinhar?"
+        />
         <Button onClick={() => setShowAddDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Adicionar ao Estoque

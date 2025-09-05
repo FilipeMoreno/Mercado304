@@ -8,7 +8,6 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { 
   Store, 
   Package, 
@@ -22,7 +21,8 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  Apple
+  Apple,
+  ChefHat // Certifique-se que este import existe
 } from "lucide-react"
 import { UserNav } from "./user-nav"
 
@@ -34,6 +34,7 @@ const navigation = [
   { name: "Marcas", href: "/marcas", icon: Tag },
   { name: "Compras", href: "/compras", icon: ShoppingCart },
   { name: "Lista de Compras", href: "/lista", icon: List },
+  { name: "Receitas", href: "/receitas", icon: ChefHat },
   { name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
   { name: "Análise Nutricional", href: "/nutricao", icon: Apple },
   { name: "Estoque", href: "/estoque", icon: Box },
@@ -72,7 +73,10 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
         </div>
       </div>
       
-      <nav className={cn("px-4 space-y-2", collapsed && "px-2")}>
+      <nav className={cn(
+        "flex-1 overflow-y-auto px-4 space-y-2 scrollbar-hide",
+        collapsed && "px-2"
+      )}>
         {navigation.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href

@@ -14,6 +14,7 @@ import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { AppToasts } from "@/lib/toasts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 
 interface DashboardClientProps {
   initialData: {
@@ -58,6 +59,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           Sistema completo de gerenciamento de compras de mercado
         </p>
       </div>
+
+    <AiDashboardSummary /> 
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="shadow-sm hover:shadow-lg transition-shadow">

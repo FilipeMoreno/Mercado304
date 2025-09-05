@@ -183,6 +183,25 @@ CREATE TABLE "public"."nutritional_info" (
     CONSTRAINT "nutritional_info_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."Recipe" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "prepTime" TEXT,
+    "mealType" TEXT NOT NULL,
+    "ingredients" TEXT[],
+    "instructions" TEXT NOT NULL,
+    "chefTip" TEXT,
+    "rating" DOUBLE PRECISION,
+    "timesCooked" INTEGER NOT NULL DEFAULT 0,
+    "isFavorite" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "brands_name_key" ON "public"."brands"("name");
 
