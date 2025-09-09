@@ -6,10 +6,13 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        // Check if user has a valid token
+      authorized: ({ token }) => {
+        // Check if user has a valid session
         return !!token
       },
+    },
+    pages: {
+      signIn: "/auth/signin",
     },
   }
 )
@@ -26,6 +29,6 @@ export const config = {
      * - manifest.json (PWA manifest)
      * - public files
      */
-    '/((?!api/auth|auth|_next/static|_next/image|favicon.ico|manifest.json|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.ico$).*)',
+    '/((?!api/auth|auth|_next/static|_next/image|favicon.ico|manifest.json|.*\.png$|.*\.jpg$|.*\.jpeg$|.*\.gif$|.*\.svg$|.*\.ico$).*)',
   ],
 }

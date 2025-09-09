@@ -2,18 +2,14 @@
 
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { unstable_cache as cache } from 'next/cache';
 
-export async function POST(request: Request) {
-  try {
-    const { ingredients } = await request.json();
+const getCachedSuggestions = cache(
+  async (ingredients: string[]) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: 'Chave da API do Gemini não configurada.' }, { status: 500 });
-    }
-
-    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
-      return NextResponse.json({ error: 'Lista de ingredientes é obrigatória.' }, { status: 400 });
+      throw new Error('Chave da API do Gemini não configurada.');
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -51,12 +47,29 @@ export async function POST(request: Request) {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
-    const parsedJson = JSON.parse(jsonString);
+    return JSON.parse(jsonString);
+  },
+  ['suggest-recipes'],
+  { revalidate: 60 * 60 * 24 } // 24 hours
+);
+
+export async function POST(request: Request) {
+  try {
+    const { ingredients } = await request.json();
+
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      return NextResponse.json({ error: 'Lista de ingredientes é obrigatória.' }, { status: 400 });
+    }
+
+    const parsedJson = await getCachedSuggestions(ingredients);
 
     return NextResponse.json(parsedJson);
 
   } catch (error) {
     console.error('Erro ao sugerir receitas:', error);
+    if (error instanceof Error && error.message.includes('Chave da API')) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Erro ao gerar sugestões de receitas.' }, { status: 500 });
   }
 }

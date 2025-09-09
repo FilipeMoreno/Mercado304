@@ -76,21 +76,8 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Erro ao criar conta');
       }
 
-      toast.success('Conta criada com sucesso!');
-      
-      // Auto login after registration
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        toast.error('Conta criada, mas erro no login automático');
-        router.push('/auth/signin');
-      } else {
-        router.push('/');
-      }
+      toast.success('Conta criada com sucesso! Verifique seu email.');
+      router.push('/auth/verify-request');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao criar conta');
     } finally {

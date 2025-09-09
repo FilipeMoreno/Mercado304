@@ -291,6 +291,7 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -305,4 +306,16 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
 }

@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { Button } from './ui/button';
+import Link from 'next/link';
 
 interface UserNavProps {
   collapsed?: boolean;
@@ -79,9 +80,11 @@ export function UserNav({ collapsed }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            <span>Conta</span>
+          <DropdownMenuItem asChild>
+            <Link href="/conta">
+              <User className="mr-2 h-4 w-4" />
+              <span>Conta</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSub>
