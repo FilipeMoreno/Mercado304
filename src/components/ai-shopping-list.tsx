@@ -107,7 +107,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Wand2 className="h-5 w-5" />
+          <Sparkles className="h-5 w-5 text-blue-500" />
           Lista Inteligente
         </CardTitle>
         <CardDescription>

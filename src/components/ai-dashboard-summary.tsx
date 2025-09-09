@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wand2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Sparkles } from "lucide-react"
 import { Skeleton } from "./ui/skeleton"
 
 export function AiDashboardSummary() {
@@ -29,10 +29,10 @@ export function AiDashboardSummary() {
   }, [])
 
   return (
-    <Card className="bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
+    <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-400">
-          <Wand2 className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+          <Sparkles className="h-5 w-5" />
           Insight da Semana
         </CardTitle>
       </CardHeader>
@@ -43,7 +43,7 @@ export function AiDashboardSummary() {
             <Skeleton className="h-4 w-3/4" />
           </div>
         ) : (
-          <p className="text-sm text-purple-800 dark:text-purple-300">
+          <p className="text-sm text-blue-800 dark:text-blue-300">
             {summary}
           </p>
         )}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, Loader2, Sparkles, X, RefreshCw } from "lucide-react";
+import { Bot, Send, Sparkles, X, RefreshCw } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,6 +12,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   isError?: boolean; // Indica se é uma mensagem de erro
+  isStreaming?: boolean; // Indica se é uma mensagem sendo transmitida
   selectionCard?: {
     type: 'products' | 'markets' | 'categories' | 'brands' | 'shopping-lists';
     options: any[];
@@ -26,6 +27,23 @@ interface SelectionCardProps {
   searchTerm: string;
   context?: any;
   onSelect: (option: any, index: number) => void;
+}
+
+// Componente de indicador de digitação
+function TypingIndicator() {
+  return (
+    <div className="flex gap-2 items-center">
+      <Bot className="h-6 w-6 flex-shrink-0 text-muted-foreground" />
+      <div className="bg-muted rounded-lg px-3 py-2 flex items-center gap-1">
+        <div className="flex space-x-1">
+          <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce"></div>
+        </div>
+        <span className="text-xs text-muted-foreground ml-2">Zé está digitando...</span>
+      </div>
+    </div>
+  );
 }
 
 function SelectionCard({ type, options, searchTerm, context, onSelect }: SelectionCardProps) {
@@ -171,7 +189,12 @@ export function AiAssistantChat() {
     await sendMessageToApi(lastUserMessage);
   };
 
-  const sendMessageToApi = async (messageContent: string) => {
+  const sendMessageToApi = async (messageContent: string, useStreaming: boolean = true) => {
+    if (useStreaming) {
+      return await sendStreamingMessage(messageContent);
+    }
+
+    // Fallback para mensagem não-streaming (para function calls complexas)
     try {
       const response = await fetch("/api/ai/assistant", {
         method: "POST",
@@ -209,6 +232,127 @@ export function AiAssistantChat() {
       }
       
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      // Adiciona mensagem de erro diretamente no chat
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "❌ Não foi possível processar sua mensagem. Verifique sua conexão e tente novamente.",
+        isError: true
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendStreamingMessage = async (messageContent: string) => {
+    try {
+      const response = await fetch("/api/ai/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          message: messageContent,
+          stream: true,
+          history: messages.map(msg => ({
+            role: msg.role,
+            parts: [{ text: msg.content }]
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("A IA não conseguiu processar o seu pedido.");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Não foi possível obter o reader do stream");
+
+      // Adiciona mensagem de resposta inicial (vazia, para streaming)
+      setMessages((prev) => [...prev, { 
+        role: "assistant", 
+        content: "",
+        isStreaming: true
+      }]);
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  newMessages[lastIndex] = { 
+                    ...newMessages[lastIndex], 
+                    content: data.content, 
+                    isError: true, 
+                    isStreaming: false 
+                  };
+                  return newMessages;
+                });
+                break;
+              }
+              
+              if (data.final) {
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  newMessages[lastIndex] = { 
+                    ...newMessages[lastIndex], 
+                    isStreaming: false 
+                  };
+                  return newMessages;
+                });
+                break;
+              }
+              
+              if (data.content) {
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  newMessages[lastIndex] = { 
+                    ...newMessages[lastIndex], 
+                    content: newMessages[lastIndex].content + data.content 
+                  };
+                  return newMessages;
+                });
+              }
+
+              if (data.selectionData) {
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  newMessages[lastIndex] = { 
+                    ...newMessages[lastIndex], 
+                    selectionCard: {
+                      type: data.selectionData.cardType,
+                      options: data.selectionData.options,
+                      searchTerm: data.selectionData.searchTerm,
+                      context: data.selectionData.context
+                    },
+                    isStreaming: false
+                  };
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              console.error('Erro ao parsear dados do stream:', e);
+            }
+          }
+        }
+      }
     } catch (error) {
       // Adiciona mensagem de erro diretamente no chat
       const errorMessage: Message = {
@@ -263,8 +407,8 @@ export function AiAssistantChat() {
             <Card className="w-96 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-blue-500" />
-                  Zé - Assistente de Compras
+                  <Bot className="h-5 w-5 text-blue-500" />
+                  Zé, o assistente
                 </CardTitle>
                 <Button
                   variant="ghost"
@@ -327,12 +471,18 @@ export function AiAssistantChat() {
                             />
                           </div>
                         )}
+                        {msg.isStreaming && (
+                          <div className="mt-2 ml-8">
+                            <div className="flex items-center gap-1">
+                              <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-muted-foreground animate-pulse">gerando resposta...</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {isLoading && (
-                      <div className="flex justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                      </div>
+                      <TypingIndicator />
                     )}
                   </div>
                 </ScrollArea>
