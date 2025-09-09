@@ -219,8 +219,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
               ))}
             </div>
 
-            {/* --- LINHA CORRIGIDA ABAIXO --- */}
-            {generatedList.suggestions?.length > 0 && (
+            {generatedList && generatedList.suggestions && generatedList.suggestions.length > 0 && (
               <div className="space-y-2">
                 <h5 className="font-medium text-sm">Sugestões Extras</h5>
                 {generatedList.suggestions.map((suggestion, index) => (

@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/lib/theme"
 import { ClientLayout } from "@/components/client-layout"
 import { Toaster } from "sonner"
+import Provider from "./provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -36,15 +37,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="mercado304-theme"
-        >
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-          <Toaster richColors position="top-right" />
-        </ThemeProvider>
+        <Provider>
+          <ThemeProvider
+            defaultTheme="system"
+            storageKey="mercado304-theme"
+          >
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
+        </Provider>
       </body>
     </html>
   )
