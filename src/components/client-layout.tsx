@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { cn } from "@/lib/utils"
 import { usePathname } from 'next/navigation'
+import { AiAssistantChat } from './ai-assistant-chat'
 
 export function ClientLayout({
   children,
@@ -58,6 +59,7 @@ export function ClientLayout({
             {children}
           </div>
         </main>
+         <AiAssistantChat />
       </div>
     </AuthGuard>
   )
