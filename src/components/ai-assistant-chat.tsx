@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, Sparkles, X } from "lucide-react";
+import { Bot, Send, Sparkles, X, Maximize2, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAiChat } from "@/hooks/use-ai-chat";
@@ -41,41 +42,112 @@ export function AiAssistantChat() {
           <motion.button
             key="bubble"
             onClick={() => setIsOpen(true)}
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg hover:bg-blue-700 transition"
+            initial={{ opacity: 0, scale: 0.5, y: 40, rotate: -180 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0, 
+              rotate: 0,
+              boxShadow: [
+                "0 4px 20px rgba(59, 130, 246, 0.4)",
+                "0 8px 30px rgba(59, 130, 246, 0.6)",
+                "0 4px 20px rgba(59, 130, 246, 0.4)"
+              ]
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.3, 
+              y: 40, 
+              rotate: 180,
+              transition: { duration: 0.2 }
+            }}
+            whileHover={{ 
+              scale: 1.1, 
+              boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ 
+              duration: 0.5,
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+              boxShadow: {
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }
+            }}
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 border-white/20 backdrop-blur-sm"
           >
-            <Sparkles className="h-6 w-6 text-white" />
+            <Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent"></div>
           </motion.button>
         )}
 
         {isOpen && (
           <motion.div
             key="chat"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3 }}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              y: 50, 
+              x: 20,
+              rotate: 10
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0, 
+              x: 0,
+              rotate: 0
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.7, 
+              y: 50, 
+              x: 20,
+              rotate: -10,
+              transition: { duration: 0.2 }
+            }}
+            transition={{ 
+              duration: 0.4,
+              type: "spring",
+              stiffness: 300,
+              damping: 30
+            }}
           >
-            <Card className="w-96 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="w-96 shadow-2xl border-0 bg-white/95 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-blue-700" />
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <Bot className="h-4 w-4" />
+                  </div>
                   Zé, o assistente
                 </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-full"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Link href="/assistente">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
+                      title="Abrir em página completa"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-72 pr-4">
+                <ScrollArea className="h-72 pr-4 mt-4">
                   <div className="space-y-4">
                     {messages.map((msg, index) => (
                       <div key={index}>

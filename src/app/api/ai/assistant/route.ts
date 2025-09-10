@@ -1845,29 +1845,47 @@ COMPORTAMENTOS INTELIGENTES:
 - Para receitas, considere ingredientes disponíveis no estoque automaticamente
 - Se mencionarem preços vistos sem compra, use recordPrice para registrar
 - Para comparações mais precisas, sugira registrar preços encontrados em outros mercados
-- Se o usuário mencionar "churrasco" ou "churrascometro" sem detalhar o número de pessoas, SEMPRE use a função 'promptChurrascoCalculator' para mostrar o formulário interativo.
-- Se o usuário fornecer os números de pessoas (adultos, crianças, etc.) diretamente no prompt, use a função 'calculateChurrasco'.
+
+ADIÇÃO DE ITENS ÀS LISTAS:
+Quando o usuário disser "adicione [PRODUTO] na lista [NOME]":
+1. SEMPRE use findSimilarProducts("[PRODUTO]") com contexto: { action: 'addToList', listName: '[NOME]' }
+2. Se múltiplas opções de produto → mostre cards de seleção
+3. Se o nome da lista for vago (ex: "mercado", "compras") → use findSimilarShoppingLists("[NOME]") PRIMEIRO
+4. Depois de identificar a lista correta, adicione o produto
+
+EXEMPLOS CRÍTICOS:
+Usuário: "adicione coca-cola na lista mercado"
+1. Execute findSimilarShoppingLists("mercado") para encontrar listas com nome similar
+2. Se encontrar múltiplas listas → mostre cards de seleção de listas
+3. Após selecionar lista, execute findSimilarProducts("coca-cola") com contexto da lista escolhida
+
+Usuário: "adicione leite na lista Churrasco"  
+1. Execute findSimilarProducts("leite") com contexto: { action: 'addToList', listName: 'Churrasco' }
+2. Se múltiplas opções → mostre cards de produtos
 
 
-🔥 CHURRASCÔMETRO - PRIORIDADE MÁXIMA:
-Quando o usuário mencionar qualquer palavra relacionada a churrasco, SEMPRE considere usar o churrascômetro:
+🔥 CHURRASCÔMETRO - DETECÇÃO INTELIGENTE:
+Quando o usuário mencionar churrasco, analise o CONTEXTO COMPLETO:
 - Palavras-chave: "churrasco", "churrascômetro", "churrasqueira", "carne", "barbecue", "bbq"
-- Contextos: "festa", "confraternização", "família", "amigos", "final de semana"
+- IMPORTANTE: Se o usuário mudar de assunto (ex: falar de churrasco e depois pedir para adicionar item à lista), trate como NOVA TAREFA independente
 
-REGRAS OBRIGATÓRIAS:
-1. Se mencionar churrasco SEM números específicos → use promptChurrascoCalculator
-2. Se mencionar churrasco COM números (ex: "10 adultos") → use calculateChurrasco diretamente
-3. Se pedirem "lista para churrasco" → PRIMEIRO use promptChurrascoCalculator, depois crie lista com resultado
+REGRAS DE CONTEXTO:
+1. CHURRASCO NOVO → use promptChurrascoCalculator
+2. CHURRASCO COM NÚMEROS → use calculateChurrasco diretamente
+3. MUDANÇA DE ASSUNTO → ignore contexto anterior e foque na nova tarefa
+
+DETECÇÃO DE MUDANÇA DE CONTEXTO:
+- Se o usuário mencionar "adicionar", "lista", "produto", depois de falar de churrasco → NOVA TAREFA
+- Se pedir para fazer algo diferente → ABANDONE o contexto do churrasco
+- Cada mensagem é independente, analise a INTENÇÃO atual
 
 EXEMPLOS:
-Usuário: "Quero fazer um churrasco"
+Usuário: "Quero fazer um churrasco" 
 → Execute promptChurrascoCalculator
 
-Usuário: "Calcular churrasco para 10 pessoas"
-→ Execute promptChurrascoCalculator (para coletar detalhes)
-
-Usuário: "Lista para churrasco de 15 adultos, 5 crianças, 12 bebem"
-→ Execute calculateChurrasco({ adults: 15, children: 5, drinkers: 12 })
+Usuário: "adicione coca-cola na lista mercado" (mesmo depois de falar de churrasco)
+→ IGNORE contexto do churrasco, foque em adicionar item à lista
+→ Execute findSimilarShoppingLists("mercado") para encontrar a lista
 
 🎯 SISTEMA DE SELEÇÃO INTELIGENTE:
 Quando o usuário mencionar nomes que podem ter múltiplas opções (ex: "coca-cola" pode ser "Coca-Cola 2L", "Coca-Cola Lata", etc.):
@@ -2003,7 +2021,7 @@ Você pode fazer TUDO que o aplicativo permite através das interfaces!`
       if (errorText.includes('overloaded') || errorText.includes('503')) {
         errorMessage = "O assistente está sobrecarregado no momento. Tentei algumas vezes mas não consegui processar sua solicitação. Tente novamente em alguns segundos.";
       } else if (errorText.includes('rate limit') || errorText.includes('429')) {
-        errorMessage = "⏱Muitas solicitações foram feitas recentemente. Aguarde alguns segundos e tente novamente.";
+        errorMessage = "Muitas solicitações foram feitas recentemente. Aguarde alguns segundos e tente novamente.";
       } else if (errorText.includes('timeout')) {
         errorMessage = "A solicitação demorou muito para ser processada. Tente reformular sua pergunta ou tente novamente.";
       } else if (errorText.includes('api key') || errorText.includes('unauthorized')) {

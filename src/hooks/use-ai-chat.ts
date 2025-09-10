@@ -22,6 +22,49 @@ export function useAiChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState<string>("");
 
+  // Detecta mudança de contexto baseada na mensagem atual
+  const detectContextChange = (currentMessage: string, previousMessages: Message[]) => {
+    const current = currentMessage.toLowerCase();
+    
+    // Palavras que indicam nova tarefa
+    const newTaskIndicators = [
+      'adicione', 'adicionar', 'add',
+      'crie', 'criar', 'create', 
+      'liste', 'listar', 'list',
+      'compare', 'comparar',
+      'busque', 'buscar', 'search',
+      'registre', 'registrar', 'record'
+    ];
+
+    // Palavras que indicam contextos específicos
+    const contextWords = {
+      churrasco: ['churrasco', 'churrascometro', 'bbq', 'barbecue'],
+      lista: ['lista', 'compras', 'shopping'],
+      produto: ['produto', 'item'],
+      preco: ['preço', 'price', 'custo'],
+      mercado: ['mercado', 'market', 'supermercado']
+    };
+
+    // Se há mensagens anteriores, verifica mudança de contexto
+    if (previousMessages.length > 1) {
+      const lastMessages = previousMessages.slice(-3); // últimas 3 mensagens
+      
+      // Verifica se houve menção a churrasco nas mensagens anteriores
+      const hadChurrasco = lastMessages.some(msg => 
+        contextWords.churrasco.some(word => msg.content.toLowerCase().includes(word))
+      );
+
+      // Se falou de churrasco antes mas agora quer adicionar algo à lista
+      if (hadChurrasco && 
+          (current.includes('adicione') || current.includes('adicionar')) &&
+          (current.includes('lista') || current.includes('na '))) {
+        return true; // Mudança de contexto detectada
+      }
+    }
+
+    return false;
+  };
+
   const addMessage = (message: Message) => {
     setMessages(prev => [...prev, message]);
   };
@@ -45,15 +88,19 @@ export function useAiChat() {
 
   const sendMessage = async (content: string, useStreaming: boolean = true) => {
     const userMessage: Message = { role: "user", content };
+    
+    // Detecta mudança de contexto
+    const contextChanged = detectContextChange(content, messages);
+    
     addMessage(userMessage);
     setLastUserMessage(content);
     setIsLoading(true);
 
     try {
       if (useStreaming) {
-        await sendStreamingMessage(content);
+        await sendStreamingMessage(content, contextChanged);
       } else {
-        await sendRegularMessage(content);
+        await sendRegularMessage(content, contextChanged);
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
@@ -68,16 +115,19 @@ export function useAiChat() {
     }
   };
 
-  const sendRegularMessage = async (messageContent: string) => {
+  const sendRegularMessage = async (messageContent: string, contextChanged: boolean = false) => {
+    // Se houve mudança de contexto, envia histórico limitado
+    const historyToSend = contextChanged 
+      ? messages.slice(-2).map(msg => ({ role: msg.role, parts: [{ text: msg.content }] }))
+      : messages.map(msg => ({ role: msg.role, parts: [{ text: msg.content }] }));
+
     const response = await fetch("/api/ai/assistant", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         message: messageContent, 
-        history: messages.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }]
-        }))
+        history: historyToSend,
+        contextChanged
       }),
     });
 
@@ -105,17 +155,20 @@ export function useAiChat() {
     addMessage(assistantMessage);
   };
 
-  const sendStreamingMessage = async (messageContent: string) => {
+  const sendStreamingMessage = async (messageContent: string, contextChanged: boolean = false) => {
+    // Se houve mudança de contexto, envia histórico limitado
+    const historyToSend = contextChanged 
+      ? messages.slice(-2).map(msg => ({ role: msg.role, parts: [{ text: msg.content }] }))
+      : messages.map(msg => ({ role: msg.role, parts: [{ text: msg.content }] }));
+
     const response = await fetch("/api/ai/assistant", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         message: messageContent,
         stream: true,
-        history: messages.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }]
-        }))
+        history: historyToSend,
+        contextChanged
       }),
     });
 

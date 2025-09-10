@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Mail, Loader2, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { AuthQuote } from '@/components/auth-quote';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -37,27 +38,12 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="container relative flex-col items-center justify-center grid lg:grid-cols-2">
-       <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-700" />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <ShoppingCart className="mr-2 h-6 w-6" />
-          Mercado304
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              "Gerencie suas compras de forma inteligente e eficiente. Controle seu estoque, 
-              compare preços e nunca mais desperdice alimentos."
-            </p>
-            <footer className="text-sm">Sistema de Gestão de Compras</footer>
-          </blockquote>
-        </div>
-      </div>
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+    <div className="min-h-screen grid lg:grid-cols-2">
+      <AuthQuote />
+      <div className="flex items-center justify-center p-8">
+        <div className="w-full max-w-[400px]">
           <Card>
-            <CardHeader>
+            <CardHeader className='text-center'>
               <CardTitle>Esqueceu sua senha?</CardTitle>
               <CardDescription>
                 Digite seu email para receber um link de recuperação.
