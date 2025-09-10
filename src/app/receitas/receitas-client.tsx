@@ -1,7 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ChefHat, Eye, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RecipeSuggester } from "@/components/recipe-suggester";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useDataMutation, useDeleteConfirmation } from "@/hooks";
 
 interface Recipe {
 	id: string;
@@ -21,37 +20,41 @@ interface Recipe {
 	description?: string;
 }
 
-interface ReceitasClientProps {
-	initialRecipes: Recipe[];
-	allProducts: { id: string; name: string }[];
+async function fetchRecipes(): Promise<Recipe[]> {
+	const res = await fetch("/api/recipes");
+	if (!res.ok) throw new Error("Erro ao buscar receitas");
+	return res.json();
 }
 
-export function ReceitasClient({
-	initialRecipes,
-	allProducts,
-}: ReceitasClientProps) {
-	const _router = useRouter();
-	const { remove, loading } = useDataMutation();
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
-		useDeleteConfirmation<Recipe>();
+async function fetchProducts(): Promise<{ id: string; name: string }[]> {
+	const res = await fetch("/api/products");
+	if (!res.ok) throw new Error("Erro ao buscar produtos");
+	const data = await res.json();
+	return data.products || [];
+}
 
-	const productNames = allProducts.map((p) => p.name);
+export function ReceitasClient() {
+	const {
+		data: recipes,
+		isLoading: loadingRecipes,
+		error: errorRecipes,
+	} = useQuery({ queryKey: ["recipes"], queryFn: fetchRecipes });
 
-	const viewRecipe = (recipe: Recipe) => {
-		// Para receitas salvas, vamos precisar de uma página de detalhes que busca pelo ID.
-		// Por enquanto, vamos apenas logar no console para mostrar o conceito.
-		// router.push(`/receitas/${recipe.id}`)
-		console.log("Visualizar receita salva:", recipe.id);
-		toast.info("A página de detalhes da receita salva ainda será construída.");
-	};
+	const {
+		data: products,
+		isLoading: loadingProducts,
+		error: errorProducts,
+	} = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
-	const _deleteRecipe = async () => {
-		if (!deleteState.item) return;
-		await remove(`/api/recipes/${deleteState.item.id}`, {
-			successMessage: "Receita excluída com sucesso!",
-			onSuccess: closeDeleteConfirm,
-		});
-	};
+	if (loadingRecipes || loadingProducts) {
+		return <p className="text-gray-500">Carregando...</p>;
+	}
+
+	if (errorRecipes || errorProducts) {
+		return <p className="text-red-500">Erro ao carregar dados.</p>;
+	}
+
+	const productNames = products?.map((p) => p.name) || [];
 
 	return (
 		<div className="space-y-6">
@@ -76,7 +79,7 @@ export function ReceitasClient({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{initialRecipes.length === 0 ? (
+					{recipes?.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
 							<ChefHat className="h-12 w-12 mx-auto mb-4" />
 							<p className="text-lg font-medium mb-2">Nenhuma receita salva</p>
@@ -87,7 +90,7 @@ export function ReceitasClient({
 						</div>
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{initialRecipes.map((recipe) => (
+							{recipes?.map((recipe) => (
 								<Card
 									key={recipe.id}
 									className="hover:shadow-md transition-shadow"
@@ -104,7 +107,11 @@ export function ReceitasClient({
 											<Button
 												variant="outline"
 												size="sm"
-												onClick={() => viewRecipe(recipe)}
+												onClick={() =>
+													toast.info(
+														"A página de detalhes ainda será construída.",
+													)
+												}
 											>
 												<Eye className="h-4 w-4 mr-1" />
 												Ver
@@ -112,7 +119,9 @@ export function ReceitasClient({
 											<Button
 												variant="destructive"
 												size="sm"
-												onClick={() => openDeleteConfirm(recipe)}
+												onClick={() =>
+													toast.info("Excluir ainda não implementado.")
+												}
 											>
 												<Trash2 className="h-4 w-4" />
 											</Button>

@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Toaster } from "sonner";
 import { ClientLayout } from "@/components/client-layout";
 import { ThemeProvider } from "@/lib/theme";
 import Provider from "./provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,6 +45,7 @@ export default function RootLayout({
 				<Provider>
 					<ThemeProvider defaultTheme="system" storageKey="mercado304-theme">
 						<ClientLayout>{children}</ClientLayout>
+						<ReactQueryDevtools initialIsOpen={false} />
 						<Toaster richColors position="top-right" />
 					</ThemeProvider>
 				</Provider>

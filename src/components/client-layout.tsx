@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { usePathname } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -58,6 +59,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 						)}
 					>
 						{children}
+						<ReactQueryDevtools initialIsOpen={false} />
 					</div>
 				</main>
 				<AiAssistantChat />
