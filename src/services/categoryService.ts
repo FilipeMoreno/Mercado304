@@ -1,27 +1,32 @@
-import { Category } from "@/types";
+import type { Category } from "@/types";
 
 interface CategoriesResponse {
-  categories: Category[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-  };
+	categories: Category[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalCount: number;
+		hasMore: boolean;
+	};
 }
 
-export const getCategories = async (searchParams?: URLSearchParams): Promise<CategoriesResponse> => {
-  const response = await fetch(`/api/categories?${searchParams?.toString() || ''}`, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error('Erro ao buscar categorias');
-  }
-  return response.json();
+export const getCategories = async (
+	searchParams?: URLSearchParams,
+): Promise<CategoriesResponse> => {
+	const response = await fetch(
+		`/api/categories?${searchParams?.toString() || ""}`,
+		{ cache: "no-store" },
+	);
+	if (!response.ok) {
+		throw new Error("Erro ao buscar categorias");
+	}
+	return response.json();
 };
 
 export const getAllCategories = async (): Promise<Category[]> => {
-  const response = await fetch(`/api/categories/all`, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error('Erro ao buscar todas as categorias');
-  }
-  return response.json();
+	const response = await fetch(`/api/categories/all`, { cache: "no-store" });
+	if (!response.ok) {
+		throw new Error("Erro ao buscar todas as categorias");
+	}
+	return response.json();
 };

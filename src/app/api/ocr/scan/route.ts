@@ -1,46 +1,49 @@
 // src/app/api/ocr/scan/route.ts
 
-import { NextResponse } from 'next/server';
 // Para usar o SDK oficial, seria necessário instalar com: npm install @google/generative-ai
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
 
 // Função auxiliar para converter a imagem de Base64 para o formato da API do Gemini
 function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
-  const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
-  if (!match) {
-    throw new Error("Formato de Data URL inválido");
-  }
-  return {
-    inlineData: { mimeType: match[1], data: match[2] },
-  };
+	const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+	if (!match) {
+		throw new Error("Formato de Data URL inválido");
+	}
+	return {
+		inlineData: { mimeType: match[1], data: match[2] },
+	};
 }
 
 export async function POST(request: Request) {
-  try {
-    const { imageUrl } = await request.json();
-    const apiKey = process.env.GEMINI_API_KEY;
+	try {
+		const { imageUrl } = await request.json();
+		const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      console.error('Chave da API do Gemini não configurada.');
-      return NextResponse.json(
-        { error: 'Configuração de IA ausente no servidor.' },
-        { status: 500 }
-      );
-    }
+		if (!apiKey) {
+			console.error("Chave da API do Gemini não configurada.");
+			return NextResponse.json(
+				{ error: "Configuração de IA ausente no servidor." },
+				{ status: 500 },
+			);
+		}
 
-    if (!imageUrl) {
-      return NextResponse.json({ error: 'Nenhuma imagem fornecida.' }, { status: 400 });
-    }
+		if (!imageUrl) {
+			return NextResponse.json(
+				{ error: "Nenhuma imagem fornecida." },
+				{ status: 400 },
+			);
+		}
 
-    // Inicializa o cliente da IA com a sua chave
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", // Modelo rápido e com boa capacidade multimodal
-    });
+		// Inicializa o cliente da IA com a sua chave
+		const genAI = new GoogleGenerativeAI(apiKey);
+		const model = genAI.getGenerativeModel({
+			model: "gemini-1.5-flash", // Modelo rápido e com boa capacidade multimodal
+		});
 
-    // Este é o "coração" da nossa lógica: o prompt.
-    // Damos instruções claras ao Gemini sobre o que fazer e como formatar a resposta.
-    const prompt = `
+		// Este é o "coração" da nossa lógica: o prompt.
+		// Damos instruções claras ao Gemini sobre o que fazer e como formatar a resposta.
+		const prompt = `
       Analise a imagem de uma tabela nutricional de um produto alimentício, possivelmente em português do Brasil.
       Extraia as seguintes informações e retorne-as ESTRITAMENTE em formato JSON.
       Se um valor não for encontrado na imagem, omita a chave ou use o valor null.
@@ -156,23 +159,22 @@ export async function POST(request: Request) {
       - Converta unidades para os padrões especificados (mg, mcg, g, kcal).
     `;
 
-    const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl);
+		const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl);
 
-    // Envia o prompt e a imagem para o Gemini
-    const result = await model.generateContent([prompt, imagePart]);
-    const responseText = result.response.text();
+		// Envia o prompt e a imagem para o Gemini
+		const result = await model.generateContent([prompt, imagePart]);
+		const responseText = result.response.text();
 
-    // O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
-    const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
-    const parsedJson = JSON.parse(jsonString);
+		// O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
+		const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
+		const parsedJson = JSON.parse(jsonString);
 
-    return NextResponse.json(parsedJson);
-
-  } catch (error) {
-    console.error('Erro na chamada da API Gemini:', error);
-    return NextResponse.json(
-      { error: 'Erro ao processar a imagem com a IA.' },
-      { status: 500 }
-    );
-  }
+		return NextResponse.json(parsedJson);
+	} catch (error) {
+		console.error("Erro na chamada da API Gemini:", error);
+		return NextResponse.json(
+			{ error: "Erro ao processar a imagem com a IA." },
+			{ status: 500 },
+		);
+	}
 }

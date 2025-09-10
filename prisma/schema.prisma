@@ -164,6 +164,31 @@ model StockItem {
   @@map("stock_items")
 }
 
+// Histórico geral do estoque - não vinculado a produtos específicos
+model StockHistory {
+  id          String          @id @default(cuid())
+  type        StockMovementType
+  productId   String?         // Produto relacionado (opcional para histórico geral)  
+  productName String?         // Nome do produto no momento da movimentação
+  quantity    Float
+  reason      String?         // Ex: "Compra", "Consumo", "Vencimento", "Ajuste"
+  date        DateTime        @default(now())
+  notes       String?
+  location    String?         // Localização no estoque
+  unitCost    Float?          // Custo unitário na movimentação
+  totalValue  Float?          // Valor total da movimentação
+  // Relacionamento com compra (se aplicável)
+  purchaseItemId String?
+  // Referência ao usuário que fez a movimentação
+  userId      String?
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("stock_history")
+}
+
+// Movimentações específicas por item de estoque (mantém relacionamento)
 model StockMovement {
   id          String          @id @default(cuid())
   stockItemId String
@@ -174,10 +199,6 @@ model StockMovement {
   notes       String?
   // Relacionamento com compra (se aplicável)
   purchaseItemId String?
-  // Campos para controle de desperdício
-  isWaste     Boolean         @default(false) // Se foi jogado fora
-  wasteReason String?         // Motivo do desperdício (vencido, estragado, etc)
-  wasteValue  Float?          // Valor monetário do desperdício
   stockItem   StockItem       @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
 
   @@map("stock_movements")
@@ -190,6 +211,51 @@ enum StockMovementType {
   VENCIMENTO  // Produto vencido
   PERDA       // Produto perdido/danificado
   DESPERDICIO // Produto jogado fora
+}
+
+// Modelo separado para controle de desperdícios
+model WasteRecord {
+  id              String          @id @default(cuid())
+  productId       String?         // Produto relacionado (opcional)
+  productName     String          // Nome do produto no momento do desperdício
+  quantity        Float           // Quantidade desperdiçada
+  unit            String          // Unidade de medida
+  wasteReason     WasteReason     // Motivo do desperdício
+  wasteDate       DateTime        @default(now()) // Data do desperdício
+  expirationDate  DateTime?       // Data de vencimento (se aplicável)
+  location        String?         // Onde estava armazenado
+  unitCost        Float?          // Custo unitário
+  totalValue      Float?          // Valor total desperdiçado
+  notes           String?         // Observações adicionais
+  
+  // Relacionamento com item de estoque (se aplicável)
+  stockItemId     String?
+  // Usuário que registrou o desperdício
+  userId          String?
+  
+  // Campos para análise
+  category        String?         // Categoria do produto
+  brand           String?         // Marca do produto
+  batchNumber     String?         // Número do lote
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("waste_records")
+}
+
+enum WasteReason {
+  EXPIRED         // Produto vencido
+  SPOILED         // Produto estragado/azedou
+  DAMAGED         // Produto danificado
+  CONTAMINATED    // Produto contaminado
+  EXCESS          // Produto em excesso/sobra
+  FREEZER_BURN    // Queimadura do freezer
+  MOLDY           // Produto com mofo
+  PEST_DAMAGE     // Danificado por pragas
+  POWER_OUTAGE    // Perda por falta de energia
+  FORGOTTEN       // Produto esquecido
+  OTHER           // Outros motivos
 }
 
 model ExpirationAlert {

@@ -1,7 +1,7 @@
 "use client";
 
-import { NutritionalInfo } from "@/types";
 import { cn } from "@/lib/utils";
+import type { NutritionalInfo } from "@/types";
 
 interface AnvisaWarningsProps {
 	nutritionalInfo: NutritionalInfo | null;
@@ -71,7 +71,6 @@ const IndividualWarningLabel = ({ nutrient }: { nutrient: string }) => (
 	</div>
 );
 
-
 export function AnvisaWarnings({
 	nutritionalInfo,
 	unit,
@@ -124,7 +123,11 @@ export function AnvisaWarnings({
 					<NutrientBlock nutrient={warnings[0]} className="flex-grow" />
 				</div>
 				{warnings.slice(1).map((warning) => (
-					<NutrientBlock key={warning} nutrient={warning} className="-mt-[2px]" />
+					<NutrientBlock
+						key={warning}
+						nutrient={warning}
+						className="-mt-[2px]"
+					/>
 				))}
 			</div>
 		);

@@ -1,20 +1,23 @@
-import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { handleApiError } from '@/lib/api-utils';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
+import { handleApiError } from "@/lib/api-utils";
 
 export async function POST(request: Request) {
-  try {
-    const { adults, children, drinkers, preferences } = await request.json();
-    const apiKey = process.env.GEMINI_API_KEY;
+	try {
+		const { adults, children, drinkers, preferences } = await request.json();
+		const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return NextResponse.json({ error: 'Chave da API do Gemini não configurada.' }, { status: 500 });
-    }
+		if (!apiKey) {
+			return NextResponse.json(
+				{ error: "Chave da API do Gemini não configurada." },
+				{ status: 500 },
+			);
+		}
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+		const genAI = new GoogleGenerativeAI(apiKey);
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `
+		const prompt = `
       Você é um mestre churrasqueiro e organizador de eventos. Sua tarefa é calcular as quantidades necessárias para um churrasco.
 
       **Dados do Evento:**
@@ -70,14 +73,13 @@ export async function POST(request: Request) {
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-    const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
-    const parsedJson = JSON.parse(jsonString);
+		const result = await model.generateContent(prompt);
+		const responseText = result.response.text();
+		const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
+		const parsedJson = JSON.parse(jsonString);
 
-    return NextResponse.json(parsedJson);
-
-  } catch (error) {
-    return handleApiError(error);
-  }
+		return NextResponse.json(parsedJson);
+	} catch (error) {
+		return handleApiError(error);
+	}
 }

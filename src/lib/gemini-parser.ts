@@ -1,87 +1,86 @@
 // src/lib/gemini-parser.ts
 
-import { NutritionalInfo } from "@/types";
+import type { NutritionalInfo } from "@/types";
 
 // --- SEÇÃO PARA O PARSER DO GEMINI (JSON) ---
 
 const nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
-    'valor energético': 'calories',
-    'carboidratos': 'carbohydrates',
-    'carboidratos totais': 'carbohydrates',
-    'açúcares totais': 'totalSugars',
-    'acucares totais': 'totalSugars',
-    'açúcares adicionados': 'addedSugars',
-    'acucares adicionados': 'addedSugars',
-    'proteinas': 'proteins',
-    'proteínas': 'proteins',
-    'gorduras totais': 'totalFat',
-    'gorduras saturadas': 'saturatedFat',
-    'gorduras trans': 'transFat',
-    'fibra alimentar': 'fiber',
-    'sodio': 'sodium',
+	"valor energético": "calories",
+	carboidratos: "carbohydrates",
+	"carboidratos totais": "carbohydrates",
+	"açúcares totais": "totalSugars",
+	"acucares totais": "totalSugars",
+	"açúcares adicionados": "addedSugars",
+	"acucares adicionados": "addedSugars",
+	proteinas: "proteins",
+	proteínas: "proteins",
+	"gorduras totais": "totalFat",
+	"gorduras saturadas": "saturatedFat",
+	"gorduras trans": "transFat",
+	"fibra alimentar": "fiber",
+	sodio: "sodium",
 };
 
 function parseNutrientAmount(amount: string | null): number | undefined {
-    if (!amount) return undefined;
-    const match = amount.match(/(\d+[,.]?\d*)/);
-    return match ? parseFloat(match[1].replace(',', '.')) : undefined;
+	if (!amount) return undefined;
+	const match = amount.match(/(\d+[,.]?\d*)/);
+	return match ? parseFloat(match[1].replace(",", ".")) : undefined;
 }
 
 export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
-    const parsedInfo: Partial<NutritionalInfo> = {
-        allergensContains: geminiData.allergensContains || [],
-        allergensMayContain: geminiData.allergensMayContain || [],
-    };
+	const parsedInfo: Partial<NutritionalInfo> = {
+		allergensContains: geminiData.allergensContains || [],
+		allergensMayContain: geminiData.allergensMayContain || [],
+	};
 
-    // Informações da Tabela Nutricional Obrigatórias
-    parsedInfo.servingSize = geminiData.servingSize || "";
-    parsedInfo.calories = geminiData.calories;
-    parsedInfo.carbohydrates = geminiData.carbohydrates;
-    parsedInfo.totalSugars = geminiData.totalSugars;
-    parsedInfo.addedSugars = geminiData.addedSugars;
-    parsedInfo.proteins = geminiData.proteins;
-    parsedInfo.totalFat = geminiData.totalFat;
-    parsedInfo.saturatedFat = geminiData.saturatedFat;
-    parsedInfo.transFat = geminiData.transFat;
-    parsedInfo.fiber = geminiData.fiber;
-    parsedInfo.sodium = geminiData.sodium;
+	// Informações da Tabela Nutricional Obrigatórias
+	parsedInfo.servingSize = geminiData.servingSize || "";
+	parsedInfo.calories = geminiData.calories;
+	parsedInfo.carbohydrates = geminiData.carbohydrates;
+	parsedInfo.totalSugars = geminiData.totalSugars;
+	parsedInfo.addedSugars = geminiData.addedSugars;
+	parsedInfo.proteins = geminiData.proteins;
+	parsedInfo.totalFat = geminiData.totalFat;
+	parsedInfo.saturatedFat = geminiData.saturatedFat;
+	parsedInfo.transFat = geminiData.transFat;
+	parsedInfo.fiber = geminiData.fiber;
+	parsedInfo.sodium = geminiData.sodium;
 
-    // Vitaminas (valores opcionais)
-    parsedInfo.vitaminA = geminiData.vitaminA;
-    parsedInfo.vitaminC = geminiData.vitaminC;
-    parsedInfo.vitaminD = geminiData.vitaminD;
-    parsedInfo.vitaminE = geminiData.vitaminE;
-    parsedInfo.vitaminK = geminiData.vitaminK;
-    parsedInfo.thiamine = geminiData.thiamine;
-    parsedInfo.riboflavin = geminiData.riboflavin;
-    parsedInfo.niacin = geminiData.niacin;
-    parsedInfo.vitaminB6 = geminiData.vitaminB6;
-    parsedInfo.folate = geminiData.folate;
-    parsedInfo.vitaminB12 = geminiData.vitaminB12;
-    parsedInfo.biotin = geminiData.biotin;
-    parsedInfo.pantothenicAcid = geminiData.pantothenicAcid;
+	// Vitaminas (valores opcionais)
+	parsedInfo.vitaminA = geminiData.vitaminA;
+	parsedInfo.vitaminC = geminiData.vitaminC;
+	parsedInfo.vitaminD = geminiData.vitaminD;
+	parsedInfo.vitaminE = geminiData.vitaminE;
+	parsedInfo.vitaminK = geminiData.vitaminK;
+	parsedInfo.thiamine = geminiData.thiamine;
+	parsedInfo.riboflavin = geminiData.riboflavin;
+	parsedInfo.niacin = geminiData.niacin;
+	parsedInfo.vitaminB6 = geminiData.vitaminB6;
+	parsedInfo.folate = geminiData.folate;
+	parsedInfo.vitaminB12 = geminiData.vitaminB12;
+	parsedInfo.biotin = geminiData.biotin;
+	parsedInfo.pantothenicAcid = geminiData.pantothenicAcid;
 
-    // Outros nutrientes (valores opcionais)
-    parsedInfo.taurine = geminiData.taurine;
-    parsedInfo.caffeine = geminiData.caffeine;
+	// Outros nutrientes (valores opcionais)
+	parsedInfo.taurine = geminiData.taurine;
+	parsedInfo.caffeine = geminiData.caffeine;
 
-    // Minerais (valores opcionais)
-    parsedInfo.calcium = geminiData.calcium;
-    parsedInfo.iron = geminiData.iron;
-    parsedInfo.magnesium = geminiData.magnesium;
-    parsedInfo.phosphorus = geminiData.phosphorus;
-    parsedInfo.potassium = geminiData.potassium;
-    parsedInfo.zinc = geminiData.zinc;
-    parsedInfo.copper = geminiData.copper;
-    parsedInfo.manganese = geminiData.manganese;
-    parsedInfo.selenium = geminiData.selenium;
-    parsedInfo.iodine = geminiData.iodine;
-    parsedInfo.chromium = geminiData.chromium;
-    parsedInfo.molybdenum = geminiData.molybdenum;
+	// Minerais (valores opcionais)
+	parsedInfo.calcium = geminiData.calcium;
+	parsedInfo.iron = geminiData.iron;
+	parsedInfo.magnesium = geminiData.magnesium;
+	parsedInfo.phosphorus = geminiData.phosphorus;
+	parsedInfo.potassium = geminiData.potassium;
+	parsedInfo.zinc = geminiData.zinc;
+	parsedInfo.copper = geminiData.copper;
+	parsedInfo.manganese = geminiData.manganese;
+	parsedInfo.selenium = geminiData.selenium;
+	parsedInfo.iodine = geminiData.iodine;
+	parsedInfo.chromium = geminiData.chromium;
+	parsedInfo.molybdenum = geminiData.molybdenum;
 
-    return parsedInfo;
+	return parsedInfo;
 }
-
 
 // --- SEÇÃO PARA O PARSER DE TEXTO BRUTO (ANTIGO OCR-PARSER) ---
 
@@ -97,7 +96,7 @@ const nutrientTextMap = {
 	transFat: [/gorduras trans/i],
 	fiber: [/fibra alimentar/i],
 	sodium: [/s.dio/i],
-	
+
 	// Vitaminas (valores opcionais)
 	vitaminA: [/vitamina a/i, /vit\.?\s*a/i],
 	vitaminC: [/vitamina c/i, /vit\.?\s*c/i, /ácido ascórbico/i],
@@ -112,11 +111,11 @@ const nutrientTextMap = {
 	vitaminB12: [/vitamina b12/i, /vit\.?\s*b12/i, /cobalamina/i],
 	biotin: [/biotina/i, /vitamina b7/i, /vit\.?\s*b7/i, /vitamina h/i],
 	pantothenicAcid: [/ácido pantotênico/i, /vitamina b5/i, /vit\.?\s*b5/i],
-	
+
 	// Outros nutrientes (valores opcionais)
 	taurine: [/taurina/i],
 	caffeine: [/cafeína/i, /cafeina/i],
-	
+
 	// Minerais (valores opcionais)
 	calcium: [/cálcio/i, /calcio/i],
 	iron: [/ferro/i],
@@ -133,9 +132,25 @@ const nutrientTextMap = {
 };
 
 const commonAllergens = [
-	"leite", "ovos", "peixe", "crustáceos", "amendoim", "soja", "trigo",
-	"centeio", "cevada", "aveia", "glúten", "amêndoa", "avelã", "castanha-de-caju",
-	"castanha-do-pará", "macadâmia", "nozes", "pecã", "pistache",
+	"leite",
+	"ovos",
+	"peixe",
+	"crustáceos",
+	"amendoim",
+	"soja",
+	"trigo",
+	"centeio",
+	"cevada",
+	"aveia",
+	"glúten",
+	"amêndoa",
+	"avelã",
+	"castanha-de-caju",
+	"castanha-do-pará",
+	"macadâmia",
+	"nozes",
+	"pecã",
+	"pistache",
 ];
 
 function cleanText(text: string): string {
@@ -170,16 +185,19 @@ function extractServingSize(text: string): string | undefined {
 	return match ? match[1] : undefined;
 }
 
-function extractAllergens(text: string): { contains: string[]; mayContain: string[] } {
+function extractAllergens(text: string): {
+	contains: string[];
+	mayContain: string[];
+} {
 	const contains: Set<string> = new Set();
 	const mayContain: Set<string> = new Set();
-    const cleanedText = text.toLowerCase().replace(/\s+/g, " ");
+	const cleanedText = text.toLowerCase().replace(/\s+/g, " ");
 
 	const containsMatch = cleanedText.match(/alergicos\s*:\s*contem\s+([^.]+)/i);
 	if (containsMatch) {
 		const allergensText = containsMatch[1];
-		commonAllergens.forEach(allergen => {
-			if (new RegExp(`\\b${allergen}\\b`, 'i').test(allergensText)) {
+		commonAllergens.forEach((allergen) => {
+			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
 				contains.add(allergen.charAt(0).toUpperCase() + allergen.slice(1));
 			}
 		});
@@ -188,13 +206,13 @@ function extractAllergens(text: string): { contains: string[]; mayContain: strin
 	const mayContainMatch = cleanedText.match(/pode conter\s+([^.]+)/i);
 	if (mayContainMatch) {
 		const allergensText = mayContainMatch[1];
-		commonAllergens.forEach(allergen => {
-			if (new RegExp(`\\b${allergen}\\b`, 'i').test(allergensText)) {
+		commonAllergens.forEach((allergen) => {
+			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
 				mayContain.add(allergen.charAt(0).toUpperCase() + allergen.slice(1));
 			}
 		});
 	}
-	
+
 	if (/contem gluten/i.test(cleanedText)) {
 		contains.add("Glúten");
 	}

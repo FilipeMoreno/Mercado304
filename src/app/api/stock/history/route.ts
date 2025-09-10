@@ -1,248 +1,240 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { type NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-// GET - Buscar histórico de movimentações do estoque
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const productId = searchParams.get('productId')
-    const stockItemId = searchParams.get('stockItemId')
-    const type = searchParams.get('type') as any
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
-    const skip = (page - 1) * limit
+// GET - Buscar histórico geral de movimentações do estoque
+export async function GET(request: NextRequest) {
+	try {
+		const session = await getServerSession(authOptions);
 
-    // Construir filtros
-    const whereConditions: any = {}
+		if (!session?.user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-    if (stockItemId) {
-      whereConditions.stockItemId = stockItemId
-    } else if (productId) {
-      whereConditions.stockItem = {
-        productId: productId
-      }
-    }
+		const { searchParams } = new URL(request.url);
+		const search = searchParams.get("search") || "";
+		const type = searchParams.get("type") as any;
+		const location = searchParams.get("location") || "";
+		const startDate = searchParams.get("startDate");
+		const endDate = searchParams.get("endDate");
+		const page = parseInt(searchParams.get("page") || "1");
+		const limit = parseInt(searchParams.get("limit") || "50");
+		const skip = (page - 1) * limit;
 
-    if (type) {
-      whereConditions.type = type
-    }
+		// Construir filtros para histórico geral
+		const whereConditions: any = {};
 
-    if (startDate) {
-      whereConditions.date = {
-        ...whereConditions.date,
-        gte: new Date(startDate)
-      }
-    }
+		if (search) {
+			whereConditions.OR = [
+				{
+					productName: {
+						contains: search,
+						mode: "insensitive",
+					},
+				},
+				{
+					reason: {
+						contains: search,
+						mode: "insensitive",
+					},
+				},
+				{
+					notes: {
+						contains: search,
+						mode: "insensitive",
+					},
+				},
+			];
+		}
 
-    if (endDate) {
-      whereConditions.date = {
-        ...whereConditions.date,
-        lte: new Date(endDate)
-      }
-    }
+		if (type && type !== "all") {
+			whereConditions.type = type;
+		}
 
-    // Buscar movimentações
-    const [movements, total] = await Promise.all([
-      prisma.stockMovement.findMany({
-        where: whereConditions,
-        include: {
-          stockItem: {
-            include: {
-              product: {
-                include: {
-                  brand: true,
-                  category: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: { date: 'desc' },
-        skip,
-        take: limit
-      }),
-      prisma.stockMovement.count({ where: whereConditions })
-    ])
+		if (location && location !== "all") {
+			whereConditions.location = location;
+		}
 
-    // Calcular estatísticas
-    const stats = await prisma.stockMovement.aggregate({
-      where: whereConditions,
-      _sum: {
-        quantity: true,
-        wasteValue: true
-      },
-      _count: {
-        id: true
-      }
-    })
+		if (startDate) {
+			whereConditions.date = {
+				...whereConditions.date,
+				gte: new Date(startDate),
+			};
+		}
 
-    // Estatísticas por tipo
-    const typeStats = await prisma.stockMovement.groupBy({
-      by: ['type'],
-      where: whereConditions,
-      _sum: {
-        quantity: true,
-        wasteValue: true
-      },
-      _count: {
-        id: true
-      }
-    })
+		if (endDate) {
+			whereConditions.date = {
+				...whereConditions.date,
+				lte: new Date(endDate),
+			};
+		}
 
-    // Estatísticas de desperdício
-    const wasteStats = await prisma.stockMovement.aggregate({
-      where: {
-        ...whereConditions,
-        isWaste: true
-      },
-      _sum: {
-        quantity: true,
-        wasteValue: true
-      },
-      _count: {
-        id: true
-      }
-    })
+		// Buscar histórico geral
+		const [historyRecords, total] = await Promise.all([
+			prisma.stockHistory.findMany({
+				where: whereConditions,
+				orderBy: { date: "desc" },
+				skip,
+				take: limit,
+			}),
+			prisma.stockHistory.count({ where: whereConditions }),
+		]);
 
-    return NextResponse.json({
-      movements,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      },
-      stats: {
-        total: stats._count.id || 0,
-        totalQuantity: stats._sum.quantity || 0,
-        totalWasteValue: stats._sum.wasteValue || 0,
-        byType: typeStats,
-        waste: {
-          count: wasteStats._count.id || 0,
-          quantity: wasteStats._sum.quantity || 0,
-          value: wasteStats._sum.wasteValue || 0
-        }
-      }
-    })
+		// Calcular estatísticas
+		const stats = await prisma.stockHistory.aggregate({
+			where: whereConditions,
+			_sum: {
+				totalValue: true,
+				quantity: true,
+			},
+			_count: {
+				id: true,
+			},
+		});
 
-  } catch (error) {
-    console.error('Erro ao buscar histórico de estoque:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar histórico de estoque' },
-      { status: 500 }
-    )
-  }
+		// Estatísticas por tipo
+		const typeStats = await prisma.stockHistory.groupBy({
+			by: ["type"],
+			where: whereConditions,
+			_sum: {
+				quantity: true,
+				totalValue: true,
+			},
+			_count: {
+				id: true,
+			},
+			orderBy: {
+				_count: {
+					id: "desc",
+				},
+			},
+		});
+
+		// Produtos mais movimentados
+		const topProducts = await prisma.stockHistory.groupBy({
+			by: ["productName"],
+			where: {
+				...whereConditions,
+				productName: {
+					not: null,
+				},
+			},
+			_count: {
+				id: true,
+			},
+			_sum: {
+				quantity: true,
+				totalValue: true,
+			},
+			orderBy: {
+				_count: {
+					id: "desc",
+				},
+			},
+			take: 10,
+		});
+
+		// Localizações mais utilizadas
+		const topLocations = await prisma.stockHistory.groupBy({
+			by: ["location"],
+			where: {
+				...whereConditions,
+				location: {
+					not: null,
+				},
+			},
+			_count: {
+				location: true,
+			},
+			orderBy: {
+				_count: {
+					location: "desc",
+				},
+			},
+			take: 5,
+		});
+
+		return NextResponse.json({
+			historyRecords,
+			pagination: {
+				page,
+				limit,
+				total,
+				totalPages: Math.ceil(total / limit),
+			},
+			stats: {
+				totalMovements: stats._count.id || 0,
+				totalQuantity: stats._sum.quantity || 0,
+				totalValue: stats._sum.totalValue || 0,
+				byType: typeStats,
+				topProducts,
+				topLocations,
+			},
+		});
+	} catch (error) {
+		console.error("Erro ao buscar histórico de estoque:", error);
+		return NextResponse.json(
+			{ error: "Erro ao buscar histórico de estoque" },
+			{ status: 500 },
+		);
+	}
 }
 
-// POST - Registrar nova movimentação
-export async function POST(request: Request) {
-  try {
-    const data = await request.json()
-    const {
-      stockItemId,
-      type,
-      quantity,
-      reason,
-      notes,
-      isWaste = false,
-      wasteReason,
-      wasteValue
-    } = data
+// POST - Registrar nova entrada no histórico geral
+export async function POST(request: NextRequest) {
+	try {
+		const session = await getServerSession(authOptions);
 
-    // Validações básicas
-    if (!stockItemId || !type || !quantity || quantity <= 0) {
-      return NextResponse.json(
-        { error: 'Dados obrigatórios: stockItemId, type e quantity (> 0)' },
-        { status: 400 }
-      )
-    }
+		if (!session?.user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-    // Verificar se o item de estoque existe
-    const stockItem = await prisma.stockItem.findUnique({
-      where: { id: stockItemId },
-      include: { product: true }
-    })
+		const data = await request.json();
+		const {
+			type,
+			productId,
+			productName,
+			quantity,
+			reason,
+			location,
+			unitCost,
+			totalValue,
+			notes,
+			purchaseItemId,
+		} = data;
 
-    if (!stockItem) {
-      return NextResponse.json(
-        { error: 'Item de estoque não encontrado' },
-        { status: 404 }
-      )
-    }
+		// Validações básicas
+		if (!type || !productName || quantity === undefined) {
+			return NextResponse.json(
+				{ error: "Dados obrigatórios: type, productName e quantity" },
+				{ status: 400 },
+			);
+		}
 
-    // Para movimentos de saída, verificar se há quantidade suficiente
-    if (['SAIDA', 'VENCIMENTO', 'PERDA', 'DESPERDICIO'].includes(type)) {
-      if (quantity > stockItem.quantity) {
-        return NextResponse.json(
-          { error: `Quantidade insuficiente em estoque. Disponível: ${stockItem.quantity}` },
-          { status: 400 }
-        )
-      }
-    }
+		// Criar entrada no histórico geral
+		const historyRecord = await prisma.stockHistory.create({
+			data: {
+				type,
+				productId,
+				productName,
+				quantity: parseFloat(quantity),
+				reason,
+				location,
+				unitCost: unitCost ? parseFloat(unitCost) : null,
+				totalValue: totalValue ? parseFloat(totalValue) : null,
+				notes,
+				purchaseItemId,
+				userId: session.user.id,
+			},
+		});
 
-    // Calcular nova quantidade
-    let newQuantity = stockItem.quantity
-    if (type === 'ENTRADA') {
-      newQuantity += quantity
-    } else if (['SAIDA', 'VENCIMENTO', 'PERDA', 'DESPERDICIO'].includes(type)) {
-      newQuantity = Math.max(0, newQuantity - quantity)
-    } else if (type === 'AJUSTE') {
-      // Para ajuste, a quantity pode ser positiva ou negativa
-      newQuantity = Math.max(0, quantity)
-    }
-
-    // Transação para criar movimento e atualizar estoque
-    const result = await prisma.$transaction(async (tx) => {
-      // Criar movimento
-      const movement = await tx.stockMovement.create({
-        data: {
-          stockItemId,
-          type,
-          quantity,
-          reason,
-          notes,
-          isWaste,
-          wasteReason,
-          wasteValue
-        },
-        include: {
-          stockItem: {
-            include: {
-              product: {
-                include: {
-                  brand: true,
-                  category: true
-                }
-              }
-            }
-          }
-        }
-      })
-
-      // Atualizar quantidade no estoque
-      const updatedStockItem = await tx.stockItem.update({
-        where: { id: stockItemId },
-        data: {
-          quantity: newQuantity,
-          isLowStock: stockItem.product.hasStock && stockItem.product.minStock ? 
-            newQuantity <= stockItem.product.minStock : false,
-          // Marcar como vencido se for movimento de vencimento
-          isExpired: type === 'VENCIMENTO' ? true : stockItem.isExpired
-        }
-      })
-
-      return { movement, updatedStockItem }
-    })
-
-    return NextResponse.json(result.movement, { status: 201 })
-
-  } catch (error) {
-    console.error('Erro ao registrar movimentação:', error)
-    return NextResponse.json(
-      { error: 'Erro ao registrar movimentação' },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json(historyRecord, { status: 201 });
+	} catch (error) {
+		console.error("Erro ao registrar no histórico:", error);
+		return NextResponse.json(
+			{ error: "Erro ao registrar no histórico" },
+			{ status: 500 },
+		);
+	}
 }

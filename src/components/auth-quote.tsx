@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 const quotes = [
 	{
@@ -38,7 +38,10 @@ const quotes = [
 ];
 
 export function AuthQuote() {
-	const [randomQuote, setRandomQuote] = useState({text: "Carregando", footer: "Carregando..."});
+	const [randomQuote, setRandomQuote] = useState({
+		text: "Carregando",
+		footer: "Carregando...",
+	});
 
 	useEffect(() => {
 		// Seleciona uma citação aleatória apenas no cliente

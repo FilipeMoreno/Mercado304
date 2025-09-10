@@ -1,154 +1,155 @@
 // src/app/api/shopping-lists/route.ts
 
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const searchTerm = searchParams.get('search') || ''
-    const sort = searchParams.get('sort') || 'date-desc'
-    const page = parseInt(searchParams.get('page') || '1')
-    const itemsPerPage = 12
-    const status = searchParams.get('status') || 'all'
+	try {
+		const { searchParams } = new URL(request.url);
+		const searchTerm = searchParams.get("search") || "";
+		const sort = searchParams.get("sort") || "date-desc";
+		const page = parseInt(searchParams.get("page") || "1");
+		const itemsPerPage = 12;
+		const status = searchParams.get("status") || "all";
 
-    const [orderBy, orderDirection] = sort.split('-')
+		const [orderBy, orderDirection] = sort.split("-");
 
-    const where: any = {
-      name: {
-        contains: searchTerm,
-        mode: 'insensitive' as const
-      }
-    }
-    
-    if (status !== 'all') {
-      where.isActive = status === 'active'
-    }
+		const where: any = {
+			name: {
+				contains: searchTerm,
+				mode: "insensitive" as const,
+			},
+		};
 
-    const [lists, totalCount] = await prisma.$transaction([
-      prisma.shoppingList.findMany({
-        where,
-        include: {
-          items: {
-            include: {
-              product: true
-            },
-            orderBy: { createdAt: 'asc' }
-          }
-        },
-        orderBy: { [orderBy === 'date' ? 'createdAt' : orderBy]: orderDirection as 'asc' | 'desc' },
-        skip: (page - 1) * itemsPerPage,
-        take: itemsPerPage,
-      }),
-      prisma.shoppingList.count({ where })
-    ])
+		if (status !== "all") {
+			where.isActive = status === "active";
+		}
 
-    return NextResponse.json({ lists, totalCount })
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Erro ao buscar listas' },
-      { status: 500 }
-    )
-  }
+		const [lists, totalCount] = await prisma.$transaction([
+			prisma.shoppingList.findMany({
+				where,
+				include: {
+					items: {
+						include: {
+							product: true,
+						},
+						orderBy: { createdAt: "asc" },
+					},
+				},
+				orderBy: {
+					[orderBy === "date" ? "createdAt" : orderBy]: orderDirection as
+						| "asc"
+						| "desc",
+				},
+				skip: (page - 1) * itemsPerPage,
+				take: itemsPerPage,
+			}),
+			prisma.shoppingList.count({ where }),
+		]);
+
+		return NextResponse.json({ lists, totalCount });
+	} catch (error) {
+		return NextResponse.json(
+			{ error: "Erro ao buscar listas" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { name, items } = body
+	try {
+		const body = await request.json();
+		const { name, items } = body;
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'Nome da lista é obrigatório' },
-        { status: 400 }
-      )
-    }
+		if (!name) {
+			return NextResponse.json(
+				{ error: "Nome da lista é obrigatório" },
+				{ status: 400 },
+			);
+		}
 
-    // Se não há itens, cria lista vazia
-    if (!items || items.length === 0) {
-      const list = await prisma.shoppingList.create({
-        data: { name },
-        include: {
-          items: {
-            include: { product: true }
-          }
-        }
-      })
-      return NextResponse.json(list, { status: 201 })
-    }
+		// Se não há itens, cria lista vazia
+		if (!items || items.length === 0) {
+			const list = await prisma.shoppingList.create({
+				data: { name },
+				include: {
+					items: {
+						include: { product: true },
+					},
+				},
+			});
+			return NextResponse.json(list, { status: 201 });
+		}
 
-    // Processa os itens da lista
-    const processedItems = await Promise.all(
-      items.map(async (item: any) => {
-        // Se tem productId, usa produto existente
-        if (item.productId) {
-          return {
-            productId: item.productId,
-            quantity: item.quantity || 1,
-            estimatedPrice: item.estimatedPrice || null
-          }
-        }
+		// Processa os itens da lista
+		const processedItems = await Promise.all(
+			items.map(async (item: any) => {
+				// Se tem productId, usa produto existente
+				if (item.productId) {
+					return {
+						productId: item.productId,
+						quantity: item.quantity || 1,
+						estimatedPrice: item.estimatedPrice || null,
+					};
+				}
 
-        // Se tem productName, tenta buscar produto existente
-        if (item.productName) {
-          const existingProduct = await prisma.product.findFirst({
-            where: {
-              name: {
-                equals: item.productName,
-                mode: 'insensitive'
-              }
-            }
-          })
+				// Se tem productName, tenta buscar produto existente
+				if (item.productName) {
+					const existingProduct = await prisma.product.findFirst({
+						where: {
+							name: {
+								equals: item.productName,
+								mode: "insensitive",
+							},
+						},
+					});
 
-          // Se encontrou produto existente, usa ele
-          if (existingProduct) {
-            return {
-              productId: existingProduct.id,
-              quantity: item.quantity || 1,
-              estimatedPrice: item.estimatedPrice || null
-            }
-          }
+					// Se encontrou produto existente, usa ele
+					if (existingProduct) {
+						return {
+							productId: existingProduct.id,
+							quantity: item.quantity || 1,
+							estimatedPrice: item.estimatedPrice || null,
+						};
+					}
 
-          // Se não encontrou, cria item temporário (sem produto)
-          return {
-            productId: null,
-            productName: item.productName,
-            productUnit: item.productUnit || 'unidade',
-            quantity: item.quantity || 1,
-            estimatedPrice: item.estimatedPrice || null
-          }
-        }
+					// Se não encontrou, cria item temporário (sem produto)
+					return {
+						productId: null,
+						productName: item.productName,
+						productUnit: item.productUnit || "unidade",
+						quantity: item.quantity || 1,
+						estimatedPrice: item.estimatedPrice || null,
+					};
+				}
 
-        // Se não tem nem productId nem productName, pula
-        return null
-      })
-    )
+				// Se não tem nem productId nem productName, pula
+				return null;
+			}),
+		);
 
-    // Filtra itens nulos
-    const validItems = processedItems.filter(Boolean)
+		// Filtra itens nulos
+		const validItems = processedItems.filter(Boolean);
 
-    const list = await prisma.shoppingList.create({
-      data: {
-        name,
-        items: {
-          create: validItems
-        }
-      },
-      include: {
-        items: {
-          include: {
-            product: true
-          }
-        }
-      }
-    })
+		const list = await prisma.shoppingList.create({
+			data: {
+				name,
+				items: {
+					create: validItems,
+				},
+			},
+			include: {
+				items: {
+					include: {
+						product: true,
+					},
+				},
+			},
+		});
 
-    return NextResponse.json(list, { status: 201 })
-  } catch (error) {
-    console.error('Erro ao criar lista:', error)
-    return NextResponse.json(
-      { error: 'Erro ao criar lista' },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json(list, { status: 201 });
+	} catch (error) {
+		console.error("Erro ao criar lista:", error);
+		return NextResponse.json({ error: "Erro ao criar lista" }, { status: 500 });
+	}
 }

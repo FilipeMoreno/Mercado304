@@ -1,35 +1,46 @@
 "use client";
 
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { addDays, format } from "date-fns";
 import {
-	ArrowLeft, Save,
-	Plus,
-	Trash2,
-	Package,
+	ArrowLeft,
+	Box,
 	Camera,
-	Box, Settings2
+	Package,
+	Plus,
+	Save,
+	Settings2,
+	Trash2,
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { BarcodeScanner } from "@/components/barcode-scanner";
+import { BestPriceAlert } from "@/components/best-price-alert";
+import { PriceAiInsight } from "@/components/price-ai-insight";
+import { PriceAlert } from "@/components/price-alert";
 import { MarketSelect } from "@/components/selects/market-select";
 import { ProductSelect } from "@/components/selects/product-select";
-import Link from "next/link";
-import { BarcodeScanner } from "@/components/barcode-scanner";
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton";
-import { PriceAlert } from "@/components/price-alert";
-import { BestPriceAlert } from "@/components/best-price-alert";
-import { toast } from "sonner";
-import { addDays, format } from "date-fns";
-import { Product, PaymentMethod } from "@/types";
+import {
+	type StockEntry,
+	StockEntryDialog,
+} from "@/components/stock-entry-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { toDateInputValue } from "@/lib/date-utils";
-import { StockEntry, StockEntryDialog } from "@/components/stock-entry-dialog";
-import { PriceAiInsight } from "@/components/price-ai-insight";
+import { PaymentMethod, type Product } from "@/types";
 
 interface PurchaseItem {
 	id?: string;
@@ -42,7 +53,6 @@ interface PurchaseItem {
 	stockEntries: StockEntry[];
 	aiInsight: string | null;
 	isAiLoading: boolean;
-	
 }
 
 export default function NovaCompraPage() {
@@ -55,7 +65,10 @@ export default function NovaCompraPage() {
 	const [showScanner, setShowScanner] = useState(false);
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null);
 
-    const [stockDialogState, setStockDialogState] = useState<{ isOpen: boolean, itemIndex: number | null }>({ isOpen: false, itemIndex: null });
+	const [stockDialogState, setStockDialogState] = useState<{
+		isOpen: boolean;
+		itemIndex: number | null;
+	}>({ isOpen: false, itemIndex: null });
 
 	const [formData, setFormData] = useState({
 		marketId: "",
@@ -106,32 +119,48 @@ export default function NovaCompraPage() {
 				addToStock: false,
 				stockEntries: [],
 				aiInsight: null,
-				isAiLoading: false // Changed from boolean | null to boolean
+				isAiLoading: false, // Changed from boolean | null to boolean
 			},
 		]);
 		setCheckingPrices([...checkingPrices, false]);
 	};
 
-	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
-    if (!productId || !unitPrice) return;
- 
-    setItems(current => current.map((item, i) => i === index ? { ...item, isAiLoading: true, aiInsight: null } : item));
+	const fetchAiAnalysis = async (
+		index: number,
+		productId: string,
+		unitPrice: number,
+	) => {
+		if (!productId || !unitPrice) return;
 
-    try { 
-        const response = await fetch('/api/ai/prices', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, currentPrice: unitPrice })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            setItems(current => current.map((item, i) => i === index ? { ...item, aiInsight: data.analysis } : item));
-        }
-    } catch (error) {
-        console.error("Erro na análise da IA:", error);
-    } finally {
-        setItems(current => current.map((item, i) => i === index ? { ...item, isAiLoading: false } : item));
-    }
+		setItems((current) =>
+			current.map((item, i) =>
+				i === index ? { ...item, isAiLoading: true, aiInsight: null } : item,
+			),
+		);
+
+		try {
+			const response = await fetch("/api/ai/prices", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId, currentPrice: unitPrice }),
+			});
+			if (response.ok) {
+				const data = await response.json();
+				setItems((current) =>
+					current.map((item, i) =>
+						i === index ? { ...item, aiInsight: data.analysis } : item,
+					),
+				);
+			}
+		} catch (error) {
+			console.error("Erro na análise da IA:", error);
+		} finally {
+			setItems((current) =>
+				current.map((item, i) =>
+					i === index ? { ...item, isAiLoading: false } : item,
+				),
+			);
+		}
 	};
 
 	const removeItem = (index: number) => {
@@ -141,30 +170,48 @@ export default function NovaCompraPage() {
 		}
 	};
 
-    const checkPrice = async (index: number, productId: string, unitPrice: number) => {
-        if (!productId || !unitPrice || !formData.marketId) return;
+	const checkPrice = async (
+		index: number,
+		productId: string,
+		unitPrice: number,
+	) => {
+		if (!productId || !unitPrice || !formData.marketId) return;
 
-        setCheckingPrices(current => current.map((c, i) => i === index ? true : c));
+		setCheckingPrices((current) =>
+			current.map((c, i) => (i === index ? true : c)),
+		);
 
-        try {
-            const response = await fetch('/api/price-check', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, currentPrice: unitPrice, currentMarketId: formData.marketId })
-            });
-            const alertData = await response.json();
-            
-            setItems(currentItems => currentItems.map((item, i) => 
-                i === index ? { ...item, priceAlert: alertData } : item
-            ));
-        } catch (error) {
-            console.error('Erro ao verificar preço:', error);
-        } finally {
-            setCheckingPrices(current => current.map((c, i) => i === index ? false : c));
-        }
-    };
+		try {
+			const response = await fetch("/api/price-check", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					productId,
+					currentPrice: unitPrice,
+					currentMarketId: formData.marketId,
+				}),
+			});
+			const alertData = await response.json();
 
-	const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
+			setItems((currentItems) =>
+				currentItems.map((item, i) =>
+					i === index ? { ...item, priceAlert: alertData } : item,
+				),
+			);
+		} catch (error) {
+			console.error("Erro ao verificar preço:", error);
+		} finally {
+			setCheckingPrices((current) =>
+				current.map((c, i) => (i === index ? false : c)),
+			);
+		}
+	};
+
+	const checkBestPrice = async (
+		index: number,
+		productId: string,
+		unitPrice: number,
+	) => {
 		if (!productId || !unitPrice) return;
 
 		try {
@@ -184,67 +231,78 @@ export default function NovaCompraPage() {
 		}
 	};
 
-	const updateItem = (index: number, field: keyof PurchaseItem, value: string | number | boolean | null | StockEntry[]) => {
-		setItems(currentItems => {
-            const newItems = [...currentItems];
-            const currentItem = { ...newItems[index] };
+	const updateItem = (
+		index: number,
+		field: keyof PurchaseItem,
+		value: string | number | boolean | null | StockEntry[],
+	) => {
+		setItems((currentItems) => {
+			const newItems = [...currentItems];
+			const currentItem = { ...newItems[index] };
 
-            // @ts-ignore
-            currentItem[field] = value;
+			// @ts-expect-error
+			currentItem[field] = value;
 
-            if (field === "productId" || (field === "addToStock" && value === true)) {
-                const product = products.find((p) => p.id === currentItem.productId);
-                if (product && currentItem.addToStock) {
-                    const defaultExpiration =
-                        product.hasExpiration && product.defaultShelfLifeDays
-                            ? format(
-                                    addDays(new Date(), product.defaultShelfLifeDays),
-                                    "yyyy-MM-dd",
-                              )
-                            : "";
+			if (field === "productId" || (field === "addToStock" && value === true)) {
+				const product = products.find((p) => p.id === currentItem.productId);
+				if (product && currentItem.addToStock) {
+					const defaultExpiration =
+						product.hasExpiration && product.defaultShelfLifeDays
+							? format(
+									addDays(new Date(), product.defaultShelfLifeDays),
+									"yyyy-MM-dd",
+								)
+							: "";
 
-                    currentItem.stockEntries = Array.from({ length: Math.floor(currentItem.quantity) }).map(() => ({
-                        id: Math.random().toString(),
-                        location: "Despensa",
-                        expirationDate: defaultExpiration,
-                        batchNumber: "",
-                        notes: "",
-                    }));
-                }
-            } else if (field === "addToStock" && value === false) {
-                currentItem.stockEntries = [];
-            }
-            
-            if (field === 'quantity') {
-                const product = products.find((p) => p.id === currentItem.productId);
-                if (product && currentItem.addToStock) {
-                    const newQuantity = Math.floor(Number(value) || 0);
-                    const oldEntries = currentItem.stockEntries;
-                    const newEntries = Array.from({ length: newQuantity }).map((_, i) => 
-                        oldEntries[i] || {
-                            id: Math.random().toString(),
-                            location: oldEntries[0]?.location || 'Despensa',
-                            expirationDate: oldEntries[0]?.expirationDate || "",
-                            batchNumber: oldEntries[0]?.batchNumber || "",
-                            notes: oldEntries[0]?.notes || ""
-                        }
-                    );
-                    currentItem.stockEntries = newEntries;
-                }
-            }
+					currentItem.stockEntries = Array.from({
+						length: Math.floor(currentItem.quantity),
+					}).map(() => ({
+						id: Math.random().toString(),
+						location: "Despensa",
+						expirationDate: defaultExpiration,
+						batchNumber: "",
+						notes: "",
+					}));
+				}
+			} else if (field === "addToStock" && value === false) {
+				currentItem.stockEntries = [];
+			}
 
-            newItems[index] = currentItem;
+			if (field === "quantity") {
+				const product = products.find((p) => p.id === currentItem.productId);
+				if (product && currentItem.addToStock) {
+					const newQuantity = Math.floor(Number(value) || 0);
+					const oldEntries = currentItem.stockEntries;
+					const newEntries = Array.from({ length: newQuantity }).map(
+						(_, i) =>
+							oldEntries[i] || {
+								id: Math.random().toString(),
+								location: oldEntries[0]?.location || "Despensa",
+								expirationDate: oldEntries[0]?.expirationDate || "",
+								batchNumber: oldEntries[0]?.batchNumber || "",
+								notes: oldEntries[0]?.notes || "",
+							},
+					);
+					currentItem.stockEntries = newEntries;
+				}
+			}
 
-            if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice > 0) {
-                setTimeout(() => {
-                    checkBestPrice(index, currentItem.productId, currentItem.unitPrice);
-                    checkPrice(index, currentItem.productId, currentItem.unitPrice);
-										fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice);
-                }, 1000);
-            }
+			newItems[index] = currentItem;
 
-            return newItems;
-        });
+			if (
+				(field === "unitPrice" || field === "productId") &&
+				currentItem.productId &&
+				currentItem.unitPrice > 0
+			) {
+				setTimeout(() => {
+					checkBestPrice(index, currentItem.productId, currentItem.unitPrice);
+					checkPrice(index, currentItem.productId, currentItem.unitPrice);
+					fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice);
+				}, 1000);
+			}
+
+			return newItems;
+		});
 	};
 
 	const calculateTotal = () => {
@@ -317,11 +375,11 @@ export default function NovaCompraPage() {
 		}
 	};
 
-    const handleSaveStockDetails = (entries: StockEntry[]) => {
-        if(stockDialogState.itemIndex !== null) {
-            updateItem(stockDialogState.itemIndex, 'stockEntries', entries);
-        }
-    };
+	const handleSaveStockDetails = (entries: StockEntry[]) => {
+		if (stockDialogState.itemIndex !== null) {
+			updateItem(stockDialogState.itemIndex, "stockEntries", entries);
+		}
+	};
 
 	if (dataLoading) {
 		return <NovaCompraSkeleton />;
@@ -366,7 +424,10 @@ export default function NovaCompraPage() {
 									type="date"
 									value={toDateInputValue(formData.purchaseDate)}
 									onChange={(e) =>
-										setFormData((prev) => ({ ...prev, purchaseDate: e.target.value }))
+										setFormData((prev) => ({
+											...prev,
+											purchaseDate: e.target.value,
+										}))
 									}
 								/>
 							</div>
@@ -375,20 +436,35 @@ export default function NovaCompraPage() {
 								<Select
 									value={formData.paymentMethod}
 									onValueChange={(value) =>
-										setFormData((prev) => ({ ...prev, paymentMethod: value as PaymentMethod }))
+										setFormData((prev) => ({
+											...prev,
+											paymentMethod: value as PaymentMethod,
+										}))
 									}
 								>
 									<SelectTrigger>
 										<SelectValue placeholder="Selecione..." />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
-										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
-										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+										<SelectItem value={PaymentMethod.MONEY}>
+											💵 Dinheiro
+										</SelectItem>
+										<SelectItem value={PaymentMethod.DEBIT}>
+											💳 Cartão de Débito
+										</SelectItem>
+										<SelectItem value={PaymentMethod.CREDIT}>
+											💳 Cartão de Crédito
+										</SelectItem>
 										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
-										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
-										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+										<SelectItem value={PaymentMethod.VOUCHER}>
+											🎫 Vale Alimentação/Refeição
+										</SelectItem>
+										<SelectItem value={PaymentMethod.CHECK}>
+											📄 Cheque
+										</SelectItem>
+										<SelectItem value={PaymentMethod.OTHER}>
+											🔄 Outros
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -412,92 +488,163 @@ export default function NovaCompraPage() {
 					<CardContent>
 						<div className="space-y-4">
 							{items.map((item, index) => {
-								const selectedProduct = products.find((p) => p.id === item.productId);
+								const selectedProduct = products.find(
+									(p) => p.id === item.productId,
+								);
 								return (
-									<div key={item.id || index} className="space-y-4 p-4 border rounded-lg">
+									<div
+										key={item.id || index}
+										className="space-y-4 p-4 border rounded-lg"
+									>
 										<div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-4 items-end">
 											<div className="space-y-2">
 												<Label>Produto *</Label>
-                                                <div className="flex gap-2">
-                                                    <ProductSelect
-                                                        value={item.productId || ""}
-                                                        onValueChange={(value) => updateItem(index, "productId", value)}
-                                                        products={products}
-                                                        preserveFormData={{ formData, items, targetItemIndex: index }}
-                                                    />
-                                                    <Button type="button" variant="outline" size="icon" onClick={() => setScanningForIndex(index)}>
-                                                        <Camera className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+												<div className="flex gap-2">
+													<ProductSelect
+														value={item.productId || ""}
+														onValueChange={(value) =>
+															updateItem(index, "productId", value)
+														}
+														products={products}
+														preserveFormData={{
+															formData,
+															items,
+															targetItemIndex: index,
+														}}
+													/>
+													<Button
+														type="button"
+														variant="outline"
+														size="icon"
+														onClick={() => setScanningForIndex(index)}
+													>
+														<Camera className="h-4 w-4" />
+													</Button>
+												</div>
 											</div>
 											<div className="space-y-2">
 												<Label>Quantidade *</Label>
-												<Input type="number" step="0.01" min="0.01" value={item.quantity}
-													onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
+												<Input
+													type="number"
+													step="0.01"
+													min="0.01"
+													value={item.quantity}
+													onChange={(e) =>
+														updateItem(
+															index,
+															"quantity",
+															parseFloat(e.target.value) || 1,
+														)
+													}
 													placeholder="1.00"
 												/>
 											</div>
 											<div className="space-y-2">
 												<Label>Preço Unitário *</Label>
-												<Input type="number" step="0.01" min="0.01" value={item.unitPrice}
-													onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
+												<Input
+													type="number"
+													step="0.01"
+													min="0.01"
+													value={item.unitPrice}
+													onChange={(e) =>
+														updateItem(
+															index,
+															"unitPrice",
+															parseFloat(e.target.value) || 0,
+														)
+													}
 													placeholder="0.00"
 												/>
 											</div>
 											<div className="space-y-2">
 												<Label>Total</Label>
-												<Input value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`} disabled
+												<Input
+													value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
+													disabled
 													className="bg-secondary text-secondary-foreground dark:opacity-70"
 												/>
 											</div>
 										</div>
 
-											<PriceAlert
-													alertData={item.priceAlert}
-													loading={checkingPrices[index]}
-													onClose={() => updateItem(index, 'priceAlert', null)}
-											/>
-										
-										{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
-											<BestPriceAlert
-												productName={selectedProduct?.name || 'Produto'}
-												currentPrice={item.unitPrice}
-												previousBestPrice={item.bestPriceAlert.previousBestPrice}
-												totalRecords={item.bestPriceAlert.totalRecords}
-												onClose={() => updateItem(index, 'bestPriceAlert', null)}
-											/>
-										)}
+										<PriceAlert
+											alertData={item.priceAlert}
+											loading={checkingPrices[index]}
+											onClose={() => updateItem(index, "priceAlert", null)}
+										/>
 
-										<PriceAiInsight analysis={item.aiInsight} loading={item.isAiLoading} />
+										{item.bestPriceAlert &&
+											item.bestPriceAlert.isBestPrice &&
+											!item.bestPriceAlert.isFirstRecord && (
+												<BestPriceAlert
+													productName={selectedProduct?.name || "Produto"}
+													currentPrice={item.unitPrice}
+													previousBestPrice={
+														item.bestPriceAlert.previousBestPrice
+													}
+													totalRecords={item.bestPriceAlert.totalRecords}
+													onClose={() =>
+														updateItem(index, "bestPriceAlert", null)
+													}
+												/>
+											)}
 
-										{selectedProduct && (selectedProduct.hasStock || selectedProduct.hasExpiration) && (
-											<div className="pt-4 border-t space-y-4">
-												<div className="flex justify-between items-center">
-													<Label className="flex items-center gap-2 font-medium">
-														<Box className="h-4 w-4" />
-														Gestão de Estoque
-													</Label>
-													{item.addToStock && (
-														<Button type="button" variant="outline" size="sm" onClick={() => setStockDialogState({ isOpen: true, itemIndex: index })}>
-															<Settings2 className="h-4 w-4 mr-2" />
-															Detalhar Estoque
-														</Button>
-													)}
+										<PriceAiInsight
+											analysis={item.aiInsight}
+											loading={item.isAiLoading}
+										/>
+
+										{selectedProduct &&
+											(selectedProduct.hasStock ||
+												selectedProduct.hasExpiration) && (
+												<div className="pt-4 border-t space-y-4">
+													<div className="flex justify-between items-center">
+														<Label className="flex items-center gap-2 font-medium">
+															<Box className="h-4 w-4" />
+															Gestão de Estoque
+														</Label>
+														{item.addToStock && (
+															<Button
+																type="button"
+																variant="outline"
+																size="sm"
+																onClick={() =>
+																	setStockDialogState({
+																		isOpen: true,
+																		itemIndex: index,
+																	})
+																}
+															>
+																<Settings2 className="h-4 w-4 mr-2" />
+																Detalhar Estoque
+															</Button>
+														)}
+													</div>
+													<div className="flex items-center space-x-2">
+														<Checkbox
+															id={`addToStock-${index}`}
+															checked={item.addToStock}
+															onCheckedChange={(checked) =>
+																updateItem(index, "addToStock", !!checked)
+															}
+														/>
+														<Label
+															htmlFor={`addToStock-${index}`}
+															className="cursor-pointer"
+														>
+															Adicionar ao estoque
+														</Label>
+													</div>
 												</div>
-												<div className="flex items-center space-x-2">
-													<Checkbox id={`addToStock-${index}`} checked={item.addToStock}
-														onCheckedChange={(checked) => updateItem(index, "addToStock", !!checked)}
-													/>
-													<Label htmlFor={`addToStock-${index}`} className="cursor-pointer">
-														Adicionar ao estoque
-													</Label>
-												</div>
-											</div>
-										)}
+											)}
 
 										<div className="flex justify-end">
 											{items.length > 1 && (
-												<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
+												<Button
+													type="button"
+													variant="destructive"
+													size="sm"
+													onClick={() => removeItem(index)}
+												>
 													<Trash2 className="h-4 w-4 mr-1" />
 													Remover
 												</Button>
@@ -527,17 +674,21 @@ export default function NovaCompraPage() {
 					</CardContent>
 				</Card>
 			</form>
-            
-            {stockDialogState.isOpen && stockDialogState.itemIndex !== null && (
-                <StockEntryDialog
-                    isOpen={stockDialogState.isOpen}
-                    onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
-                    onSave={handleSaveStockDetails}
-                    product={products.find(p => p.id === items[stockDialogState.itemIndex!].productId)}
-                    quantity={items[stockDialogState.itemIndex!].quantity}
-                    initialEntries={items[stockDialogState.itemIndex!].stockEntries}
-                />
-            )}
+
+			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (
+				<StockEntryDialog
+					isOpen={stockDialogState.isOpen}
+					onClose={() =>
+						setStockDialogState({ isOpen: false, itemIndex: null })
+					}
+					onSave={handleSaveStockDetails}
+					product={products.find(
+						(p) => p.id === items[stockDialogState.itemIndex!].productId,
+					)}
+					quantity={items[stockDialogState.itemIndex!].quantity}
+					initialEntries={items[stockDialogState.itemIndex!].stockEntries}
+				/>
+			)}
 
 			<BarcodeScanner
 				isOpen={showScanner}

@@ -1,17 +1,18 @@
 "use client";
 
+import { Copy, Save } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogFooter,
-	DialogDescription,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -19,8 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Copy, Save } from "lucide-react";
-import { Product } from "@/types";
+import type { Product } from "@/types";
 
 export interface StockEntry {
 	id: string;
@@ -47,8 +47,7 @@ export function StockEntryDialog({
 	quantity,
 	initialEntries,
 }: StockEntryDialogProps) {
-	const [entries, setEntries] =
-		React.useState<StockEntry[]>(initialEntries);
+	const [entries, setEntries] = React.useState<StockEntry[]>(initialEntries);
 
 	React.useEffect(() => {
 		if (isOpen) {
