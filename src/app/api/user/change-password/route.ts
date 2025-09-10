@@ -8,7 +8,7 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user || !(session.user as any).id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 401 }
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest) {
 
     // Buscar usuário com senha
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: (session.user as any).id },
       select: {
         id: true,
         password: true,
@@ -88,7 +88,7 @@ export async function PUT(request: NextRequest) {
 
     // Atualizar senha
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: (session.user as any).id },
       data: {
         password: hashedNewPassword,
       },

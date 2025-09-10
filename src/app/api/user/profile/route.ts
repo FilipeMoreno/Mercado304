@@ -7,7 +7,7 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user || !(session.user as any).id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 401 }
@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest) {
         where: { email },
       });
 
-      if (existingUser && existingUser.id !== session.user.id) {
+      if (existingUser && existingUser.id !== (session.user as any).id) {
         return NextResponse.json(
           { error: 'Email já está sendo usado por outra conta' },
           { status: 400 }
@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: (session.user as any).id },
       data: {
         name,
         email,

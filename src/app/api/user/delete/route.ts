@@ -7,107 +7,38 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user || !(session.user as any).id) {
       return NextResponse.json(
         { error: 'Não autorizado' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = (session.user as any).id;
 
     // Usar transação para garantir que tudo seja deletado ou nada seja
     await prisma.$transaction(async (tx) => {
-      // Deletar dados relacionados em ordem (devido às foreign keys)
+      // Delete authentication-related data only
+      // This application doesn't appear to have user-specific data yet
       
-      // 1. Shopping list items
-      await tx.shoppingListItem.deleteMany({
-        where: {
-          shoppingList: {
-            userId: userId
-          }
-        }
-      });
-
-      // 2. Shopping lists
-      await tx.shoppingList.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 3. Purchase items
-      await tx.purchaseItem.deleteMany({
-        where: {
-          purchase: {
-            userId: userId
-          }
-        }
-      });
-
-      // 4. Purchases
-      await tx.purchase.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 5. Stock movements
-      await tx.stockMovement.deleteMany({
-        where: {
-          stockItem: {
-            userId: userId
-          }
-        }
-      });
-
-      // 6. Stock items
-      await tx.stockItem.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 7. Expiration alerts
-      await tx.expirationAlert.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 8. Recipes
-      await tx.recipe.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 9. Products created by user
-      await tx.product.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 10. Markets created by user
-      await tx.market.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 11. Categories created by user
-      await tx.category.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 12. Brands created by user
-      await tx.brand.deleteMany({
-        where: { userId: userId }
-      });
-
-      // 13. Accounts (OAuth connections)
+      // 1. Accounts (OAuth connections)
       await tx.account.deleteMany({
         where: { userId: userId }
       });
 
-      // 14. Sessions
+      // 2. Sessions
       await tx.session.deleteMany({
         where: { userId: userId }
       });
 
-      // 15. Verification tokens
-      await tx.verificationToken.deleteMany({
-        where: { identifier: session.user.email }
-      });
+      // 3. Verification tokens
+      if (session.user?.email) {
+        await tx.verificationToken.deleteMany({
+          where: { identifier: session.user.email }
+        });
+      }
 
-      // 16. Finally, delete the user
+      // 4. Finally, delete the user
       await tx.user.delete({
         where: { id: userId }
       });

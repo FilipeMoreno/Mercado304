@@ -873,7 +873,7 @@ const toolFunctions = {
       }
 
       const product = await prisma.product.create({
-        data: { name, brandId, categoryId, barcode, description },
+        data: { name, brandId, categoryId, barcode },
         include: { brand: true, category: true }
       });
       
@@ -948,7 +948,7 @@ const toolFunctions = {
   createMarket: async ({ name, address, phone }: any) => {
     try {
       const market = await prisma.market.create({
-        data: { name, address, phone }
+        data: { name, location: address }
       });
       return { success: true, message: `Mercado "${name}" criado com sucesso.`, market };
     } catch (error) {
@@ -1030,7 +1030,7 @@ const toolFunctions = {
 
       // Criar produto
       const product = await prisma.product.create({
-        data: { name: productName, brandId, categoryId, barcode, description },
+        data: { name: productName, brandId, categoryId, barcode },
         include: { brand: true, category: true }
       });
       
@@ -1713,7 +1713,7 @@ export async function POST(request: Request) {
       const churrascoData = JSON.parse(message.replace('CALCULATE_CHURRASCO:', '').trim());
       const result = await toolFunctions.calculateChurrasco(churrascoData);
       return NextResponse.json({ 
-        reply: result.message || result.reply || "Churrasco calculado com sucesso!",
+        reply: result.message || "Churrasco calculado com sucesso!",
         error: !result.success 
       });
     }

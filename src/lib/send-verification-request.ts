@@ -1,4 +1,4 @@
-import { SendVerificationRequestParams } from "next-auth/providers";
+import { SendVerificationRequestParams } from "next-auth/providers/email";
 import { sendEmail } from "./email";
 
 export async function sendVerificationRequest(

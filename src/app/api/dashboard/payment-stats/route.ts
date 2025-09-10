@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Buscar informações dos mercados
-    const marketIds = [...new Set(paymentByMarket.map(p => p.marketId))]
+    const marketIds = Array.from(new Set(paymentByMarket.map(p => p.marketId)))
     const markets = await prisma.market.findMany({
       where: { id: { in: marketIds } },
       select: { id: true, name: true }

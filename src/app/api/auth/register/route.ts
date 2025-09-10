@@ -40,10 +40,13 @@ export async function POST(req: NextRequest) {
   await sendVerificationRequest({
     identifier: user.email as string,
     url: `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken.token}`,
+    expires: verificationToken.expires,
+    token: verificationToken.token,
+    theme: {} as any,
     provider: {
       server: process.env.EMAIL_SERVER as string,
       from: process.env.EMAIL_FROM as string,
-    },
+    } as any,
   });
 
   return new NextResponse("User created", { status: 201 });

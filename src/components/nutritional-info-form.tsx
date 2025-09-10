@@ -197,7 +197,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
                   name={field.key} 
                   type="number" 
                   step="0.1" 
-                  value={formData[field.key as keyof NutritionalInfo] ?? ''} 
+                  value={String(formData[field.key as keyof NutritionalInfo] ?? '')} 
                   onChange={handleNumericChange} 
                 />
               </div>
@@ -233,7 +233,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
                       name={field.key} 
                       type="number" 
                       step="0.1" 
-                      value={formData[field.key as keyof NutritionalInfo] ?? ''} 
+                      value={String(formData[field.key as keyof NutritionalInfo] ?? '')} 
                       onChange={handleNumericChange} 
                     />
                   </div>

@@ -9,7 +9,7 @@ import { sendVerificationRequest } from "@/lib/send-verification-request";
 
 const prisma = new PrismaClient();
 
-async function refreshAccessToken(token) {
+async function refreshAccessToken(token: any) {
   try {
     const url =
       "https://oauth2.googleapis.com/token?" +
@@ -126,8 +126,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id as string;
       }
-      session.accessToken = token.accessToken;
-      session.error = token.error;
+      (session as any).accessToken = token.accessToken;
+      (session as any).error = token.error;
       return session;
     },
     async redirect({ url, baseUrl }) {
@@ -154,10 +154,13 @@ export const authOptions: NextAuthOptions = {
       await sendVerificationRequest({
         identifier: user.email as string,
         url: `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken.token}`,
+        expires: verificationToken.expires,
+        token: verificationToken.token,
+        theme: {} as any,
         provider: {
           server: process.env.EMAIL_SERVER as string,
           from: process.env.EMAIL_FROM as string,
-        },
+        } as any,
       });
     },
   },

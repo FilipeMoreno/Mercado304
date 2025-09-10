@@ -116,12 +116,12 @@ export async function POST(request: Request) {
       const sources = marketData.sources
       const market = marketData.market
       
-      // Ordenar por data (mais recente primeiro)
-      const sortedData = prices.map((price, index) => ({
+      // Ordenar por data (mais recente primeira)
+      const sortedData = prices.map((price: number, index: number) => ({
         price,
         date: dates[index],
         source: sources[index]
-      })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      })).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
       
       // Preço mais recente (última compra ou registro)
       const currentPrice = sortedData[0].price
@@ -132,11 +132,11 @@ export async function POST(request: Request) {
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       
-      const recentData = sortedData.filter(item => 
+      const recentData = sortedData.filter((item: any) => 
         new Date(item.date) >= thirtyDaysAgo
       )
       
-      const olderData = sortedData.filter(item => 
+      const olderData = sortedData.filter((item: any) => 
         new Date(item.date) < thirtyDaysAgo
       )
       
@@ -144,8 +144,8 @@ export async function POST(request: Request) {
       let priceChange = 0
       
       if (recentData.length > 0 && olderData.length > 0) {
-        const recentAvg = recentData.reduce((sum, item) => sum + item.price, 0) / recentData.length
-        const olderAvg = olderData.reduce((sum, item) => sum + item.price, 0) / olderData.length
+        const recentAvg = recentData.reduce((sum: number, item: any) => sum + item.price, 0) / recentData.length
+        const olderAvg = olderData.reduce((sum: number, item: any) => sum + item.price, 0) / olderData.length
         
         priceChange = ((recentAvg - olderAvg) / olderAvg) * 100
         
@@ -155,8 +155,8 @@ export async function POST(request: Request) {
       }
       
       // Contar compras vs registros
-      const purchaseCount = sources.filter(s => s === 'purchase').length
-      const recordCount = sources.filter(s => s === 'record').length
+      const purchaseCount = sources.filter((s: string) => s === 'purchase').length
+      const recordCount = sources.filter((s: string) => s === 'record').length
       
       return {
         marketId: market.id,

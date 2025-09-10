@@ -129,7 +129,9 @@ export async function GET(request: Request) {
 
       // Produto mais comum
       const productCounts = combinedPriceData.reduce((acc, item) => {
-        acc[item.productName] = (acc[item.productName] || 0) + 1;
+        if (item.productName) {
+          acc[item.productName] = (acc[item.productName] || 0) + 1;
+        }
         return acc;
       }, {} as Record<string, number>);
       analysis.trends.mostCommonProduct = Object.keys(productCounts).reduce((a, b) => 
