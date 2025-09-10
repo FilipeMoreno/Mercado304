@@ -1,6 +1,7 @@
 // src/app/api/dashboard/stats/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAllProductPrices } from '@/lib/price-utils'
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,8 @@ export async function GET() {
       currentMonthStats,
       lastMonthStats,
       monthlySpending,
-      priceRecordsStats
+      priceRecordsStats,
+      combinedPriceStats
     ] = await Promise.all([
       prisma.purchase.count(),
       
@@ -142,7 +144,25 @@ export async function GET() {
         _avg: { price: true },
         _min: { price: true },
         _max: { price: true }
-      })
+      }),
+
+      // Estatísticas combinadas de preços (produtos com dados tanto de compra quanto registro)
+      (async () => {
+        const productsWithBothSources = await prisma.product.findMany({
+          where: {
+            AND: [
+              { purchaseItems: { some: {} } },
+              { priceRecords: { some: {} } }
+            ]
+          },
+          select: { id: true, name: true }
+        })
+        
+        return {
+          productsWithBothSources: productsWithBothSources.length,
+          productNames: productsWithBothSources.slice(0, 5).map(p => p.name)
+        }
+      })()
     ]);
 
     // OTIMIZAÇÃO: Coletar todos os IDs de produtos e mercados
@@ -241,6 +261,11 @@ export async function GET() {
         averagePrice: priceRecordsStats._avg.price || 0,
         minPrice: priceRecordsStats._min.price || 0,
         maxPrice: priceRecordsStats._max.price || 0
+      },
+      combinedPriceData: {
+        productsWithBothSources: combinedPriceStats.productsWithBothSources,
+        sampleProducts: combinedPriceStats.productNames,
+        dataIntegrationLevel: totalProducts > 0 ? (combinedPriceStats.productsWithBothSources / totalProducts) * 100 : 0
       }
     }
 

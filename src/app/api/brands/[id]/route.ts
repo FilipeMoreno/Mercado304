@@ -28,7 +28,10 @@ export async function GET(
 
     return NextResponse.json({
       ...brand,
-      products
+      products,
+      _count: {
+        products: products.length
+      }
     })
   } catch (error) {
     return NextResponse.json(

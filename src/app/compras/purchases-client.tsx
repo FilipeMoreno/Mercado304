@@ -15,6 +15,7 @@ import { ShoppingCart, Store, Calendar, Edit, Trash2, Eye, Search, ChevronLeft, 
 import { Purchase } from "@/types"
 import { format, subDays, startOfMonth } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLocalDate } from "@/lib/date-utils"
 import { toast } from "sonner"
 
 interface PurchasesClientProps {
@@ -260,7 +261,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(purchase.purchaseDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          {formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         </div>
                       </CardDescription>
                     </div>
@@ -374,7 +375,7 @@ export function PurchasesClient({ initialPurchases, initialMarkets, initialTotal
                 <div>
                   <p className="text-sm text-gray-600">Data</p>
                   <p className="font-medium">
-                    {format(new Date(purchaseDetails.purchaseDate), "dd/MM/yyyy", { locale: ptBR })}
+                    {formatLocalDate(purchaseDetails.purchaseDate, "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
               </div>

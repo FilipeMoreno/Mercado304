@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Package, Save, Calendar, MapPin, DollarSign, FileText } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 import { ProductSelect } from "@/components/selects/product-select"
 import { toast } from "sonner"
 
@@ -154,7 +155,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
                   <Label>Data de Validade</Label>
                   <Input
                     type="date"
-                    value={formData.expirationDate}
+                    value={toDateInputValue(formData.expirationDate)}
                     onChange={(e) => setFormData(prev => ({ ...prev, expirationDate: e.target.value }))}
                     disabled={saving}
                   />
@@ -249,7 +250,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
                 {stockItem.expirationDate && (
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3 w-3 text-gray-400" />
-                    <span>{format(new Date(stockItem.expirationDate), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    <span>{formatLocalDate(stockItem.expirationDate, "dd/MM/yyyy", { locale: ptBR })}</span>
                   </div>
                 )}
                 

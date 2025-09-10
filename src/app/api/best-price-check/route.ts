@@ -13,23 +13,61 @@ export async function POST(request: Request) {
       )
     }
 
-    // Buscar todos os preços históricos para este produto, excluindo o preço atual
-    const historicalPrices = await prisma.purchaseItem.findMany({
+    // Buscar preços históricos de compras, excluindo o preço atual
+    const historicalPurchases = await prisma.purchaseItem.findMany({
       where: {
         productId: productId,
         unitPrice: {
-          not: currentPrice // Exclui o preço exato que está a ser verificado
+          not: currentPrice
         }
       },
-      orderBy: {
-        unitPrice: 'asc' // Ordena para encontrar o menor preço facilmente
-      },
-      take: 1 // Só precisamos do menor preço
+      select: {
+        unitPrice: true,
+        purchase: {
+          select: {
+            purchaseDate: true
+          }
+        }
+      }
     })
 
-    const totalRecords = await prisma.purchaseItem.count({
+    // Buscar preços históricos de registros manuais, excluindo o preço atual
+    const historicalRecords = await prisma.priceRecord.findMany({
+      where: {
+        productId: productId,
+        price: {
+          not: currentPrice
+        }
+      },
+      select: {
+        price: true,
+        recordDate: true
+      }
+    })
+
+    // Combinar todos os preços históricos
+    const allHistoricalPrices = [
+      ...historicalPurchases.map(p => ({
+        price: p.unitPrice,
+        date: p.purchase.purchaseDate,
+        source: 'purchase'
+      })),
+      ...historicalRecords.map(r => ({
+        price: r.price,
+        date: r.recordDate,
+        source: 'record'
+      }))
+    ].sort((a, b) => a.price - b.price)
+
+    const totalPurchaseRecords = await prisma.purchaseItem.count({
       where: { productId }
     })
+
+    const totalPriceRecords = await prisma.priceRecord.count({
+      where: { productId }
+    })
+    
+    const totalRecords = totalPurchaseRecords + totalPriceRecords
     
     // Se não há histórico, o preço atual é o primeiro registo
     if (totalRecords === 0) {
@@ -40,7 +78,7 @@ export async function POST(request: Request) {
       })
     }
 
-    const previousBestPrice = historicalPrices[0]?.unitPrice
+    const previousBestPrice = allHistoricalPrices[0]?.price
 
     // Se não há outro preço registado ou o preço atual é menor que o melhor preço anterior
     if (!previousBestPrice || currentPrice < previousBestPrice) {

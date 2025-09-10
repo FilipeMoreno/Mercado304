@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAllProductPrices } from '@/lib/price-utils'
 
 export async function GET() {
   try {
@@ -37,61 +38,76 @@ export async function GET() {
 
         if (!product) return null
 
-        // Buscar preços por mercado nos últimos 3 meses
-        const marketPrices = await prisma.purchaseItem.groupBy({
-          by: ['productId'],
-          where: {
-            productId: item.productId,
-            purchase: {
-              purchaseDate: { gte: threeMonthsAgo }
+        // Buscar preços combinados (compras + registros) nos últimos 3 meses
+        const [purchases, priceRecords] = await Promise.all([
+          prisma.purchaseItem.findMany({
+            where: {
+              productId: item.productId,
+              purchase: {
+                purchaseDate: { gte: threeMonthsAgo }
+              }
+            },
+            include: {
+              purchase: {
+                include: { market: true }
+              }
             }
-          },
-          _avg: { unitPrice: true },
-          _count: { productId: true }
-        })
-
-        // Buscar detalhes por mercado
-        const marketDetails = await Promise.all(
-          marketPrices.map(async (mp) => {
-            const purchases = await prisma.purchaseItem.findMany({
-              where: {
-                productId: item.productId,
-                purchase: {
-                  purchaseDate: { gte: threeMonthsAgo }
-                }
-              },
-              include: {
-                purchase: {
-                  include: { market: true }
-                }
-              }
-            })
-
-            const marketGroups = purchases.reduce((acc: any, purchase) => {
-              const marketId = purchase.purchase.marketId
-              if (!acc[marketId]) {
-                acc[marketId] = {
-                  market: purchase.purchase.market,
-                  prices: [],
-                  count: 0
-                }
-              }
-              acc[marketId].prices.push(purchase.unitPrice)
-              acc[marketId].count++
-              return acc
-            }, {})
-
-            return Object.values(marketGroups).map((group: any) => ({
-              market: group.market,
-              avgPrice: group.prices.reduce((sum: number, price: number) => sum + price, 0) / group.prices.length,
-              minPrice: Math.min(...group.prices),
-              maxPrice: Math.max(...group.prices),
-              purchaseCount: group.count
-            }))
+          }),
+          prisma.priceRecord.findMany({
+            where: {
+              productId: item.productId,
+              recordDate: { gte: threeMonthsAgo }
+            },
+            include: {
+              market: true
+            }
           })
-        )
+        ])
 
-        const flatMarketDetails = marketDetails.flat()
+        // Agrupar todos os preços por mercado
+        const marketGroups: any = {}
+        
+        // Adicionar compras
+        purchases.forEach(purchase => {
+          const marketId = purchase.purchase.marketId
+          if (!marketGroups[marketId]) {
+            marketGroups[marketId] = {
+              market: purchase.purchase.market,
+              prices: [],
+              purchaseCount: 0,
+              recordCount: 0
+            }
+          }
+          marketGroups[marketId].prices.push(purchase.unitPrice)
+          marketGroups[marketId].purchaseCount++
+        })
+        
+        // Adicionar registros de preço
+        priceRecords.forEach(record => {
+          const marketId = record.marketId
+          if (!marketGroups[marketId]) {
+            marketGroups[marketId] = {
+              market: record.market,
+              prices: [],
+              purchaseCount: 0,
+              recordCount: 0
+            }
+          }
+          marketGroups[marketId].prices.push(record.price)
+          marketGroups[marketId].recordCount++
+        })
+        
+        const marketDetails = Object.values(marketGroups).map((group: any) => ({
+          market: group.market,
+          avgPrice: group.prices.reduce((sum: number, price: number) => sum + price, 0) / group.prices.length,
+          minPrice: Math.min(...group.prices),
+          maxPrice: Math.max(...group.prices),
+          purchaseCount: group.purchaseCount,
+          recordCount: group.recordCount,
+          totalDataPoints: group.prices.length
+        }))
+
+        const flatMarketDetails = marketDetails
         
         if (flatMarketDetails.length < 2) return null
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getLatestPrice } from '@/lib/price-utils';
 
 export async function POST(request: Request) {
   try {
@@ -56,28 +57,13 @@ export async function POST(request: Request) {
 
         const prices = await Promise.all(
           marketIds.map(async (marketId) => {
-            const purchaseItem = await prisma.purchaseItem.findFirst({
-              where: {
-                productId,
-                purchase: {
-                  marketId,
-                },
-              },
-              orderBy: {
-                purchase: {
-                  purchaseDate: 'desc',
-                },
-              },
-              select: {
-                unitPrice: true,
-                purchase: { select: { purchaseDate: true } },
-              },
-            });
+            const latestPrice = await getLatestPrice(productId, marketId);
 
             return {
               marketId,
-              price: purchaseItem ? purchaseItem.unitPrice : null,
-              lastPurchase: purchaseItem ? purchaseItem.purchase.purchaseDate : null,
+              price: latestPrice?.price || null,
+              lastPurchase: latestPrice?.date || null,
+              source: latestPrice?.source || null,
             };
           })
         );
@@ -98,7 +84,9 @@ export async function POST(request: Request) {
         return cheapest;
       }, { price: null as number | null, marketId: null });
 
-      const priceComparison = productData.prices.map(priceInfo => {
+      // Garantir que os preços estão na mesma ordem dos marketIds
+      const priceComparison = marketIds.map(marketId => {
+        const priceInfo = productData.prices.find(p => p.marketId === marketId)!;
         const saving = cheapestPrice.price !== null && priceInfo.price !== null
           ? priceInfo.price - cheapestPrice.price
           : 0;
@@ -116,10 +104,16 @@ export async function POST(request: Request) {
       };
     });
 
+    // Garantir que os mercados estão na mesma ordem dos marketIds enviados
+    const orderedMarkets = marketIds.map(id => {
+      const market = markets.find(m => m.id === id);
+      return { id: market!.id, name: market!.name, location: market!.location };
+    });
+
     return NextResponse.json({
       listId,
       listName: shoppingList.name,
-      markets: markets.map(m => ({ id: m.id, name: m.name, location: m.location })),
+      markets: orderedMarkets,
       products: productsToCompare,
     });
 

@@ -8,6 +8,7 @@ import { Bot, Send, Sparkles, X, RefreshCw, Drumstick } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { Label } from "@/components/ui/label";
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: "user" | "assistant";
@@ -525,7 +526,7 @@ export function AiAssistantChat() {
                           )}
                           <div className={`max-w-[80%] ${msg.role === "user" ? "flex justify-end" : ""}`}>
                             <div className="flex flex-col gap-2">
-                              <p
+                              <div
                                 className={`rounded-lg px-3 py-2 text-sm ${
                                   msg.role === "user"
                                     ? "bg-primary text-primary-foreground"
@@ -534,8 +535,25 @@ export function AiAssistantChat() {
                                     : "bg-muted"
                                 }`}
                               >
-                                {msg.content}
-                              </p>
+                                {msg.role === "assistant" ? (
+                                  <div className="prose prose-sm max-w-none">
+                                    <ReactMarkdown 
+                                      components={{
+                                        p: ({ children }) => <p className="my-1 last:mb-0">{children}</p>,
+                                        ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
+                                        ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
+                                        li: ({ children }) => <li className="my-0">{children}</li>,
+                                        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                                        em: ({ children }) => <em className="italic">{children}</em>,
+                                      }}
+                                    >
+                                      {msg.content}
+                                    </ReactMarkdown>
+                                  </div>
+                                ) : (
+                                  msg.content
+                                )}
+                              </div>
                               {msg.isError && lastUserMessage && (
                                 <Button
                                   variant="outline"

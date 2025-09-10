@@ -8,6 +8,7 @@ import { ArrowLeft, Store, MapPin, ShoppingCart, DollarSign, TrendingUp, Package
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLocalDate } from "@/lib/date-utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -93,8 +94,8 @@ export default function MarketDetailsPage() {
         
         if (purchasesRes.ok) {
           const purchasesData = await purchasesRes.json()
-          setAllPurchases(purchasesData)
-          setFilteredPurchases(purchasesData)
+          setAllPurchases(purchasesData.purchases || [])
+          setFilteredPurchases(purchasesData.purchases || [])
         }
       } else {
         router.push('/mercados')
@@ -109,6 +110,7 @@ export default function MarketDetailsPage() {
 
   // Filtrar compras
   useEffect(() => {
+    if (!Array.isArray(allPurchases)) return
     let filtered = [...allPurchases]
     
     // Filtro por busca
@@ -732,7 +734,7 @@ export default function MarketDetailsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5" />
-                Histórico Completo ({filteredPurchases.length} compras)
+                Histórico Completo ({(Array.isArray(filteredPurchases) ? filteredPurchases.length : 0)} compras)
               </CardTitle>
               <CardDescription>
                 Todas as compras realizadas neste mercado
@@ -740,13 +742,13 @@ export default function MarketDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredPurchases.map((purchase) => (
+                {(Array.isArray(filteredPurchases) ? filteredPurchases : []).map((purchase) => (
                   <Card key={purchase.id} className="border-l-4 border-l-blue-500">
                     <CardContent className="pt-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <p className="font-semibold text-lg">
-                            {format(new Date(purchase.purchaseDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                            {formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                           </p>
                           <p className="text-sm text-gray-600">
                             {purchase.items?.length || 0} itens • R$ {purchase.totalAmount.toFixed(2)}
@@ -812,7 +814,7 @@ export default function MarketDetailsPage() {
                   </Card>
                 ))}
                 
-                {filteredPurchases.length === 0 && (
+                {(!Array.isArray(filteredPurchases) || filteredPurchases.length === 0) && (
                   <div className="text-center py-12">
                     <History className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium mb-2">

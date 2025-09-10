@@ -40,17 +40,34 @@ export async function GET(request: NextRequest) {
     })
 
     // Estatísticas mensais por método de pagamento
-    const monthlyStats = await prisma.$queryRaw`
-      SELECT 
-        "paymentMethod",
-        DATE_TRUNC('month', "purchaseDate") as month,
-        COUNT(*) as count,
-        SUM("totalAmount") as total
-      FROM purchases 
-      ${dateFrom || dateTo ? `WHERE "purchaseDate" BETWEEN ${dateFrom ? `'${dateFrom}T00:00:00.000Z'` : '\'1970-01-01\''} AND ${dateTo ? `'${dateTo}T23:59:59.999Z'` : 'NOW()'}` : ''}
-      GROUP BY "paymentMethod", DATE_TRUNC('month', "purchaseDate")
-      ORDER BY month DESC, "paymentMethod"
-    ` as any[]
+    let monthlyStats: any[] = []
+    if (dateFrom || dateTo) {
+      const fromDate = dateFrom ? `${dateFrom}T00:00:00.000Z` : '1970-01-01T00:00:00.000Z'
+      const toDate = dateTo ? `${dateTo}T23:59:59.999Z` : new Date().toISOString()
+      
+      monthlyStats = await prisma.$queryRaw`
+        SELECT 
+          "paymentMethod",
+          DATE_TRUNC('month', "purchaseDate") as month,
+          COUNT(*) as count,
+          SUM("totalAmount") as total
+        FROM purchases 
+        WHERE "purchaseDate" BETWEEN ${fromDate}::timestamp AND ${toDate}::timestamp
+        GROUP BY "paymentMethod", DATE_TRUNC('month', "purchaseDate")
+        ORDER BY month DESC, "paymentMethod"
+      ` as any[]
+    } else {
+      monthlyStats = await prisma.$queryRaw`
+        SELECT 
+          "paymentMethod",
+          DATE_TRUNC('month', "purchaseDate") as month,
+          COUNT(*) as count,
+          SUM("totalAmount") as total
+        FROM purchases 
+        GROUP BY "paymentMethod", DATE_TRUNC('month', "purchaseDate")
+        ORDER BY month DESC, "paymentMethod"
+      ` as any[]
+    }
 
     // Comparação com período anterior
     let previousPeriodStats = null

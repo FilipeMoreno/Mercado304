@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { prisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-utils';
+import { getAllProductPrices, getProductPriceHistory } from '@/lib/price-utils';
 
 // Função de retry com backoff exponencial
 async function retryWithBackoff<T>(
@@ -902,20 +903,16 @@ const toolFunctions = {
     });
     if (!product) return { success: false, message: `Produto "${productName}" não encontrado.` };
 
-    const prices = await prisma.purchaseItem.findMany({
-      where: { productId: product.id },
-      include: { purchase: { include: { market: true } } },
-      orderBy: { purchase: { purchaseDate: 'desc' } },
-      take: 50
-    });
+    // Buscar preços de todos os mercados (compras + registros)
+    const allPrices = await getAllProductPrices(product.id);
     
-    const pricesByMarket = prices.reduce((acc: any, item) => {
-      const marketName = item.purchase.market.name;
-      if (!acc[marketName] || new Date(item.purchase.purchaseDate) > new Date(acc[marketName].date)) {
-        acc[marketName] = {
-          price: item.unitPrice,
-          date: item.purchase.purchaseDate,
-          formatted: `R$ ${item.unitPrice.toFixed(2)}`
+    const pricesByMarket = allPrices.reduce((acc: any, item) => {
+      if (item.price !== null) {
+        acc[item.marketName] = {
+          price: item.price,
+          date: item.lastUpdate,
+          source: item.source,
+          formatted: `R$ ${item.price.toFixed(2)}`
         };
       }
       return acc;

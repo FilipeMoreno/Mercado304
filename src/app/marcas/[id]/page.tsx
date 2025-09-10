@@ -141,7 +141,7 @@ export default function MarcaDetalhesPage() {
             <div>
               <h1 className="text-3xl font-bold">{brand.name}</h1>
               <p className="text-gray-600 mt-1">
-                {brand._count.products} {brand._count.products === 1 ? 'produto cadastrado' : 'produtos cadastrados'}
+                {brand._count?.products || 0} {(brand._count?.products || 0) === 1 ? 'produto cadastrado' : 'produtos cadastrados'}
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function MarcaDetalhesPage() {
             variant="destructive"
             size="sm"
             onClick={deleteBrand}
-            disabled={brand._count.products > 0 || deleting}
+            disabled={(brand._count?.products || 0) > 0 || deleting}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Excluir
@@ -171,7 +171,7 @@ export default function MarcaDetalhesPage() {
             <CardTitle className="text-sm font-medium">Produtos Cadastrados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{brand._count.products}</div>
+            <div className="text-2xl font-bold">{brand._count?.products || 0}</div>
           </CardContent>
         </Card>
       </div>

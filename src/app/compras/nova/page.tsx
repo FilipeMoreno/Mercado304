@@ -27,6 +27,7 @@ import { BestPriceAlert } from "@/components/best-price-alert";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
 import { Product, PaymentMethod } from "@/types";
+import { toDateInputValue } from "@/lib/date-utils";
 import { StockEntry, StockEntryDialog } from "@/components/stock-entry-dialog";
 import { PriceAiInsight } from "@/components/price-ai-insight";
 
@@ -363,7 +364,7 @@ export default function NovaCompraPage() {
 									id="purchaseDate"
 									name="purchaseDate"
 									type="date"
-									value={formData.purchaseDate}
+									value={toDateInputValue(formData.purchaseDate)}
 									onChange={(e) =>
 										setFormData((prev) => ({ ...prev, purchaseDate: e.target.value }))
 									}

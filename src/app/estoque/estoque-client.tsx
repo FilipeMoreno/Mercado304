@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 import { ProductSelect } from "@/components/selects/product-select"
 import { TempStorage } from "@/lib/temp-storage"
 import { toast } from "sonner"
@@ -489,7 +490,7 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Validade:</span>
                     <Badge className={getExpirationColor(item.expirationStatus)}>
-                      {format(new Date(item.expirationDate), "dd/MM/yyyy", { locale: ptBR })}
+                      {formatLocalDate(item.expirationDate, "dd/MM/yyyy", { locale: ptBR })}
                     </Badge>
                   </div>
                 )}
@@ -662,7 +663,7 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
                               Motivo: {waste.wasteReason}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {format(new Date(waste.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              {formatLocalDate(waste.date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                             </p>
                           </div>
                           <div className="text-right">
@@ -745,7 +746,7 @@ export function EstoqueClient({ initialStockItems, initialStats, initialProducts
               <Label>Data de Validade</Label>
               <Input
                 type="date"
-                value={formData.expirationDate}
+                value={toDateInputValue(formData.expirationDate)}
                 onChange={(e) => setFormData(prev => ({ ...prev, expirationDate: e.target.value }))}
               />
             </div>

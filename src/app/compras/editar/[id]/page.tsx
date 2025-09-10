@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton";
 import { BestPriceAlert } from "@/components/best-price-alert";
 import { toast } from "sonner";
+import { toDateInputValue } from "@/lib/date-utils";
 
 interface PurchaseItem {
   productId: string;
@@ -239,7 +240,7 @@ export default function EditarCompraPage() {
                 <Input
                   id="date"
                   type="date"
-                  value={formData.purchaseDate}
+                  value={toDateInputValue(formData.purchaseDate)}
                   onChange={(e) => setFormData(prev => ({ ...prev, purchaseDate: e.target.value }))}
                 />
               </div>

@@ -14,6 +14,7 @@ import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { AppToasts } from "@/lib/toasts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLocalDate } from "@/lib/date-utils"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 
@@ -389,7 +390,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     <div>
                       <div className="font-medium">{purchase.market?.name || 'Mercado não identificado'}</div>
                       <div className="text-sm text-gray-500">
-                        {format(new Date(purchase.purchaseDate), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        {formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                       </div>
                     </div>
                   </div>
