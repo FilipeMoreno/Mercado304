@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/lib/theme"
 import { ClientLayout } from "@/components/client-layout"
 import { Toaster } from "sonner"
 import Provider from "./provider"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,6 +39,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
+        <SpeedInsights/>
+        <Analytics />
         <Provider>
           <ThemeProvider
             defaultTheme="system"
