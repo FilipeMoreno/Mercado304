@@ -39,8 +39,8 @@ export function AiDashboardSummary() {
       <CardContent>
         {loading ? (
           <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full bg-blue-100" />
+            <Skeleton className="h-4 w-3/4 bg-blue-100" />
           </div>
         ) : (
           <p className="text-sm text-blue-800 dark:text-blue-300">

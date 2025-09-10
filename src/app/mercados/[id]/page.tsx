@@ -728,7 +728,6 @@ export default function MarketDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* Lista de Compras */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

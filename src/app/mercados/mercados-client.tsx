@@ -164,16 +164,17 @@ export function MercadosClient({ initialMarkets, initialTotalCount, searchParams
                       <Link href={`/mercados/${market.id}`}>
                         <Button variant="outline" size="sm">
                           <BarChart3 className="h-4 w-4 mr-1" />
-                          Análises
+                          Detalhes
                         </Button>
                       </Link>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(`/mercados/${market.id}/editar`, '_blank')}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <Link href={`/mercados/${market.id}/editar`}>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Button 
                         variant="destructive" 
                         size="sm"

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Store, Package, ShoppingCart, DollarSign, TrendingUp } from "lucide-react"
+import { Store, Package, ShoppingCart, DollarSign, TrendingUp, Receipt } from "lucide-react"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
@@ -15,6 +15,7 @@ import { AppToasts } from "@/lib/toasts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
+import { PaymentMethodStats } from "@/components/payment-method-stats"
 
 interface DashboardClientProps {
   initialData: {
@@ -62,7 +63,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     <AiDashboardSummary /> 
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
         <Card className="shadow-sm hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total de Compras</CardTitle>
@@ -102,6 +103,23 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             <div className="text-xl md:text-2xl font-bold">{stats.totalMarkets}</div>
           </CardContent>
         </Card>
+
+        <Link href="/precos">
+          <Card className="shadow-sm hover:shadow-lg transition-shadow cursor-pointer hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Preços Registrados</CardTitle>
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">{stats.priceRecords?.totalRecords || 0}</div>
+              {stats.priceRecords?.averagePrice > 0 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Média: R$ {stats.priceRecords.averagePrice.toFixed(2)}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {stats.monthlySpending && stats.monthlySpending.length > 0 && (
@@ -199,6 +217,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         <TemporalComparisonCard temporalData={temporalData} loading={false} />
         <NutritionSummaryCard />
       </div>
+
+      {/* Estatísticas de Métodos de Pagamento */}
+      <PaymentMethodStats />
 
       {stats.categoryStats && stats.categoryStats.length > 0 && (
         <Card className="shadow-sm hover:shadow-lg transition-shadow">

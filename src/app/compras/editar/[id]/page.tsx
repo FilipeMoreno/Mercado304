@@ -11,7 +11,8 @@ import { MarketSelect } from "@/components/selects/market-select";
 import { ProductSelect } from "@/components/selects/product-select";
 import { TempStorage } from "@/lib/temp-storage";
 import Link from "next/link";
-import { Market, Product } from "@/types";
+import { Market, Product, PaymentMethod } from "@/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton";
 import { BestPriceAlert } from "@/components/best-price-alert";
 import { toast } from "sonner";
@@ -34,7 +35,8 @@ export default function EditarCompraPage() {
   
   const [formData, setFormData] = useState({
     marketId: "",
-    purchaseDate: ""
+    purchaseDate: "",
+    paymentMethod: PaymentMethod.MONEY
   });
   
   const [items, setItems] = useState<PurchaseItem[]>([]);
@@ -91,7 +93,8 @@ export default function EditarCompraPage() {
 
       setFormData({
         marketId: purchaseData.marketId,
-        purchaseDate: purchaseData.purchaseDate.split('T')[0]
+        purchaseDate: purchaseData.purchaseDate.split('T')[0],
+        paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY
       });
       
       setItems(purchaseData.items.map((item: any) => ({
@@ -175,7 +178,8 @@ export default function EditarCompraPage() {
         body: JSON.stringify({
           marketId: formData.marketId,
           items: validItems,
-          purchaseDate: formData.purchaseDate
+          purchaseDate: formData.purchaseDate,
+          paymentMethod: formData.paymentMethod
         })
       });
       if (response.ok) {
@@ -222,7 +226,7 @@ export default function EditarCompraPage() {
             <CardTitle>Informações da Compra</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="market">Mercado *</Label>
                 <MarketSelect
@@ -238,6 +242,28 @@ export default function EditarCompraPage() {
                   value={formData.purchaseDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, purchaseDate: e.target.value }))}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Método de Pagamento *</Label>
+                <Select
+                  value={formData.paymentMethod}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({ ...prev, paymentMethod: value as PaymentMethod }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+                    <SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+                    <SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+                    <SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
+                    <SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+                    <SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+                    <SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>

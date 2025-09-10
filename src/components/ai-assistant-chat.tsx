@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Bot, Send, Sparkles, X, RefreshCw } from "lucide-react";
+import { Bot, Send, Sparkles, X, RefreshCw, Drumstick } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
+import { Label } from "@/components/ui/label";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,7 +15,7 @@ interface Message {
   isError?: boolean; // Indica se é uma mensagem de erro
   isStreaming?: boolean; // Indica se é uma mensagem sendo transmitida
   selectionCard?: {
-    type: 'products' | 'markets' | 'categories' | 'brands' | 'shopping-lists';
+    type: 'products' | 'markets' | 'categories' | 'brands' | 'shopping-lists' | 'churrascometro';
     options: any[];
     searchTerm: string;
     context?: any; // Contexto da operação original
@@ -119,6 +120,50 @@ function SelectionCard({ type, options, searchTerm, context, onSelect }: Selecti
   );
 }
 
+function ChurrascoCard({ onCalculate }: { onCalculate: (data: any) => void }) {
+  const [adults, setAdults] = useState(10);
+  const [children, setChildren] = useState(2);
+  const [drinkers, setDrinkers] = useState(8);
+  const [preferences, setPreferences] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onCalculate({ adults, children, drinkers, preferences });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-muted/50 rounded-lg p-3 space-y-3">
+      <div className="text-sm text-muted-foreground">
+        Claro! Por favor, preencha os detalhes abaixo para o churrasco.
+      </div>
+      <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <Label htmlFor="adults-chat" className="text-xs">Adultos</Label>
+            <Input id="adults-chat" type="number" value={adults} onChange={e => setAdults(Number(e.target.value))} className="h-8"/>
+          </div>
+          <div>
+            <Label htmlFor="children-chat" className="text-xs">Crianças</Label>
+            <Input id="children-chat" type="number" value={children} onChange={e => setChildren(Number(e.target.value))} className="h-8"/>
+          </div>
+          <div>
+            <Label htmlFor="drinkers-chat" className="text-xs">Bebem</Label>
+            <Input id="drinkers-chat" type="number" value={drinkers} onChange={e => setDrinkers(Number(e.target.value))} className="h-8"/>
+          </div>
+        </div>
+        <div>
+            <Label htmlFor="preferences-chat" className="text-xs">Preferências (opcional)</Label>
+            <Input id="preferences-chat" value={preferences} onChange={e => setPreferences(e.target.value)} placeholder="Ex: vegetariano" className="h-8" />
+        </div>
+        <Button type="submit" className="w-full">
+            <Drumstick className="mr-2 h-4 w-4" />
+            Calcular
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export function AiAssistantChat() {
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?" },
@@ -128,6 +173,52 @@ export function AiAssistantChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingContext, setPendingContext] = useState<any>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>("");
+
+  const handleChurrascoCalculate = async (data: any) => {
+    // Remove o card do churrasco da mensagem anterior
+    setMessages(prev => prev.slice(0, -1));
+
+    // Cria mensagem descritiva para o usuário
+    const churrascoMessage = `Calcular churrasco para ${data.adults} adultos, ${data.children} crianças, sendo que ${data.drinkers} adultos bebem. ${data.preferences ? `Preferências: ${data.preferences}` : ''}`;
+    
+    const userMessage: Message = { role: "user", content: churrascoMessage };
+    setMessages((prev) => [...prev, userMessage]);
+    setLastUserMessage(churrascoMessage);
+    setIsLoading(true);
+
+    // Envia diretamente para a função de calcular churrasco
+    try {
+      const response = await fetch("/api/ai/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          message: `CALCULATE_CHURRASCO: ${JSON.stringify(data)}`,
+          history: [...messages, userMessage]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao calcular churrasco");
+      }
+
+      const responseData = await response.json();
+      const assistantMessage: Message = { 
+        role: "assistant", 
+        content: responseData.reply,
+        isError: responseData.error || false
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "❌ Não foi possível calcular o churrasco. Tente novamente.",
+        isError: true
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSelection = async (option: any, index: number) => {
     const lastMessage = messages[messages.length - 1];
@@ -407,7 +498,7 @@ export function AiAssistantChat() {
             <Card className="w-96 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-blue-500" />
+                  <Bot className="h-5 w-5 text-blue-700" />
                   Zé, o assistente
                 </CardTitle>
                 <Button
@@ -430,7 +521,7 @@ export function AiAssistantChat() {
                           }`}
                         >
                           {msg.role === "assistant" && (
-                            <Bot className={`h-6 w-6 flex-shrink-0 ${msg.isError ? "text-red-500" : ""}`} />
+                            <Bot className={`h-6 w-6 flex-shrink-0 ${msg.isError ? "text-red-500" : "text-blue-700"}`} />
                           )}
                           <div className={`max-w-[80%] ${msg.role === "user" ? "flex justify-end" : ""}`}>
                             <div className="flex flex-col gap-2">
@@ -462,13 +553,17 @@ export function AiAssistantChat() {
                         </div>
                         {msg.selectionCard && (
                           <div className="mt-3 ml-8">
-                            <SelectionCard
-                              type={msg.selectionCard.type}
-                              options={msg.selectionCard.options}
-                              searchTerm={msg.selectionCard.searchTerm}
-                              context={msg.selectionCard.context}
-                              onSelect={handleSelection}
-                            />
+                            {msg.selectionCard.type === 'churrascometro' ? (
+                              <ChurrascoCard onCalculate={handleChurrascoCalculate} />
+                            ) : (
+                              <SelectionCard
+                                type={msg.selectionCard.type}
+                                options={msg.selectionCard.options}
+                                searchTerm={msg.selectionCard.searchTerm}
+                                context={msg.selectionCard.context}
+                                onSelect={handleSelection}
+                              />
+                            )}
                           </div>
                         )}
                         {msg.isStreaming && (

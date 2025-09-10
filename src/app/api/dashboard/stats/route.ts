@@ -27,7 +27,8 @@ export async function GET() {
       categoryStats,
       currentMonthStats,
       lastMonthStats,
-      monthlySpending
+      monthlySpending,
+      priceRecordsStats
     ] = await Promise.all([
       prisma.purchase.count(),
       
@@ -133,7 +134,15 @@ export async function GET() {
         WHERE "purchaseDate" >= ${twelveMonthsAgo}
         GROUP BY month
         ORDER BY month ASC
-      `
+      `,
+
+      // Estatísticas dos registros de preços
+      prisma.priceRecord.aggregate({
+        _count: { id: true },
+        _avg: { price: true },
+        _min: { price: true },
+        _max: { price: true }
+      })
     ]);
 
     // OTIMIZAÇÃO: Coletar todos os IDs de produtos e mercados
@@ -226,7 +235,13 @@ export async function GET() {
       marketComparison: marketComparisonWithNames,
       monthlyComparison,
       categoryStats: categoryStatsProcessed,
-      monthlySpending: monthlySpendingProcessed 
+      monthlySpending: monthlySpendingProcessed,
+      priceRecords: {
+        totalRecords: priceRecordsStats._count.id,
+        averagePrice: priceRecordsStats._avg.price || 0,
+        minPrice: priceRecordsStats._min.price || 0,
+        maxPrice: priceRecordsStats._max.price || 0
+      }
     }
 
     return NextResponse.json(stats)

@@ -64,15 +64,74 @@ export async function POST(request: Request) {
       )
     }
 
+    // Se não há itens, cria lista vazia
+    if (!items || items.length === 0) {
+      const list = await prisma.shoppingList.create({
+        data: { name },
+        include: {
+          items: {
+            include: { product: true }
+          }
+        }
+      })
+      return NextResponse.json(list, { status: 201 })
+    }
+
+    // Processa os itens da lista
+    const processedItems = await Promise.all(
+      items.map(async (item: any) => {
+        // Se tem productId, usa produto existente
+        if (item.productId) {
+          return {
+            productId: item.productId,
+            quantity: item.quantity || 1,
+            estimatedPrice: item.estimatedPrice || null
+          }
+        }
+
+        // Se tem productName, tenta buscar produto existente
+        if (item.productName) {
+          const existingProduct = await prisma.product.findFirst({
+            where: {
+              name: {
+                equals: item.productName,
+                mode: 'insensitive'
+              }
+            }
+          })
+
+          // Se encontrou produto existente, usa ele
+          if (existingProduct) {
+            return {
+              productId: existingProduct.id,
+              quantity: item.quantity || 1,
+              estimatedPrice: item.estimatedPrice || null
+            }
+          }
+
+          // Se não encontrou, cria item temporário (sem produto)
+          return {
+            productId: null,
+            productName: item.productName,
+            productUnit: item.productUnit || 'unidade',
+            quantity: item.quantity || 1,
+            estimatedPrice: item.estimatedPrice || null
+          }
+        }
+
+        // Se não tem nem productId nem productName, pula
+        return null
+      })
+    )
+
+    // Filtra itens nulos
+    const validItems = processedItems.filter(Boolean)
+
     const list = await prisma.shoppingList.create({
       data: {
         name,
         items: {
-          create: items?.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity || 1,
-            estimatedPrice: item.estimatedPrice || null
-          })) || []
+          create: validItems
         }
       },
       include: {
@@ -86,6 +145,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(list, { status: 201 })
   } catch (error) {
+    console.error('Erro ao criar lista:', error)
     return NextResponse.json(
       { error: 'Erro ao criar lista' },
       { status: 500 }

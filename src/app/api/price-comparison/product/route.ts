@@ -53,7 +53,21 @@ export async function POST(request: Request) {
       }
     })
 
-    // Agrupar por mercado e calcular estatísticas
+    // Buscar registros de preços dos últimos 6 meses para este produto
+    const priceRecords = await prisma.priceRecord.findMany({
+      where: {
+        productId: productId,
+        recordDate: { gte: sixMonthsAgo }
+      },
+      include: {
+        market: true
+      },
+      orderBy: {
+        recordDate: 'desc'
+      }
+    })
+
+    // Agrupar por mercado e calcular estatísticas (incluindo registros de preços)
     const marketPrices = purchaseItems.reduce((acc: any, item) => {
       const marketId = item.purchase.market.id
       
@@ -61,44 +75,77 @@ export async function POST(request: Request) {
         acc[marketId] = {
           market: item.purchase.market,
           prices: [],
-          quantities: []
+          quantities: [],
+          dates: [],
+          sources: []
         }
       }
       
       acc[marketId].prices.push(item.unitPrice)
       acc[marketId].quantities.push(item.quantity)
+      acc[marketId].dates.push(item.purchase.purchaseDate)
+      acc[marketId].sources.push('purchase')
       
       return acc
     }, {})
 
+    // Adicionar registros de preços ao agrupamento
+    priceRecords.forEach(record => {
+      const marketId = record.market.id
+      
+      if (!marketPrices[marketId]) {
+        marketPrices[marketId] = {
+          market: record.market,
+          prices: [],
+          quantities: [],
+          dates: [],
+          sources: []
+        }
+      }
+      
+      marketPrices[marketId].prices.push(record.price)
+      marketPrices[marketId].quantities.push(1) // Assumindo quantidade 1 para registros
+      marketPrices[marketId].dates.push(record.recordDate)
+      marketPrices[marketId].sources.push('record')
+    })
+
     // Calcular preços médios e tendências para cada mercado
     const markets = Object.values(marketPrices).map((marketData: any) => {
       const prices = marketData.prices
+      const dates = marketData.dates
+      const sources = marketData.sources
       const market = marketData.market
       
-      // Preço mais recente (última compra)
-      const currentPrice = prices[0]
+      // Ordenar por data (mais recente primeiro)
+      const sortedData = prices.map((price, index) => ({
+        price,
+        date: dates[index],
+        source: sources[index]
+      })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      
+      // Preço mais recente (última compra ou registro)
+      const currentPrice = sortedData[0].price
+      const lastUpdate = sortedData[0].date
+      const lastSource = sortedData[0].source
       
       // Calcular tendência de preço (comparar últimos 30 dias vs 30 dias anteriores)
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       
-      const recentPurchases = purchaseItems.filter(item => 
-        item.purchase.market.id === market.id && 
-        item.purchase.purchaseDate >= thirtyDaysAgo
+      const recentData = sortedData.filter(item => 
+        new Date(item.date) >= thirtyDaysAgo
       )
       
-      const olderPurchases = purchaseItems.filter(item => 
-        item.purchase.market.id === market.id && 
-        item.purchase.purchaseDate < thirtyDaysAgo
+      const olderData = sortedData.filter(item => 
+        new Date(item.date) < thirtyDaysAgo
       )
       
       let priceTrend: 'up' | 'down' | 'stable' = 'stable'
       let priceChange = 0
       
-      if (recentPurchases.length > 0 && olderPurchases.length > 0) {
-        const recentAvg = recentPurchases.reduce((sum, item) => sum + item.unitPrice, 0) / recentPurchases.length
-        const olderAvg = olderPurchases.reduce((sum, item) => sum + item.unitPrice, 0) / olderPurchases.length
+      if (recentData.length > 0 && olderData.length > 0) {
+        const recentAvg = recentData.reduce((sum, item) => sum + item.price, 0) / recentData.length
+        const olderAvg = olderData.reduce((sum, item) => sum + item.price, 0) / olderData.length
         
         priceChange = ((recentAvg - olderAvg) / olderAvg) * 100
         
@@ -107,18 +154,22 @@ export async function POST(request: Request) {
         }
       }
       
-      // Última compra neste mercado
-      const lastPurchase = purchaseItems.find(item => item.purchase.market.id === market.id)
+      // Contar compras vs registros
+      const purchaseCount = sources.filter(s => s === 'purchase').length
+      const recordCount = sources.filter(s => s === 'record').length
       
       return {
         marketId: market.id,
         marketName: market.name,
         location: market.location,
         currentPrice: currentPrice,
-        lastPurchase: lastPurchase?.purchase.purchaseDate || new Date(),
+        lastPurchase: lastUpdate,
+        lastSource: lastSource === 'purchase' ? 'Compra' : 'Registro',
         priceTrend,
         priceChange: Math.abs(priceChange),
-        totalPurchases: prices.length,
+        totalPurchases: purchaseCount,
+        totalRecords: recordCount,
+        totalData: prices.length,
         avgPrice: prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length
       }
     })

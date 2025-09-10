@@ -22,7 +22,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Apple,
-  ChefHat // Certifique-se que este import existe
+  ChefHat,
+  Receipt,
+  Utensils
 } from "lucide-react"
 import { UserNav } from "./user-nav"
 
@@ -35,9 +37,11 @@ const navigation = [
   { name: "Compras", href: "/compras", icon: ShoppingCart },
   { name: "Lista de Compras", href: "/lista", icon: List },
   { name: "Receitas", href: "/receitas", icon: ChefHat },
+  { name: "Registro de Preços", href: "/precos", icon: Receipt },
   { name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
   { name: "Análise Nutricional", href: "/nutricao", icon: Apple },
   { name: "Estoque", href: "/estoque", icon: Box },
+  { name: "Churrascômetro", href: "/churrasco", icon: Utensils },
 ]
 
 interface SidebarProps {

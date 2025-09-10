@@ -94,7 +94,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { marketId, items, purchaseDate } = body;
+        const { marketId, items, purchaseDate, paymentMethod } = body;
 
         if (!marketId || !items || items.length === 0) {
             return NextResponse.json(
@@ -118,6 +118,7 @@ export async function POST(request: Request) {
                     marketId,
                     totalAmount,
                     purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+                    paymentMethod: paymentMethod || 'MONEY',
                     items: {
                         create: items.map((item: any) => {
                             const product = products.find(p => p.id === item.productId);

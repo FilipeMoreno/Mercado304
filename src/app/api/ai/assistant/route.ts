@@ -454,7 +454,54 @@ const tools: any = [
           },
           required: ['searchTerm']
         }
-      }
+      },
+
+      // Price Recording System
+      {
+        name: 'recordPrice',
+        description: 'Registra o preço de um produto em um mercado específico sem registrar compra. Útil para acompanhar preços de produtos que você viu mas não comprou.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            productName: { type: SchemaType.STRING, description: 'Nome do produto.' },
+            marketName: { type: SchemaType.STRING, description: 'Nome do mercado onde foi visto o preço.' },
+            price: { type: SchemaType.NUMBER, description: 'Preço do produto.' },
+            notes: { type: SchemaType.STRING, description: 'Observações sobre o preço (opcional).' }
+          },
+          required: ['productName', 'marketName', 'price']
+        }
+      },
+      {
+        name: 'getPriceRecords',
+        description: 'Lista histórico de preços registrados por produto ou mercado.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            productName: { type: SchemaType.STRING, description: 'Filtrar por produto (opcional).' },
+            marketName: { type: SchemaType.STRING, description: 'Filtrar por mercado (opcional).' },
+            limit: { type: SchemaType.NUMBER, description: 'Limite de resultados (opcional, padrão 20).' }
+          }
+        }
+      },
+      {
+        name: 'promptChurrascoCalculator',
+        description: 'Quando o usuário expressa a intenção de calcular um churrasco, mas não fornece os números de adultos, crianças e bebedores, esta função é chamada para exibir um formulário interativo no chat.',
+        parameters: { type: SchemaType.OBJECT, properties: {} }
+      },
+      {
+        name: 'calculateChurrasco',
+        description: 'Calcula as quantidades de comida e bebida para um churrasco com base no número de pessoas.',
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+            adults: { type: SchemaType.NUMBER, description: 'Número de adultos.' },
+            children: { type: SchemaType.NUMBER, description: 'Número de crianças.' },
+            drinkers: { type: SchemaType.NUMBER, description: 'Número de adultos que consomem bebidas alcoólicas.' },
+            preferences: { type: SchemaType.STRING, description: 'Preferências ou observações (ex: "mais picanha", "vegetariano").' }
+          },
+          required: ['adults', 'children', 'drinkers']
+        }
+      },
     ]
   }
 ];
@@ -594,6 +641,7 @@ async function handleStreamingChat(message: string, history: any[]) {
       },
     });
   }
+  
   const validHistory = history && Array.isArray(history) ? history.filter((msg: any) => {
     return msg.role && msg.parts && (msg.role === 'user' || msg.role === 'model');
   }) : [];
@@ -603,7 +651,7 @@ async function handleStreamingChat(message: string, history: any[]) {
   }
 
   const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash", 
+    model: "gemini-2.5-flash", 
     tools,
     systemInstruction: `Você é o Zé, assistente do Mercado304 - sistema de gerenciamento de compras de supermercado.
 
@@ -637,11 +685,71 @@ Seja sempre cordial, útil e mantenha o foco no gerenciamento de compras.`
     async start(controller) {
       try {
         const result = await chat.sendMessageStream(message);
+        let finalResponse = null;
         
+        // Processa o stream primeiro para detectar function calls
         for await (const chunk of result.stream) {
-          const chunkText = chunk.text();
-          if (chunkText) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+          finalResponse = chunk;
+        }
+        
+        const functionCalls = finalResponse?.functionCalls();
+        
+        // Se há function calls, processa elas antes de fazer streaming
+        if (functionCalls && functionCalls.length > 0) {
+          console.log("IA solicitou chamadas de função:", functionCalls.map(call => call.name));
+          
+          // Executa todas as chamadas de função
+          const functionResponses = await Promise.all(
+            functionCalls.map(async (call) => {
+              // @ts-ignore
+              const apiResponse = await toolFunctions[call.name](call.args);
+              return {
+                functionResponse: {
+                  name: call.name,
+                  response: apiResponse
+                }
+              };
+            })
+          );
+
+          // Verifica se alguma função retornou dados de seleção
+          let selectionData = null;
+          for (const response of functionResponses) {
+            if (response.functionResponse.response.showCards) {
+              selectionData = response.functionResponse.response;
+              break;
+            }
+          }
+          
+          // Se encontrou dados de seleção, retorna como evento especial
+          if (selectionData) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+              content: selectionData.message,
+              selectionData,
+              final: true 
+            })}\n\n`));
+            controller.close();
+            return;
+          }
+          
+          // Envia todas as respostas de volta para a IA
+          const result2 = await chat.sendMessageStream(functionResponses);
+          
+          // Faz streaming da resposta final
+          for await (const chunk of result2.stream) {
+            const chunkText = chunk.text();
+            if (chunkText) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+            }
+          }
+        } else {
+          // Se não há function calls, faz streaming normal
+          const result3 = await chat.sendMessageStream(message);
+          for await (const chunk of result3.stream) {
+            const chunkText = chunk.text();
+            if (chunkText) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+            }
           }
         }
         
@@ -1491,9 +1599,104 @@ const toolFunctions = {
       })),
       message: `Encontradas ${lists.length} listas similares a "${searchTerm}". Escolha uma das opções:`
     };
-  }
-};
+  },
 
+  // Price Recording System
+  recordPrice: async ({ productName, marketName, price, notes }: any) => {
+    try {
+      const response = await fetch(`${process.env.NEXTAUTH_URL}/api/prices/record`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName, marketName, price, notes })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, message: errorData.error || 'Erro ao registrar preço' };
+      }
+
+      const data = await response.json();
+      return { 
+        success: true, 
+        message: data.message,
+        priceRecord: data.priceRecord
+      };
+    } catch (error) {
+      return { success: false, message: `Erro ao registrar preço: ${error}` };
+    }
+  },
+
+  getPriceRecords: async ({ productName, marketName, limit = 20 }: any) => {
+    try {
+      const params = new URLSearchParams();
+      if (productName) params.append('product', productName);
+      if (marketName) params.append('market', marketName);
+      if (limit) params.append('limit', limit.toString());
+
+      const response = await fetch(`${process.env.NEXTAUTH_URL}/api/prices/record?${params.toString()}`);
+      
+      if (!response.ok) {
+        return { success: false, message: 'Erro ao buscar registros de preços' };
+      }
+
+      const data = await response.json();
+      return { 
+        success: true, 
+        priceRecords: data.priceRecords,
+        total: data.total
+      };
+    } catch (error) {
+      return { success: false, message: `Erro ao buscar registros: ${error}` };
+    }
+  },
+
+  promptChurrascoCalculator: async () => {
+    return {
+      success: true,
+      showCards: true,
+      cardType: 'churrascometro',
+      message: "Claro! Vamos calcular tudo para o seu churrasco. Por favor, preencha os detalhes abaixo.",
+      options: {},
+    };
+  },
+  calculateChurrasco: async ({ adults, children, drinkers, preferences }: any) => {
+    try {
+        const response = await fetch(`${process.env.NEXTAUTH_URL}/api/ai/churrascometro`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adults, children, drinkers, preferences })
+        });
+        if (!response.ok) {
+            return { success: false, message: "Não foi possível calcular o churrasco no momento." };
+        }
+        const data = await response.json();
+        
+        // Formata a resposta para uma apresentação mais limpa
+        let message = `🔥 **Churrasco calculado para ${data.summary.totalPeople} pessoas!**\n\n`;
+        
+        // Adiciona resumo das quantidades por categoria
+        Object.entries(data.shoppingList).forEach(([category, items]: [string, any]) => {
+          message += `**${category}:**\n`;
+          items.forEach((item: any) => {
+            message += `• ${item.item}: ${item.quantity}\n`;
+          });
+          message += '\n';
+        });
+        
+        message += `💡 **Dica do Chef:** ${data.chefTip}\n\n`;
+        message += `📝 Posso criar uma lista de compras com estes itens se você quiser!`;
+        
+        return { 
+          success: true, 
+          message,
+          result: data,
+          canCreateList: true
+        };
+    } catch (error) {
+      return { success: false, message: `Erro ao calcular churrasco: ${error}` };
+    }
+  },
+};
 
 export async function POST(request: Request) {
   try {
@@ -1505,6 +1708,16 @@ export async function POST(request: Request) {
       return await handleSelection(selectionData, history);
     }
 
+    // Verifica se é uma mensagem de cálculo de churrasco direto
+    if (message.startsWith('CALCULATE_CHURRASCO:')) {
+      const churrascoData = JSON.parse(message.replace('CALCULATE_CHURRASCO:', '').trim());
+      const result = await toolFunctions.calculateChurrasco(churrascoData);
+      return NextResponse.json({ 
+        reply: result.message || result.reply || "Churrasco calculado com sucesso!",
+        error: !result.success 
+      });
+    }
+
     // Se solicitado streaming, usa função de streaming
     if (stream) {
       return await handleStreamingChat(message, history);
@@ -1513,7 +1726,7 @@ export async function POST(request: Request) {
     // Verifica se a mensagem é bloqueada por segurança (para modo não-streaming)
     const securityCheck = isBlockedQuery(message);
     if (securityCheck.blocked) {
-      const securityMessage = `🔒 ${securityCheck.reason}\n\nEu só posso ajudar com questões relacionadas ao gerenciamento de compras, produtos, listas, estoque e funcionalidades do Mercado304. Como posso ajudá-lo com suas compras hoje?`;
+      const securityMessage = `${securityCheck.reason}\n\nEu só posso ajudar com questões relacionadas ao gerenciamento de compras, produtos, listas, estoque e funcionalidades do Mercado304. Como posso ajudá-lo com suas compras hoje?`;
       return NextResponse.json({ 
         reply: securityMessage,
         error: true 
@@ -1531,7 +1744,7 @@ export async function POST(request: Request) {
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash", 
+      model: "gemini-2.5-flash", 
       tools,
       systemInstruction: `Você é um assistente inteligente completo para o sistema Mercado304 - um sistema de gerenciamento de compras de supermercado.
 
@@ -1600,12 +1813,21 @@ FUNCIONALIDADES DISPONÍVEIS:
 📈 ANÁLISE & PREVISÕES:
 - Padrões de consumo (getConsumptionPatterns)
 
+💲 REGISTRO DE PREÇOS:
+- Registrar preço sem compra (recordPrice) - para anotar preços vistos em outros mercados
+- Consultar histórico de preços registrados (getPriceRecords)
+- Ideal para comparar preços antes de fazer compras
+
 🎯 SISTEMA DE SELEÇÃO INTELIGENTE:
 - Buscar produtos similares (findSimilarProducts)
 - Buscar mercados similares (findSimilarMarkets) 
 - Buscar categorias similares (findSimilarCategories)
 - Buscar marcas similares (findSimilarBrands)
 - Buscar listas similares (findSimilarShoppingLists)
+
+- CHURRASCÔMETRO:
+- Prompt interativo para calcular churrasco (promptChurrascoCalculator)
+- Calcular churrasco baseado em número de pessoas e preferências (calculateChurrasco)
 
 COMPORTAMENTOS INTELIGENTES:
 - Se o usuário quer "criar lista X", crie lista vazia com esse nome
@@ -1614,6 +1836,31 @@ COMPORTAMENTOS INTELIGENTES:
 - Seja proativo: se perguntarem sobre preços, compare automaticamente entre mercados
 - Use contexto: se falarem sobre estoque, verifique alertas automaticamente
 - Para receitas, considere ingredientes disponíveis no estoque automaticamente
+- Se mencionarem preços vistos sem compra, use recordPrice para registrar
+- Para comparações mais precisas, sugira registrar preços encontrados em outros mercados
+- Se o usuário mencionar "churrasco" ou "churrascometro" sem detalhar o número de pessoas, SEMPRE use a função 'promptChurrascoCalculator' para mostrar o formulário interativo.
+- Se o usuário fornecer os números de pessoas (adultos, crianças, etc.) diretamente no prompt, use a função 'calculateChurrasco'.
+
+
+🔥 CHURRASCÔMETRO - PRIORIDADE MÁXIMA:
+Quando o usuário mencionar qualquer palavra relacionada a churrasco, SEMPRE considere usar o churrascômetro:
+- Palavras-chave: "churrasco", "churrascômetro", "churrasqueira", "carne", "barbecue", "bbq"
+- Contextos: "festa", "confraternização", "família", "amigos", "final de semana"
+
+REGRAS OBRIGATÓRIAS:
+1. Se mencionar churrasco SEM números específicos → use promptChurrascoCalculator
+2. Se mencionar churrasco COM números (ex: "10 adultos") → use calculateChurrasco diretamente
+3. Se pedirem "lista para churrasco" → PRIMEIRO use promptChurrascoCalculator, depois crie lista com resultado
+
+EXEMPLOS:
+Usuário: "Quero fazer um churrasco"
+→ Execute promptChurrascoCalculator
+
+Usuário: "Calcular churrasco para 10 pessoas"
+→ Execute promptChurrascoCalculator (para coletar detalhes)
+
+Usuário: "Lista para churrasco de 15 adultos, 5 crianças, 12 bebem"
+→ Execute calculateChurrasco({ adults: 15, children: 5, drinkers: 12 })
 
 🎯 SISTEMA DE SELEÇÃO INTELIGENTE:
 Quando o usuário mencionar nomes que podem ter múltiplas opções (ex: "coca-cola" pode ser "Coca-Cola 2L", "Coca-Cola Lata", etc.):
@@ -1643,6 +1890,16 @@ Usuário: "Comparar preço da coca-cola"
 1. Execute findSimilarProducts("coca-cola") com contexto: { action: 'comparePrice' }
 2. Se múltiplas opções → mostre cards automaticamente
 3. Frontend processará a seleção e comparará preços
+
+EXEMPLOS DE REGISTRO DE PREÇOS:
+Usuário: "Vi leite no Atacadão por R$ 4,50"
+→ Execute recordPrice({ productName: "leite", marketName: "Atacadão", price: 4.50 })
+
+Usuário: "Registrar preço: detergente Ype R$ 3,20 no Extra"
+→ Execute recordPrice({ productName: "detergente Ype", marketName: "Extra", price: 3.20 })
+
+Usuário: "Quero ver os preços que já anotei do açúcar"
+→ Execute getPriceRecords({ productName: "açúcar" })
 
 CRIAÇÃO DE PRODUTOS:
 - Para criar produtos simples sem marca/categoria: use createProduct
@@ -1723,7 +1980,8 @@ Você pode fazer TUDO que o aplicativo permite através das interfaces!`
     }
 
     // Se não houver chamada de função, responde diretamente
-    const reply = result.response.text();
+    const response = await result.response;
+    const reply = response.text();
     return NextResponse.json({ reply });
 
   } catch (error) {

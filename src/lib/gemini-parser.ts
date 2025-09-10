@@ -29,29 +29,55 @@ function parseNutrientAmount(amount: string | null): number | undefined {
 
 export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
     const parsedInfo: Partial<NutritionalInfo> = {
-        allergensContains: [],
-        allergensMayContain: [],
+        allergensContains: geminiData.allergensContains || [],
+        allergensMayContain: geminiData.allergensMayContain || [],
     };
 
+    // Informações da Tabela Nutricional Obrigatórias
     parsedInfo.servingSize = geminiData.servingSize || "";
+    parsedInfo.calories = geminiData.calories;
+    parsedInfo.carbohydrates = geminiData.carbohydrates;
+    parsedInfo.totalSugars = geminiData.totalSugars;
+    parsedInfo.addedSugars = geminiData.addedSugars;
+    parsedInfo.proteins = geminiData.proteins;
+    parsedInfo.totalFat = geminiData.totalFat;
+    parsedInfo.saturatedFat = geminiData.saturatedFat;
+    parsedInfo.transFat = geminiData.transFat;
+    parsedInfo.fiber = geminiData.fiber;
+    parsedInfo.sodium = geminiData.sodium;
 
-    const nutritionTable = geminiData.nutrition_facts_per_serving || geminiData.nutrition_facts_per_package || [];
+    // Vitaminas (valores opcionais)
+    parsedInfo.vitaminA = geminiData.vitaminA;
+    parsedInfo.vitaminC = geminiData.vitaminC;
+    parsedInfo.vitaminD = geminiData.vitaminD;
+    parsedInfo.vitaminE = geminiData.vitaminE;
+    parsedInfo.vitaminK = geminiData.vitaminK;
+    parsedInfo.thiamine = geminiData.thiamine;
+    parsedInfo.riboflavin = geminiData.riboflavin;
+    parsedInfo.niacin = geminiData.niacin;
+    parsedInfo.vitaminB6 = geminiData.vitaminB6;
+    parsedInfo.folate = geminiData.folate;
+    parsedInfo.vitaminB12 = geminiData.vitaminB12;
+    parsedInfo.biotin = geminiData.biotin;
+    parsedInfo.pantothenicAcid = geminiData.pantothenicAcid;
 
-    for (const nutrient of nutritionTable) {
-        const description = nutrient.nutrient_description?.toLowerCase().trim();
-        const mappedKey = nutrientMapping[description];
+    // Outros nutrientes (valores opcionais)
+    parsedInfo.taurine = geminiData.taurine;
+    parsedInfo.caffeine = geminiData.caffeine;
 
-        if (mappedKey) {
-            // @ts-ignore
-            parsedInfo[mappedKey] = parseNutrientAmount(nutrient.nutrient_amount);
-        }
-    }
-
-    if (geminiData.text) {
-        const allergens = extractAllergens(geminiData.text);
-        parsedInfo.allergensContains = allergens.contains;
-        parsedInfo.allergensMayContain = allergens.mayContain;
-    }
+    // Minerais (valores opcionais)
+    parsedInfo.calcium = geminiData.calcium;
+    parsedInfo.iron = geminiData.iron;
+    parsedInfo.magnesium = geminiData.magnesium;
+    parsedInfo.phosphorus = geminiData.phosphorus;
+    parsedInfo.potassium = geminiData.potassium;
+    parsedInfo.zinc = geminiData.zinc;
+    parsedInfo.copper = geminiData.copper;
+    parsedInfo.manganese = geminiData.manganese;
+    parsedInfo.selenium = geminiData.selenium;
+    parsedInfo.iodine = geminiData.iodine;
+    parsedInfo.chromium = geminiData.chromium;
+    parsedInfo.molybdenum = geminiData.molybdenum;
 
     return parsedInfo;
 }
@@ -60,6 +86,7 @@ export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 // --- SEÇÃO PARA O PARSER DE TEXTO BRUTO (ANTIGO OCR-PARSER) ---
 
 const nutrientTextMap = {
+	// Informações da Tabela Nutricional Obrigatórias
 	calories: [/valor energ.tico/i, /energia/i, /calorias/i],
 	carbohydrates: [/carboidratos totais/i, /carboidratos/i],
 	totalSugars: [/a..cares totais/i, /acucares totais/i],
@@ -70,6 +97,39 @@ const nutrientTextMap = {
 	transFat: [/gorduras trans/i],
 	fiber: [/fibra alimentar/i],
 	sodium: [/s.dio/i],
+	
+	// Vitaminas (valores opcionais)
+	vitaminA: [/vitamina a/i, /vit\.?\s*a/i],
+	vitaminC: [/vitamina c/i, /vit\.?\s*c/i, /ácido ascórbico/i],
+	vitaminD: [/vitamina d/i, /vit\.?\s*d/i],
+	vitaminE: [/vitamina e/i, /vit\.?\s*e/i],
+	vitaminK: [/vitamina k/i, /vit\.?\s*k/i],
+	thiamine: [/tiamina/i, /vitamina b1/i, /vit\.?\s*b1/i],
+	riboflavin: [/riboflavina/i, /vitamina b2/i, /vit\.?\s*b2/i],
+	niacin: [/niacina/i, /vitamina b3/i, /vit\.?\s*b3/i, /ácido nicotínico/i],
+	vitaminB6: [/vitamina b6/i, /vit\.?\s*b6/i, /piridoxina/i],
+	folate: [/folato/i, /ácido fólico/i, /vitamina b9/i, /vit\.?\s*b9/i],
+	vitaminB12: [/vitamina b12/i, /vit\.?\s*b12/i, /cobalamina/i],
+	biotin: [/biotina/i, /vitamina b7/i, /vit\.?\s*b7/i, /vitamina h/i],
+	pantothenicAcid: [/ácido pantotênico/i, /vitamina b5/i, /vit\.?\s*b5/i],
+	
+	// Outros nutrientes (valores opcionais)
+	taurine: [/taurina/i],
+	caffeine: [/cafeína/i, /cafeina/i],
+	
+	// Minerais (valores opcionais)
+	calcium: [/cálcio/i, /calcio/i],
+	iron: [/ferro/i],
+	magnesium: [/magnésio/i, /magnesio/i],
+	phosphorus: [/fósforo/i, /fosforo/i],
+	potassium: [/potássio/i, /potassio/i],
+	zinc: [/zinco/i],
+	copper: [/cobre/i],
+	manganese: [/manganês/i, /manganes/i],
+	selenium: [/selênio/i, /selenio/i],
+	iodine: [/iodo/i],
+	chromium: [/cromo/i, /crômio/i],
+	molybdenum: [/molibdênio/i, /molibdenio/i],
 };
 
 const commonAllergens = [

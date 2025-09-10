@@ -23,13 +23,13 @@ function isApiError(payload: any): payload is ApiErrorPayload {
 export const AppToasts = {
   success: (message: string) => {
     toast.success(message, {
-      icon: "✅",
+      icon: "",
     });
   },
 
   info: (message: string) => {
     toast.info(message, {
-      icon: "ℹ️",
+      icon: "",
     });
   },
 

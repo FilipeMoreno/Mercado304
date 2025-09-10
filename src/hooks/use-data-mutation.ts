@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { AppToasts } from "@/lib/toasts";
 
 interface MutationOptions {
-  onSuccess?: () => void
+  onSuccess?: (data?: any) => void
   onError?: (error: string) => void
   successMessage?: string
   errorMessage?: string
@@ -41,7 +41,7 @@ export function useDataMutation() {
       }
       
       if (mutationOptions?.onSuccess) {
-        mutationOptions.onSuccess()
+        mutationOptions.onSuccess(data)
       }
       
       router.refresh()

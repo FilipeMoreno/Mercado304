@@ -15,6 +15,7 @@ model Market {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   purchases   Purchase[]
+  priceRecords PriceRecord[]
 
   @@map("markets")
 }
@@ -64,21 +65,33 @@ model Product {
   listItems     ShoppingListItem[]
   stockItems    StockItem[]
   nutritionalInfo NutritionalInfo?
+  priceRecords  PriceRecord[]
 
   @@map("products")
 }
 
 model Purchase {
-  id           String         @id @default(cuid())
-  marketId     String
-  totalAmount  Float
-  purchaseDate DateTime       @default(now())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  market       Market         @relation(fields: [marketId], references: [id], onDelete: Cascade)
-  items        PurchaseItem[]
+  id            String          @id @default(cuid())
+  marketId      String
+  totalAmount   Float
+  purchaseDate  DateTime        @default(now())
+  paymentMethod PaymentMethod   @default(MONEY)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  market        Market          @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  items         PurchaseItem[]
 
   @@map("purchases")
+}
+
+enum PaymentMethod {
+  MONEY     // Dinheiro
+  DEBIT     // Cartão de Débito
+  CREDIT    // Cartão de Crédito
+  PIX       // PIX
+  VOUCHER   // Vale Alimentação/Refeição
+  CHECK     // Cheque
+  OTHER     // Outros
 }
 
 model PurchaseItem {
@@ -202,7 +215,7 @@ model NutritionalInfo {
   productId           String   @unique
   product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   
-  // Informações da Tabela Nutricional
+  // Informações da Tabela Nutricional Obrigatórias
   servingSize         String?  // Ex: "200 ml" ou "30 g"
   calories            Float?   // Valor energético em kcal
   proteins            Float?   // Proteínas em g
@@ -214,6 +227,39 @@ model NutritionalInfo {
   addedSugars         Float?   // Açúcares adicionados em g
   fiber               Float?   // Fibra alimentar em g
   sodium              Float?   // Sódio em mg
+
+  // Vitaminas (valores opcionais)
+  vitaminA            Float?   // Vitamina A em mcg
+  vitaminC            Float?   // Vitamina C em mg
+  vitaminD            Float?   // Vitamina D em mcg
+  vitaminE            Float?   // Vitamina E em mg
+  vitaminK            Float?   // Vitamina K em mcg
+  thiamine            Float?   // Vitamina B1 (Tiamina) em mg
+  riboflavin          Float?   // Vitamina B2 (Riboflavina) em mg
+  niacin              Float?   // Vitamina B3 (Niacina) em mg
+  vitaminB6           Float?   // Vitamina B6 em mg
+  folate              Float?   // Folato em mcg
+  vitaminB12          Float?   // Vitamina B12 em mcg
+  biotin              Float?   // Biotina em mcg
+  pantothenicAcid     Float?   // Ácido Pantotênico em mg
+
+  // Outros nutrientes (valores opcionais)
+  taurine             Float?   // Taurina em mg
+  caffeine            Float?   // Cafeína em mg
+
+  // Minerais (valores opcionais)
+  calcium             Float?   // Cálcio em mg
+  iron                Float?   // Ferro em mg
+  magnesium           Float?   // Magnésio em mg
+  phosphorus          Float?   // Fósforo em mg
+  potassium           Float?   // Potássio em mg
+  zinc                Float?   // Zinco em mg
+  copper              Float?   // Cobre em mg
+  manganese           Float?   // Manganês em mg
+  selenium            Float?   // Selênio em mcg
+  iodine              Float?   // Iodo em mcg
+  chromium            Float?   // Cromo em mcg
+  molybdenum          Float?   // Molibdênio em mcg
 
   // Informações de Alérgenos
   allergensContains   String[] // Alérgenos que o produto contém
@@ -242,6 +288,27 @@ model Recipe {
   updatedAt     DateTime  @updatedAt
 
   @@map("recipes")
+}
+
+model PriceRecord {
+  id          String   @id @default(cuid())
+  productId   String
+  marketId    String
+  price       Float
+  recordDate  DateTime @default(now())
+  notes       String?  // Observações opcionais sobre o preço
+  
+  // Relacionamentos
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  market      Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Índice para consultas rápidas
+  @@index([productId, marketId])
+  @@index([recordDate])
+  @@map("price_records")
 }
 
 model Account {

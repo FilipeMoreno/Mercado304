@@ -16,6 +16,7 @@ import {
 	Camera,
 	Box, Settings2
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketSelect } from "@/components/selects/market-select";
 import { ProductSelect } from "@/components/selects/product-select";
 import Link from "next/link";
@@ -25,8 +26,9 @@ import { PriceAlert } from "@/components/price-alert";
 import { BestPriceAlert } from "@/components/best-price-alert";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
-import { Product } from "@/types";
+import { Product, PaymentMethod } from "@/types";
 import { StockEntry, StockEntryDialog } from "@/components/stock-entry-dialog";
+import { PriceAiInsight } from "@/components/price-ai-insight";
 
 interface PurchaseItem {
 	id?: string;
@@ -37,6 +39,9 @@ interface PurchaseItem {
 	bestPriceAlert?: any;
 	addToStock: boolean;
 	stockEntries: StockEntry[];
+	aiInsight: string | null;
+	isAiLoading: boolean;
+	
 }
 
 export default function NovaCompraPage() {
@@ -54,6 +59,7 @@ export default function NovaCompraPage() {
 	const [formData, setFormData] = useState({
 		marketId: "",
 		purchaseDate: new Date().toISOString().split("T")[0],
+		paymentMethod: PaymentMethod.MONEY,
 	});
 
 	const [items, setItems] = useState<PurchaseItem[]>([
@@ -64,6 +70,8 @@ export default function NovaCompraPage() {
 			unitPrice: 0,
 			addToStock: false,
 			stockEntries: [],
+			aiInsight: null,
+			isAiLoading: false, // Changed from boolean | null to boolean
 		},
 	]);
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false]);
@@ -96,9 +104,33 @@ export default function NovaCompraPage() {
 				unitPrice: 0,
 				addToStock: false,
 				stockEntries: [],
+				aiInsight: null,
+				isAiLoading: false // Changed from boolean | null to boolean
 			},
 		]);
 		setCheckingPrices([...checkingPrices, false]);
+	};
+
+	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
+    if (!productId || !unitPrice) return;
+ 
+    setItems(current => current.map((item, i) => i === index ? { ...item, isAiLoading: true, aiInsight: null } : item));
+
+    try { 
+        const response = await fetch('/api/ai/prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, currentPrice: unitPrice })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setItems(current => current.map((item, i) => i === index ? { ...item, aiInsight: data.analysis } : item));
+        }
+    } catch (error) {
+        console.error("Erro na análise da IA:", error);
+    } finally {
+        setItems(current => current.map((item, i) => i === index ? { ...item, isAiLoading: false } : item));
+    }
 	};
 
 	const removeItem = (index: number) => {
@@ -206,6 +238,7 @@ export default function NovaCompraPage() {
                 setTimeout(() => {
                     checkBestPrice(index, currentItem.productId, currentItem.unitPrice);
                     checkPrice(index, currentItem.productId, currentItem.unitPrice);
+										fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice);
                 }, 1000);
             }
 
@@ -263,6 +296,7 @@ export default function NovaCompraPage() {
 				body: JSON.stringify({
 					marketId: formData.marketId,
 					purchaseDate: formData.purchaseDate,
+					paymentMethod: formData.paymentMethod,
 					items: validItems,
 				}),
 			});
@@ -313,7 +347,7 @@ export default function NovaCompraPage() {
 						<CardTitle>Informações da Compra</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="marketId">Mercado *</Label>
 								<MarketSelect
@@ -334,6 +368,28 @@ export default function NovaCompraPage() {
 										setFormData((prev) => ({ ...prev, purchaseDate: e.target.value }))
 									}
 								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="paymentMethod">Método de Pagamento *</Label>
+								<Select
+									value={formData.paymentMethod}
+									onValueChange={(value) =>
+										setFormData((prev) => ({ ...prev, paymentMethod: value as PaymentMethod }))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Selecione..." />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
+										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 					</CardContent>
@@ -395,11 +451,11 @@ export default function NovaCompraPage() {
 											</div>
 										</div>
 
-                                        <PriceAlert
-                                            alertData={item.priceAlert}
-                                            loading={checkingPrices[index]}
-                                            onClose={() => updateItem(index, 'priceAlert', null)}
-                                        />
+											<PriceAlert
+													alertData={item.priceAlert}
+													loading={checkingPrices[index]}
+													onClose={() => updateItem(index, 'priceAlert', null)}
+											/>
 										
 										{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
 											<BestPriceAlert
@@ -410,6 +466,8 @@ export default function NovaCompraPage() {
 												onClose={() => updateItem(index, 'bestPriceAlert', null)}
 											/>
 										)}
+
+										<PriceAiInsight analysis={item.aiInsight} loading={item.isAiLoading} />
 
 										{selectedProduct && (selectedProduct.hasStock || selectedProduct.hasExpiration) && (
 											<div className="pt-4 border-t space-y-4">

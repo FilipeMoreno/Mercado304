@@ -19,6 +19,7 @@ import { Product } from "@/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BestPriceAlert } from "@/components/best-price-alert"
+import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route"
 
 interface ShoppingListItem {
   id: string
@@ -87,6 +88,9 @@ export default function ListaDetalhesPage() {
   const [showQuickProduct, setShowQuickProduct] = useState(false)
   const [quickProduct, setQuickProduct] = useState({ name: "", categoryId: "", unit: "unidade", brandId: "" })
   const [savingQuickProduct, setSavingQuickProduct] = useState(false)
+  
+  // Estados para roteiro otimizado
+  const [showOptimizedRoute, setShowOptimizedRoute] = useState(false)
 
   useEffect(() => {
     if (listId) {
@@ -721,6 +725,10 @@ export default function ListaDetalhesPage() {
             <ShoppingCart className="h-4 w-4 mr-2" />
             Iniciar Compras
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowOptimizedRoute(true)}>
+            <DollarSign className="h-4 w-4 mr-2" />
+            Otimizar Roteiro
+          </Button>
           <Link href={`/comparacao?lista=${listId}`}> 
             <Button variant="outline" size="sm">
               <DollarSign className="h-4 w-4 mr-2" /> 
@@ -1247,6 +1255,14 @@ export default function ListaDetalhesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Componente de Roteiro Otimizado */}
+      <OptimizedShoppingRoute
+        listId={listId}
+        listName={list.name}
+        isOpen={showOptimizedRoute}
+        onClose={() => setShowOptimizedRoute(false)}
+      />
     </div>
   )
 }

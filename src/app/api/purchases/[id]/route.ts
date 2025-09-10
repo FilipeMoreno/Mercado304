@@ -45,7 +45,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    const { marketId, items, purchaseDate } = body
+    const { marketId, items, purchaseDate, paymentMethod } = body
 
     if (!marketId || !items || items.length === 0) {
       return NextResponse.json(
@@ -79,6 +79,7 @@ export async function PUT(
         marketId,
         totalAmount,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
+        paymentMethod: paymentMethod || undefined,
         items: {
           create: items.map((item: any) => {
             const product = products.find(p => p.id === item.productId)

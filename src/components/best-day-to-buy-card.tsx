@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { CalendarDays } from "lucide-react"
+import { CalendarDays, Sparkles } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Skeleton } from "./ui/skeleton"
@@ -22,10 +22,13 @@ const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
   const [data, setData] = useState<BestDayAnalysis[] | null>(null)
   const [loading, setLoading] = useState(true)
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
+  const [loadingAi, setLoadingAi] = useState(false)
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
+      setAiAnalysis(null)
       try {
         const response = await fetch('/api/products/best-day-to-buy', {
           method: 'POST',
@@ -37,9 +40,9 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
           const result = await response.json()
           if (result.message) {
             setData(null)
-            toast.info(result.message)
           } else {
             setData(result)
+            fetchAiAnalysis() // Chama a análise da IA depois de obter os dados
           }
         } else {
           toast.error('Erro ao buscar análise do dia da semana')
@@ -56,6 +59,25 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
       fetchData()
     }
   }, [productId])
+
+  const fetchAiAnalysis = async () => {
+    setLoadingAi(true)
+    try {
+      const response = await fetch('/api/products/best-day-to-buy/ai-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      })
+      if (response.ok) {
+        const result = await response.json()
+        setAiAnalysis(result.analysis)
+      }
+    } catch (error) {
+      console.error("Erro ao buscar análise da IA", error)
+    } finally {
+      setLoadingAi(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -117,6 +139,31 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
             <span className="font-bold ml-1">R$ {bestDay.averagePrice.toFixed(2)}</span>.
           </p>
         </div>
+
+        {loadingAi && (
+          <Card className="mt-4 bg-blue-50 border-blue-200">
+             <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Sparkles className="h-4 w-4 animate-pulse" />
+                  <Skeleton className="h-4 w-48 bg-blue-100" />
+                </div>
+             </CardContent>
+          </Card>
+        )}
+
+        {aiAnalysis && !loadingAi && (
+          <Card className="mt-4 bg-blue-50 border-blue-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm text-blue-800">
+                <Sparkles className="h-4 w-4" />
+                Análise do Zé
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-blue-700">{aiAnalysis}</p>
+            </CardContent>
+          </Card>
+        )}
       </CardContent>
     </Card>
   )

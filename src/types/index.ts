@@ -51,10 +51,21 @@ export interface Purchase {
   marketId: string
   totalAmount: number
   purchaseDate: Date
+  paymentMethod: PaymentMethod
   createdAt: Date
   updatedAt: Date
   market?: Market
   items?: PurchaseItem[]
+}
+
+export enum PaymentMethod {
+  MONEY = 'MONEY',     // Dinheiro
+  DEBIT = 'DEBIT',     // Cartão de Débito
+  CREDIT = 'CREDIT',   // Cartão de Crédito
+  PIX = 'PIX',         // PIX
+  VOUCHER = 'VOUCHER', // Vale Alimentação/Refeição
+  CHECK = 'CHECK',     // Cheque
+  OTHER = 'OTHER'      // Outros
 }
 
 export interface PurchaseItem {
@@ -111,6 +122,7 @@ export interface ProductStats {
 export interface NutritionalInfo {
   id: string
   productId: string
+  // Informações da Tabela Nutricional Obrigatórias
   servingSize?: string
   calories?: number
   proteins?: number
@@ -122,6 +134,37 @@ export interface NutritionalInfo {
   addedSugars?: number
   fiber?: number
   sodium?: number
+  // Vitaminas (valores opcionais)
+  vitaminA?: number
+  vitaminC?: number
+  vitaminD?: number
+  vitaminE?: number
+  vitaminK?: number
+  thiamine?: number
+  riboflavin?: number
+  niacin?: number
+  vitaminB6?: number
+  folate?: number
+  vitaminB12?: number
+  biotin?: number
+  pantothenicAcid?: number
+  // Outros nutrientes (valores opcionais)
+  taurine?: number
+  caffeine?: number
+  // Minerais (valores opcionais)
+  calcium?: number
+  iron?: number
+  magnesium?: number
+  phosphorus?: number
+  potassium?: number
+  zinc?: number
+  copper?: number
+  manganese?: number
+  selenium?: number
+  iodine?: number
+  chromium?: number
+  molybdenum?: number
+  // Informações de Alérgenos
   allergensContains: string[]
   allergensMayContain: string[]
   createdAt: Date
