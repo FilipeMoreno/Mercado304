@@ -688,28 +688,45 @@ Seja sempre cordial, útil e mantenha o foco no gerenciamento de compras.`
         const result = await chat.sendMessageStream(message);
         let finalResponse = null;
         
-        // Processa o stream primeiro para detectar function calls
+        let hasStreamedContent = false;
+        
+        // Processa o stream e detecta function calls
         for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          if (chunkText) {
+            hasStreamedContent = true;
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+          }
           finalResponse = chunk;
         }
         
         const functionCalls = finalResponse?.functionCalls();
         
-        // Se há function calls, processa elas antes de fazer streaming
+        // Se há function calls, processa elas
         if (functionCalls && functionCalls.length > 0) {
           console.log("IA solicitou chamadas de função:", functionCalls.map(call => call.name));
           
           // Executa todas as chamadas de função
           const functionResponses = await Promise.all(
             functionCalls.map(async (call) => {
-              // @ts-ignore
-              const apiResponse = await toolFunctions[call.name](call.args);
-              return {
-                functionResponse: {
-                  name: call.name,
-                  response: apiResponse
-                }
-              };
+              try {
+                // @ts-ignore
+                const apiResponse = await toolFunctions[call.name](call.args);
+                return {
+                  functionResponse: {
+                    name: call.name,
+                    response: apiResponse
+                  }
+                };
+              } catch (error) {
+                console.error(`Erro na função ${call.name}:`, error);
+                return {
+                  functionResponse: {
+                    name: call.name,
+                    response: { success: false, message: `Erro ao executar ${call.name}` }
+                  }
+                };
+              }
             })
           );
 
@@ -733,23 +750,16 @@ Seja sempre cordial, útil e mantenha o foco no gerenciamento de compras.`
             return;
           }
           
-          // Envia todas as respostas de volta para a IA
-          const result2 = await chat.sendMessageStream(functionResponses);
-          
-          // Faz streaming da resposta final
-          for await (const chunk of result2.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
-            }
-          }
-        } else {
-          // Se não há function calls, faz streaming normal
-          const result3 = await chat.sendMessageStream(message);
-          for await (const chunk of result3.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+          // Se já streamou conteúdo, envia as respostas das funções de volta
+          if (hasStreamedContent) {
+            const result2 = await chat.sendMessageStream(functionResponses);
+            
+            // Faz streaming da resposta adicional da IA
+            for await (const chunk of result2.stream) {
+              const chunkText = chunk.text();
+              if (chunkText) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunkText })}\n\n`));
+              }
             }
           }
         }
