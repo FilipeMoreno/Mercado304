@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -35,21 +34,17 @@ import { FilterPopover } from "@/components/ui/filter-popover";
 import { Input } from "@/components/ui/input";
 import { SelectWithSearch } from "@/components/ui/select-with-search";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
+import { 
+	useProductsQuery,
+	useAllCategoriesQuery,
+	useAllBrandsQuery,
+	useDeleteProductMutation,
+	useDeleteConfirmation, 
+	useUrlState 
+} from "@/hooks";
 import type { Brand, Category, Product } from "@/types";
 
 interface ProductsClientProps {
-	productsData: {
-		products: Product[];
-		pagination: {
-			currentPage: number;
-			totalPages: number;
-			totalCount: number;
-			hasMore: boolean;
-		};
-	};
-	categories: Category[];
-	brands: Brand[];
 	searchParams: {
 		search?: string;
 		category?: string;
@@ -60,16 +55,8 @@ interface ProductsClientProps {
 }
 
 export function ProductsClient({
-	productsData,
-	categories,
-	brands,
 	searchParams,
 }: ProductsClientProps) {
-	const [products, setProducts] = useState<Product[]>(productsData.products);
-	const [pagination, setPagination] = useState(productsData.pagination);
-	const [loading, setLoading] = useState(false);
-
-	const { remove, loading: deleteLoading } = useDataMutation();
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
 		useDeleteConfirmation<Product>();
 
@@ -84,6 +71,25 @@ export function ProductsClient({
 				page: parseInt(searchParams.page || "1"),
 			},
 		});
+
+	// Build URLSearchParams for the query
+	const params = useMemo(() => {
+		const urlParams = new URLSearchParams({
+			search: state.search,
+			category: state.category,
+			brand: state.brand,
+			sort: state.sort,
+			page: state.page.toString(),
+			limit: "12",
+		});
+		return urlParams;
+	}, [state.search, state.category, state.brand, state.sort, state.page]);
+
+	// React Query hooks
+	const { data: productsData, isLoading: productsLoading, error: productsError } = useProductsQuery(params);
+	const { data: categories = [], isLoading: categoriesLoading } = useAllCategoriesQuery();
+	const { data: brands = [], isLoading: brandsLoading } = useAllBrandsQuery();
+	const deleteProductMutation = useDeleteProductMutation();
 
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },
@@ -115,46 +121,44 @@ export function ProductsClient({
 		[brands],
 	);
 
-	const fetchProducts = async () => {
-		setLoading(true);
-		try {
-			const params = new URLSearchParams({
-				search: state.search,
-				category: state.category,
-				brand: state.brand,
-				sort: state.sort,
-				page: state.page.toString(),
-				limit: "12",
-			});
-
-			const response = await fetch(`/api/products?${params.toString()}`);
-			if (!response.ok) throw new Error("Erro ao carregar produtos");
-
-			const data = await response.json();
-			setProducts(data.products);
-			setPagination(data.pagination);
-		} catch (error) {
-			console.error("Erro:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		fetchProducts();
-	}, [state.search, state.category, state.brand, state.sort, state.page]);
-
 	const deleteProduct = async () => {
 		if (!deleteState.item) return;
 
-		await remove(`/api/products/${deleteState.item.id}`, {
-			successMessage: "Produto excluído com sucesso!",
-			onSuccess: () => {
-				// A API `router.refresh()` no hook de mutação já atualiza os dados
-				closeDeleteConfirm();
-			},
-		});
+		try {
+			await deleteProductMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting product:", error);
+		}
 	};
+
+	// Extract data from React Query
+	const products = productsData?.products || [];
+	const pagination = productsData?.pagination || {
+		currentPage: 1,
+		totalPages: 1,
+		totalCount: 0,
+		hasMore: false,
+	};
+	const loading = productsLoading || categoriesLoading || brandsLoading;
+	const error = productsError;
+
+	// Handle error states
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar produtos
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= pagination.totalPages) {
@@ -444,11 +448,11 @@ export function ProductsClient({
 							<Button
 								variant="destructive"
 								onClick={deleteProduct}
-								disabled={deleteLoading}
+								disabled={deleteProductMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteLoading ? "Excluindo..." : "Sim, Excluir"}
+								{deleteProductMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar

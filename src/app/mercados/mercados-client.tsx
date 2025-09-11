@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { useState } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -30,12 +30,16 @@ import {
 } from "@/components/ui/dialog";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { Input } from "@/components/ui/input";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+	useMarketsQuery,
+	useDeleteMarketMutation,
+	useDeleteConfirmation, 
+	useUrlState 
+} from "@/hooks";
 import type { Market } from "@/types";
 
 interface MercadosClientProps {
-	initialMarkets: Market[];
-	initialTotalCount: number;
 	searchParams: {
 		search?: string;
 		sort?: string;
@@ -44,16 +48,8 @@ interface MercadosClientProps {
 }
 
 export function MercadosClient({
-	initialMarkets,
-	initialTotalCount,
 	searchParams,
 }: MercadosClientProps) {
-	const [markets, setMarkets] = useState<Market[]>(initialMarkets);
-	const [totalCount, setTotalCount] = useState(initialTotalCount);
-	const itemsPerPage = 12;
-
-	// Hooks customizados
-	const { remove, loading } = useDataMutation();
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
 		useDeleteConfirmation<Market>();
 
@@ -67,6 +63,21 @@ export function MercadosClient({
 			},
 		});
 
+	// Build URLSearchParams for the query
+	const params = useMemo(() => {
+		const urlParams = new URLSearchParams({
+			search: state.search,
+			sort: state.sort,
+			page: state.page.toString(),
+			limit: "12",
+		});
+		return urlParams;
+	}, [state.search, state.sort, state.page]);
+
+	// React Query hooks
+	const { data: marketsData, isLoading, error } = useMarketsQuery(params);
+	const deleteMarketMutation = useDeleteMarketMutation();
+
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },
 		{ value: "name-desc", label: "Nome (Z-A)" },
@@ -75,16 +86,22 @@ export function MercadosClient({
 		{ value: "date-asc", label: "Mais antigo" },
 	];
 
-	const totalPages = Math.ceil(totalCount / itemsPerPage);
-
 	const deleteMarket = async () => {
 		if (!deleteState.item) return;
 
-		await remove(`/api/markets/${deleteState.item.id}`, {
-			successMessage: "Mercado excluído com sucesso!",
-			onSuccess: closeDeleteConfirm,
-		});
+		try {
+			await deleteMarketMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting market:", error);
+		}
 	};
+
+	// Extract data from React Query
+	const markets = marketsData?.markets || [];
+	const totalCount = marketsData?.totalCount || 0;
+	const itemsPerPage = 12;
+	const totalPages = Math.ceil(totalCount / itemsPerPage);
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
@@ -92,10 +109,22 @@ export function MercadosClient({
 		}
 	};
 
-	React.useEffect(() => {
-		setMarkets(initialMarkets);
-		setTotalCount(initialTotalCount);
-	}, [initialMarkets, initialTotalCount]);
+	// Handle error states
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Store className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar mercados
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<>
@@ -122,7 +151,31 @@ export function MercadosClient({
 			</div>
 
 			<div className="space-y-4">
-				{markets.length === 0 ? (
+				{isLoading ? (
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{Array.from({ length: 6 }).map((_, i) => (
+							<Card key={i}>
+								<CardHeader>
+									<div className="flex items-center gap-2">
+										<Skeleton className="h-5 w-5" />
+										<Skeleton className="h-6 w-32" />
+									</div>
+									<div className="flex items-center gap-1 mt-2">
+										<Skeleton className="h-3 w-3" />
+										<Skeleton className="h-4 w-24" />
+									</div>
+								</CardHeader>
+								<CardContent>
+									<div className="flex gap-2">
+										<Skeleton className="h-8 w-20" />
+										<Skeleton className="h-8 w-8" />
+										<Skeleton className="h-8 w-8" />
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : markets.length === 0 ? (
 					state.search || state.sort !== "name-asc" ? (
 						<Card>
 							<CardContent className="text-center py-12">
@@ -292,11 +345,11 @@ export function MercadosClient({
 							<Button
 								variant="destructive"
 								onClick={deleteMarket}
-								disabled={loading}
+								disabled={deleteMarketMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{loading ? "Excluindo..." : "Sim, Excluir"}
+								{deleteMarketMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar

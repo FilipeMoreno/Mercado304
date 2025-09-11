@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChefHat, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { RecipeSuggester } from "@/components/recipe-suggester";
+import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -47,7 +48,7 @@ export function ReceitasClient() {
 	} = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
 	if (loadingRecipes || loadingProducts) {
-		return <p className="text-gray-500">Carregando...</p>;
+		return <RecipesSkeleton />;
 	}
 
 	if (errorRecipes || errorProducts) {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "./use-react-query";
 
 export interface Message {
 	role: "user" | "assistant";
@@ -22,6 +24,7 @@ export interface Message {
 }
 
 export function useAiChat() {
+	const queryClient = useQueryClient();
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			role: "assistant",
@@ -95,6 +98,40 @@ export function useAiChat() {
 
 	const addMessage = (message: Message) => {
 		setMessages((prev) => [...prev, message]);
+		
+		// Invalidar caches baseado no conteúdo da mensagem
+		if (message.role === 'assistant' && message.content) {
+			invalidateCacheIfNeeded(message.content);
+		}
+	};
+
+	const invalidateCacheIfNeeded = (content: string) => {
+		const lowerContent = content.toLowerCase();
+		
+		// Lista criada
+		if (lowerContent.includes('lista') && (lowerContent.includes('criada') || lowerContent.includes('criado'))) {
+			console.log('Invalidando cache de shopping lists devido à criação de lista');
+			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() });
+		}
+		
+		// Produto criado  
+		if (lowerContent.includes('produto') && (lowerContent.includes('criado') || lowerContent.includes('criada'))) {
+			console.log('Invalidando cache de produtos devido à criação de produto');
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+		}
+		
+		// Mercado criado
+		if (lowerContent.includes('mercado') && (lowerContent.includes('criado') || lowerContent.includes('criada'))) {
+			console.log('Invalidando cache de mercados devido à criação de mercado');
+			queryClient.invalidateQueries({ queryKey: queryKeys.markets() });
+		}
+		
+		// Compra registrada
+		if (lowerContent.includes('compra') && (lowerContent.includes('registrada') || lowerContent.includes('registrado'))) {
+			console.log('Invalidando cache devido ao registro de compra');
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+		}
 	};
 
 	const updateLastMessage = (
@@ -117,7 +154,7 @@ export function useAiChat() {
 		setMessages((prev) => prev.slice(0, -1));
 	};
 
-	const sendMessage = async (content: string, useStreaming: boolean = true) => {
+	const sendMessage = async (content: string, useStreaming: boolean = false) => {
 		const userMessage: Message = { role: "user", content };
 
 		// Detecta mudança de contexto

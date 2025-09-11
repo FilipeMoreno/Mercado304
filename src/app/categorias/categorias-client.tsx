@@ -4,18 +4,13 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Edit,
-	Filter,
 	Plus,
 	Search,
 	Tag,
 	Trash2,
 } from "lucide-react";
-import Link from "next/link";
-import * as React from "react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton";
-import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -32,30 +27,19 @@ import {
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
-
-interface Category {
-	id: string;
-	name: string;
-	icon?: string;
-	color?: string;
-	createdAt: string;
-	updatedAt: string;
-	_count: {
-		products: number;
-	};
-}
+import {
+	useCategoriesQuery,
+	useCreateCategoryMutation,
+	useUpdateCategoryMutation,
+	useDeleteCategoryMutation,
+	useDeleteConfirmation,
+	useUrlState,
+} from "@/hooks";
+import type { Category } from "@/types";
+import { Button } from "@/components/ui/button";
+import React from "react";
 
 interface CategoriasClientProps {
-	categoriesData: {
-		categories: Category[];
-		pagination: {
-			currentPage: number;
-			totalPages: number;
-			totalCount: number;
-			hasMore: boolean;
-		};
-	};
 	searchParams: {
 		search?: string;
 		sort?: string;
@@ -63,15 +47,7 @@ interface CategoriasClientProps {
 	};
 }
 
-export function CategoriasClient({
-	categoriesData,
-	searchParams,
-}: CategoriasClientProps) {
-	const [categories, setCategories] = useState<Category[]>(
-		categoriesData.categories,
-	);
-	const [pagination, setPagination] = useState(categoriesData.pagination);
-	const [dataLoading, setDataLoading] = useState(false); // Variável renomeada
+export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	const [showForm, setShowForm] = useState(false);
 	const [newCategory, setNewCategory] = useState({
 		name: "",
@@ -80,75 +56,106 @@ export function CategoriasClient({
 	});
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "" });
-	const itemsPerPage = 12;
 
-	// Hooks customizados
-	const { create, update, remove, loading } = useDataMutation();
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
-		useDeleteConfirmation<Category>();
-
+	// URL state management
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } =
 		useUrlState({
 			basePath: "/categorias",
 			initialValues: {
 				search: searchParams.search || "",
 				sort: searchParams.sort || "name",
-				page: parseInt(searchParams.page || "1"),
+				page: parseInt(searchParams.page || "1", 10),
 			},
 		});
 
-	const fetchCategories = async () => {
-		setDataLoading(true); // Usando a nova variável
-		try {
-			const params = new URLSearchParams({
-				search: state.search,
-				sort: state.sort,
-				page: state.page.toString(),
-				limit: "12",
-			});
-
-			const response = await fetch(`/api/categories?${params.toString()}`);
-			if (!response.ok) throw new Error("Erro ao carregar categorias");
-
-			const data = await response.json();
-			setCategories(data.categories);
-			setPagination(data.pagination);
-		} catch (error) {
-			console.error("Erro:", error);
-		} finally {
-			setDataLoading(false); // Usando a nova variável
-		}
-	};
-
-	React.useEffect(() => {
-		fetchCategories();
+	// Build URLSearchParams for the query
+	const params = useMemo(() => {
+		const urlParams = new URLSearchParams({
+			search: state.search,
+			sort: state.sort,
+			page: state.page.toString(),
+			limit: "12",
+		});
+		return urlParams;
 	}, [state.search, state.sort, state.page]);
 
-	// Opções de ordenação para o FilterPopover
+	// React Query hooks
+	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params);
+	const createCategoryMutation = useCreateCategoryMutation();
+	const updateCategoryMutation = useUpdateCategoryMutation();
+	const deleteCategoryMutation = useDeleteCategoryMutation();
+
+	// Delete confirmation hook
+	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
+		useDeleteConfirmation<Category>();
+
+	// Extract data from React Query
+	const categories = categoriesData?.categories || [];
+	// --- CORREÇÃO APLICADA AQUI ---
+	const totalCount = categoriesData?.pagination?.totalCount || 0;
+	const itemsPerPage = 12;
+	const totalPages = Math.ceil(totalCount / itemsPerPage);
+
 	const sortOptions = [
-		{ value: "name", label: "Nome" },
-		{ value: "products", label: "Nº Produtos" },
-		{ value: "date", label: "Data" },
+		{ value: "name-asc", label: "Nome (A-Z)" },
+		{ value: "name-desc", label: "Nome (Z-A)" },
+		{ value: "products-desc", label: "Mais produtos" },
+		{ value: "products-asc", label: "Menos produtos" },
+		{ value: "date-desc", label: "Mais recente" },
+		{ value: "date-asc", label: "Mais antigo" },
 	];
 
-	const createCategory = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (!newCategory.name.trim()) {
-			toast.error("Nome da categoria é obrigatório");
-			return;
+	const handlePageChange = (page: number) => {
+		if (page >= 1 && page <= totalPages) {
+			updateSingleValue("page", page);
 		}
-
-		await create("/api/categories", newCategory, {
-			successMessage: "Categoria criada com sucesso!",
-			onSuccess: () => {
-				setNewCategory({ name: "", icon: "", color: "" });
-				setShowForm(false);
-			},
-		});
 	};
 
-	const openEditDialog = (category: Category) => {
+	const handleCreateCategory = async () => {
+		try {
+			await createCategoryMutation.mutateAsync({
+				name: newCategory.name,
+				icon: newCategory.icon,
+				color: newCategory.color,
+			});
+			setNewCategory({ name: "", icon: "", color: "" });
+			setShowForm(false);
+		} catch (error) {
+			console.error("Error creating category:", error);
+		}
+	};
+
+	const handleUpdateCategory = async () => {
+		if (!editingCategory) return;
+
+		try {
+			await updateCategoryMutation.mutateAsync({
+				id: editingCategory.id,
+				data: {
+					name: editForm.name,
+					icon: editForm.icon,
+					color: editForm.color,
+				},
+			});
+			setEditingCategory(null);
+			setEditForm({ name: "", icon: "", color: "" });
+		} catch (error) {
+			console.error("Error updating category:", error);
+		}
+	};
+
+	const handleDeleteCategory = async () => {
+		if (!deleteState.item) return;
+
+		try {
+			await deleteCategoryMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting category:", error);
+		}
+	};
+
+	const startEdit = (category: Category) => {
 		setEditingCategory(category);
 		setEditForm({
 			name: category.name,
@@ -157,57 +164,25 @@ export function CategoriasClient({
 		});
 	};
 
-	const closeEditDialog = () => {
-		setEditingCategory(null);
-		setEditForm({ name: "", icon: "", color: "" });
-	};
-
-	const updateCategory = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!editingCategory) return;
-
-		await update(`/api/categories/${editingCategory.id}`, editForm, {
-			successMessage: "Categoria atualizada com sucesso!",
-			onSuccess: closeEditDialog,
-		});
-	};
-
-	const deleteCategory = async () => {
-		if (!deleteState.item) return;
-
-		await remove(`/api/categories/${deleteState.item.id}`, {
-			successMessage: "Categoria excluída com sucesso!",
-			onSuccess: closeDeleteConfirm,
-		});
-	};
-
-	const handlePageChange = (page: number) => {
-		if (page >= 1 && page <= pagination.totalPages) {
-			updateSingleValue("page", page);
-		}
-	};
-
-	if (dataLoading) {
-		// Usando a nova variável aqui
-		return <CategoriesSkeleton />;
+	// Handle error states
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Tag className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar categorias
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold">Categorias</h1>
-					<p className="text-gray-600 mt-2">
-						Gerencie as categorias dos seus produtos
-					</p>
-				</div>
-				<Button onClick={() => setShowForm(true)}>
-					<Plus className="h-4 w-4 mr-2" />
-					Nova Categoria
-				</Button>
-			</div>
-
-			{/* Barra de Pesquisa e Filtros */}
+		<>
 			<div className="flex items-center gap-2 mb-6">
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -230,278 +205,278 @@ export function CategoriasClient({
 				/>
 			</div>
 
-			{/* Informações de Paginação */}
-			<div className="flex justify-between items-center text-sm text-gray-600">
-				<span>
-					Mostrando {categories.length} de {pagination.totalCount} categorias
-				</span>
-				<span>
-					Página {pagination.currentPage} de {pagination.totalPages}
-				</span>
-			</div>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{categories.map((category) => (
-					<Card key={category.id}>
-						<Link href={`/categorias/${category.id}`} className="block">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									{category.icon ? (
-										<span className="text-lg">{category.icon}</span>
-									) : (
-										<Tag className="h-5 w-5" />
-									)}
-									{category.name}
-								</CardTitle>
-								<CardDescription>
-									{category._count.products}{" "}
-									{category._count.products === 1 ? "produto" : "produtos"}
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => openEditDialog(category)}
-									>
-										<Edit className="h-4 w-4" />
-									</Button>
-									<Button
-										variant="destructive"
-										size="sm"
-										onClick={() => openDeleteConfirm(category)}
-										disabled={category._count.products > 0}
-									>
-										<Trash2 className="h-4 w-4" />
-									</Button>
-								</div>
-								{category._count.products > 0 && (
-									<p className="text-xs text-gray-500 mt-2">
-										Não é possível excluir categoria com produtos
-									</p>
-								)}
+			<div className="space-y-4">
+				{isLoading ? (
+					<CategoriesSkeleton />
+				) : categories.length === 0 ? (
+					state.search || state.sort !== "name" ? (
+						<Card>
+							<CardContent className="text-center py-12">
+								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+								<h3 className="text-lg font-medium mb-2">
+									Nenhuma categoria encontrada
+								</h3>
+								<p className="text-gray-600 mb-4">
+									Nenhuma categoria corresponde aos filtros aplicados
+								</p>
+								<Button
+									variant="outline"
+									onClick={() => {
+										clearFilters();
+										updateSingleValue("page", 1);
+									}}
+								>
+									Limpar Filtros
+								</Button>
 							</CardContent>
-						</Link>
-					</Card>
-				))}
+						</Card>
+					) : (
+						<Card>
+							<CardContent className="text-center py-12">
+								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+								<h3 className="text-lg font-medium mb-2">
+									Nenhuma categoria cadastrada
+								</h3>
+								<p className="text-gray-600 mb-4">
+									Comece adicionando sua primeira categoria
+								</p>
+								<Button onClick={() => setShowForm(true)}>
+									<Plus className="mr-2 h-4 w-4" />
+									Cadastrar Primeira Categoria
+								</Button>
+							</CardContent>
+						</Card>
+					)
+				) : (
+					<>
+						<div className="flex justify-between items-center text-sm text-gray-600">
+							<span>
+								Mostrando {categories.length} de {totalCount} categorias
+							</span>
+							<span>
+								Página {state.page} de {totalPages}
+							</span>
+						</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							{categories.map((category) => (
+								<Card key={category.id}>
+									<CardHeader>
+										<div className="flex justify-between items-start">
+											<div>
+												<CardTitle className="flex items-center gap-2">
+													{category.icon && (
+														<span className="text-lg">{category.icon}</span>
+													)}
+													{category.name}
+												</CardTitle>
+												<CardDescription className="mt-2">
+													{category._count?.products || 0} produtos
+												</CardDescription>
+											</div>
+										</div>
+									</CardHeader>
+									<CardContent>
+										<div className="flex gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => startEdit(category)}
+											>
+												<Edit className="h-4 w-4" />
+											</Button>
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => openDeleteConfirm(category)}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+
+						{totalPages > 1 && (
+							<div className="flex justify-center items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handlePageChange(state.page - 1)}
+									disabled={state.page === 1}
+								>
+									<ChevronLeft className="h-4 w-4" />
+									Anterior
+								</Button>
+
+								<div className="flex gap-1">
+									{Array.from({ length: totalPages }, (_, i) => i + 1)
+										.filter(
+											(page) =>
+												page === 1 ||
+												page === totalPages ||
+												Math.abs(page - state.page) <= 2,
+										)
+										.map((page, index, array) => (
+											<React.Fragment key={page}>
+												{index > 0 && array[index - 1] !== page - 1 && (
+													<span className="px-2 py-1 text-gray-400">...</span>
+												)}
+												<Button
+													variant={state.page === page ? "default" : "outline"}
+													size="sm"
+													onClick={() => handlePageChange(page)}
+													className="w-8 h-8 p-0"
+												>
+													{page}
+												</Button>
+											</React.Fragment>
+										))}
+								</div>
+
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handlePageChange(state.page + 1)}
+									disabled={state.page === totalPages}
+								>
+									Próxima
+									<ChevronRight className="h-4 w-4" />
+								</Button>
+							</div>
+						)}
+					</>
+				)}
 			</div>
 
-			{/* Controles de Paginação */}
-			{pagination.totalPages > 1 && (
-				<div className="flex justify-center items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handlePageChange(pagination.currentPage - 1)}
-						disabled={pagination.currentPage === 1}
-					>
-						<ChevronLeft className="h-4 w-4" />
-						Anterior
-					</Button>
-
-					<div className="flex gap-1">
-						{Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-							.filter(
-								(page) =>
-									page === 1 ||
-									page === pagination.totalPages ||
-									Math.abs(page - pagination.currentPage) <= 2,
-							)
-							.map((page, index, array) => (
-								<React.Fragment key={page}>
-									{index > 0 && array[index - 1] !== page - 1 && (
-										<span className="px-2 py-1 text-gray-400">...</span>
-									)}
-									<Button
-										variant={
-											pagination.currentPage === page ? "default" : "outline"
-										}
-										size="sm"
-										onClick={() => handlePageChange(page)}
-										className="w-8 h-8 p-0"
-									>
-										{page}
-									</Button>
-								</React.Fragment>
-							))}
-					</div>
-
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handlePageChange(pagination.currentPage + 1)}
-						disabled={pagination.currentPage === pagination.totalPages}
-					>
-						Próxima
-						<ChevronRight className="h-4 w-4" />
-					</Button>
-				</div>
-			)}
-
-			{categories.length === 0 && pagination.totalCount > 0 && !dataLoading && (
-				<Card>
-					<CardContent className="text-center py-12">
-						<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-						<h3 className="text-lg font-medium mb-2">
-							Nenhuma categoria encontrada
-						</h3>
-						<p className="text-gray-600 mb-4">
-							Tente ajustar os filtros ou termo de busca
-						</p>
-						<Button
-							variant="outline"
-							onClick={() => {
-								clearFilters();
-								updateSingleValue("page", 1);
-							}}
-						>
-							<Filter className="mr-2 h-4 w-4" />
-							Limpar filtros
-						</Button>
-					</CardContent>
-				</Card>
-			)}
-
-			{pagination.totalCount === 0 && !dataLoading && (
-				<Card>
-					<CardContent className="text-center py-12">
-						<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-						<h3 className="text-lg font-medium mb-2">
-							Nenhuma categoria cadastrada
-						</h3>
-						<p className="text-gray-600 mb-4">
-							Crie a primeira categoria para organizar seus produtos
-						</p>
-						<Button onClick={() => setShowForm(true)}>
-							<Plus className="h-4 w-4 mr-2" />
-							Nova Categoria
-						</Button>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Dialog de Nova Categoria */}
+			{/* Form Dialog */}
 			<Dialog open={showForm} onOpenChange={setShowForm}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Nova Categoria</DialogTitle>
 					</DialogHeader>
-					<form onSubmit={createCategory} className="space-y-4">
+					<div className="space-y-4">
 						<div>
-							<Label htmlFor="name">Nome *</Label>
+							<Label htmlFor="name">Nome</Label>
 							<Input
 								id="name"
 								value={newCategory.name}
 								onChange={(e) =>
-									setNewCategory({ ...newCategory, name: e.target.value })
+									setNewCategory((prev) => ({ ...prev, name: e.target.value }))
 								}
 								placeholder="Nome da categoria"
-								required
 							/>
 						</div>
 						<div>
-							<Label htmlFor="icon">Ícone (emoji)</Label>
+							<Label htmlFor="icon">Ícone</Label>
 							<Input
 								id="icon"
 								value={newCategory.icon}
 								onChange={(e) =>
-									setNewCategory({ ...newCategory, icon: e.target.value })
+									setNewCategory((prev) => ({ ...prev, icon: e.target.value }))
 								}
-								placeholder="🥕 (opcional)"
-								maxLength={2}
+								placeholder="📦"
 							/>
 						</div>
 						<div>
-							<Label htmlFor="color">Cor (hex)</Label>
+							<Label htmlFor="color">Cor</Label>
 							<Input
 								id="color"
+								type="color"
 								value={newCategory.color}
 								onChange={(e) =>
-									setNewCategory({ ...newCategory, color: e.target.value })
+									setNewCategory((prev) => ({ ...prev, color: e.target.value }))
 								}
-								placeholder="#ff6b6b (opcional)"
 							/>
 						</div>
 						<div className="flex gap-2 pt-4">
-							<Button type="submit" disabled={loading} className="flex-1">
-								{loading ? "Salvando..." : "Criar Categoria"}
-							</Button>
 							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setShowForm(false)}
+								onClick={handleCreateCategory}
+								disabled={createCategoryMutation.isPending}
+								className="flex-1"
 							>
+								{createCategoryMutation.isPending
+									? "Criando..."
+									: "Criar Categoria"}
+							</Button>
+							<Button variant="outline" onClick={() => setShowForm(false)}>
 								Cancelar
 							</Button>
 						</div>
-					</form>
+					</div>
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog de Edição */}
+			{/* Edit Dialog */}
 			<Dialog
 				open={!!editingCategory}
-				onOpenChange={(open) => !open && closeEditDialog()}
+				onOpenChange={(open) => !open && setEditingCategory(null)}
 			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Editar Categoria</DialogTitle>
 					</DialogHeader>
-					<form onSubmit={updateCategory} className="space-y-4">
+					<div className="space-y-4">
 						<div>
-							<Label htmlFor="editName">Nome *</Label>
+							<Label htmlFor="edit-name">Nome</Label>
 							<Input
-								id="editName"
+								id="edit-name"
 								value={editForm.name}
 								onChange={(e) =>
-									setEditForm({ ...editForm, name: e.target.value })
+									setEditForm((prev) => ({ ...prev, name: e.target.value }))
 								}
 								placeholder="Nome da categoria"
-								required
 							/>
 						</div>
 						<div>
-							<Label htmlFor="editIcon">Ícone (emoji)</Label>
+							<Label htmlFor="edit-icon">Ícone</Label>
 							<Input
-								id="editIcon"
+								id="edit-icon"
 								value={editForm.icon}
 								onChange={(e) =>
-									setEditForm({ ...editForm, icon: e.target.value })
+									setEditForm((prev) => ({ ...prev, icon: e.target.value }))
 								}
-								placeholder="🥕 (opcional)"
-								maxLength={2}
+								placeholder="📦"
 							/>
 						</div>
 						<div>
-							<Label htmlFor="editColor">Cor (hex)</Label>
+							<Label htmlFor="edit-color">Cor</Label>
 							<Input
-								id="editColor"
+								id="edit-color"
+								type="color"
 								value={editForm.color}
 								onChange={(e) =>
-									setEditForm({ ...editForm, color: e.target.value })
+									setEditForm((prev) => ({ ...prev, color: e.target.value }))
 								}
-								placeholder="#ff6b6b (opcional)"
 							/>
 						</div>
 						<div className="flex gap-2 pt-4">
-							<Button type="submit" disabled={loading} className="flex-1">
-								{loading ? "Salvando..." : "Salvar Alterações"}
+							<Button
+								onClick={handleUpdateCategory}
+								disabled={updateCategoryMutation.isPending}
+								className="flex-1"
+							>
+								{updateCategoryMutation.isPending
+									? "Atualizando..."
+									: "Atualizar"}
 							</Button>
-							<Button type="button" variant="outline" onClick={closeEditDialog}>
+							<Button
+								variant="outline"
+								onClick={() => setEditingCategory(null)}
+							>
 								Cancelar
 							</Button>
 						</div>
-					</form>
+					</div>
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog de Confirmação de Exclusão */}
+			{/* Delete Confirmation Dialog */}
 			<Dialog
 				open={deleteState.show}
 				onOpenChange={(open) => !open && closeDeleteConfirm()}
 			>
-				<DialogContent className="max-w-md">
+				<DialogContent>
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<Trash2 className="h-5 w-5 text-red-500" />
@@ -514,17 +489,20 @@ export function CategoriasClient({
 							<strong>{deleteState.item?.name}</strong>?
 						</p>
 						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita.
+							Esta ação não pode ser desfeita. Todos os produtos desta categoria
+							ficarão sem categoria.
 						</p>
 						<div className="flex gap-2 pt-4">
 							<Button
 								variant="destructive"
-								onClick={deleteCategory}
-								disabled={loading}
+								onClick={handleDeleteCategory}
+								disabled={deleteCategoryMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{loading ? "Excluindo..." : "Sim, Excluir"}
+								{deleteCategoryMutation.isPending
+									? "Excluindo..."
+									: "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar
@@ -533,6 +511,6 @@ export function CategoriasClient({
 					</div>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 }

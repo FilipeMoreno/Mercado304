@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { UserNav } from "./user-nav";
+import Image from "next/image";
 
 const navigation = [
 	{ name: "Dashboard", href: "/", icon: BarChart3 },
@@ -63,7 +64,9 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		>
 			<div className={cn("p-6", collapsed && "p-4")}>
 				<div className="flex items-center justify-between">
-					{!collapsed && <h1 className="text-2xl font-bold">Mercado304</h1>}
+					{!collapsed && (
+						<Image src="/logo.png" alt="Logo" width={140} height={30} />
+					)}
 					{onToggleCollapse && (
 						<Button
 							variant="ghost"

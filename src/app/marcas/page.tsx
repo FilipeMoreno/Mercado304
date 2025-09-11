@@ -1,4 +1,6 @@
-import API_BASE_URL from "@/lib/api";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { MarcasClient } from "./marcas-client";
 
 interface MarcasPageProps {
@@ -9,31 +11,25 @@ interface MarcasPageProps {
 	};
 }
 
-async function fetchBrands(searchParams: MarcasPageProps["searchParams"]) {
-	const params = new URLSearchParams();
-	if (searchParams.search) params.set("search", searchParams.search);
-	if (searchParams.sort) params.set("sort", searchParams.sort);
-	if (searchParams.page) params.set("page", searchParams.page);
-	params.set("itemsPerPage", "12");
-
-	const response = await fetch(`${API_BASE_URL}/brands?${params.toString()}`, {
-		cache: "no-store",
-	});
-	const data = await response.json();
-
-	return { brands: data.brands, totalCount: data.totalCount };
-}
-
-export default async function MarcasPage({ searchParams }: MarcasPageProps) {
-	const { brands, totalCount } = await fetchBrands(searchParams);
-
+export default function MarcasPage({ searchParams }: MarcasPageProps) {
 	return (
 		<div className="space-y-6">
-			<MarcasClient
-				initialBrands={brands}
-				initialTotalCount={totalCount}
-				searchParams={searchParams}
-			/>
+			<div className="flex justify-between items-center">
+				<div>
+					<h1 className="text-3xl font-bold">Marcas</h1>
+					<p className="text-gray-600 mt-2">
+						Gerencie as marcas dos seus produtos
+					</p>
+				</div>
+				<Link href="/marcas/nova">
+					<Button>
+						<Plus className="mr-2 h-4 w-4" />
+						Nova Marca
+					</Button>
+				</Link>
+			</div>
+
+			<MarcasClient searchParams={searchParams} />
 		</div>
 	);
 }

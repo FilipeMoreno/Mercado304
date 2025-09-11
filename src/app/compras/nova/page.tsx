@@ -40,6 +40,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { toDateInputValue } from "@/lib/date-utils";
+import { TempStorage } from "@/lib/temp-storage";
 import { PaymentMethod, type Product } from "@/types";
 
 interface PurchaseItem {
@@ -93,6 +94,44 @@ export default function NovaCompraPage() {
 	useEffect(() => {
 		fetchData();
 	}, []);
+
+	// Restaurar itens do storageKey quando a página carregar
+	useEffect(() => {
+		const storageKey = searchParams.get('storageKey');
+		if (storageKey && !restoredRef.current) {
+			restoredRef.current = true;
+			const storedData = TempStorage.get(storageKey);
+			
+			if (storedData?.items) {
+				console.log('Restaurando itens do storageKey:', storedData.items);
+				
+				// Transformar os itens da lista em itens de compra
+				const purchaseItems = storedData.items.map((item: any) => ({
+					id: Math.random().toString(),
+					productId: item.productId || "",
+					quantity: item.quantity || 1,
+					unitPrice: item.unitPrice || 0,
+				}));
+				
+				// Adicionar um item vazio no final se não houver
+				if (purchaseItems.length > 0) {
+					purchaseItems.push({
+						id: Math.random().toString(),
+						productId: "",
+						quantity: 1,
+						unitPrice: 0,
+					});
+				}
+				
+				setItems(purchaseItems);
+				
+				// Remover dados temporários após uso
+				TempStorage.remove(storageKey);
+				
+				toast.success(`${storedData.items.length} itens carregados da lista de compras!`);
+			}
+		}
+	}, [searchParams]);
 
 	const fetchData = async () => {
 		try {

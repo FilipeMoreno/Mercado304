@@ -3,7 +3,7 @@
 import { ArrowLeft, Camera, List, Plus, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { BarcodeScanner } from "@/components/barcode-scanner";
 import { PriceAlert } from "@/components/price-alert";
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TempStorage } from "@/lib/temp-storage";
+import { useProactiveAiStore } from "@/store/useProactiveAiStore";
 import type { Brand, Product } from "@/types";
 
 interface ShoppingListItem {
@@ -33,13 +34,7 @@ export default function NovaListaPage() {
 	const [loading, setLoading] = useState(false);
 	const [showScanner, setShowScanner] = useState(false);
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null);
-
-	// Estados para diálogos de criação rápida
-	const [showQuickProduct, setShowQuickProduct] = useState(false);
-	const [quickProductForIndex, setQuickProductForIndex] = useState<
-		number | null
-	>(null);
-	const [showQuickBrand, setShowQuickBrand] = useState(false);
+	const { showInsight } = useProactiveAiStore();
 
 	const [selectedProductIdForSuggestions, setSelectedProductIdForSuggestions] =
 		useState<string | null>(null);
@@ -56,6 +51,21 @@ export default function NovaListaPage() {
 	>(new Array(items.length).fill(true));
 	const [priceAlertVisibility, setPriceAlertVisibility] = useState<boolean[]>(
 		new Array(items.length).fill(true),
+	);
+
+	const updateItem = useCallback(
+		(index: number, field: keyof ShoppingListItem, value: string | number) => {
+			setItems((currentItems) => {
+				const newItems = [...currentItems];
+				newItems[index] = { ...newItems[index], [field]: value };
+
+				if (field === "productId") {
+					setSelectedProductIdForSuggestions(value as string);
+				}
+				return newItems;
+			});
+		},
+		[],
 	);
 
 	useEffect(() => {
@@ -93,7 +103,7 @@ export default function NovaListaPage() {
 				}
 			}
 		}
-	}, [searchParams]);
+	}, [searchParams, updateItem]);
 
 	useEffect(() => {
 		fetchData();
@@ -106,8 +116,14 @@ export default function NovaListaPage() {
 				fetch("/api/brands"),
 			]);
 
-			if (productsRes.ok) setProducts(await productsRes.json());
-			if (brandsRes.ok) setBrands(await brandsRes.json());
+			if (productsRes.ok) {
+				const productsData = await productsRes.json();
+				setProducts(productsData.products || []);
+			}
+			if (brandsRes.ok) {
+				const brandsData = await brandsRes.json();
+				setBrands(brandsData.brands || []);
+			}
 		} catch (error) {
 			console.error("Erro ao carregar dados:", error);
 		} finally {
@@ -145,9 +161,9 @@ export default function NovaListaPage() {
 	) => {
 		if (!productId || !estimatedPrice) return;
 
-		const newCheckingPrices = [...checkingPrices];
-		newCheckingPrices[index] = true;
-		setCheckingPrices(newCheckingPrices);
+		setCheckingPrices((current) =>
+			current.map((c, i) => (i === index ? true : c)),
+		);
 
 		try {
 			const response = await fetch("/api/price-check", {
@@ -162,44 +178,17 @@ export default function NovaListaPage() {
 
 			const alertData = await response.json();
 
-			const newItems = [...items];
-			newItems[index] = { ...newItems[index], priceAlert: alertData };
-			setItems(newItems);
+			setItems((currentItems) =>
+				currentItems.map((item, i) =>
+					i === index ? { ...item, priceAlert: alertData } : item,
+				),
+			);
 		} catch (error) {
 			console.error("Erro ao verificar preço:", error);
 		} finally {
-			const newCheckingPrices = [...checkingPrices];
-			newCheckingPrices[index] = false;
-			setCheckingPrices(newCheckingPrices);
-		}
-	};
-
-	const updateItem = (
-		index: number,
-		field: keyof ShoppingListItem,
-		value: string | number,
-	) => {
-		const newItems = [...items];
-		newItems[index] = { ...newItems[index], [field]: value };
-		setItems(newItems);
-
-		if (field === "productId") {
-			setSelectedProductIdForSuggestions(value as string);
-			const item = newItems[index];
-			const price = parseFloat(String(item.estimatedPrice)) || 0;
-			if (price > 0) {
-				checkPrice(index, value as string, price);
-			}
-		}
-
-		if (field === "estimatedPrice") {
-			const item = newItems[index];
-			const price = parseFloat(String(value)) || 0;
-			if (item.productId && price > 0) {
-				setTimeout(() => {
-					checkPrice(index, item.productId, price);
-				}, 1000);
-			}
+			setCheckingPrices((current) =>
+				current.map((c, i) => (i === index ? false : c)),
+			);
 		}
 	};
 
@@ -217,7 +206,6 @@ export default function NovaListaPage() {
 		toast.success("Produto adicionado à lista!");
 	};
 
-	// LÓGICA DO SCANNER
 	const handleBarcodeScanned = async (barcode: string) => {
 		try {
 			const response = await fetch(`/api/products/barcode/${barcode}`);
@@ -243,7 +231,6 @@ export default function NovaListaPage() {
 		setScanningForIndex(index);
 		setShowScanner(true);
 	};
-	// FIM DA LÓGICA DO SCANNER
 
 	const handleCloseRelatedProducts = (index: number) => {
 		const newVisibility = [...relatedProductsVisibility];
@@ -303,24 +290,29 @@ export default function NovaListaPage() {
 		}
 	};
 
-	const handleQuickProductCreated = (newProduct: Product) => {
-		setProducts((prev) => [...prev, newProduct]);
-		if (quickProductForIndex !== null) {
-			updateItem(quickProductForIndex, "productId", newProduct.id);
+	const handlePriceBlur = async (index: number) => {
+		const item = items[index];
+		const price = parseFloat(String(item.estimatedPrice));
+
+		if (item.productId && price > 0) {
+			checkPrice(index, item.productId, price);
+			try {
+				const response = await fetch("/api/ai/proactive-insight", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ productId: item.productId, price }),
+				});
+				const data = await response.json();
+				if (data.suggestion) {
+					showInsight({
+						message: data.suggestion.message,
+						duration: 10000,
+					});
+				}
+			} catch (error) {
+				console.error("Erro ao obter insight proativo:", error);
+			}
 		}
-		setShowQuickProduct(false);
-		setQuickProductForIndex(null);
-	};
-
-	const handleQuickBrandCreated = (newBrand: Brand) => {
-		setBrands((prev) => [...prev, newBrand]);
-		toast.success(`Marca "${newBrand.name}" criada com sucesso!`);
-		setShowQuickBrand(false);
-	};
-
-	const openQuickProduct = (index: number) => {
-		setQuickProductForIndex(index);
-		setShowQuickProduct(true);
 	};
 
 	const calculateTotal = () => {
@@ -376,16 +368,10 @@ export default function NovaListaPage() {
 
 				<Card>
 					<CardHeader>
-						<div className="flex justify-between items-center">
-							<CardTitle className="flex items-center gap-2">
-								<Plus className="h-5 w-5" />
-								Itens da Lista
-							</CardTitle>
-							<Button type="button" onClick={addItem} variant="outline">
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar Item
-							</Button>
-						</div>
+						<CardTitle className="flex items-center gap-2">
+							<Plus className="h-5 w-5" />
+							Itens da Lista
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
@@ -436,6 +422,7 @@ export default function NovaListaPage() {
 												onChange={(e) =>
 													updateItem(index, "estimatedPrice", e.target.value)
 												}
+												onBlur={() => handlePriceBlur(index)}
 												placeholder="0.00"
 											/>
 										</div>
@@ -443,7 +430,10 @@ export default function NovaListaPage() {
 										<div className="space-y-2">
 											<Label>Total</Label>
 											<Input
-												value={`R$ ${(item.quantity * (parseFloat(String(item.estimatedPrice)) || 0)).toFixed(2)}`}
+												value={`R$ ${(
+													item.quantity *
+													(parseFloat(String(item.estimatedPrice)) || 0)
+												).toFixed(2)}`}
 												disabled
 												className="bg-gray-50"
 											/>
@@ -499,25 +489,37 @@ export default function NovaListaPage() {
 								</div>
 							))}
 						</div>
-
-						<div className="flex justify-between items-center pt-6 border-t mt-6">
-							<div className="text-lg font-bold">
-								Total Estimado: R$ {calculateTotal().toFixed(2)}
-							</div>
-							<div className="flex gap-3">
-								<Button type="submit" disabled={loading}>
-									<Save className="h-4 w-4 mr-2" />
-									{loading ? "Salvando..." : "Salvar Lista"}
-								</Button>
-								<Link href="/lista">
-									<Button type="button" variant="outline">
-										Cancelar
-									</Button>
-								</Link>
-							</div>
-						</div>
 					</CardContent>
 				</Card>
+
+				{/* Barra de Ações Fixa */}
+				<div className="sticky bottom-0 z-10 bg-background/95 backdrop-blur-sm border-t p-4 rounded-b-lg">
+					<div className="flex justify-between items-center max-w-4xl mx-auto">
+						<div className="text-lg font-bold">
+							Total Estimado: R$ {calculateTotal().toFixed(2)}
+						</div>
+						<div className="flex gap-3">
+							<Button
+								type="button"
+								onClick={addItem}
+								variant="outline"
+								className="hidden sm:inline-flex"
+							>
+								<Plus className="h-4 w-4 mr-2" />
+								Adicionar Item
+							</Button>
+							<Link href="/lista">
+								<Button type="button" variant="outline">
+									Cancelar
+								</Button>
+							</Link>
+							<Button type="submit" disabled={loading}>
+								<Save className="h-4 w-4 mr-2" />
+								{loading ? "Salvando..." : "Salvar Lista"}
+							</Button>
+						</div>
+					</div>
+				</div>
 			</form>
 
 			<BarcodeScanner

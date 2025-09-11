@@ -17,7 +17,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,8 +49,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/lib/api";
+import {
+	useWasteQuery,
+	useCreateWasteMutation,
+	useUpdateWasteMutation,
+	useDeleteWasteMutation,
+} from "@/hooks";
+import WasteSkeleton from "@/components/skeletons/waste-skeleton";
 
 interface WasteRecord {
 	id: string;
@@ -121,14 +128,6 @@ const wasteReasonColors = {
 };
 
 export default function DesperdiciosClient() {
-	const [wasteRecords, setWasteRecords] = useState<WasteRecord[]>([]);
-	const [stats, setStats] = useState<WasteStats | null>(null);
-	const [_pagination, setPagination] = useState({
-		page: 1,
-		totalPages: 0,
-		total: 0,
-	});
-	const [loading, setLoading] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterReason, setFilterReason] = useState<string>("all");
 	const [selectedRecord, setSelectedRecord] = useState<WasteRecord | null>(
@@ -138,61 +137,41 @@ export default function DesperdiciosClient() {
 	const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 	const [showEditDialog, setShowEditDialog] = useState(false);
 
-	const loadWasteRecords = useCallback(async () => {
-		try {
-			setLoading(true);
-			const params = new URLSearchParams({
-				page: "1",
-				limit: "50",
-			});
-
-			if (searchTerm) params.append("search", searchTerm);
-			if (filterReason !== "all") params.append("reason", filterReason);
-
-			const response = await api.get(`/api/waste?${params.toString()}`);
-			const data: WasteResponse = response.data;
-
-			setWasteRecords(data.wasteRecords);
-			setStats(data.stats);
-			setPagination(data.pagination);
-		} catch (error) {
-			console.error("Erro ao carregar registros de desperdício:", error);
-			toast.error("Erro ao carregar registros de desperdício");
-		} finally {
-			setLoading(false);
-		}
+	// Build URLSearchParams for the waste query
+	const wasteParams = useMemo(() => {
+		const params = new URLSearchParams({
+			page: "1",
+			limit: "50",
+		});
+		if (searchTerm) params.append("search", searchTerm);
+		if (filterReason !== "all") params.append("reason", filterReason);
+		return params;
 	}, [searchTerm, filterReason]);
 
-	// Carregar dados
-	useEffect(() => {
-		loadWasteRecords();
-	}, [loadWasteRecords]);
+	// React Query hooks
+	const { data: wasteData, isLoading, error } = useWasteQuery(wasteParams);
+	const createWasteMutation = useCreateWasteMutation();
+	const updateWasteMutation = useUpdateWasteMutation();
+	const deleteWasteMutation = useDeleteWasteMutation();
+
+	// Extract data from React Query
+	const wasteRecords = wasteData?.wasteRecords || [];
+	const stats = wasteData?.stats || null;
 
 	const handleDeleteRecord = async (id: string) => {
 		try {
-			await api.delete(`/api/waste/${id}`);
-			setWasteRecords((prev) => prev.filter((record) => record.id !== id));
-			toast.success("Registro removido com sucesso!");
-			// Recarregar estatísticas
-			loadWasteRecords();
+			await deleteWasteMutation.mutateAsync(id);
 		} catch (error) {
 			console.error("Erro ao remover registro:", error);
-			toast.error("Erro ao remover registro");
 		}
 	};
 
 	const handleCreateRecord = async (newRecordData: any) => {
 		try {
-			const response = await api.post("/api/waste", newRecordData);
-			const newRecord = response.data;
-			setWasteRecords((prev) => [newRecord, ...prev]);
+			await createWasteMutation.mutateAsync(newRecordData);
 			setShowCreateDialog(false);
-			toast.success("Registro criado com sucesso!");
-			// Recarregar dados para atualizar estatísticas
-			loadWasteRecords();
 		} catch (error) {
 			console.error("Erro ao criar registro:", error);
-			toast.error("Erro ao criar registro");
 		}
 	};
 
@@ -200,27 +179,33 @@ export default function DesperdiciosClient() {
 		try {
 			if (!selectedRecord) return;
 
-			const response = await api.put(
-				`/api/waste/${selectedRecord.id}`,
-				updatedRecordData,
-			);
-			const updatedRecord = response.data;
-
-			setWasteRecords((prev) =>
-				prev.map((record) =>
-					record.id === updatedRecord.id ? updatedRecord : record,
-				),
-			);
+			await updateWasteMutation.mutateAsync({
+				id: selectedRecord.id,
+				data: updatedRecordData,
+			});
 			setShowEditDialog(false);
 			setSelectedRecord(null);
-			toast.success("Registro atualizado com sucesso!");
-			// Recarregar dados para atualizar estatísticas
-			loadWasteRecords();
 		} catch (error) {
 			console.error("Erro ao atualizar registro:", error);
-			toast.error("Erro ao atualizar registro");
 		}
 	};
+
+	// Handle error states
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<AlertTriangle className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar desperdícios
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<div className="container mx-auto p-6">
@@ -254,72 +239,90 @@ export default function DesperdiciosClient() {
 
 			{/* Estatísticas Principais */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Total Desperdiçado
-						</CardTitle>
-						<TrendingUp className="h-4 w-4 text-red-600" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold text-red-600">
-							R$ {stats?.totalValue.toFixed(2) || "0.00"}
-						</div>
-						<p className="text-xs text-muted-foreground">
-							Em {stats?.totalCount || 0} registros
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Itens Desperdiçados
-						</CardTitle>
-						<AlertTriangle className="h-4 w-4 text-orange-600" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{stats?.totalCount || 0}</div>
-						<p className="text-xs text-muted-foreground">Total de itens</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Principal Motivo
-						</CardTitle>
-						<Calendar className="h-4 w-4 text-blue-600" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-lg font-bold">
-							{stats?.reasonStats?.[0]
-								? wasteReasonLabels[
-										stats.reasonStats[0]
-											.wasteReason as keyof typeof wasteReasonLabels
-									]
-								: "N/A"}
-						</div>
-						<p className="text-xs text-muted-foreground">
-							Mais frequente ({stats?.reasonStats?.[0]?._count.wasteReason || 0}{" "}
-							vezes)
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Quantidade Total
-						</CardTitle>
-						<TrendingDown className="h-4 w-4 text-gray-600" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{stats?.totalQuantity.toFixed(1) || "0"}
-						</div>
-						<p className="text-xs text-muted-foreground">
-							kg/litros desperdiçados
-						</p>
-					</CardContent>
-				</Card>
+				{isLoading ? (
+					<>
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i}>
+								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+									<Skeleton className="h-4 w-24" />
+									<Skeleton className="h-4 w-4" />
+								</CardHeader>
+								<CardContent>
+									<Skeleton className="h-8 w-16" />
+								</CardContent>
+							</Card>
+						))}
+					</>
+				) : (
+					<>
+						<Card>
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Total Desperdiçado
+								</CardTitle>
+								<TrendingUp className="h-4 w-4 text-red-600" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold text-red-600">
+									R$ {stats?.totalValue.toFixed(2) || "0.00"}
+								</div>
+								<p className="text-xs text-muted-foreground">
+									Em {stats?.totalCount || 0} registros
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Itens Desperdiçados
+								</CardTitle>
+								<AlertTriangle className="h-4 w-4 text-orange-600" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">{stats?.totalCount || 0}</div>
+								<p className="text-xs text-muted-foreground">Total de itens</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Principal Motivo
+								</CardTitle>
+								<Calendar className="h-4 w-4 text-blue-600" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-lg font-bold">
+									{stats?.reasonStats?.[0]
+										? wasteReasonLabels[
+												stats.reasonStats[0]
+													.wasteReason as keyof typeof wasteReasonLabels
+											]
+										: "N/A"}
+								</div>
+								<p className="text-xs text-muted-foreground">
+									Mais frequente ({stats?.reasonStats?.[0]?._count.wasteReason || 0}{" "}
+									vezes)
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Quantidade Total
+								</CardTitle>
+								<TrendingDown className="h-4 w-4 text-gray-600" />
+							</CardHeader>
+							<CardContent>
+								<div className="text-2xl font-bold">
+									{stats?.totalQuantity.toFixed(1) || "0"}
+								</div>
+								<p className="text-xs text-muted-foreground">
+									kg/litros desperdiçados
+								</p>
+							</CardContent>
+						</Card>
+				</>
+				)}
 			</div>
 
 			{/* Estatísticas Detalhadas */}
@@ -473,8 +476,37 @@ export default function DesperdiciosClient() {
 
 			{/* Lista de desperdícios */}
 			<div className="space-y-4">
-				{loading ? (
-					<div className="text-center py-8">Carregando...</div>
+				{isLoading ? (
+					// Loading skeleton for waste records list
+					<div className="space-y-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i}>
+								<CardContent className="p-6">
+									<div className="flex items-start justify-between">
+										<div className="flex-1">
+											<div className="flex items-start gap-4">
+												<div className="flex-1">
+													<Skeleton className="h-6 w-48 mb-2" />
+													<div className="flex items-center gap-4 mb-2">
+														<Skeleton className="h-4 w-16" />
+														<Skeleton className="h-4 w-20" />
+														<Skeleton className="h-4 w-24" />
+														<Skeleton className="h-4 w-32" />
+													</div>
+													<div className="flex items-center gap-2">
+														<Skeleton className="h-6 w-20" />
+														<Skeleton className="h-6 w-16" />
+														<Skeleton className="h-6 w-24" />
+													</div>
+												</div>
+											</div>
+										</div>
+										<Skeleton className="h-8 w-8" />
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
 				) : (
 					wasteRecords.map((record) => (
 						<Card key={record.id}>
@@ -567,7 +599,7 @@ export default function DesperdiciosClient() {
 					))
 				)}
 
-				{!loading && wasteRecords.length === 0 && (
+				{!isLoading && wasteRecords.length === 0 && (
 					<Card>
 						<CardContent className="p-12 text-center">
 							<AlertTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />

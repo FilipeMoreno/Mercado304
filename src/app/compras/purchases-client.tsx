@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -42,14 +41,20 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton";
+import { 
+	usePurchasesQuery,
+	usePurchaseQuery,
+	useMarketsQuery,
+	useDeletePurchaseMutation,
+	useDeleteConfirmation, 
+	useUrlState 
+} from "@/hooks";
 import { formatLocalDate } from "@/lib/date-utils";
 import type { Purchase } from "@/types";
 
 interface PurchasesClientProps {
-	initialPurchases: Purchase[];
-	initialMarkets: any[];
-	initialTotalCount: number;
 	searchParams: {
 		search?: string;
 		market?: string;
@@ -62,21 +67,11 @@ interface PurchasesClientProps {
 }
 
 export function PurchasesClient({
-	initialPurchases,
-	initialMarkets,
-	initialTotalCount,
 	searchParams,
 }: PurchasesClientProps) {
-	const [purchases, setPurchases] = useState(initialPurchases);
-	const [markets, setMarkets] = useState(initialMarkets);
-	const [totalCount, setTotalCount] = useState(initialTotalCount);
 	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null);
-	const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
-	const [loadingDetails, setLoadingDetails] = useState(false);
 	const itemsPerPage = 12;
 
-	// Hooks customizados
-	const { remove, loading } = useDataMutation();
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
 		useDeleteConfirmation<Purchase>();
 
@@ -94,7 +89,36 @@ export function PurchasesClient({
 			},
 		});
 
+	// Build URLSearchParams for the queries
+	const purchaseParams = useMemo(() => {
+		const urlParams = new URLSearchParams({
+			search: state.search,
+			market: state.market,
+			sort: state.sort,
+			period: state.period,
+			dateFrom: state.dateFrom,
+			dateTo: state.dateTo,
+			page: state.page.toString(),
+			limit: itemsPerPage.toString(),
+		});
+		return urlParams;
+	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page, itemsPerPage]);
+
+	// React Query hooks
+	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams);
+	const { data: marketsData, isLoading: marketsLoading } = useMarketsQuery();
+	const { data: purchaseDetails, isLoading: detailsLoading } = usePurchaseQuery(
+		viewingPurchase?.id || "", 
+		{ enabled: !!viewingPurchase?.id }
+	);
+	const deletePurchaseMutation = useDeletePurchaseMutation();
+
+	// Extract data from React Query
+	const purchases = purchasesData?.purchases || [];
+	const totalCount = purchasesData?.totalCount || 0;
+	const markets = marketsData?.markets || [];
 	const totalPages = Math.ceil(totalCount / itemsPerPage);
+	const isLoading = purchasesLoading || marketsLoading;
 
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
@@ -146,33 +170,40 @@ export function PurchasesClient({
 	const deletePurchase = async () => {
 		if (!deleteState.item) return;
 
-		await remove(`/api/purchases/${deleteState.item.id}`, {
-			successMessage: "Compra excluída com sucesso!",
-			onSuccess: closeDeleteConfirm,
-		});
+		try {
+			await deletePurchaseMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting purchase:", error);
+		}
 	};
 
 	const viewPurchaseDetails = async (purchase: Purchase) => {
 		setViewingPurchase(purchase);
-		setLoadingDetails(true);
-
-		try {
-			const response = await fetch(`/api/purchases/${purchase.id}`);
-			const data = await response.json();
-			setPurchaseDetails(data);
-		} catch (error) {
-			console.error("Erro ao carregar detalhes:", error);
-		} finally {
-			setLoadingDetails(false);
-		}
 	};
 
-	// Sincronizar estado interno com dados iniciais do servidor
-	React.useEffect(() => {
-		setPurchases(initialPurchases);
-		setTotalCount(initialTotalCount);
-		setMarkets(initialMarkets);
-	}, [initialPurchases, initialMarkets, initialTotalCount]);
+	// React Query handles data synchronization automatically
+
+	// Handle loading and error states
+	if (purchasesLoading && purchases.length === 0) {
+		return <PurchasesSkeleton />;
+	}
+
+	if (purchasesError) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<ShoppingCart className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar compras
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
@@ -431,14 +462,14 @@ export function PurchasesClient({
 							Detalhes da Compra
 						</DialogTitle>
 					</DialogHeader>
-					{loadingDetails ? (
+					{detailsLoading ? (
 						<div className="space-y-4">
 							<div className="animate-pulse space-y-2">
 								<div className="h-4 bg-gray-200 rounded w-3/4"></div>
 								<div className="h-4 bg-gray-200 rounded w-1/2"></div>
 							</div>
 						</div>
-					) : purchaseDetails ? (
+					) : purchaseDetails && !detailsLoading ? (
 						<div className="space-y-4">
 							<div className="grid grid-cols-2 gap-4 pb-4 border-b">
 								<div>
@@ -523,11 +554,11 @@ export function PurchasesClient({
 							<Button
 								variant="destructive"
 								onClick={deletePurchase}
-								disabled={loading}
+								disabled={deletePurchaseMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{loading ? "Excluindo..." : "Sim, Excluir"}
+								{deletePurchaseMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar

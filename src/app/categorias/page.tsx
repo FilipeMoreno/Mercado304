@@ -1,4 +1,6 @@
-import API_BASE_URL from "@/lib/api";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { CategoriasClient } from "./categorias-client";
 
 interface CategoriasPageProps {
@@ -9,33 +11,27 @@ interface CategoriasPageProps {
 	};
 }
 
-async function fetchCategories(
-	searchParams: CategoriasPageProps["searchParams"],
-) {
-	const params = new URLSearchParams({
-		search: searchParams.search || "",
-		sort: searchParams.sort || "name",
-		page: searchParams.page || "1",
-		limit: "12",
-	});
-
-	const response = await fetch(
-		`${API_BASE_URL}/categories?${params.toString()}`,
-		{ cache: "no-store" },
-	);
-	const categoriesData = await response.json();
-	return categoriesData;
-}
-
-export default async function CategoriasPage({
+export default function CategoriasPage({
 	searchParams,
 }: CategoriasPageProps) {
-	const categoriesData = await fetchCategories(searchParams);
-
 	return (
-		<CategoriasClient
-			categoriesData={categoriesData}
-			searchParams={searchParams}
-		/>
+		<div className="space-y-6">
+			<div className="flex justify-between items-center">
+				<div>
+					<h1 className="text-3xl font-bold">Categorias</h1>
+					<p className="text-gray-600 mt-2">
+						Gerencie as categorias dos seus produtos
+					</p>
+				</div>
+				<Link href="/categorias/nova">
+					<Button>
+						<Plus className="mr-2 h-4 w-4" />
+						Nova Categoria
+					</Button>
+				</Link>
+			</div>
+
+			<CategoriasClient searchParams={searchParams} />
+		</div>
 	);
 }

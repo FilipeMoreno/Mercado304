@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { RecipeSuggester } from "@/components/recipe-suggester";
 import { ProductSelect } from "@/components/selects/product-select";
@@ -48,8 +48,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
+import { 
+	useStockQuery,
+	useProductsQuery,
+	useCreateStockMutation,
+	useUpdateStockMutation,
+	useDeleteStockMutation,
+	useDeleteConfirmation, 
+	useUrlState 
+} from "@/hooks";
 import { formatLocalDate, toDateInputValue } from "@/lib/date-utils";
 import { TempStorage } from "@/lib/temp-storage";
 
@@ -84,9 +93,6 @@ interface StockItem {
 }
 
 interface EstoqueClientProps {
-	initialStockItems: StockItem[];
-	initialStats: any;
-	initialProducts: any[];
 	searchParams: {
 		location?: string;
 		search?: string;
@@ -94,15 +100,9 @@ interface EstoqueClientProps {
 }
 
 export function EstoqueClient({
-	initialStockItems,
-	initialStats,
-	initialProducts,
 	searchParams,
 }: EstoqueClientProps) {
 	const router = useRouter();
-	const [stockItems, setStockItems] = useState(initialStockItems);
-	const [stats, setStats] = useState(initialStats);
-	const [products, setProducts] = useState(initialProducts);
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showUseDialog, setShowUseDialog] = useState(false);
 	const [useItem, setUseItem] = useState<StockItem | null>(null);
@@ -120,7 +120,6 @@ export function EstoqueClient({
 		notes: "",
 	});
 
-	const { create, remove, loading } = useDataMutation();
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
 		useDeleteConfirmation<StockItem>();
 
@@ -135,15 +134,50 @@ export function EstoqueClient({
 			},
 		});
 
-	const stockIngredients = React.useMemo(() => {
-		return initialStockItems.map((item) => item.product.name);
-	}, [initialStockItems]);
+	// Build URLSearchParams for the stock query
+	const stockParams = useMemo(() => {
+		const urlParams = new URLSearchParams({
+			location: state.location,
+			search: state.search,
+			filter: state.filter,
+			includeExpired: state.includeExpired,
+		});
+		return urlParams;
+	}, [state.location, state.search, state.filter, state.includeExpired]);
 
-	React.useEffect(() => {
-		setStockItems(initialStockItems);
-		setStats(initialStats);
-		setProducts(initialProducts);
-	}, [initialStockItems, initialStats, initialProducts]);
+	// React Query hooks
+	const { data: stockData, isLoading: stockLoading, error: stockError } = useStockQuery(stockParams);
+	const { data: productsData, isLoading: productsLoading } = useProductsQuery();
+	const createStockMutation = useCreateStockMutation();
+	const updateStockMutation = useUpdateStockMutation();
+	const deleteStockMutation = useDeleteStockMutation();
+
+	// Extract data from React Query
+	const stockItems = stockData?.items || [];
+	const stats = stockData?.stats || {};
+	const products = productsData?.products || [];
+	const isLoading = stockLoading || productsLoading;
+
+	const stockIngredients = React.useMemo(() => {
+		return stockItems.map((item) => item.product.name);
+	}, [stockItems]);
+
+	// Handle error states
+	if (stockError) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar estoque
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	React.useEffect(() => {
 		const storageKey = new URLSearchParams(window.location.search).get(
@@ -179,23 +213,19 @@ export function EstoqueClient({
 		e.preventDefault();
 		setSaving(true);
 		try {
-			await create("/api/stock", formData, {
-				successMessage: "Item adicionado ao estoque!",
-				onSuccess: () => {
-					setShowAddDialog(false);
-					setFormData({
-						productId: "",
-						quantity: 1,
-						expirationDate: "",
-						batchNumber: "",
-						location: "Despensa",
-						unitCost: 0,
-						notes: "",
-					});
-				},
+			await createStockMutation.mutateAsync(formData);
+			setShowAddDialog(false);
+			setFormData({
+				productId: "",
+				quantity: 1,
+				expirationDate: "",
+				batchNumber: "",
+				location: "Despensa",
+				unitCost: 0,
+				notes: "",
 			});
-		} catch (_error) {
-			// Error already handled by the hook
+		} catch (error) {
+			console.error("Error adding stock:", error);
 		} finally {
 			setSaving(false);
 		}
@@ -223,24 +253,15 @@ export function EstoqueClient({
 
 		setSaving(true);
 		try {
-			const response = await fetch(`/api/stock/${useItem.id}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ consumed: quantity }),
+			await updateStockMutation.mutateAsync({
+				id: useItem.id,
+				data: { consumed: quantity }
 			});
-			if (response.ok) {
-				toast.success("Consumo registrado com sucesso!");
-				setShowUseDialog(false);
-				setUseItem(null);
-				setConsumedQuantity("");
-				window.location.reload();
-			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao registrar consumo");
-			}
+			setShowUseDialog(false);
+			setUseItem(null);
+			setConsumedQuantity("");
 		} catch (error) {
 			console.error("Erro ao registrar consumo:", error);
-			toast.error("Erro ao registrar consumo");
 		} finally {
 			setSaving(false);
 		}
@@ -249,10 +270,12 @@ export function EstoqueClient({
 	const deleteStockItem = async () => {
 		if (!deleteState.item) return;
 
-		await remove(`/api/stock/${deleteState.item.id}`, {
-			successMessage: "Item removido do estoque!",
-			onSuccess: closeDeleteConfirm,
-		});
+		try {
+			await deleteStockMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting stock item:", error);
+		}
 	};
 
 	const getExpirationColor = (status: string) => {
@@ -376,6 +399,46 @@ export function EstoqueClient({
 				</TabsList>
 
 				<TabsContent value="stock" className="space-y-6">
+					{isLoading ? (
+						<>
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+								{Array.from({ length: 4 }).map((_, i) => (
+									<Card key={i}>
+										<CardHeader className="pb-3">
+											<Skeleton className="h-4 w-20" />
+										</CardHeader>
+										<CardContent>
+											<Skeleton className="h-8 w-16" />
+										</CardContent>
+									</Card>
+								))}
+							</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{Array.from({ length: 6 }).map((_, i) => (
+									<Card key={i}>
+										<CardHeader className="pb-3">
+											<div className="flex justify-between items-start">
+												<div className="flex-1">
+													<Skeleton className="h-6 w-32" />
+													<Skeleton className="h-4 w-24 mt-2" />
+												</div>
+												<div className="flex gap-1">
+													<Skeleton className="h-8 w-8" />
+													<Skeleton className="h-8 w-8" />
+												</div>
+											</div>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<Skeleton className="h-4 w-full" />
+											<Skeleton className="h-4 w-3/4" />
+											<Skeleton className="h-4 w-1/2" />
+										</CardContent>
+									</Card>
+								))}
+							</div>
+						</>
+					) : (
+					<>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						<Card>
 							<CardHeader className="pb-3">
@@ -585,6 +648,8 @@ export function EstoqueClient({
 								</Card>
 							))}
 						</div>
+					)}
+					</>
 					)}
 				</TabsContent>
 
@@ -806,11 +871,11 @@ export function EstoqueClient({
 							<Button
 								variant="destructive"
 								onClick={deleteStockItem}
-								disabled={loading}
+								disabled={deleteStockMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{loading ? "Removendo..." : "Sim, Remover"}
+								{deleteStockMutation.isPending ? "Removendo..." : "Sim, Remover"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar

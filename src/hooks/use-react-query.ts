@@ -1,0 +1,803 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+// Types
+import type { Brand, Category, Market, Product, ShoppingList } from "@/types";
+
+// Query Keys
+export const queryKeys = {
+	categories: (params?: URLSearchParams) => ["categories", params?.toString()],
+	allCategories: () => ["categories", "all"],
+	brands: (params?: URLSearchParams) => ["brands", params?.toString()],
+	allBrands: () => ["brands", "all"],
+	markets: (params?: URLSearchParams) => ["markets", params?.toString()],
+	products: (params?: URLSearchParams) => ["products", params?.toString()],
+	product: (id: string) => ["products", id],
+	purchases: (params?: URLSearchParams) => ["purchases", params?.toString()],
+	purchase: (id: string) => ["purchases", id],
+	shoppingLists: (params?: URLSearchParams) => [
+		"shopping-lists",
+		params?.toString(),
+	],
+	shoppingList: (id: string) => ["shopping-lists", id],
+	stock: (params?: URLSearchParams) => ["stock", params?.toString()],
+	stockItem: (id: string) => ["stock", id],
+	waste: (params?: URLSearchParams) => ["waste", params?.toString()],
+	wasteItem: (id: string) => ["waste", id],
+	recipes: () => ["recipes"],
+	recipe: (id: string) => ["recipes", id],
+	dashboard: {
+		stats: () => ["dashboard", "stats"],
+		aiSummary: () => ["dashboard", "ai-summary"],
+		paymentStats: () => ["dashboard", "payment-stats"],
+	},
+	expiration: {
+		alerts: () => ["expiration", "alerts"],
+	},
+	nutrition: {
+		analysis: () => ["nutrition", "analysis"],
+	},
+} as const;
+
+// API Functions
+const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
+	const response = await fetch(url, options);
+	if (!response.ok) {
+		const errorData = await response.json();
+		throw new Error(
+			errorData.error || `Erro ao buscar dados: ${response.status}`,
+		);
+	}
+	return response.json();
+};
+
+// Categories
+export const useCategoriesQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.categories(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/categories?${params?.toString() || ""}`),
+		staleTime: 3 * 60 * 1000,
+	});
+};
+
+export const useAllCategoriesQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.allCategories(),
+		queryFn: () => fetchWithErrorHandling("/api/categories/all"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+export const useCreateCategoryMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Omit<Category, "id" | "createdAt" | "updatedAt">) =>
+			fetchWithErrorHandling("/api/categories", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Categoria criada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar categoria: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateCategoryMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
+			fetchWithErrorHandling(`/api/categories/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Categoria atualizada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar categoria: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteCategoryMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/categories/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Categoria excluída com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir categoria: ${error.message}`);
+		},
+	});
+};
+
+// Brands
+export const useBrandsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.brands(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/brands?${params?.toString() || ""}`),
+		staleTime: 3 * 60 * 1000,
+	});
+};
+
+export const useAllBrandsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.allBrands(),
+		queryFn: () => fetchWithErrorHandling("/api/brands/all"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+export const useCreateBrandMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Omit<Brand, "id" | "createdAt" | "updatedAt">) =>
+			fetchWithErrorHandling("/api/brands", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.brands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Marca criada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar marca: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateBrandMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<Brand> }) =>
+			fetchWithErrorHandling(`/api/brands/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.brands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Marca atualizada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar marca: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteBrandMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/brands/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.brands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			toast.success("Marca excluída com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir marca: ${error.message}`);
+		},
+	});
+};
+
+// Markets
+export const useMarketsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.markets(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/markets?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const useCreateMarketMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Omit<Market, "id" | "createdAt" | "updatedAt">) =>
+			fetchWithErrorHandling("/api/markets", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.markets() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Mercado criado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar mercado: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateMarketMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<Market> }) =>
+			fetchWithErrorHandling(`/api/markets/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.markets() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Mercado atualizado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar mercado: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteMarketMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/markets/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.markets() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Mercado excluído com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir mercado: ${error.message}`);
+		},
+	});
+};
+
+// Products
+export const useProductsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.products(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/products?${params?.toString() || ""}`),
+		staleTime: 3 * 60 * 1000,
+	});
+};
+
+export const useProductQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.product(id),
+		queryFn: () => fetchWithErrorHandling(`/api/products/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: !!id,
+	});
+};
+
+export const useCreateProductMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Omit<Product, "id" | "createdAt" | "updatedAt">) =>
+			fetchWithErrorHandling("/api/products", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			toast.success("Produto criado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar produto: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateProductMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) =>
+			fetchWithErrorHandling(`/api/products/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.product(id) });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			toast.success("Produto atualizado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar produto: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteProductMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/products/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() });
+			toast.success("Produto excluído com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir produto: ${error.message}`);
+		},
+	});
+};
+
+// Purchases
+export const usePurchasesQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.purchases(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/purchases?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const usePurchaseQuery = (
+	id: string,
+	options?: { enabled: boolean },
+) => {
+	return useQuery({
+		queryKey: queryKeys.purchase(id),
+		queryFn: () => fetchWithErrorHandling(`/api/purchases/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: options?.enabled ?? !!id,
+	});
+};
+
+export const useCreatePurchaseMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: any) =>
+			fetchWithErrorHandling("/api/purchases", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			toast.success("Compra registrada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao registrar compra: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdatePurchaseMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: any }) =>
+			fetchWithErrorHandling(`/api/purchases/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchase(id) });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Compra atualizada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar compra: ${error.message}`);
+		},
+	});
+};
+
+export const useDeletePurchaseMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/purchases/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Compra excluída com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir compra: ${error.message}`);
+		},
+	});
+};
+
+// Stock
+export const useStockQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.stock(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/stock?${params?.toString() || ""}`),
+		staleTime: 1 * 60 * 1000,
+	});
+};
+
+export const useStockItemQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.stockItem(id),
+		queryFn: () => fetchWithErrorHandling(`/api/stock/${id}`),
+		staleTime: 1 * 60 * 1000,
+		enabled: !!id,
+	});
+};
+
+export const useCreateStockMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: any) =>
+			fetchWithErrorHandling("/api/stock", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.expiration.alerts(),
+			});
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Item adicionado ao estoque!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao adicionar item ao estoque: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateStockMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: any }) =>
+			fetchWithErrorHandling(`/api/stock/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockItem(id) });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.expiration.alerts(),
+			});
+			toast.success("Estoque atualizado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar estoque: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteStockMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/stock/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.expiration.alerts(),
+			});
+			toast.success("Item removido do estoque!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao remover item do estoque: ${error.message}`);
+		},
+	});
+};
+
+// Waste Management
+export const useWasteQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.waste(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/waste?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const useWasteItemQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.wasteItem(id),
+		queryFn: () => fetchWithErrorHandling(`/api/waste/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: !!id,
+	});
+};
+
+export const useCreateWasteMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: any) =>
+			fetchWithErrorHandling("/api/waste", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.waste() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Desperdício registrado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao registrar desperdício: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateWasteMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: any }) =>
+			fetchWithErrorHandling(`/api/waste/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.waste() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.wasteItem(id) });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Desperdício atualizado com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar desperdício: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteWasteMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/waste/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.waste() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() });
+			toast.success("Desperdício excluído com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir desperdício: ${error.message}`);
+		},
+	});
+};
+
+// Recipes
+export const useRecipesQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.recipes(),
+		queryFn: () => fetchWithErrorHandling("/api/recipes"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+export const useRecipeQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.recipe(id),
+		queryFn: () => fetchWithErrorHandling(`/api/recipes/${id}`),
+		staleTime: 5 * 60 * 1000,
+		enabled: !!id,
+	});
+};
+
+export const useCreateRecipeMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: any) =>
+			fetchWithErrorHandling("/api/recipes", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.recipes() });
+			toast.success("Receita salva com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao salvar receita: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteRecipeMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/recipes/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.recipes() });
+			toast.success("Receita excluída com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir receita: ${error.message}`);
+		},
+	});
+};
+
+// Dashboard
+export const useDashboardStatsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.dashboard.stats(),
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/stats"),
+		staleTime: 30 * 1000,
+	});
+};
+
+export const useDashboardAISummaryQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.dashboard.aiSummary(),
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/ai-summary"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+export const usePaymentStatsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.dashboard.paymentStats(),
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/payment-stats"),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+// Expiration Alerts
+export const useExpirationAlertsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.expiration.alerts(),
+		queryFn: () => fetchWithErrorHandling("/api/stock/expiration-alerts"),
+		staleTime: 30 * 1000,
+	});
+};
+
+// Nutrition Analysis
+export const useNutritionAnalysisQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.nutrition.analysis(),
+		queryFn: () => fetchWithErrorHandling("/api/nutrition/analysis"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+// Additional Dashboard Queries
+export const useSavingsQuery = () => {
+	return useQuery({
+		queryKey: ["savings"],
+		queryFn: () => fetchWithErrorHandling("/api/savings"),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const useTemporalComparisonQuery = () => {
+	return useQuery({
+		queryKey: ["temporal-comparison"],
+		queryFn: () => fetchWithErrorHandling("/api/temporal-comparison"),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const useConsumptionPatternsQuery = () => {
+	return useQuery({
+		queryKey: ["consumption-patterns"],
+		queryFn: () =>
+			fetchWithErrorHandling("/api/predictions/consumption-patterns"),
+		staleTime: 5 * 60 * 1000,
+	});
+};
+
+// Shopping Lists
+export const useShoppingListsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.shoppingLists(params),
+		queryFn: () =>
+			fetchWithErrorHandling(`/api/shopping-lists?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000,
+	});
+};
+
+export const useShoppingListQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.shoppingList(id),
+		queryFn: () => fetchWithErrorHandling(`/api/shopping-lists/${id}`),
+		staleTime: 2 * 60 * 1000,
+		enabled: !!id,
+	});
+};
+
+export const useCreateShoppingListMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (data: Partial<ShoppingList>) =>
+			fetchWithErrorHandling("/api/shopping-lists", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() });
+			toast.success("Lista criada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar lista: ${error.message}`);
+		},
+	});
+};
+
+export const useUpdateShoppingListMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<ShoppingList> }) =>
+			fetchWithErrorHandling(`/api/shopping-lists/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingList(id) });
+			toast.success("Lista atualizada com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar lista: ${error.message}`);
+		},
+	});
+};
+
+export const useDeleteShoppingListMutation = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/shopping-lists/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() });
+			toast.success("Lista excluída com sucesso!");
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir lista: ${error.message}`);
+		},
+	});
+};

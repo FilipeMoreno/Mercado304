@@ -1,9 +1,6 @@
-// src/app/lista/page.tsx
-
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import API_BASE_URL from "@/lib/api";
 import { ListaClient } from "./lista-client";
 
 interface ListaPageProps {
@@ -15,27 +12,7 @@ interface ListaPageProps {
 	};
 }
 
-async function fetchShoppingLists(
-	searchParams: ListaPageProps["searchParams"],
-) {
-	const params = new URLSearchParams();
-	if (searchParams.search) params.set("search", searchParams.search);
-	if (searchParams.sort) params.set("sort", searchParams.sort);
-	if (searchParams.page) params.set("page", searchParams.page);
-	if (searchParams.status) params.set("status", searchParams.status);
-	params.set("itemsPerPage", "12");
-
-	const response = await fetch(
-		`${API_BASE_URL}/shopping-lists?${params.toString()}`,
-		{ cache: "no-store" },
-	);
-	const data = await response.json();
-	return { lists: data.lists, totalCount: data.totalCount };
-}
-
-export default async function ListaPage({ searchParams }: ListaPageProps) {
-	const { lists, totalCount } = await fetchShoppingLists(searchParams);
-
+export default function ListaPage({ searchParams }: ListaPageProps) {
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
@@ -51,11 +28,7 @@ export default async function ListaPage({ searchParams }: ListaPageProps) {
 				</Link>
 			</div>
 
-			<ListaClient
-				initialShoppingLists={lists}
-				initialTotalCount={totalCount}
-				searchParams={searchParams}
-			/>
+			<ListaClient searchParams={searchParams} />
 		</div>
 	);
 }

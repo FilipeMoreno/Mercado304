@@ -8,6 +8,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { Sidebar } from "@/components/sidebar";
 import { cn } from "@/lib/utils";
 import { AiAssistantChat } from "./ai-assistant-chat";
+import { ProactiveAiInsight } from "./proactive-ai-insight";
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();
@@ -46,7 +47,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
 	return (
 		<AuthGuard>
-			<div className="flex h-screen bg-accent overflow-hidden">
+			<div className="flex h-screen bg-accent">
 				<Sidebar />
 				<main
 					ref={mainRef}
@@ -62,6 +63,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 						<ReactQueryDevtools initialIsOpen={false} />
 					</div>
 				</main>
+				<ProactiveAiInsight />
 				<AiAssistantChat />
 			</div>
 		</AuthGuard>

@@ -18,6 +18,12 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
 interface OptimizedRouteItem {
@@ -134,25 +140,15 @@ export function OptimizedShoppingRoute({
 
 	const selectedSummary = getSelectedSummary();
 
-	if (!isOpen) return null;
-
 	return (
-		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-			<div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-				<div className="p-6 border-b">
-					<div className="flex items-center justify-between">
-						<div>
-							<h2 className="text-2xl font-bold flex items-center gap-2">
-								<Route className="h-6 w-6 text-blue-600" />
-								Roteiro Otimizado
-							</h2>
-							<p className="text-gray-600 mt-1">{listName}</p>
-						</div>
-						<Button variant="outline" onClick={onClose}>
-							Fechar
-						</Button>
-					</div>
-				</div>
+		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+			<DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						<Route className="h-6 w-6 text-blue-600" />
+						Roteiro Otimizado - {listName}
+					</DialogTitle>
+				</DialogHeader>
 
 				<div className="overflow-y-auto max-h-[calc(90vh-140px)]">
 					{loading ? (
@@ -397,7 +393,7 @@ export function OptimizedShoppingRoute({
 						</div>
 					)}
 				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }

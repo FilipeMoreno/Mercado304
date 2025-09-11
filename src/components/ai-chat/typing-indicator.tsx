@@ -13,7 +13,7 @@ export function TypingIndicator() {
 					<div className="w-1 h-1 bg-muted-foreground/60 rounded-full animate-bounce"></div>
 				</div>
 				<span className="text-xs text-muted-foreground ml-2">
-					Zé está digitando...
+					Zé está pensando...
 				</span>
 			</div>
 		</div>

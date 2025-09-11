@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary";
 import { ExpirationAlerts } from "@/components/expiration-alerts";
 import { MonthlySpendingChart } from "@/components/monthly-spending-chart";
@@ -27,22 +26,28 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatLocalDate } from "@/lib/date-utils";
 import { AppToasts } from "@/lib/toasts";
+import { 
+	useDashboardStatsQuery,
+	useSavingsQuery,
+	useTemporalComparisonQuery,
+	useConsumptionPatternsQuery,
+	useExpirationAlertsQuery 
+} from "@/hooks";
 
-interface DashboardClientProps {
-	initialData: {
-		stats: any;
-		savingsData: any;
-		temporalData: any;
-		consumptionData: any;
-		expirationData: any;
-	};
-}
-
-export function DashboardClient({ initialData }: DashboardClientProps) {
+export function DashboardClient() {
 	const router = useRouter();
-	const [data, _setData] = useState(initialData);
+	
+	// React Query hooks
+	const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStatsQuery();
+	const { data: savingsData, isLoading: savingsLoading } = useSavingsQuery();
+	const { data: temporalData, isLoading: temporalLoading } = useTemporalComparisonQuery();
+	const { data: consumptionData, isLoading: consumptionLoading } = useConsumptionPatternsQuery();
+	const { data: expirationData, isLoading: expirationLoading } = useExpirationAlertsQuery();
+
+	const isLoading = statsLoading || savingsLoading || temporalLoading || consumptionLoading || expirationLoading;
 
 	const handleRefresh = () => {
 		router.refresh();
@@ -57,16 +62,38 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 		AppToasts.success(`Produto adicionado à lista de compras!`);
 	};
 
-	const { stats, savingsData, temporalData, consumptionData, expirationData } =
-		data;
-
-	if (!stats) {
+	if (statsError) {
 		return (
 			<div className="text-center">
-				<h2 className="text-xl font-semibold">Erro ao carregar o dashboard</h2>
+				<h2 className="text-xl font-semibold text-red-600">Erro ao carregar o dashboard</h2>
 				<p className="text-gray-500">
-					Não foi possível buscar os dados. Tente atualizar a página.
+					Não foi possível buscar os dados. Tente recarregar a página.
 				</p>
+			</div>
+		);
+	}
+
+	// Loading skeleton for dashboard stats
+	if (isLoading) {
+		return (
+			<div className="space-y-4 md:space-y-6">
+				<div>
+					<Skeleton className="h-8 w-64" />
+					<Skeleton className="h-4 w-96 mt-2" />
+				</div>
+				<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+					{Array.from({ length: 5 }).map((_, i) => (
+						<Card key={i} className="shadow-sm">
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<Skeleton className="h-4 w-20" />
+								<Skeleton className="h-4 w-4" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-8 w-16" />
+							</CardContent>
+						</Card>
+					))}
+				</div>
 			</div>
 		);
 	}
@@ -94,7 +121,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">
-							{stats.totalPurchases}
+							{stats?.totalPurchases || 0}
 						</div>
 					</CardContent>
 				</Card>
@@ -108,7 +135,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">
-							R$ {(stats.totalSpent || 0).toFixed(2)}
+							R$ {(stats?.totalSpent || 0).toFixed(2)}
 						</div>
 					</CardContent>
 				</Card>
@@ -122,7 +149,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">
-							{stats.totalProducts}
+							{stats?.totalProducts || 0}
 						</div>
 					</CardContent>
 				</Card>
@@ -136,7 +163,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">
-							{stats.totalMarkets}
+							{stats?.totalMarkets || 0}
 						</div>
 					</CardContent>
 				</Card>
@@ -151,9 +178,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 						</CardHeader>
 						<CardContent>
 							<div className="text-xl md:text-2xl font-bold">
-								{stats.priceRecords?.totalRecords || 0}
+								{stats?.priceRecords?.totalRecords || 0}
 							</div>
-							{stats.priceRecords?.averagePrice > 0 && (
+							{stats?.priceRecords?.averagePrice > 0 && (
 								<div className="text-xs text-muted-foreground mt-1">
 									Média: R$ {stats.priceRecords.averagePrice.toFixed(2)}
 								</div>
@@ -163,14 +190,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 				</Link>
 			</div>
 
-			{stats.monthlySpending && stats.monthlySpending.length > 0 && (
-				<MonthlySpendingChart data={stats.monthlySpending} loading={false} />
+			{stats?.monthlySpending && stats.monthlySpending.length > 0 && (
+				<MonthlySpendingChart data={stats.monthlySpending} loading={statsLoading} />
 			)}
 
 			{consumptionData?.replenishmentAlerts?.length > 0 && (
 				<ReplenishmentAlerts
 					data={consumptionData}
-					loading={false}
+					loading={consumptionLoading}
 					onAddToShoppingList={handleAddToShoppingList}
 				/>
 			)}
@@ -182,12 +209,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					expirationData.stats.lowStock > 0) && (
 					<ExpirationAlerts
 						data={expirationData}
-						loading={false}
+						loading={expirationLoading}
 						onRefresh={handleRefresh}
 					/>
 				)}
 
-			{stats.monthlyComparison && (
+			{stats?.monthlyComparison && (
 				<Card className="md:col-span-2 shadow-sm hover:shadow-lg transition-shadow">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
@@ -262,15 +289,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-				<SavingsCard savingsData={savingsData} loading={false} />
-				<TemporalComparisonCard temporalData={temporalData} loading={false} />
+				<SavingsCard savingsData={savingsData} loading={savingsLoading} />
+				<TemporalComparisonCard temporalData={temporalData} loading={temporalLoading} />
 				<NutritionSummaryCard />
 			</div>
 
 			{/* Estatísticas de Métodos de Pagamento */}
 			<PaymentMethodStats />
 
-			{stats.categoryStats && stats.categoryStats.length > 0 && (
+			{stats?.categoryStats && stats.categoryStats.length > 0 && (
 				<Card className="shadow-sm hover:shadow-lg transition-shadow">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
@@ -283,12 +310,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
-							{stats.categoryStats
+							{stats?.categoryStats
 								.slice(0, 8)
 								.map((category: any, index: number) => {
 									const percentage =
-										stats.totalSpent > 0
-											? (category.totalSpent / stats.totalSpent) * 100
+										(stats?.totalSpent || 0) > 0
+											? (category.totalSpent / (stats?.totalSpent || 1)) * 100
 											: 0;
 									return (
 										<div
@@ -332,7 +359,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 						<CardDescription>Top 5 produtos mais frequentes</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{(stats.topProducts || []).length === 0 ? (
+						{(stats?.topProducts || []).length === 0 ? (
 							<div className="text-center py-8 text-gray-500">
 								<Package className="h-12 w-12 mx-auto mb-4" />
 								<p>Nenhuma compra registrada ainda</p>
@@ -347,7 +374,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{(stats.topProducts || [])
+								{(stats?.topProducts || [])
 									.slice(0, 5)
 									.map((product: any, index: number) => (
 										<div
@@ -389,7 +416,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 						<CardDescription>Média de preços por mercado</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{(stats.marketComparison || []).length === 0 ? (
+						{(stats?.marketComparison || []).length === 0 ? (
 							<div className="text-center py-8 text-gray-500">
 								<Store className="h-12 w-12 mx-auto mb-4" />
 								<p>Nenhuma compra registrada ainda</p>
@@ -404,11 +431,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{(stats.marketComparison || []).map(
+								{(stats?.marketComparison || []).map(
 									(market: any, index: number) => {
 										const cheapest =
-											stats.marketComparison?.length > 1
-												? stats.marketComparison.reduce(
+											(stats?.marketComparison?.length || 0) > 1
+												? stats?.marketComparison?.reduce(
 														(min: any, curr: any) =>
 															curr.averagePrice < min.averagePrice ? curr : min,
 													)

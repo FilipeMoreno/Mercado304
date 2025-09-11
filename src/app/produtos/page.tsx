@@ -1,7 +1,6 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import API_BASE_URL from "@/lib/api";
 import { ProductsClient } from "./products-client";
 
 interface ProductsPageProps {
@@ -14,42 +13,9 @@ interface ProductsPageProps {
 	};
 }
 
-async function fetchProductsData(searchParams: any) {
-	const params = new URLSearchParams({
-		search: searchParams.search || "",
-		category: searchParams.category || "",
-		brand: searchParams.brand || "",
-		sort: searchParams.sort || "name-asc",
-		page: searchParams.page || "1",
-		limit: "12",
-	});
-
-	const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-		fetch(`${API_BASE_URL}/products?${params.toString()}`, {
-			cache: "no-store",
-		}),
-		fetch(`${API_BASE_URL}/categories`, { cache: "no-store" }),
-		fetch(`${API_BASE_URL}/brands`, { cache: "no-store" }),
-	]);
-
-	const [productsData, categoriesData, brandsData] = await Promise.all([
-		productsRes.json(),
-		categoriesRes.json(),
-		brandsRes.json(),
-	]);
-
-	const categories = categoriesData.categories || [];
-	const brands = brandsData.brands || [];
-
-	return { productsData, categories, brands };
-}
-
-export default async function ProdutosPage({
+export default function ProdutosPage({
 	searchParams,
 }: ProductsPageProps) {
-	const { productsData, categories, brands } =
-		await fetchProductsData(searchParams);
-
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
@@ -65,12 +31,7 @@ export default async function ProdutosPage({
 				</Link>
 			</div>
 
-			<ProductsClient
-				productsData={productsData}
-				categories={categories}
-				brands={brands}
-				searchParams={searchParams}
-			/>
+			<ProductsClient searchParams={searchParams} />
 		</div>
 	);
 }

@@ -41,12 +41,16 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useDataMutation, useDeleteConfirmation, useUrlState } from "@/hooks";
+import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton";
+import { 
+	useShoppingListsQuery,
+	useDeleteShoppingListMutation,
+	useDeleteConfirmation, 
+	useUrlState 
+} from "@/hooks";
 import type { ShoppingList } from "@/types";
 
 interface ListaClientProps {
-	initialShoppingLists: ShoppingList[];
-	initialTotalCount: number;
 	searchParams: {
 		search?: string;
 		sort?: string;
@@ -56,16 +60,10 @@ interface ListaClientProps {
 }
 
 export function ListaClient({
-	initialShoppingLists,
-	initialTotalCount,
 	searchParams,
 }: ListaClientProps) {
-	const [shoppingLists, setShoppingLists] =
-		useState<ShoppingList[]>(initialShoppingLists);
-	const [totalCount, setTotalCount] = useState(initialTotalCount);
 	const itemsPerPage = 12;
 
-	const { remove, loading } = useDataMutation();
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
 		useDeleteConfirmation<ShoppingList>();
 
@@ -80,6 +78,25 @@ export function ListaClient({
 			},
 		});
 
+	// Build URLSearchParams for the shopping lists query
+	const shoppingListParams = React.useMemo(() => {
+		const urlParams = new URLSearchParams({
+			search: state.search,
+			sort: state.sort,
+			status: state.status,
+			page: state.page.toString(),
+			limit: itemsPerPage.toString(),
+		});
+		return urlParams;
+	}, [state.search, state.sort, state.status, state.page, itemsPerPage]);
+
+	// React Query hooks
+	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams);
+	const deleteShoppingListMutation = useDeleteShoppingListMutation();
+
+	// Extract data from React Query
+	const shoppingLists = shoppingListsData?.lists || [];
+	const totalCount = shoppingListsData?.totalCount || 0;
 	const totalPages = Math.ceil(totalCount / itemsPerPage);
 
 	const sortOptions = [
@@ -89,18 +106,36 @@ export function ListaClient({
 		{ value: "name-desc", label: "Nome (Z-A)" },
 	];
 
-	React.useEffect(() => {
-		setShoppingLists(initialShoppingLists);
-		setTotalCount(initialTotalCount);
-	}, [initialShoppingLists, initialTotalCount]);
+	// Handle loading and error states
+	if (isLoading && shoppingLists.length === 0) {
+		return <ShoppingListSkeleton />;
+	}
+
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<List className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">
+						Erro ao carregar listas
+					</h3>
+					<p className="text-gray-600 mb-4">
+						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	const deleteShoppingList = async () => {
 		if (!deleteState.item) return;
 
-		await remove(`/api/shopping-lists/${deleteState.item.id}`, {
-			successMessage: "Lista excluída com sucesso!",
-			onSuccess: closeDeleteConfirm,
-		});
+		try {
+			await deleteShoppingListMutation.mutateAsync(deleteState.item.id);
+			closeDeleteConfirm();
+		} catch (error) {
+			console.error("Error deleting shopping list:", error);
+		}
 	};
 
 	const handlePageChange = (page: number) => {
@@ -370,11 +405,11 @@ export function ListaClient({
 							<Button
 								variant="destructive"
 								onClick={deleteShoppingList}
-								disabled={loading}
+								disabled={deleteShoppingListMutation.isPending}
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{loading ? "Excluindo..." : "Sim, Excluir"}
+								{deleteShoppingListMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar
