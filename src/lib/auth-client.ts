@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { passkeyClient, twoFactorClient, oneTapClient } from "better-auth/client/plugins";
+import { passkeyClient, twoFactorClient, oneTapClient, adminClient, organizationClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
@@ -20,6 +20,8 @@ export const authClient = createAuthClient({
       }
 		}),
 		passkeyClient(),
+		adminClient(),
+		organizationClient(),
 	],
 });
 

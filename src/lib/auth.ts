@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { haveIBeenPwned, lastLoginMethod, oneTap, twoFactor } from "better-auth/plugins";
+import { haveIBeenPwned, lastLoginMethod, oneTap, organization, twoFactor, admin } from "better-auth/plugins";
 import { PrismaClient } from "@prisma/client";
 import { localization } from "better-auth-localization";
 import { emailHarmony } from 'better-auth-harmony';
@@ -42,7 +42,6 @@ export const auth = betterAuth({
 	},
 	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3000"],
 	plugins: [
-		// NOVO: Adiciona o plugin One Tap
 		oneTap({
 			google: {
 				clientId: process.env.AUTH_GOOGLE_ID as string,
@@ -78,6 +77,8 @@ export const auth = betterAuth({
 		localization({
       defaultLocale: "pt-BR",
       fallbackLocale: "default"
-    })
+    }),
+		organization(),
+		admin(),
 	],
 });
