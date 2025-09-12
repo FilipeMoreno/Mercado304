@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2, Lock, Mail, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
+import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AuthQuote } from "@/components/auth-quote";
@@ -39,35 +40,14 @@ export default function SignInPage() {
 			});
 
 			if (result.error) {
-				if (result.error.code === "PASSWORD_COMPROMISED") {
-					toast.error(
-						"Essa senha foi comprometida em vazamentos! " +
-						"Por sua segurança, recomendo trocar por uma senha mais forte e única. " +
-						"Acesse 'Esqueceu a senha?' para criar uma nova.",
-						{
-							duration: 8000, // Show for 8 seconds
-						}
-					);
-				}
-				if (result.error.code === "FAILED_TO_CREATE_USER") {
-					if (result.error?.details?.meta.target.includes("normalizedEmail")) {
-						toast.error(
-							"Email não normalizado"
-						)
-					}
-
-				} else if (result.error.message?.includes("verification")) {
-					toast.error(
-						"Email não verificado. Por favor, verifique seu email antes de fazer login.",
-					);
-				} else {
-					toast.error("Credenciais inválidas");
-				}
-			} else {
-				router.push("/");
+				handleAuthError(result.error, 'signin');
+				return;
 			}
-		} catch (_error) {
-			toast.error("Erro ao fazer login");
+
+			showAuthSuccess('signin');
+			router.push("/");
+		} catch (error: any) {
+			handleAuthError({ message: error.message || "Erro ao fazer login" }, 'signin');
 		} finally {
 			setIsLoading(false);
 		}
@@ -76,12 +56,16 @@ export default function SignInPage() {
 	const handleGoogleSignIn = async () => {
 		setIsGoogleLoading(true);
 		try {
-			await signIn.social({
+			const result = await signIn.social({
 				provider: "google",
 				callbackURL: "/",
 			});
-		} catch (_error) {
-			toast.error("Erro ao fazer login com Google");
+			
+			if (result?.error) {
+				handleAuthError(result.error, 'signin');
+			}
+		} catch (error: any) {
+			handleAuthError({ message: error.message || "Erro ao fazer login com Google" }, 'signin');
 		} finally {
 			setIsGoogleLoading(false);
 		}
