@@ -4,7 +4,6 @@ import { Eye, EyeOff, Loader2, ShoppingCart } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AuthQuote } from "@/components/auth-quote";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -56,10 +55,13 @@ export default function ResetPasswordPage() {
 	};
 
 	return (
-		<div className="min-h-screen grid lg:grid-cols-2">
-			<AuthQuote />
-			<div className="flex items-center justify-center p-8">
-				<div className="w-full max-w-[400px]">
+		<div className="flex flex-col space-y-2 text-center mb-6">
+			<div className="flex items-center justify-center mb-4">
+				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<h1 className="text-2xl font-semibold text-blue-600">
+					Mercado304
+				</h1>
+			</div>
 					<Card>
 						<CardHeader className="text-center">
 							<CardTitle>Redefinir sua senha</CardTitle>
@@ -118,8 +120,6 @@ export default function ResetPasswordPage() {
 							</form>
 						</CardContent>
 					</Card>
-				</div>
-			</div>
 		</div>
 	);
 }

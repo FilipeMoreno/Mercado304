@@ -51,6 +51,24 @@ export const AUTH_ERRORS = {
 	INTERNAL_SERVER_ERROR: "Erro interno do servidor. Tente novamente em instantes.",
 	SERVICE_UNAVAILABLE: "Serviço temporariamente indisponível. Tente novamente.",
 	
+	// Two-Factor Authentication errors
+	TWO_FACTOR_REQUIRED: "Autenticação de dois fatores necessária. Insira o código do seu aplicativo authenticator.",
+	INVALID_TWO_FACTOR_CODE: "Código de dois fatores inválido. Verifique e tente novamente.",
+	INVALID_TOTP_CODE: "Código TOTP inválido. Verifique seu aplicativo authenticator.",
+	INVALID_OTP_CODE: "Código OTP inválido ou expirado. Solicite um novo código.",
+	INVALID_BACKUP_CODE: "Código de backup inválido. Verifique e tente novamente.",
+	TWO_FACTOR_NOT_ENABLED: "Autenticação de dois fatores não está habilitada para esta conta.",
+	TWO_FACTOR_ALREADY_ENABLED: "Autenticação de dois fatores já está habilitada.",
+	BACKUP_CODES_NOT_GENERATED: "Códigos de backup não foram gerados. Configure primeiro o 2FA.",
+	
+	// Passkey/WebAuthn errors
+	PASSKEY_NOT_SUPPORTED: "Passkeys não são suportados neste navegador ou dispositivo.",
+	PASSKEY_REGISTRATION_FAILED: "Falha ao registrar passkey. Tente novamente.",
+	PASSKEY_AUTHENTICATION_FAILED: "Falha na autenticação com passkey. Tente novamente ou use outro método.",
+	INVALID_PASSKEY_CHALLENGE: "Challenge de passkey inválido. Tente novamente.",
+	PASSKEY_CANCELLED: "Registro ou autenticação com passkey foi cancelado.",
+	PASSKEY_NOT_ALLOWED: "Passkey não permitido. Tente outro método de autenticação.",
+	
 	// Generic errors
 	UNKNOWN_ERROR: "Erro desconhecido. Por favor, tente novamente.",
 	VALIDATION_ERROR: "Dados inválidos. Verifique as informações fornecidas.",
@@ -178,6 +196,54 @@ export function handleAuthError(error: AuthError, context: 'signin' | 'signup' |
 		// Network errors
 		if (message.includes('network') || message.includes('connection')) {
 			toast.error(AUTH_ERRORS.NETWORK_ERROR);
+			return;
+		}
+		
+		// Two-factor authentication errors
+		if (message.includes('two factor') || message.includes('2fa')) {
+			if (message.includes('required')) {
+				toast.error(AUTH_ERRORS.TWO_FACTOR_REQUIRED);
+			} else if (message.includes('invalid') || message.includes('incorrect')) {
+				toast.error(AUTH_ERRORS.INVALID_TWO_FACTOR_CODE);
+			} else if (message.includes('not enabled')) {
+				toast.error(AUTH_ERRORS.TWO_FACTOR_NOT_ENABLED);
+			} else {
+				toast.error(AUTH_ERRORS.INVALID_TWO_FACTOR_CODE);
+			}
+			return;
+		}
+		
+		// TOTP errors
+		if (message.includes('totp') || message.includes('authenticator')) {
+			toast.error(AUTH_ERRORS.INVALID_TOTP_CODE);
+			return;
+		}
+		
+		// OTP errors
+		if (message.includes('otp')) {
+			toast.error(AUTH_ERRORS.INVALID_OTP_CODE);
+			return;
+		}
+		
+		// Backup code errors
+		if (message.includes('backup code')) {
+			toast.error(AUTH_ERRORS.INVALID_BACKUP_CODE);
+			return;
+		}
+		
+		// Passkey errors
+		if (message.includes('passkey') || message.includes('webauthn')) {
+			if (message.includes('not supported')) {
+				toast.error(AUTH_ERRORS.PASSKEY_NOT_SUPPORTED);
+			} else if (message.includes('cancelled')) {
+				toast.error(AUTH_ERRORS.PASSKEY_CANCELLED);
+			} else if (message.includes('failed')) {
+				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED);
+			} else if (message.includes('not allowed')) {
+				toast.error(AUTH_ERRORS.PASSKEY_NOT_ALLOWED);
+			} else {
+				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED);
+			}
 			return;
 		}
 	}

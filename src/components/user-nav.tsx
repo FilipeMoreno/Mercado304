@@ -102,7 +102,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 				<DropdownMenuSub>
 					<DropdownMenuSubTrigger>
 						<div className="flex items-center">
-							<Sun className="mr-2 h-4 w-4" />
+							<Sun className="mr-4 h-4 w-4" />
 							<span>Tema</span>
 						</div>
 					</DropdownMenuSubTrigger>

@@ -3,19 +3,11 @@
 import {
 	AlertCircle,
 	Camera,
-	CheckCircle,
-	Eye,
-	EyeOff,
-	Key,
-	Loader2,
-	Mail,
-	Save,
-	Shield,
-	Trash2,
-	User,
+	CheckCircle, Loader2, Save, Trash2,
+	User
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut, useSession, updateSession } from "@/lib/auth-client";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -43,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SecurityTab } from "@/components/auth/security-tab";
 
 export default function ContaPage() {
 	const { data: session } = useSession();
@@ -52,15 +45,6 @@ export default function ContaPage() {
 	const [name, setName] = useState(session?.user?.name || "");
 	const [email, setEmail] = useState(session?.user?.email || "");
 	const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-
-	// Estados para senha
-	const [currentPassword, setCurrentPassword] = useState("");
-	const [newPassword, setNewPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
-	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-	const [showNewPassword, setShowNewPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [isChangingPassword, setIsChangingPassword] = useState(false);
 
 	// Estados para exclusão de conta
 	const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -73,18 +57,6 @@ export default function ContaPage() {
 			.join("")
 			.toUpperCase()
 			.slice(0, 2);
-	};
-
-	const passwordRequirements = [
-		{ regex: /.{8,}/, text: "Pelo menos 8 caracteres" },
-		{ regex: /[A-Z]/, text: "Uma letra maiúscula" },
-		{ regex: /[a-z]/, text: "Uma letra minúscula" },
-		{ regex: /\d/, text: "Um número" },
-		{ regex: /[^A-Za-z0-9]/, text: "Um caractere especial" },
-	];
-
-	const validatePassword = (pwd: string) => {
-		return passwordRequirements.every((req) => req.regex.test(pwd));
 	};
 
 	const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -115,49 +87,6 @@ export default function ContaPage() {
 			toast.error(error.message || "Erro ao atualizar perfil");
 		} finally {
 			setIsUpdatingProfile(false);
-		}
-	};
-
-	const handleChangePassword = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (newPassword !== confirmPassword) {
-			toast.error("As senhas não coincidem");
-			return;
-		}
-
-		if (!validatePassword(newPassword)) {
-			toast.error("A nova senha não atende aos requisitos de segurança");
-			return;
-		}
-
-		setIsChangingPassword(true);
-
-		try {
-			const response = await fetch("/api/user/change-password", {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					currentPassword,
-					newPassword,
-				}),
-			});
-
-			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || "Erro ao alterar senha");
-			}
-
-			toast.success("Senha alterada com sucesso!");
-			setCurrentPassword("");
-			setNewPassword("");
-			setConfirmPassword("");
-		} catch (error: any) {
-			toast.error(error.message || "Erro ao alterar senha");
-		} finally {
-			setIsChangingPassword(false);
 		}
 	};
 
@@ -205,7 +134,7 @@ export default function ContaPage() {
 	}
 
 	return (
-		<div className="container max-w-4xl mx-auto py-6 space-y-6">
+		<div className="container py-6 w-full">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold">Minha Conta</h1>
@@ -316,176 +245,7 @@ export default function ContaPage() {
 				</TabsContent>
 
 				<TabsContent value="seguranca">
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Shield className="h-5 w-5" />
-								Segurança da Conta
-							</CardTitle>
-							<CardDescription>
-								Altere sua senha e gerencie configurações de segurança
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{session.user?.image ? (
-								<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-									<div className="flex items-center gap-2 text-blue-800 mb-2">
-										<Mail className="h-4 w-4" />
-										Conta Google
-									</div>
-									<p className="text-sm text-blue-700">
-										Esta conta está conectada com o Google. Para alterar a
-										senha, acesse as configurações da sua conta Google.
-									</p>
-								</div>
-							) : (
-								<form onSubmit={handleChangePassword} className="space-y-4">
-									<div className="space-y-2">
-										<Label htmlFor="currentPassword">Senha atual</Label>
-										<div className="relative">
-											<Input
-												id="currentPassword"
-												type={showCurrentPassword ? "text" : "password"}
-												value={currentPassword}
-												onChange={(e) => setCurrentPassword(e.target.value)}
-												placeholder="Digite sua senha atual"
-												required
-												disabled={isChangingPassword}
-											/>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												className="absolute right-0 top-0 h-full px-3"
-												onClick={() =>
-													setShowCurrentPassword(!showCurrentPassword)
-												}
-												disabled={isChangingPassword}
-											>
-												{showCurrentPassword ? (
-													<EyeOff className="h-4 w-4" />
-												) : (
-													<Eye className="h-4 w-4" />
-												)}
-											</Button>
-										</div>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="newPassword">Nova senha</Label>
-										<div className="relative">
-											<Input
-												id="newPassword"
-												type={showNewPassword ? "text" : "password"}
-												value={newPassword}
-												onChange={(e) => setNewPassword(e.target.value)}
-												placeholder="Digite sua nova senha"
-												required
-												disabled={isChangingPassword}
-											/>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												className="absolute right-0 top-0 h-full px-3"
-												onClick={() => setShowNewPassword(!showNewPassword)}
-												disabled={isChangingPassword}
-											>
-												{showNewPassword ? (
-													<EyeOff className="h-4 w-4" />
-												) : (
-													<Eye className="h-4 w-4" />
-												)}
-											</Button>
-										</div>
-										{newPassword && (
-											<div className="space-y-1 text-xs">
-												{passwordRequirements.map((req, index) => (
-													<div
-														key={index}
-														className="flex items-center space-x-2"
-													>
-														<div
-															className={`w-4 h-4 rounded-full flex items-center justify-center ${
-																req.regex.test(newPassword)
-																	? "bg-green-500"
-																	: "bg-gray-300"
-															}`}
-														>
-															{req.regex.test(newPassword) && (
-																<CheckCircle className="w-2 h-2 text-white" />
-															)}
-														</div>
-														<span
-															className={
-																req.regex.test(newPassword)
-																	? "text-green-600"
-																	: "text-gray-500"
-															}
-														>
-															{req.text}
-														</span>
-													</div>
-												))}
-											</div>
-										)}
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="confirmPassword">
-											Confirmar nova senha
-										</Label>
-										<div className="relative">
-											<Input
-												id="confirmPassword"
-												type={showConfirmPassword ? "text" : "password"}
-												value={confirmPassword}
-												onChange={(e) => setConfirmPassword(e.target.value)}
-												placeholder="Confirme sua nova senha"
-												required
-												disabled={isChangingPassword}
-											/>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												className="absolute right-0 top-0 h-full px-3"
-												onClick={() =>
-													setShowConfirmPassword(!showConfirmPassword)
-												}
-												disabled={isChangingPassword}
-											>
-												{showConfirmPassword ? (
-													<EyeOff className="h-4 w-4" />
-												) : (
-													<Eye className="h-4 w-4" />
-												)}
-											</Button>
-										</div>
-										{confirmPassword && newPassword !== confirmPassword && (
-											<p className="text-xs text-red-500">
-												As senhas não coincidem
-											</p>
-										)}
-									</div>
-
-									<Button type="submit" disabled={isChangingPassword}>
-										{isChangingPassword ? (
-											<>
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-												Alterando...
-											</>
-										) : (
-											<>
-												<Key className="mr-2 h-4 w-4" />
-												Alterar Senha
-											</>
-										)}
-									</Button>
-								</form>
-							)}
-						</CardContent>
-					</Card>
+					<SecurityTab session={session} onUpdateSession={updateSession} />
 				</TabsContent>
 
 				<TabsContent value="conta">

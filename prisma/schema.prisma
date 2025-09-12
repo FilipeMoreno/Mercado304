@@ -384,6 +384,8 @@ model User {
   passkeys         Passkey[]
   twofactors       TwoFactor[]
 
+  lastLoginMethod String?
+
   @@unique([email])
   @@unique([normalizedEmail])
   @@map("user")
@@ -455,7 +457,7 @@ model TwoFactor {
   id          String @id
   secret      String
   backupCodes String
-  userId      String
+  userId      String @unique
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("twoFactor")

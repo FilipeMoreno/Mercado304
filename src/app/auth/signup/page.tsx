@@ -12,11 +12,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn, signUp } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { AuthQuote } from "@/components/auth-quote";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -32,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 export default function SignUpPage() {
+	const { data: session, isLoading: sessionLoading } = useSession();
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -42,6 +42,18 @@ export default function SignUpPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const router = useRouter();
+
+	useEffect(() => {
+		if (!sessionLoading && session?.user) {
+			// Se usuário está logado mas email não verificado, redireciona para verificação
+			if (!session.user.emailVerified) {
+				router.push('/auth/verify-request');
+				return;
+			}
+			// Se usuário está logado e email verificado, redireciona para dashboard
+			router.push('/');
+		}
+	}, [session, sessionLoading, router]);
 
 	const passwordRequirements = [
 		{ regex: /.{8,}/, text: "Pelo menos 8 caracteres" },
@@ -88,7 +100,12 @@ export default function SignUpPage() {
 			}
 
 			showAuthSuccess('signup');
-			router.push("/");
+			// Verificar se email está verificado antes de redirecionar
+			if (result.data?.user && !result.data.user.emailVerified) {
+				router.push('/auth/verify-request');
+			} else {
+				router.push("/");
+			}
 		} catch (error: any) {
 			handleAuthError({ message: error.message || "Erro ao criar conta" }, 'signup');
 		} finally {
@@ -114,22 +131,28 @@ export default function SignUpPage() {
 		}
 	};
 
-	return (
-		<div className="min-h-screen grid lg:grid-cols-2">
-			<AuthQuote />
-			<div className="flex items-center justify-center p-8">
-				<div className="w-full max-w-[400px]">
-					<div className="flex flex-col space-y-2 text-center mb-6">
-						<div className="flex items-center justify-center mb-4">
-							<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
-							<h1 className="text-2xl font-semibold text-blue-600">
-								Mercado304
-							</h1>
-						</div>
-					</div>
+	// Mostra loading enquanto verifica a sessão
+	if (sessionLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+					<p className="text-muted-foreground">Verificando autenticação...</p>
+				</div>
+			</div>
+		);
+	}
 
+	return (
+		<div className="flex flex-col space-y-2 mb-6">
+			<div className="flex items-center justify-center mb-4">
+				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<h1 className="text-2xl font-semibold text-blue-600">
+					Mercado304
+				</h1>
+			</div>
 					<Card>
-						<CardHeader className="text-center">
+						<CardHeader>
 							<CardTitle>Crie sua conta</CardTitle>
 							<CardDescription>
 								Preencha os dados abaixo para criar sua conta
@@ -360,8 +383,6 @@ export default function SignUpPage() {
 							</p>
 						</CardFooter>
 					</Card>
-				</div>
-			</div>
 		</div>
 	);
 }
