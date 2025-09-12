@@ -1,27 +1,30 @@
-import { withAuth } from "next-auth/middleware"
+import { betterFetch } from "@better-fetch/fetch";
+import type { Session } from "better-auth/types";
+import { NextResponse, type NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    // Middleware function runs when user is authenticated
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // Check if user has a valid session
-        return !!token
-      },
-    },
-    pages: {
-      signIn: "/auth/signin",
-    },
-  }
-)
+export default async function authMiddleware(request: NextRequest) {
+	const { data: session } = await betterFetch<Session>(
+		"/api/auth/get-session",
+		{
+			baseURL: request.nextUrl.origin,
+			headers: {
+				//get the cookie from the request
+				cookie: request.headers.get("cookie") || "",
+			},
+		},
+	);
+
+	if (!session) {
+		return NextResponse.redirect(new URL("/auth/signin", request.url));
+	}
+	return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth API routes)
+     * - api/auth (Better Auth API routes)
      * - auth (auth pages)
      * - _next/static (static files)
      * - _next/image (image optimization files)

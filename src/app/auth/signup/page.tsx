@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, signUp } from "@/lib/auth-client";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AuthQuote } from "@/components/auth-quote";
@@ -75,26 +75,30 @@ export default function SignUpPage() {
 		setIsLoading(true);
 
 		try {
-			const response = await fetch("/api/auth/register", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					name,
-					email,
-					password,
-				}),
+			const result = await signUp.email({
+				name,
+				email,
+				password,
 			});
 
-			const data = await response.json();
-
-			if (!response.ok) {
-				throw new Error(data.error || "Erro ao criar conta");
+			if (result.error) {
+				if (result.error.code === "PASSWORD_COMPROMISED") {
+					toast.error(
+						"Essa senha já foi comprometida em vazamentos! " +
+						"Por segurança, escolha uma senha única que você não use em outros sites. " +
+						"Dica: use uma combinação de letras, números e símbolos.",
+						{
+							duration: 8000,
+						}
+					);
+				} else {
+					toast.error(result.error.message || "Erro ao criar conta");
+				}
+				return;
 			}
 
-			toast.success("Conta criada com sucesso! Verifique seu email.");
-			router.push("/auth/verify-request");
+			toast.success("Conta criada com sucesso!");
+			router.push("/");
 		} catch (error: any) {
 			toast.error(error.message || "Erro ao criar conta");
 		} finally {
@@ -105,7 +109,10 @@ export default function SignUpPage() {
 	const handleGoogleSignIn = async () => {
 		setIsGoogleLoading(true);
 		try {
-			await signIn("google", { callbackUrl: "/" });
+			await signIn.social({
+				provider: "google",
+				callbackURL: "/",
+			});
 		} catch (_error) {
 			toast.error("Erro ao criar conta com Google");
 		} finally {

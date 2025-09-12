@@ -15,7 +15,7 @@ import {
 	User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@/lib/auth-client";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -45,7 +45,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ContaPage() {
-	const { data: session, update: updateSession } = useSession();
+	const { data: session } = useSession();
 	const router = useRouter();
 
 	// Estados para perfil

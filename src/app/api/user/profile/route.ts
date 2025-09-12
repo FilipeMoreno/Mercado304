@@ -1,13 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 
 export async function PUT(request: NextRequest) {
 	try {
-		const session = await getServerSession(authOptions);
+		const session = await getSession();
 
-		if (!session?.user || !(session.user as any).id) {
+		if (!session?.user) {
 			return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 		}
 
@@ -26,7 +25,7 @@ export async function PUT(request: NextRequest) {
 				where: { email },
 			});
 
-			if (existingUser && existingUser.id !== (session.user as any).id) {
+			if (existingUser && existingUser.id !== session.user.id) {
 				return NextResponse.json(
 					{ error: "Email já está sendo usado por outra conta" },
 					{ status: 400 },
@@ -35,7 +34,7 @@ export async function PUT(request: NextRequest) {
 		}
 
 		const updatedUser = await prisma.user.update({
-			where: { id: (session.user as any).id },
+			where: { id: session.user.id },
 			data: {
 				name,
 				email,

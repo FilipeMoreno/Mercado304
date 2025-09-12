@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { useEffect } from "react";
 
 interface AuthGuardProps {
@@ -10,18 +10,18 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-	const { data: session, status } = useSession();
+	const { data: session, isPending } = useSession();
 	const router = useRouter();
 
 	useEffect(() => {
-		if (status === "loading") return; // Still loading
+		if (isPending) return; // Still loading
 
 		if (!session) {
 			router.push("/auth/signin");
 		}
-	}, [session, status, router]);
+	}, [session, isPending, router]);
 
-	if (status === "loading") {
+	if (isPending) {
 		return (
 			<div className="flex h-screen items-center justify-center">
 				<div className="flex flex-col items-center space-y-4">
