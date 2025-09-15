@@ -75,7 +75,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const categoryOptions = useMemo(
 		() => [
 			{ value: "all", label: "Todas as categorias", icon: "" },
-			...(categories || []).map((cat) => ({
+			...(categories || []).map((cat: any) => ({
 				value: cat.id,
 				label: cat.name,
 				icon: cat.icon,
@@ -87,7 +87,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const brandOptions = useMemo(
 		() => [
 			{ value: "all", label: "Todas as marcas" },
-			...(brands || []).map((brand) => ({
+			...(brands || []).map((brand: any) => ({
 				value: brand.id,
 				label: brand.name,
 			})),
@@ -268,7 +268,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 						</div>
 
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{products.map((product) => (
+							{products.map((product: any) => (
 								<Card key={product.id} className="hover:shadow-md transition-shadow">
 									<CardHeader className="pb-3">
 										<div className="flex justify-between items-start">

@@ -17,31 +17,29 @@ export async function PUT(request: NextRequest) {
 			return NextResponse.json({ error: "Senha atual e nova senha são obrigatórias" }, { status: 400 })
 		}
 
-		// Buscar usuário com senha
-		const user = await prisma.user.findUnique({
-			where: { id: session.user.id },
+		// Buscar conta com senha (Better Auth armazena senhas na tabela Account)
+		const account = await prisma.account.findFirst({
+			where: { 
+				userId: session.user.id,
+				providerId: "credential" // Better Auth usa "credential" para contas de email/senha
+			},
 			select: {
 				id: true,
 				password: true,
-				image: true,
+				userId: true,
 			},
 		})
 
-		if (!user) {
-			return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
+		if (!account) {
+			return NextResponse.json({ error: "Conta não encontrada ou é uma conta social" }, { status: 404 })
 		}
 
-		// Verificar se é conta Google (sem senha local)
-		if (!user.password && user.image) {
-			return NextResponse.json({ error: "Contas Google não podem alterar senha aqui" }, { status: 400 })
-		}
-
-		if (!user.password) {
+		if (!account.password) {
 			return NextResponse.json({ error: "Senha atual não encontrada" }, { status: 400 })
 		}
 
 		// Verificar senha atual
-		const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password)
+		const isCurrentPasswordValid = await bcrypt.compare(currentPassword, account.password)
 		if (!isCurrentPasswordValid) {
 			return NextResponse.json({ error: "Senha atual incorreta" }, { status: 400 })
 		}
@@ -76,9 +74,9 @@ export async function PUT(request: NextRequest) {
 		// Hash da nova senha
 		const hashedNewPassword = await bcrypt.hash(newPassword, 12)
 
-		// Atualizar senha
-		await prisma.user.update({
-			where: { id: session.user.id },
+		// Atualizar senha na conta
+		await prisma.account.update({
+			where: { id: account.id },
 			data: {
 				password: hashedNewPassword,
 			},

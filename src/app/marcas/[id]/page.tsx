@@ -3,7 +3,7 @@
 import { ArrowLeft, BarChart3, Edit, Factory, Package, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,13 +32,7 @@ export default function MarcaDetalhesPage() {
 
 	const { remove, loading: deleting } = useDataMutation()
 
-	useEffect(() => {
-		if (brandId) {
-			fetchBrandDetails()
-		}
-	}, [brandId, fetchBrandDetails])
-
-	const fetchBrandDetails = async () => {
+	const fetchBrandDetails = useCallback(async () => {
 		try {
 			const response = await fetch(`/api/brands/${brandId}`)
 
@@ -57,7 +51,13 @@ export default function MarcaDetalhesPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [brandId, router])
+
+	useEffect(() => {
+		if (brandId) {
+			fetchBrandDetails()
+		}
+	}, [brandId, fetchBrandDetails])
 
 	const deleteBrand = async () => {
 		if (!brand) return

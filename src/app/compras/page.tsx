@@ -72,12 +72,7 @@ export default async function ComprasPage({ searchParams }: ComprasPageProps) {
 				</Link>
 			</div>
 
-			<PurchasesClient
-				initialPurchases={purchases}
-				initialMarkets={markets}
-				initialTotalCount={totalCount}
-				searchParams={searchParams}
-			/>
+			<PurchasesClient searchParams={searchParams} />
 		</div>
 	)
 }

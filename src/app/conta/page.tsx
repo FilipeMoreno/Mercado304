@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { signOut, updateSession, useSession } from "@/lib/auth-client"
+import { signOut, useSession } from "@/lib/auth-client"
 
 export default function ContaPage() {
 	const { data: session } = useSession()
@@ -69,8 +69,6 @@ export default function ContaPage() {
 				throw new Error(data.error || "Erro ao atualizar perfil")
 			}
 
-			// Atualizar a sessão
-			await updateSession()
 			toast.success("Perfil atualizado com sucesso!")
 		} catch (error: any) {
 			toast.error(error.message || "Erro ao atualizar perfil")
@@ -101,7 +99,8 @@ export default function ContaPage() {
 			}
 
 			toast.success("Conta excluída com sucesso!")
-			await signOut({ callbackUrl: "/auth/signin" })
+			await signOut()
+			window.location.href = "/auth/signin"
 		} catch (error: any) {
 			toast.error(error.message || "Erro ao excluir conta")
 		} finally {
@@ -224,7 +223,7 @@ export default function ContaPage() {
 				</TabsContent>
 
 				<TabsContent value="seguranca">
-					<SecurityTab session={session} onUpdateSession={updateSession} />
+					<SecurityTab session={session} />
 				</TabsContent>
 
 				<TabsContent value="conta">

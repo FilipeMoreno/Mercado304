@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
 // POST - Registrar nova entrada no histórico geral
 export async function POST(request: NextRequest) {
 	try {
-		const session = await getServerSession(authOptions)
+		const session = await getSession()
 
 		if (!session?.user) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

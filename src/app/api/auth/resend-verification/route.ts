@@ -10,12 +10,12 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Usar Better Auth para reenviar email de verificação
-		const result = await auth.api.sendEmailVerificationRequest({
+		const result = await auth.api.sendVerificationEmail({
 			body: { email },
 		})
 
-		if (result.error) {
-			return NextResponse.json({ error: result.error.message || "Erro ao reenviar email" }, { status: 400 })
+		if (!result.status) {
+			return NextResponse.json({ error: "Erro ao reenviar email" }, { status: 400 })
 		}
 
 		return NextResponse.json({ message: "Email de verificação reenviado com sucesso" }, { status: 200 })

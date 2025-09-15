@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { signOut, useSession } from "@/lib/auth-client"
 
 export default function VerifyRequestPage() {
-	const { data: session, isLoading: sessionLoading } = useSession()
+	const { data: session, isPending: sessionLoading } = useSession()
 	const [isResending, setIsResending] = useState(false)
 	const [cooldown, setCooldown] = useState(0)
 	const router = useRouter()

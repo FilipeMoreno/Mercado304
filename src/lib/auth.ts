@@ -23,10 +23,10 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
-		sendResetPassword: async ({ user, url }) => {
+		sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
 			console.log(`Reset password URL for ${user.email}: ${url}`)
 		},
-		sendVerificationEmail: async ({ user, url }) => {
+		sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
 			console.log(`Verification URL for ${user.email}: ${url}`)
 		},
 	},
@@ -43,9 +43,7 @@ export const auth = betterAuth({
 	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3000"],
 	plugins: [
 		oneTap({
-			google: {
-				clientId: process.env.AUTH_GOOGLE_ID as string,
-			},
+			clientId: process.env.AUTH_GOOGLE_ID as string,
 		}),
 		haveIBeenPwned({
 			customPasswordCompromisedMessage:
@@ -55,15 +53,8 @@ export const auth = betterAuth({
 			allowNormalizedSignin: true,
 		}),
 		twoFactor({
-			totpOptions: {
-				applicationName: "Mercado304",
-			},
-			backupCodesOptions: {
-				numBackupCodes: 10,
-			},
-			sendOTP: async ({ user, otp, type }) => {
-				console.log(`2FA OTP for ${user.email}: ${otp} (type: ${type})`)
-				// TODO: Implement email sending for OTP
+			backupCodeOptions: {
+				amount: 10,
 			},
 		}),
 		passkey({

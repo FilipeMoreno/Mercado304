@@ -138,7 +138,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const isLoading = stockLoading || productsLoading
 
 	const stockIngredients = React.useMemo(() => {
-		return stockItems.map((item) => item.product.name)
+		return stockItems.map((item: any) => item.product.name)
 	}, [stockItems])
 
 	// Handle error states
@@ -475,7 +475,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 								</Card>
 							) : (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{stockItems.map((item) => (
+									{stockItems.map((item: any) => (
 										<Card key={item.id} className="relative">
 											<CardHeader className="pb-3">
 												<div className="flex justify-between items-start">

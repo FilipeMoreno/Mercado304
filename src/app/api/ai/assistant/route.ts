@@ -11,7 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
 export async function POST(request: Request): Promise<Response> {
 	// Timeout de 30 segundos para toda a requisição
-	const timeoutPromise = new Promise((_, reject) => {
+	const timeoutPromise = new Promise<Response>((_, reject) => {
 		setTimeout(() => reject(new Error("Request timeout")), 30000)
 	})
 

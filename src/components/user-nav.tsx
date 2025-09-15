@@ -29,7 +29,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 	const { data: session } = useSession()
 
 	if (!session) {
-		return <Button onClick={() => signIn()}>Sign In</Button>
+		return <Button asChild><Link href="/auth/signin">Sign In</Link></Button>
 	}
 
 	const { user } = session

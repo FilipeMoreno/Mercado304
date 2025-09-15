@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Plus } from "lucide-react";
+import { ChevronLeft, Package, Plus } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type * as React from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -297,7 +297,7 @@ export default function ListaDetalhesPage() {
 		const item = list.items.find((item) => item.id === itemId);
 		if (item?.product?.id && newPrice > 0) {
 			setTimeout(() => {
-				checkBestPrice(itemId, item.product?.id, newPrice);
+				checkBestPrice(itemId, item.product!.id, newPrice);
 			}, 1000);
 		}
 

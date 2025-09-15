@@ -40,21 +40,18 @@ export async function GET(request: Request) {
 			}
 
 			dateFilter = {
-				date: {
+				wasteDate: {
 					gte: startOfPeriod,
 				},
 			}
 		}
 
 		// Estatísticas gerais de desperdício
-		const wasteStats = await prisma.stockMovement.aggregate({
-			where: {
-				isWaste: true,
-				...dateFilter,
-			},
+		const wasteStats = await prisma.wasteRecord.aggregate({
+			where: dateFilter,
 			_sum: {
 				quantity: true,
-				wasteValue: true,
+				totalValue: true,
 			},
 			_count: {
 				id: true,
@@ -62,15 +59,12 @@ export async function GET(request: Request) {
 		})
 
 		// Desperdício por produto
-		const wasteByProduct = await prisma.stockMovement.groupBy({
-			by: ["stockItemId"],
-			where: {
-				isWaste: true,
-				...dateFilter,
-			},
+		const wasteByProduct = await prisma.wasteRecord.groupBy({
+			by: ["productName"],
+			where: dateFilter,
 			_sum: {
 				quantity: true,
-				wasteValue: true,
+				totalValue: true,
 			},
 			_count: {
 				id: true,
@@ -78,37 +72,20 @@ export async function GET(request: Request) {
 		})
 
 		// Buscar detalhes dos produtos mais desperdiçados
-		const topWastedProducts = await Promise.all(
-			wasteByProduct
-				.sort((a, b) => (b._sum.wasteValue || 0) - (a._sum.wasteValue || 0))
-				.slice(0, 10)
-				.map(async (item) => {
-					const stockItem = await prisma.stockItem.findUnique({
-						where: { id: item.stockItemId },
-						include: {
-							product: {
-								include: {
-									brand: true,
-									category: true,
-								},
-							},
-						},
-					})
-
-					return {
-						product: stockItem?.product,
-						wasteCount: item._count.id,
-						totalQuantity: item._sum.quantity || 0,
-						totalValue: item._sum.wasteValue || 0,
-					}
-				}),
-		)
+		const topWastedProducts = wasteByProduct
+			.sort((a, b) => (b._sum.totalValue || 0) - (a._sum.totalValue || 0))
+			.slice(0, 10)
+			.map((item) => ({
+				productName: item.productName,
+				quantity: item._sum.quantity || 0,
+				value: item._sum.totalValue || 0,
+				count: item._count.id,
+			}))
 
 		// Desperdício por motivo
-		const wasteByReason = await prisma.stockMovement.groupBy({
+		const wasteByReason = await prisma.wasteRecord.groupBy({
 			by: ["wasteReason"],
 			where: {
-				isWaste: true,
 				wasteReason: {
 					not: null,
 				},
@@ -116,7 +93,7 @@ export async function GET(request: Request) {
 			},
 			_sum: {
 				quantity: true,
-				wasteValue: true,
+				totalValue: true,
 			},
 			_count: {
 				id: true,
@@ -124,56 +101,58 @@ export async function GET(request: Request) {
 		})
 
 		// Desperdício por categoria de produto
-		const wasteByCategory = await prisma.$queryRaw`
-      SELECT 
-        c.name as category_name,
-        c.id as category_id,
-        COUNT(sm.id) as waste_count,
-        SUM(sm.quantity) as total_quantity,
-        SUM(sm.waste_value) as total_value
-      FROM stock_movements sm
-      JOIN stock_items si ON sm.stock_item_id = si.id
-      JOIN products p ON si.product_id = p.id
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE sm.is_waste = true
-        AND sm.date >= ${dateFilter.date?.gte || new Date(0)}
-        ${dateFilter.date?.lte ? `AND sm.date <= ${dateFilter.date.lte}` : ""}
-      GROUP BY c.id, c.name
-      ORDER BY total_value DESC
-      LIMIT 10
-    `
+		const wasteByCategory = await prisma.wasteRecord.groupBy({
+			by: ["category"],
+			where: {
+				category: {
+					not: null,
+				},
+				...dateFilter,
+			},
+			_sum: {
+				quantity: true,
+				totalValue: true,
+			},
+			_count: {
+				id: true,
+			},
+			orderBy: {
+				_sum: {
+					totalValue: "desc",
+				},
+			},
+			take: 10,
+		})
 
 		// Desperdício ao longo do tempo (para gráficos)
 		const wasteOverTime = await prisma.$queryRaw`
       SELECT 
-        DATE_TRUNC('day', sm.date) as date,
-        COUNT(sm.id) as waste_count,
-        SUM(sm.quantity) as total_quantity,
-        SUM(sm.waste_value) as total_value
-      FROM stock_movements sm
-      WHERE sm.is_waste = true
-        AND sm.date >= ${dateFilter.date?.gte || new Date(0)}
-        ${dateFilter.date?.lte ? `AND sm.date <= ${dateFilter.date.lte}` : ""}
-      GROUP BY DATE_TRUNC('day', sm.date)
+        DATE_TRUNC('day', wr.waste_date) as date,
+        COUNT(wr.id) as waste_count,
+        SUM(wr.quantity) as total_quantity,
+        SUM(wr.total_value) as total_value
+      FROM waste_records wr
+      WHERE wr.waste_date >= ${dateFilter.wasteDate?.gte || new Date(0)}
+        ${dateFilter.wasteDate?.lte ? `AND wr.waste_date <= ${dateFilter.wasteDate.lte}` : ""}
+      GROUP BY DATE_TRUNC('day', wr.waste_date)
       ORDER BY date ASC
     `
 
 		// Comparar com período anterior
-		const previousPeriod = new Date(dateFilter.date?.gte || new Date())
-		const periodLength = (dateFilter.date?.lte || new Date()).getTime() - (dateFilter.date?.gte || new Date()).getTime()
+		const previousPeriod = new Date(dateFilter.wasteDate?.gte || new Date())
+		const periodLength = (dateFilter.wasteDate?.lte || new Date()).getTime() - (dateFilter.wasteDate?.gte || new Date()).getTime()
 		previousPeriod.setTime(previousPeriod.getTime() - periodLength)
 
-		const previousWasteStats = await prisma.stockMovement.aggregate({
+		const previousWasteStats = await prisma.wasteRecord.aggregate({
 			where: {
-				isWaste: true,
-				date: {
+				wasteDate: {
 					gte: previousPeriod,
-					lt: dateFilter.date?.gte || new Date(),
+					lt: dateFilter.wasteDate?.gte || new Date(),
 				},
 			},
 			_sum: {
 				quantity: true,
-				wasteValue: true,
+				totalValue: true,
 			},
 			_count: {
 				id: true,
@@ -181,29 +160,29 @@ export async function GET(request: Request) {
 		})
 
 		// Calcular variação percentual
-		const currentValue = wasteStats._sum.wasteValue || 0
-		const previousValue = previousWasteStats._sum.wasteValue || 0
+		const currentValue = wasteStats._sum.totalValue || 0
+		const previousValue = previousWasteStats._sum.totalValue || 0
 		const percentChange = previousValue > 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0
 
 		return NextResponse.json({
 			summary: {
 				totalWasteEvents: wasteStats._count.id || 0,
 				totalQuantityWasted: wasteStats._sum.quantity || 0,
-				totalValueWasted: wasteStats._sum.wasteValue || 0,
+				totalValueWasted: wasteStats._sum.totalValue || 0,
 				percentChangeFromPrevious: percentChange,
 			},
-			topWastedProducts: topWastedProducts.filter((p) => p.product),
+			topWastedProducts,
 			wasteByReason: wasteByReason.map((item) => ({
 				reason: item.wasteReason,
 				count: item._count.id,
 				quantity: item._sum.quantity || 0,
-				value: item._sum.wasteValue || 0,
+				value: item._sum.totalValue || 0,
 			})),
 			wasteByCategory,
 			wasteOverTime,
 			period: {
-				start: dateFilter.date?.gte,
-				end: dateFilter.date?.lte || new Date(),
+				start: dateFilter.wasteDate?.gte,
+				end: dateFilter.wasteDate?.lte || new Date(),
 			},
 		})
 	} catch (error) {

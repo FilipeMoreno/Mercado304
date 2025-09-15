@@ -278,7 +278,7 @@ export default function DesperdiciosClient() {
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-3">
-								{stats.reasonStats.slice(0, 5).map((stat, index) => {
+								{stats.reasonStats.slice(0, 5).map((stat: any, index: number) => {
 									const percentage = ((stat._count.wasteReason / stats.totalCount) * 100).toFixed(1)
 									const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-blue-500", "bg-gray-500"]
 									return (
@@ -403,7 +403,7 @@ export default function DesperdiciosClient() {
 						))}
 					</div>
 				) : (
-					wasteRecords.map((record) => (
+					wasteRecords.map((record: any) => (
 						<Card key={record.id}>
 							<CardContent className="p-6">
 								<div className="flex items-start justify-between">

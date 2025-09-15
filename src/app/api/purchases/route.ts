@@ -152,7 +152,6 @@ export async function POST(request: Request) {
 								unitCost: item.unitPrice,
 								location: entry.location || "Despensa",
 								expirationDate: entry.expirationDate ? new Date(entry.expirationDate) : null,
-								batchNumber: entry.batchNumber || null,
 								notes: entry.notes || `Compra #${newPurchase.id.substring(0, 8)}`,
 								isLowStock: product.hasStock && product.minStock ? (entry.quantity || 1) <= product.minStock : false,
 							},

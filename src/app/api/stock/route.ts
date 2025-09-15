@@ -147,7 +147,6 @@ export async function POST(request: Request) {
 				productId,
 				quantity,
 				expirationDate: expirationDate ? new Date(expirationDate) : null,
-				batchNumber,
 				location,
 				unitCost,
 				notes,

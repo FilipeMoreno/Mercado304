@@ -294,7 +294,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</span>
 						</div>
 
-						{purchases.map((purchase) => (
+						{purchases.map((purchase: any) => (
 							<Card key={purchase.id}>
 								<CardHeader>
 									<div className="flex justify-between items-start">

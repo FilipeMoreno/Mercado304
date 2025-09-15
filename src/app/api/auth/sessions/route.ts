@@ -38,11 +38,11 @@ export async function GET(request: NextRequest) {
 			headers: await headers(),
 		})
 
-		if (!sessionResult.data?.user) {
+		if (!sessionResult?.user) {
 			return NextResponse.json({ error: "Usuário não autenticado" }, { status: 401 })
 		}
 
-		const userId = sessionResult.data.user.id
+		const userId = sessionResult.user.id
 		const currentSessionToken = request.cookies.get("better-auth.session_token")?.value
 
 		// Buscar sessões do usuário diretamente do banco
@@ -91,11 +91,11 @@ export async function DELETE(request: NextRequest) {
 			headers: await headers(),
 		})
 
-		if (!sessionResult.data?.user) {
+		if (!sessionResult?.user) {
 			return NextResponse.json({ error: "Usuário não autenticado" }, { status: 401 })
 		}
 
-		const userId = sessionResult.data.user.id
+		const userId = sessionResult.user.id
 		const prisma = new (await import("@prisma/client")).PrismaClient()
 
 		if (terminateAll) {

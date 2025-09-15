@@ -29,7 +29,7 @@ export async function DELETE(request: NextRequest) {
 
 			// 3. Verification tokens
 			if (session.user?.email) {
-				await tx.verificationToken.deleteMany({
+				await tx.verification.deleteMany({
 					where: { identifier: session.user.email },
 				})
 			}

@@ -224,7 +224,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 						</div>
 
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-							{shoppingLists.map((list) => (
+							{shoppingLists.map((list: any) => (
 								<Card key={list.id}>
 									<CardHeader>
 										<div className="flex justify-between items-start">

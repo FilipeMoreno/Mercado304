@@ -185,7 +185,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 							</span>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{markets.map((market) => (
+							{markets.map((market: any) => (
 								<Card key={market.id}>
 									<CardHeader>
 										<div className="flex justify-between items-start">

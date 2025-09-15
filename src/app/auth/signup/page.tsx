@@ -15,7 +15,7 @@ import { signIn, signUp, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignUpPage() {
-	const { data: session, isLoading: sessionLoading } = useSession()
+	const { data: session, isPending: sessionLoading } = useSession()
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")

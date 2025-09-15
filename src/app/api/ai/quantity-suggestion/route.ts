@@ -19,6 +19,9 @@ export async function POST(request: Request) {
 				productId,
 				purchase: { purchaseDate: { gte: sixMonthsAgo } },
 			},
+			include: {
+				purchase: true,
+			},
 			orderBy: { purchase: { purchaseDate: "asc" } },
 		})
 

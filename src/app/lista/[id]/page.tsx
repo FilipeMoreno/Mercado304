@@ -279,7 +279,7 @@ export default function ListaDetalhesPage() {
 			const item = list.items.find((item) => item.id === itemId)
 			if (item?.product?.id && newPrice > 0) {
 				setTimeout(() => {
-					checkBestPrice(itemId, item.product?.id, newPrice)
+					checkBestPrice(itemId, item.product!.id, newPrice)
 				}, 1000)
 			}
 

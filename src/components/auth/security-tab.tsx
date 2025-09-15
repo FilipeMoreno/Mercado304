@@ -51,7 +51,6 @@ import { passkey, twoFactor, useSession } from "@/lib/auth-client"
 
 interface SecurityTabProps {
 	session: any
-	onUpdateSession: () => void
 }
 
 interface LoginSession {
@@ -72,7 +71,7 @@ interface LoginHistory {
 	ip: string
 }
 
-export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
+export function SecurityTab({ session }: SecurityTabProps) {
 	const { data: currentSession } = useSession()
 	const [activeTab, setActiveTab] = useState("overview")
 	const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false)
@@ -97,7 +96,7 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 
 	// Passkey Estados
 	const [passkeyCount, setPasskeyCount] = useState(0)
-	const [passkeys, setPasskeys] = useState([])
+	const [passkeys, setPasskeys] = useState<any[]>([])
 	const [isLoadingPasskeys, setIsLoadingPasskeys] = useState(false)
 	const [isDeletingPasskey, setIsDeletingPasskey] = useState<string | null>(null)
 
@@ -151,8 +150,7 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 			setPasskeyCount((prev) => prev - 1)
 			toast.success("Passkey excluído com sucesso")
 
-			// Atualizar sessão
-			onUpdateSession()
+			// Session will be updated automatically by Better Auth
 		} catch (error) {
 			toast.error("Erro ao excluir passkey")
 		} finally {
@@ -259,24 +257,23 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 				setOperationPassword("")
 				setShowTwoFactorSetup(true)
 			} else if (currentOperation === "disable") {
-				const result = await twoFactor.disable(operationPassword ? { password: operationPassword } : {})
+				const result = await twoFactor.disable({ password: operationPassword || "" })
 				if (result.error) {
 					toast.error("Erro ao desativar 2FA. Verifique sua senha.")
 					return
 				}
 				setTwoFactorTotpEnabled(false)
 				toast.success("2FA via aplicativo desativado com sucesso")
-				onUpdateSession()
 				setShowDisableModal(false)
 				setOperationPassword("")
 			} else if (currentOperation === "backup-codes") {
-				const result = await twoFactor.generateBackupCodes(operationPassword ? { password: operationPassword } : {})
+				const result = await twoFactor.generateBackupCodes({ password: operationPassword || "" })
 				if (result.error) {
 					toast.error("Erro ao gerar códigos de backup. Verifique sua senha.")
 					return
 				}
 
-				const codes = result.data?.codes || []
+				const codes = result.data?.backupCodes || []
 				setGeneratedBackupCodes(codes)
 				setShowBackupCodesModal(false)
 				setShowBackupCodesDisplay(true)
@@ -328,13 +325,13 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 		} else {
 			// Para contas sociais, gerar diretamente
 			try {
-				const result = await twoFactor.generateBackupCodes({ password })
+				const result = await twoFactor.generateBackupCodes({ password: "" })
 				if (result.error) {
 					toast.error("Erro ao gerar novos códigos de backup")
 					return
 				}
 
-				const codes = result.data?.codes || []
+				const codes = result.data?.backupCodes || []
 				setGeneratedBackupCodes(codes)
 				setShowBackupCodesDisplay(true)
 				toast.success("Novos códigos de backup gerados!")
@@ -462,7 +459,6 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 					onComplete={() => {
 						setShowTwoFactorSetup(false)
 						setTwoFactorTotpEnabled(true)
-						onUpdateSession()
 					}}
 				/>
 			</div>
@@ -476,7 +472,6 @@ export function SecurityTab({ session, onUpdateSession }: SecurityTabProps) {
 					onComplete={() => {
 						setShowPasskeySetup(false)
 						fetchPasskeyCount()
-						onUpdateSession()
 					}}
 				/>
 			</div>

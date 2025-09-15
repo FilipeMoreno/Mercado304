@@ -11,36 +11,22 @@ export async function GET(request: NextRequest) {
 		const previousMonthEnd = endOfMonth(subMonths(now, 1))
 
 		// Buscar dados de desperdício do mês atual
-		const currentMonthWaste = await prisma.stockMovement.findMany({
+		const currentMonthWaste = await prisma.wasteRecord.findMany({
 			where: {
-				isWaste: true,
-				date: {
+				wasteDate: {
 					gte: currentMonthStart,
 					lte: currentMonthEnd,
 				},
 			},
-			include: {
-				stockItem: {
-					include: {
-						product: {
-							include: {
-								category: true,
-								brand: true,
-							},
-						},
-					},
-				},
-			},
 			orderBy: {
-				date: "desc",
+				wasteDate: "desc",
 			},
 		})
 
 		// Buscar dados do mês anterior para comparação
-		const previousMonthWaste = await prisma.stockMovement.findMany({
+		const previousMonthWaste = await prisma.wasteRecord.findMany({
 			where: {
-				isWaste: true,
-				date: {
+				wasteDate: {
 					gte: previousMonthStart,
 					lte: previousMonthEnd,
 				},
@@ -50,7 +36,7 @@ export async function GET(request: NextRequest) {
 		// Calcular estatísticas
 		const totalWasteItems = currentMonthWaste.length
 		const totalWasteValue = currentMonthWaste.reduce((sum, waste) => {
-			return sum + (waste.wasteValue || 0)
+			return sum + (waste.totalValue || 0)
 		}, 0)
 
 		const previousMonthItems = previousMonthWaste.length
@@ -59,7 +45,7 @@ export async function GET(request: NextRequest) {
 		// Encontrar categoria mais desperdiçada
 		const categoryWaste = currentMonthWaste.reduce(
 			(acc, waste) => {
-				const categoryName = waste.stockItem.product.category?.name || "Sem categoria"
+				const categoryName = waste.category || "Sem categoria"
 				acc[categoryName] = (acc[categoryName] || 0) + 1
 				return acc
 			},
@@ -70,14 +56,14 @@ export async function GET(request: NextRequest) {
 
 		// Histórico recente (últimos 20 registros)
 		const recentWaste = currentMonthWaste.slice(0, 20).map((waste) => ({
-			productName: waste.stockItem.product.name,
-			brand: waste.stockItem.product.brand?.name,
-			category: waste.stockItem.product.category?.name,
+			productName: waste.productName,
+			brand: waste.brand,
+			category: waste.category,
 			quantity: waste.quantity,
-			unit: waste.stockItem.product.unit,
+			unit: waste.unit,
 			wasteReason: waste.wasteReason,
-			value: waste.wasteValue,
-			date: waste.date,
+			value: waste.totalValue,
+			date: waste.wasteDate,
 			notes: waste.notes,
 		}))
 
@@ -108,14 +94,14 @@ export async function GET(request: NextRequest) {
 			weekEnd.setDate(weekEnd.getDate() + 6)
 
 			const weekWaste = currentMonthWaste.filter((waste) => {
-				const wasteDate = new Date(waste.date)
+				const wasteDate = new Date(waste.wasteDate)
 				return wasteDate >= weekStart && wasteDate <= weekEnd
 			})
 
 			return {
 				week: `Sem ${weekIndex + 1}`,
 				items: weekWaste.length,
-				value: weekWaste.reduce((sum, waste) => sum + (waste.wasteValue || 0), 0),
+				value: weekWaste.reduce((sum, waste) => sum + (waste.totalValue || 0), 0),
 			}
 		})
 

@@ -16,8 +16,8 @@ export default async function VerifyEmailPage({
 		return redirect("/auth/signin")
 	}
 
-	const verificationToken = await prisma.verificationToken.findUnique({
-		where: { token },
+	const verificationToken = await prisma.verification.findFirst({
+		where: { value: token },
 	})
 
 	if (!verificationToken) {
@@ -37,7 +37,7 @@ export default async function VerifyEmailPage({
 		)
 	}
 
-	if (new Date() > verificationToken.expires) {
+	if (new Date() > verificationToken.expiresAt) {
 		return (
 			<div className="flex flex-col space-y-2 text-center mb-6">
 				<div className="flex items-center justify-center mb-4">
@@ -56,11 +56,11 @@ export default async function VerifyEmailPage({
 
 	await prisma.user.update({
 		where: { email: verificationToken.identifier },
-		data: { emailVerified: new Date() },
+		data: { emailVerified: true },
 	})
 
-	await prisma.verificationToken.delete({
-		where: { token },
+	await prisma.verification.delete({
+		where: { id: verificationToken.id },
 	})
 
 	return (

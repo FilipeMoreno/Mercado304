@@ -38,7 +38,6 @@ export async function POST(request: Request) {
 				where: {
 					productId,
 					location,
-					batchNumber: batchNumber || null,
 					expirationDate: calculatedExpirationDate,
 					isExpired: false,
 				},
@@ -84,7 +83,6 @@ export async function POST(request: Request) {
 						productId,
 						quantity,
 						expirationDate: calculatedExpirationDate,
-						batchNumber,
 						location,
 						unitCost: unitPrice,
 						notes: `Entrada automática da compra ${purchaseId}`,

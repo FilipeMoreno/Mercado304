@@ -36,7 +36,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 	const fetchExistingPasskeys = async () => {
 		setIsLoading(true)
 		try {
-			const result = await passkey.getPasskeys()
+			const result = await passkey.listUserPasskeys()
 			if (result.data) {
 				// Converte a string de data para um objeto Date
 				setCredentials(result.data.map((p: any) => ({ ...p, createdAt: new Date(p.createdAt) })))

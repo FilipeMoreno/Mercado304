@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
 			headers: await headers(),
 		})
 
-		if (!session.data?.user) {
+		if (!session?.user) {
 			return NextResponse.json({ error: "Usuário não autenticado" }, { status: 401 })
 		}
 
-		const userId = session.data.user.id
+		const userId = session.user.id
 
 		// Buscar histórico de sessões (incluindo as antigas)
 		const sessionHistory = await prisma.session.findMany({

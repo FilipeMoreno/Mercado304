@@ -43,7 +43,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 		setIsLoading(true)
 		try {
 			const result = await twoFactor.enable({
-				...(!isSocialAccount && { password }),
+				password: isSocialAccount ? "" : password || "",
 			})
 
 			if (result.error) {
