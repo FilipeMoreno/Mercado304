@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
 	useCategoriesQuery,
 	useCreateCategoryMutation,
@@ -33,9 +34,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		name: "",
 		icon: "",
 		color: "",
+		isFood: false,
 	})
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "" })
+	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "", isFood: false })
 
 	// URL state management
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -95,8 +97,9 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				name: newCategory.name,
 				icon: newCategory.icon,
 				color: newCategory.color,
+				isFood: newCategory.isFood,
 			})
-			setNewCategory({ name: "", icon: "", color: "" })
+			setNewCategory({ name: "", icon: "", color: "", isFood: false })
 			setShowForm(false)
 		} catch (error) {
 			console.error("Error creating category:", error)
@@ -113,10 +116,11 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					name: editForm.name,
 					icon: editForm.icon,
 					color: editForm.color,
+					isFood: editForm.isFood,
 				},
 			})
 			setEditingCategory(null)
-			setEditForm({ name: "", icon: "", color: "" })
+			setEditForm({ name: "", icon: "", color: "", isFood: false })
 		} catch (error) {
 			console.error("Error updating category:", error)
 		}
@@ -139,6 +143,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			name: category.name,
 			icon: category.icon || "",
 			color: category.color || "",
+			isFood: category.isFood || false,
 		})
 	}
 
@@ -233,7 +238,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 													{category.icon && <span className="text-lg">{category.icon}</span>}
 													{category.name}
 												</CardTitle>
-												<CardDescription className="mt-2">{category._count?.products || 0} produtos</CardDescription>
+												<CardDescription className="mt-2 flex items-center gap-2">
+													{category._count?.products || 0} produtos
+													{category.isFood && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>}
+												</CardDescription>
 											</div>
 										</div>
 									</CardHeader>
@@ -332,6 +340,14 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								onChange={(e) => setNewCategory((prev) => ({ ...prev, color: e.target.value }))}
 							/>
 						</div>
+						<div className="flex items-center space-x-2">
+							<Switch
+								id="isFood"
+								checked={newCategory.isFood}
+								onCheckedChange={(checked) => setNewCategory((prev) => ({ ...prev, isFood: checked }))}
+							/>
+							<Label htmlFor="isFood">É um alimento?</Label>
+						</div>
 						<div className="flex gap-2 pt-4">
 							<Button onClick={handleCreateCategory} disabled={createCategoryMutation.isPending} className="flex-1">
 								{createCategoryMutation.isPending ? "Criando..." : "Criar Categoria"}
@@ -377,6 +393,14 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								value={editForm.color}
 								onChange={(e) => setEditForm((prev) => ({ ...prev, color: e.target.value }))}
 							/>
+						</div>
+						<div className="flex items-center space-x-2">
+							<Switch
+								id="edit-isFood"
+								checked={editForm.isFood}
+								onCheckedChange={(checked) => setEditForm((prev) => ({ ...prev, isFood: checked }))}
+							/>
+							<Label htmlFor="edit-isFood">É um alimento?</Label>
 						</div>
 						<div className="flex gap-2 pt-4">
 							<Button onClick={handleUpdateCategory} disabled={updateCategoryMutation.isPending} className="flex-1">

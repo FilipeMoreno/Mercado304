@@ -88,9 +88,10 @@ export const useDataStore = create<DataState>((set, get) => ({
 		}
 	},
 
-	fetchCategories: async (_force = false) => {
-		// CORREÇÃO APLICADA AQUI: Removida a verificação que causava o problema.
-		// Agora ele sempre buscará se a lista estiver vazia ou se for forçado.
+	fetchCategories: async (force = false) => {
+		// Só busca se forçado ou se não há categorias carregadas
+		if (!force && get().categories.length > 0) return
+		
 		set((state) => ({ loading: { ...state.loading, categories: true } }))
 		try {
 			const categories = await categoryService.getAllCategories()

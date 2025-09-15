@@ -1,9 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
 import { Combobox } from "@/components/ui/combobox"
-import { AppToasts } from "@/lib/toasts"
-import { useDataStore } from "@/store/useDataStore"
+import { useAllCategoriesQuery, useCreateCategoryMutation } from "@/hooks"
 import type { Category } from "@/types"
 
 interface CategorySelectProps {
@@ -21,39 +19,24 @@ export function CategorySelect({
 	className = "w-full",
 	disabled = false,
 }: CategorySelectProps) {
-	// Obter dados e actions do store
-	const { categories, loading, fetchCategories, addCategory } = useDataStore()
-
-	useEffect(() => {
-		fetchCategories() // Busca os dados se não estiverem em cache
-	}, [fetchCategories])
+	// Usar React Query para buscar categorias
+	const { data: categories = [], isLoading } = useAllCategoriesQuery()
+	const createCategoryMutation = useCreateCategoryMutation()
 
 	const handleCreateCategory = async (name: string) => {
 		try {
-			const response = await fetch("/api/categories", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: name.trim(),
-					icon: "📦", // Ícone padrão
-				}),
+			const newCategory = await createCategoryMutation.mutateAsync({
+				name: name.trim(),
+				icon: "📦", // Ícone padrão
+				isFood: false, // Padrão para não-alimento
 			})
-
-			if (response.ok) {
-				const newCategory: Category = await response.json()
-				addCategory(newCategory) // Adiciona a nova categoria ao store
-				onValueChange?.(newCategory.id)
-				AppToasts.created("Categoria")
-			} else {
-				const error = await response.json()
-				AppToasts.error(error, "Erro ao criar categoria")
-			}
+			onValueChange?.(newCategory.id)
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar categoria")
+			console.error("Erro ao criar categoria:", error)
 		}
 	}
 
-	if (loading.categories && categories.length === 0) {
+	if (isLoading && categories.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
