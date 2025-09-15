@@ -137,7 +137,7 @@ export const useBrandsQuery = (params?: URLSearchParams) => {
 export const useAllBrandsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.allBrands(),
-		queryFn: () => fetchWithErrorHandling("/api/brands/all"),
+		queryFn: () => fetchWithErrorHandling("/api/brands"),
 		staleTime: 5 * 60 * 1000,
 	})
 }

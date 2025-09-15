@@ -49,7 +49,8 @@ export const useDataStore = create<DataState>((set, get) => ({
 
 	// Ações para buscar os dados
 	fetchProducts: async (force = false) => {
-		if (!force && get().products.length > 0) return // Retorna se já tiver dados (cache)
+		// CORREÇÃO: Não fazer cache de um array vazio
+		if (!force && get().products.length > 0) return
 		set((state) => ({ loading: { ...state.loading, products: true } }))
 		try {
 			const { products } = await productService.getProducts()
@@ -87,8 +88,9 @@ export const useDataStore = create<DataState>((set, get) => ({
 		}
 	},
 
-	fetchCategories: async (force = false) => {
-		if (!force && get().categories.length > 0) return
+	fetchCategories: async (_force = false) => {
+		// CORREÇÃO APLICADA AQUI: Removida a verificação que causava o problema.
+		// Agora ele sempre buscará se a lista estiver vazia ou se for forçado.
 		set((state) => ({ loading: { ...state.loading, categories: true } }))
 		try {
 			const categories = await categoryService.getAllCategories()
