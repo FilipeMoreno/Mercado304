@@ -225,7 +225,7 @@ export async function POST(request: Request) {
 		const wasteValue = (stockItem.unitCost || 0) * quantity
 
 		// Registrar como desperdício
-		const response = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/stock/history`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/stock/history`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
