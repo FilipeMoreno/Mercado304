@@ -42,7 +42,7 @@ export function CategorySelect({
 
 	return (
 		<Combobox
-			options={categories.map((category) => ({
+			options={categories.map((category: Category) => ({
 				value: category.id,
 				label: `${category.icon || "📦"} ${category.name}`,
 			}))}
