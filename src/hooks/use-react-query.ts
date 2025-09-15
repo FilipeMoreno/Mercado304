@@ -1,3 +1,4 @@
+// src/hooks/use-react-query.ts
 "use client"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -137,7 +138,8 @@ export const useBrandsQuery = (params?: URLSearchParams) => {
 export const useAllBrandsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.allBrands(),
-		queryFn: () => fetchWithErrorHandling("/api/brands"),
+		// CORREÇÃO: A rota correta agora é /api/brands/all
+		queryFn: () => fetchWithErrorHandling("/api/brands/all"),
 		staleTime: 5 * 60 * 1000,
 	})
 }
