@@ -1,29 +1,18 @@
-"use client";
+"use client"
 
-import { Trash2 } from "lucide-react";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface DeleteListDialogProps {
-	isOpen: boolean;
-	onClose: () => void;
-	listName: string;
-	onDelete: () => Promise<void>;
-	deleting: boolean;
+	isOpen: boolean
+	onClose: () => void
+	listName: string
+	onDelete: () => Promise<void>
+	deleting: boolean
 }
 
-export function DeleteListDialog({
-	isOpen,
-	onClose,
-	listName,
-	onDelete,
-	deleting,
-}: DeleteListDialogProps) {
+export function DeleteListDialog({ isOpen, onClose, listName, onDelete, deleting }: DeleteListDialogProps) {
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="max-w-md">
@@ -35,20 +24,13 @@ export function DeleteListDialog({
 				</DialogHeader>
 				<div className="space-y-4">
 					<p>
-						Tem certeza que deseja excluir a lista{" "}
-						<strong>{listName}</strong>?
+						Tem certeza que deseja excluir a lista <strong>{listName}</strong>?
 					</p>
 					<p className="text-sm text-gray-600">
-						Esta ação não pode ser desfeita e todos os itens da lista serão
-						perdidos.
+						Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
 					</p>
 					<div className="flex gap-2 pt-4">
-						<Button
-							variant="destructive"
-							onClick={onDelete}
-							disabled={deleting}
-							className="flex-1"
-						>
+						<Button variant="destructive" onClick={onDelete} disabled={deleting} className="flex-1">
 							{deleting ? "Excluindo..." : "Sim, Excluir"}
 						</Button>
 						<Button variant="outline" onClick={onClose}>
@@ -58,5 +40,5 @@ export function DeleteListDialog({
 				</div>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }

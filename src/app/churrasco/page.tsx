@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion"
 import {
 	Beer,
 	Calculator,
@@ -14,35 +14,29 @@ import {
 	Sparkles,
 	Users,
 	Utensils,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { ChurrascometroSkeleton } from "@/components/skeletons/churrascometro-skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDataMutation } from "@/hooks";
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { ChurrascometroSkeleton } from "@/components/skeletons/churrascometro-skeleton"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useDataMutation } from "@/hooks"
 
 interface ChurrascoResult {
 	summary: {
-		totalPeople: number;
-	};
+		totalPeople: number
+	}
 	shoppingList: {
-		[category: string]: { item: string; quantity: string }[];
-	};
-	chefTip: string;
-	timestamp: string;
+		[category: string]: { item: string; quantity: string }[]
+	}
+	chefTip: string
+	timestamp: string
 }
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -50,68 +44,68 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
 	Bebidas: <Beer className="h-5 w-5 text-yellow-500" />,
 	Acompanhamentos: <Utensils className="h-5 w-5 text-orange-500" />,
 	Outros: <Flame className="h-5 w-5 text-gray-500" />,
-};
+}
 
 export default function ChurrascoPage() {
-	const [adults, setAdults] = useState(10);
-	const [children, setChildren] = useState(2);
-	const [drinkers, setDrinkers] = useState(8);
-	const [preferences, setPreferences] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [result, setResult] = useState<ChurrascoResult | null>(null);
-	const [history, setHistory] = useState<ChurrascoResult[]>([]);
-	const { create, loading: creatingList } = useDataMutation();
-	const router = useRouter();
+	const [adults, setAdults] = useState(10)
+	const [children, setChildren] = useState(2)
+	const [drinkers, setDrinkers] = useState(8)
+	const [preferences, setPreferences] = useState("")
+	const [loading, setLoading] = useState(false)
+	const [result, setResult] = useState<ChurrascoResult | null>(null)
+	const [history, setHistory] = useState<ChurrascoResult[]>([])
+	const { create, loading: creatingList } = useDataMutation()
+	const router = useRouter()
 
-	const HISTORY_KEY = "churrascometro_history";
+	const HISTORY_KEY = "churrascometro_history"
 
 	useEffect(() => {
 		try {
-			const savedHistory = localStorage.getItem(HISTORY_KEY);
+			const savedHistory = localStorage.getItem(HISTORY_KEY)
 			if (savedHistory) {
-				setHistory(JSON.parse(savedHistory));
+				setHistory(JSON.parse(savedHistory))
 			}
 		} catch (error) {
-			console.error("Erro ao carregar histórico do churrasco:", error);
+			console.error("Erro ao carregar histórico do churrasco:", error)
 		}
-	}, []);
+	}, [])
 
 	const saveToHistory = (newResult: ChurrascoResult) => {
 		try {
-			const updatedHistory = [newResult, ...history].slice(0, 5);
-			setHistory(updatedHistory);
-			localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
+			const updatedHistory = [newResult, ...history].slice(0, 5)
+			setHistory(updatedHistory)
+			localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory))
 		} catch (error) {
-			console.error("Erro ao salvar histórico do churrasco:", error);
+			console.error("Erro ao salvar histórico do churrasco:", error)
 		}
-	};
+	}
 
 	const handleCalculate = async () => {
-		setLoading(true);
-		setResult(null);
+		setLoading(true)
+		setResult(null)
 		try {
 			const response = await fetch("/api/ai/churrascometro", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ adults, children, drinkers, preferences }),
-			});
+			})
 			if (response.ok) {
-				const data = await response.json();
-				const newResult = { ...data, timestamp: new Date().toISOString() };
-				setResult(newResult);
-				saveToHistory(newResult);
+				const data = await response.json()
+				const newResult = { ...data, timestamp: new Date().toISOString() }
+				setResult(newResult)
+				saveToHistory(newResult)
 			} else {
-				toast.error("A IA não conseguiu calcular. Tente novamente.");
+				toast.error("A IA não conseguiu calcular. Tente novamente.")
 			}
 		} catch (error) {
-			toast.error("Erro de comunicação com o servidor.");
+			toast.error("Erro de comunicação com o servidor.")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const handleCreateList = async () => {
-		if (!result) return;
+		if (!result) return
 
 		const itemsToCreate = Object.values(result.shoppingList)
 			.flat()
@@ -119,7 +113,7 @@ export default function ChurrascoPage() {
 				productName: item.item,
 				quantity: 1,
 				isChecked: false,
-			}));
+			}))
 
 		await create(
 			"/api/shopping-lists",
@@ -131,13 +125,13 @@ export default function ChurrascoPage() {
 				successMessage: "Lista de compras para o churrasco criada!",
 				onSuccess: (newList) => router.push(`/lista/${newList.id}`),
 			},
-		);
-	};
+		)
+	}
 
 	const loadFromHistory = (historicalResult: ChurrascoResult) => {
-		setResult(historicalResult);
-		window.scrollTo({ top: 0, behavior: "smooth" });
-	};
+		setResult(historicalResult)
+		window.scrollTo({ top: 0, behavior: "smooth" })
+	}
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">
@@ -149,8 +143,7 @@ export default function ChurrascoPage() {
 						Churrascômetro 304
 					</h1>
 					<p className="text-muted-foreground">
-						Calcule tudo para o seu churrasco perfeito com inteligência
-						artificial
+						Calcule tudo para o seu churrasco perfeito com inteligência artificial
 					</p>
 				</div>
 			</div>
@@ -161,9 +154,7 @@ export default function ChurrascoPage() {
 					<CardContent className="p-6">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-muted-foreground">
-									Total de Pessoas
-								</p>
+								<p className="text-sm text-muted-foreground">Total de Pessoas</p>
 								<p className="text-2xl font-bold">{adults + children}</p>
 							</div>
 							<Users className="h-8 w-8 text-muted-foreground" />
@@ -216,9 +207,7 @@ export default function ChurrascoPage() {
 								<Users className="h-5 w-5" />
 								Configurar Churrasco
 							</CardTitle>
-							<CardDescription>
-								Informe os detalhes dos convidados para um cálculo preciso
-							</CardDescription>
+							<CardDescription>Informe os detalhes dos convidados para um cálculo preciso</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -257,9 +246,7 @@ export default function ChurrascoPage() {
 									/>
 								</div>
 								<div className="md:col-span-3">
-									<Label htmlFor="preferences">
-										Preferências especiais (opcional)
-									</Label>
+									<Label htmlFor="preferences">Preferências especiais (opcional)</Label>
 									<Input
 										id="preferences"
 										value={preferences}
@@ -271,12 +258,7 @@ export default function ChurrascoPage() {
 							</div>
 
 							<div className="mt-6">
-								<Button
-									onClick={handleCalculate}
-									disabled={loading || adults < 1}
-									size="lg"
-									className="w-full"
-								>
+								<Button onClick={handleCalculate} disabled={loading || adults < 1} size="lg" className="w-full">
 									{loading ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -299,12 +281,8 @@ export default function ChurrascoPage() {
 						<Card>
 							<CardContent className="p-12 text-center">
 								<History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-								<p className="text-muted-foreground">
-									Nenhum cálculo realizado ainda
-								</p>
-								<p className="text-sm text-muted-foreground mt-1">
-									Seus últimos cálculos aparecerão aqui
-								</p>
+								<p className="text-muted-foreground">Nenhum cálculo realizado ainda</p>
+								<p className="text-sm text-muted-foreground mt-1">Seus últimos cálculos aparecerão aqui</p>
 							</CardContent>
 						</Card>
 					) : (
@@ -314,26 +292,17 @@ export default function ChurrascoPage() {
 									<Clock className="h-5 w-5" />
 									Cálculos Recentes
 								</CardTitle>
-								<CardDescription>
-									Seus últimos {history.length} cálculos
-								</CardDescription>
+								<CardDescription>Seus últimos {history.length} cálculos</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-4">
 									{history.map((item, index) => (
-										<div
-											key={item.timestamp}
-											className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-										>
+										<div key={item.timestamp} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
 											<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 												<div className="space-y-1">
 													<div className="flex items-center gap-2">
-														<h3 className="font-semibold">
-															Churrasco para {item.summary.totalPeople} pessoas
-														</h3>
-														<Badge variant="outline">
-															#{history.length - index}
-														</Badge>
+														<h3 className="font-semibold">Churrasco para {item.summary.totalPeople} pessoas</h3>
+														<Badge variant="outline">#{history.length - index}</Badge>
 													</div>
 													<p className="text-sm text-muted-foreground">
 														{new Date(item.timestamp).toLocaleString("pt-BR", {
@@ -346,11 +315,7 @@ export default function ChurrascoPage() {
 													</p>
 												</div>
 
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => loadFromHistory(item)}
-												>
+												<Button variant="outline" size="sm" onClick={() => loadFromHistory(item)}>
 													Ver Detalhes
 												</Button>
 											</div>
@@ -366,50 +331,39 @@ export default function ChurrascoPage() {
 			<AnimatePresence>
 				{loading && <ChurrascometroSkeleton />}
 				{result && (
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -20 }}
-					>
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									<Sparkles className="h-5 w-5" />
 									Resultado para {result.summary.totalPeople} pessoas
 								</CardTitle>
-								<CardDescription>
-									Lista de compras calculada com inteligência artificial
-								</CardDescription>
+								<CardDescription>Lista de compras calculada com inteligência artificial</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{Object.entries(result.shoppingList).map(
-										([category, items]) => (
-											<div key={category} className="space-y-3">
-												<h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-													{categoryIcons[category]}
-													{category}
-													<Badge variant="secondary">{items.length}</Badge>
-												</h3>
-												<div className="space-y-2">
-													{items.map((item, index) => (
-														<div
-															key={`${item.item}-${index}`}
-															className="flex items-center justify-between p-2 bg-muted/30 rounded-lg"
-														>
-															<span className="font-medium">{item.item}</span>
-															<Badge
-																variant="outline"
-																className="font-bold text-primary"
-															>
-																{item.quantity}
-															</Badge>
-														</div>
-													))}
-												</div>
+									{Object.entries(result.shoppingList).map(([category, items]) => (
+										<div key={category} className="space-y-3">
+											<h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
+												{categoryIcons[category]}
+												{category}
+												<Badge variant="secondary">{items.length}</Badge>
+											</h3>
+											<div className="space-y-2">
+												{items.map((item, index) => (
+													<div
+														key={`${item.item}-${index}`}
+														className="flex items-center justify-between p-2 bg-muted/30 rounded-lg"
+													>
+														<span className="font-medium">{item.item}</span>
+														<Badge variant="outline" className="font-bold text-primary">
+															{item.quantity}
+														</Badge>
+													</div>
+												))}
 											</div>
-										),
-									)}
+										</div>
+									))}
 								</div>
 
 								<Separator />
@@ -418,33 +372,18 @@ export default function ChurrascoPage() {
 									<div className="flex items-start gap-3">
 										<Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
 										<div>
-											<h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
-												Dica do Chef
-											</h4>
-											<p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
-												{result.chefTip}
-											</p>
+											<h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">Dica do Chef</h4>
+											<p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">{result.chefTip}</p>
 										</div>
 									</div>
 								</div>
 
 								<div className="flex flex-col md:flex-row gap-3">
-									<Button
-										onClick={handleCreateList}
-										disabled={creatingList}
-										className="flex-1"
-										size="lg"
-									>
+									<Button onClick={handleCreateList} disabled={creatingList} className="flex-1" size="lg">
 										<ShoppingCart className="mr-2 h-4 w-4" />
-										{creatingList
-											? "Criando lista..."
-											: "Criar Lista de Compras"}
+										{creatingList ? "Criando lista..." : "Criar Lista de Compras"}
 									</Button>
-									<Button
-										variant="outline"
-										onClick={() => setResult(null)}
-										size="lg"
-									>
+									<Button variant="outline" onClick={() => setResult(null)} size="lg">
 										Novo Cálculo
 									</Button>
 								</div>
@@ -454,5 +393,5 @@ export default function ChurrascoPage() {
 				)}
 			</AnimatePresence>
 		</div>
-	);
+	)
 }

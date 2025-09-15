@@ -1,35 +1,25 @@
-"use client";
+"use client"
 
-import { Filter, Search, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Filter, Search, X } from "lucide-react"
+import { type ReactNode, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface FilterOption {
-	value: string;
-	label: string;
+	value: string
+	label: string
 }
 
 interface FilterPopoverProps {
-	sortValue?: string;
-	onSortChange?: (value: string) => void;
-	sortOptions?: FilterOption[];
-	additionalFilters?: ReactNode;
-	onClearFilters?: () => void;
-	hasActiveFilters?: boolean;
+	sortValue?: string
+	onSortChange?: (value: string) => void
+	sortOptions?: FilterOption[]
+	additionalFilters?: ReactNode
+	onClearFilters?: () => void
+	hasActiveFilters?: boolean
 }
 
 export function FilterPopover({
@@ -40,24 +30,19 @@ export function FilterPopover({
 	onClearFilters,
 	hasActiveFilters = false,
 }: FilterPopoverProps) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(false)
 
 	const handleClearFilters = () => {
-		onSortChange?.("");
-		onClearFilters?.();
-	};
+		onSortChange?.("")
+		onClearFilters?.()
+	}
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
-				<Button
-					variant="outline"
-					className={`${hasActiveFilters ? "border-blue-500 text-blue-600" : ""}`}
-				>
+				<Button variant="outline" className={`${hasActiveFilters ? "border-blue-500 text-blue-600" : ""}`}>
 					<Filter className="h-4 w-4" />
-					{hasActiveFilters && (
-						<div className="w-2 h-2 bg-blue-500 rounded-full ml-2" />
-					)}
+					{hasActiveFilters && <div className="w-2 h-2 bg-blue-500 rounded-full ml-2" />}
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-80" align="end">
@@ -99,5 +84,5 @@ export function FilterPopover({
 				</div>
 			</PopoverContent>
 		</Popover>
-	);
+	)
 }

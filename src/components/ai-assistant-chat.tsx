@@ -1,22 +1,22 @@
-"use client";
+"use client"
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Bot, ExternalLink, Send, Sparkles, X } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useState } from "react";
-import { ChatMessage } from "@/components/ai-chat/chat-message";
-import { ChurrascoCard } from "@/components/ai-chat/churrasco-card";
-import { SelectionCard } from "@/components/ai-chat/selection-cards";
-import { TypingIndicator } from "@/components/ai-chat/typing-indicator";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAiChat } from "@/hooks/use-ai-chat";
+import { AnimatePresence, motion } from "framer-motion"
+import { Bot, ExternalLink, Send, Sparkles, X } from "lucide-react"
+import Link from "next/link"
+import { useCallback, useState } from "react"
+import { ChatMessage } from "@/components/ai-chat/chat-message"
+import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
+import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAiChat } from "@/hooks/use-ai-chat"
 
 export function AiAssistantChat() {
-	const [input, setInput] = useState("");
-	const [isOpen, setIsOpen] = useState(false);
+	const [input, setInput] = useState("")
+	const [isOpen, setIsOpen] = useState(false)
 	const {
 		messages,
 		isLoading,
@@ -25,23 +25,26 @@ export function AiAssistantChat() {
 		retryLastMessage,
 		handleSelection,
 		handleChurrascoCalculate,
-	} = useAiChat();
+	} = useAiChat()
 
-	const handleSendMessage = useCallback(async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!input.trim()) return;
+	const handleSendMessage = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault()
+			if (!input.trim()) return
 
-		await sendMessage(input);
-		setInput("");
-	}, [input, sendMessage]);
+			await sendMessage(input)
+			setInput("")
+		},
+		[input, sendMessage],
+	)
 
 	const handleOpenChat = useCallback(() => {
-		setIsOpen(true);
-	}, []);
+		setIsOpen(true)
+	}, [])
 
 	const handleCloseChat = useCallback(() => {
-		setIsOpen(false);
-	}, []);
+		setIsOpen(false)
+	}, [])
 
 	return (
 		<div className="fixed bottom-4 right-4 z-[100]">
@@ -101,23 +104,17 @@ export function AiAssistantChat() {
 														isError={msg.isError}
 														isStreaming={msg.isStreaming}
 														onRetry={retryLastMessage}
-														canRetry={
-															msg.isError && !!lastUserMessage && !isLoading
-														}
+														canRetry={msg.isError && !!lastUserMessage && !isLoading}
 													/>
 													{msg.selectionCard && (
 														<div className="mt-3 ml-8">
 															{msg.selectionCard.type === "churrascometro" ? (
-																<ChurrascoCard
-																	onCalculate={handleChurrascoCalculate}
-																/>
+																<ChurrascoCard onCalculate={handleChurrascoCalculate} />
 															) : (
 																<SelectionCard
 																	type={msg.selectionCard.type}
 																	options={msg.selectionCard.options}
-																	searchTerm={
-																		msg.selectionCard.searchTerm
-																	}
+																	searchTerm={msg.selectionCard.searchTerm}
 																	context={msg.selectionCard.context}
 																	onSelect={handleSelection}
 																/>
@@ -129,10 +126,7 @@ export function AiAssistantChat() {
 											{isLoading && <TypingIndicator />}
 										</div>
 									</ScrollArea>
-									<form
-										onSubmit={handleSendMessage}
-										className="p-4 border-t flex gap-2"
-									>
+									<form onSubmit={handleSendMessage} className="p-4 border-t flex gap-2">
 										<Input
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
@@ -193,5 +187,5 @@ export function AiAssistantChat() {
 				</AnimatePresence>
 			</div>
 		</div>
-	);
+	)
 }

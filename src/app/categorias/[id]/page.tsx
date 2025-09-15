@@ -1,79 +1,73 @@
-"use client";
+"use client"
 
-import { ArrowLeft, BarChart3, Edit, Package, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { ArrowLeft, BarChart3, Edit, Package, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface CategoryDetails {
-	id: string;
-	name: string;
-	icon?: string;
-	color?: string;
+	id: string
+	name: string
+	icon?: string
+	color?: string
 	products: {
-		id: string;
-		name: string;
-		unit: string;
-		brand?: { name: string };
+		id: string
+		name: string
+		unit: string
+		brand?: { name: string }
 		_count?: {
-			purchaseItems: number;
-		};
-	}[];
+			purchaseItems: number
+		}
+	}[]
 	_count: {
-		products: number;
-	};
+		products: number
+	}
 }
 
 export default function CategoriaDetalhesPage() {
-	const params = useParams();
-	const router = useRouter();
-	const categoryId = params.id as string;
+	const params = useParams()
+	const router = useRouter()
+	const categoryId = params.id as string
 
-	const [category, setCategory] = useState<CategoryDetails | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [category, setCategory] = useState<CategoryDetails | null>(null)
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		if (categoryId) {
-			fetchCategoryDetails();
+			fetchCategoryDetails()
 		}
-	}, [categoryId]);
+	}, [categoryId])
 
 	const fetchCategoryDetails = async () => {
 		try {
-			const response = await fetch(`/api/categories/${categoryId}`);
+			const response = await fetch(`/api/categories/${categoryId}`)
 
 			if (!response.ok) {
-				toast.error("Categoria não encontrada");
-				router.push("/categorias");
-				return;
+				toast.error("Categoria não encontrada")
+				router.push("/categorias")
+				return
 			}
 
-			const data = await response.json();
-			setCategory(data);
+			const data = await response.json()
+			setCategory(data)
 		} catch (error) {
-			console.error("Erro ao buscar detalhes da categoria:", error);
-			toast.error("Erro ao carregar detalhes da categoria");
-			router.push("/categorias");
+			console.error("Erro ao buscar detalhes da categoria:", error)
+			toast.error("Erro ao carregar detalhes da categoria")
+			router.push("/categorias")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const deleteCategory = async () => {
 		// Implementar lógica de exclusão (diálogo de confirmação, etc.)
 		// Você pode usar o useDataMutation hook para isso
 		// Exemplo: await remove(`/api/categories/${categoryId}`)
-		toast.error("Exclusão de categorias não implementada neste exemplo.");
-	};
+		toast.error("Exclusão de categorias não implementada neste exemplo.")
+	}
 
 	if (loading) {
 		return (
@@ -123,11 +117,11 @@ export default function CategoriaDetalhesPage() {
 					</CardContent>
 				</Card>
 			</div>
-		);
+		)
 	}
 
 	if (!category) {
-		return null;
+		return null
 	}
 
 	return (
@@ -147,9 +141,7 @@ export default function CategoriaDetalhesPage() {
 							<h1 className="text-3xl font-bold">{category.name}</h1>
 							<p className="text-gray-600 mt-1">
 								{category._count.products}{" "}
-								{category._count.products === 1
-									? "produto cadastrado"
-									: "produtos cadastrados"}
+								{category._count.products === 1 ? "produto cadastrado" : "produtos cadastrados"}
 							</p>
 						</div>
 					</div>
@@ -172,9 +164,7 @@ export default function CategoriaDetalhesPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-3">
-						<CardTitle className="text-sm font-medium">
-							Produtos Cadastrados
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Produtos Cadastrados</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{category._count.products}</div>
@@ -189,23 +179,16 @@ export default function CategoriaDetalhesPage() {
 						<Package className="h-5 w-5" />
 						Produtos da Categoria
 					</CardTitle>
-					<CardDescription>
-						Todos os produtos associados a esta categoria
-					</CardDescription>
+					<CardDescription>Todos os produtos associados a esta categoria</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{category.products.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
 							<Package className="h-12 w-12 mx-auto mb-4" />
-							<p className="text-lg font-medium mb-2">
-								Nenhum produto nesta categoria
-							</p>
+							<p className="text-lg font-medium mb-2">Nenhum produto nesta categoria</p>
 							<p className="text-gray-600">
 								Comece adicionando produtos a esta categoria na{" "}
-								<Link
-									href="/produtos"
-									className="text-blue-600 hover:underline"
-								>
+								<Link href="/produtos" className="text-blue-600 hover:underline">
 									página de produtos
 								</Link>
 							</p>
@@ -213,24 +196,15 @@ export default function CategoriaDetalhesPage() {
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{category.products.map((product) => (
-								<Card
-									key={product.id}
-									className="hover:shadow-md transition-shadow"
-								>
+								<Card key={product.id} className="hover:shadow-md transition-shadow">
 									<CardHeader className="pb-3">
 										<CardTitle className="text-lg flex items-center gap-2">
 											<Package className="h-5 w-5" />
 											{product.name}
 										</CardTitle>
 										<CardDescription className="space-y-1">
-											{product.brand && (
-												<div className="text-sm text-gray-600">
-													Marca: {product.brand.name}
-												</div>
-											)}
-											<div className="text-sm text-gray-600">
-												Unidade: {product.unit}
-											</div>
+											{product.brand && <div className="text-sm text-gray-600">Marca: {product.brand.name}</div>}
+											<div className="text-sm text-gray-600">Unidade: {product.unit}</div>
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="pt-0">
@@ -250,5 +224,5 @@ export default function CategoriaDetalhesPage() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

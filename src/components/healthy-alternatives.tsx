@@ -1,53 +1,45 @@
-"use client";
+"use client"
 
-import {
-	AlertTriangle,
-	Apple,
-	CheckCircle2,
-	Heart,
-	Leaf,
-	Plus,
-	TrendingUp,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Apple, CheckCircle2, Heart, Leaf, Plus, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface HealthyAlternative {
-	id: string;
-	name: string;
-	unit: string;
-	barcode?: string;
-	brand?: { name: string };
-	healthScore: number;
+	id: string
+	name: string
+	unit: string
+	barcode?: string
+	brand?: { name: string }
+	healthScore: number
 	nutritionalInfo: {
-		calories?: number;
-		proteins?: number;
-		carbohydrates?: number;
-		totalFat?: number;
-		saturatedFat?: number;
-		transFat?: number;
-		fiber?: number;
-		sodium?: number;
-		totalSugars?: number;
-		servingSize?: string;
-		allergensContains: string[];
-		allergensMayContain: string[];
-	};
-	averagePrice?: number;
-	purchaseCount: number;
-	healthReasons: string[];
+		calories?: number
+		proteins?: number
+		carbohydrates?: number
+		totalFat?: number
+		saturatedFat?: number
+		transFat?: number
+		fiber?: number
+		sodium?: number
+		totalSugars?: number
+		servingSize?: string
+		allergensContains: string[]
+		allergensMayContain: string[]
+	}
+	averagePrice?: number
+	purchaseCount: number
+	healthReasons: string[]
 }
 
 interface HealthyAlternativesProps {
-	categoryId: string;
-	excludeProductId?: string;
-	onAddToCart?: (productId: string, productName: string) => void;
-	onAddToList?: (productId: string, productName: string) => void;
-	maxItems?: number;
-	showAddButtons?: boolean;
-	title?: string;
+	categoryId: string
+	excludeProductId?: string
+	onAddToCart?: (productId: string, productName: string) => void
+	onAddToList?: (productId: string, productName: string) => void
+	maxItems?: number
+	showAddButtons?: boolean
+	title?: string
 }
 
 export function HealthyAlternatives({
@@ -59,51 +51,49 @@ export function HealthyAlternatives({
 	showAddButtons = true,
 	title,
 }: HealthyAlternativesProps) {
-	const [alternatives, setAlternatives] = useState<HealthyAlternative[]>([]);
-	const [categoryName, setCategoryName] = useState("");
-	const [loading, setLoading] = useState(true);
+	const [alternatives, setAlternatives] = useState<HealthyAlternative[]>([])
+	const [categoryName, setCategoryName] = useState("")
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		if (categoryId) {
-			fetchAlternatives();
+			fetchAlternatives()
 		}
-	}, [categoryId, excludeProductId]);
+	}, [categoryId, excludeProductId])
 
 	const fetchAlternatives = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
 			const params = new URLSearchParams({
 				categoryId,
 				limit: maxItems.toString(),
 				...(excludeProductId ? { excludeProductId } : {}),
-			});
+			})
 
-			const response = await fetch(
-				`/api/products/healthy-alternatives?${params}`,
-			);
+			const response = await fetch(`/api/products/healthy-alternatives?${params}`)
 			if (response.ok) {
-				const data = await response.json();
-				setAlternatives(data.alternatives);
-				setCategoryName(data.categoryName);
+				const data = await response.json()
+				setAlternatives(data.alternatives)
+				setCategoryName(data.categoryName)
 			}
 		} catch (error) {
-			console.error("Erro ao buscar alternativas saudáveis:", error);
+			console.error("Erro ao buscar alternativas saudáveis:", error)
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const getHealthScoreColor = (score: number) => {
-		if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
-		if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-		return "text-red-600 bg-red-50 border-red-200";
-	};
+		if (score >= 80) return "text-green-600 bg-green-50 border-green-200"
+		if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200"
+		return "text-red-600 bg-red-50 border-red-200"
+	}
 
 	const getHealthScoreIcon = (score: number) => {
-		if (score >= 80) return <Heart className="h-4 w-4 text-green-600" />;
-		if (score >= 60) return <Leaf className="h-4 w-4 text-yellow-600" />;
-		return <Apple className="h-4 w-4 text-red-600" />;
-	};
+		if (score >= 80) return <Heart className="h-4 w-4 text-green-600" />
+		if (score >= 60) return <Leaf className="h-4 w-4 text-yellow-600" />
+		return <Apple className="h-4 w-4 text-red-600" />
+	}
 
 	if (loading) {
 		return (
@@ -130,7 +120,7 @@ export function HealthyAlternatives({
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	if (alternatives.length === 0) {
@@ -145,17 +135,12 @@ export function HealthyAlternatives({
 				<CardContent>
 					<div className="text-center py-6 text-gray-500">
 						<Apple className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-						<p className="text-sm">
-							Nenhuma alternativa saudável encontrada para{" "}
-							{categoryName || "esta categoria"}
-						</p>
-						<p className="text-xs mt-1">
-							Adicione informações nutricionais aos produtos para ver sugestões
-						</p>
+						<p className="text-sm">Nenhuma alternativa saudável encontrada para {categoryName || "esta categoria"}</p>
+						<p className="text-xs mt-1">Adicione informações nutricionais aos produtos para ver sugestões</p>
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	return (
@@ -174,10 +159,7 @@ export function HealthyAlternatives({
 			<CardContent>
 				<div className="space-y-3">
 					{alternatives.map((product, index) => (
-						<div
-							key={product.id}
-							className={`p-3 border rounded-lg ${getHealthScoreColor(product.healthScore)}`}
-						>
+						<div key={product.id} className={`p-3 border rounded-lg ${getHealthScoreColor(product.healthScore)}`}>
 							<div className="flex items-start justify-between mb-2">
 								<div className="flex items-start gap-3">
 									<div className="flex items-center gap-1 mt-1">
@@ -190,9 +172,7 @@ export function HealthyAlternatives({
 									<div className="flex-1">
 										<h4 className="font-medium text-sm">{product.name}</h4>
 										{product.brand && (
-											<p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-												{product.brand.name}
-											</p>
+											<p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{product.brand.name}</p>
 										)}
 
 										{/* Informações Nutricionais Principais */}
@@ -220,11 +200,7 @@ export function HealthyAlternatives({
 										{/* Razões de Saúde */}
 										<div className="flex flex-wrap gap-1 mt-2">
 											{product.healthReasons.slice(0, 2).map((reason, idx) => (
-												<Badge
-													key={idx}
-													variant="secondary"
-													className="text-xs bg-green-100 text-green-800"
-												>
+												<Badge key={idx} variant="secondary" className="text-xs bg-green-100 text-green-800">
 													{reason}
 												</Badge>
 											))}
@@ -235,15 +211,11 @@ export function HealthyAlternatives({
 								<div className="text-right flex flex-col items-end gap-2">
 									<div className="flex items-center gap-1">
 										{getHealthScoreIcon(product.healthScore)}
-										<span className="text-sm font-bold">
-											{product.healthScore}
-										</span>
+										<span className="text-sm font-bold">{product.healthScore}</span>
 									</div>
 
 									{product.averagePrice && (
-										<div className="text-xs text-gray-600 dark:text-gray-400">
-											R$ {product.averagePrice.toFixed(2)}
-										</div>
+										<div className="text-xs text-gray-600 dark:text-gray-400">R$ {product.averagePrice.toFixed(2)}</div>
 									)}
 
 									{showAddButtons && (
@@ -278,14 +250,8 @@ export function HealthyAlternatives({
 							{/* Informações Adicionais */}
 							<div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
 								<div className="flex justify-between items-center">
-									<span>
-										{product.purchaseCount > 0
-											? `Comprado ${product.purchaseCount} vezes`
-											: "Produto novo"}
-									</span>
-									{product.nutritionalInfo.servingSize && (
-										<span>Porção: {product.nutritionalInfo.servingSize}</span>
-									)}
+									<span>{product.purchaseCount > 0 ? `Comprado ${product.purchaseCount} vezes` : "Produto novo"}</span>
+									{product.nutritionalInfo.servingSize && <span>Porção: {product.nutritionalInfo.servingSize}</span>}
 								</div>
 							</div>
 						</div>
@@ -296,18 +262,15 @@ export function HealthyAlternatives({
 					<div className="flex items-start gap-2">
 						<CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
 						<div className="text-xs text-green-700 dark:text-green-400">
-							<p className="font-medium mb-1">
-								Dica: Por que estas opções são mais saudáveis?
-							</p>
+							<p className="font-medium mb-1">Dica: Por que estas opções são mais saudáveis?</p>
 							<p>
-								Produtos com score alto geralmente têm menos sódio, açúcar e
-								gorduras ruins, e mais fibras, proteínas e outros nutrientes
-								benéficos.
+								Produtos com score alto geralmente têm menos sódio, açúcar e gorduras ruins, e mais fibras, proteínas e
+								outros nutrientes benéficos.
 							</p>
 						</div>
 					</div>
 				</div>
 			</CardContent>
 		</Card>
-	);
+	)
 }

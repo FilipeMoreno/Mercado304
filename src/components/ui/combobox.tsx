@@ -1,39 +1,28 @@
-"use client";
+"use client"
 
-import { Check, ChevronsUpDown } from "lucide-react";
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from "react"
+import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface ComboboxOption {
-	value: string;
-	label: string;
+	value: string
+	label: string
 }
 
 interface ComboboxProps {
-	options: ComboboxOption[];
-	value?: string;
-	onValueChange?: (value: string) => void;
-	placeholder?: string;
-	searchPlaceholder?: string;
-	emptyText?: string;
-	className?: string;
-	disabled?: boolean;
-	onCreateNew?: (searchTerm: string) => void;
-	createNewText?: string;
+	options: ComboboxOption[]
+	value?: string
+	onValueChange?: (value: string) => void
+	placeholder?: string
+	searchPlaceholder?: string
+	emptyText?: string
+	className?: string
+	disabled?: boolean
+	onCreateNew?: (searchTerm: string) => void
+	createNewText?: string
 }
 
 export function Combobox({
@@ -48,16 +37,14 @@ export function Combobox({
 	onCreateNew,
 	createNewText = "Criar novo",
 }: ComboboxProps) {
-	const [open, setOpen] = React.useState(false);
-	const [searchTerm, setSearchTerm] = React.useState("");
+	const [open, setOpen] = React.useState(false)
+	const [searchTerm, setSearchTerm] = React.useState("")
 
 	// Filtrar opções baseado no termo de busca
 	const filteredOptions = React.useMemo(() => {
-		if (!searchTerm) return options;
-		return options.filter((option) =>
-			option.label.toLowerCase().includes(searchTerm.toLowerCase()),
-		);
-	}, [options, searchTerm]);
+		if (!searchTerm) return options
+		return options.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
+	}, [options, searchTerm])
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -69,19 +56,13 @@ export function Combobox({
 					className={cn("w-full justify-between", className)}
 					disabled={disabled}
 				>
-					{value
-						? options.find((option) => option.value === value)?.label
-						: placeholder}
+					{value ? options.find((option) => option.value === value)?.label : placeholder}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
 				<Command shouldFilter={false}>
-					<CommandInput
-						placeholder={searchPlaceholder}
-						value={searchTerm}
-						onValueChange={setSearchTerm}
-					/>
+					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
 					<CommandList>
 						<CommandEmpty>
 							<div className="py-6 text-center text-sm">
@@ -92,9 +73,9 @@ export function Combobox({
 										size="sm"
 										className="mt-2 text-blue-600 hover:text-blue-700"
 										onClick={() => {
-											onCreateNew(searchTerm);
-											setOpen(false);
-											setSearchTerm("");
+											onCreateNew(searchTerm)
+											setOpen(false)
+											setSearchTerm("")
 										}}
 									>
 										{createNewText} "{searchTerm}"
@@ -108,17 +89,12 @@ export function Combobox({
 									key={option.value}
 									value={option.value}
 									onSelect={(currentValue) => {
-										onValueChange?.(currentValue === value ? "" : currentValue);
-										setOpen(false);
-										setSearchTerm("");
+										onValueChange?.(currentValue === value ? "" : currentValue)
+										setOpen(false)
+										setSearchTerm("")
 									}}
 								>
-									<Check
-										className={cn(
-											"mr-2 h-4 w-4",
-											value === option.value ? "opacity-100" : "opacity-0",
-										)}
-									/>
+									<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
 									{option.label}
 								</CommandItem>
 							))}
@@ -127,5 +103,5 @@ export function Combobox({
 				</Command>
 			</PopoverContent>
 		</Popover>
-	);
+	)
 }

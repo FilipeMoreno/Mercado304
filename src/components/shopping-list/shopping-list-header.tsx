@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import { ArrowLeft, DollarSign, Edit, ShoppingCart, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, DollarSign, Edit, ShoppingCart, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface ShoppingListHeaderProps {
-	listName: string;
-	totalItems: number;
-	completedItems: number;
-	progress: number;
-	listId: string;
-	onStartShopping: () => void;
-	onOpenOptimizedRoute: () => void;
-	onEditList: () => void;
-	onDeleteList: () => void;
+	listName: string
+	totalItems: number
+	completedItems: number
+	progress: number
+	listId: string
+	onStartShopping: () => void
+	onOpenOptimizedRoute: () => void
+	onEditList: () => void
+	onDeleteList: () => void
 }
 
 export function ShoppingListHeader({
@@ -38,24 +38,15 @@ export function ShoppingListHeader({
 			<div className="flex-1">
 				<h1 className="text-3xl font-bold">{listName}</h1>
 				<p className="text-gray-600 mt-1">
-					{totalItems} itens • {completedItems} concluídos (
-					{progress.toFixed(0)}%)
+					{totalItems} itens • {completedItems} concluídos ({progress.toFixed(0)}%)
 				</p>
 			</div>
 			<div className="flex gap-2">
-				<Button
-					variant="default"
-					size="sm"
-					onClick={onStartShopping}
-				>
+				<Button variant="default" size="sm" onClick={onStartShopping}>
 					<ShoppingCart className="h-4 w-4 mr-2" />
 					Iniciar Compras
 				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onOpenOptimizedRoute}
-				>
+				<Button variant="outline" size="sm" onClick={onOpenOptimizedRoute}>
 					<DollarSign className="h-4 w-4 mr-2" />
 					Otimizar Roteiro
 				</Button>
@@ -69,15 +60,11 @@ export function ShoppingListHeader({
 					<Edit className="h-4 w-4 mr-2" />
 					Editar
 				</Button>
-				<Button
-					variant="destructive"
-					size="sm"
-					onClick={onDeleteList}
-				>
+				<Button variant="destructive" size="sm" onClick={onDeleteList}>
 					<Trash2 className="h-4 w-4 mr-2" />
 					Excluir
 				</Button>
 			</div>
 		</div>
-	);
+	)
 }

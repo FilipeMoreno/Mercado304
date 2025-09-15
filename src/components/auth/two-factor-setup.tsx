@@ -1,146 +1,145 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
-import { twoFactor, useSession } from "@/lib/auth-client";
-import { handleAuthError } from "@/lib/auth-errors";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Copy, Eye, EyeOff, Loader2, Shield, ShieldCheck, Download } from "lucide-react";
+import { Copy, Download, Eye, EyeOff, Loader2, Shield, ShieldCheck } from "lucide-react"
+import { QRCodeSVG } from "qrcode.react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { twoFactor, useSession } from "@/lib/auth-client"
+import { handleAuthError } from "@/lib/auth-errors"
 
 interface TwoFactorSetupProps {
-	onComplete?: () => void;
+	onComplete?: () => void
 }
 
 export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
-	const { data: session } = useSession();
-	const [step, setStep] = useState<'setup' | 'password' | 'verify' | 'backup-codes'>('setup');
-	const [password, setPassword] = useState('');
-	const [showPassword, setShowPassword] = useState(false);
-	const [totpSecret, setTotpSecret] = useState<string>('');
-	const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-	const [verificationCode, setVerificationCode] = useState('');
-	const [backupCodes, setBackupCodes] = useState<string[]>([]);
-	const [showBackupCodes, setShowBackupCodes] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
+	const { data: session } = useSession()
+	const [step, setStep] = useState<"setup" | "password" | "verify" | "backup-codes">("setup")
+	const [password, setPassword] = useState("")
+	const [showPassword, setShowPassword] = useState(false)
+	const [totpSecret, setTotpSecret] = useState<string>("")
+	const [qrCodeUrl, setQrCodeUrl] = useState<string>("")
+	const [verificationCode, setVerificationCode] = useState("")
+	const [backupCodes, setBackupCodes] = useState<string[]>([])
+	const [showBackupCodes, setShowBackupCodes] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 
-	const isSocialAccount = !!session?.user?.image;
+	const isSocialAccount = !!session?.user?.image
 
 	const handleInitialSetup = () => {
 		if (isSocialAccount) {
-			generateAndEnable2FA();
+			generateAndEnable2FA()
 		} else {
-			setStep('password');
+			setStep("password")
 		}
-	};
+	}
 
 	const generateAndEnable2FA = async () => {
-		setIsLoading(true);
+		setIsLoading(true)
 		try {
 			const result = await twoFactor.enable({
 				...(!isSocialAccount && { password }),
-			});
+			})
 
 			if (result.error) {
-				handleAuthError(result.error, 'general');
-				setIsLoading(false);
-				return;
+				handleAuthError(result.error, "general")
+				setIsLoading(false)
+				return
 			}
 
-			const totpUriFromApi = result.data?.totpURI || '';
-			const backupCodesFromApi = result.data?.backupCodes || [];
-			
-			const secretMatch = totpUriFromApi.match(/secret=([^&]+)/);
-			const secret = secretMatch ? secretMatch[1] : '';
+			const totpUriFromApi = result.data?.totpURI || ""
+			const backupCodesFromApi = result.data?.backupCodes || []
 
-			setQrCodeUrl(totpUriFromApi);
-			setTotpSecret(secret);
-			setBackupCodes(backupCodesFromApi);
-			
+			const secretMatch = totpUriFromApi.match(/secret=([^&]+)/)
+			const secret = secretMatch ? secretMatch[1] : ""
+
+			setQrCodeUrl(totpUriFromApi)
+			setTotpSecret(secret)
+			setBackupCodes(backupCodesFromApi)
+
 			if (totpUriFromApi) {
-				setStep('verify');
+				setStep("verify")
 			} else {
-				toast.error("Não foi possível gerar o código QR. Tente novamente.");
+				toast.error("Não foi possível gerar o código QR. Tente novamente.")
 			}
-
 		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao iniciar a configuração 2FA" }, 'general');
+			handleAuthError({ message: error.message || "Erro ao iniciar a configuração 2FA" }, "general")
 		} finally {
-			setIsLoading(false);
+			setIsLoading(false)
 		}
-	};
-	
+	}
+
 	const handlePasswordSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 		if (!password.trim()) {
-			toast.error("Por favor, digite sua senha atual.");
-			return;
+			toast.error("Por favor, digite sua senha atual.")
+			return
 		}
-		generateAndEnable2FA();
-	};
+		generateAndEnable2FA()
+	}
 
 	const verifyAndCompleteSetup = async () => {
 		if (!verificationCode.trim()) {
-			toast.error("Digite o código de verificação");
-			return;
+			toast.error("Digite o código de verificação")
+			return
 		}
 
-		setIsLoading(true);
+		setIsLoading(true)
 		try {
 			const verifyResult = await twoFactor.verifyTotp({
 				code: verificationCode,
-			});
+			})
 
 			if (verifyResult.error) {
-				handleAuthError(verifyResult.error, 'general');
-				return;
+				handleAuthError(verifyResult.error, "general")
+				return
 			}
 
-			setStep('backup-codes');
-			toast.success("Autenticação de dois fatores ativada!");
+			setStep("backup-codes")
+			toast.success("Autenticação de dois fatores ativada!")
 		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao verificar código" }, 'general');
+			handleAuthError({ message: error.message || "Erro ao verificar código" }, "general")
 		} finally {
-			setIsLoading(false);
+			setIsLoading(false)
 		}
-	};
+	}
 
 	const copyToClipboard = (text: string) => {
-		navigator.clipboard.writeText(text);
-		toast.success("Copiado para a área de transferência");
-	};
+		navigator.clipboard.writeText(text)
+		toast.success("Copiado para a área de transferência")
+	}
 
 	const copyAllBackupCodes = () => {
-		const allCodes = backupCodes.join('; ');
-		navigator.clipboard.writeText(allCodes);
-		toast.success("Todos os códigos foram copiados");
-	};
+		const allCodes = backupCodes.join("; ")
+		navigator.clipboard.writeText(allCodes)
+		toast.success("Todos os códigos foram copiados")
+	}
 
 	const downloadBackupCodes = () => {
-		const codesText = backupCodes.join('\n');
-		const blob = new Blob([codesText], { type: 'text/plain;charset=utf-8' });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'mercado304-backup-codes.txt';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
-		toast.success("Códigos de backup baixados!");
-	};
+		const codesText = backupCodes.join("\n")
+		const blob = new Blob([codesText], { type: "text/plain;charset=utf-8" })
+		const url = URL.createObjectURL(blob)
+		const link = document.createElement("a")
+		link.href = url
+		link.download = "mercado304-backup-codes.txt"
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+		toast.success("Códigos de backup baixados!")
+	}
 
 	const finishSetup = () => {
-		toast.success("Configuração concluída!");
-		onComplete?.();
-	};
+		toast.success("Configuração concluída!")
+		onComplete?.()
+	}
 
-	if (step === 'setup') {
+	if (step === "setup") {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
@@ -148,9 +147,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 						<Shield className="h-6 w-6 text-blue-600" />
 					</div>
 					<CardTitle>Configurar Autenticação de Dois Fatores</CardTitle>
-					<CardDescription>
-						Adicione uma camada extra de segurança à sua conta com TOTP
-					</CardDescription>
+					<CardDescription>Adicione uma camada extra de segurança à sua conta com TOTP</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="rounded-lg bg-muted p-4">
@@ -164,11 +161,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</div>
 				</CardContent>
 				<CardFooter>
-					<Button 
-						onClick={handleInitialSetup} 
-						disabled={isLoading}
-						className="w-full"
-					>
+					<Button onClick={handleInitialSetup} disabled={isLoading} className="w-full">
 						{isLoading ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -180,17 +173,15 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</Button>
 				</CardFooter>
 			</Card>
-		);
+		)
 	}
 
-	if (step === 'password') {
+	if (step === "password") {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
 					<CardTitle>Confirmar Identidade</CardTitle>
-					<CardDescription>
-						Para sua segurança, por favor, confirme sua senha para continuar.
-					</CardDescription>
+					<CardDescription>Para sua segurança, por favor, confirme sua senha para continuar.</CardDescription>
 				</CardHeader>
 				<form onSubmit={handlePasswordSubmit}>
 					<CardContent>
@@ -221,50 +212,36 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</CardContent>
 					<CardFooter className="flex flex-col gap-2">
 						<Button type="submit" disabled={isLoading} className="w-full">
-							{isLoading ? (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							) : (
-								"Continuar"
-							)}
+							{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Continuar"}
 						</Button>
-						<Button variant="outline" onClick={() => setStep('setup')} className="w-full">
+						<Button variant="outline" onClick={() => setStep("setup")} className="w-full">
 							Voltar
 						</Button>
 					</CardFooter>
 				</form>
 			</Card>
-		);
+		)
 	}
-	
-	if (step === 'verify') {
+
+	if (step === "verify") {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
 					<CardTitle>Escaneie o QR Code</CardTitle>
-					<CardDescription>
-						Use seu aplicativo authenticator para escanear o código
-					</CardDescription>
+					<CardDescription>Use seu aplicativo authenticator para escanear o código</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex justify-center">
 						<div className="rounded-lg bg-white p-4">
-							{qrCodeUrl ? <QRCodeSVG value={qrCodeUrl} size={200} /> : <Loader2 className="h-12 w-12 animate-spin"/>}
+							{qrCodeUrl ? <QRCodeSVG value={qrCodeUrl} size={200} /> : <Loader2 className="h-12 w-12 animate-spin" />}
 						</div>
 					</div>
-					
+
 					<div className="space-y-2">
 						<Label className="text-sm font-medium">Código manual (se não conseguir escanear):</Label>
 						<div className="flex items-center space-x-2">
-							<Input
-								value={totpSecret}
-								readOnly
-								className="text-xs font-mono"
-							/>
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={() => copyToClipboard(totpSecret)}
-							>
+							<Input value={totpSecret} readOnly className="text-xs font-mono" />
+							<Button size="sm" variant="outline" onClick={() => copyToClipboard(totpSecret)}>
 								<Copy className="h-4 w-4" />
 							</Button>
 						</div>
@@ -286,15 +263,11 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</div>
 				</CardContent>
 				<CardFooter className="flex space-x-2">
-					<Button 
-						variant="outline" 
-						onClick={() => setStep(isSocialAccount ? 'setup' : 'password')}
-						className="flex-1"
-					>
+					<Button variant="outline" onClick={() => setStep(isSocialAccount ? "setup" : "password")} className="flex-1">
 						Voltar
 					</Button>
-					<Button 
-						onClick={verifyAndCompleteSetup} 
+					<Button
+						onClick={verifyAndCompleteSetup}
 						disabled={isLoading || verificationCode.length < 6}
 						className="flex-1"
 					>
@@ -309,10 +282,10 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</Button>
 				</CardFooter>
 			</Card>
-		);
+		)
 	}
 
-	if (step === 'backup-codes') {
+	if (step === "backup-codes") {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
@@ -321,7 +294,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</div>
 					<CardTitle>Códigos de Backup</CardTitle>
 					<CardDescription>
-						Salve estes códigos em local seguro. Eles podem ser usados para acessar sua conta se você perder acesso ao seu authenticator.
+						Salve estes códigos em local seguro. Eles podem ser usados para acessar sua conta se você perder acesso ao
+						seu authenticator.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -341,30 +315,18 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 						<div className="flex items-center justify-between">
 							<Label>Códigos de backup</Label>
 							<div className="flex space-x-2">
-								<Button
-									size="sm"
-									variant="outline"
-									onClick={() => setShowBackupCodes(!showBackupCodes)}
-								>
+								<Button size="sm" variant="outline" onClick={() => setShowBackupCodes(!showBackupCodes)}>
 									{showBackupCodes ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 								</Button>
-								<Button
-									size="sm"
-									variant="outline"
-									onClick={copyAllBackupCodes}
-								>
+								<Button size="sm" variant="outline" onClick={copyAllBackupCodes}>
 									<Copy className="h-4 w-4" />
 								</Button>
-								<Button
-									size="sm"
-									variant="outline"
-									onClick={downloadBackupCodes}
-								>
+								<Button size="sm" variant="outline" onClick={downloadBackupCodes}>
 									<Download className="h-4 w-4" />
 								</Button>
 							</div>
 						</div>
-						
+
 						<div className="grid grid-cols-2 gap-2">
 							{backupCodes.map((code, index) => (
 								<Badge
@@ -373,23 +335,20 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 									className="justify-center p-2 font-mono text-xs cursor-pointer hover:bg-secondary/80"
 									onClick={() => copyToClipboard(code)}
 								>
-									{showBackupCodes ? code : '••••••••'}
+									{showBackupCodes ? code : "••••••••"}
 								</Badge>
 							))}
 						</div>
 					</div>
 				</CardContent>
 				<CardFooter>
-					<Button 
-						onClick={finishSetup}
-						className="w-full"
-					>
+					<Button onClick={finishSetup} className="w-full">
 						Concluir Configuração
 					</Button>
 				</CardFooter>
 			</Card>
-		);
+		)
 	}
 
-	return null;
+	return null
 }

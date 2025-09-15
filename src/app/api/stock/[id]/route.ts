@@ -1,13 +1,10 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 // GET - Buscar item específico do estoque
-export async function GET(
-	request: Request,
-	{ params }: { params: { id: string } },
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
 	try {
-		const { id } = params;
+		const { id } = params
 
 		const stockItem = await prisma.stockItem.findUnique({
 			where: { id },
@@ -19,33 +16,24 @@ export async function GET(
 					},
 				},
 			},
-		});
+		})
 
 		if (!stockItem) {
-			return NextResponse.json(
-				{ error: "Item de estoque não encontrado" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Item de estoque não encontrado" }, { status: 404 })
 		}
 
-		return NextResponse.json(stockItem);
+		return NextResponse.json(stockItem)
 	} catch (error) {
-		console.error("Erro ao buscar item do estoque:", error);
-		return NextResponse.json(
-			{ error: "Erro ao buscar item do estoque" },
-			{ status: 500 },
-		);
+		console.error("Erro ao buscar item do estoque:", error)
+		return NextResponse.json({ error: "Erro ao buscar item do estoque" }, { status: 500 })
 	}
 }
 
 // PUT - Atualizar item do estoque
-export async function PUT(
-	request: Request,
-	{ params }: { params: { id: string } },
-) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
 	try {
-		const { id } = params;
-		const data = await request.json();
+		const { id } = params
+		const data = await request.json()
 
 		const {
 			quantity,
@@ -55,23 +43,20 @@ export async function PUT(
 			unitCost,
 			notes,
 			consumed, // Quantidade consumida (para registrar saída)
-		} = data;
+		} = data
 
 		const existingItem = await prisma.stockItem.findUnique({
 			where: { id },
 			include: { product: true },
-		});
+		})
 
 		if (!existingItem) {
-			return NextResponse.json(
-				{ error: "Item de estoque não encontrado" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Item de estoque não encontrado" }, { status: 404 })
 		}
 
 		// Se está registrando consumo
 		if (consumed && consumed > 0) {
-			const newQuantity = Math.max(0, existingItem.quantity - consumed);
+			const newQuantity = Math.max(0, existingItem.quantity - consumed)
 
 			// Atualizar quantidade
 			const updatedItem = await prisma.stockItem.update({
@@ -91,7 +76,7 @@ export async function PUT(
 						},
 					},
 				},
-			});
+			})
 
 			// Registrar movimento de saída
 			await prisma.stockMovement.create({
@@ -102,9 +87,9 @@ export async function PUT(
 					reason: "Consumo registrado",
 					notes: `Consumo: ${consumed} ${existingItem.product.unit}`,
 				},
-			});
+			})
 
-			return NextResponse.json(updatedItem);
+			return NextResponse.json(updatedItem)
 		}
 
 		// Atualização normal do item
@@ -121,8 +106,7 @@ export async function PUT(
 				...(notes !== undefined && { notes }),
 				isLowStock:
 					existingItem.product.hasStock && existingItem.product.minStock
-						? (quantity || existingItem.quantity) <=
-							existingItem.product.minStock
+						? (quantity || existingItem.quantity) <= existingItem.product.minStock
 						: false,
 			},
 			include: {
@@ -133,11 +117,11 @@ export async function PUT(
 					},
 				},
 			},
-		});
+		})
 
 		// Se a quantidade mudou, registrar movimento de ajuste
 		if (quantity !== undefined && quantity !== existingItem.quantity) {
-			const difference = quantity - existingItem.quantity;
+			const difference = quantity - existingItem.quantity
 			await prisma.stockMovement.create({
 				data: {
 					stockItemId: id,
@@ -146,37 +130,28 @@ export async function PUT(
 					reason: difference > 0 ? "Ajuste - aumento" : "Ajuste - diminuição",
 					notes,
 				},
-			});
+			})
 		}
 
-		return NextResponse.json(updatedItem);
+		return NextResponse.json(updatedItem)
 	} catch (error) {
-		console.error("Erro ao atualizar estoque:", error);
-		return NextResponse.json(
-			{ error: "Erro ao atualizar estoque" },
-			{ status: 500 },
-		);
+		console.error("Erro ao atualizar estoque:", error)
+		return NextResponse.json({ error: "Erro ao atualizar estoque" }, { status: 500 })
 	}
 }
 
 // DELETE - Remover item do estoque
-export async function DELETE(
-	request: Request,
-	{ params }: { params: { id: string } },
-) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
 	try {
-		const { id } = params;
+		const { id } = params
 
 		// Verificar se item existe
 		const existingItem = await prisma.stockItem.findUnique({
 			where: { id },
-		});
+		})
 
 		if (!existingItem) {
-			return NextResponse.json(
-				{ error: "Item de estoque não encontrado" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Item de estoque não encontrado" }, { status: 404 })
 		}
 
 		// Registrar movimento antes de deletar
@@ -187,19 +162,16 @@ export async function DELETE(
 				quantity: existingItem.quantity,
 				reason: "Remoção do estoque",
 			},
-		});
+		})
 
 		// Deletar item (movimentos são deletados em cascata)
 		await prisma.stockItem.delete({
 			where: { id },
-		});
+		})
 
-		return NextResponse.json({ success: true });
+		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error("Erro ao remover do estoque:", error);
-		return NextResponse.json(
-			{ error: "Erro ao remover do estoque" },
-			{ status: 500 },
-		);
+		console.error("Erro ao remover do estoque:", error)
+		return NextResponse.json({ error: "Erro ao remover do estoque" }, { status: 500 })
 	}
 }

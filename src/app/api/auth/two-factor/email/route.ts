@@ -1,108 +1,87 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth-server";
-import { prisma } from "@/lib/prisma";
+import { type NextRequest, NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-server"
+import { prisma } from "@/lib/prisma"
 
 // Enable Email 2FA
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getSession();
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Não autenticado" },
-        { status: 401 }
-      );
-    }
+	try {
+		const session = await getSession()
 
-    // Update user preferences to enable email 2FA
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        // Add email 2FA preference field or use a separate table for user preferences
-        // For now, we'll store it as a JSON field or create a separate preference system
-      }
-    });
+		if (!session?.user) {
+			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
+		}
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "2FA via email habilitado com sucesso" 
-    });
+		// Update user preferences to enable email 2FA
+		await prisma.user.update({
+			where: { id: session.user.id },
+			data: {
+				// Add email 2FA preference field or use a separate table for user preferences
+				// For now, we'll store it as a JSON field or create a separate preference system
+			},
+		})
 
-  } catch (error) {
-    console.error("Error enabling email 2FA:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
-  }
+		return NextResponse.json({
+			success: true,
+			message: "2FA via email habilitado com sucesso",
+		})
+	} catch (error) {
+		console.error("Error enabling email 2FA:", error)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+	}
 }
 
 // Disable Email 2FA
 export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getSession();
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Não autenticado" },
-        { status: 401 }
-      );
-    }
+	try {
+		const session = await getSession()
 
-    // Update user preferences to disable email 2FA
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        // Remove email 2FA preference
-      }
-    });
+		if (!session?.user) {
+			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
+		}
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "2FA via email desabilitado com sucesso" 
-    });
+		// Update user preferences to disable email 2FA
+		await prisma.user.update({
+			where: { id: session.user.id },
+			data: {
+				// Remove email 2FA preference
+			},
+		})
 
-  } catch (error) {
-    console.error("Error disabling email 2FA:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
-  }
+		return NextResponse.json({
+			success: true,
+			message: "2FA via email desabilitado com sucesso",
+		})
+	} catch (error) {
+		console.error("Error disabling email 2FA:", error)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+	}
 }
 
 // Check Email 2FA Status
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getSession();
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Não autenticado" },
-        { status: 401 }
-      );
-    }
+	try {
+		const session = await getSession()
 
-    // Get user's email 2FA preference
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        // Select email 2FA preference field
-        id: true,
-        email: true
-      }
-    });
+		if (!session?.user) {
+			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
+		}
 
-    return NextResponse.json({ 
-      enabled: false, // This will be determined by user preferences
-      email: user?.email 
-    });
+		// Get user's email 2FA preference
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: {
+				// Select email 2FA preference field
+				id: true,
+				email: true,
+			},
+		})
 
-  } catch (error) {
-    console.error("Error checking email 2FA status:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
-  }
+		return NextResponse.json({
+			enabled: false, // This will be determined by user preferences
+			email: user?.email,
+		})
+	} catch (error) {
+		console.error("Error checking email 2FA status:", error)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+	}
 }

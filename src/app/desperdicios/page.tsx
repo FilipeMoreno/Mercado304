@@ -1,5 +1,5 @@
-import DesperdiciosClient from "./desperdicios-client";
+import DesperdiciosClient from "./desperdicios-client"
 
 export default function DesperdiciosPage() {
-	return <DesperdiciosClient />;
+	return <DesperdiciosClient />
 }

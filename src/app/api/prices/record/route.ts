@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { handleApiError } from "@/lib/api-utils";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { handleApiError } from "@/lib/api-utils"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
 	try {
-		const { productName, marketName, price, notes } = await request.json();
+		const { productName, marketName, price, notes } = await request.json()
 
 		// Validações básicas
 		if (!productName || !marketName || price === undefined) {
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 					error: "Produto, mercado e preço são obrigatórios",
 				},
 				{ status: 400 },
-			);
+			)
 		}
 
 		if (typeof price !== "number" || price < 0) {
@@ -24,29 +24,29 @@ export async function POST(request: Request) {
 					error: "Preço deve ser um número válido maior ou igual a zero",
 				},
 				{ status: 400 },
-			);
+			)
 		}
 
 		// Buscar ou criar produto
 		let product = await prisma.product.findFirst({
 			where: { name: { equals: productName, mode: "insensitive" } },
-		});
+		})
 
 		if (!product) {
 			product = await prisma.product.create({
 				data: { name: productName },
-			});
+			})
 		}
 
 		// Buscar ou criar mercado
 		let market = await prisma.market.findFirst({
 			where: { name: { equals: marketName, mode: "insensitive" } },
-		});
+		})
 
 		if (!market) {
 			market = await prisma.market.create({
 				data: { name: marketName },
-			});
+			})
 		}
 
 		// Registrar o preço
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 				product: true,
 				market: true,
 			},
-		});
+		})
 
 		return NextResponse.json({
 			success: true,
@@ -75,33 +75,33 @@ export async function POST(request: Request) {
 				recordDate: priceRecord.recordDate,
 				notes: priceRecord.notes,
 			},
-		});
+		})
 	} catch (error) {
-		console.error("Erro ao registrar preço:", error);
-		return handleApiError(error);
+		console.error("Erro ao registrar preço:", error)
+		return handleApiError(error)
 	}
 }
 
 export async function GET(request: Request) {
 	try {
-		const { searchParams } = new URL(request.url);
-		const productName = searchParams.get("product");
-		const marketName = searchParams.get("market");
-		const limit = parseInt(searchParams.get("limit") || "50");
+		const { searchParams } = new URL(request.url)
+		const productName = searchParams.get("product")
+		const marketName = searchParams.get("market")
+		const limit = parseInt(searchParams.get("limit") || "50")
 
 		// Construir filtros
-		const where: any = {};
+		const where: any = {}
 
 		if (productName) {
 			where.product = {
 				name: { contains: productName, mode: "insensitive" },
-			};
+			}
 		}
 
 		if (marketName) {
 			where.market = {
 				name: { contains: marketName, mode: "insensitive" },
-			};
+			}
 		}
 
 		// Buscar registros de preços
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
 			},
 			orderBy: { recordDate: "desc" },
 			take: limit,
-		});
+		})
 
 		return NextResponse.json({
 			success: true,
@@ -126,9 +126,9 @@ export async function GET(request: Request) {
 				notes: record.notes,
 			})),
 			total: priceRecords.length,
-		});
+		})
 	} catch (error) {
-		console.error("Erro ao buscar preços:", error);
-		return handleApiError(error);
+		console.error("Erro ao buscar preços:", error)
+		return handleApiError(error)
 	}
 }

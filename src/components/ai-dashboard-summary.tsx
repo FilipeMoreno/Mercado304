@@ -1,32 +1,32 @@
-"use client";
+"use client"
 
-import { Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "./ui/skeleton";
+import { Sparkles } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "./ui/skeleton"
 
 export function AiDashboardSummary() {
-	const [summary, setSummary] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [summary, setSummary] = useState<string | null>(null)
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		async function fetchSummary() {
-			setLoading(true);
+			setLoading(true)
 			try {
-				const response = await fetch("/api/dashboard/ai-summary");
+				const response = await fetch("/api/dashboard/ai-summary")
 				if (response.ok) {
-					const data = await response.json();
-					setSummary(data.summary);
+					const data = await response.json()
+					setSummary(data.summary)
 				}
 			} catch (error) {
-				console.error("Erro ao buscar resumo da IA:", error);
-				setSummary("Não foi possível carregar os insights no momento.");
+				console.error("Erro ao buscar resumo da IA:", error)
+				setSummary("Não foi possível carregar os insights no momento.")
 			} finally {
-				setLoading(false);
+				setLoading(false)
 			}
 		}
-		fetchSummary();
-	}, []);
+		fetchSummary()
+	}, [])
 
 	return (
 		<Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
@@ -47,5 +47,5 @@ export function AiDashboardSummary() {
 				)}
 			</CardContent>
 		</Card>
-	);
+	)
 }

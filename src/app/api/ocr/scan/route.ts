@@ -1,45 +1,39 @@
 // src/app/api/ocr/scan/route.ts
 
 // Para usar o SDK oficial, seria necessário instalar com: npm install @google/generative-ai
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai"
+import { NextResponse } from "next/server"
 
 // Função auxiliar para converter a imagem de Base64 para o formato da API do Gemini
 function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
-	const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+	const match = dataUrl.match(/^data:(.+);base64,(.+)$/)
 	if (!match) {
-		throw new Error("Formato de Data URL inválido");
+		throw new Error("Formato de Data URL inválido")
 	}
 	return {
 		inlineData: { mimeType: match[1], data: match[2] },
-	};
+	}
 }
 
 export async function POST(request: Request) {
 	try {
-		const { imageUrl } = await request.json();
-		const apiKey = process.env.GEMINI_API_KEY;
+		const { imageUrl } = await request.json()
+		const apiKey = process.env.GEMINI_API_KEY
 
 		if (!apiKey) {
-			console.error("Chave da API do Gemini não configurada.");
-			return NextResponse.json(
-				{ error: "Configuração de IA ausente no servidor." },
-				{ status: 500 },
-			);
+			console.error("Chave da API do Gemini não configurada.")
+			return NextResponse.json({ error: "Configuração de IA ausente no servidor." }, { status: 500 })
 		}
 
 		if (!imageUrl) {
-			return NextResponse.json(
-				{ error: "Nenhuma imagem fornecida." },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Nenhuma imagem fornecida." }, { status: 400 })
 		}
 
 		// Inicializa o cliente da IA com a sua chave
-		const genAI = new GoogleGenerativeAI(apiKey);
+		const genAI = new GoogleGenerativeAI(apiKey)
 		const model = genAI.getGenerativeModel({
 			model: "gemini-1.5-flash", // Modelo rápido e com boa capacidade multimodal
-		});
+		})
 
 		// Este é o "coração" da nossa lógica: o prompt.
 		// Damos instruções claras ao Gemini sobre o que fazer e como formatar a resposta.
@@ -157,24 +151,21 @@ export async function POST(request: Request) {
       - PRIORIZE os valores da coluna "100 g" ou "100 ml". Se essa coluna não existir, use os valores da coluna "por porção".
       - Inclua TODOS os elementos nutricionais encontrados na tabela, mesmo que não sejam obrigatórios.
       - Converta unidades para os padrões especificados (mg, mcg, g, kcal).
-    `;
+    `
 
-		const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl);
+		const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl)
 
 		// Envia o prompt e a imagem para o Gemini
-		const result = await model.generateContent([prompt, imagePart]);
-		const responseText = result.response.text();
+		const result = await model.generateContent([prompt, imagePart])
+		const responseText = result.response.text()
 
 		// O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
-		const jsonString = responseText.replace(/```json\n?|```/g, "").trim();
-		const parsedJson = JSON.parse(jsonString);
+		const jsonString = responseText.replace(/```json\n?|```/g, "").trim()
+		const parsedJson = JSON.parse(jsonString)
 
-		return NextResponse.json(parsedJson);
+		return NextResponse.json(parsedJson)
 	} catch (error) {
-		console.error("Erro na chamada da API Gemini:", error);
-		return NextResponse.json(
-			{ error: "Erro ao processar a imagem com a IA." },
-			{ status: 500 },
-		);
+		console.error("Erro na chamada da API Gemini:", error)
+		return NextResponse.json({ error: "Erro ao processar a imagem com a IA." }, { status: 500 })
 	}
 }

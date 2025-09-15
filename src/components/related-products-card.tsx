@@ -1,74 +1,59 @@
-"use client";
+"use client"
 
-import { ListPlus, Loader2, Tag, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { ListPlus, Loader2, Tag, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button } from "./ui/button"
+import { Skeleton } from "./ui/skeleton"
 
 interface RelatedProduct {
-	id: string;
-	name: string;
-	brandName: string;
-	count: number;
+	id: string
+	name: string
+	brandName: string
+	count: number
 }
 
 interface RelatedProductsCardProps {
-	productId: string;
-	onAddProduct: (productId: string) => void;
-	onClose?: () => void;
+	productId: string
+	onAddProduct: (productId: string) => void
+	onClose?: () => void
 }
 
-export function RelatedProductsCard({
-	productId,
-	onAddProduct,
-	onClose,
-}: RelatedProductsCardProps) {
-	const [suggestions, setSuggestions] = useState<RelatedProduct[]>([]);
-	const [loading, setLoading] = useState(true);
+export function RelatedProductsCard({ productId, onAddProduct, onClose }: RelatedProductsCardProps) {
+	const [suggestions, setSuggestions] = useState<RelatedProduct[]>([])
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		async function fetchRelatedProducts() {
-			setLoading(true);
-			setSuggestions([]);
+			setLoading(true)
+			setSuggestions([])
 			try {
 				const response = await fetch("/api/products/related", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ productId }),
-				});
+				})
 
 				if (response.ok) {
-					const result = await response.json();
-					setSuggestions(result);
+					const result = await response.json()
+					setSuggestions(result)
 				} else {
-					toast.error("Erro ao buscar sugestões de produtos");
+					toast.error("Erro ao buscar sugestões de produtos")
 				}
 			} catch (error) {
-				console.error("Erro ao buscar sugestões:", error);
-				toast.error("Erro ao carregar sugestões");
+				console.error("Erro ao buscar sugestões:", error)
+				toast.error("Erro ao carregar sugestões")
 			} finally {
-				setLoading(false);
+				setLoading(false)
 			}
 		}
 
 		if (productId) {
-			fetchRelatedProducts();
+			fetchRelatedProducts()
 		}
-	}, [productId]);
+	}, [productId])
 
 	if (loading) {
 		return (
@@ -79,12 +64,7 @@ export function RelatedProductsCard({
 						Buscando sugestões...
 					</CardTitle>
 					{onClose && (
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-auto w-auto"
-							onClick={onClose}
-						>
+						<Button variant="ghost" size="icon" className="h-auto w-auto" onClick={onClose}>
 							<X className="h-4 w-4" />
 						</Button>
 					)}
@@ -97,11 +77,11 @@ export function RelatedProductsCard({
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	if (suggestions.length === 0) {
-		return null;
+		return null
 	}
 
 	return (
@@ -112,17 +92,10 @@ export function RelatedProductsCard({
 						<Tag className="h-4 w-4" />
 						Comprados Juntos
 					</CardTitle>
-					<CardDescription>
-						Clientes que compraram este item também compraram:
-					</CardDescription>
+					<CardDescription>Clientes que compraram este item também compraram:</CardDescription>
 				</div>
 				{onClose && (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-auto w-auto"
-						onClick={onClose}
-					>
+					<Button variant="ghost" size="icon" className="h-auto w-auto" onClick={onClose}>
 						<X className="h-4 w-4" />
 					</Button>
 				)}
@@ -133,11 +106,7 @@ export function RelatedProductsCard({
 						<TooltipProvider key={product.id}>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button
-										variant="outline"
-										className="flex-shrink-0"
-										onClick={() => onAddProduct(product.id)}
-									>
+									<Button variant="outline" className="flex-shrink-0" onClick={() => onAddProduct(product.id)}>
 										<ListPlus className="h-3 w-3 mr-1" />
 										{product.name}
 									</Button>
@@ -153,5 +122,5 @@ export function RelatedProductsCard({
 				</div>
 			</CardContent>
 		</Card>
-	);
+	)
 }

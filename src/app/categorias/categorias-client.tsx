@@ -1,72 +1,51 @@
-"use client";
+"use client"
 
-import {
-	ChevronLeft,
-	ChevronRight,
-	Edit,
-	Plus,
-	Search,
-	Tag,
-	Trash2,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { FilterPopover } from "@/components/ui/filter-popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ChevronLeft, ChevronRight, Edit, Plus, Search, Tag, Trash2 } from "lucide-react"
+import React, { useMemo, useState } from "react"
+import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FilterPopover } from "@/components/ui/filter-popover"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
 	useCategoriesQuery,
 	useCreateCategoryMutation,
-	useUpdateCategoryMutation,
 	useDeleteCategoryMutation,
 	useDeleteConfirmation,
+	useUpdateCategoryMutation,
 	useUrlState,
-} from "@/hooks";
-import type { Category } from "@/types";
-import { Button } from "@/components/ui/button";
-import React from "react";
+} from "@/hooks"
+import type { Category } from "@/types"
 
 interface CategoriasClientProps {
 	searchParams: {
-		search?: string;
-		sort?: string;
-		page?: string;
-	};
+		search?: string
+		sort?: string
+		page?: string
+	}
 }
 
 export function CategoriasClient({ searchParams }: CategoriasClientProps) {
-	const [showForm, setShowForm] = useState(false);
+	const [showForm, setShowForm] = useState(false)
 	const [newCategory, setNewCategory] = useState({
 		name: "",
 		icon: "",
 		color: "",
-	});
-	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "" });
+	})
+	const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "" })
 
 	// URL state management
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } =
-		useUrlState({
-			basePath: "/categorias",
-			initialValues: {
-				search: searchParams.search || "",
-				sort: searchParams.sort || "name",
-				page: parseInt(searchParams.page || "1", 10),
-			},
-		});
+	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+		basePath: "/categorias",
+		initialValues: {
+			search: searchParams.search || "",
+			sort: searchParams.sort || "name",
+			page: parseInt(searchParams.page || "1", 10),
+		},
+	})
 
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
@@ -75,26 +54,25 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			sort: state.sort,
 			page: state.page.toString(),
 			limit: "12",
-		});
-		return urlParams;
-	}, [state.search, state.sort, state.page]);
+		})
+		return urlParams
+	}, [state.search, state.sort, state.page])
 
 	// React Query hooks
-	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params);
-	const createCategoryMutation = useCreateCategoryMutation();
-	const updateCategoryMutation = useUpdateCategoryMutation();
-	const deleteCategoryMutation = useDeleteCategoryMutation();
+	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)
+	const createCategoryMutation = useCreateCategoryMutation()
+	const updateCategoryMutation = useUpdateCategoryMutation()
+	const deleteCategoryMutation = useDeleteCategoryMutation()
 
 	// Delete confirmation hook
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
-		useDeleteConfirmation<Category>();
+	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Category>()
 
 	// Extract data from React Query
-	const categories = categoriesData?.categories || [];
+	const categories = categoriesData?.categories || []
 	// --- CORREÇÃO APLICADA AQUI ---
-	const totalCount = categoriesData?.pagination?.totalCount || 0;
-	const itemsPerPage = 12;
-	const totalPages = Math.ceil(totalCount / itemsPerPage);
+	const totalCount = categoriesData?.pagination?.totalCount || 0
+	const itemsPerPage = 12
+	const totalPages = Math.ceil(totalCount / itemsPerPage)
 
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },
@@ -103,13 +81,13 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		{ value: "products-asc", label: "Menos produtos" },
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antigo" },
-	];
+	]
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
-			updateSingleValue("page", page);
+			updateSingleValue("page", page)
 		}
-	};
+	}
 
 	const handleCreateCategory = async () => {
 		try {
@@ -117,16 +95,16 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				name: newCategory.name,
 				icon: newCategory.icon,
 				color: newCategory.color,
-			});
-			setNewCategory({ name: "", icon: "", color: "" });
-			setShowForm(false);
+			})
+			setNewCategory({ name: "", icon: "", color: "" })
+			setShowForm(false)
 		} catch (error) {
-			console.error("Error creating category:", error);
+			console.error("Error creating category:", error)
 		}
-	};
+	}
 
 	const handleUpdateCategory = async () => {
-		if (!editingCategory) return;
+		if (!editingCategory) return
 
 		try {
 			await updateCategoryMutation.mutateAsync({
@@ -136,33 +114,33 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					icon: editForm.icon,
 					color: editForm.color,
 				},
-			});
-			setEditingCategory(null);
-			setEditForm({ name: "", icon: "", color: "" });
+			})
+			setEditingCategory(null)
+			setEditForm({ name: "", icon: "", color: "" })
 		} catch (error) {
-			console.error("Error updating category:", error);
+			console.error("Error updating category:", error)
 		}
-	};
+	}
 
 	const handleDeleteCategory = async () => {
-		if (!deleteState.item) return;
+		if (!deleteState.item) return
 
 		try {
-			await deleteCategoryMutation.mutateAsync(deleteState.item.id);
-			closeDeleteConfirm();
+			await deleteCategoryMutation.mutateAsync(deleteState.item.id)
+			closeDeleteConfirm()
 		} catch (error) {
-			console.error("Error deleting category:", error);
+			console.error("Error deleting category:", error)
 		}
-	};
+	}
 
 	const startEdit = (category: Category) => {
-		setEditingCategory(category);
+		setEditingCategory(category)
 		setEditForm({
 			name: category.name,
 			icon: category.icon || "",
 			color: category.color || "",
-		});
-	};
+		})
+	}
 
 	// Handle error states
 	if (error) {
@@ -170,15 +148,11 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			<Card>
 				<CardContent className="text-center py-12">
 					<Tag className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">
-						Erro ao carregar categorias
-					</h3>
-					<p className="text-gray-600 mb-4">
-						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
-					</p>
+					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar categorias</h3>
+					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	return (
@@ -199,8 +173,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
 					onClearFilters={() => {
-						clearFilters();
-						updateSingleValue("page", 1);
+						clearFilters()
+						updateSingleValue("page", 1)
 					}}
 				/>
 			</div>
@@ -213,17 +187,13 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						<Card>
 							<CardContent className="text-center py-12">
 								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-								<h3 className="text-lg font-medium mb-2">
-									Nenhuma categoria encontrada
-								</h3>
-								<p className="text-gray-600 mb-4">
-									Nenhuma categoria corresponde aos filtros aplicados
-								</p>
+								<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
+								<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
 								<Button
 									variant="outline"
 									onClick={() => {
-										clearFilters();
-										updateSingleValue("page", 1);
+										clearFilters()
+										updateSingleValue("page", 1)
 									}}
 								>
 									Limpar Filtros
@@ -234,12 +204,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						<Card>
 							<CardContent className="text-center py-12">
 								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-								<h3 className="text-lg font-medium mb-2">
-									Nenhuma categoria cadastrada
-								</h3>
-								<p className="text-gray-600 mb-4">
-									Comece adicionando sua primeira categoria
-								</p>
+								<h3 className="text-lg font-medium mb-2">Nenhuma categoria cadastrada</h3>
+								<p className="text-gray-600 mb-4">Comece adicionando sua primeira categoria</p>
 								<Button onClick={() => setShowForm(true)}>
 									<Plus className="mr-2 h-4 w-4" />
 									Cadastrar Primeira Categoria
@@ -264,31 +230,19 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										<div className="flex justify-between items-start">
 											<div>
 												<CardTitle className="flex items-center gap-2">
-													{category.icon && (
-														<span className="text-lg">{category.icon}</span>
-													)}
+													{category.icon && <span className="text-lg">{category.icon}</span>}
 													{category.name}
 												</CardTitle>
-												<CardDescription className="mt-2">
-													{category._count?.products || 0} produtos
-												</CardDescription>
+												<CardDescription className="mt-2">{category._count?.products || 0} produtos</CardDescription>
 											</div>
 										</div>
 									</CardHeader>
 									<CardContent>
 										<div className="flex gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => startEdit(category)}
-											>
+											<Button variant="outline" size="sm" onClick={() => startEdit(category)}>
 												<Edit className="h-4 w-4" />
 											</Button>
-											<Button
-												variant="destructive"
-												size="sm"
-												onClick={() => openDeleteConfirm(category)}
-											>
+											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(category)}>
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
@@ -311,12 +265,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter(
-											(page) =>
-												page === 1 ||
-												page === totalPages ||
-												Math.abs(page - state.page) <= 2,
-										)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -361,9 +310,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Input
 								id="name"
 								value={newCategory.name}
-								onChange={(e) =>
-									setNewCategory((prev) => ({ ...prev, name: e.target.value }))
-								}
+								onChange={(e) => setNewCategory((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Nome da categoria"
 							/>
 						</div>
@@ -372,9 +319,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Input
 								id="icon"
 								value={newCategory.icon}
-								onChange={(e) =>
-									setNewCategory((prev) => ({ ...prev, icon: e.target.value }))
-								}
+								onChange={(e) => setNewCategory((prev) => ({ ...prev, icon: e.target.value }))}
 								placeholder="📦"
 							/>
 						</div>
@@ -384,20 +329,12 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								id="color"
 								type="color"
 								value={newCategory.color}
-								onChange={(e) =>
-									setNewCategory((prev) => ({ ...prev, color: e.target.value }))
-								}
+								onChange={(e) => setNewCategory((prev) => ({ ...prev, color: e.target.value }))}
 							/>
 						</div>
 						<div className="flex gap-2 pt-4">
-							<Button
-								onClick={handleCreateCategory}
-								disabled={createCategoryMutation.isPending}
-								className="flex-1"
-							>
-								{createCategoryMutation.isPending
-									? "Criando..."
-									: "Criar Categoria"}
+							<Button onClick={handleCreateCategory} disabled={createCategoryMutation.isPending} className="flex-1">
+								{createCategoryMutation.isPending ? "Criando..." : "Criar Categoria"}
 							</Button>
 							<Button variant="outline" onClick={() => setShowForm(false)}>
 								Cancelar
@@ -408,10 +345,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			</Dialog>
 
 			{/* Edit Dialog */}
-			<Dialog
-				open={!!editingCategory}
-				onOpenChange={(open) => !open && setEditingCategory(null)}
-			>
+			<Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Editar Categoria</DialogTitle>
@@ -422,9 +356,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Input
 								id="edit-name"
 								value={editForm.name}
-								onChange={(e) =>
-									setEditForm((prev) => ({ ...prev, name: e.target.value }))
-								}
+								onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Nome da categoria"
 							/>
 						</div>
@@ -433,9 +365,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Input
 								id="edit-icon"
 								value={editForm.icon}
-								onChange={(e) =>
-									setEditForm((prev) => ({ ...prev, icon: e.target.value }))
-								}
+								onChange={(e) => setEditForm((prev) => ({ ...prev, icon: e.target.value }))}
 								placeholder="📦"
 							/>
 						</div>
@@ -445,25 +375,14 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								id="edit-color"
 								type="color"
 								value={editForm.color}
-								onChange={(e) =>
-									setEditForm((prev) => ({ ...prev, color: e.target.value }))
-								}
+								onChange={(e) => setEditForm((prev) => ({ ...prev, color: e.target.value }))}
 							/>
 						</div>
 						<div className="flex gap-2 pt-4">
-							<Button
-								onClick={handleUpdateCategory}
-								disabled={updateCategoryMutation.isPending}
-								className="flex-1"
-							>
-								{updateCategoryMutation.isPending
-									? "Atualizando..."
-									: "Atualizar"}
+							<Button onClick={handleUpdateCategory} disabled={updateCategoryMutation.isPending} className="flex-1">
+								{updateCategoryMutation.isPending ? "Atualizando..." : "Atualizar"}
 							</Button>
-							<Button
-								variant="outline"
-								onClick={() => setEditingCategory(null)}
-							>
+							<Button variant="outline" onClick={() => setEditingCategory(null)}>
 								Cancelar
 							</Button>
 						</div>
@@ -472,10 +391,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			</Dialog>
 
 			{/* Delete Confirmation Dialog */}
-			<Dialog
-				open={deleteState.show}
-				onOpenChange={(open) => !open && closeDeleteConfirm()}
-			>
+			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
@@ -485,12 +401,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					</DialogHeader>
 					<div className="space-y-4">
 						<p>
-							Tem certeza que deseja excluir a categoria{" "}
-							<strong>{deleteState.item?.name}</strong>?
+							Tem certeza que deseja excluir a categoria <strong>{deleteState.item?.name}</strong>?
 						</p>
 						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita. Todos os produtos desta categoria
-							ficarão sem categoria.
+							Esta ação não pode ser desfeita. Todos os produtos desta categoria ficarão sem categoria.
 						</p>
 						<div className="flex gap-2 pt-4">
 							<Button
@@ -500,9 +414,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								className="flex-1"
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteCategoryMutation.isPending
-									? "Excluindo..."
-									: "Sim, Excluir"}
+								{deleteCategoryMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 							</Button>
 							<Button variant="outline" onClick={closeDeleteConfirm}>
 								Cancelar
@@ -512,5 +424,5 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				</DialogContent>
 			</Dialog>
 		</>
-	);
+	)
 }

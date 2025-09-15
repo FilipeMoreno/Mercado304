@@ -1,25 +1,21 @@
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { AppToasts } from "@/lib/toasts";
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { AppToasts } from "@/lib/toasts"
 
 interface MutationOptions {
-	onSuccess?: (data?: any) => void;
-	onError?: (error: string) => void;
-	successMessage?: string;
-	errorMessage?: string;
+	onSuccess?: (data?: any) => void
+	onError?: (error: string) => void
+	successMessage?: string
+	errorMessage?: string
 }
 
 export function useDataMutation() {
-	const [loading, setLoading] = useState(false);
-	const router = useRouter();
+	const [loading, setLoading] = useState(false)
+	const router = useRouter()
 
-	const mutate = async (
-		url: string,
-		options: RequestInit,
-		mutationOptions?: MutationOptions,
-	) => {
-		setLoading(true);
+	const mutate = async (url: string, options: RequestInit, mutationOptions?: MutationOptions) => {
+		setLoading(true)
 		try {
 			const response = await fetch(url, {
 				headers: {
@@ -27,47 +23,44 @@ export function useDataMutation() {
 					...options.headers,
 				},
 				...options,
-			});
+			})
 
 			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}));
-				throw new Error(
-					errorData.error || `Erro ${response.status}: ${response.statusText}`,
-				);
+				const errorData = await response.json().catch(() => ({}))
+				throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`)
 			}
 
-			const data = await response.json().catch(() => ({}));
+			const data = await response.json().catch(() => ({}))
 
 			if (mutationOptions?.successMessage) {
-				AppToasts.success(mutationOptions.successMessage);
+				AppToasts.success(mutationOptions.successMessage)
 			}
 
 			if (mutationOptions?.onSuccess) {
-				mutationOptions.onSuccess(data);
+				mutationOptions.onSuccess(data)
 			}
 
-			router.refresh();
-			return data;
+			router.refresh()
+			return data
 		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : "Erro na operação";
+			const errorMessage = error instanceof Error ? error.message : "Erro na operação"
 
 			if (mutationOptions?.errorMessage) {
-				AppToasts.error(mutationOptions.errorMessage);
+				AppToasts.error(mutationOptions.errorMessage)
 			} else {
-				AppToasts.error(errorMessage);
+				AppToasts.error(errorMessage)
 			}
 
 			if (mutationOptions?.onError) {
-				mutationOptions.onError(errorMessage);
+				mutationOptions.onError(errorMessage)
 			}
 
-			console.error("Erro na mutação:", error);
-			throw error;
+			console.error("Erro na mutação:", error)
+			throw error
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const create = async (url: string, data: any, options?: MutationOptions) => {
 		return mutate(
@@ -77,8 +70,8 @@ export function useDataMutation() {
 				body: JSON.stringify(data),
 			},
 			options,
-		);
-	};
+		)
+	}
 
 	const update = async (url: string, data: any, options?: MutationOptions) => {
 		return mutate(
@@ -88,8 +81,8 @@ export function useDataMutation() {
 				body: JSON.stringify(data),
 			},
 			options,
-		);
-	};
+		)
+	}
 
 	const remove = async (url: string, options?: MutationOptions) => {
 		return mutate(
@@ -98,8 +91,8 @@ export function useDataMutation() {
 				method: "DELETE",
 			},
 			options,
-		);
-	};
+		)
+	}
 
 	return {
 		mutate,
@@ -107,5 +100,5 @@ export function useDataMutation() {
 		update,
 		remove,
 		loading,
-	};
+	}
 }

@@ -1,33 +1,33 @@
-"use client";
+"use client"
 
-import { ArrowLeft, Save, Store } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Save, Store } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function NovoMercadoPage() {
-	const router = useRouter();
-	const [loading, setLoading] = useState(false);
+	const router = useRouter()
+	const [loading, setLoading] = useState(false)
 	const [formData, setFormData] = useState({
 		name: "",
 		location: "",
-	});
+	})
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 
 		if (!formData.name.trim()) {
-			toast.error("Nome do mercado é obrigatório");
-			return;
+			toast.error("Nome do mercado é obrigatório")
+			return
 		}
 
-		setLoading(true);
+		setLoading(true)
 
 		try {
 			const response = await fetch("/api/markets", {
@@ -37,30 +37,28 @@ export default function NovoMercadoPage() {
 					name: formData.name.trim(),
 					location: formData.location.trim() || null,
 				}),
-			});
+			})
 
 			if (response.ok) {
-				router.push("/mercados");
+				router.push("/mercados")
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao criar mercado");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao criar mercado")
 			}
 		} catch (error) {
-			console.error("Erro ao criar mercado:", error);
-			toast.error("Erro ao criar mercado");
+			console.error("Erro ao criar mercado:", error)
+			toast.error("Erro ao criar mercado")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
-	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-	) => {
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		setFormData((prev) => ({
 			...prev,
 			[e.target.name]: e.target.value,
-		}));
-	};
+		}))
+	}
 
 	return (
 		<div className="space-y-6">
@@ -125,5 +123,5 @@ export default function NovoMercadoPage() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import {
 	AlertTriangle,
 	ArrowUpDown,
@@ -14,54 +14,42 @@ import {
 	Trash2,
 	TrendingDown,
 	TrendingUp,
-} from "lucide-react";
-import * as React from "react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+} from "lucide-react"
+import * as React from "react"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface StockMovement {
-	id: string;
-	type: "ENTRADA" | "SAIDA" | "AJUSTE" | "VENCIMENTO" | "PERDA" | "DESPERDICIO";
-	quantity: number;
-	reason?: string;
-	date: string;
-	notes?: string;
-	isWaste: boolean;
-	wasteReason?: string;
-	wasteValue?: number;
+	id: string
+	type: "ENTRADA" | "SAIDA" | "AJUSTE" | "VENCIMENTO" | "PERDA" | "DESPERDICIO"
+	quantity: number
+	reason?: string
+	date: string
+	notes?: string
+	isWaste: boolean
+	wasteReason?: string
+	wasteValue?: number
 	stockItem: {
-		id: string;
+		id: string
 		product: {
-			id: string;
-			name: string;
-			unit: string;
-			brand?: { name: string };
-			category?: { name: string };
-		};
-	};
+			id: string
+			name: string
+			unit: string
+			brand?: { name: string }
+			category?: { name: string }
+		}
+	}
 }
 
 interface StockHistoryProps {
-	productId?: string;
-	stockItemId?: string;
-	productName?: string;
+	productId?: string
+	stockItemId?: string
+	productName?: string
 }
 
 const movementTypeColors = {
@@ -71,7 +59,7 @@ const movementTypeColors = {
 	VENCIMENTO: "bg-orange-100 text-orange-800 border-orange-200",
 	PERDA: "bg-red-100 text-red-800 border-red-200",
 	DESPERDICIO: "bg-red-100 text-red-800 border-red-200",
-};
+}
 
 const movementTypeLabels = {
 	ENTRADA: "Entrada",
@@ -80,27 +68,23 @@ const movementTypeLabels = {
 	VENCIMENTO: "Vencimento",
 	PERDA: "Perda",
 	DESPERDICIO: "Desperdício",
-};
+}
 
-export function StockHistory({
-	productId,
-	stockItemId,
-	productName,
-}: StockHistoryProps) {
-	const [movements, setMovements] = useState<StockMovement[]>([]);
-	const [stats, setStats] = useState<any>(null);
-	const [loading, setLoading] = useState(false);
-	const [open, setOpen] = useState(false);
+export function StockHistory({ productId, stockItemId, productName }: StockHistoryProps) {
+	const [movements, setMovements] = useState<StockMovement[]>([])
+	const [stats, setStats] = useState<any>(null)
+	const [loading, setLoading] = useState(false)
+	const [open, setOpen] = useState(false)
 	const [filters, setFilters] = useState({
 		type: "all",
 		startDate: "",
 		endDate: "",
 		page: 1,
 		limit: 50,
-	});
+	})
 
 	const loadHistory = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
 			const params = new URLSearchParams({
 				...(productId && { productId }),
@@ -110,49 +94,49 @@ export function StockHistory({
 				...(filters.endDate && { endDate: filters.endDate }),
 				page: filters.page.toString(),
 				limit: filters.limit.toString(),
-			});
+			})
 
-			const response = await fetch(`/api/stock/history?${params}`);
+			const response = await fetch(`/api/stock/history?${params}`)
 			if (response.ok) {
-				const data = await response.json();
-				setMovements(data.movements);
-				setStats(data.stats);
+				const data = await response.json()
+				setMovements(data.movements)
+				setStats(data.stats)
 			}
 		} catch (error) {
-			console.error("Erro ao carregar histórico:", error);
+			console.error("Erro ao carregar histórico:", error)
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	React.useEffect(() => {
 		if (open) {
-			loadHistory();
+			loadHistory()
 		}
-	}, [open, filters]);
+	}, [open, filters])
 
 	const getMovementIcon = (type: string) => {
 		switch (type) {
 			case "ENTRADA":
-				return <TrendingUp className="h-4 w-4" />;
+				return <TrendingUp className="h-4 w-4" />
 			case "SAIDA":
-				return <TrendingDown className="h-4 w-4" />;
+				return <TrendingDown className="h-4 w-4" />
 			case "AJUSTE":
-				return <ArrowUpDown className="h-4 w-4" />;
+				return <ArrowUpDown className="h-4 w-4" />
 			case "VENCIMENTO":
-				return <Calendar className="h-4 w-4" />;
+				return <Calendar className="h-4 w-4" />
 			case "PERDA":
-				return <AlertTriangle className="h-4 w-4" />;
+				return <AlertTriangle className="h-4 w-4" />
 			case "DESPERDICIO":
-				return <Trash2 className="h-4 w-4" />;
+				return <Trash2 className="h-4 w-4" />
 			default:
-				return <Package className="h-4 w-4" />;
+				return <Package className="h-4 w-4" />
 		}
-	};
+	}
 
 	const formatQuantity = (quantity: number, unit: string) => {
-		return `${quantity} ${unit}`;
-	};
+		return `${quantity} ${unit}`
+	}
 
 	const exportHistory = async () => {
 		try {
@@ -163,22 +147,20 @@ export function StockHistory({
 				...(filters.startDate && { startDate: filters.startDate }),
 				...(filters.endDate && { endDate: filters.endDate }),
 				export: "csv",
-			});
+			})
 
-			window.open(`/api/stock/history?${params}`, "_blank");
+			window.open(`/api/stock/history?${params}`, "_blank")
 		} catch (error) {
-			console.error("Erro ao exportar histórico:", error);
+			console.error("Erro ao exportar histórico:", error)
 		}
-	};
+	}
 
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center gap-2 mb-6">
 				<History className="h-5 w-5" />
 				<h2 className="text-2xl font-bold">Histórico de Movimentações</h2>
-				{productName && (
-					<span className="text-lg text-gray-600">- {productName}</span>
-				)}
+				{productName && <span className="text-lg text-gray-600">- {productName}</span>}
 			</div>
 
 			{/* Filtros */}
@@ -187,9 +169,7 @@ export function StockHistory({
 					<Label>Tipo de Movimento</Label>
 					<Select
 						value={filters.type}
-						onValueChange={(value) =>
-							setFilters((prev) => ({ ...prev, type: value, page: 1 }))
-						}
+						onValueChange={(value) => setFilters((prev) => ({ ...prev, type: value, page: 1 }))}
 					>
 						<SelectTrigger>
 							<SelectValue />
@@ -265,9 +245,7 @@ export function StockHistory({
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm text-gray-600">
-								Total de Movimentos
-							</CardTitle>
+							<CardTitle className="text-sm text-gray-600">Total de Movimentos</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">{stats.total}</div>
@@ -276,40 +254,28 @@ export function StockHistory({
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm text-gray-600">
-								Quantidade Total
-							</CardTitle>
+							<CardTitle className="text-sm text-gray-600">Quantidade Total</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold">
-								{stats.totalQuantity.toFixed(1)}
-							</div>
+							<div className="text-2xl font-bold">{stats.totalQuantity.toFixed(1)}</div>
 						</CardContent>
 					</Card>
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm text-gray-600">
-								Desperdícios
-							</CardTitle>
+							<CardTitle className="text-sm text-gray-600">Desperdícios</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold text-red-600">
-								{stats.waste.count}
-							</div>
+							<div className="text-2xl font-bold text-red-600">{stats.waste.count}</div>
 						</CardContent>
 					</Card>
 
 					<Card>
 						<CardHeader className="pb-2">
-							<CardTitle className="text-sm text-gray-600">
-								Valor Desperdiçado
-							</CardTitle>
+							<CardTitle className="text-sm text-gray-600">Valor Desperdiçado</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold text-red-600">
-								R$ {stats.waste.value?.toFixed(2) || "0.00"}
-							</div>
+							<div className="text-2xl font-bold text-red-600">R$ {stats.waste.value?.toFixed(2) || "0.00"}</div>
 						</CardContent>
 					</Card>
 				</div>
@@ -329,34 +295,19 @@ export function StockHistory({
 					</div>
 				) : (
 					movements.map((movement) => (
-						<Card
-							key={movement.id}
-							className={`${movement.isWaste ? "border-red-200 bg-red-50" : ""}`}
-						>
+						<Card key={movement.id} className={`${movement.isWaste ? "border-red-200 bg-red-50" : ""}`}>
 							<CardContent className="p-4">
 								<div className="flex items-start justify-between">
 									<div className="flex items-start gap-3">
-										<div className="p-2 rounded-lg bg-gray-100">
-											{getMovementIcon(movement.type)}
-										</div>
+										<div className="p-2 rounded-lg bg-gray-100">{getMovementIcon(movement.type)}</div>
 										<div className="space-y-1">
 											<div className="flex items-center gap-2">
-												<Badge
-													className={movementTypeColors[movement.type]}
-												>
-													{movementTypeLabels[movement.type]}
-												</Badge>
+												<Badge className={movementTypeColors[movement.type]}>{movementTypeLabels[movement.type]}</Badge>
 												<span className="text-sm text-gray-600">
-													{formatQuantity(
-														movement.quantity,
-														movement.stockItem.product.unit,
-													)}
+													{formatQuantity(movement.quantity, movement.stockItem.product.unit)}
 												</span>
 												{movement.isWaste && (
-													<Badge
-														variant="destructive"
-														className="text-xs"
-													>
+													<Badge variant="destructive" className="text-xs">
 														Desperdício
 													</Badge>
 												)}
@@ -364,40 +315,22 @@ export function StockHistory({
 											<div className="text-sm font-medium">
 												{movement.stockItem.product.name}
 												{movement.stockItem.product.brand && (
-													<span className="text-gray-500 ml-1">
-														- {movement.stockItem.product.brand.name}
-													</span>
+													<span className="text-gray-500 ml-1">- {movement.stockItem.product.brand.name}</span>
 												)}
 											</div>
-											{movement.reason && (
-												<div className="text-sm text-gray-600">
-													{movement.reason}
-												</div>
-											)}
+											{movement.reason && <div className="text-sm text-gray-600">{movement.reason}</div>}
 											{movement.wasteReason && (
-												<div className="text-sm text-red-600">
-													Motivo: {movement.wasteReason}
-												</div>
+												<div className="text-sm text-red-600">Motivo: {movement.wasteReason}</div>
 											)}
-											{movement.notes && (
-												<div className="text-xs text-gray-500">
-													{movement.notes}
-												</div>
-											)}
+											{movement.notes && <div className="text-xs text-gray-500">{movement.notes}</div>}
 										</div>
 									</div>
 									<div className="text-right">
 										<div className="text-sm text-gray-500">
-											{format(
-												new Date(movement.date),
-												"dd/MM/yyyy 'às' HH:mm",
-												{ locale: ptBR },
-											)}
+											{format(new Date(movement.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 										</div>
 										{movement.wasteValue && (
-											<div className="text-sm text-red-600 font-medium">
-												-R$ {movement.wasteValue.toFixed(2)}
-											</div>
+											<div className="text-sm text-red-600 font-medium">-R$ {movement.wasteValue.toFixed(2)}</div>
 										)}
 									</div>
 								</div>
@@ -407,5 +340,5 @@ export function StockHistory({
 				)}
 			</div>
 		</div>
-	);
+	)
 }

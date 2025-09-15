@@ -1,6 +1,6 @@
-import { Frown } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Frown } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function Offline() {
 	return (
@@ -10,13 +10,12 @@ export default function Offline() {
 				<h1 className="text-4xl font-bold">Você está offline</h1>
 				<h2 className="text-xl font-semibold">Sem conexão com a internet</h2>
 				<p className="text-gray-600">
-					Parece que você está sem internet. Tente se conectar novamente para
-					acessar o conteúdo.
+					Parece que você está sem internet. Tente se conectar novamente para acessar o conteúdo.
 				</p>
 			</div>
 			<Link href="/">
 				<Button>Tentar Novamente</Button>
 			</Link>
 		</div>
-	);
+	)
 }

@@ -1,18 +1,11 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
 	try {
-		const now = new Date();
-		const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-		const today = new Date(
-			now.getFullYear(),
-			now.getMonth(),
-			now.getDate(),
-			23,
-			59,
-			59,
-		);
+		const now = new Date()
+		const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
 
 		// Buscar itens do estoque com data de validade
 		const stockItems = await prisma.stockItem.findMany({
@@ -32,26 +25,18 @@ export async function GET() {
 			orderBy: {
 				expirationDate: "asc",
 			},
-		});
+		})
 
 		// Categorizar por urgência
-		const expiredItems = stockItems.filter(
-			(item) => item.expirationDate && item.expirationDate <= now,
-		);
+		const expiredItems = stockItems.filter((item) => item.expirationDate && item.expirationDate <= now)
 
 		const expiringToday = stockItems.filter(
-			(item) =>
-				item.expirationDate &&
-				item.expirationDate > now &&
-				item.expirationDate <= today,
-		);
+			(item) => item.expirationDate && item.expirationDate > now && item.expirationDate <= today,
+		)
 
 		const expiringSoon = stockItems.filter(
-			(item) =>
-				item.expirationDate &&
-				item.expirationDate > today &&
-				item.expirationDate <= threeDaysFromNow,
-		);
+			(item) => item.expirationDate && item.expirationDate > today && item.expirationDate <= threeDaysFromNow,
+		)
 
 		// Marcar itens vencidos no banco
 		if (expiredItems.length > 0) {
@@ -62,7 +47,7 @@ export async function GET() {
 				data: {
 					isExpired: true,
 				},
-			});
+			})
 
 			// Registrar movimentos de vencimento
 			await Promise.all(
@@ -76,7 +61,7 @@ export async function GET() {
 						},
 					}),
 				),
-			);
+			)
 		}
 
 		// Buscar alertas de estoque baixo
@@ -93,34 +78,26 @@ export async function GET() {
 					},
 				},
 			},
-		});
+		})
 
 		// Calcular valor do estoque próximo ao vencimento
-		const wasteValue = [
-			...expiredItems,
-			...expiringToday,
-			...expiringSoon,
-		].reduce(
+		const wasteValue = [...expiredItems, ...expiringToday, ...expiringSoon].reduce(
 			(sum, item) => sum + (item.unitCost ? item.quantity * item.unitCost : 0),
 			0,
-		);
+		)
 
 		// Estatísticas
 		const stats = {
-			totalAlerts:
-				expiredItems.length +
-				expiringToday.length +
-				expiringSoon.length +
-				lowStockItems.length,
+			totalAlerts: expiredItems.length + expiringToday.length + expiringSoon.length + lowStockItems.length,
 			expired: expiredItems.length,
 			expiringToday: expiringToday.length,
 			expiringSoon: expiringSoon.length,
 			lowStock: lowStockItems.length,
 			potentialWasteValue: wasteValue,
-		};
+		}
 
 		// Sugestões de ação
-		const actionSuggestions = [];
+		const actionSuggestions = []
 
 		if (expiredItems.length > 0) {
 			actionSuggestions.push({
@@ -129,7 +106,7 @@ export async function GET() {
 				description: `${expiredItems.length} item(ns) vencido(s) devem ser removidos`,
 				priority: "high",
 				items: expiredItems.map((item) => item.id),
-			});
+			})
 		}
 
 		if (expiringToday.length > 0) {
@@ -144,7 +121,7 @@ export async function GET() {
 					quantity: item.quantity,
 					unit: item.product.unit,
 				})),
-			});
+			})
 		}
 
 		if (lowStockItems.length > 0) {
@@ -154,7 +131,7 @@ export async function GET() {
 				description: `${lowStockItems.length} produto(s) com estoque baixo`,
 				priority: "medium",
 				items: lowStockItems.map((item) => item.id),
-			});
+			})
 		}
 
 		return NextResponse.json({
@@ -167,27 +144,24 @@ export async function GET() {
 			stats,
 			actionSuggestions,
 			lastChecked: now,
-		});
+		})
 	} catch (error) {
-		console.error("Erro ao buscar alertas:", error);
-		return NextResponse.json(
-			{ error: "Erro ao buscar alertas de validade" },
-			{ status: 500 },
-		);
+		console.error("Erro ao buscar alertas:", error)
+		return NextResponse.json({ error: "Erro ao buscar alertas de validade" }, { status: 500 })
 	}
 }
 
 // POST - Processar ações em lote (marcar como usado, remover vencidos, etc)
 export async function POST(request: Request) {
 	try {
-		const { action, itemIds, consumedQuantities } = await request.json();
+		const { action, itemIds, consumedQuantities } = await request.json()
 
 		switch (action) {
 			case "mark_expired":
 				await prisma.stockItem.updateMany({
 					where: { id: { in: itemIds } },
 					data: { isExpired: true },
-				});
+				})
 
 				// Registrar movimentos
 				await Promise.all(
@@ -201,61 +175,51 @@ export async function POST(request: Request) {
 							},
 						}),
 					),
-				);
-				break;
+				)
+				break
 
 			case "consume_items":
 				if (consumedQuantities) {
 					await Promise.all(
-						Object.entries(consumedQuantities).map(
-							async ([itemId, consumed]: [string, any]) => {
-								const item = await prisma.stockItem.findUnique({
+						Object.entries(consumedQuantities).map(async ([itemId, consumed]: [string, any]) => {
+							const item = await prisma.stockItem.findUnique({
+								where: { id: itemId },
+								include: { product: true },
+							})
+
+							if (item) {
+								const newQuantity = Math.max(0, item.quantity - consumed)
+
+								await prisma.stockItem.update({
 									where: { id: itemId },
-									include: { product: true },
-								});
+									data: {
+										quantity: newQuantity,
+										isLowStock:
+											item.product.hasStock && item.product.minStock ? newQuantity <= item.product.minStock : false,
+									},
+								})
 
-								if (item) {
-									const newQuantity = Math.max(0, item.quantity - consumed);
-
-									await prisma.stockItem.update({
-										where: { id: itemId },
-										data: {
-											quantity: newQuantity,
-											isLowStock:
-												item.product.hasStock && item.product.minStock
-													? newQuantity <= item.product.minStock
-													: false,
-										},
-									});
-
-									await prisma.stockMovement.create({
-										data: {
-											stockItemId: itemId,
-											type: "SAIDA",
-											quantity: consumed,
-											reason: "Consumo antes do vencimento",
-										},
-									});
-								}
-							},
-						),
-					);
+								await prisma.stockMovement.create({
+									data: {
+										stockItemId: itemId,
+										type: "SAIDA",
+										quantity: consumed,
+										reason: "Consumo antes do vencimento",
+									},
+								})
+							}
+						}),
+					)
 				}
-				break;
+				break
 
 			default:
-				return NextResponse.json(
-					{ error: "Ação não reconhecida" },
-					{ status: 400 },
-				);
+				return NextResponse.json({ error: "Ação não reconhecida" }, { status: 400 })
 		}
 
-		return NextResponse.json({ success: true });
+		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error("Erro ao processar ação:", error);
-		return NextResponse.json(
-			{ error: "Erro ao processar ação" },
-			{ status: 500 },
-		);
+		console.error("Erro ao processar ação:", error)
+		return NextResponse.json({ error: "Erro ao processar ação" }, { status: 500 })
 	}
 }

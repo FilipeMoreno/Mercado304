@@ -1,34 +1,24 @@
-"use client";
+"use client"
 
-import { Check, ChevronDown, XCircle } from "lucide-react";
-import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Check, ChevronDown, XCircle } from "lucide-react"
+import * as React from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface MultiSelectOption {
-	value: string;
-	label: string;
+	value: string
+	label: string
 }
 
 interface MultiSelectProps {
-	options: MultiSelectOption[];
-	selected: string[];
-	onSelectedChange: (selected: string[]) => void;
-	placeholder?: string;
-	className?: string;
+	options: MultiSelectOption[]
+	selected: string[]
+	onSelectedChange: (selected: string[]) => void
+	placeholder?: string
+	className?: string
 }
 
 export function MultiSelect({
@@ -38,24 +28,20 @@ export function MultiSelect({
 	placeholder = "Selecione...",
 	className,
 }: MultiSelectProps) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = React.useState(false)
 
 	const handleSelect = (value: string) => {
-		onSelectedChange(
-			selected.includes(value)
-				? selected.filter((v) => v !== value)
-				: [...selected, value],
-		);
-	};
+		onSelectedChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value])
+	}
 
 	const handleClear = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		onSelectedChange([]);
-	};
+		e.stopPropagation()
+		onSelectedChange([])
+	}
 
 	const selectedLabels = React.useMemo(() => {
-		return options.filter((option) => selected.includes(option.value));
-	}, [options, selected]);
+		return options.filter((option) => selected.includes(option.value))
+	}, [options, selected])
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -64,19 +50,12 @@ export function MultiSelect({
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className={cn(
-						"w-full justify-between h-auto min-h-[36px]",
-						className,
-					)}
+					className={cn("w-full justify-between h-auto min-h-[36px]", className)}
 				>
 					{selected.length > 0 ? (
 						<div className="flex flex-wrap items-center gap-1">
 							{selectedLabels.map((option) => (
-								<Badge
-									key={option.value}
-									variant="secondary"
-									className="whitespace-nowrap"
-								>
+								<Badge key={option.value} variant="secondary" className="whitespace-nowrap">
 									{option.label}
 								</Badge>
 							))}
@@ -105,19 +84,8 @@ export function MultiSelect({
 					<CommandGroup>
 						<CommandEmpty>Nenhum mercado encontrado.</CommandEmpty>
 						{options.map((option) => (
-							<CommandItem
-								key={option.value}
-								value={option.label}
-								onSelect={() => handleSelect(option.value)}
-							>
-								<Check
-									className={cn(
-										"mr-2 h-4 w-4",
-										selected.includes(option.value)
-											? "opacity-100"
-											: "opacity-0",
-									)}
-								/>
+							<CommandItem key={option.value} value={option.label} onSelect={() => handleSelect(option.value)}>
+								<Check className={cn("mr-2 h-4 w-4", selected.includes(option.value) ? "opacity-100" : "opacity-0")} />
 								{option.label}
 							</CommandItem>
 						))}
@@ -125,5 +93,5 @@ export function MultiSelect({
 				</Command>
 			</PopoverContent>
 		</Popover>
-	);
+	)
 }

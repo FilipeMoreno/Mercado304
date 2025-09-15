@@ -1,82 +1,60 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-	ArrowLeft,
-	Calendar,
-	DollarSign,
-	FileText,
-	MapPin,
-	Package,
-	Save,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { ProductSelect } from "@/components/selects/product-select";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { formatLocalDate, toDateInputValue } from "@/lib/date-utils";
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { ArrowLeft, Calendar, DollarSign, FileText, MapPin, Package, Save } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { ProductSelect } from "@/components/selects/product-select"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 
 interface StockItem {
-	id: string;
-	productId: string;
-	quantity: number;
-	expirationDate?: string;
-	batchNumber?: string;
-	location?: string;
-	unitCost?: number;
-	notes?: string;
-	addedDate: string;
+	id: string
+	productId: string
+	quantity: number
+	expirationDate?: string
+	batchNumber?: string
+	location?: string
+	unitCost?: number
+	notes?: string
+	addedDate: string
 	product: {
-		id: string;
-		name: string;
-		unit: string;
-		brand?: { name: string };
-		category?: { name: string };
-	};
+		id: string
+		name: string
+		unit: string
+		brand?: { name: string }
+		category?: { name: string }
+	}
 }
 
 interface EditStockClientProps {
-	stockItem: StockItem;
-	products: any[];
+	stockItem: StockItem
+	products: any[]
 }
 
 export function EditStockClient({ stockItem, products }: EditStockClientProps) {
-	const router = useRouter();
-	const [saving, setSaving] = useState(false);
+	const router = useRouter()
+	const [saving, setSaving] = useState(false)
 
 	const [formData, setFormData] = useState({
 		productId: stockItem.productId,
 		quantity: stockItem.quantity,
-		expirationDate: stockItem.expirationDate
-			? format(new Date(stockItem.expirationDate), "yyyy-MM-dd")
-			: "",
+		expirationDate: stockItem.expirationDate ? format(new Date(stockItem.expirationDate), "yyyy-MM-dd") : "",
 		batchNumber: stockItem.batchNumber || "",
 		location: stockItem.location || "Despensa",
 		unitCost: stockItem.unitCost || 0,
 		notes: stockItem.notes || "",
-	});
+	})
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSaving(true);
+		e.preventDefault()
+		setSaving(true)
 
 		try {
 			const response = await fetch(`/api/stock/${stockItem.id}`, {
@@ -85,23 +63,23 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(formData),
-			});
+			})
 
 			if (response.ok) {
-				toast.success("Item atualizado com sucesso!");
-				router.push("/estoque");
-				router.refresh();
+				toast.success("Item atualizado com sucesso!")
+				router.push("/estoque")
+				router.refresh()
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao atualizar item");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao atualizar item")
 			}
 		} catch (error) {
-			console.error("Erro ao atualizar item:", error);
-			toast.error("Erro ao atualizar item");
+			console.error("Erro ao atualizar item:", error)
+			toast.error("Erro ao atualizar item")
 		} finally {
-			setSaving(false);
+			setSaving(false)
 		}
-	};
+	}
 
 	return (
 		<div className="space-y-6">
@@ -112,9 +90,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 				</Button>
 				<div>
 					<h1 className="text-3xl font-bold">Editar Item do Estoque</h1>
-					<p className="text-gray-600 mt-2">
-						Atualize as informações do item no estoque
-					</p>
+					<p className="text-gray-600 mt-2">Atualize as informações do item no estoque</p>
 				</div>
 			</div>
 
@@ -126,9 +102,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 								<Package className="h-5 w-5" />
 								Informações do Item
 							</CardTitle>
-							<CardDescription>
-								Edite os detalhes do item no estoque
-							</CardDescription>
+							<CardDescription>Edite os detalhes do item no estoque</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<form onSubmit={handleSubmit} className="space-y-6">
@@ -137,9 +111,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 									<ProductSelect
 										value={formData.productId}
 										products={products}
-										onValueChange={(value) =>
-											setFormData((prev) => ({ ...prev, productId: value }))
-										}
+										onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
 										disabled={saving}
 									/>
 								</div>
@@ -201,9 +173,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 										<Label>Localização</Label>
 										<Select
 											value={formData.location}
-											onValueChange={(value) =>
-												setFormData((prev) => ({ ...prev, location: value }))
-											}
+											onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
 											disabled={saving}
 										>
 											<SelectTrigger>
@@ -213,9 +183,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 												<SelectItem value="Despensa">Despensa</SelectItem>
 												<SelectItem value="Geladeira">Geladeira</SelectItem>
 												<SelectItem value="Freezer">Freezer</SelectItem>
-												<SelectItem value="Área de Serviço">
-													Área de Serviço
-												</SelectItem>
+												<SelectItem value="Área de Serviço">Área de Serviço</SelectItem>
 												<SelectItem value="Outro">Outro</SelectItem>
 											</SelectContent>
 										</Select>
@@ -256,12 +224,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 										<Save className="h-4 w-4 mr-2" />
 										{saving ? "Salvando..." : "Salvar Alterações"}
 									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => router.back()}
-										disabled={saving}
-									>
+									<Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>
 										Cancelar
 									</Button>
 								</div>
@@ -278,11 +241,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 						<CardContent className="space-y-3">
 							<div>
 								<p className="font-medium">{stockItem.product.name}</p>
-								{stockItem.product.brand && (
-									<p className="text-sm text-gray-600">
-										{stockItem.product.brand.name}
-									</p>
-								)}
+								{stockItem.product.brand && <p className="text-sm text-gray-600">{stockItem.product.brand.name}</p>}
 							</div>
 
 							<div className="space-y-2 text-sm">
@@ -334,17 +293,12 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 						</CardHeader>
 						<CardContent className="text-sm">
 							<p className="text-gray-600">
-								Adicionado em:{" "}
-								{format(
-									new Date(stockItem.addedDate),
-									"dd/MM/yyyy 'às' HH:mm",
-									{ locale: ptBR },
-								)}
+								Adicionado em: {format(new Date(stockItem.addedDate), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 							</p>
 						</CardContent>
 					</Card>
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

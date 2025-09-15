@@ -1,6 +1,6 @@
 // src/components/skeletons/churrascometro-skeleton.tsx
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function ChurrascometroSkeleton() {
 	return (
@@ -32,5 +32,5 @@ export function ChurrascometroSkeleton() {
 				<Skeleton className="h-10 w-full" />
 			</CardContent>
 		</Card>
-	);
+	)
 }

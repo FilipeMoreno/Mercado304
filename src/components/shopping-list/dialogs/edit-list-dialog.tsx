@@ -1,40 +1,29 @@
-"use client";
+"use client"
 
-import { Edit } from "lucide-react";
-import { useState } from "react";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Edit } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface EditListDialogProps {
-	isOpen: boolean;
-	onClose: () => void;
-	listName: string;
-	onSave: (newName: string) => Promise<void>;
-	saving: boolean;
+	isOpen: boolean
+	onClose: () => void
+	listName: string
+	onSave: (newName: string) => Promise<void>
+	saving: boolean
 }
 
-export function EditListDialog({
-	isOpen,
-	onClose,
-	listName,
-	onSave,
-	saving,
-}: EditListDialogProps) {
-	const [editName, setEditName] = useState(listName);
+export function EditListDialog({ isOpen, onClose, listName, onSave, saving }: EditListDialogProps) {
+	const [editName, setEditName] = useState(listName)
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!editName.trim()) return;
-		await onSave(editName.trim());
-		onClose();
-	};
+		e.preventDefault()
+		if (!editName.trim()) return
+		await onSave(editName.trim())
+		onClose()
+	}
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -67,5 +56,5 @@ export function EditListDialog({
 				</form>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }

@@ -1,14 +1,14 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { MarcasClient } from "./marcas-client";
+import { Plus } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { MarcasClient } from "./marcas-client"
 
 interface MarcasPageProps {
 	searchParams: {
-		search?: string;
-		sort?: string;
-		page?: string;
-	};
+		search?: string
+		sort?: string
+		page?: string
+	}
 }
 
 export default function MarcasPage({ searchParams }: MarcasPageProps) {
@@ -17,9 +17,7 @@ export default function MarcasPage({ searchParams }: MarcasPageProps) {
 			<div className="flex justify-between items-center">
 				<div>
 					<h1 className="text-3xl font-bold">Marcas</h1>
-					<p className="text-gray-600 mt-2">
-						Gerencie as marcas dos seus produtos
-					</p>
+					<p className="text-gray-600 mt-2">Gerencie as marcas dos seus produtos</p>
 				</div>
 				<Link href="/marcas/nova">
 					<Button>
@@ -31,5 +29,5 @@ export default function MarcasPage({ searchParams }: MarcasPageProps) {
 
 			<MarcasClient searchParams={searchParams} />
 		</div>
-	);
+	)
 }

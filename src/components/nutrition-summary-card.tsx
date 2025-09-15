@@ -1,58 +1,50 @@
-"use client";
+"use client"
 
-import {
-	AlertTriangle,
-	Apple,
-	ArrowRight,
-	CheckCircle2,
-	TrendingUp,
-} from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Apple, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 
 interface NutritionSummary {
-	totalProducts: number;
-	totalCalories: number;
-	averageHealthScore: number;
+	totalProducts: number
+	totalCalories: number
+	averageHealthScore: number
 	qualityIndicators: {
-		highSodiumPercentage: number;
-		highSugarPercentage: number;
-		highFiberPercentage: number;
-		highProteinPercentage: number;
-	};
+		highSodiumPercentage: number
+		highSugarPercentage: number
+		highFiberPercentage: number
+		highProteinPercentage: number
+	}
 	topCategory?: {
-		name: string;
-		icon: string;
-		healthScore: number;
-	};
+		name: string
+		icon: string
+		healthScore: number
+	}
 }
 
 export function NutritionSummaryCard() {
-	const [summary, setSummary] = useState<NutritionSummary | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [summary, setSummary] = useState<NutritionSummary | null>(null)
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		fetchNutritionSummary();
-	}, []);
+		fetchNutritionSummary()
+	}, [])
 
 	const fetchNutritionSummary = async () => {
 		try {
-			const response = await fetch("/api/nutrition/analysis?period=30");
+			const response = await fetch("/api/nutrition/analysis?period=30")
 			if (response.ok) {
-				const data = await response.json();
+				const data = await response.json()
 
 				// Calcular score médio de saúde
 				const avgHealthScore =
 					data.categoryAnalysis.length > 0
-						? data.categoryAnalysis.reduce(
-								(sum: number, cat: any) => sum + cat.healthScore,
-								0,
-							) / data.categoryAnalysis.length
-						: 0;
+						? data.categoryAnalysis.reduce((sum: number, cat: any) => sum + cat.healthScore, 0) /
+							data.categoryAnalysis.length
+						: 0
 
 				// Encontrar melhor categoria
 				const topCategory =
@@ -60,7 +52,7 @@ export function NutritionSummaryCard() {
 						? data.categoryAnalysis.reduce((best: any, current: any) =>
 								current.healthScore > best.healthScore ? current : best,
 							)
-						: null;
+						: null
 
 				setSummary({
 					totalProducts: data.summary.totalProducts,
@@ -68,27 +60,26 @@ export function NutritionSummaryCard() {
 					averageHealthScore: avgHealthScore,
 					qualityIndicators: data.summary.qualityIndicators,
 					topCategory,
-				});
+				})
 			}
 		} catch (error) {
-			console.error("Erro ao buscar resumo nutricional:", error);
+			console.error("Erro ao buscar resumo nutricional:", error)
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const getHealthScoreColor = (score: number) => {
-		if (score >= 80) return "text-green-600";
-		if (score >= 60) return "text-yellow-600";
-		return "text-red-600";
-	};
+		if (score >= 80) return "text-green-600"
+		if (score >= 60) return "text-yellow-600"
+		return "text-red-600"
+	}
 
 	const getHealthScoreIcon = (score: number) => {
-		if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-		if (score >= 60)
-			return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-		return <AlertTriangle className="h-4 w-4 text-red-600" />;
-	};
+		if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />
+		if (score >= 60) return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+		return <AlertTriangle className="h-4 w-4 text-red-600" />
+	}
 
 	if (loading) {
 		return (
@@ -107,7 +98,7 @@ export function NutritionSummaryCard() {
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	if (!summary || summary.totalProducts === 0) {
@@ -133,7 +124,7 @@ export function NutritionSummaryCard() {
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	return (
@@ -156,17 +147,11 @@ export function NutritionSummaryCard() {
 				<div className="grid grid-cols-2 gap-4">
 					<div className="space-y-1">
 						<p className="text-2xl font-bold">{summary.totalProducts}</p>
-						<p className="text-xs text-gray-600 dark:text-gray-400">
-							Produtos Analisados
-						</p>
+						<p className="text-xs text-gray-600 dark:text-gray-400">Produtos Analisados</p>
 					</div>
 					<div className="space-y-1">
-						<p className="text-2xl font-bold">
-							{Math.round(summary.totalCalories).toLocaleString()}
-						</p>
-						<p className="text-xs text-gray-600 dark:text-gray-400">
-							Calorias Totais
-						</p>
+						<p className="text-2xl font-bold">{Math.round(summary.totalCalories).toLocaleString()}</p>
+						<p className="text-xs text-gray-600 dark:text-gray-400">Calorias Totais</p>
 					</div>
 				</div>
 
@@ -176,9 +161,7 @@ export function NutritionSummaryCard() {
 						<span className="text-sm font-medium">Score de Saúde Médio</span>
 						<div className="flex items-center gap-1">
 							{getHealthScoreIcon(summary.averageHealthScore)}
-							<span
-								className={`text-sm font-bold ${getHealthScoreColor(summary.averageHealthScore)}`}
-							>
+							<span className={`text-sm font-bold ${getHealthScoreColor(summary.averageHealthScore)}`}>
 								{Math.round(summary.averageHealthScore)}
 							</span>
 						</div>
@@ -192,28 +175,19 @@ export function NutritionSummaryCard() {
 					<div className="space-y-1">
 						<div className="flex items-center justify-between text-xs">
 							<span>Rica em Fibras</span>
-							<Badge
-								variant="secondary"
-								className="bg-green-100 text-green-800 text-xs"
-							>
+							<Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
 								{Math.round(summary.qualityIndicators.highFiberPercentage)}%
 							</Badge>
 						</div>
 						<div className="flex items-center justify-between text-xs">
 							<span>Rica em Proteínas</span>
-							<Badge
-								variant="secondary"
-								className="bg-blue-100 text-blue-800 text-xs"
-							>
+							<Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
 								{Math.round(summary.qualityIndicators.highProteinPercentage)}%
 							</Badge>
 						</div>
 						<div className="flex items-center justify-between text-xs">
 							<span>Alto Sódio</span>
-							<Badge
-								variant="secondary"
-								className="bg-red-100 text-red-800 text-xs"
-							>
+							<Badge variant="secondary" className="bg-red-100 text-red-800 text-xs">
 								{Math.round(summary.qualityIndicators.highSodiumPercentage)}%
 							</Badge>
 						</div>
@@ -228,16 +202,12 @@ export function NutritionSummaryCard() {
 								<span className="text-lg">{summary.topCategory.icon}</span>
 								<div>
 									<p className="text-sm font-medium">Categoria Mais Saudável</p>
-									<p className="text-xs text-gray-600 dark:text-gray-400">
-										{summary.topCategory.name}
-									</p>
+									<p className="text-xs text-gray-600 dark:text-gray-400">{summary.topCategory.name}</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-1">
 								{getHealthScoreIcon(summary.topCategory.healthScore)}
-								<span
-									className={`text-sm font-bold ${getHealthScoreColor(summary.topCategory.healthScore)}`}
-								>
+								<span className={`text-sm font-bold ${getHealthScoreColor(summary.topCategory.healthScore)}`}>
 									{Math.round(summary.topCategory.healthScore)}
 								</span>
 							</div>
@@ -254,5 +224,5 @@ export function NutritionSummaryCard() {
 				</Link>
 			</CardContent>
 		</Card>
-	);
+	)
 }

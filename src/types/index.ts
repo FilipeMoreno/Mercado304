@@ -1,61 +1,61 @@
 export interface Market {
-	id: string;
-	name: string;
-	location?: string;
-	createdAt: Date;
-	updatedAt: Date;
+	id: string
+	name: string
+	location?: string
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface Brand {
-	id: string;
-	name: string;
-	createdAt: Date;
-	updatedAt: Date;
+	id: string
+	name: string
+	createdAt: Date
+	updatedAt: Date
 	_count?: {
-		products: number;
-	};
+		products: number
+	}
 }
 
 export interface Category {
-	id: string;
-	name: string;
-	icon?: string;
-	color?: string;
-	isFood?: boolean;
-	createdAt: Date;
-	updatedAt: Date;
+	id: string
+	name: string
+	icon?: string
+	color?: string
+	isFood?: boolean
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface Product {
-	id: string;
-	name: string;
-	barcode?: string;
-	categoryId?: string;
-	brandId?: string;
-	unit: string;
+	id: string
+	name: string
+	barcode?: string
+	categoryId?: string
+	brandId?: string
+	unit: string
 	// Controle de estoque
-	hasStock?: boolean;
-	minStock?: number;
-	maxStock?: number;
+	hasStock?: boolean
+	minStock?: number
+	maxStock?: number
 	// Controle de validade
-	hasExpiration?: boolean;
-	defaultShelfLifeDays?: number;
-	createdAt: Date;
-	updatedAt: Date;
-	category?: Category;
-	brand?: Brand;
+	hasExpiration?: boolean
+	defaultShelfLifeDays?: number
+	createdAt: Date
+	updatedAt: Date
+	category?: Category
+	brand?: Brand
 }
 
 export interface Purchase {
-	id: string;
-	marketId: string;
-	totalAmount: number;
-	purchaseDate: Date;
-	paymentMethod: PaymentMethod;
-	createdAt: Date;
-	updatedAt: Date;
-	market?: Market;
-	items?: PurchaseItem[];
+	id: string
+	marketId: string
+	totalAmount: number
+	purchaseDate: Date
+	paymentMethod: PaymentMethod
+	createdAt: Date
+	updatedAt: Date
+	market?: Market
+	items?: PurchaseItem[]
 }
 
 export enum PaymentMethod {
@@ -69,106 +69,106 @@ export enum PaymentMethod {
 }
 
 export interface PurchaseItem {
-	id: string;
-	purchaseId: string;
-	productId?: string;
-	quantity: number;
-	unitPrice: number;
-	totalPrice: number;
-	productName?: string;
-	productUnit?: string;
-	productCategory?: string;
-	brandName?: string;
-	createdAt: Date;
-	product?: Product;
+	id: string
+	purchaseId: string
+	productId?: string
+	quantity: number
+	unitPrice: number
+	totalPrice: number
+	productName?: string
+	productUnit?: string
+	productCategory?: string
+	brandName?: string
+	createdAt: Date
+	product?: Product
 }
 
 export interface ShoppingList {
-	id: string;
-	name: string;
-	isActive: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-	items?: ShoppingListItem[];
+	id: string
+	name: string
+	isActive: boolean
+	createdAt: Date
+	updatedAt: Date
+	items?: ShoppingListItem[]
 }
 
 export interface ShoppingListItem {
-	id: string;
-	listId: string;
-	productId: string;
-	quantity: number;
-	isChecked: boolean;
-	createdAt: Date;
-	product?: Product;
+	id: string
+	listId: string
+	productId: string
+	quantity: number
+	isChecked: boolean
+	createdAt: Date
+	product?: Product
 }
 
 export interface MarketStats {
-	marketId: string;
-	marketName: string;
-	totalPurchases: number;
-	totalSpent: number;
-	averagePrice: number;
+	marketId: string
+	marketName: string
+	totalPurchases: number
+	totalSpent: number
+	averagePrice: number
 }
 
 export interface ProductStats {
-	productId: string;
-	productName: string;
-	totalPurchases: number;
-	totalQuantity: number;
-	averagePrice: number;
-	lastPurchaseDate: Date;
+	productId: string
+	productName: string
+	totalPurchases: number
+	totalQuantity: number
+	averagePrice: number
+	lastPurchaseDate: Date
 }
 
 export interface NutritionalInfo {
-	id: string;
-	productId: string;
+	id: string
+	productId: string
 	// Informações da Tabela Nutricional Obrigatórias
-	servingSize?: string;
-	calories?: number;
-	proteins?: number;
-	totalFat?: number;
-	saturatedFat?: number;
-	transFat?: number;
-	carbohydrates?: number;
-	totalSugars?: number;
-	addedSugars?: number;
-	fiber?: number;
-	sodium?: number;
+	servingSize?: string
+	calories?: number
+	proteins?: number
+	totalFat?: number
+	saturatedFat?: number
+	transFat?: number
+	carbohydrates?: number
+	totalSugars?: number
+	addedSugars?: number
+	fiber?: number
+	sodium?: number
 	// Vitaminas (valores opcionais)
-	vitaminA?: number;
-	vitaminC?: number;
-	vitaminD?: number;
-	vitaminE?: number;
-	vitaminK?: number;
-	thiamine?: number;
-	riboflavin?: number;
-	niacin?: number;
-	vitaminB6?: number;
-	folate?: number;
-	vitaminB12?: number;
-	biotin?: number;
-	pantothenicAcid?: number;
+	vitaminA?: number
+	vitaminC?: number
+	vitaminD?: number
+	vitaminE?: number
+	vitaminK?: number
+	thiamine?: number
+	riboflavin?: number
+	niacin?: number
+	vitaminB6?: number
+	folate?: number
+	vitaminB12?: number
+	biotin?: number
+	pantothenicAcid?: number
 	// Outros nutrientes (valores opcionais)
-	taurine?: number;
-	caffeine?: number;
+	taurine?: number
+	caffeine?: number
 	// Minerais (valores opcionais)
-	calcium?: number;
-	iron?: number;
-	magnesium?: number;
-	phosphorus?: number;
-	potassium?: number;
-	zinc?: number;
-	copper?: number;
-	manganese?: number;
-	selenium?: number;
-	iodine?: number;
-	chromium?: number;
-	molybdenum?: number;
+	calcium?: number
+	iron?: number
+	magnesium?: number
+	phosphorus?: number
+	potassium?: number
+	zinc?: number
+	copper?: number
+	manganese?: number
+	selenium?: number
+	iodine?: number
+	chromium?: number
+	molybdenum?: number
 	// Informações de Alérgenos
-	allergensContains: string[];
-	allergensMayContain: string[];
-	createdAt: Date;
-	updatedAt: Date;
+	allergensContains: string[]
+	allergensMayContain: string[]
+	createdAt: Date
+	updatedAt: Date
 }
 
 // Enums
@@ -197,57 +197,57 @@ export enum WasteReason {
 
 // Interfaces para o novo sistema
 export interface WasteRecord {
-	id: string;
-	productId?: string;
-	productName: string;
-	quantity: number;
-	unit: string;
-	wasteReason: WasteReason;
-	wasteDate: Date;
-	expirationDate?: Date;
-	location?: string;
-	unitCost?: number;
-	totalValue?: number;
-	notes?: string;
-	stockItemId?: string;
-	userId?: string;
-	category?: string;
-	brand?: string;
-	batchNumber?: string;
-	createdAt: Date;
-	updatedAt: Date;
+	id: string
+	productId?: string
+	productName: string
+	quantity: number
+	unit: string
+	wasteReason: WasteReason
+	wasteDate: Date
+	expirationDate?: Date
+	location?: string
+	unitCost?: number
+	totalValue?: number
+	notes?: string
+	stockItemId?: string
+	userId?: string
+	category?: string
+	brand?: string
+	batchNumber?: string
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface StockHistory {
-	id: string;
-	type: StockMovementType;
-	productId?: string;
-	productName?: string;
-	quantity: number;
-	reason?: string;
-	date: Date;
-	notes?: string;
-	location?: string;
-	unitCost?: number;
-	totalValue?: number;
-	purchaseItemId?: string;
-	userId?: string;
-	createdAt: Date;
-	updatedAt: Date;
+	id: string
+	type: StockMovementType
+	productId?: string
+	productName?: string
+	quantity: number
+	reason?: string
+	date: Date
+	notes?: string
+	location?: string
+	unitCost?: number
+	totalValue?: number
+	purchaseItemId?: string
+	userId?: string
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface StockItem {
-	id: string;
-	productId: string;
-	quantity: number;
-	expirationDate?: Date;
-	batchNumber?: string;
-	location?: string;
-	unitCost?: number;
-	addedDate: Date;
-	lastUpdated: Date;
-	notes?: string;
-	isExpired: boolean;
-	isLowStock: boolean;
-	product?: Product;
+	id: string
+	productId: string
+	quantity: number
+	expirationDate?: Date
+	batchNumber?: string
+	location?: string
+	unitCost?: number
+	addedDate: Date
+	lastUpdated: Date
+	notes?: string
+	isExpired: boolean
+	isLowStock: boolean
+	product?: Product
 }

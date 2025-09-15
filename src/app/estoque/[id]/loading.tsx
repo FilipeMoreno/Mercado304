@@ -1,13 +1,7 @@
-import { ArrowLeft, Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Package } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function EditStockLoading() {
 	return (
@@ -19,9 +13,7 @@ export default function EditStockLoading() {
 				</Button>
 				<div>
 					<h1 className="text-3xl font-bold">Editar Item do Estoque</h1>
-					<p className="text-gray-600 mt-2">
-						Atualize as informações do item no estoque
-					</p>
+					<p className="text-gray-600 mt-2">Atualize as informações do item no estoque</p>
 				</div>
 			</div>
 
@@ -33,9 +25,7 @@ export default function EditStockLoading() {
 								<Package className="h-5 w-5" />
 								Informações do Item
 							</CardTitle>
-							<CardDescription>
-								Edite os detalhes do item no estoque
-							</CardDescription>
+							<CardDescription>Edite os detalhes do item no estoque</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="space-y-2">
@@ -114,5 +104,5 @@ export default function EditStockLoading() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

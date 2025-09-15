@@ -217,4 +217,4 @@ FLUXO RECOMENDADO para "Crie produto X da marca Y categoria Z":
 1. Tente usar createProductWithBrandAndCategory diretamente (mais eficiente)
 2. Isso criará automaticamente marca e categoria se não existirem
 
-Você pode fazer TUDO que o aplicativo permite através das interfaces!`;
+Você pode fazer TUDO que o aplicativo permite através das interfaces!`

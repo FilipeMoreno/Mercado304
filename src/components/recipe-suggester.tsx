@@ -1,77 +1,66 @@
-"use client";
+"use client"
 
-import { ChefHat, Lightbulb, Loader2, Utensils } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { TempStorage } from "@/lib/temp-storage";
+import { ChefHat, Lightbulb, Loader2, Utensils } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { TempStorage } from "@/lib/temp-storage"
 
 interface RecipeSuggestion {
-	refeicao: string;
-	prato: string;
-	descricao: string;
-	tempo_preparo: string;
-	ingredientes: string[];
-	modo_preparo: string;
-	dica_chef: string;
+	refeicao: string
+	prato: string
+	descricao: string
+	tempo_preparo: string
+	ingredientes: string[]
+	modo_preparo: string
+	dica_chef: string
 }
 
 interface RecipeSuggesterProps {
-	ingredientList: string[];
-	buttonText?: string;
+	ingredientList: string[]
+	buttonText?: string
 }
 
-export function RecipeSuggester({
-	ingredientList,
-	buttonText = "Sugerir Receitas",
-}: RecipeSuggesterProps) {
-	const router = useRouter();
-	const [isOpen, setIsOpen] = useState(false);
-	const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
-	const [loading, setLoading] = useState(false);
+export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas" }: RecipeSuggesterProps) {
+	const router = useRouter()
+	const [isOpen, setIsOpen] = useState(false)
+	const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([])
+	const [loading, setLoading] = useState(false)
 
 	const handleSuggestRecipes = async () => {
 		if (ingredientList.length < 2) {
-			toast.info(
-				"Você precisa de pelo menos 2 ingredientes para receber sugestões.",
-			);
-			return;
+			toast.info("Você precisa de pelo menos 2 ingredientes para receber sugestões.")
+			return
 		}
-		setIsOpen(true);
-		setLoading(true);
-		setSuggestions([]);
+		setIsOpen(true)
+		setLoading(true)
+		setSuggestions([])
 		try {
 			const response = await fetch("/api/ai/suggest-recipes", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ ingredients: ingredientList }),
-			});
+			})
 			if (response.ok) {
-				const data = await response.json();
-				setSuggestions(data.sugestoes || []);
+				const data = await response.json()
+				setSuggestions(data.sugestoes || [])
 			} else {
-				toast.error("Erro ao buscar sugestões de receitas.");
+				toast.error("Erro ao buscar sugestões de receitas.")
 			}
 		} catch (error) {
-			console.error("Erro ao buscar sugestões:", error);
-			toast.error("Erro ao carregar sugestões.");
+			console.error("Erro ao buscar sugestões:", error)
+			toast.error("Erro ao carregar sugestões.")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const viewRecipe = (recipe: RecipeSuggestion) => {
-		const storageKey = TempStorage.save({ recipe });
-		router.push(`/receitas/visualizar?storageKey=${storageKey}`);
-	};
+		const storageKey = TempStorage.save({ recipe })
+		router.push(`/receitas/visualizar?storageKey=${storageKey}`)
+	}
 
 	return (
 		<>
@@ -87,17 +76,13 @@ export function RecipeSuggester({
 							<Lightbulb className="h-5 w-5 text-yellow-500" />
 							Sugestões do Chefe Virtual
 						</DialogTitle>
-						<DialogDescription>
-							Clique em uma receita para ver os detalhes completos.
-						</DialogDescription>
+						<DialogDescription>Clique em uma receita para ver os detalhes completos.</DialogDescription>
 					</DialogHeader>
 					<div className="max-h-[60vh] overflow-y-auto pr-4">
 						{loading ? (
 							<div className="flex flex-col items-center justify-center h-48">
 								<Loader2 className="h-8 w-8 animate-spin text-primary" />
-								<p className="mt-4 text-muted-foreground">
-									Buscando receitas criativas...
-								</p>
+								<p className="mt-4 text-muted-foreground">Buscando receitas criativas...</p>
 							</div>
 						) : suggestions.length > 0 ? (
 							<div className="space-y-4">
@@ -109,26 +94,17 @@ export function RecipeSuggester({
 									>
 										<div className="flex justify-between items-start">
 											<div>
-												<p className="text-sm text-primary font-medium">
-													{sug.refeicao}
-												</p>
+												<p className="text-sm text-primary font-medium">{sug.refeicao}</p>
 												<h3 className="font-semibold text-lg">{sug.prato}</h3>
 											</div>
-											<div className="text-sm text-muted-foreground">
-												{sug.tempo_preparo}
-											</div>
+											<div className="text-sm text-muted-foreground">{sug.tempo_preparo}</div>
 										</div>
 										<p className="text-sm mt-2">{sug.descricao}</p>
 										<div className="mt-3">
-											<p className="text-xs font-semibold">
-												Ingredientes Principais:
-											</p>
+											<p className="text-xs font-semibold">Ingredientes Principais:</p>
 											<div className="flex flex-wrap gap-1 mt-1">
 												{sug.ingredientes.slice(0, 3).map((ing) => (
-													<span
-														key={ing}
-														className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded"
-													>
+													<span key={ing} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
 														{ing.split(" de ")[1] || ing}
 													</span>
 												))}
@@ -146,5 +122,5 @@ export function RecipeSuggester({
 				</DialogContent>
 			</Dialog>
 		</>
-	);
+	)
 }

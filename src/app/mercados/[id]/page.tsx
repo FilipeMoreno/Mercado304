@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import {
 	ArrowLeft,
 	BarChart3,
@@ -17,10 +17,10 @@ import {
 	Store,
 	TrendingUp,
 	Users,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+} from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
 	Bar,
 	BarChart,
@@ -34,175 +34,151 @@ import {
 	Tooltip,
 	XAxis,
 	YAxis,
-} from "recharts";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatLocalDate } from "@/lib/date-utils";
+} from "recharts"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatLocalDate } from "@/lib/date-utils"
 
 interface MarketStats {
-	market: any;
+	market: any
 	stats: {
-		totalPurchases: number;
-		totalSpent: number;
-		averageTicket: number;
-	};
-	lastPurchase: any;
-	recentPurchases: any[];
-	topProducts: any[];
-	priceEvolution: any[];
-	priceComparison: any[];
+		totalPurchases: number
+		totalSpent: number
+		averageTicket: number
+	}
+	lastPurchase: any
+	recentPurchases: any[]
+	topProducts: any[]
+	priceEvolution: any[]
+	priceComparison: any[]
 	categoryStats: {
-		categoryId: string;
-		categoryName: string;
-		icon?: string;
-		color?: string;
-		totalSpent: number;
-		totalPurchases: number;
-		totalQuantity: number;
-		averagePrice: number;
-	}[];
+		categoryId: string
+		categoryName: string
+		icon?: string
+		color?: string
+		totalSpent: number
+		totalPurchases: number
+		totalQuantity: number
+		averagePrice: number
+	}[]
 }
 
 export default function MarketDetailsPage() {
-	const params = useParams();
-	const router = useRouter();
-	const [data, setData] = useState<MarketStats | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [allPurchases, setAllPurchases] = useState<any[]>([]);
-	const [filteredPurchases, setFilteredPurchases] = useState<any[]>([]);
-	const [searchTerm, setSearchTerm] = useState("");
-	const [dateFilter, setDateFilter] = useState("all");
-	const [sortBy, setSortBy] = useState("date-desc");
+	const params = useParams()
+	const router = useRouter()
+	const [data, setData] = useState<MarketStats | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [allPurchases, setAllPurchases] = useState<any[]>([])
+	const [filteredPurchases, setFilteredPurchases] = useState<any[]>([])
+	const [searchTerm, setSearchTerm] = useState("")
+	const [dateFilter, setDateFilter] = useState("all")
+	const [sortBy, setSortBy] = useState("date-desc")
 
 	useEffect(() => {
 		if (params.id) {
-			fetchMarketStats();
+			fetchMarketStats()
 		}
-	}, [params.id]);
+	}, [params.id])
 
 	// Auto refresh when page gains focus
 	useEffect(() => {
 		const handleFocus = () => {
 			if (!loading && params.id) {
-				fetchMarketStats();
+				fetchMarketStats()
 			}
-		};
+		}
 
-		window.addEventListener("focus", handleFocus);
-		return () => window.removeEventListener("focus", handleFocus);
-	}, [loading, params.id]);
+		window.addEventListener("focus", handleFocus)
+		return () => window.removeEventListener("focus", handleFocus)
+	}, [loading, params.id])
 
 	const fetchMarketStats = async () => {
 		try {
 			const [statsRes, purchasesRes] = await Promise.all([
 				fetch(`/api/markets/${params.id}/stats`, { cache: "no-store" }),
 				fetch(`/api/purchases?marketId=${params.id}`, { cache: "no-store" }),
-			]);
+			])
 
 			if (statsRes.ok) {
-				const statsData = await statsRes.json();
-				setData(statsData);
+				const statsData = await statsRes.json()
+				setData(statsData)
 
 				if (purchasesRes.ok) {
-					const purchasesData = await purchasesRes.json();
-					setAllPurchases(purchasesData.purchases || []);
-					setFilteredPurchases(purchasesData.purchases || []);
+					const purchasesData = await purchasesRes.json()
+					setAllPurchases(purchasesData.purchases || [])
+					setFilteredPurchases(purchasesData.purchases || [])
 				}
 			} else {
-				router.push("/mercados");
+				router.push("/mercados")
 			}
 		} catch (error) {
-			console.error("Erro ao carregar dados:", error);
-			router.push("/mercados");
+			console.error("Erro ao carregar dados:", error)
+			router.push("/mercados")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	// Filtrar compras
 	useEffect(() => {
-		if (!Array.isArray(allPurchases)) return;
-		let filtered = [...allPurchases];
+		if (!Array.isArray(allPurchases)) return
+		let filtered = [...allPurchases]
 
 		// Filtro por busca
 		if (searchTerm) {
 			filtered = filtered.filter((purchase) =>
 				purchase.items?.some((item: any) =>
-					(item.product?.name || item.productName)
-						?.toLowerCase()
-						.includes(searchTerm.toLowerCase()),
+					(item.product?.name || item.productName)?.toLowerCase().includes(searchTerm.toLowerCase()),
 				),
-			);
+			)
 		}
 
 		// Filtro por data
 		if (dateFilter !== "all") {
-			const now = new Date();
-			let dateThreshold;
+			const now = new Date()
+			let dateThreshold
 
 			switch (dateFilter) {
 				case "week":
-					dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-					break;
+					dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+					break
 				case "month":
-					dateThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-					break;
+					dateThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+					break
 				case "3months":
-					dateThreshold = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-					break;
+					dateThreshold = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+					break
 				default:
-					dateThreshold = null;
+					dateThreshold = null
 			}
 
 			if (dateThreshold) {
-				filtered = filtered.filter(
-					(purchase) => new Date(purchase.purchaseDate) >= dateThreshold,
-				);
+				filtered = filtered.filter((purchase) => new Date(purchase.purchaseDate) >= dateThreshold)
 			}
 		}
 
 		// Ordenação
 		switch (sortBy) {
 			case "date-desc":
-				filtered.sort(
-					(a, b) =>
-						new Date(b.purchaseDate).getTime() -
-						new Date(a.purchaseDate).getTime(),
-				);
-				break;
+				filtered.sort((a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime())
+				break
 			case "date-asc":
-				filtered.sort(
-					(a, b) =>
-						new Date(a.purchaseDate).getTime() -
-						new Date(b.purchaseDate).getTime(),
-				);
-				break;
+				filtered.sort((a, b) => new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime())
+				break
 			case "value-desc":
-				filtered.sort((a, b) => b.totalAmount - a.totalAmount);
-				break;
+				filtered.sort((a, b) => b.totalAmount - a.totalAmount)
+				break
 			case "value-asc":
-				filtered.sort((a, b) => a.totalAmount - b.totalAmount);
-				break;
+				filtered.sort((a, b) => a.totalAmount - b.totalAmount)
+				break
 		}
 
-		setFilteredPurchases(filtered);
-	}, [allPurchases, searchTerm, dateFilter, sortBy]);
+		setFilteredPurchases(filtered)
+	}, [allPurchases, searchTerm, dateFilter, sortBy])
 
 	if (loading) {
 		return (
@@ -226,14 +202,14 @@ export default function MarketDetailsPage() {
 					))}
 				</div>
 			</div>
-		);
+		)
 	}
 
 	if (!data) {
-		return <div>Mercado não encontrado</div>;
+		return <div>Mercado não encontrado</div>
 	}
 
-	const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+	const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"]
 
 	return (
 		<div className="space-y-6">
@@ -278,74 +254,50 @@ export default function MarketDetailsPage() {
 					<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									Total de Compras
-								</CardTitle>
+								<CardTitle className="text-sm font-medium">Total de Compras</CardTitle>
 								<ShoppingCart className="h-4 w-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">
-									{data.stats.totalPurchases}
-								</div>
-								<p className="text-xs text-muted-foreground">
-									compras realizadas
-								</p>
+								<div className="text-2xl font-bold">{data.stats.totalPurchases}</div>
+								<p className="text-xs text-muted-foreground">compras realizadas</p>
 							</CardContent>
 						</Card>
 
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									Total Gasto
-								</CardTitle>
+								<CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
 								<DollarSign className="h-4 w-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">
-									R$ {data.stats.totalSpent.toFixed(2)}
-								</div>
-								<p className="text-xs text-muted-foreground">
-									em todas as compras
-								</p>
+								<div className="text-2xl font-bold">R$ {data.stats.totalSpent.toFixed(2)}</div>
+								<p className="text-xs text-muted-foreground">em todas as compras</p>
 							</CardContent>
 						</Card>
 
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									Ticket Médio
-								</CardTitle>
+								<CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
 								<TrendingUp className="h-4 w-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">
-									R$ {data.stats.averageTicket.toFixed(2)}
-								</div>
+								<div className="text-2xl font-bold">R$ {data.stats.averageTicket.toFixed(2)}</div>
 								<p className="text-xs text-muted-foreground">por compra</p>
 							</CardContent>
 						</Card>
 
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									Última Compra
-								</CardTitle>
+								<CardTitle className="text-sm font-medium">Última Compra</CardTitle>
 								<Calendar className="h-4 w-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">
 									{data.lastPurchase
-										? format(
-												new Date(data.lastPurchase.purchaseDate),
-												"dd/MM",
-												{ locale: ptBR },
-											)
+										? format(new Date(data.lastPurchase.purchaseDate), "dd/MM", { locale: ptBR })
 										: "N/A"}
 								</div>
 								<p className="text-xs text-muted-foreground">
-									{data.lastPurchase
-										? `R$ ${data.lastPurchase.totalAmount.toFixed(2)}`
-										: "Nenhuma compra"}
+									{data.lastPurchase ? `R$ ${data.lastPurchase.totalAmount.toFixed(2)}` : "Nenhuma compra"}
 								</p>
 							</CardContent>
 						</Card>
@@ -360,9 +312,7 @@ export default function MarketDetailsPage() {
 									<BarChart3 className="h-5 w-5" />
 									Evolução Mensal
 								</CardTitle>
-								<CardDescription>
-									Gasto médio por compra nos últimos 6 meses
-								</CardDescription>
+								<CardDescription>Gasto médio por compra nos últimos 6 meses</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ResponsiveContainer width="100%" height={300}>
@@ -370,21 +320,12 @@ export default function MarketDetailsPage() {
 										<CartesianGrid strokeDasharray="3 3" />
 										<XAxis
 											dataKey="month"
-											tickFormatter={(value) =>
-												format(new Date(value), "MMM/yy", { locale: ptBR })
-											}
+											tickFormatter={(value) => format(new Date(value), "MMM/yy", { locale: ptBR })}
 										/>
-										<YAxis
-											tickFormatter={(value) => `R$ ${value.toFixed(0)}`}
-										/>
+										<YAxis tickFormatter={(value) => `R$ ${value.toFixed(0)}`} />
 										<Tooltip
-											formatter={(value: any) => [
-												`R$ ${value.toFixed(2)}`,
-												"Gasto Médio",
-											]}
-											labelFormatter={(value) =>
-												format(new Date(value), "MMMM yyyy", { locale: ptBR })
-											}
+											formatter={(value: any) => [`R$ ${value.toFixed(2)}`, "Gasto Médio"]}
+											labelFormatter={(value) => format(new Date(value), "MMMM yyyy", { locale: ptBR })}
 										/>
 										<Line
 											type="monotone"
@@ -420,9 +361,7 @@ export default function MarketDetailsPage() {
 											height={80}
 										/>
 										<YAxis />
-										<Tooltip
-											formatter={(value: any) => [value, "Vezes Comprado"]}
-										/>
+										<Tooltip formatter={(value: any) => [value, "Vezes Comprado"]} />
 										<Bar dataKey="_count.productId" fill="#8884d8" />
 									</BarChart>
 								</ResponsiveContainer>
@@ -439,40 +378,25 @@ export default function MarketDetailsPage() {
 									<ShoppingCart className="h-5 w-5" />
 									Compras Recentes
 								</CardTitle>
-								<CardDescription>
-									Últimas 5 compras realizadas neste mercado
-								</CardDescription>
+								<CardDescription>Últimas 5 compras realizadas neste mercado</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
 									{data.recentPurchases.slice(0, 5).map((purchase) => (
-										<div
-											key={purchase.id}
-											className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-										>
+										<div key={purchase.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
 											<div>
 												<p className="font-medium">
-													{format(
-														new Date(purchase.purchaseDate),
-														"dd 'de' MMM",
-														{ locale: ptBR },
-													)}
+													{format(new Date(purchase.purchaseDate), "dd 'de' MMM", { locale: ptBR })}
 												</p>
-												<p className="text-sm text-gray-600">
-													{purchase.items.length} itens
-												</p>
+												<p className="text-sm text-gray-600">{purchase.items.length} itens</p>
 											</div>
 											<div className="text-right">
-												<p className="font-bold">
-													R$ {purchase.totalAmount.toFixed(2)}
-												</p>
+												<p className="font-bold">R$ {purchase.totalAmount.toFixed(2)}</p>
 											</div>
 										</div>
 									))}
 									{data.recentPurchases.length === 0 && (
-										<p className="text-center text-gray-500 py-4">
-											Nenhuma compra realizada ainda
-										</p>
+										<p className="text-center text-gray-500 py-4">Nenhuma compra realizada ainda</p>
 									)}
 								</div>
 							</CardContent>
@@ -485,17 +409,12 @@ export default function MarketDetailsPage() {
 									<Package className="h-5 w-5" />
 									Análise de Produtos
 								</CardTitle>
-								<CardDescription>
-									Produtos mais comprados com valores
-								</CardDescription>
+								<CardDescription>Produtos mais comprados com valores</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
 									{data.topProducts.slice(0, 5).map((item, index) => (
-										<div
-											key={item.productId}
-											className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-										>
+										<div key={item.productId} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
 											<div className="flex items-center gap-3">
 												<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
 													{index + 1}
@@ -509,9 +428,7 @@ export default function MarketDetailsPage() {
 											</div>
 											<div className="text-right">
 												<p className="font-bold">{item._count.productId}x</p>
-												<p className="text-sm text-gray-600">
-													R$ {(item._sum.totalPrice || 0).toFixed(2)}
-												</p>
+												<p className="text-sm text-gray-600">R$ {(item._sum.totalPrice || 0).toFixed(2)}</p>
 											</div>
 										</div>
 									))}
@@ -528,9 +445,7 @@ export default function MarketDetailsPage() {
 									<Users className="h-5 w-5" />
 									Comparação com Outros Mercados
 								</CardTitle>
-								<CardDescription>
-									Preço médio unitário nos últimos 3 meses
-								</CardDescription>
+								<CardDescription>Preço médio unitário nos últimos 3 meses</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ResponsiveContainer width="100%" height={300}>
@@ -538,9 +453,7 @@ export default function MarketDetailsPage() {
 										data={[
 											{
 												name: data.market.name,
-												avgPrice:
-													data.stats.averageTicket /
-													(data.stats.totalPurchases || 1),
+												avgPrice: data.stats.averageTicket / (data.stats.totalPurchases || 1),
 												isCurrentMarket: true,
 											},
 											...data.priceComparison.map((market: any) => ({
@@ -552,24 +465,18 @@ export default function MarketDetailsPage() {
 									>
 										<CartesianGrid strokeDasharray="3 3" />
 										<XAxis dataKey="name" />
-										<YAxis
-											tickFormatter={(value) => `R$ ${value.toFixed(1)}`}
-										/>
+										<YAxis tickFormatter={(value) => `R$ ${value.toFixed(1)}`} />
 										<Tooltip
 											formatter={(value: any, name, props) => [
 												`R$ ${value.toFixed(2)}`,
-												props.payload.isCurrentMarket
-													? "Este Mercado"
-													: "Preço Médio",
+												props.payload.isCurrentMarket ? "Este Mercado" : "Preço Médio",
 											]}
 										/>
 										<Bar dataKey="avgPrice">
 											{[
 												{
 													name: data.market.name,
-													avgPrice:
-														data.stats.averageTicket /
-														(data.stats.totalPurchases || 1),
+													avgPrice: data.stats.averageTicket / (data.stats.totalPurchases || 1),
 													isCurrentMarket: true,
 												},
 												...data.priceComparison.map((market: any) => ({
@@ -578,10 +485,7 @@ export default function MarketDetailsPage() {
 													isCurrentMarket: false,
 												})),
 											].map((entry, index) => (
-												<Cell
-													key={`cell-${index}`}
-													fill={entry.isCurrentMarket ? "#10b981" : "#6b7280"}
-												/>
+												<Cell key={`cell-${index}`} fill={entry.isCurrentMarket ? "#10b981" : "#6b7280"} />
 											))}
 										</Bar>
 									</BarChart>
@@ -598,46 +502,32 @@ export default function MarketDetailsPage() {
 									<Package className="h-5 w-5" />
 									Gastos por Categoria
 								</CardTitle>
-								<CardDescription>
-									Distribuição de gastos por categoria neste mercado
-								</CardDescription>
+								<CardDescription>Distribuição de gastos por categoria neste mercado</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
 									{data.categoryStats.slice(0, 8).map((category, index) => {
 										const percentage =
-											data.stats.totalSpent > 0
-												? (category.totalSpent / data.stats.totalSpent) * 100
-												: 0;
+											data.stats.totalSpent > 0 ? (category.totalSpent / data.stats.totalSpent) * 100 : 0
 										return (
-											<div
-												key={category.categoryId}
-												className="flex items-center justify-between"
-											>
+											<div key={category.categoryId} className="flex items-center justify-between">
 												<div className="flex items-center gap-3">
 													<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
 														{index + 1}
 													</div>
 													<div>
-														<div className="font-medium">
-															{category.categoryName}
-														</div>
+														<div className="font-medium">{category.categoryName}</div>
 														<div className="text-sm text-gray-500">
-															{category.totalQuantity.toFixed(1)} itens •{" "}
-															{category.totalPurchases} compras
+															{category.totalQuantity.toFixed(1)} itens • {category.totalPurchases} compras
 														</div>
 													</div>
 												</div>
 												<div className="text-right">
-													<div className="font-medium">
-														R$ {category.totalSpent.toFixed(2)}
-													</div>
-													<div className="text-sm text-gray-500">
-														{percentage.toFixed(1)}%
-													</div>
+													<div className="font-medium">R$ {category.totalSpent.toFixed(2)}</div>
+													<div className="text-sm text-gray-500">{percentage.toFixed(1)}%</div>
 												</div>
 											</div>
-										);
+										)
 									})}
 								</div>
 							</CardContent>
@@ -652,44 +542,30 @@ export default function MarketDetailsPage() {
 									<TrendingUp className="h-5 w-5" />
 									Distribuição de Gastos
 								</CardTitle>
-								<CardDescription>
-									Valor gasto por categoria de produto
-								</CardDescription>
+								<CardDescription>Valor gasto por categoria de produto</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ResponsiveContainer width="100%" height={300}>
 									<PieChart>
 										<Pie
-											data={data.categoryStats
-												.slice(0, 5)
-												.map((category, index) => ({
-													name: category.categoryName,
-													value: category.totalSpent,
-													fill: COLORS[index % COLORS.length],
-												}))}
+											data={data.categoryStats.slice(0, 5).map((category, index) => ({
+												name: category.categoryName,
+												value: category.totalSpent,
+												fill: COLORS[index % COLORS.length],
+											}))}
 											cx="50%"
 											cy="50%"
 											labelLine={false}
-											label={({ name, percent }) =>
-												`${name} ${(percent * 100).toFixed(0)}%`
-											}
+											label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
 											outerRadius={80}
 											fill="#8884d8"
 											dataKey="value"
 										>
 											{data.categoryStats.slice(0, 5).map((_, index) => (
-												<Cell
-													key={`cell-${index}`}
-													fill={COLORS[index % COLORS.length]}
-												/>
+												<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
 											))}
 										</Pie>
-										<Tooltip
-											formatter={(value: any) => [
-												`R$ ${value.toFixed(2)}`,
-												"Total Gasto",
-											]}
-										/>
+										<Tooltip formatter={(value: any) => [`R$ ${value.toFixed(2)}`, "Total Gasto"]} />
 									</PieChart>
 								</ResponsiveContainer>
 							</CardContent>
@@ -710,9 +586,7 @@ export default function MarketDetailsPage() {
 									<h4 className="font-semibold">Padrões de Compra</h4>
 									<div className="space-y-2">
 										<div className="flex justify-between">
-											<span className="text-sm text-gray-600">
-												Frequência de compras:
-											</span>
+											<span className="text-sm text-gray-600">Frequência de compras:</span>
 											<span className="font-medium">
 												{data.stats.totalPurchases > 0
 													? `${(data.stats.totalPurchases / 6).toFixed(1)} por mês`
@@ -720,20 +594,12 @@ export default function MarketDetailsPage() {
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-sm text-gray-600">
-												Produto favorito:
-											</span>
-											<span className="font-medium">
-												{data.topProducts[0]?.product?.name || "N/A"}
-											</span>
+											<span className="text-sm text-gray-600">Produto favorito:</span>
+											<span className="font-medium">{data.topProducts[0]?.product?.name || "N/A"}</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-sm text-gray-600">
-												Categoria principal:
-											</span>
-											<span className="font-medium">
-												{data.topProducts[0]?.product?.category?.name || "N/A"}
-											</span>
+											<span className="text-sm text-gray-600">Categoria principal:</span>
+											<span className="font-medium">{data.topProducts[0]?.product?.category?.name || "N/A"}</span>
 										</div>
 									</div>
 								</div>
@@ -743,21 +609,17 @@ export default function MarketDetailsPage() {
 									<div className="space-y-2 text-sm">
 										{data.stats.averageTicket > 100 && (
 											<div className="p-2 bg-blue-50 rounded text-blue-800">
-												💡 Seu ticket médio é alto. Considere comparar preços
-												com outros mercados.
+												💡 Seu ticket médio é alto. Considere comparar preços com outros mercados.
 											</div>
 										)}
-										{data.topProducts.length > 0 &&
-											data.topProducts[0]._count.productId > 5 && (
-												<div className="p-2 bg-green-50 rounded text-green-800">
-													🎯 Você tem produtos frequentes. Considere criar uma
-													lista de compras padrão.
-												</div>
-											)}
+										{data.topProducts.length > 0 && data.topProducts[0]._count.productId > 5 && (
+											<div className="p-2 bg-green-50 rounded text-green-800">
+												🎯 Você tem produtos frequentes. Considere criar uma lista de compras padrão.
+											</div>
+										)}
 										{data.stats.totalPurchases < 3 && (
 											<div className="p-2 bg-yellow-50 rounded text-yellow-800">
-												📊 Poucas compras registradas. Continue usando para
-												melhores insights.
+												📊 Poucas compras registradas. Continue usando para melhores insights.
 											</div>
 										)}
 									</div>
@@ -840,12 +702,8 @@ export default function MarketDetailsPage() {
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="date-desc">
-												Data (mais recente)
-											</SelectItem>
-											<SelectItem value="date-asc">
-												Data (mais antiga)
-											</SelectItem>
+											<SelectItem value="date-desc">Data (mais recente)</SelectItem>
+											<SelectItem value="date-asc">Data (mais antiga)</SelectItem>
 											<SelectItem value="value-desc">Valor (maior)</SelectItem>
 											<SelectItem value="value-asc">Valor (menor)</SelectItem>
 										</SelectContent>
@@ -859,45 +717,26 @@ export default function MarketDetailsPage() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<History className="h-5 w-5" />
-								Histórico Completo (
-								{Array.isArray(filteredPurchases)
-									? filteredPurchases.length
-									: 0}{" "}
-								compras)
+								Histórico Completo ({Array.isArray(filteredPurchases) ? filteredPurchases.length : 0} compras)
 							</CardTitle>
-							<CardDescription>
-								Todas as compras realizadas neste mercado
-							</CardDescription>
+							<CardDescription>Todas as compras realizadas neste mercado</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-4">
-								{(Array.isArray(filteredPurchases)
-									? filteredPurchases
-									: []
-								).map((purchase) => (
-									<Card
-										key={purchase.id}
-										className="border-l-4 border-l-blue-500"
-									>
+								{(Array.isArray(filteredPurchases) ? filteredPurchases : []).map((purchase) => (
+									<Card key={purchase.id} className="border-l-4 border-l-blue-500">
 										<CardContent className="pt-4">
 											<div className="flex justify-between items-start mb-3">
 												<div>
 													<p className="font-semibold text-lg">
-														{formatLocalDate(
-															purchase.purchaseDate,
-															"dd 'de' MMMM 'de' yyyy",
-															{ locale: ptBR },
-														)}
+														{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 													</p>
 													<p className="text-sm text-gray-600">
-														{purchase.items?.length || 0} itens • R${" "}
-														{purchase.totalAmount.toFixed(2)}
+														{purchase.items?.length || 0} itens • R$ {purchase.totalAmount.toFixed(2)}
 													</p>
 												</div>
 												<div className="text-right">
-													<div className="text-2xl font-bold text-green-600">
-														R$ {purchase.totalAmount.toFixed(2)}
-													</div>
+													<div className="text-2xl font-bold text-green-600">R$ {purchase.totalAmount.toFixed(2)}</div>
 													<p className="text-xs text-gray-500">
 														{format(new Date(purchase.purchaseDate), "HH:mm", {
 															locale: ptBR,
@@ -908,9 +747,7 @@ export default function MarketDetailsPage() {
 
 											{/* Itens da Compra */}
 											<div className="space-y-2">
-												<h4 className="text-sm font-medium text-gray-700 mb-2">
-													Itens comprados:
-												</h4>
+												<h4 className="text-sm font-medium text-gray-700 mb-2">Itens comprados:</h4>
 												<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 													{purchase.items?.map((item: any, index: number) => (
 														<div
@@ -918,31 +755,20 @@ export default function MarketDetailsPage() {
 															className="flex justify-between items-center p-2 bg-gray-50 rounded text-sm"
 														>
 															<div className="flex-1">
-																<span className="font-medium">
-																	{item.product?.name || item.productName}
-																</span>
-																{(item.product?.brand?.name ||
-																	item.brandName) && (
+																<span className="font-medium">{item.product?.name || item.productName}</span>
+																{(item.product?.brand?.name || item.brandName) && (
 																	<span className="text-gray-500 ml-1">
-																		-{" "}
-																		{item.product?.brand?.name ||
-																			item.brandName}
+																		- {item.product?.brand?.name || item.brandName}
 																	</span>
 																)}
-																{!item.product && (
-																	<span className="text-red-500 text-xs ml-1">
-																		(produto removido)
-																	</span>
-																)}
+																{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
 															</div>
 															<div className="text-right">
 																<div>
-																	{item.quantity}{" "}
-																	{item.product?.unit || item.productUnit}
+																	{item.quantity} {item.product?.unit || item.productUnit}
 																</div>
 																<div className="text-xs text-gray-500">
-																	R$ {item.unitPrice.toFixed(2)} → R${" "}
-																	{item.totalPrice.toFixed(2)}
+																	R$ {item.unitPrice.toFixed(2)} → R$ {item.totalPrice.toFixed(2)}
 																</div>
 															</div>
 														</div>
@@ -954,40 +780,31 @@ export default function MarketDetailsPage() {
 											<div className="grid grid-cols-3 gap-4 mt-4 pt-3 border-t">
 												<div className="text-center">
 													<p className="text-xs text-gray-500">Itens</p>
-													<p className="font-semibold">
-														{purchase.items?.length || 0}
-													</p>
+													<p className="font-semibold">{purchase.items?.length || 0}</p>
 												</div>
 												<div className="text-center">
 													<p className="text-xs text-gray-500">Preço Médio</p>
 													<p className="font-semibold">
 														R${" "}
 														{purchase.items?.length > 0
-															? (
-																	purchase.totalAmount / purchase.items.length
-																).toFixed(2)
+															? (purchase.totalAmount / purchase.items.length).toFixed(2)
 															: "0.00"}
 													</p>
 												</div>
 												<div className="text-center">
 													<p className="text-xs text-gray-500">Total</p>
-													<p className="font-semibold text-green-600">
-														R$ {purchase.totalAmount.toFixed(2)}
-													</p>
+													<p className="font-semibold text-green-600">R$ {purchase.totalAmount.toFixed(2)}</p>
 												</div>
 											</div>
 										</CardContent>
 									</Card>
 								))}
 
-								{(!Array.isArray(filteredPurchases) ||
-									filteredPurchases.length === 0) && (
+								{(!Array.isArray(filteredPurchases) || filteredPurchases.length === 0) && (
 									<div className="text-center py-12">
 										<History className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 										<h3 className="text-lg font-medium mb-2">
-											{searchTerm || dateFilter !== "all"
-												? "Nenhuma compra encontrada"
-												: "Nenhuma compra realizada"}
+											{searchTerm || dateFilter !== "all" ? "Nenhuma compra encontrada" : "Nenhuma compra realizada"}
 										</h3>
 										<p className="text-gray-600">
 											{searchTerm || dateFilter !== "all"
@@ -1002,5 +819,5 @@ export default function MarketDetailsPage() {
 				</TabsContent>
 			</Tabs>
 		</div>
-	);
+	)
 }

@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useProactiveAiStore } from "@/store/useProactiveAiStore";
+import { motion } from "framer-motion"
+import { Sparkles, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 export function ProactiveAiInsight() {
-	const { insight, hideInsight } = useProactiveAiStore();
+	const { insight, hideInsight } = useProactiveAiStore()
 
 	if (!insight) {
-		return null;
+		return null
 	}
 
 	const handleActionClick = () => {
 		if (insight.onAction) {
-			insight.onAction(insight.actionPayload);
+			insight.onAction(insight.actionPayload)
 		}
-		hideInsight();
-	};
+		hideInsight()
+	}
 
 	return (
 		<motion.div
@@ -36,21 +36,12 @@ export function ProactiveAiInsight() {
 					</div>
 					<div className="flex-1">
 						<div className="flex items-center justify-between">
-							<h4 className="font-semibold text-gray-900 dark:text-white">
-								Sugestão do Zé
-							</h4>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-6 w-6"
-								onClick={hideInsight}
-							>
+							<h4 className="font-semibold text-gray-900 dark:text-white">Sugestão do Zé</h4>
+							<Button variant="ghost" size="icon" className="h-6 w-6" onClick={hideInsight}>
 								<X className="h-4 w-4" />
 							</Button>
 						</div>
-						<p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-							{insight.message}
-						</p>
+						<p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{insight.message}</p>
 						{insight.onAction && insight.actionLabel && (
 							<div className="mt-4 flex gap-2">
 								<Button size="sm" onClick={handleActionClick}>
@@ -65,5 +56,5 @@ export function ProactiveAiInsight() {
 				</div>
 			</div>
 		</motion.div>
-	);
+	)
 }

@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { Combobox } from "@/components/ui/combobox";
-import { AppToasts } from "@/lib/toasts";
-import { useDataStore } from "@/store/useDataStore";
-import type { Category } from "@/types";
+import { useEffect } from "react"
+import { Combobox } from "@/components/ui/combobox"
+import { AppToasts } from "@/lib/toasts"
+import { useDataStore } from "@/store/useDataStore"
+import type { Category } from "@/types"
 
 interface CategorySelectProps {
-	value?: string;
-	onValueChange?: (value: string) => void;
-	placeholder?: string;
-	className?: string;
-	disabled?: boolean;
+	value?: string
+	onValueChange?: (value: string) => void
+	placeholder?: string
+	className?: string
+	disabled?: boolean
 }
 
 export function CategorySelect({
@@ -22,11 +22,11 @@ export function CategorySelect({
 	disabled = false,
 }: CategorySelectProps) {
 	// Obter dados e actions do store
-	const { categories, loading, fetchCategories, addCategory } = useDataStore();
+	const { categories, loading, fetchCategories, addCategory } = useDataStore()
 
 	useEffect(() => {
-		fetchCategories(); // Busca os dados se não estiverem em cache
-	}, [fetchCategories]);
+		fetchCategories() // Busca os dados se não estiverem em cache
+	}, [fetchCategories])
 
 	const handleCreateCategory = async (name: string) => {
 		try {
@@ -37,28 +37,24 @@ export function CategorySelect({
 					name: name.trim(),
 					icon: "📦", // Ícone padrão
 				}),
-			});
+			})
 
 			if (response.ok) {
-				const newCategory: Category = await response.json();
-				addCategory(newCategory); // Adiciona a nova categoria ao store
-				onValueChange?.(newCategory.id);
-				AppToasts.created("Categoria");
+				const newCategory: Category = await response.json()
+				addCategory(newCategory) // Adiciona a nova categoria ao store
+				onValueChange?.(newCategory.id)
+				AppToasts.created("Categoria")
 			} else {
-				const error = await response.json();
-				AppToasts.error(error, "Erro ao criar categoria");
+				const error = await response.json()
+				AppToasts.error(error, "Erro ao criar categoria")
 			}
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar categoria");
+			AppToasts.error(error, "Erro ao criar categoria")
 		}
-	};
+	}
 
 	if (loading.categories && categories.length === 0) {
-		return (
-			<div
-				className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`}
-			/>
-		);
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
@@ -77,5 +73,5 @@ export function CategorySelect({
 			className={className}
 			disabled={disabled}
 		/>
-	);
+	)
 }

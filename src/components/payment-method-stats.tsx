@@ -1,71 +1,60 @@
-"use client";
+"use client"
 
-import {
-	ArrowDownRight,
-	ArrowUpRight,
-	CreditCard,
-	DollarSign,
-	PieChart,
-	TrendingUp,
-	Wallet,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { ArrowDownRight, ArrowUpRight, CreditCard, DollarSign, PieChart, TrendingUp, Wallet } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 interface PaymentMethodStat {
-	paymentMethod: string;
-	label: string;
-	count: number;
-	totalAmount: number;
-	averageAmount: number;
-	percentage: number;
+	paymentMethod: string
+	label: string
+	count: number
+	totalAmount: number
+	averageAmount: number
+	percentage: number
 }
 
 interface PaymentMethodStatsProps {
-	dateFrom?: string;
-	dateTo?: string;
+	dateFrom?: string
+	dateTo?: string
 }
 
-export function PaymentMethodStats({
-	dateFrom,
-	dateTo,
-}: PaymentMethodStatsProps) {
-	const [loading, setLoading] = useState(true);
+export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps) {
+	const [loading, setLoading] = useState(true)
 	const [data, setData] = useState<{
-		paymentStats: PaymentMethodStat[];
+		paymentStats: PaymentMethodStat[]
 		summary: {
-			totalTransactions: number;
-			totalAmount: number;
-			averageTransactionValue: number;
-			mostUsedMethod: PaymentMethodStat;
-			highestValueMethod: PaymentMethodStat;
-		};
-	} | null>(null);
+			totalTransactions: number
+			totalAmount: number
+			averageTransactionValue: number
+			mostUsedMethod: PaymentMethodStat
+			highestValueMethod: PaymentMethodStat
+		}
+	} | null>(null)
 
 	useEffect(() => {
-		fetchPaymentStats();
-	}, [dateFrom, dateTo]);
+		fetchPaymentStats()
+	}, [dateFrom, dateTo])
 
 	const fetchPaymentStats = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
-			const params = new URLSearchParams();
-			if (dateFrom) params.append("dateFrom", dateFrom);
-			if (dateTo) params.append("dateTo", dateTo);
+			const params = new URLSearchParams()
+			if (dateFrom) params.append("dateFrom", dateFrom)
+			if (dateTo) params.append("dateTo", dateTo)
 
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`);
+			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
 			if (response.ok) {
-				const result = await response.json();
-				setData(result);
+				const result = await response.json()
+				setData(result)
 			}
 		} catch (error) {
-			console.error("Erro ao buscar estatísticas de pagamento:", error);
+			console.error("Erro ao buscar estatísticas de pagamento:", error)
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	if (loading) {
 		return (
@@ -87,7 +76,7 @@ export function PaymentMethodStats({
 					</CardContent>
 				</Card>
 			</div>
-		);
+		)
 	}
 
 	if (!data || data.paymentStats.length === 0) {
@@ -100,12 +89,10 @@ export function PaymentMethodStats({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-gray-500 text-center py-8">
-						Nenhuma compra registrada no período selecionado.
-					</p>
+					<p className="text-gray-500 text-center py-8">Nenhuma compra registrada no período selecionado.</p>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	// Calcular cores para o gráfico de pizza simulado
@@ -117,7 +104,7 @@ export function PaymentMethodStats({
 		"bg-pink-500",
 		"bg-indigo-500",
 		"bg-red-500",
-	];
+	]
 
 	return (
 		<div className="space-y-6">
@@ -128,9 +115,7 @@ export function PaymentMethodStats({
 						<div className="flex items-center gap-2">
 							<Wallet className="h-5 w-5 text-blue-600" />
 							<div>
-								<div className="text-2xl font-bold">
-									{data.summary.totalTransactions}
-								</div>
+								<div className="text-2xl font-bold">{data.summary.totalTransactions}</div>
 								<div className="text-sm text-gray-600">Total de Transações</div>
 							</div>
 						</div>
@@ -142,9 +127,7 @@ export function PaymentMethodStats({
 						<div className="flex items-center gap-2">
 							<DollarSign className="h-5 w-5 text-green-600" />
 							<div>
-								<div className="text-2xl font-bold">
-									R$ {data.summary.totalAmount.toFixed(2)}
-								</div>
+								<div className="text-2xl font-bold">R$ {data.summary.totalAmount.toFixed(2)}</div>
 								<div className="text-sm text-gray-600">Valor Total</div>
 							</div>
 						</div>
@@ -156,9 +139,7 @@ export function PaymentMethodStats({
 						<div className="flex items-center gap-2">
 							<TrendingUp className="h-5 w-5 text-purple-600" />
 							<div>
-								<div className="text-2xl font-bold">
-									R$ {data.summary.averageTransactionValue.toFixed(2)}
-								</div>
+								<div className="text-2xl font-bold">R$ {data.summary.averageTransactionValue.toFixed(2)}</div>
 								<div className="text-sm text-gray-600">Ticket Médio</div>
 							</div>
 						</div>
@@ -170,9 +151,7 @@ export function PaymentMethodStats({
 						<div className="flex items-center gap-2">
 							<PieChart className="h-5 w-5 text-orange-600" />
 							<div>
-								<div className="text-lg font-bold">
-									{data.summary.mostUsedMethod?.label || "N/A"}
-								</div>
+								<div className="text-lg font-bold">{data.summary.mostUsedMethod?.label || "N/A"}</div>
 								<div className="text-sm text-gray-600">Mais Usado</div>
 							</div>
 						</div>
@@ -193,19 +172,12 @@ export function PaymentMethodStats({
 					<CardContent>
 						<div className="space-y-4">
 							{data.paymentStats.map((stat, index) => (
-								<div
-									key={stat.paymentMethod}
-									className="flex items-center gap-3"
-								>
-									<div
-										className={`w-4 h-4 rounded ${colors[index % colors.length]}`}
-									></div>
+								<div key={stat.paymentMethod} className="flex items-center gap-3">
+									<div className={`w-4 h-4 rounded ${colors[index % colors.length]}`}></div>
 									<div className="flex-1">
 										<div className="flex justify-between items-center">
 											<span className="text-sm font-medium">{stat.label}</span>
-											<span className="text-sm text-gray-600">
-												{stat.percentage.toFixed(1)}%
-											</span>
+											<span className="text-sm text-gray-600">{stat.percentage.toFixed(1)}%</span>
 										</div>
 										<div className="w-full bg-gray-200 rounded-full h-2 mt-1">
 											<div
@@ -234,9 +206,7 @@ export function PaymentMethodStats({
 								<div key={stat.paymentMethod} className="space-y-2">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
-											<div
-												className={`w-3 h-3 rounded ${colors[index % colors.length]}`}
-											></div>
+											<div className={`w-3 h-3 rounded ${colors[index % colors.length]}`}></div>
 											<span className="font-medium">{stat.label}</span>
 										</div>
 										<Badge variant="secondary">{stat.count} transações</Badge>
@@ -253,9 +223,7 @@ export function PaymentMethodStats({
 										</div>
 									</div>
 
-									{index < data.paymentStats.length - 1 && (
-										<Separator className="mt-3" />
-									)}
+									{index < data.paymentStats.length - 1 && <Separator className="mt-3" />}
 								</div>
 							))}
 						</div>
@@ -280,10 +248,7 @@ export function PaymentMethodStats({
 							</div>
 							<p className="text-sm text-gray-600">
 								<strong>{data.summary.mostUsedMethod?.label}</strong> representa{" "}
-								<strong>
-									{data.summary.mostUsedMethod?.percentage.toFixed(1)}%
-								</strong>{" "}
-								das transações
+								<strong>{data.summary.mostUsedMethod?.percentage.toFixed(1)}%</strong> das transações
 							</p>
 						</div>
 
@@ -293,16 +258,13 @@ export function PaymentMethodStats({
 								<span className="font-medium">Maior Volume Financeiro</span>
 							</div>
 							<p className="text-sm text-gray-600">
-								<strong>{data.summary.highestValueMethod?.label}</strong>{" "}
-								movimentou{" "}
-								<strong>
-									R$ {data.summary.highestValueMethod?.totalAmount.toFixed(2)}
-								</strong>
+								<strong>{data.summary.highestValueMethod?.label}</strong> movimentou{" "}
+								<strong>R$ {data.summary.highestValueMethod?.totalAmount.toFixed(2)}</strong>
 							</p>
 						</div>
 					</div>
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

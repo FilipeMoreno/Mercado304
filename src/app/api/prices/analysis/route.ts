@@ -1,25 +1,25 @@
-import { NextResponse } from "next/server";
-import { handleApiError } from "@/lib/api-utils";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { handleApiError } from "@/lib/api-utils"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
 	try {
-		const { searchParams } = new URL(request.url);
-		const productId = searchParams.get("productId");
-		const marketId = searchParams.get("marketId");
-		const days = parseInt(searchParams.get("days") || "90");
+		const { searchParams } = new URL(request.url)
+		const productId = searchParams.get("productId")
+		const marketId = searchParams.get("marketId")
+		const days = parseInt(searchParams.get("days") || "90")
 
 		// Data de corte
-		const startDate = new Date();
-		startDate.setDate(startDate.getDate() - days);
+		const startDate = new Date()
+		startDate.setDate(startDate.getDate() - days)
 
 		// Base query conditions
 		const whereConditions: any = {
 			recordDate: { gte: startDate },
-		};
+		}
 
-		if (productId) whereConditions.productId = productId;
-		if (marketId) whereConditions.marketId = marketId;
+		if (productId) whereConditions.productId = productId
+		if (marketId) whereConditions.marketId = marketId
 
 		// Buscar registros de preços
 		const priceRecords = await prisma.priceRecord.findMany({
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 				market: true,
 			},
 			orderBy: { recordDate: "desc" },
-		});
+		})
 
 		// Buscar compras para complementar dados
 		const purchaseItems = await prisma.purchaseItem.findMany({
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
 			orderBy: {
 				purchase: { purchaseDate: "desc" },
 			},
-		});
+		})
 
 		// Combinar dados de preços
 		const combinedPriceData = [
@@ -94,7 +94,7 @@ export async function GET(request: Request) {
 				notes: null,
 				quantity: item.quantity,
 			})),
-		].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+		].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
 		// Análises
 		const analysis = {
@@ -118,70 +118,60 @@ export async function GET(request: Request) {
 				mostCommonProduct: "",
 				recentTrend: "stable" as "up" | "down" | "stable",
 			},
-		};
+		}
 
 		if (combinedPriceData.length > 0) {
-			const prices = combinedPriceData.map((item) => item.price);
-			analysis.trends.avgPrice =
-				prices.reduce((sum, price) => sum + price, 0) / prices.length;
-			analysis.trends.minPrice = Math.min(...prices);
-			analysis.trends.maxPrice = Math.max(...prices);
-			analysis.trends.priceRange =
-				analysis.trends.maxPrice - analysis.trends.minPrice;
+			const prices = combinedPriceData.map((item) => item.price)
+			analysis.trends.avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length
+			analysis.trends.minPrice = Math.min(...prices)
+			analysis.trends.maxPrice = Math.max(...prices)
+			analysis.trends.priceRange = analysis.trends.maxPrice - analysis.trends.minPrice
 
 			// Produto mais comum
 			const productCounts = combinedPriceData.reduce(
 				(acc, item) => {
 					if (item.productName) {
-						acc[item.productName] = (acc[item.productName] || 0) + 1;
+						acc[item.productName] = (acc[item.productName] || 0) + 1
 					}
-					return acc;
+					return acc
 				},
 				{} as Record<string, number>,
-			);
-			analysis.trends.mostCommonProduct = Object.keys(productCounts).reduce(
-				(a, b) => (productCounts[a] > productCounts[b] ? a : b),
-			);
+			)
+			analysis.trends.mostCommonProduct = Object.keys(productCounts).reduce((a, b) =>
+				productCounts[a] > productCounts[b] ? a : b,
+			)
 
 			// Mercado mais comum
 			const marketCounts = combinedPriceData.reduce(
 				(acc, item) => {
-					acc[item.marketName] = (acc[item.marketName] || 0) + 1;
-					return acc;
+					acc[item.marketName] = (acc[item.marketName] || 0) + 1
+					return acc
 				},
 				{} as Record<string, number>,
-			);
-			analysis.trends.mostCommonMarket = Object.keys(marketCounts).reduce(
-				(a, b) => (marketCounts[a] > marketCounts[b] ? a : b),
-			);
+			)
+			analysis.trends.mostCommonMarket = Object.keys(marketCounts).reduce((a, b) =>
+				marketCounts[a] > marketCounts[b] ? a : b,
+			)
 
 			// Análise de tendência (últimos 30 dias vs 30-60 dias atrás)
-			const thirtyDaysAgo = new Date();
-			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-			const sixtyDaysAgo = new Date();
-			sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+			const thirtyDaysAgo = new Date()
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+			const sixtyDaysAgo = new Date()
+			sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
 
-			const recentPrices = combinedPriceData.filter(
-				(item) => new Date(item.date) >= thirtyDaysAgo,
-			);
+			const recentPrices = combinedPriceData.filter((item) => new Date(item.date) >= thirtyDaysAgo)
 			const olderPrices = combinedPriceData.filter(
-				(item) =>
-					new Date(item.date) >= sixtyDaysAgo &&
-					new Date(item.date) < thirtyDaysAgo,
-			);
+				(item) => new Date(item.date) >= sixtyDaysAgo && new Date(item.date) < thirtyDaysAgo,
+			)
 
 			if (recentPrices.length > 0 && olderPrices.length > 0) {
-				const recentAvg =
-					recentPrices.reduce((sum, item) => sum + item.price, 0) /
-					recentPrices.length;
-				const olderAvg =
-					olderPrices.reduce((sum, item) => sum + item.price, 0) /
-					olderPrices.length;
+				const recentAvg = recentPrices.reduce((sum, item) => sum + item.price, 0) / recentPrices.length
+				const olderAvg = olderPrices.reduce((sum, item) => sum + item.price, 0) / olderPrices.length
 
-				const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100;
+				const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100
 
 				if (Math.abs(changePercent) > 5) {
-					analysis.trends.recentTrend = changePercent > 0 ? "up" : "down";
+					analysis.trends.recentTrend = changePercent > 0 ? "up" : "down"
 				}
 			}
 		}
@@ -189,7 +179,7 @@ export async function GET(request: Request) {
 		// Análise por produto
 		const productGroups = combinedPriceData.reduce(
 			(acc, item) => {
-				const key = `${item.productId}-${item.productName}`;
+				const key = `${item.productId}-${item.productName}`
 				if (!acc[key]) {
 					acc[key] = {
 						productId: item.productId,
@@ -199,45 +189,43 @@ export async function GET(request: Request) {
 						prices: [],
 						markets: new Set(),
 						sources: { price_record: 0, purchase: 0 },
-					};
+					}
 				}
 
 				acc[key].prices.push({
 					price: item.price,
 					date: item.date,
 					market: item.marketName,
-				});
-				acc[key].markets.add(item.marketName);
-				acc[key].sources[item.source]++;
+				})
+				acc[key].markets.add(item.marketName)
+				acc[key].sources[item.source]++
 
-				return acc;
+				return acc
 			},
 			{} as Record<string, any>,
-		);
+		)
 
 		Object.keys(productGroups).forEach((key) => {
-			const product = productGroups[key];
-			const prices = product.prices.map((p: any) => p.price);
+			const product = productGroups[key]
+			const prices = product.prices.map((p: any) => p.price)
 
 			analysis.byProduct[key] = {
 				...product,
 				markets: Array.from(product.markets),
 				stats: {
 					count: prices.length,
-					avgPrice:
-						prices.reduce((sum: number, price: number) => sum + price, 0) /
-						prices.length,
+					avgPrice: prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length,
 					minPrice: Math.min(...prices),
 					maxPrice: Math.max(...prices),
 					priceRange: Math.max(...prices) - Math.min(...prices),
 				},
-			};
-		});
+			}
+		})
 
 		// Análise por mercado
 		const marketGroups = combinedPriceData.reduce(
 			(acc, item) => {
-				const key = `${item.marketId}-${item.marketName}`;
+				const key = `${item.marketId}-${item.marketName}`
 				if (!acc[key]) {
 					acc[key] = {
 						marketId: item.marketId,
@@ -246,43 +234,41 @@ export async function GET(request: Request) {
 						prices: [],
 						products: new Set(),
 						sources: { price_record: 0, purchase: 0 },
-					};
+					}
 				}
 
 				acc[key].prices.push({
 					price: item.price,
 					date: item.date,
 					product: item.productName,
-				});
-				acc[key].products.add(item.productName);
-				acc[key].sources[item.source]++;
+				})
+				acc[key].products.add(item.productName)
+				acc[key].sources[item.source]++
 
-				return acc;
+				return acc
 			},
 			{} as Record<string, any>,
-		);
+		)
 
 		Object.keys(marketGroups).forEach((key) => {
-			const market = marketGroups[key];
-			const prices = market.prices.map((p: any) => p.price);
+			const market = marketGroups[key]
+			const prices = market.prices.map((p: any) => p.price)
 
 			analysis.byMarket[key] = {
 				...market,
 				products: Array.from(market.products),
 				stats: {
 					count: prices.length,
-					avgPrice:
-						prices.reduce((sum: number, price: number) => sum + price, 0) /
-						prices.length,
+					avgPrice: prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length,
 					minPrice: Math.min(...prices),
 					maxPrice: Math.max(...prices),
 					priceRange: Math.max(...prices) - Math.min(...prices),
 				},
-			};
-		});
+			}
+		})
 
 		// Previsões e insights
-		const insights = [];
+		const insights = []
 
 		if (analysis.trends.recentTrend === "up") {
 			insights.push({
@@ -290,14 +276,14 @@ export async function GET(request: Request) {
 				title: "Tendência de Alta",
 				message: `Os preços estão subindo nos últimos 30 dias. Considere comprar em breve.`,
 				confidence: 0.8,
-			});
+			})
 		} else if (analysis.trends.recentTrend === "down") {
 			insights.push({
 				type: "success",
 				title: "Tendência de Baixa",
 				message: `Os preços estão caindo. É um bom momento para comprar.`,
 				confidence: 0.8,
-			});
+			})
 		}
 
 		if (analysis.trends.priceRange > analysis.trends.avgPrice * 0.3) {
@@ -306,7 +292,7 @@ export async function GET(request: Request) {
 				title: "Grande Variação de Preços",
 				message: `Há uma diferença significativa de preços entre mercados. Vale a pena pesquisar.`,
 				confidence: 0.9,
-			});
+			})
 		}
 
 		return NextResponse.json({
@@ -314,9 +300,9 @@ export async function GET(request: Request) {
 			data: combinedPriceData,
 			analysis,
 			insights,
-		});
+		})
 	} catch (error) {
-		console.error("Erro na análise de preços:", error);
-		return handleApiError(error);
+		console.error("Erro na análise de preços:", error)
+		return handleApiError(error)
 	}
 }

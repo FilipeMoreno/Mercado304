@@ -1,66 +1,42 @@
-"use client";
+"use client"
 
-import {
-	ArrowLeft,
-	Camera,
-	Loader2,
-	Package,
-	Save,
-	ScanLine,
-} from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { BarcodeScanner } from "@/components/barcode-scanner";
-import { NutritionalInfoForm } from "@/components/nutritional-info-form";
-import { NutritionalScanner } from "@/components/nutritional-scanner";
-import { BrandSelect } from "@/components/selects/brand-select";
-import { CategorySelect } from "@/components/selects/category-select";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { parseGeminiResponse } from "@/lib/gemini-parser";
-import { TempStorage } from "@/lib/temp-storage";
-import { AppToasts } from "@/lib/toasts";
-import { useDataStore } from "@/store/useDataStore";
-import type { NutritionalInfo } from "@/types";
+import { ArrowLeft, Camera, Loader2, Package, Save, ScanLine } from "lucide-react"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import { BarcodeScanner } from "@/components/barcode-scanner"
+import { NutritionalInfoForm } from "@/components/nutritional-info-form"
+import { NutritionalScanner } from "@/components/nutritional-scanner"
+import { BrandSelect } from "@/components/selects/brand-select"
+import { CategorySelect } from "@/components/selects/category-select"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { parseGeminiResponse } from "@/lib/gemini-parser"
+import { TempStorage } from "@/lib/temp-storage"
+import { AppToasts } from "@/lib/toasts"
+import { useDataStore } from "@/store/useDataStore"
+import type { NutritionalInfo } from "@/types"
 
 // REMOVIDO: OcrDebugDialog não é mais necessário aqui
 
-const units = [
-	"unidade",
-	"kg",
-	"g",
-	"litro",
-	"ml",
-	"pacote",
-	"caixa",
-	"garrafa",
-	"lata",
-	"saco",
-];
+const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"]
 
 export default function NovoProdutoPage() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
+	const router = useRouter()
+	const searchParams = useSearchParams()
 
-	const [loading, setLoading] = useState(false);
-	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
-	const { categories, fetchCategories } = useDataStore();
+	const [loading, setLoading] = useState(false)
+	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+	const { categories, fetchCategories } = useDataStore()
 
-	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
-	const [isScanning, setIsScanning] = useState(false);
+	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
+	const [isScanning, setIsScanning] = useState(false)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -73,121 +49,112 @@ export default function NovoProdutoPage() {
 		maxStock: "",
 		hasExpiration: false,
 		defaultShelfLifeDays: "",
-	});
+	})
 
-	const [nutritionalData, setNutritionalData] = useState<
-		Partial<NutritionalInfo>
-	>({});
+	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo>>({})
 
 	useEffect(() => {
-		fetchCategories();
-		const nameParam = searchParams.get("name");
+		fetchCategories()
+		const nameParam = searchParams.get("name")
 		if (nameParam) {
-			setFormData((prev) => ({ ...prev, name: nameParam }));
+			setFormData((prev) => ({ ...prev, name: nameParam }))
 		}
-	}, [searchParams, fetchCategories]);
+	}, [searchParams, fetchCategories])
 
 	const showNutritionalFields = useMemo(() => {
-		if (!formData.categoryId || categories.length === 0) return false;
-		const selectedCategory = categories.find(
-			(cat) => cat.id === formData.categoryId,
-		);
-		return selectedCategory?.isFood === true;
-	}, [formData.categoryId, categories]);
+		if (!formData.categoryId || categories.length === 0) return false
+		const selectedCategory = categories.find((cat) => cat.id === formData.categoryId)
+		return selectedCategory?.isFood === true
+	}, [formData.categoryId, categories])
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 		if (!formData.name.trim()) {
-			AppToasts.error("O nome do produto é obrigatório.");
-			return;
+			AppToasts.error("O nome do produto é obrigatório.")
+			return
 		}
-		setLoading(true);
+		setLoading(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData).some(
-				(v) =>
-					v !== undefined &&
-					v !== "" &&
-					(Array.isArray(v) ? v.length > 0 : true),
-			);
+				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
+			)
 			const dataToSubmit = {
 				...formData,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays
-					? parseInt(formData.defaultShelfLifeDays)
-					: null,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
-			};
+			}
 			const response = await fetch("/api/products", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(dataToSubmit),
-			});
+			})
 			if (response.ok) {
-				const newProduct = await response.json();
-				const returnTo = searchParams.get("returnTo");
-				const storageKey = searchParams.get("storageKey");
+				const newProduct = await response.json()
+				const returnTo = searchParams.get("returnTo")
+				const storageKey = searchParams.get("storageKey")
 				if (returnTo && storageKey) {
-					const preservedData = TempStorage.get(storageKey);
+					const preservedData = TempStorage.get(storageKey)
 					if (preservedData) {
 						const updatedData = {
 							...preservedData,
 							newProductId: newProduct.id,
-						};
-						const newStorageKey = TempStorage.save(updatedData);
-						TempStorage.remove(storageKey);
-						router.push(`${returnTo}?storageKey=${newStorageKey}`);
+						}
+						const newStorageKey = TempStorage.save(updatedData)
+						TempStorage.remove(storageKey)
+						router.push(`${returnTo}?storageKey=${newStorageKey}`)
 					} else {
-						router.push(returnTo);
+						router.push(returnTo)
 					}
 				} else {
-					router.push("/produtos");
+					router.push("/produtos")
 				}
 			} else {
-				const error = await response.json();
-				AppToasts.error(error, "Erro ao criar produto");
+				const error = await response.json()
+				AppToasts.error(error, "Erro ao criar produto")
 			}
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar produto");
+			AppToasts.error(error, "Erro ao criar produto")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-	};
+		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+	}
 
 	const handleSelectChange = (name: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [name]: value }));
-	};
+		setFormData((prev) => ({ ...prev, [name]: value }))
+	}
 
 	const handleBarcodeScanned = (barcode: string) => {
-		setFormData((prev) => ({ ...prev, barcode }));
-		setShowBarcodeScanner(false);
-	};
+		setFormData((prev) => ({ ...prev, barcode }))
+		setShowBarcodeScanner(false)
+	}
 
 	// --- FUNÇÃO ATUALIZADA ---
 	// Agora ela processa e preenche os dados diretamente, sem o diálogo de debug.
 	const handleNutritionalScanComplete = (geminiResponse: any) => {
-		setIsScanning(true);
-		setShowNutritionalScanner(false); // Fecha o modal da câmera
+		setIsScanning(true)
+		setShowNutritionalScanner(false) // Fecha o modal da câmera
 		try {
 			if (!geminiResponse) {
-				throw new Error("A API não retornou uma resposta.");
+				throw new Error("A API não retornou uma resposta.")
 			}
 			// 1. Processa a resposta da API com o parser
-			const parsedData = parseGeminiResponse(geminiResponse);
+			const parsedData = parseGeminiResponse(geminiResponse)
 			// 2. Atualiza o estado do formulário nutricional
-			setNutritionalData(parsedData);
-			toast.success("Dados nutricionais preenchidos pela IA!");
+			setNutritionalData(parsedData)
+			toast.success("Dados nutricionais preenchidos pela IA!")
 		} catch (error) {
-			toast.error("Não foi possível processar os dados do rótulo.");
-			console.error("Erro ao processar resposta do Gemini:", error);
+			toast.error("Não foi possível processar os dados do rótulo.")
+			console.error("Erro ao processar resposta do Gemini:", error)
 		} finally {
-			setIsScanning(false);
+			setIsScanning(false)
 		}
-	};
+	}
 
 	return (
 		<div className="space-y-6">
@@ -235,39 +202,25 @@ export default function NovoProdutoPage() {
 										onChange={handleChange}
 										placeholder="Digite ou escaneie o código"
 									/>
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => setShowBarcodeScanner(true)}
-									>
+									<Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)}>
 										<Camera className="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>
-								<BrandSelect
-									value={formData.brandId}
-									onValueChange={(value) =>
-										handleSelectChange("brandId", value)
-									}
-								/>
+								<BrandSelect value={formData.brandId} onValueChange={(value) => handleSelectChange("brandId", value)} />
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="categoryId">Categoria</Label>
 								<CategorySelect
 									value={formData.categoryId}
-									onValueChange={(value) =>
-										handleSelectChange("categoryId", value)
-									}
+									onValueChange={(value) => handleSelectChange("categoryId", value)}
 								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="unit">Unidade de Medida</Label>
-								<Select
-									value={formData.unit}
-									onValueChange={(value) => handleSelectChange("unit", value)}
-								>
+								<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
 									<SelectTrigger>
 										<SelectValue />
 									</SelectTrigger>
@@ -293,9 +246,7 @@ export default function NovoProdutoPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="hasStock">
-										Produto com controle de estoque
-									</Label>
+									<Label htmlFor="hasStock">Produto com controle de estoque</Label>
 								</div>
 								{formData.hasStock && (
 									<div className="grid grid-cols-2 gap-4">
@@ -343,9 +294,7 @@ export default function NovoProdutoPage() {
 								</div>
 								{formData.hasExpiration && (
 									<div className="space-y-2">
-										<Label htmlFor="defaultShelfLifeDays">
-											Prazo de Validade Padrão (dias)
-										</Label>
+										<Label htmlFor="defaultShelfLifeDays">Prazo de Validade Padrão (dias)</Label>
 										<Input
 											id="defaultShelfLifeDays"
 											name="defaultShelfLifeDays"
@@ -354,9 +303,7 @@ export default function NovoProdutoPage() {
 											onChange={handleChange}
 											placeholder="Ex: 30"
 										/>
-										<p className="text-xs text-gray-500">
-											Usado para calcular a validade ao adicionar ao estoque.
-										</p>
+										<p className="text-xs text-gray-500">Usado para calcular a validade ao adicionar ao estoque.</p>
 									</div>
 								)}
 							</div>
@@ -369,9 +316,7 @@ export default function NovoProdutoPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Scanner de Rótulo</CardTitle>
-								<p className="text-sm text-gray-600">
-									Escaneie o rótulo para preencher os campos nutricionais.
-								</p>
+								<p className="text-sm text-gray-600">Escaneie o rótulo para preencher os campos nutricionais.</p>
 							</CardHeader>
 							<CardContent>
 								<Button
@@ -395,10 +340,7 @@ export default function NovoProdutoPage() {
 								</Button>
 							</CardContent>
 						</Card>
-						<NutritionalInfoForm
-							initialData={nutritionalData}
-							onDataChange={setNutritionalData}
-						/>
+						<NutritionalInfoForm initialData={nutritionalData} onDataChange={setNutritionalData} />
 					</>
 				)}
 
@@ -411,13 +353,13 @@ export default function NovoProdutoPage() {
 						type="button"
 						variant="outline"
 						onClick={() => {
-							const returnTo = searchParams.get("returnTo");
-							const storageKey = searchParams.get("storageKey");
+							const returnTo = searchParams.get("returnTo")
+							const storageKey = searchParams.get("storageKey")
 							if (returnTo && storageKey) {
-								TempStorage.remove(storageKey);
-								router.push(returnTo);
+								TempStorage.remove(storageKey)
+								router.push(returnTo)
 							} else {
-								router.push("/produtos");
+								router.push("/produtos")
 							}
 						}}
 					>
@@ -432,10 +374,7 @@ export default function NovoProdutoPage() {
 				onClose={() => setShowBarcodeScanner(false)}
 			/>
 
-			<Dialog
-				open={showNutritionalScanner}
-				onOpenChange={setShowNutritionalScanner}
-			>
+			<Dialog open={showNutritionalScanner} onOpenChange={setShowNutritionalScanner}>
 				<DialogContent className="max-w-2xl">
 					<NutritionalScanner
 						onScanComplete={handleNutritionalScanComplete}
@@ -444,5 +383,5 @@ export default function NovoProdutoPage() {
 				</DialogContent>
 			</Dialog>
 		</div>
-	);
+	)
 }

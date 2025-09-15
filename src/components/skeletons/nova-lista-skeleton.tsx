@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function NovaListaSkeleton() {
 	return (
@@ -40,10 +40,7 @@ export function NovaListaSkeleton() {
 				<CardContent>
 					<div className="space-y-4">
 						{Array.from({ length: 3 }).map((_, i) => (
-							<div
-								key={i}
-								className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
-							>
+							<div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
 								<div className="space-y-2">
 									<Skeleton className="h-4 w-16" />
 									<div className="flex gap-2">
@@ -81,5 +78,5 @@ export function NovaListaSkeleton() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

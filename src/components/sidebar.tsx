@@ -1,6 +1,6 @@
 // src/components/sidebar.tsx
 
-"use client";
+"use client"
 
 import {
 	Apple,
@@ -20,15 +20,15 @@ import {
 	Tag,
 	Trash2,
 	Utensils,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
-import { UserNav } from "./user-nav";
-import Image from "next/image";
+} from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
+import { UserNav } from "./user-nav"
 
 const navigation = [
 	{ name: "Dashboard", href: "/", icon: BarChart3 },
@@ -45,54 +45,33 @@ const navigation = [
 	{ name: "Estoque", href: "/estoque", icon: Box },
 	{ name: "Desperdícios", href: "/desperdicios", icon: Trash2 },
 	{ name: "Churrascômetro", href: "/churrasco", icon: Utensils },
-];
+]
 
 interface SidebarProps {
-	collapsed?: boolean;
-	onToggleCollapse?: () => void;
+	collapsed?: boolean
+	onToggleCollapse?: () => void
 }
 
 function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
-	const pathname = usePathname();
+	const pathname = usePathname()
 
 	return (
-		<div
-			className={cn(
-				"flex h-full flex-col bg-accent transition-all duration-300",
-				collapsed ? "w-16" : "w-64",
-			)}
-		>
+		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>
 			<div className={cn("p-6", collapsed && "p-4")}>
 				<div className="flex items-center justify-between">
-					{!collapsed && (
-						<Image src="/logo.png" alt="Logo" width={140} height={30} />
-					)}
+					{!collapsed && <Image src="/logo.png" alt="Logo" width={140} height={30} />}
 					{onToggleCollapse && (
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={onToggleCollapse}
-							className="ml-auto"
-						>
-							{collapsed ? (
-								<ChevronRight className="h-4 w-4" />
-							) : (
-								<ChevronLeft className="h-4 w-4" />
-							)}
+						<Button variant="ghost" size="icon" onClick={onToggleCollapse} className="ml-auto">
+							{collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
 						</Button>
 					)}
 				</div>
 			</div>
 
-			<nav
-				className={cn(
-					"flex-1 overflow-y-auto px-4 space-y-2 scrollbar-hide",
-					collapsed && "px-2",
-				)}
-			>
+			<nav className={cn("flex-1 overflow-y-auto px-4 space-y-2 scrollbar-hide", collapsed && "px-2")}>
 				{navigation.map((item) => {
-					const Icon = item.icon;
-					const isActive = pathname === item.href;
+					const Icon = item.icon
+					const isActive = pathname === item.href
 					return (
 						<Link key={item.name} href={item.href}>
 							<Button
@@ -100,9 +79,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 								className={cn(
 									"w-full justify-start h-auto py-3 px-4 rounded-xl",
 									"text-muted-foreground",
-									isActive
-										? "bg-primary/10 text-primary font-semibold"
-										: "hover:bg-muted",
+									isActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
 									collapsed && "px-2 justify-center",
 								)}
 								title={collapsed ? item.name : undefined}
@@ -111,46 +88,41 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 								{!collapsed && item.name}
 							</Button>
 						</Link>
-					);
+					)
 				})}
 			</nav>
 
-			<div
-				className={cn(
-					"mt-auto flex flex-col gap-2 p-4",
-					collapsed && "p-2 items-center",
-				)}
-			>
+			<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
 				<UserNav collapsed={collapsed} />
 			</div>
 		</div>
-	);
+	)
 }
 
 export function Sidebar() {
-	const [collapsed, setCollapsed] = useState(false);
-	const [isMobile, setIsMobile] = useState(false);
-	const [mounted, setMounted] = useState(false);
+	const [collapsed, setCollapsed] = useState(false)
+	const [isMobile, setIsMobile] = useState(false)
+	const [mounted, setMounted] = useState(false)
 
 	useEffect(() => {
-		setMounted(true);
+		setMounted(true)
 
 		const checkScreenSize = () => {
-			setIsMobile(window.innerWidth < 768);
-		};
+			setIsMobile(window.innerWidth < 768)
+		}
 
-		checkScreenSize();
-		window.addEventListener("resize", checkScreenSize);
-		return () => window.removeEventListener("resize", checkScreenSize);
-	}, []);
+		checkScreenSize()
+		window.addEventListener("resize", checkScreenSize)
+		return () => window.removeEventListener("resize", checkScreenSize)
+	}, [])
 
 	if (!mounted) {
-		return null;
+		return null
 	}
 
 	const toggleCollapse = () => {
-		setCollapsed(!collapsed);
-	};
+		setCollapsed(!collapsed)
+	}
 
 	if (isMobile) {
 		return (
@@ -168,12 +140,12 @@ export function Sidebar() {
 					<SidebarContent />
 				</SheetContent>
 			</Sheet>
-		);
+		)
 	}
 
 	return (
 		<div className="hidden md:block">
 			<SidebarContent collapsed={collapsed} onToggleCollapse={toggleCollapse} />
 		</div>
-	);
+	)
 }

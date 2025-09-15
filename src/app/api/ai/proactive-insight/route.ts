@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
 	try {
-		const { productId, price } = await request.json();
+		const { productId, price } = await request.json()
 
 		if (!productId || typeof price !== "number" || price <= 0) {
-			return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
+			return NextResponse.json({ error: "Dados inválidos." }, { status: 400 })
 		}
 
 		// 1. Buscar histórico de preços de AMBAS as fontes
@@ -19,21 +19,18 @@ export async function POST(request: Request) {
 				where: { productId },
 				select: { price: true },
 			}),
-		]);
+		])
 
 		// 2. Combinar todos os preços históricos
-		const allPrices = [
-			...historicalPurchases.map((p) => p.unitPrice),
-			...historicalRecords.map((r) => r.price),
-		];
+		const allPrices = [...historicalPurchases.map((p) => p.unitPrice), ...historicalRecords.map((r) => r.price)]
 
 		if (allPrices.length < 2) {
-			return NextResponse.json({ suggestion: null }); // Não há dados suficientes para uma comparação útil
+			return NextResponse.json({ suggestion: null }) // Não há dados suficientes para uma comparação útil
 		}
 
 		// 3. Calcular o preço médio e o preço mínimo com base nos dados combinados
-		const avgPrice = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
-		const _minPrice = Math.min(...allPrices);
+		const avgPrice = allPrices.reduce((a, b) => a + b, 0) / allPrices.length
+		const _minPrice = Math.min(...allPrices)
 
 		// 4. Definir o gatilho: se o preço atual é 20% mais caro que a média
 		if (price > avgPrice * 1.2) {
@@ -46,7 +43,7 @@ export async function POST(request: Request) {
 				include: { purchase: { include: { market: true } } },
 				orderBy: { unitPrice: "asc" },
 				take: 1,
-			});
+			})
 
 			const [cheapestRecord] = await prisma.priceRecord.findMany({
 				where: {
@@ -56,20 +53,20 @@ export async function POST(request: Request) {
 				include: { market: true },
 				orderBy: { price: "asc" },
 				take: 1,
-			});
-			
+			})
+
 			// Determinar qual é a melhor sugestão (a mais barata de todas)
-			let bestSuggestion = null;
+			let bestSuggestion = null
 
 			if (cheapestPurchase && cheapestRecord) {
 				bestSuggestion =
 					cheapestPurchase.unitPrice < cheapestRecord.price
 						? { price: cheapestPurchase.unitPrice, market: cheapestPurchase.purchase.market }
-						: { price: cheapestRecord.price, market: cheapestRecord.market };
+						: { price: cheapestRecord.price, market: cheapestRecord.market }
 			} else if (cheapestPurchase) {
-				bestSuggestion = { price: cheapestPurchase.unitPrice, market: cheapestPurchase.purchase.market };
+				bestSuggestion = { price: cheapestPurchase.unitPrice, market: cheapestPurchase.purchase.market }
 			} else if (cheapestRecord) {
-				bestSuggestion = { price: cheapestRecord.price, market: cheapestRecord.market };
+				bestSuggestion = { price: cheapestRecord.price, market: cheapestRecord.market }
 			}
 
 			if (bestSuggestion) {
@@ -83,17 +80,14 @@ export async function POST(request: Request) {
 							price: bestSuggestion.price,
 						},
 					},
-				});
+				})
 			}
 		}
 
 		// Se nenhuma sugestão for gerada, retorna nulo
-		return NextResponse.json({ suggestion: null });
+		return NextResponse.json({ suggestion: null })
 	} catch (error) {
-		console.error("Erro na análise proativa:", error);
-		return NextResponse.json(
-			{ error: "Erro interno do servidor" },
-			{ status: 500 },
-		);
+		console.error("Erro na análise proativa:", error)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }

@@ -1,55 +1,47 @@
 // src/app/receitas/visualizar/page.tsx
 
-"use client";
+"use client"
 
-import {
-	ArrowLeft,
-	ChefHat,
-	Clock,
-	Save,
-	Star,
-	ThumbsUp,
-	Utensils,
-} from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDataMutation } from "@/hooks/use-data-mutation"; // <-- Importar o hook
-import { TempStorage } from "@/lib/temp-storage";
+import { ArrowLeft, ChefHat, Clock, Save, Star, ThumbsUp, Utensils } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useDataMutation } from "@/hooks/use-data-mutation" // <-- Importar o hook
+import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
-	refeicao: string;
-	prato: string;
-	descricao: string;
-	tempo_preparo: string;
-	ingredientes: string[];
-	modo_preparo: string;
-	dica_chef: string;
+	refeicao: string
+	prato: string
+	descricao: string
+	tempo_preparo: string
+	ingredientes: string[]
+	modo_preparo: string
+	dica_chef: string
 }
 
 export default function VisualizarReceitaPage() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const [recipe, setRecipe] = useState<Recipe | null>(null);
-	const { create, loading } = useDataMutation(); // <-- Usar o hook
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const [recipe, setRecipe] = useState<Recipe | null>(null)
+	const { create, loading } = useDataMutation() // <-- Usar o hook
 
 	useEffect(() => {
-		const storageKey = searchParams.get("storageKey");
+		const storageKey = searchParams.get("storageKey")
 		if (storageKey) {
-			const data = TempStorage.get(storageKey);
+			const data = TempStorage.get(storageKey)
 			if (data?.recipe) {
-				setRecipe(data.recipe);
+				setRecipe(data.recipe)
 			} else {
-				router.push("/receitas");
+				router.push("/receitas")
 			}
 		}
-	}, [searchParams, router]);
+	}, [searchParams, router])
 
 	const handleSaveRecipe = async () => {
-		if (!recipe) return;
+		if (!recipe) return
 
 		await create(
 			"/api/recipes",
@@ -65,14 +57,14 @@ export default function VisualizarReceitaPage() {
 			{
 				successMessage: "Receita salva com sucesso!",
 				onSuccess: () => {
-					router.push("/receitas");
+					router.push("/receitas")
 				},
 			},
-		);
-	};
+		)
+	}
 
 	if (!recipe) {
-		return <div className="text-center p-8">A carregar receita...</div>;
+		return <div className="text-center p-8">A carregar receita...</div>
 	}
 
 	return (
@@ -121,11 +113,11 @@ export default function VisualizarReceitaPage() {
 									.filter((p) => p.trim())
 									.reduce((acc, part, index) => {
 										if (part.startsWith("Passo")) {
-											acc.push(part);
+											acc.push(part)
 										} else if (acc.length > 0) {
-											acc[acc.length - 1] += part;
+											acc[acc.length - 1] += part
 										}
-										return acc;
+										return acc
 									}, [] as string[])
 									.map((step, index) => (
 										<p key={index}>{step}</p>
@@ -153,9 +145,7 @@ export default function VisualizarReceitaPage() {
 								<h4 className="font-semibold text-yellow-800 flex items-center gap-2">
 									<ThumbsUp size={16} /> Dica do Chef
 								</h4>
-								<p className="text-sm text-yellow-700 mt-1">
-									{recipe.dica_chef}
-								</p>
+								<p className="text-sm text-yellow-700 mt-1">{recipe.dica_chef}</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -164,11 +154,7 @@ export default function VisualizarReceitaPage() {
 							<CardTitle>Gostou da Receita?</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							<Button
-								className="w-full"
-								onClick={handleSaveRecipe}
-								disabled={loading}
-							>
+							<Button className="w-full" onClick={handleSaveRecipe} disabled={loading}>
 								<Save className="h-4 w-4 mr-2" />
 								{loading ? "A salvar..." : "Salvar Receita"}
 							</Button>
@@ -177,5 +163,5 @@ export default function VisualizarReceitaPage() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

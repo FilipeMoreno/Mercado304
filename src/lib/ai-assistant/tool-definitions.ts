@@ -1,4 +1,4 @@
-import { SchemaType } from "@google/generative-ai";
+import { SchemaType } from "@google/generative-ai"
 
 export const tools: any = [
 	{
@@ -6,14 +6,12 @@ export const tools: any = [
 			// Dashboard & Analytics
 			{
 				name: "getDashboardStats",
-				description:
-					"Obtém estatísticas gerais do dashboard, como total gasto, número de compras e produtos.",
+				description: "Obtém estatísticas gerais do dashboard, como total gasto, número de compras e produtos.",
 				parameters: { type: SchemaType.OBJECT, properties: {} },
 			},
 			{
 				name: "getSavingsAnalysis",
-				description:
-					"Analisa oportunidades de economia e comparações de preços.",
+				description: "Analisa oportunidades de economia e comparações de preços.",
 				parameters: { type: SchemaType.OBJECT, properties: {} },
 			},
 
@@ -67,8 +65,7 @@ export const tools: any = [
 			},
 			{
 				name: "getProductPriceComparison",
-				description:
-					"Busca e compara o preço de um produto específico em diferentes mercados.",
+				description: "Busca e compara o preço de um produto específico em diferentes mercados.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -96,8 +93,7 @@ export const tools: any = [
 			},
 			{
 				name: "getBestDayToBuy",
-				description:
-					"Identifica o melhor dia da semana para comprar um produto com base no histórico de preços.",
+				description: "Identifica o melhor dia da semana para comprar um produto com base no histórico de preços.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -186,8 +182,7 @@ export const tools: any = [
 			},
 			{
 				name: "createProductWithBrandAndCategory",
-				description:
-					"Cria um produto junto com sua marca e/ou categoria se elas não existirem.",
+				description: "Cria um produto junto com sua marca e/ou categoria se elas não existirem.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -229,8 +224,7 @@ export const tools: any = [
 			// Shopping Lists Management
 			{
 				name: "createShoppingList",
-				description:
-					"Cria uma nova lista de compras com um nome e uma lista de itens.",
+				description: "Cria uma nova lista de compras com um nome e uma lista de itens.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -241,8 +235,7 @@ export const tools: any = [
 						items: {
 							type: SchemaType.ARRAY,
 							items: { type: SchemaType.STRING },
-							description:
-								"Os nomes dos produtos a adicionar à lista. Pode ser vazio para criar lista sem itens.",
+							description: "Os nomes dos produtos a adicionar à lista. Pode ser vazio para criar lista sem itens.",
 						},
 					},
 					required: ["listName"],
@@ -274,8 +267,7 @@ export const tools: any = [
 			},
 			{
 				name: "generateAutoShoppingList",
-				description:
-					"Gera automaticamente uma lista de compras baseada em padrões de consumo.",
+				description: "Gera automaticamente uma lista de compras baseada em padrões de consumo.",
 				parameters: { type: SchemaType.OBJECT, properties: {} },
 			},
 
@@ -336,8 +328,7 @@ export const tools: any = [
 			// Stock Management
 			{
 				name: "getStockAlerts",
-				description:
-					"Verifica o estoque e retorna alertas de produtos vencendo ou com quantidade baixa.",
+				description: "Verifica o estoque e retorna alertas de produtos vencendo ou com quantidade baixa.",
 				parameters: { type: SchemaType.OBJECT, properties: {} },
 			},
 			{
@@ -382,8 +373,7 @@ export const tools: any = [
 						},
 						reason: {
 							type: SchemaType.STRING,
-							description:
-								"Motivo da remoção (consumo, perda, vencimento, etc.).",
+							description: "Motivo da remoção (consumo, perda, vencimento, etc.).",
 						},
 					},
 					required: ["productName", "quantity"],
@@ -417,60 +407,63 @@ export const tools: any = [
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						search: { 
-							type: SchemaType.STRING, 
-							description: "Termo de busca para produto, motivo ou observações (opcional)." 
+						search: {
+							type: SchemaType.STRING,
+							description: "Termo de busca para produto, motivo ou observações (opcional).",
 						},
-						type: { 
-							type: SchemaType.STRING, 
-							description: "Filtrar por tipo de movimentação: ENTRADA, SAIDA, AJUSTE, VENCIMENTO, PERDA, DESPERDICIO (opcional)." 
+						type: {
+							type: SchemaType.STRING,
+							description:
+								"Filtrar por tipo de movimentação: ENTRADA, SAIDA, AJUSTE, VENCIMENTO, PERDA, DESPERDICIO (opcional).",
 						},
-						location: { 
-							type: SchemaType.STRING, 
-							description: "Filtrar por localização (opcional)." 
+						location: {
+							type: SchemaType.STRING,
+							description: "Filtrar por localização (opcional).",
 						},
-						startDate: { 
-							type: SchemaType.STRING, 
-							description: "Data inicial no formato YYYY-MM-DD (opcional)." 
+						startDate: {
+							type: SchemaType.STRING,
+							description: "Data inicial no formato YYYY-MM-DD (opcional).",
 						},
-						endDate: { 
-							type: SchemaType.STRING, 
-							description: "Data final no formato YYYY-MM-DD (opcional)." 
+						endDate: {
+							type: SchemaType.STRING,
+							description: "Data final no formato YYYY-MM-DD (opcional).",
 						},
-						limit: { 
-							type: SchemaType.NUMBER, 
-							description: "Limite de resultados (opcional, padrão 50)." 
-						}
-					}
+						limit: {
+							type: SchemaType.NUMBER,
+							description: "Limite de resultados (opcional, padrão 50).",
+						},
+					},
 				},
 			},
 			{
 				name: "getWasteRecords",
-				description: "Lista registros de desperdício com filtros avançados e estatísticas detalhadas da nova API dedicada.",
+				description:
+					"Lista registros de desperdício com filtros avançados e estatísticas detalhadas da nova API dedicada.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						search: { 
-							type: SchemaType.STRING, 
-							description: "Buscar por nome do produto (opcional)." 
+						search: {
+							type: SchemaType.STRING,
+							description: "Buscar por nome do produto (opcional).",
 						},
-						reason: { 
-							type: SchemaType.STRING, 
-							description: "Filtrar por motivo: EXPIRED, SPOILED, DAMAGED, CONTAMINATED, EXCESS, FREEZER_BURN, MOLDY, PEST_DAMAGE, POWER_OUTAGE, FORGOTTEN, OTHER (opcional)." 
+						reason: {
+							type: SchemaType.STRING,
+							description:
+								"Filtrar por motivo: EXPIRED, SPOILED, DAMAGED, CONTAMINATED, EXCESS, FREEZER_BURN, MOLDY, PEST_DAMAGE, POWER_OUTAGE, FORGOTTEN, OTHER (opcional).",
 						},
-						startDate: { 
-							type: SchemaType.STRING, 
-							description: "Data inicial no formato YYYY-MM-DD (opcional)." 
+						startDate: {
+							type: SchemaType.STRING,
+							description: "Data inicial no formato YYYY-MM-DD (opcional).",
 						},
-						endDate: { 
-							type: SchemaType.STRING, 
-							description: "Data final no formato YYYY-MM-DD (opcional)." 
+						endDate: {
+							type: SchemaType.STRING,
+							description: "Data final no formato YYYY-MM-DD (opcional).",
 						},
-						limit: { 
-							type: SchemaType.NUMBER, 
-							description: "Limite de resultados (opcional, padrão 10)." 
-						}
-					}
+						limit: {
+							type: SchemaType.NUMBER,
+							description: "Limite de resultados (opcional, padrão 10).",
+						},
+					},
 				},
 			},
 			{
@@ -479,56 +472,56 @@ export const tools: any = [
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						productName: { 
-							type: SchemaType.STRING, 
-							description: "Nome do produto desperdiçado." 
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto desperdiçado.",
 						},
-						quantity: { 
-							type: SchemaType.NUMBER, 
-							description: "Quantidade desperdiçada." 
+						quantity: {
+							type: SchemaType.NUMBER,
+							description: "Quantidade desperdiçada.",
 						},
-						unit: { 
-							type: SchemaType.STRING, 
-							description: "Unidade de medida (kg, litros, unidades, etc.)." 
+						unit: {
+							type: SchemaType.STRING,
+							description: "Unidade de medida (kg, litros, unidades, etc.).",
 						},
-						wasteReason: { 
-							type: SchemaType.STRING, 
-							description: "Motivo do desperdício: EXPIRED, SPOILED, DAMAGED, CONTAMINATED, EXCESS, FREEZER_BURN, MOLDY, PEST_DAMAGE, POWER_OUTAGE, FORGOTTEN, OTHER." 
+						wasteReason: {
+							type: SchemaType.STRING,
+							description:
+								"Motivo do desperdício: EXPIRED, SPOILED, DAMAGED, CONTAMINATED, EXCESS, FREEZER_BURN, MOLDY, PEST_DAMAGE, POWER_OUTAGE, FORGOTTEN, OTHER.",
 						},
-						location: { 
-							type: SchemaType.STRING, 
-							description: "Local onde ocorreu o desperdício (opcional)." 
+						location: {
+							type: SchemaType.STRING,
+							description: "Local onde ocorreu o desperdício (opcional).",
 						},
-						unitCost: { 
-							type: SchemaType.NUMBER, 
-							description: "Custo unitário (opcional)." 
+						unitCost: {
+							type: SchemaType.NUMBER,
+							description: "Custo unitário (opcional).",
 						},
-						totalValue: { 
-							type: SchemaType.NUMBER, 
-							description: "Valor total do desperdício (opcional)." 
+						totalValue: {
+							type: SchemaType.NUMBER,
+							description: "Valor total do desperdício (opcional).",
 						},
-						notes: { 
-							type: SchemaType.STRING, 
-							description: "Observações adicionais (opcional)." 
+						notes: {
+							type: SchemaType.STRING,
+							description: "Observações adicionais (opcional).",
 						},
-						category: { 
-							type: SchemaType.STRING, 
-							description: "Categoria do produto (opcional)." 
+						category: {
+							type: SchemaType.STRING,
+							description: "Categoria do produto (opcional).",
 						},
-						brand: { 
-							type: SchemaType.STRING, 
-							description: "Marca do produto (opcional)." 
-						}
+						brand: {
+							type: SchemaType.STRING,
+							description: "Marca do produto (opcional).",
+						},
 					},
-					required: ["productName", "quantity", "unit", "wasteReason"]
+					required: ["productName", "quantity", "unit", "wasteReason"],
 				},
 			},
 
 			// Recipes & AI Features
 			{
 				name: "suggestRecipes",
-				description:
-					"Sugere receitas baseadas nos ingredientes disponíveis no estoque.",
+				description: "Sugere receitas baseadas nos ingredientes disponíveis no estoque.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -539,8 +532,7 @@ export const tools: any = [
 						},
 						mealType: {
 							type: SchemaType.STRING,
-							description:
-								"Tipo de refeição (café da manhã, almoço, jantar, lanche, opcional).",
+							description: "Tipo de refeição (café da manhã, almoço, jantar, lanche, opcional).",
 						},
 					},
 				},
@@ -552,8 +544,7 @@ export const tools: any = [
 			},
 			{
 				name: "analyzeNutrition",
-				description:
-					"Analisa informações nutricionais de um produto ou lista de produtos.",
+				description: "Analisa informações nutricionais de um produto ou lista de produtos.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -593,8 +584,7 @@ export const tools: any = [
 			},
 			{
 				name: "checkBestPrice",
-				description:
-					"Verifica o melhor preço atual de um produto entre os mercados.",
+				description: "Verifica o melhor preço atual de um produto entre os mercados.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -610,8 +600,7 @@ export const tools: any = [
 			// Sistema de Seleção com Cards
 			{
 				name: "findSimilarProducts",
-				description:
-					"Busca produtos com nomes similares para exibir cards de seleção.",
+				description: "Busca produtos com nomes similares para exibir cards de seleção.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -621,8 +610,7 @@ export const tools: any = [
 						},
 						context: {
 							type: SchemaType.STRING,
-							description:
-								"Contexto da operação (ex: addToList:NomeDaLista, comparePrice, etc.)",
+							description: "Contexto da operação (ex: addToList:NomeDaLista, comparePrice, etc.)",
 						},
 					},
 					required: ["searchTerm"],
@@ -630,8 +618,7 @@ export const tools: any = [
 			},
 			{
 				name: "findSimilarMarkets",
-				description:
-					"Busca mercados com nomes similares para exibir cards de seleção.",
+				description: "Busca mercados com nomes similares para exibir cards de seleção.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -645,8 +632,7 @@ export const tools: any = [
 			},
 			{
 				name: "findSimilarCategories",
-				description:
-					"Busca categorias com nomes similares para exibir cards de seleção.",
+				description: "Busca categorias com nomes similares para exibir cards de seleção.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -660,8 +646,7 @@ export const tools: any = [
 			},
 			{
 				name: "findSimilarBrands",
-				description:
-					"Busca marcas com nomes similares para exibir cards de seleção.",
+				description: "Busca marcas com nomes similares para exibir cards de seleção.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -675,8 +660,7 @@ export const tools: any = [
 			},
 			{
 				name: "findSimilarShoppingLists",
-				description:
-					"Busca listas de compras com nomes similares para exibir cards de seleção.",
+				description: "Busca listas de compras com nomes similares para exibir cards de seleção.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -719,8 +703,7 @@ export const tools: any = [
 			},
 			{
 				name: "getPriceRecords",
-				description:
-					"Lista histórico de preços registrados por produto ou mercado.",
+				description: "Lista histórico de preços registrados por produto ou mercado.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -747,8 +730,7 @@ export const tools: any = [
 			},
 			{
 				name: "calculateChurrasco",
-				description:
-					"Calcula as quantidades de comida e bebida para um churrasco com base no número de pessoas.",
+				description: "Calcula as quantidades de comida e bebida para um churrasco com base no número de pessoas.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -766,8 +748,7 @@ export const tools: any = [
 						},
 						preferences: {
 							type: SchemaType.STRING,
-							description:
-								'Preferências ou observações (ex: "mais picanha", "vegetariano").',
+							description: 'Preferências ou observações (ex: "mais picanha", "vegetariano").',
 						},
 					},
 					required: ["adults", "children", "drinkers"],
@@ -775,4 +756,4 @@ export const tools: any = [
 			},
 		],
 	},
-];
+]

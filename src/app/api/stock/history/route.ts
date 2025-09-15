@@ -1,28 +1,28 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth-server";
-import { prisma } from "@/lib/prisma";
+import { type NextRequest, NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-server"
+import { prisma } from "@/lib/prisma"
 
 // GET - Buscar histórico geral de movimentações do estoque
 export async function GET(request: NextRequest) {
 	try {
-		const session = await getSession();
+		const session = await getSession()
 
 		if (!session?.user) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const { searchParams } = new URL(request.url);
-		const search = searchParams.get("search") || "";
-		const type = searchParams.get("type") as any;
-		const location = searchParams.get("location") || "";
-		const startDate = searchParams.get("startDate");
-		const endDate = searchParams.get("endDate");
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "50");
-		const skip = (page - 1) * limit;
+		const { searchParams } = new URL(request.url)
+		const search = searchParams.get("search") || ""
+		const type = searchParams.get("type") as any
+		const location = searchParams.get("location") || ""
+		const startDate = searchParams.get("startDate")
+		const endDate = searchParams.get("endDate")
+		const page = parseInt(searchParams.get("page") || "1")
+		const limit = parseInt(searchParams.get("limit") || "50")
+		const skip = (page - 1) * limit
 
 		// Construir filtros para histórico geral
-		const whereConditions: any = {};
+		const whereConditions: any = {}
 
 		if (search) {
 			whereConditions.OR = [
@@ -44,29 +44,29 @@ export async function GET(request: NextRequest) {
 						mode: "insensitive",
 					},
 				},
-			];
+			]
 		}
 
 		if (type && type !== "all") {
-			whereConditions.type = type;
+			whereConditions.type = type
 		}
 
 		if (location && location !== "all") {
-			whereConditions.location = location;
+			whereConditions.location = location
 		}
 
 		if (startDate) {
 			whereConditions.date = {
 				...whereConditions.date,
 				gte: new Date(startDate),
-			};
+			}
 		}
 
 		if (endDate) {
 			whereConditions.date = {
 				...whereConditions.date,
 				lte: new Date(endDate),
-			};
+			}
 		}
 
 		// Buscar histórico geral
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 				take: limit,
 			}),
 			prisma.stockHistory.count({ where: whereConditions }),
-		]);
+		])
 
 		// Calcular estatísticas
 		const stats = await prisma.stockHistory.aggregate({
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
 			_count: {
 				id: true,
 			},
-		});
+		})
 
 		// Estatísticas por tipo
 		const typeStats = await prisma.stockHistory.groupBy({
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
 					id: "desc",
 				},
 			},
-		});
+		})
 
 		// Produtos mais movimentados
 		const topProducts = await prisma.stockHistory.groupBy({
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 				},
 			},
 			take: 10,
-		});
+		})
 
 		// Localizações mais utilizadas
 		const topLocations = await prisma.stockHistory.groupBy({
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
 				},
 			},
 			take: 5,
-		});
+		})
 
 		return NextResponse.json({
 			historyRecords,
@@ -170,45 +170,29 @@ export async function GET(request: NextRequest) {
 				topProducts,
 				topLocations,
 			},
-		});
+		})
 	} catch (error) {
-		console.error("Erro ao buscar histórico de estoque:", error);
-		return NextResponse.json(
-			{ error: "Erro ao buscar histórico de estoque" },
-			{ status: 500 },
-		);
+		console.error("Erro ao buscar histórico de estoque:", error)
+		return NextResponse.json({ error: "Erro ao buscar histórico de estoque" }, { status: 500 })
 	}
 }
 
 // POST - Registrar nova entrada no histórico geral
 export async function POST(request: NextRequest) {
 	try {
-		const session = await getServerSession(authOptions);
+		const session = await getServerSession(authOptions)
 
 		if (!session?.user) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const data = await request.json();
-		const {
-			type,
-			productId,
-			productName,
-			quantity,
-			reason,
-			location,
-			unitCost,
-			totalValue,
-			notes,
-			purchaseItemId,
-		} = data;
+		const data = await request.json()
+		const { type, productId, productName, quantity, reason, location, unitCost, totalValue, notes, purchaseItemId } =
+			data
 
 		// Validações básicas
 		if (!type || !productName || quantity === undefined) {
-			return NextResponse.json(
-				{ error: "Dados obrigatórios: type, productName e quantity" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Dados obrigatórios: type, productName e quantity" }, { status: 400 })
 		}
 
 		// Criar entrada no histórico geral
@@ -226,14 +210,11 @@ export async function POST(request: NextRequest) {
 				purchaseItemId,
 				userId: session.user.id,
 			},
-		});
+		})
 
-		return NextResponse.json(historyRecord, { status: 201 });
+		return NextResponse.json(historyRecord, { status: 201 })
 	} catch (error) {
-		console.error("Erro ao registrar no histórico:", error);
-		return NextResponse.json(
-			{ error: "Erro ao registrar no histórico" },
-			{ status: 500 },
-		);
+		console.error("Erro ao registrar no histórico:", error)
+		return NextResponse.json({ error: "Erro ao registrar no histórico" }, { status: 500 })
 	}
 }

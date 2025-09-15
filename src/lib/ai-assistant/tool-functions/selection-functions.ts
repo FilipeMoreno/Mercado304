@@ -1,44 +1,38 @@
-import { prisma } from "@/lib/prisma";
-import { parseContext, normalizeProductName } from "../utils";
+import { prisma } from "@/lib/prisma"
+import { normalizeProductName, parseContext } from "../utils"
 
 export const selectionFunctions = {
 	// Sistema de Seleção com Cards
-	findSimilarProducts: async ({
-		searchTerm,
-		context,
-	}: {
-		searchTerm: string;
-		context?: string;
-	}) => {
-		const normalizedSearch = normalizeProductName(searchTerm);
-		
+	findSimilarProducts: async ({ searchTerm, context }: { searchTerm: string; context?: string }) => {
+		const normalizedSearch = normalizeProductName(searchTerm)
+
 		// Primeira busca: exata por nome normalizado
 		let products = await prisma.product.findMany({
 			where: {
 				OR: [
 					{ name: { equals: searchTerm, mode: "insensitive" } },
 					{ name: { contains: searchTerm, mode: "insensitive" } },
-				]
+				],
 			},
 			include: { brand: true, category: true },
 			take: 10,
 			orderBy: { name: "asc" },
-		});
+		})
 
 		// Se não encontrou resultados suficientes, busca mais ampla
 		if (products.length === 0) {
-			const searchWords = normalizedSearch.split(' ').filter(word => word.length > 2);
+			const searchWords = normalizedSearch.split(" ").filter((word) => word.length > 2)
 			if (searchWords.length > 0) {
 				products = await prisma.product.findMany({
 					where: {
-						OR: searchWords.map(word => ({
-							name: { contains: word, mode: "insensitive" }
-						}))
+						OR: searchWords.map((word) => ({
+							name: { contains: word, mode: "insensitive" },
+						})),
 					},
 					include: { brand: true, category: true },
 					take: 10,
 					orderBy: { name: "asc" },
-				});
+				})
 			}
 		}
 
@@ -46,7 +40,7 @@ export const selectionFunctions = {
 			return {
 				success: false,
 				message: `Nenhum produto encontrado com "${searchTerm}".`,
-			};
+			}
 		}
 
 		if (products.length === 1) {
@@ -55,7 +49,7 @@ export const selectionFunctions = {
 				exactMatch: true,
 				product: products[0],
 				message: `Produto encontrado: ${products[0].name}`,
-			};
+			}
 		}
 
 		return {
@@ -71,10 +65,8 @@ export const selectionFunctions = {
 				barcode: p.barcode,
 			})),
 			message: `Encontrados ${products.length} produtos similares a "${searchTerm}". Escolha uma das opções:`,
-			context: context
-				? parseContext(context, searchTerm)
-				: { action: "productSelected", searchTerm },
-		};
+			context: context ? parseContext(context, searchTerm) : { action: "productSelected", searchTerm },
+		}
 	},
 
 	findSimilarMarkets: async ({ searchTerm }: { searchTerm: string }) => {
@@ -84,13 +76,13 @@ export const selectionFunctions = {
 			},
 			take: 10,
 			orderBy: { name: "asc" },
-		});
+		})
 
 		if (markets.length === 0) {
 			return {
 				success: false,
 				message: `Nenhum mercado encontrado com "${searchTerm}".`,
-			};
+			}
 		}
 
 		if (markets.length === 1) {
@@ -99,7 +91,7 @@ export const selectionFunctions = {
 				exactMatch: true,
 				market: markets[0],
 				message: `Mercado encontrado: ${markets[0].name}`,
-			};
+			}
 		}
 
 		return {
@@ -113,7 +105,7 @@ export const selectionFunctions = {
 				location: m.location,
 			})),
 			message: `Encontrados ${markets.length} mercados similares a "${searchTerm}". Escolha uma das opções:`,
-		};
+		}
 	},
 
 	findSimilarCategories: async ({ searchTerm }: { searchTerm: string }) => {
@@ -123,13 +115,13 @@ export const selectionFunctions = {
 			},
 			take: 10,
 			orderBy: { name: "asc" },
-		});
+		})
 
 		if (categories.length === 0) {
 			return {
 				success: false,
 				message: `Nenhuma categoria encontrada com "${searchTerm}".`,
-			};
+			}
 		}
 
 		if (categories.length === 1) {
@@ -138,7 +130,7 @@ export const selectionFunctions = {
 				exactMatch: true,
 				category: categories[0],
 				message: `Categoria encontrada: ${categories[0].name}`,
-			};
+			}
 		}
 
 		return {
@@ -154,7 +146,7 @@ export const selectionFunctions = {
 				isFood: c.isFood,
 			})),
 			message: `Encontradas ${categories.length} categorias similares a "${searchTerm}". Escolha uma das opções:`,
-		};
+		}
 	},
 
 	findSimilarBrands: async ({ searchTerm }: { searchTerm: string }) => {
@@ -167,13 +159,13 @@ export const selectionFunctions = {
 			},
 			take: 10,
 			orderBy: { name: "asc" },
-		});
+		})
 
 		if (brands.length === 0) {
 			return {
 				success: false,
 				message: `Nenhuma marca encontrada com "${searchTerm}".`,
-			};
+			}
 		}
 
 		if (brands.length === 1) {
@@ -182,7 +174,7 @@ export const selectionFunctions = {
 				exactMatch: true,
 				brand: brands[0],
 				message: `Marca encontrada: ${brands[0].name}`,
-			};
+			}
 		}
 
 		return {
@@ -196,7 +188,7 @@ export const selectionFunctions = {
 				productCount: b._count.products,
 			})),
 			message: `Encontradas ${brands.length} marcas similares a "${searchTerm}". Escolha uma das opções:`,
-		};
+		}
 	},
 
 	findSimilarShoppingLists: async ({ searchTerm }: { searchTerm: string }) => {
@@ -210,13 +202,13 @@ export const selectionFunctions = {
 			},
 			take: 10,
 			orderBy: { updatedAt: "desc" },
-		});
+		})
 
 		if (lists.length === 0) {
 			return {
 				success: false,
 				message: `Nenhuma lista de compras encontrada com "${searchTerm}".`,
-			};
+			}
 		}
 
 		if (lists.length === 1) {
@@ -225,7 +217,7 @@ export const selectionFunctions = {
 				exactMatch: true,
 				list: lists[0],
 				message: `Lista encontrada: ${lists[0].name}`,
-			};
+			}
 		}
 
 		return {
@@ -241,6 +233,6 @@ export const selectionFunctions = {
 				updatedAt: l.updatedAt,
 			})),
 			message: `Encontradas ${lists.length} listas similares a "${searchTerm}". Escolha uma das opções:`,
-		};
+		}
 	},
-};
+}

@@ -1,82 +1,46 @@
 // src/app/lista/lista-client.tsx
-"use client";
+"use client"
 
-import {
-	ChevronLeft,
-	ChevronRight,
-	Edit,
-	Eye,
-	Filter,
-	List,
-	Plus,
-	Search,
-	Trash2,
-} from "lucide-react";
-import Link from "next/link";
-import * as React from "react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { AiShoppingList } from "@/components/ai-shopping-list";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { FilterPopover } from "@/components/ui/filter-popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton";
-import { 
-	useShoppingListsQuery,
-	useDeleteShoppingListMutation,
-	useDeleteConfirmation, 
-	useUrlState 
-} from "@/hooks";
-import type { ShoppingList } from "@/types";
+import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash2 } from "lucide-react"
+import Link from "next/link"
+import * as React from "react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { AiShoppingList } from "@/components/ai-shopping-list"
+import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FilterPopover } from "@/components/ui/filter-popover"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
+import type { ShoppingList } from "@/types"
 
 interface ListaClientProps {
 	searchParams: {
-		search?: string;
-		sort?: string;
-		page?: string;
-		status?: string;
-	};
+		search?: string
+		sort?: string
+		page?: string
+		status?: string
+	}
 }
 
-export function ListaClient({
-	searchParams,
-}: ListaClientProps) {
-	const itemsPerPage = 12;
+export function ListaClient({ searchParams }: ListaClientProps) {
+	const itemsPerPage = 12
 
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
-		useDeleteConfirmation<ShoppingList>();
+	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<ShoppingList>()
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } =
-		useUrlState({
-			basePath: "/lista",
-			initialValues: {
-				search: searchParams.search || "",
-				sort: searchParams.sort || "date-desc",
-				status: searchParams.status || "all",
-				page: parseInt(searchParams.page || "1"),
-			},
-		});
+	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+		basePath: "/lista",
+		initialValues: {
+			search: searchParams.search || "",
+			sort: searchParams.sort || "date-desc",
+			status: searchParams.status || "all",
+			page: parseInt(searchParams.page || "1"),
+		},
+	})
 
 	// Build URLSearchParams for the shopping lists query
 	const shoppingListParams = React.useMemo(() => {
@@ -86,29 +50,29 @@ export function ListaClient({
 			status: state.status,
 			page: state.page.toString(),
 			limit: itemsPerPage.toString(),
-		});
-		return urlParams;
-	}, [state.search, state.sort, state.status, state.page, itemsPerPage]);
+		})
+		return urlParams
+	}, [state.search, state.sort, state.status, state.page, itemsPerPage])
 
 	// React Query hooks
-	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams);
-	const deleteShoppingListMutation = useDeleteShoppingListMutation();
+	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams)
+	const deleteShoppingListMutation = useDeleteShoppingListMutation()
 
 	// Extract data from React Query
-	const shoppingLists = shoppingListsData?.lists || [];
-	const totalCount = shoppingListsData?.totalCount || 0;
-	const totalPages = Math.ceil(totalCount / itemsPerPage);
+	const shoppingLists = shoppingListsData?.lists || []
+	const totalCount = shoppingListsData?.totalCount || 0
+	const totalPages = Math.ceil(totalCount / itemsPerPage)
 
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antiga" },
 		{ value: "name-asc", label: "Nome (A-Z)" },
 		{ value: "name-desc", label: "Nome (Z-A)" },
-	];
+	]
 
 	// Handle loading and error states
 	if (isLoading && shoppingLists.length === 0) {
-		return <ShoppingListSkeleton />;
+		return <ShoppingListSkeleton />
 	}
 
 	if (error) {
@@ -116,33 +80,29 @@ export function ListaClient({
 			<Card>
 				<CardContent className="text-center py-12">
 					<List className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">
-						Erro ao carregar listas
-					</h3>
-					<p className="text-gray-600 mb-4">
-						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
-					</p>
+					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar listas</h3>
+					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	const deleteShoppingList = async () => {
-		if (!deleteState.item) return;
+		if (!deleteState.item) return
 
 		try {
-			await deleteShoppingListMutation.mutateAsync(deleteState.item.id);
-			closeDeleteConfirm();
+			await deleteShoppingListMutation.mutateAsync(deleteState.item.id)
+			closeDeleteConfirm()
 		} catch (error) {
-			console.error("Error deleting shopping list:", error);
+			console.error("Error deleting shopping list:", error)
 		}
-	};
+	}
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
-			updateSingleValue("page", page);
+			updateSingleValue("page", page)
 		}
-	};
+	}
 
 	const handleGenerateAutoList = async (type: "weekly" | "monthly") => {
 		try {
@@ -150,13 +110,13 @@ export function ListaClient({
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ type }),
-			});
-			return await response.json();
+			})
+			return await response.json()
 		} catch (error) {
-			console.error("Erro ao gerar lista:", error);
-			throw error;
+			console.error("Erro ao gerar lista:", error)
+			throw error
 		}
-	};
+	}
 
 	const handleCreateAutoList = async (items: any[]) => {
 		try {
@@ -167,8 +127,8 @@ export function ListaClient({
 					name: `Lista IA - ${new Date().toLocaleDateString("pt-BR")}`,
 					description: "Gerada automaticamente pela IA",
 				}),
-			});
-			const newList = await listResponse.json();
+			})
+			const newList = await listResponse.json()
 			await Promise.all(
 				items.map((item) =>
 					fetch(`/api/shopping-lists/${newList.id}/items`, {
@@ -177,22 +137,19 @@ export function ListaClient({
 						body: JSON.stringify(item),
 					}),
 				),
-			);
-			toast.success(`Lista criada com ${items.length} itens!`);
-			window.location.reload();
+			)
+			toast.success(`Lista criada com ${items.length} itens!`)
+			window.location.reload()
 		} catch (error) {
-			console.error("Erro ao criar lista:", error);
-			throw error;
+			console.error("Erro ao criar lista:", error)
+			throw error
 		}
-	};
+	}
 
 	const additionalFilters = (
 		<div className="space-y-2">
 			<Label>Status</Label>
-			<Select
-				value={state.status}
-				onValueChange={(value) => updateSingleValue("status", value)}
-			>
+			<Select value={state.status} onValueChange={(value) => updateSingleValue("status", value)}>
 				<SelectTrigger>
 					<SelectValue placeholder="Todos" />
 				</SelectTrigger>
@@ -203,7 +160,7 @@ export function ListaClient({
 				</SelectContent>
 			</Select>
 		</div>
-	);
+	)
 
 	return (
 		<div className="flex flex-col md:flex-row gap-6">
@@ -225,8 +182,8 @@ export function ListaClient({
 						additionalFilters={additionalFilters}
 						hasActiveFilters={hasActiveFilters}
 						onClearFilters={() => {
-							clearFilters();
-							updateSingleValue("page", 1);
+							clearFilters()
+							updateSingleValue("page", 1)
 						}}
 					/>
 				</div>
@@ -236,21 +193,17 @@ export function ListaClient({
 						<CardContent className="text-center py-12">
 							<List className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 							<h3 className="text-lg font-medium mb-2">
-								{hasActiveFilters
-									? "Nenhuma lista encontrada"
-									: "Nenhuma lista criada"}
+								{hasActiveFilters ? "Nenhuma lista encontrada" : "Nenhuma lista criada"}
 							</h3>
 							<p className="text-gray-600 mb-4">
-								{hasActiveFilters
-									? "Tente ajustar os filtros"
-									: "Comece criando sua primeira lista de compras"}
+								{hasActiveFilters ? "Tente ajustar os filtros" : "Comece criando sua primeira lista de compras"}
 							</p>
 							{hasActiveFilters && (
 								<Button
 									variant="outline"
 									onClick={() => {
-										clearFilters();
-										updateSingleValue("page", 1);
+										clearFilters()
+										updateSingleValue("page", 1)
 									}}
 								>
 									<Filter className="h-4 w-4 mr-2" />
@@ -286,9 +239,7 @@ export function ListaClient({
 												</CardDescription>
 											</div>
 											<div className="text-right">
-												<div className="text-sm text-gray-500">
-													{list.items?.length || 0} itens
-												</div>
+												<div className="text-sm text-gray-500">{list.items?.length || 0} itens</div>
 											</div>
 										</div>
 									</CardHeader>
@@ -303,17 +254,11 @@ export function ListaClient({
 											<Button
 												variant="outline"
 												size="sm"
-												onClick={() =>
-													window.open(`/lista/${list.id}/editar`, "_blank")
-												}
+												onClick={() => window.open(`/lista/${list.id}/editar`, "_blank")}
 											>
 												<Edit className="h-4 w-4" />
 											</Button>
-											<Button
-												variant="destructive"
-												size="sm"
-												onClick={() => openDeleteConfirm(list)}
-											>
+											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(list)}>
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
@@ -336,12 +281,7 @@ export function ListaClient({
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter(
-											(page) =>
-												page === 1 ||
-												page === totalPages ||
-												Math.abs(page - state.page) <= 2,
-										)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -375,16 +315,10 @@ export function ListaClient({
 			</div>
 
 			<div className="w-full md:w-1/3 flex-shrink-0">
-				<AiShoppingList
-					onGenerateList={handleGenerateAutoList}
-					onCreateShoppingList={handleCreateAutoList}
-				/>
+				<AiShoppingList onGenerateList={handleGenerateAutoList} onCreateShoppingList={handleCreateAutoList} />
 			</div>
 
-			<Dialog
-				open={deleteState.show}
-				onOpenChange={(open) => !open && closeDeleteConfirm()}
-			>
+			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
@@ -394,12 +328,10 @@ export function ListaClient({
 					</DialogHeader>
 					<div className="space-y-4">
 						<p>
-							Tem certeza que deseja excluir a lista{" "}
-							<strong>{deleteState.item?.name}</strong>?
+							Tem certeza que deseja excluir a lista <strong>{deleteState.item?.name}</strong>?
 						</p>
 						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita e todos os itens da lista serão
-							perdidos.
+							Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
 						</p>
 						<div className="flex gap-2 pt-4">
 							<Button
@@ -419,5 +351,5 @@ export function ListaClient({
 				</DialogContent>
 			</Dialog>
 		</div>
-	);
+	)
 }

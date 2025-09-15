@@ -1,44 +1,38 @@
-"use client";
+"use client"
 
-import { AlertTriangle, Wand2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { AlertTriangle, Wand2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface NutritionAiAnalysisProps {
-	productId: string;
+	productId: string
 }
 
 export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
-	const [analysis, setAnalysis] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [analysis, setAnalysis] = useState<string | null>(null)
+	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		async function fetchAnalysis() {
-			if (!productId) return;
-			setLoading(true);
+			if (!productId) return
+			setLoading(true)
 			try {
-				const response = await fetch(`/api/products/${productId}/ai-analysis`);
+				const response = await fetch(`/api/products/${productId}/ai-analysis`)
 				if (response.ok) {
-					const data = await response.json();
-					setAnalysis(data.analysis);
+					const data = await response.json()
+					setAnalysis(data.analysis)
 				} else {
-					setAnalysis(null);
+					setAnalysis(null)
 				}
 			} catch (error) {
-				console.error("Erro ao buscar análise da IA:", error);
-				setAnalysis(null);
+				console.error("Erro ao buscar análise da IA:", error)
+				setAnalysis(null)
 			} finally {
-				setLoading(false);
+				setLoading(false)
 			}
 		}
-		fetchAnalysis();
-	}, [productId]);
+		fetchAnalysis()
+	}, [productId])
 
 	if (loading) {
 		return (
@@ -56,11 +50,11 @@ export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
 					</div>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	if (!analysis) {
-		return null; // Não renderiza nada se não houver análise
+		return null // Não renderiza nada se não houver análise
 	}
 
 	return (
@@ -72,10 +66,8 @@ export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<p className="text-sm text-purple-800 dark:text-purple-300">
-					{analysis}
-				</p>
+				<p className="text-sm text-purple-800 dark:text-purple-300">{analysis}</p>
 			</CardContent>
 		</Card>
-	);
+	)
 }

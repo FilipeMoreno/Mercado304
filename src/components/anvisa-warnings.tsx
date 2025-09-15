@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
-import type { NutritionalInfo } from "@/types";
+import { cn } from "@/lib/utils"
+import type { NutritionalInfo } from "@/types"
 
 interface AnvisaWarningsProps {
-	nutritionalInfo: NutritionalInfo | null;
-	unit: string;
+	nutritionalInfo: NutritionalInfo | null
+	unit: string
 	/** Define o layout dos alertas.
 	 * - `vertical`: Blocos empilhados verticalmente (padrão).
 	 * - `horizontal-stacked`: Bloco "ALTO EM" à esquerda, nutrientes empilhados à direita.
 	 * - `horizontal-inline`: Uma etiqueta individual e completa para cada nutriente.
 	 */
-	layout?: "vertical" | "horizontal-stacked" | "horizontal-inline";
+	layout?: "vertical" | "horizontal-stacked" | "horizontal-inline"
 }
 
 // Subcomponente para a Lupa e o texto "ALTO EM"
@@ -40,16 +40,10 @@ const LupaHeader = ({ className }: { className?: string }) => (
 		</svg>
 		<span className="block font-extrabold text-xs leading-tight">ALTO EM</span>
 	</div>
-);
+)
 
 // Subcomponente para cada nutriente
-const NutrientBlock = ({
-	nutrient,
-	className,
-}: {
-	nutrient: string;
-	className?: string;
-}) => (
+const NutrientBlock = ({ nutrient, className }: { nutrient: string; className?: string }) => (
 	<div
 		className={cn(
 			"border-2 border-black bg-black p-2 text-center text-white",
@@ -57,11 +51,9 @@ const NutrientBlock = ({
 			className,
 		)}
 	>
-		<span className="block font-extrabold text-sm leading-tight">
-			{nutrient}
-		</span>
+		<span className="block font-extrabold text-sm leading-tight">{nutrient}</span>
 	</div>
-);
+)
 
 // Subcomponente para uma etiqueta de alerta individual completa
 const IndividualWarningLabel = ({ nutrient }: { nutrient: string }) => (
@@ -69,43 +61,33 @@ const IndividualWarningLabel = ({ nutrient }: { nutrient: string }) => (
 		<LupaHeader />
 		<NutrientBlock nutrient={nutrient} className="-ml-[2px]" />
 	</div>
-);
+)
 
-export function AnvisaWarnings({
-	nutritionalInfo,
-	unit,
-	layout = "vertical",
-}: AnvisaWarningsProps) {
-	if (!nutritionalInfo) return null;
+export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: AnvisaWarningsProps) {
+	if (!nutritionalInfo) return null
 
-	const warnings: string[] = [];
-	const isLiquid = ["ml", "litro"].includes(unit.toLowerCase());
+	const warnings: string[] = []
+	const isLiquid = ["ml", "litro"].includes(unit.toLowerCase())
 
 	const thresholds = {
 		addedSugars: isLiquid ? 7.5 : 15,
 		saturatedFat: isLiquid ? 3 : 6,
 		sodium: isLiquid ? 300 : 600,
-	};
-
-	if (
-		nutritionalInfo.addedSugars &&
-		nutritionalInfo.addedSugars >= thresholds.addedSugars
-	) {
-		warnings.push("AÇÚCAR ADICIONADO");
 	}
-	if (
-		nutritionalInfo.saturatedFat &&
-		nutritionalInfo.saturatedFat >= thresholds.saturatedFat
-	) {
-		warnings.push("GORDURA SATURADA");
+
+	if (nutritionalInfo.addedSugars && nutritionalInfo.addedSugars >= thresholds.addedSugars) {
+		warnings.push("AÇÚCAR ADICIONADO")
+	}
+	if (nutritionalInfo.saturatedFat && nutritionalInfo.saturatedFat >= thresholds.saturatedFat) {
+		warnings.push("GORDURA SATURADA")
 	}
 	if (nutritionalInfo.sodium && nutritionalInfo.sodium >= thresholds.sodium) {
-		warnings.push("SÓDIO");
+		warnings.push("SÓDIO")
 	}
 
-	if (warnings.length === 0) return null;
+	if (warnings.length === 0) return null
 
-	let content = null;
+	let content = null
 
 	if (layout === "horizontal-inline") {
 		content = (
@@ -114,7 +96,7 @@ export function AnvisaWarnings({
 					<IndividualWarningLabel key={warning} nutrient={warning} />
 				))}
 			</div>
-		);
+		)
 	} else if (layout === "vertical") {
 		content = (
 			<div className="inline-flex flex-col font-sans">
@@ -123,30 +105,22 @@ export function AnvisaWarnings({
 					<NutrientBlock nutrient={warnings[0]} className="flex-grow" />
 				</div>
 				{warnings.slice(1).map((warning) => (
-					<NutrientBlock
-						key={warning}
-						nutrient={warning}
-						className="-mt-[2px]"
-					/>
+					<NutrientBlock key={warning} nutrient={warning} className="-mt-[2px]" />
 				))}
 			</div>
-		);
+		)
 	} else if (layout === "horizontal-stacked") {
 		content = (
 			<div className="inline-flex items-stretch font-sans">
 				<LupaHeader />
 				<div className="flex flex-col">
 					{warnings.map((warning, index) => (
-						<NutrientBlock
-							key={warning}
-							className={cn("border-l-0", index > 0 && "-mt-[2px]")}
-							nutrient={warning}
-						/>
+						<NutrientBlock key={warning} className={cn("border-l-0", index > 0 && "-mt-[2px]")} nutrient={warning} />
 					))}
 				</div>
 			</div>
-		);
+		)
 	}
 
-	return <div className="my-4">{content}</div>;
+	return <div className="my-4">{content}</div>
 }

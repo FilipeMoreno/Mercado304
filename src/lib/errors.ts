@@ -1,7 +1,7 @@
 // Define a estrutura de um erro documentado
 interface AppErrorDetails {
-	message: string;
-	statusCode: number;
+	message: string
+	statusCode: number
 }
 
 // Documentação central de todos os erros da aplicação.
@@ -38,25 +38,25 @@ export const ERROR_CODES: Record<string, AppErrorDetails> = {
 	},
 
 	// Adicione outros códigos de erro aqui...
-};
+}
 
 // Classe de Erro Personalizada que carrega nosso código de erro
 export class AppError extends Error {
-	public readonly errorCode: string;
-	public readonly statusCode: number;
+	public readonly errorCode: string
+	public readonly statusCode: number
 
 	constructor(errorCode: keyof typeof ERROR_CODES, message?: string) {
 		// Busca a mensagem e o statusCode do nosso dicionário
-		const errorDetails = ERROR_CODES[errorCode] || ERROR_CODES["GEN_001"];
+		const errorDetails = ERROR_CODES[errorCode] || ERROR_CODES["GEN_001"]
 
 		// Usa a mensagem personalizada se for fornecida, senão usa a padrão
-		super(message || errorDetails.message);
+		super(message || errorDetails.message)
 
-		this.name = "AppError";
-		this.errorCode = errorCode;
-		this.statusCode = errorDetails.statusCode;
+		this.name = "AppError"
+		this.errorCode = errorCode
+		this.statusCode = errorDetails.statusCode
 
 		// Garante que o stack trace seja capturado corretamente
-		Object.setPrototypeOf(this, AppError.prototype);
+		Object.setPrototypeOf(this, AppError.prototype)
 	}
 }

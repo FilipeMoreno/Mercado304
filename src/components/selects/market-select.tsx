@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { Combobox } from "@/components/ui/combobox";
-import { useDataStore } from "@/store/useDataStore"; // Importar o store
-import type { Market } from "@/types";
+import { useEffect } from "react"
+import { toast } from "sonner"
+import { Combobox } from "@/components/ui/combobox"
+import { useDataStore } from "@/store/useDataStore" // Importar o store
+import type { Market } from "@/types"
 
 interface MarketSelectProps {
-	value?: string;
-	onValueChange?: (value: string) => void;
-	placeholder?: string;
-	className?: string;
-	disabled?: boolean;
+	value?: string
+	onValueChange?: (value: string) => void
+	placeholder?: string
+	className?: string
+	disabled?: boolean
 }
 
 export function MarketSelect({
@@ -22,11 +22,11 @@ export function MarketSelect({
 	disabled = false,
 }: MarketSelectProps) {
 	// Obter dados e actions do store
-	const { markets, loading, fetchMarkets, addMarket } = useDataStore();
+	const { markets, loading, fetchMarkets, addMarket } = useDataStore()
 
 	useEffect(() => {
-		fetchMarkets(); // Busca os mercados quando o componente é montado (se já não estiverem no cache)
-	}, [fetchMarkets]);
+		fetchMarkets() // Busca os mercados quando o componente é montado (se já não estiverem no cache)
+	}, [fetchMarkets])
 
 	const handleCreateMarket = async (name: string) => {
 		try {
@@ -34,28 +34,24 @@ export function MarketSelect({
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: name.trim() }),
-			});
+			})
 
 			if (response.ok) {
-				const newMarket: Market = await response.json();
-				addMarket(newMarket); // Adiciona o novo mercado ao store
-				onValueChange?.(newMarket.id);
-				toast.success("Mercado criado com sucesso!");
+				const newMarket: Market = await response.json()
+				addMarket(newMarket) // Adiciona o novo mercado ao store
+				onValueChange?.(newMarket.id)
+				toast.success("Mercado criado com sucesso!")
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao criar mercado");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao criar mercado")
 			}
 		} catch (error) {
-			toast.error("Erro ao criar mercado");
+			toast.error("Erro ao criar mercado")
 		}
-	};
+	}
 
 	if (loading.markets && markets.length === 0) {
-		return (
-			<div
-				className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`}
-			/>
-		);
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
@@ -74,5 +70,5 @@ export function MarketSelect({
 			className={className}
 			disabled={disabled}
 		/>
-	);
+	)
 }

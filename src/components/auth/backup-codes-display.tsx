@@ -1,52 +1,52 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, Download, Eye, EyeOff, Shield, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { CheckCircle, Copy, Download, Eye, EyeOff, Shield } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface BackupCodesDisplayProps {
-	codes: string[];
-	onComplete?: () => void;
-	title?: string;
-	description?: string;
+	codes: string[]
+	onComplete?: () => void
+	title?: string
+	description?: string
 }
 
 export function BackupCodesDisplay({ codes, onComplete, title, description }: BackupCodesDisplayProps) {
-	const [showCodes, setShowCodes] = useState(false);
+	const [showCodes, setShowCodes] = useState(false)
 
 	const copyToClipboard = (text: string) => {
-		navigator.clipboard.writeText(text);
-		toast.success("Código copiado para a área de transferência");
-	};
+		navigator.clipboard.writeText(text)
+		toast.success("Código copiado para a área de transferência")
+	}
 
 	const copyAllCodes = () => {
-		const allCodes = codes.join('\n');
-		navigator.clipboard.writeText(allCodes);
-		toast.success("Todos os códigos foram copiados");
-	};
+		const allCodes = codes.join("\n")
+		navigator.clipboard.writeText(allCodes)
+		toast.success("Todos os códigos foram copiados")
+	}
 
 	const downloadCodes = () => {
-		const codesText = codes.join('\n');
-		const blob = new Blob([codesText], { type: 'text/plain;charset=utf-8' });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'mercado304-backup-codes.txt';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
-		toast.success("Códigos de backup baixados!");
-	};
+		const codesText = codes.join("\n")
+		const blob = new Blob([codesText], { type: "text/plain;charset=utf-8" })
+		const url = URL.createObjectURL(blob)
+		const link = document.createElement("a")
+		link.href = url
+		link.download = "mercado304-backup-codes.txt"
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+		toast.success("Códigos de backup baixados!")
+	}
 
 	const printCodes = () => {
-		const printWindow = window.open('', '_blank');
-		if (!printWindow) return;
-		
+		const printWindow = window.open("", "_blank")
+		if (!printWindow) return
+
 		printWindow.document.write(`
 			<html>
 				<head>
@@ -72,23 +72,23 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 						</ul>
 					</div>
 					<div class="codes">
-						${codes.map(code => `<div class="code">${code}</div>`).join('')}
+						${codes.map((code) => `<div class="code">${code}</div>`).join("")}
 					</div>
 					<div class="footer">
-						Gerado em: ${new Date().toLocaleString('pt-BR')}<br>
+						Gerado em: ${new Date().toLocaleString("pt-BR")}<br>
 						Mercado304 - Sistema de Gestão de Compras
 					</div>
 				</body>
 			</html>
-		`);
-		
-		printWindow.document.close();
-		printWindow.focus();
-		printWindow.print();
-		printWindow.close();
-		
-		toast.success("Códigos enviados para impressão");
-	};
+		`)
+
+		printWindow.document.close()
+		printWindow.focus()
+		printWindow.print()
+		printWindow.close()
+
+		toast.success("Códigos enviados para impressão")
+	}
 
 	return (
 		<Card className="w-full">
@@ -97,9 +97,7 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 					<Shield className="h-6 w-6 text-green-600" />
 				</div>
 				<CardTitle>{title || "Códigos de Backup Gerados"}</CardTitle>
-				<CardDescription>
-					{description || "Seus novos códigos de backup foram gerados com sucesso"}
-				</CardDescription>
+				<CardDescription>{description || "Seus novos códigos de backup foram gerados com sucesso"}</CardDescription>
 			</CardHeader>
 
 			<CardContent className="space-y-6">
@@ -123,11 +121,7 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 					<div className="flex items-center justify-between">
 						<h3 className="font-medium">Códigos de Backup ({codes.length})</h3>
 						<div className="flex space-x-2">
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={() => setShowCodes(!showCodes)}
-							>
+							<Button size="sm" variant="outline" onClick={() => setShowCodes(!showCodes)}>
 								{showCodes ? (
 									<>
 										<EyeOff className="h-4 w-4 mr-1" />
@@ -151,7 +145,7 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 									className="w-full justify-between p-3 font-mono text-sm cursor-pointer hover:bg-secondary/80 transition-colors"
 									onClick={() => copyToClipboard(code)}
 								>
-									<span>{showCodes ? code : '••••••••••••'}</span>
+									<span>{showCodes ? code : "••••••••••••"}</span>
 									<Copy className="h-3 w-3 ml-2 opacity-50" />
 								</Badge>
 							</div>
@@ -162,8 +156,8 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 						<Alert className="bg-green-50 border-green-200">
 							<CheckCircle className="h-4 w-4 text-green-600" />
 							<AlertDescription className="text-green-800">
-								<strong>Códigos visíveis!</strong> Certifique-se de que ninguém mais está vendo sua tela.
-								Clique em qualquer código para copiá-lo.
+								<strong>Códigos visíveis!</strong> Certifique-se de que ninguém mais está vendo sua tela. Clique em
+								qualquer código para copiá-lo.
 							</AlertDescription>
 						</Alert>
 					)}
@@ -172,47 +166,30 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 
 			<CardFooter className="flex flex-col space-y-3">
 				<div className="grid grid-cols-3 gap-2 w-full">
-					<Button
-						variant="outline"
-						onClick={copyAllCodes}
-						className="flex items-center justify-center"
-					>
+					<Button variant="outline" onClick={copyAllCodes} className="flex items-center justify-center">
 						<Copy className="h-4 w-4 mr-2" />
 						Copiar Todos
 					</Button>
-					
-					<Button
-						variant="outline"
-						onClick={downloadCodes}
-						className="flex items-center justify-center"
-					>
+
+					<Button variant="outline" onClick={downloadCodes} className="flex items-center justify-center">
 						<Download className="h-4 w-4 mr-2" />
 						Baixar
 					</Button>
 
-					<Button
-						variant="outline"
-						onClick={printCodes}
-						className="flex items-center justify-center"
-					>
-						🖨️
-						Imprimir
+					<Button variant="outline" onClick={printCodes} className="flex items-center justify-center">
+						🖨️ Imprimir
 					</Button>
 				</div>
 
-				<Button 
-					onClick={onComplete}
-					className="w-full"
-					size="lg"
-				>
+				<Button onClick={onComplete} className="w-full" size="lg">
 					Concluir - Códigos Salvos
 				</Button>
 
 				<p className="text-xs text-muted-foreground text-center">
-					Recomendamos salvar estes códigos em seu gerenciador de senhas ou imprimi-los
-					e guardá-los em local físico seguro.
+					Recomendamos salvar estes códigos em seu gerenciador de senhas ou imprimi-los e guardá-los em local físico
+					seguro.
 				</p>
 			</CardFooter>
 		</Card>
-	);
+	)
 }

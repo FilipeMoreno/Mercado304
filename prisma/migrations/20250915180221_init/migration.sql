@@ -305,6 +305,11 @@ CREATE TABLE "public"."user" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "normalizedEmail" TEXT,
     "twoFactorEnabled" BOOLEAN DEFAULT false,
+    "lastLoginMethod" TEXT,
+    "role" TEXT,
+    "banned" BOOLEAN DEFAULT false,
+    "banReason" TEXT,
+    "banExpires" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -381,6 +386,34 @@ CREATE TABLE "public"."twoFactor" (
     CONSTRAINT "twoFactor_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."dashboard_preferences" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "cardOrder" TEXT[],
+    "hiddenCards" TEXT[],
+    "layoutStyle" TEXT NOT NULL DEFAULT 'grid',
+    "cardsPerRow" INTEGER NOT NULL DEFAULT 5,
+    "showSummaryCard" BOOLEAN NOT NULL DEFAULT true,
+    "showMonthlyChart" BOOLEAN NOT NULL DEFAULT true,
+    "showCategoryStats" BOOLEAN NOT NULL DEFAULT true,
+    "showTopProducts" BOOLEAN NOT NULL DEFAULT true,
+    "showMarketCompare" BOOLEAN NOT NULL DEFAULT true,
+    "showRecentBuys" BOOLEAN NOT NULL DEFAULT true,
+    "showExpirationAlerts" BOOLEAN NOT NULL DEFAULT true,
+    "showReplenishment" BOOLEAN NOT NULL DEFAULT true,
+    "showSavingsCard" BOOLEAN NOT NULL DEFAULT true,
+    "showTemporalComp" BOOLEAN NOT NULL DEFAULT true,
+    "showNutritionCard" BOOLEAN NOT NULL DEFAULT true,
+    "showPaymentStats" BOOLEAN NOT NULL DEFAULT true,
+    "customTitle" TEXT,
+    "customSubtitle" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "dashboard_preferences_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "brands_name_key" ON "public"."brands"("name");
 
@@ -407,6 +440,12 @@ CREATE UNIQUE INDEX "user_normalizedEmail_key" ON "public"."user"("normalizedEma
 
 -- CreateIndex
 CREATE UNIQUE INDEX "session_token_key" ON "public"."session"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "twoFactor_userId_key" ON "public"."twoFactor"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "dashboard_preferences_userId_key" ON "public"."dashboard_preferences"("userId");
 
 -- AddForeignKey
 ALTER TABLE "public"."products" ADD CONSTRAINT "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -455,3 +494,6 @@ ALTER TABLE "public"."passkey" ADD CONSTRAINT "passkey_userId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "public"."twoFactor" ADD CONSTRAINT "twoFactor_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."dashboard_preferences" ADD CONSTRAINT "dashboard_preferences_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

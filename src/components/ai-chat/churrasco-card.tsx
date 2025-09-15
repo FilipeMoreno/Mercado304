@@ -1,36 +1,28 @@
-"use client";
+"use client"
 
-import { Drumstick } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Drumstick } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface ChurrascoCardProps {
-	onCalculate: (data: {
-		adults: number;
-		children: number;
-		drinkers: number;
-		preferences: string;
-	}) => void;
+	onCalculate: (data: { adults: number; children: number; drinkers: number; preferences: string }) => void
 }
 
 export function ChurrascoCard({ onCalculate }: ChurrascoCardProps) {
-	const [adults, setAdults] = useState(10);
-	const [children, setChildren] = useState(2);
-	const [drinkers, setDrinkers] = useState(8);
-	const [preferences, setPreferences] = useState("");
+	const [adults, setAdults] = useState(10)
+	const [children, setChildren] = useState(2)
+	const [drinkers, setDrinkers] = useState(8)
+	const [preferences, setPreferences] = useState("")
 
 	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		onCalculate({ adults, children, drinkers, preferences });
-	};
+		e.preventDefault()
+		onCalculate({ adults, children, drinkers, preferences })
+	}
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="bg-muted/50 rounded-lg p-3 space-y-3"
-		>
+		<form onSubmit={handleSubmit} className="bg-muted/50 rounded-lg p-3 space-y-3">
 			<div className="text-sm text-muted-foreground">
 				Claro! Por favor, preencha os detalhes abaixo para o churrasco.
 			</div>
@@ -95,5 +87,5 @@ export function ChurrascoCard({ onCalculate }: ChurrascoCardProps) {
 				</Button>
 			</div>
 		</form>
-	);
+	)
 }

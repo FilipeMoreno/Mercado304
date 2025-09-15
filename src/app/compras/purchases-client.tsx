@@ -1,8 +1,8 @@
 // src/app/compras/purchases-client.tsx
-"use client";
+"use client"
 
-import { format, startOfMonth, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, startOfMonth, subDays } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import {
 	Calendar,
 	ChevronLeft,
@@ -14,80 +14,59 @@ import {
 	ShoppingCart,
 	Store,
 	Trash2,
-} from "lucide-react";
-import * as React from "react";
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+} from "lucide-react"
+import * as React from "react"
+import { useMemo, useState } from "react"
+import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FilterPopover } from "@/components/ui/filter-popover"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { FilterPopover } from "@/components/ui/filter-popover";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton";
-import { 
-	usePurchasesQuery,
-	usePurchaseQuery,
-	useMarketsQuery,
+	useDeleteConfirmation,
 	useDeletePurchaseMutation,
-	useDeleteConfirmation, 
-	useUrlState 
-} from "@/hooks";
-import { formatLocalDate } from "@/lib/date-utils";
-import type { Purchase } from "@/types";
+	useMarketsQuery,
+	usePurchaseQuery,
+	usePurchasesQuery,
+	useUrlState,
+} from "@/hooks"
+import { formatLocalDate } from "@/lib/date-utils"
+import type { Purchase } from "@/types"
 
 interface PurchasesClientProps {
 	searchParams: {
-		search?: string;
-		market?: string;
-		sort?: string;
-		period?: string;
-		dateFrom?: string;
-		dateTo?: string;
-		page?: string;
-	};
+		search?: string
+		market?: string
+		sort?: string
+		period?: string
+		dateFrom?: string
+		dateTo?: string
+		page?: string
+	}
 }
 
-export function PurchasesClient({
-	searchParams,
-}: PurchasesClientProps) {
-	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null);
-	const itemsPerPage = 12;
+export function PurchasesClient({ searchParams }: PurchasesClientProps) {
+	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null)
+	const itemsPerPage = 12
 
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } =
-		useDeleteConfirmation<Purchase>();
+	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Purchase>()
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } =
-		useUrlState({
-			basePath: "/compras",
-			initialValues: {
-				search: searchParams.search || "",
-				market: searchParams.market || "all",
-				sort: searchParams.sort || "date-desc",
-				period: searchParams.period || "all",
-				dateFrom: searchParams.dateFrom || "",
-				dateTo: searchParams.dateTo || "",
-				page: parseInt(searchParams.page || "1"),
-			},
-		});
+	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+		basePath: "/compras",
+		initialValues: {
+			search: searchParams.search || "",
+			market: searchParams.market || "all",
+			sort: searchParams.sort || "date-desc",
+			period: searchParams.period || "all",
+			dateFrom: searchParams.dateFrom || "",
+			dateTo: searchParams.dateTo || "",
+			page: parseInt(searchParams.page || "1"),
+		},
+	})
 
 	// Build URLSearchParams for the queries
 	const purchaseParams = useMemo(() => {
@@ -100,32 +79,31 @@ export function PurchasesClient({
 			dateTo: state.dateTo,
 			page: state.page.toString(),
 			limit: itemsPerPage.toString(),
-		});
-		return urlParams;
-	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page, itemsPerPage]);
+		})
+		return urlParams
+	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page, itemsPerPage])
 
 	// React Query hooks
-	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams);
-	const { data: marketsData, isLoading: marketsLoading } = useMarketsQuery();
-	const { data: purchaseDetails, isLoading: detailsLoading } = usePurchaseQuery(
-		viewingPurchase?.id || "", 
-		{ enabled: !!viewingPurchase?.id }
-	);
-	const deletePurchaseMutation = useDeletePurchaseMutation();
+	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams)
+	const { data: marketsData, isLoading: marketsLoading } = useMarketsQuery()
+	const { data: purchaseDetails, isLoading: detailsLoading } = usePurchaseQuery(viewingPurchase?.id || "", {
+		enabled: !!viewingPurchase?.id,
+	})
+	const deletePurchaseMutation = useDeletePurchaseMutation()
 
 	// Extract data from React Query
-	const purchases = purchasesData?.purchases || [];
-	const totalCount = purchasesData?.totalCount || 0;
-	const markets = marketsData?.markets || [];
-	const totalPages = Math.ceil(totalCount / itemsPerPage);
-	const isLoading = purchasesLoading || marketsLoading;
+	const purchases = purchasesData?.purchases || []
+	const totalCount = purchasesData?.totalCount || 0
+	const markets = marketsData?.markets || []
+	const totalPages = Math.ceil(totalCount / itemsPerPage)
+	const isLoading = purchasesLoading || marketsLoading
 
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antigo" },
 		{ value: "value-desc", label: "Valor (maior)" },
 		{ value: "value-asc", label: "Valor (menor)" },
-	];
+	]
 
 	const marketOptions = useMemo(
 		() => [
@@ -136,57 +114,48 @@ export function PurchasesClient({
 			})),
 		],
 		[markets],
-	);
+	)
 
 	const handlePeriodChange = (value: string) => {
-		updateSingleValue("period", value);
+		updateSingleValue("period", value)
 		if (value === "all") {
-			updateSingleValue("dateFrom", "");
-			updateSingleValue("dateTo", "");
+			updateSingleValue("dateFrom", "")
+			updateSingleValue("dateTo", "")
 		} else if (value === "last7") {
-			updateSingleValue(
-				"dateFrom",
-				format(subDays(new Date(), 7), "yyyy-MM-dd"),
-			);
-			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"));
+			updateSingleValue("dateFrom", format(subDays(new Date(), 7), "yyyy-MM-dd"))
+			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"))
 		} else if (value === "last30") {
-			updateSingleValue(
-				"dateFrom",
-				format(subDays(new Date(), 30), "yyyy-MM-dd"),
-			);
-			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"));
+			updateSingleValue("dateFrom", format(subDays(new Date(), 30), "yyyy-MM-dd"))
+			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"))
 		} else if (value === "currentMonth") {
-			updateSingleValue(
-				"dateFrom",
-				format(startOfMonth(new Date()), "yyyy-MM-dd"),
-			);
-			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"));
+			updateSingleValue("dateFrom", format(startOfMonth(new Date()), "yyyy-MM-dd"))
+			updateSingleValue("dateTo", format(new Date(), "yyyy-MM-dd"))
 		} else {
-			updateSingleValue("dateFrom", "");
-			updateSingleValue("dateTo", "");
+			updateSingleValue("dateFrom", "")
+			updateSingleValue("dateTo", "")
 		}
-	};
+	}
 
 	const deletePurchase = async () => {
-		if (!deleteState.item) return;
+		if (!deleteState.item) return
 
 		try {
-			await deletePurchaseMutation.mutateAsync(deleteState.item.id);
-			closeDeleteConfirm();
+			await deletePurchaseMutation.mutateAsync(deleteState.item.id)
+			closeDeleteConfirm()
 		} catch (error) {
-			console.error("Error deleting purchase:", error);
+			console.error("Error deleting purchase:", error)
 		}
-	};
+	}
 
 	const viewPurchaseDetails = async (purchase: Purchase) => {
-		setViewingPurchase(purchase);
-	};
+		setViewingPurchase(purchase)
+	}
 
 	// React Query handles data synchronization automatically
 
 	// Handle loading and error states
 	if (purchasesLoading && purchases.length === 0) {
-		return <PurchasesSkeleton />;
+		return <PurchasesSkeleton />
 	}
 
 	if (purchasesError) {
@@ -194,31 +163,24 @@ export function PurchasesClient({
 			<Card>
 				<CardContent className="text-center py-12">
 					<ShoppingCart className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">
-						Erro ao carregar compras
-					</h3>
-					<p className="text-gray-600 mb-4">
-						Ocorreu um erro ao buscar os dados. Tente recarregar a página.
-					</p>
+					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar compras</h3>
+					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
 			</Card>
-		);
+		)
 	}
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
-			updateSingleValue("page", page);
+			updateSingleValue("page", page)
 		}
-	};
+	}
 
 	const additionalFilters = (
 		<>
 			<div className="space-y-2">
 				<Label>Mercado</Label>
-				<Select
-					value={state.market}
-					onValueChange={(value) => updateSingleValue("market", value)}
-				>
+				<Select value={state.market} onValueChange={(value) => updateSingleValue("market", value)}>
 					<SelectTrigger>
 						<SelectValue placeholder="Todos os mercados" />
 					</SelectTrigger>
@@ -269,7 +231,7 @@ export function PurchasesClient({
 				</div>
 			)}
 		</>
-	);
+	)
 
 	return (
 		<>
@@ -290,8 +252,8 @@ export function PurchasesClient({
 					additionalFilters={additionalFilters}
 					hasActiveFilters={hasActiveFilters}
 					onClearFilters={() => {
-						clearFilters();
-						updateSingleValue("page", 1);
+						clearFilters()
+						updateSingleValue("page", 1)
 					}}
 				/>
 			</div>
@@ -302,21 +264,17 @@ export function PurchasesClient({
 						<CardContent className="text-center py-12">
 							<ShoppingCart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 							<h3 className="text-lg font-medium mb-2">
-								{hasActiveFilters
-									? "Nenhuma compra encontrada"
-									: "Nenhuma compra cadastrada"}
+								{hasActiveFilters ? "Nenhuma compra encontrada" : "Nenhuma compra cadastrada"}
 							</h3>
 							<p className="text-gray-600 mb-4">
-								{hasActiveFilters
-									? "Tente ajustar os filtros de busca"
-									: "Comece adicionando sua primeira compra"}
+								{hasActiveFilters ? "Tente ajustar os filtros de busca" : "Comece adicionando sua primeira compra"}
 							</p>
 							{hasActiveFilters && (
 								<Button
 									variant="outline"
 									onClick={() => {
-										clearFilters();
-										updateSingleValue("page", 1);
+										clearFilters()
+										updateSingleValue("page", 1)
 									}}
 								>
 									<Filter className="h-4 w-4 mr-2" />
@@ -352,11 +310,7 @@ export function PurchasesClient({
 												</div>
 												<div className="flex items-center gap-1">
 													<Calendar className="h-3 w-3" />
-													{formatLocalDate(
-														purchase.purchaseDate,
-														"dd 'de' MMMM 'de' yyyy",
-														{ locale: ptBR },
-													)}
+													{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 												</div>
 											</CardDescription>
 										</div>
@@ -364,36 +318,24 @@ export function PurchasesClient({
 											<div className="flex items-center gap-1 text-lg font-bold">
 												R$ {purchase.totalAmount.toFixed(2)}
 											</div>
-											<div className="text-sm text-gray-500">
-												{purchase.items?.length || 0} itens
-											</div>
+											<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
 										</div>
 									</div>
 								</CardHeader>
 								<CardContent>
 									<div className="flex gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => viewPurchaseDetails(purchase)}
-										>
+										<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
 											<Eye className="h-4 w-4 mr-1" />
 											Detalhes
 										</Button>
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() =>
-												window.open(`/compras/editar/${purchase.id}`, "_blank")
-											}
+											onClick={() => window.open(`/compras/editar/${purchase.id}`, "_blank")}
 										>
 											<Edit className="h-4 w-4" />
 										</Button>
-										<Button
-											variant="destructive"
-											size="sm"
-											onClick={() => openDeleteConfirm(purchase)}
-										>
+										<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
 											<Trash2 className="h-4 w-4" />
 										</Button>
 									</div>
@@ -414,12 +356,7 @@ export function PurchasesClient({
 								</Button>
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter(
-											(page) =>
-												page === 1 ||
-												page === totalPages ||
-												Math.abs(page - state.page) <= 2,
-										)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -451,10 +388,7 @@ export function PurchasesClient({
 				)}
 			</div>
 
-			<Dialog
-				open={!!viewingPurchase}
-				onOpenChange={(open) => !open && setViewingPurchase(null)}
-			>
+			<Dialog open={!!viewingPurchase} onOpenChange={(open) => !open && setViewingPurchase(null)}>
 				<DialogContent className="max-w-2xl">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
@@ -479,11 +413,7 @@ export function PurchasesClient({
 								<div>
 									<p className="text-sm text-gray-600">Data</p>
 									<p className="font-medium">
-										{formatLocalDate(
-											purchaseDetails.purchaseDate,
-											"dd/MM/yyyy",
-											{ locale: ptBR },
-										)}
+										{formatLocalDate(purchaseDetails.purchaseDate, "dd/MM/yyyy", { locale: ptBR })}
 									</p>
 								</div>
 							</div>
@@ -492,28 +422,17 @@ export function PurchasesClient({
 								<h4 className="font-medium mb-3">Itens da Compra</h4>
 								<div className="space-y-2 max-h-60 overflow-y-auto">
 									{purchaseDetails.items?.map((item: any, index: number) => (
-										<div
-											key={index}
-											className="flex justify-between items-center p-2 bg-gray-50 rounded"
-										>
+										<div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
 											<div>
 												<p className="font-medium">
 													{item.product?.name || item.productName}
-													{!item.product && (
-														<span className="text-red-500 text-xs ml-1">
-															(produto removido)
-														</span>
-													)}
+													{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
 												</p>
 												<p className="text-sm text-gray-600">
-													{item.quantity}{" "}
-													{item.product?.unit || item.productUnit} × R${" "}
-													{item.unitPrice.toFixed(2)}
+													{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
 												</p>
 											</div>
-											<p className="font-medium">
-												R$ {item.totalPrice.toFixed(2)}
-											</p>
+											<p className="font-medium">R$ {item.totalPrice.toFixed(2)}</p>
 										</div>
 									))}
 								</div>
@@ -521,19 +440,14 @@ export function PurchasesClient({
 
 							<div className="flex justify-between items-center pt-4 border-t">
 								<span className="text-lg font-bold">Total:</span>
-								<span className="text-lg font-bold">
-									R$ {purchaseDetails.totalAmount.toFixed(2)}
-								</span>
+								<span className="text-lg font-bold">R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
 							</div>
 						</div>
 					) : null}
 				</DialogContent>
 			</Dialog>
 
-			<Dialog
-				open={deleteState.show}
-				onOpenChange={(open) => !open && closeDeleteConfirm()}
-			>
+			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
@@ -543,12 +457,10 @@ export function PurchasesClient({
 					</DialogHeader>
 					<div className="space-y-4">
 						<p>
-							Tem certeza que deseja excluir esta compra de{" "}
-							<strong>{deleteState.item?.market?.name}</strong>?
+							Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?
 						</p>
 						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita e todos os itens da compra serão
-							perdidos.
+							Esta ação não pode ser desfeita e todos os itens da compra serão perdidos.
 						</p>
 						<div className="flex gap-2 pt-4">
 							<Button
@@ -568,5 +480,5 @@ export function PurchasesClient({
 				</DialogContent>
 			</Dialog>
 		</>
-	);
+	)
 }

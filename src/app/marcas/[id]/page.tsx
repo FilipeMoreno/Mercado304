@@ -1,85 +1,71 @@
-"use client";
+"use client"
 
-import {
-	ArrowLeft,
-	BarChart3,
-	Edit,
-	Factory,
-	Package,
-	Tag,
-	Trash2,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { useDataMutation } from "@/hooks/use-data-mutation";
-import type { Brand } from "@/types";
+import { ArrowLeft, BarChart3, Edit, Factory, Package, Tag, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useDataMutation } from "@/hooks/use-data-mutation"
+import type { Brand } from "@/types"
 
 interface BrandDetails extends Brand {
 	products: {
-		id: string;
-		name: string;
-		unit: string;
-		category?: { name: string };
-	}[];
+		id: string
+		name: string
+		unit: string
+		category?: { name: string }
+	}[]
 	_count: {
-		products: number;
-	};
+		products: number
+	}
 }
 
 export default function MarcaDetalhesPage() {
-	const params = useParams();
-	const router = useRouter();
-	const brandId = params.id as string;
+	const params = useParams()
+	const router = useRouter()
+	const brandId = params.id as string
 
-	const [brand, setBrand] = useState<BrandDetails | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [brand, setBrand] = useState<BrandDetails | null>(null)
+	const [loading, setLoading] = useState(true)
 
-	const { remove, loading: deleting } = useDataMutation();
+	const { remove, loading: deleting } = useDataMutation()
 
 	useEffect(() => {
 		if (brandId) {
-			fetchBrandDetails();
+			fetchBrandDetails()
 		}
-	}, [brandId, fetchBrandDetails]);
+	}, [brandId, fetchBrandDetails])
 
 	const fetchBrandDetails = async () => {
 		try {
-			const response = await fetch(`/api/brands/${brandId}`);
+			const response = await fetch(`/api/brands/${brandId}`)
 
 			if (!response.ok) {
-				toast.error("Marca não encontrada");
-				router.push("/marcas");
-				return;
+				toast.error("Marca não encontrada")
+				router.push("/marcas")
+				return
 			}
 
-			const data = await response.json();
-			setBrand(data);
+			const data = await response.json()
+			setBrand(data)
 		} catch (error) {
-			console.error("Erro ao buscar detalhes da marca:", error);
-			toast.error("Erro ao carregar detalhes da marca");
-			router.push("/marcas");
+			console.error("Erro ao buscar detalhes da marca:", error)
+			toast.error("Erro ao carregar detalhes da marca")
+			router.push("/marcas")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const deleteBrand = async () => {
-		if (!brand) return;
+		if (!brand) return
 		await remove(`/api/brands/${brand.id}`, {
 			successMessage: "Marca excluída com sucesso!",
 			onSuccess: () => router.push("/marcas"),
-		});
-	};
+		})
+	}
 
 	if (loading) {
 		return (
@@ -129,11 +115,11 @@ export default function MarcaDetalhesPage() {
 					</CardContent>
 				</Card>
 			</div>
-		);
+		)
 	}
 
 	if (!brand) {
-		return null;
+		return null
 	}
 
 	return (
@@ -154,9 +140,7 @@ export default function MarcaDetalhesPage() {
 							<h1 className="text-3xl font-bold">{brand.name}</h1>
 							<p className="text-gray-600 mt-1">
 								{brand._count?.products || 0}{" "}
-								{(brand._count?.products || 0) === 1
-									? "produto cadastrado"
-									: "produtos cadastrados"}
+								{(brand._count?.products || 0) === 1 ? "produto cadastrado" : "produtos cadastrados"}
 							</p>
 						</div>
 					</div>
@@ -183,14 +167,10 @@ export default function MarcaDetalhesPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-3">
-						<CardTitle className="text-sm font-medium">
-							Produtos Cadastrados
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Produtos Cadastrados</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
-							{brand._count?.products || 0}
-						</div>
+						<div className="text-2xl font-bold">{brand._count?.products || 0}</div>
 					</CardContent>
 				</Card>
 			</div>
@@ -201,23 +181,16 @@ export default function MarcaDetalhesPage() {
 						<Package className="h-5 w-5" />
 						Produtos da Marca
 					</CardTitle>
-					<CardDescription>
-						Todos os produtos associados a esta marca
-					</CardDescription>
+					<CardDescription>Todos os produtos associados a esta marca</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{brand.products.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
 							<Package className="h-12 w-12 mx-auto mb-4" />
-							<p className="text-lg font-medium mb-2">
-								Nenhum produto desta marca
-							</p>
+							<p className="text-lg font-medium mb-2">Nenhum produto desta marca</p>
 							<p className="text-gray-600">
 								Comece adicionando produtos a esta marca na{" "}
-								<Link
-									href="/produtos"
-									className="text-blue-600 hover:underline"
-								>
+								<Link href="/produtos" className="text-blue-600 hover:underline">
 									página de produtos
 								</Link>
 							</p>
@@ -225,10 +198,7 @@ export default function MarcaDetalhesPage() {
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{brand.products.map((product) => (
-								<Card
-									key={product.id}
-									className="hover:shadow-md transition-shadow"
-								>
+								<Card key={product.id} className="hover:shadow-md transition-shadow">
 									<CardHeader className="pb-3">
 										<CardTitle className="text-lg flex items-center gap-2">
 											<Package className="h-5 w-5" />
@@ -241,9 +211,7 @@ export default function MarcaDetalhesPage() {
 													<span>{product.category.name}</span>
 												</div>
 											)}
-											<div className="text-sm text-gray-600">
-												Unidade: {product.unit}
-											</div>
+											<div className="text-sm text-gray-600">Unidade: {product.unit}</div>
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="pt-0">
@@ -263,5 +231,5 @@ export default function MarcaDetalhesPage() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

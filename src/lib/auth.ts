@@ -1,33 +1,33 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { haveIBeenPwned, lastLoginMethod, oneTap, organization, twoFactor, admin } from "better-auth/plugins";
-import { PrismaClient } from "@prisma/client";
-import { localization } from "better-auth-localization";
-import { emailHarmony } from 'better-auth-harmony';
-import { passkey } from "better-auth/plugins/passkey";
+import { PrismaClient } from "@prisma/client"
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { haveIBeenPwned, lastLoginMethod, oneTap, twoFactor } from "better-auth/plugins"
+import { passkey } from "better-auth/plugins/passkey"
+import { emailHarmony } from "better-auth-harmony"
+import { localization } from "better-auth-localization"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 export const auth = betterAuth({
 	rateLimit: {
 		window: 10,
 		max: 100,
-		enabled: true
+		enabled: true,
 	},
 	database: prismaAdapter(prisma, {
 		provider: "postgresql",
 	}),
 	emailVerification: {
-		sendOnSignUp: true
+		sendOnSignUp: true,
 	},
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
 		sendResetPassword: async ({ user, url }) => {
-			console.log(`Reset password URL for ${user.email}: ${url}`);
+			console.log(`Reset password URL for ${user.email}: ${url}`)
 		},
 		sendVerificationEmail: async ({ user, url }) => {
-			console.log(`Verification URL for ${user.email}: ${url}`);
+			console.log(`Verification URL for ${user.email}: ${url}`)
 		},
 	},
 	socialProviders: {
@@ -45,40 +45,38 @@ export const auth = betterAuth({
 		oneTap({
 			google: {
 				clientId: process.env.AUTH_GOOGLE_ID as string,
-			}
+			},
 		}),
 		haveIBeenPwned({
-			customPasswordCompromisedMessage: "Essa senha foi comprometida em vazamentos! Por sua segurança, recomendo trocar por uma senha mais forte e única."
-		}
-		),
+			customPasswordCompromisedMessage:
+				"Essa senha foi comprometida em vazamentos! Por sua segurança, recomendo trocar por uma senha mais forte e única.",
+		}),
 		emailHarmony({
-			allowNormalizedSignin: true, 
+			allowNormalizedSignin: true,
 		}),
 		twoFactor({
-		totpOptions: {
-			applicationName: "Mercado304",
-		},
-		backupCodesOptions: {
-			numBackupCodes: 10,
-		},
-		sendOTP: async ({ user, otp, type }) => {
-			console.log(`2FA OTP for ${user.email}: ${otp} (type: ${type})`);
-			// TODO: Implement email sending for OTP
-		},
-	}),
-	passkey({
-		rpName: "Mercado304",
-		rpID: process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL).hostname : "localhost",
-		origin: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-	}),
+			totpOptions: {
+				applicationName: "Mercado304",
+			},
+			backupCodesOptions: {
+				numBackupCodes: 10,
+			},
+			sendOTP: async ({ user, otp, type }) => {
+				console.log(`2FA OTP for ${user.email}: ${otp} (type: ${type})`)
+				// TODO: Implement email sending for OTP
+			},
+		}),
+		passkey({
+			rpName: "Mercado304",
+			rpID: process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL).hostname : "localhost",
+			origin: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+		}),
 		lastLoginMethod({
 			storeInDatabase: true,
 		}),
 		localization({
-      defaultLocale: "pt-BR",
-      fallbackLocale: "default"
-    }),
-		organization(),
-		admin(),
+			defaultLocale: "pt-BR",
+			fallbackLocale: "default",
+		}),
 	],
-});
+})

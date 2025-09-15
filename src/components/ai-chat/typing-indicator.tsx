@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { Bot } from "lucide-react";
+import { Bot } from "lucide-react"
 
 export function TypingIndicator() {
 	return (
@@ -12,10 +12,8 @@ export function TypingIndicator() {
 					<div className="w-1 h-1 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
 					<div className="w-1 h-1 bg-muted-foreground/60 rounded-full animate-bounce"></div>
 				</div>
-				<span className="text-xs text-muted-foreground ml-2">
-					Zé está pensando...
-				</span>
+				<span className="text-xs text-muted-foreground ml-2">Zé está pensando...</span>
 			</div>
 		</div>
-	);
+	)
 }

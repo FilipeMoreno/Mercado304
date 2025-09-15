@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
 	Activity,
@@ -11,8 +11,8 @@ import {
 	TrendingDown,
 	TrendingUp,
 	Zap,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+} from "lucide-react"
+import { useEffect, useState } from "react"
 import {
 	Bar,
 	BarChart,
@@ -27,111 +27,98 @@ import {
 	Tooltip,
 	XAxis,
 	YAxis,
-} from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+} from "recharts"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface NutritionAnalysis {
-	period: number;
+	period: number
 	summary: {
-		totalProducts: number;
-		averageCaloriesPerProduct: number;
-		averageProteinsPerProduct: number;
-		averageCarbsPerProduct: number;
-		averageFatPerProduct: number;
+		totalProducts: number
+		averageCaloriesPerProduct: number
+		averageProteinsPerProduct: number
+		averageCarbsPerProduct: number
+		averageFatPerProduct: number
 		qualityIndicators: {
-			highSodiumPercentage: number;
-			highSugarPercentage: number;
-			highSaturatedFatPercentage: number;
-			highTransFatPercentage: number;
-			highFiberPercentage: number;
-			highProteinPercentage: number;
-		};
-	};
+			highSodiumPercentage: number
+			highSugarPercentage: number
+			highSaturatedFatPercentage: number
+			highTransFatPercentage: number
+			highFiberPercentage: number
+			highProteinPercentage: number
+		}
+	}
 	categoryAnalysis: Array<{
-		name: string;
-		icon: string;
-		color: string;
-		totalCalories: number;
-		avgCalories: number;
-		count: number;
-		healthScore: number;
-	}>;
+		name: string
+		icon: string
+		color: string
+		totalCalories: number
+		avgCalories: number
+		count: number
+		healthScore: number
+	}>
 	topAllergens: Array<{
-		allergen: string;
-		count: number;
-	}>;
-	healthiestProducts: Array<any>;
-	leastHealthyProducts: Array<any>;
+		allergen: string
+		count: number
+	}>
+	healthiestProducts: Array<any>
+	leastHealthyProducts: Array<any>
 	totals: {
-		calories: number;
-		proteins: number;
-		carbohydrates: number;
-		totalFat: number;
-		saturatedFat: number;
-		transFat: number;
-		fiber: number;
-		sodium: number;
-	};
+		calories: number
+		proteins: number
+		carbohydrates: number
+		totalFat: number
+		saturatedFat: number
+		transFat: number
+		fiber: number
+		sodium: number
+	}
 }
 
 export default function NutricaoPage() {
-	const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [period, setPeriod] = useState("30");
-	const [selectedCategory, setSelectedCategory] = useState<string>("");
+	const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [period, setPeriod] = useState("30")
+	const [selectedCategory, setSelectedCategory] = useState<string>("")
 
 	useEffect(() => {
-		fetchAnalysis();
-	}, [period, selectedCategory]);
+		fetchAnalysis()
+	}, [period, selectedCategory])
 
 	const fetchAnalysis = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
 			const params = new URLSearchParams({
 				period,
 				...(selectedCategory ? { categoryId: selectedCategory } : {}),
-			});
+			})
 
-			const response = await fetch(`/api/nutrition/analysis?${params}`);
+			const response = await fetch(`/api/nutrition/analysis?${params}`)
 			if (response.ok) {
-				const data = await response.json();
-				setAnalysis(data);
+				const data = await response.json()
+				setAnalysis(data)
 			}
 		} catch (error) {
-			console.error("Erro ao buscar análise nutricional:", error);
+			console.error("Erro ao buscar análise nutricional:", error)
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const getHealthScoreColor = (score: number) => {
-		if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
-		if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-		return "text-red-600 bg-red-50 border-red-200";
-	};
+		if (score >= 80) return "text-green-600 bg-green-50 border-green-200"
+		if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200"
+		return "text-red-600 bg-red-50 border-red-200"
+	}
 
 	const getHealthScoreIcon = (score: number) => {
-		if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-		if (score >= 60)
-			return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-		return <AlertTriangle className="h-4 w-4 text-red-600" />;
-	};
+		if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />
+		if (score >= 60) return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+		return <AlertTriangle className="h-4 w-4 text-red-600" />
+	}
 
 	if (loading) {
 		return (
@@ -140,9 +127,7 @@ export default function NutricaoPage() {
 					<Apple className="h-8 w-8 text-green-600" />
 					<div>
 						<h1 className="text-3xl font-bold">Análise Nutricional</h1>
-						<p className="text-gray-600 dark:text-gray-400">
-							Carregando dados nutricionais...
-						</p>
+						<p className="text-gray-600 dark:text-gray-400">Carregando dados nutricionais...</p>
 					</div>
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -155,21 +140,19 @@ export default function NutricaoPage() {
 					))}
 				</div>
 			</div>
-		);
+		)
 	}
 
 	if (!analysis) {
 		return (
 			<div className="text-center py-12">
 				<Apple className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-				<h2 className="text-2xl font-semibold mb-2">
-					Nenhum dado nutricional encontrado
-				</h2>
+				<h2 className="text-2xl font-semibold mb-2">Nenhum dado nutricional encontrado</h2>
 				<p className="text-gray-600 dark:text-gray-400 mb-6">
 					Adicione produtos com informações nutricionais para ver a análise
 				</p>
 			</div>
-		);
+		)
 	}
 
 	const macronutrientData = [
@@ -180,7 +163,7 @@ export default function NutricaoPage() {
 		},
 		{ name: "Proteínas", value: analysis.totals.proteins, color: "#22c55e" },
 		{ name: "Gorduras", value: analysis.totals.totalFat, color: "#eab308" },
-	];
+	]
 
 	const qualityData = [
 		{
@@ -207,7 +190,7 @@ export default function NutricaoPage() {
 			color: "#3b82f6",
 			icon: CheckCircle2,
 		},
-	];
+	]
 
 	return (
 		<div className="space-y-6">
@@ -218,8 +201,7 @@ export default function NutricaoPage() {
 					<div>
 						<h1 className="text-3xl font-bold">Análise Nutricional</h1>
 						<p className="text-gray-600 dark:text-gray-400">
-							Análise dos últimos {analysis.period} dias •{" "}
-							{analysis.summary.totalProducts} produtos
+							Análise dos últimos {analysis.period} dias • {analysis.summary.totalProducts} produtos
 						</p>
 					</div>
 				</div>
@@ -252,12 +234,8 @@ export default function NutricaoPage() {
 								<Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold">
-									{Math.round(analysis.totals.calories).toLocaleString()}
-								</p>
-								<p className="text-sm text-gray-600 dark:text-gray-400">
-									Calorias Totais
-								</p>
+								<p className="text-2xl font-bold">{Math.round(analysis.totals.calories).toLocaleString()}</p>
+								<p className="text-sm text-gray-600 dark:text-gray-400">Calorias Totais</p>
 							</div>
 						</div>
 					</CardContent>
@@ -270,12 +248,8 @@ export default function NutricaoPage() {
 								<Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold">
-									{Math.round(analysis.totals.proteins)}g
-								</p>
-								<p className="text-sm text-gray-600 dark:text-gray-400">
-									Proteínas
-								</p>
+								<p className="text-2xl font-bold">{Math.round(analysis.totals.proteins)}g</p>
+								<p className="text-sm text-gray-600 dark:text-gray-400">Proteínas</p>
 							</div>
 						</div>
 					</CardContent>
@@ -288,12 +262,8 @@ export default function NutricaoPage() {
 								<TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold">
-									{Math.round(analysis.totals.carbohydrates)}g
-								</p>
-								<p className="text-sm text-gray-600 dark:text-gray-400">
-									Carboidratos
-								</p>
+								<p className="text-2xl font-bold">{Math.round(analysis.totals.carbohydrates)}g</p>
+								<p className="text-sm text-gray-600 dark:text-gray-400">Carboidratos</p>
 							</div>
 						</div>
 					</CardContent>
@@ -306,12 +276,8 @@ export default function NutricaoPage() {
 								<AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
 							</div>
 							<div>
-								<p className="text-2xl font-bold">
-									{Math.round(analysis.totals.sodium)}mg
-								</p>
-								<p className="text-sm text-gray-600 dark:text-gray-400">
-									Sódio
-								</p>
+								<p className="text-2xl font-bold">{Math.round(analysis.totals.sodium)}mg</p>
+								<p className="text-sm text-gray-600 dark:text-gray-400">Sódio</p>
 							</div>
 						</div>
 					</CardContent>
@@ -323,9 +289,7 @@ export default function NutricaoPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle>Distribuição de Macronutrientes</CardTitle>
-						<CardDescription>
-							Proporção dos nutrientes principais
-						</CardDescription>
+						<CardDescription>Proporção dos nutrientes principais</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<ResponsiveContainer width="100%" height={300}>
@@ -343,9 +307,7 @@ export default function NutricaoPage() {
 										<Cell key={index} fill={entry.color} />
 									))}
 								</Pie>
-								<Tooltip
-									formatter={(value: number) => `${Math.round(value)}g`}
-								/>
+								<Tooltip formatter={(value: number) => `${Math.round(value)}g`} />
 								<Legend />
 							</PieChart>
 						</ResponsiveContainer>
@@ -356,26 +318,19 @@ export default function NutricaoPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle>Indicadores de Qualidade</CardTitle>
-						<CardDescription>
-							Percentual de produtos por categoria
-						</CardDescription>
+						<CardDescription>Percentual de produtos por categoria</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{qualityData.map((item) => {
-							const IconComponent = item.icon;
+							const IconComponent = item.icon
 							return (
 								<div key={item.name} className="space-y-2">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
-											<IconComponent
-												className="h-4 w-4"
-												style={{ color: item.color }}
-											/>
+											<IconComponent className="h-4 w-4" style={{ color: item.color }} />
 											<span className="text-sm font-medium">{item.name}</span>
 										</div>
-										<span className="text-sm text-gray-600">
-											{Math.round(item.percentage)}%
-										</span>
+										<span className="text-sm text-gray-600">{Math.round(item.percentage)}%</span>
 									</div>
 									<Progress
 										value={item.percentage}
@@ -386,7 +341,7 @@ export default function NutricaoPage() {
 										}}
 									/>
 								</div>
-							);
+							)
 						})}
 					</CardContent>
 				</Card>
@@ -397,9 +352,7 @@ export default function NutricaoPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle>Análise por Categoria</CardTitle>
-						<CardDescription>
-							Score de saúde e consumo calórico por categoria
-						</CardDescription>
+						<CardDescription>Score de saúde e consumo calórico por categoria</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -415,9 +368,7 @@ export default function NutricaoPage() {
 										</div>
 										<div className="flex items-center gap-1">
 											{getHealthScoreIcon(category.healthScore)}
-											<span className="text-sm font-bold">
-												{Math.round(category.healthScore)}
-											</span>
+											<span className="text-sm font-bold">{Math.round(category.healthScore)}</span>
 										</div>
 									</div>
 
@@ -426,12 +377,10 @@ export default function NutricaoPage() {
 											<strong>{category.count}</strong> produtos
 										</p>
 										<p>
-											<strong>{Math.round(category.totalCalories)}</strong> kcal
-											totais
+											<strong>{Math.round(category.totalCalories)}</strong> kcal totais
 										</p>
 										<p>
-											<strong>{Math.round(category.avgCalories)}</strong> kcal
-											em média
+											<strong>{Math.round(category.avgCalories)}</strong> kcal em média
 										</p>
 									</div>
 								</div>
@@ -450,9 +399,7 @@ export default function NutricaoPage() {
 							<CheckCircle2 className="h-5 w-5" />
 							Produtos Mais Saudáveis
 						</CardTitle>
-						<CardDescription>
-							Top 5 produtos com melhor score nutricional
-						</CardDescription>
+						<CardDescription>Top 5 produtos com melhor score nutricional</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{analysis.healthiestProducts.map((item, index) => (
@@ -471,10 +418,7 @@ export default function NutricaoPage() {
 										</p>
 									</div>
 								</div>
-								<Badge
-									variant="secondary"
-									className="bg-green-100 text-green-800"
-								>
+								<Badge variant="secondary" className="bg-green-100 text-green-800">
 									{Math.round(item.healthScore)}
 								</Badge>
 							</div>
@@ -489,9 +433,7 @@ export default function NutricaoPage() {
 							<AlertTriangle className="h-5 w-5" />
 							Produtos Menos Saudáveis
 						</CardTitle>
-						<CardDescription>
-							Top 5 produtos que precisam de atenção
-						</CardDescription>
+						<CardDescription>Top 5 produtos que precisam de atenção</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{analysis.leastHealthyProducts.map((item, index) => (
@@ -527,18 +469,12 @@ export default function NutricaoPage() {
 							<Shield className="h-5 w-5 text-orange-500" />
 							Alérgenos Mais Comuns
 						</CardTitle>
-						<CardDescription>
-							Alérgenos presentes nos produtos consumidos
-						</CardDescription>
+						<CardDescription>Alérgenos presentes nos produtos consumidos</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="flex flex-wrap gap-2">
 							{analysis.topAllergens.map((allergen) => (
-								<Badge
-									key={allergen.allergen}
-									variant="secondary"
-									className="bg-orange-100 text-orange-800"
-								>
+								<Badge key={allergen.allergen} variant="secondary" className="bg-orange-100 text-orange-800">
 									{allergen.allergen} ({allergen.count})
 								</Badge>
 							))}
@@ -547,5 +483,5 @@ export default function NutricaoPage() {
 				</Card>
 			)}
 		</div>
-	);
+	)
 }

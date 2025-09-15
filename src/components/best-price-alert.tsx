@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { TrendingDown, X } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { TrendingDown, X } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface BestPriceAlertProps {
-	productName: string;
-	currentPrice: number;
-	previousBestPrice: number;
-	totalRecords: number;
-	onClose: () => void;
+	productName: string
+	currentPrice: number
+	previousBestPrice: number
+	totalRecords: number
+	onClose: () => void
 }
 
 export function BestPriceAlert({
@@ -20,16 +20,16 @@ export function BestPriceAlert({
 	totalRecords,
 	onClose,
 }: BestPriceAlertProps) {
-	const [isVisible, setIsVisible] = useState(true);
+	const [isVisible, setIsVisible] = useState(true)
 
 	const handleClose = () => {
-		setIsVisible(false);
-		onClose();
-	};
+		setIsVisible(false)
+		onClose()
+	}
 
-	if (!isVisible) return null;
+	if (!isVisible) return null
 
-	const savings = previousBestPrice - currentPrice;
+	const savings = previousBestPrice - currentPrice
 
 	return (
 		<Card className="border-green-200 bg-green-50">
@@ -40,17 +40,14 @@ export function BestPriceAlert({
 							<TrendingDown className="h-4 w-4 text-white" />
 						</div>
 						<div className="flex-1">
-							<h4 className="font-semibold text-green-800">
-								🎉 Menor Preço Histórico!
-							</h4>
+							<h4 className="font-semibold text-green-800">🎉 Menor Preço Histórico!</h4>
 							<p className="text-sm text-green-700 mt-1">
-								<strong>{productName}</strong> por{" "}
-								<strong>R$ {currentPrice.toFixed(2)}</strong> é o menor preço
-								entre {totalRecords} registros.
+								<strong>{productName}</strong> por <strong>R$ {currentPrice.toFixed(2)}</strong> é o menor preço entre{" "}
+								{totalRecords} registros.
 							</p>
 							<p className="text-xs text-green-600 mt-1">
-								Economia de R$ {savings.toFixed(2)} em relação ao menor preço
-								anterior (R$ {previousBestPrice.toFixed(2)})
+								Economia de R$ {savings.toFixed(2)} em relação ao menor preço anterior (R${" "}
+								{previousBestPrice.toFixed(2)})
 							</p>
 						</div>
 					</div>
@@ -65,5 +62,5 @@ export function BestPriceAlert({
 				</div>
 			</CardContent>
 		</Card>
-	);
+	)
 }

@@ -1,52 +1,52 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth-server";
-import { prisma } from "@/lib/prisma";
+import { type NextRequest, NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-server"
+import { prisma } from "@/lib/prisma"
 
 // GET /api/waste - Listar registros de desperdício
 export async function GET(request: NextRequest) {
 	try {
-		const session = await getSession();
+		const session = await getSession()
 
 		if (!session?.user) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const { searchParams } = new URL(request.url);
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "10");
-		const search = searchParams.get("search") || "";
-		const reason = searchParams.get("reason") || "";
-		const startDate = searchParams.get("startDate");
-		const endDate = searchParams.get("endDate");
+		const { searchParams } = new URL(request.url)
+		const page = parseInt(searchParams.get("page") || "1")
+		const limit = parseInt(searchParams.get("limit") || "10")
+		const search = searchParams.get("search") || ""
+		const reason = searchParams.get("reason") || ""
+		const startDate = searchParams.get("startDate")
+		const endDate = searchParams.get("endDate")
 
-		const skip = (page - 1) * limit;
+		const skip = (page - 1) * limit
 
 		// Filtros
-		const where: any = {};
+		const where: any = {}
 
 		if (search) {
 			where.productName = {
 				contains: search,
 				mode: "insensitive",
-			};
+			}
 		}
 
 		if (reason && reason !== "all") {
-			where.wasteReason = reason;
+			where.wasteReason = reason
 		}
 
 		if (startDate) {
 			where.wasteDate = {
 				...where.wasteDate,
 				gte: new Date(startDate),
-			};
+			}
 		}
 
 		if (endDate) {
 			where.wasteDate = {
 				...where.wasteDate,
 				lte: new Date(endDate),
-			};
+			}
 		}
 
 		const [wasteRecords, totalCount] = await Promise.all([
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 				take: limit,
 			}),
 			prisma.wasteRecord.count({ where }),
-		]);
+		])
 
 		// Calcular estatísticas
 		const stats = await prisma.wasteRecord.aggregate({
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 			_count: {
 				id: true,
 			},
-		});
+		})
 
 		// Motivos mais comuns
 		const reasonStats = await prisma.wasteRecord.groupBy({
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 				},
 			},
 			take: 5,
-		});
+		})
 
 		return NextResponse.json({
 			wasteRecords,
@@ -99,26 +99,23 @@ export async function GET(request: NextRequest) {
 				totalCount: stats._count.id || 0,
 				reasonStats,
 			},
-		});
+		})
 	} catch (error) {
-		console.error("Error fetching waste records:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 },
-		);
+		console.error("Error fetching waste records:", error)
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 })
 	}
 }
 
 // POST /api/waste - Criar novo registro de desperdício
 export async function POST(request: NextRequest) {
 	try {
-		const session = await getSession();
+		const session = await getSession()
 
 		if (!session?.user) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 		}
 
-		const body = await request.json();
+		const body = await request.json()
 		const {
 			productId,
 			productName,
@@ -135,14 +132,11 @@ export async function POST(request: NextRequest) {
 			brand,
 			batchNumber,
 			stockItemId,
-		} = body;
+		} = body
 
 		// Validações
 		if (!productName || !quantity || !unit || !wasteReason) {
-			return NextResponse.json(
-				{ error: "Missing required fields" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
 		}
 
 		// Criar registro de desperdício
@@ -165,7 +159,7 @@ export async function POST(request: NextRequest) {
 				stockItemId,
 				userId: session.user.id,
 			},
-		});
+		})
 
 		// Se há stockItemId, atualizar o estoque
 		if (stockItemId) {
@@ -176,7 +170,7 @@ export async function POST(request: NextRequest) {
 						decrement: parseFloat(quantity),
 					},
 				},
-			});
+			})
 
 			// Criar movimentação no estoque
 			await prisma.stockMovement.create({
@@ -187,7 +181,7 @@ export async function POST(request: NextRequest) {
 					reason: `Desperdício: ${wasteReason}`,
 					notes,
 				},
-			});
+			})
 		}
 
 		// Registrar no histórico geral
@@ -204,14 +198,11 @@ export async function POST(request: NextRequest) {
 				notes,
 				userId: session.user.id,
 			},
-		});
+		})
 
-		return NextResponse.json(wasteRecord, { status: 201 });
+		return NextResponse.json(wasteRecord, { status: 201 })
 	} catch (error) {
-		console.error("Error creating waste record:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 },
-		);
+		console.error("Error creating waste record:", error)
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 })
 	}
 }

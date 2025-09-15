@@ -7,17 +7,17 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route";
 import {
-	ShoppingListHeader,
-	ProgressBar,
-	ShoppingListItemComponent,
-	ShoppingSummary,
-	ShoppingMode,
-	EditListDialog,
-	DeleteListDialog,
 	AddItemDialog,
-	EditItemDialog,
 	DeleteItemDialog,
+	DeleteListDialog,
+	EditItemDialog,
+	EditListDialog,
+	ProgressBar,
 	QuickProductDialog,
+	ShoppingListHeader,
+	ShoppingListItemComponent,
+	ShoppingMode,
+	ShoppingSummary,
 } from "@/components/shopping-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -872,9 +872,7 @@ export default function ListaDetalhesPage() {
 							</div>
 						</div>
 					))}
-				</div>
-
-				{checkedItems.length > 0 && (
+				</div>checkedItems.length > 0 && (
 					<div className="px-4 md:px-6 space-y-4">
 						<div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
 							<Check className="h-5 w-5 text-green-600" />
@@ -937,7 +935,7 @@ export default function ListaDetalhesPage() {
 							</div>
 						))}
 					</div>
-				)}
+				)
 			</div>
 		
 		);

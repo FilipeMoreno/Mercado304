@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton";
+import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 
 export default function Loading() {
-	return <PurchasesSkeleton />;
+	return <PurchasesSkeleton />
 }

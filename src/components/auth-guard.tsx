@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { useSession } from "@/lib/auth-client"
 
 interface AuthGuardProps {
-	children: React.ReactNode;
+	children: React.ReactNode
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-	const { data: session, isPending } = useSession();
-	const router = useRouter();
+	const { data: session, isPending } = useSession()
+	const router = useRouter()
 
 	useEffect(() => {
-		if (isPending) return; // Still loading
+		if (isPending) return // Still loading
 
 		if (!session) {
-			router.push("/auth/signin");
+			router.push("/auth/signin")
 		}
-	}, [session, isPending, router]);
+	}, [session, isPending, router])
 
 	if (isPending) {
 		return (
@@ -29,7 +29,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 					<p className="text-muted-foreground">Carregando...</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	if (!session) {
@@ -40,8 +40,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
 					<p className="text-muted-foreground">Redirecionando para login...</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
-	return <>{children}</>;
+	return <>{children}</>
 }

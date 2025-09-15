@@ -1,33 +1,22 @@
-"use client";
+"use client"
 
-import { Check, ChevronsUpDown, Search } from "lucide-react";
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown, Search } from "lucide-react"
+import * as React from "react"
+import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface SelectWithSearchProps {
-	options: { value: string; label: string; icon?: string }[];
-	value: string;
-	onValueChange: (value: string) => void;
-	placeholder?: string;
-	label?: string;
-	emptyMessage?: string;
-	searchPlaceholder?: string;
-	disabled?: boolean;
+	options: { value: string; label: string; icon?: string }[]
+	value: string
+	onValueChange: (value: string) => void
+	placeholder?: string
+	label?: string
+	emptyMessage?: string
+	searchPlaceholder?: string
+	disabled?: boolean
 }
 
 export function SelectWithSearch({
@@ -40,9 +29,9 @@ export function SelectWithSearch({
 	searchPlaceholder = "Buscar...",
 	disabled = false,
 }: SelectWithSearchProps) {
-	const [open, setOpen] = React.useState(false);
+	const [open, setOpen] = React.useState(false)
 
-	const selectedOption = options.find((option) => option.value === value);
+	const selectedOption = options.find((option) => option.value === value)
 
 	return (
 		<div className="space-y-2">
@@ -78,23 +67,12 @@ export function SelectWithSearch({
 										key={option.value}
 										value={option.label} // Use label for search matching
 										onSelect={(currentValue) => {
-											const selected = options.find(
-												(opt) =>
-													opt.label.toLowerCase() ===
-													currentValue.toLowerCase(),
-											);
-											onValueChange(
-												selected?.value === value ? "" : selected?.value || "",
-											);
-											setOpen(false);
+											const selected = options.find((opt) => opt.label.toLowerCase() === currentValue.toLowerCase())
+											onValueChange(selected?.value === value ? "" : selected?.value || "")
+											setOpen(false)
 										}}
 									>
-										<Check
-											className={cn(
-												"mr-2 h-4 w-4",
-												value === option.value ? "opacity-100" : "opacity-0",
-											)}
-										/>
+										<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
 										<span className="flex items-center gap-2">
 											{option.icon && <span>{option.icon}</span>}
 											{option.label}
@@ -107,5 +85,5 @@ export function SelectWithSearch({
 				</PopoverContent>
 			</Popover>
 		</div>
-	);
+	)
 }

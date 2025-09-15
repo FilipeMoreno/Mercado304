@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"
 
 export const stockFunctions = {
 	// Stock Management
@@ -16,7 +16,7 @@ export const stockFunctions = {
 			prisma.stockItem.count({
 				where: { expirationDate: { lt: new Date() } },
 			}),
-		]);
+		])
 
 		return {
 			success: true,
@@ -25,24 +25,19 @@ export const stockFunctions = {
 				expiringSoonCount: expiringSoonItems,
 				expiredCount: expiredItems,
 			},
-		};
+		}
 	},
 
-	addToStock: async ({
-		productName,
-		quantity,
-		expirationDate,
-		location,
-	}: any) => {
+	addToStock: async ({ productName, quantity, expirationDate, location }: any) => {
 		try {
 			let product = await prisma.product.findFirst({
 				where: { name: { contains: productName, mode: "insensitive" } },
-			});
+			})
 
 			if (!product) {
 				product = await prisma.product.create({
 					data: { name: productName },
-				});
+				})
 			}
 
 			const stockItem = await prisma.stockItem.create({
@@ -53,18 +48,18 @@ export const stockFunctions = {
 					location,
 				},
 				include: { product: true },
-			});
+			})
 
 			return {
 				success: true,
 				message: `Adicionados ${quantity} unidades de "${product.name}" ao estoque.`,
 				stockItem,
-			};
+			}
 		} catch (error) {
 			return {
 				success: false,
 				message: `Erro ao adicionar ao estoque: ${error}`,
-			};
+			}
 		}
 	},
 
@@ -72,57 +67,57 @@ export const stockFunctions = {
 		try {
 			const product = await prisma.product.findFirst({
 				where: { name: { contains: productName, mode: "insensitive" } },
-			});
+			})
 			if (!product)
 				return {
 					success: false,
 					message: `Produto "${productName}" não encontrado.`,
-				};
+				}
 
 			const stockItems = await prisma.stockItem.findMany({
 				where: { productId: product.id, quantity: { gt: 0 } },
 				orderBy: { expirationDate: "asc" },
-			});
+			})
 
-			let remainingToRemove = quantity;
-			const updates = [];
+			let remainingToRemove = quantity
+			const updates = []
 
 			for (const item of stockItems) {
-				if (remainingToRemove <= 0) break;
+				if (remainingToRemove <= 0) break
 
-				const removeFromItem = Math.min(item.quantity, remainingToRemove);
+				const removeFromItem = Math.min(item.quantity, remainingToRemove)
 				updates.push(
 					prisma.stockItem.update({
 						where: { id: item.id },
 						data: { quantity: item.quantity - removeFromItem },
 					}),
-				);
-				remainingToRemove -= removeFromItem;
+				)
+				remainingToRemove -= removeFromItem
 			}
 
-			await Promise.all(updates);
+			await Promise.all(updates)
 
 			return {
 				success: true,
 				message: `Removidos ${quantity - remainingToRemove} unidades de "${product.name}" do estoque.`,
-			};
+			}
 		} catch (error) {
 			return {
 				success: false,
 				message: `Erro ao remover do estoque: ${error}`,
-			};
+			}
 		}
 	},
 
 	getStockItems: async ({ lowStock, expiringSoon }: any) => {
-		const where: any = {};
+		const where: any = {}
 
-		if (lowStock) where.isLowStock = true;
+		if (lowStock) where.isLowStock = true
 		if (expiringSoon) {
 			where.expirationDate = {
 				lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 				gte: new Date(),
-			};
+			}
 		}
 
 		const items = await prisma.stockItem.findMany({
@@ -130,81 +125,75 @@ export const stockFunctions = {
 			include: { product: true },
 			orderBy: { expirationDate: "asc" },
 			take: 50,
-		});
+		})
 
-		return { success: true, items };
+		return { success: true, items }
 	},
 
 	getWasteStats: async () => {
-		const response = await fetch(
-			`${process.env.NEXTAUTH_URL}/api/stock/waste-stats`,
-		);
-		const data = await response.json();
-		return { success: true, wasteStats: data };
+		const response = await fetch(`${process.env.NEXTAUTH_URL}/api/stock/waste-stats`)
+		const data = await response.json()
+		return { success: true, wasteStats: data }
 	},
 
 	getStockHistory: async ({ search, type, location, startDate, endDate, limit }: any) => {
 		try {
-			const params = new URLSearchParams();
-			if (search) params.append("search", search);
-			if (type) params.append("type", type);
-			if (location) params.append("location", location);
-			if (startDate) params.append("startDate", startDate);
-			if (endDate) params.append("endDate", endDate);
-			if (limit) params.append("limit", limit.toString());
+			const params = new URLSearchParams()
+			if (search) params.append("search", search)
+			if (type) params.append("type", type)
+			if (location) params.append("location", location)
+			if (startDate) params.append("startDate", startDate)
+			if (endDate) params.append("endDate", endDate)
+			if (limit) params.append("limit", limit.toString())
 
-			const response = await fetch(
-				`${process.env.NEXTAUTH_URL}/api/stock/history?${params.toString()}`,
-				{ method: "GET" }
-			);
+			const response = await fetch(`${process.env.NEXTAUTH_URL}/api/stock/history?${params.toString()}`, {
+				method: "GET",
+			})
 
 			if (!response.ok) {
-				return { success: false, error: "Erro ao buscar histórico do estoque" };
+				return { success: false, error: "Erro ao buscar histórico do estoque" }
 			}
 
-			const data = await response.json();
-			return { success: true, historyData: data };
+			const data = await response.json()
+			return { success: true, historyData: data }
 		} catch (error) {
-			return { success: false, error: "Erro interno ao buscar histórico" };
+			return { success: false, error: "Erro interno ao buscar histórico" }
 		}
 	},
 
 	getWasteRecords: async ({ search, reason, startDate, endDate, limit }: any) => {
 		try {
-			const params = new URLSearchParams();
-			if (search) params.append("search", search);
-			if (reason) params.append("reason", reason);
-			if (startDate) params.append("startDate", startDate);
-			if (endDate) params.append("endDate", endDate);
-			if (limit) params.append("limit", limit.toString());
+			const params = new URLSearchParams()
+			if (search) params.append("search", search)
+			if (reason) params.append("reason", reason)
+			if (startDate) params.append("startDate", startDate)
+			if (endDate) params.append("endDate", endDate)
+			if (limit) params.append("limit", limit.toString())
 
-			const response = await fetch(
-				`${process.env.NEXTAUTH_URL}/api/waste?${params.toString()}`,
-				{ method: "GET" }
-			);
+			const response = await fetch(`${process.env.NEXTAUTH_URL}/api/waste?${params.toString()}`, { method: "GET" })
 
 			if (!response.ok) {
-				return { success: false, error: "Erro ao buscar registros de desperdício" };
+				return { success: false, error: "Erro ao buscar registros de desperdício" }
 			}
 
-			const data = await response.json();
-			return { success: true, wasteData: data };
+			const data = await response.json()
+			return { success: true, wasteData: data }
 		} catch (error) {
-			return { success: false, error: "Erro interno ao buscar desperdícios" };
+			return { success: false, error: "Erro interno ao buscar desperdícios" }
 		}
 	},
 
-	createWasteRecord: async ({ 
-		productName, 
-		quantity, 
-		unit, 
-		wasteReason, 
-		location, 
-		unitCost, 
-		totalValue, 
-		notes, 
-		category, 
-		brand 
+	createWasteRecord: async ({
+		productName,
+		quantity,
+		unit,
+		wasteReason,
+		location,
+		unitCost,
+		totalValue,
+		notes,
+		category,
+		brand,
 	}: any) => {
 		try {
 			const wasteData = {
@@ -218,26 +207,23 @@ export const stockFunctions = {
 				notes,
 				category,
 				brand,
-				wasteDate: new Date().toISOString()
-			};
-
-			const response = await fetch(
-				`${process.env.NEXTAUTH_URL}/api/waste`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(wasteData),
-				}
-			);
-
-			if (!response.ok) {
-				return { success: false, error: "Erro ao registrar desperdício" };
+				wasteDate: new Date().toISOString(),
 			}
 
-			const result = await response.json();
-			return { success: true, wasteRecord: result };
+			const response = await fetch(`${process.env.NEXTAUTH_URL}/api/waste`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(wasteData),
+			})
+
+			if (!response.ok) {
+				return { success: false, error: "Erro ao registrar desperdício" }
+			}
+
+			const result = await response.json()
+			return { success: true, wasteRecord: result }
 		} catch (error) {
-			return { success: false, error: "Erro interno ao registrar desperdício" };
+			return { success: false, error: "Erro interno ao registrar desperdício" }
 		}
 	},
-};
+}

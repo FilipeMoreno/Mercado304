@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function ShoppingListSkeleton() {
 	return (
@@ -85,5 +85,5 @@ export function ShoppingListSkeleton() {
 				</Card>
 			</div>
 		</div>
-	);
+	)
 }

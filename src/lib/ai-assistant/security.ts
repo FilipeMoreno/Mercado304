@@ -1,9 +1,9 @@
 // Sistema de segurança - filtra perguntas técnicas perigosas
 export function isBlockedQuery(message: string): {
-	blocked: boolean;
-	reason?: string;
+	blocked: boolean
+	reason?: string
 } {
-	const lowerMessage = message.toLowerCase();
+	const lowerMessage = message.toLowerCase()
 
 	// Padrões perigosos relacionados ao sistema/API
 	const dangerousPatterns = [
@@ -48,7 +48,7 @@ export function isBlockedQuery(message: string): {
 		// Meta-perguntas sobre IA
 		/\b(como\s*você|how\s*do\s*you)\b.*\b(funciona|work|processa|process|decide)\b/i,
 		/\b(qual\s*é|what\s*is)\b.*\b(sua\s*arquitetura|your\s*architecture|seu\s*modelo|your\s*model)\b/i,
-	];
+	]
 
 	// Lista de palavras-chave suspeitas (precisa de contexto)
 	const suspiciousKeywords = [
@@ -73,7 +73,7 @@ export function isBlockedQuery(message: string): {
 		"admin",
 		"debug",
 		"log",
-	];
+	]
 
 	// Verifica padrões perigosos
 	for (const pattern of dangerousPatterns) {
@@ -81,20 +81,18 @@ export function isBlockedQuery(message: string): {
 			return {
 				blocked: true,
 				reason: "Pergunta sobre informações técnicas do sistema não permitida por segurança.",
-			};
+			}
 		}
 	}
 
 	// Verifica concentração de palavras suspeitas
-	const suspiciousCount = suspiciousKeywords.filter((keyword) =>
-		lowerMessage.includes(keyword),
-	).length;
+	const suspiciousCount = suspiciousKeywords.filter((keyword) => lowerMessage.includes(keyword)).length
 
 	if (suspiciousCount >= 2) {
 		return {
 			blocked: true,
 			reason: "Pergunta com múltiplos termos técnicos não permitida por segurança.",
-		};
+		}
 	}
 
 	// Verifica tentativas diretas de extração de prompt
@@ -103,16 +101,16 @@ export function isBlockedQuery(message: string): {
 		/mostre|show.*prompt|system.*message/i,
 		/quais.*são.*suas.*regras|what.*are.*your.*rules/i,
 		/como.*você.*foi.*programado|how.*were.*you.*programmed/i,
-	];
+	]
 
 	for (const pattern of promptExtractionPatterns) {
 		if (pattern.test(lowerMessage)) {
 			return {
 				blocked: true,
 				reason: "Tentativa de extrair instruções do sistema não permitida.",
-			};
+			}
 		}
 	}
 
-	return { blocked: false };
+	return { blocked: false }
 }

@@ -1,8 +1,8 @@
 // src/app/api/recipes/route.ts
 
-import { NextResponse } from "next/server";
-import { handleApiError } from "@/lib/api-utils";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { handleApiError } from "@/lib/api-utils"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
 	try {
@@ -10,31 +10,20 @@ export async function GET(request: Request) {
 			orderBy: {
 				createdAt: "desc",
 			},
-		});
-		return NextResponse.json(recipes);
+		})
+		return NextResponse.json(recipes)
 	} catch (error) {
-		return handleApiError(error);
+		return handleApiError(error)
 	}
 }
 
 export async function POST(request: Request) {
 	try {
-		const body = await request.json();
-		const {
-			name,
-			description,
-			prepTime,
-			mealType,
-			ingredients,
-			instructions,
-			chefTip,
-		} = body;
+		const body = await request.json()
+		const { name, description, prepTime, mealType, ingredients, instructions, chefTip } = body
 
 		if (!name || !ingredients || !instructions) {
-			return NextResponse.json(
-				{ error: "Dados da receita incompletos." },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Dados da receita incompletos." }, { status: 400 })
 		}
 
 		const newRecipe = await prisma.recipe.create({
@@ -47,10 +36,10 @@ export async function POST(request: Request) {
 				instructions,
 				chefTip,
 			},
-		});
+		})
 
-		return NextResponse.json(newRecipe, { status: 201 });
+		return NextResponse.json(newRecipe, { status: 201 })
 	} catch (error) {
-		return handleApiError(error);
+		return handleApiError(error)
 	}
 }

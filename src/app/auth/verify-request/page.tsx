@@ -1,89 +1,82 @@
-"use client";
+"use client"
 
-import { CheckCircle, Mail, Loader2, RefreshCw, ShoppingCart, Clock } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth-client";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, Clock, Loader2, Mail, RefreshCw, ShoppingCart } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { signOut, useSession } from "@/lib/auth-client"
 
 export default function VerifyRequestPage() {
-	const { data: session, isLoading: sessionLoading } = useSession();
-	const [isResending, setIsResending] = useState(false);
-	const [cooldown, setCooldown] = useState(0);
-	const router = useRouter();
+	const { data: session, isLoading: sessionLoading } = useSession()
+	const [isResending, setIsResending] = useState(false)
+	const [cooldown, setCooldown] = useState(0)
+	const router = useRouter()
 
 	useEffect(() => {
 		if (!sessionLoading) {
 			// Se não está logado, redireciona para login
 			if (!session?.user) {
-				router.push('/auth/signin');
-				return;
+				router.push("/auth/signin")
+				return
 			}
 			// Se email já está verificado, redireciona para dashboard
 			if (session.user.emailVerified) {
-				router.push('/');
-				return;
+				router.push("/")
+				return
 			}
 		}
-	}, [session, sessionLoading, router]);
+	}, [session, sessionLoading, router])
 
 	// Cooldown timer
 	useEffect(() => {
-		let timer: NodeJS.Timeout;
+		let timer: NodeJS.Timeout
 		if (cooldown > 0) {
-			timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+			timer = setTimeout(() => setCooldown(cooldown - 1), 1000)
 		}
-		return () => clearTimeout(timer);
-	}, [cooldown]);
+		return () => clearTimeout(timer)
+	}, [cooldown])
 
 	const handleResendEmail = async () => {
-		if (cooldown > 0) return;
-		
-		setIsResending(true);
+		if (cooldown > 0) return
+
+		setIsResending(true)
 		try {
-			const response = await fetch('/api/auth/resend-verification', {
-				method: 'POST',
+			const response = await fetch("/api/auth/resend-verification", {
+				method: "POST",
 				headers: {
-					'Content-Type': 'application/json',
+					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
 					email: session?.user?.email,
 				}),
-			});
+			})
 
 			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || 'Erro ao reenviar email');
+				const data = await response.json()
+				throw new Error(data.error || "Erro ao reenviar email")
 			}
 
-			toast.success('Email de verificação reenviado!');
-			setCooldown(60); // 1 minuto de cooldown
+			toast.success("Email de verificação reenviado!")
+			setCooldown(60) // 1 minuto de cooldown
 		} catch (error: any) {
-			toast.error(error.message || 'Erro ao reenviar email de verificação');
+			toast.error(error.message || "Erro ao reenviar email de verificação")
 		} finally {
-			setIsResending(false);
+			setIsResending(false)
 		}
-	};
+	}
 
 	const handleSignOut = async () => {
 		try {
-			await signOut();
-			router.push('/auth/signin');
-		} catch (error) {
-			toast.error('Erro ao sair da conta');
+			await signOut()
+			router.push("/auth/signin")
+		} catch (_error) {
+			toast.error("Erro ao sair da conta")
 		}
-	};
+	}
 
 	// Loading enquanto verifica sessão
 	if (sessionLoading) {
@@ -94,38 +87,34 @@ export default function VerifyRequestPage() {
 					<p className="text-muted-foreground">Verificando autenticação...</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	// Se não há sessão ou email já verificado, não mostra a página
 	if (!session?.user || session.user.emailVerified) {
-		return null;
+		return null
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-			<div className="w-full max-w-[400px]">
+		<div className="flex items-center justify-center p-8 0">
+			<div className="w-full">
 				<div className="flex flex-col space-y-2 text-center mb-6">
 					<div className="flex items-center justify-center mb-4">
 						<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
-						<h1 className="text-2xl font-semibold text-blue-600">
-							Mercado304
-						</h1>
+						<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 					</div>
 				</div>
 
-				<Card>
+				<Card className="w-full">
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
 							<Mail className="h-6 w-6 text-blue-600" />
 						</div>
 						<CardTitle>Verifique seu email</CardTitle>
-						<CardDescription>
-							Enviamos um link de verificação para sua caixa de entrada
-						</CardDescription>
+						<CardDescription>Enviamos um link de verificação para sua caixa de entrada</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
-						<Alert>
+						<Alert className="flex items-center justify-center">
 							<CheckCircle className="h-4 w-4" />
 							<AlertDescription>
 								<strong>Email enviado para:</strong> {session.user.email}
@@ -179,13 +168,10 @@ export default function VerifyRequestPage() {
 						>
 							Sair e usar outra conta
 						</Button>
-						
+
 						<p className="text-center text-xs text-muted-foreground">
 							Problemas? Entre em contato com o{" "}
-							<Link
-								href="/support"
-								className="underline underline-offset-4 hover:text-primary"
-							>
+							<Link href="/support" className="underline underline-offset-4 hover:text-primary">
 								suporte
 							</Link>
 						</p>
@@ -193,5 +179,5 @@ export default function VerifyRequestPage() {
 				</Card>
 			</div>
 		</div>
-	);
+	)
 }

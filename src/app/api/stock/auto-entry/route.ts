@@ -1,48 +1,36 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 // POST - Entrada automática no estoque baseada em compra
 export async function POST(request: Request) {
 	try {
-		const { purchaseId, items } = await request.json();
+		const { purchaseId, items } = await request.json()
 
 		if (!purchaseId || !items || !Array.isArray(items)) {
-			return NextResponse.json(
-				{ error: "ID da compra e itens são obrigatórios" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "ID da compra e itens são obrigatórios" }, { status: 400 })
 		}
 
-		const createdStockItems = [];
+		const createdStockItems = []
 
 		for (const item of items) {
-			const {
-				productId,
-				quantity,
-				unitPrice,
-				expirationDate,
-				location = "Despensa",
-				batchNumber,
-			} = item;
+			const { productId, quantity, unitPrice, expirationDate, location = "Despensa", batchNumber } = item
 
-			if (!productId || !quantity) continue;
+			if (!productId || !quantity) continue
 
 			// Buscar produto para verificar configurações
 			const product = await prisma.product.findUnique({
 				where: { id: productId },
-			});
+			})
 
-			if (!product) continue;
+			if (!product) continue
 
 			// Calcular data de validade se produto tem prazo padrão
-			let calculatedExpirationDate = null;
+			let calculatedExpirationDate = null
 			if (expirationDate) {
-				calculatedExpirationDate = new Date(expirationDate);
+				calculatedExpirationDate = new Date(expirationDate)
 			} else if (product.hasExpiration && product.defaultShelfLifeDays) {
-				calculatedExpirationDate = new Date();
-				calculatedExpirationDate.setDate(
-					calculatedExpirationDate.getDate() + product.defaultShelfLifeDays,
-				);
+				calculatedExpirationDate = new Date()
+				calculatedExpirationDate.setDate(calculatedExpirationDate.getDate() + product.defaultShelfLifeDays)
 			}
 
 			// Verificar se já existe item similar no estoque (mesmo produto, lote, localização)
@@ -54,7 +42,7 @@ export async function POST(request: Request) {
 					expirationDate: calculatedExpirationDate,
 					isExpired: false,
 				},
-			});
+			})
 
 			if (existingStockItem) {
 				// Atualizar item existente
@@ -64,9 +52,7 @@ export async function POST(request: Request) {
 						quantity: existingStockItem.quantity + quantity,
 						unitCost: (existingStockItem.unitCost || 0 + unitPrice) / 2, // Média dos preços
 						isLowStock:
-							product.hasStock && product.minStock
-								? existingStockItem.quantity + quantity <= product.minStock
-								: false,
+							product.hasStock && product.minStock ? existingStockItem.quantity + quantity <= product.minStock : false,
 					},
 					include: {
 						product: {
@@ -76,7 +62,7 @@ export async function POST(request: Request) {
 							},
 						},
 					},
-				});
+				})
 
 				// Registrar movimento
 				await prisma.stockMovement.create({
@@ -88,9 +74,9 @@ export async function POST(request: Request) {
 						notes: `Compra ID: ${purchaseId}`,
 						purchaseItemId: item.purchaseItemId,
 					},
-				});
+				})
 
-				createdStockItems.push(updatedItem);
+				createdStockItems.push(updatedItem)
 			} else {
 				// Criar novo item de estoque
 				const stockItem = await prisma.stockItem.create({
@@ -102,10 +88,7 @@ export async function POST(request: Request) {
 						location,
 						unitCost: unitPrice,
 						notes: `Entrada automática da compra ${purchaseId}`,
-						isLowStock:
-							product.hasStock && product.minStock
-								? quantity <= product.minStock
-								: false,
+						isLowStock: product.hasStock && product.minStock ? quantity <= product.minStock : false,
 					},
 					include: {
 						product: {
@@ -115,7 +98,7 @@ export async function POST(request: Request) {
 							},
 						},
 					},
-				});
+				})
 
 				// Registrar movimento de entrada
 				await prisma.stockMovement.create({
@@ -127,9 +110,9 @@ export async function POST(request: Request) {
 						notes: `Compra ID: ${purchaseId}`,
 						purchaseItemId: item.purchaseItemId,
 					},
-				});
+				})
 
-				createdStockItems.push(stockItem);
+				createdStockItems.push(stockItem)
 			}
 		}
 
@@ -137,12 +120,9 @@ export async function POST(request: Request) {
 			success: true,
 			itemsProcessed: createdStockItems.length,
 			stockItems: createdStockItems,
-		});
+		})
 	} catch (error) {
-		console.error("Erro na entrada automática:", error);
-		return NextResponse.json(
-			{ error: "Erro na entrada automática do estoque" },
-			{ status: 500 },
-		);
+		console.error("Erro na entrada automática:", error)
+		return NextResponse.json({ error: "Erro na entrada automática do estoque" }, { status: 500 })
 	}
 }

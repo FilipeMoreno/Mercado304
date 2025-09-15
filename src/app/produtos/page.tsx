@@ -1,21 +1,19 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ProductsClient } from "./products-client";
+import { Plus } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ProductsClient } from "./products-client"
 
 interface ProductsPageProps {
 	searchParams: {
-		search?: string;
-		category?: string;
-		brand?: string;
-		sort?: string;
-		page?: string;
-	};
+		search?: string
+		category?: string
+		brand?: string
+		sort?: string
+		page?: string
+	}
 }
 
-export default function ProdutosPage({
-	searchParams,
-}: ProductsPageProps) {
+export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
@@ -33,5 +31,5 @@ export default function ProdutosPage({
 
 			<ProductsClient searchParams={searchParams} />
 		</div>
-	);
+	)
 }

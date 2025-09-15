@@ -1,18 +1,18 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { Combobox } from "@/components/ui/combobox";
-import { AppToasts } from "@/lib/toasts";
-import { useDataStore } from "@/store/useDataStore";
-import type { Brand } from "@/types";
+import { useEffect } from "react"
+import { toast } from "sonner"
+import { Combobox } from "@/components/ui/combobox"
+import { AppToasts } from "@/lib/toasts"
+import { useDataStore } from "@/store/useDataStore"
+import type { Brand } from "@/types"
 
 interface BrandSelectProps {
-	value?: string;
-	onValueChange?: (value: string) => void;
-	placeholder?: string;
-	className?: string;
-	disabled?: boolean;
+	value?: string
+	onValueChange?: (value: string) => void
+	placeholder?: string
+	className?: string
+	disabled?: boolean
 }
 
 export function BrandSelect({
@@ -23,11 +23,11 @@ export function BrandSelect({
 	disabled = false,
 }: BrandSelectProps) {
 	// Obter dados e actions do store
-	const { brands, loading, fetchBrands, addBrand } = useDataStore();
+	const { brands, loading, fetchBrands, addBrand } = useDataStore()
 
 	useEffect(() => {
-		fetchBrands(); // Busca os dados se não estiverem em cache
-	}, [fetchBrands]);
+		fetchBrands() // Busca os dados se não estiverem em cache
+	}, [fetchBrands])
 
 	const handleCreateBrand = async (name: string) => {
 		try {
@@ -35,28 +35,24 @@ export function BrandSelect({
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: name.trim() }),
-			});
+			})
 
 			if (response.ok) {
-				const newBrand: Brand = await response.json();
-				addBrand(newBrand); // Adiciona a nova marca ao store
-				onValueChange?.(newBrand.id);
-				AppToasts.created("Marca");
+				const newBrand: Brand = await response.json()
+				addBrand(newBrand) // Adiciona a nova marca ao store
+				onValueChange?.(newBrand.id)
+				AppToasts.created("Marca")
 			} else {
-				const error = await response.json();
-				AppToasts.error(error, "Erro ao criar marca");
+				const error = await response.json()
+				AppToasts.error(error, "Erro ao criar marca")
 			}
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar marca");
+			AppToasts.error(error, "Erro ao criar marca")
 		}
-	};
+	}
 
 	if (loading.brands && brands.length === 0) {
-		return (
-			<div
-				className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`}
-			/>
-		);
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
@@ -75,5 +71,5 @@ export function BrandSelect({
 			className={className}
 			disabled={disabled}
 		/>
-	);
+	)
 }

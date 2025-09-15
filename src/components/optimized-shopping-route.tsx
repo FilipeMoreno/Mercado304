@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
 	CheckCircle2,
@@ -12,133 +12,104 @@ import {
 	ShoppingCart,
 	Store,
 	TrendingDown,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+} from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 
 interface OptimizedRouteItem {
-	itemId: string;
-	productId: string;
-	productName: string;
-	quantity: number;
-	bestPrice: number;
-	estimatedTotal: number;
-	averagePrice?: number;
-	savings?: number;
+	itemId: string
+	productId: string
+	productName: string
+	quantity: number
+	bestPrice: number
+	estimatedTotal: number
+	averagePrice?: number
+	savings?: number
 }
 
 interface OptimizedMarket {
-	marketId: string;
-	marketName: string;
-	marketLocation?: string | null;
-	items: OptimizedRouteItem[];
-	totalCost: number;
-	estimatedSavings: number;
-	itemCount: number;
+	marketId: string
+	marketName: string
+	marketLocation?: string | null
+	items: OptimizedRouteItem[]
+	totalCost: number
+	estimatedSavings: number
+	itemCount: number
 }
 
 interface OptimizedRouteData {
-	listName: string;
-	optimizedRoute: OptimizedMarket[];
-	totalEstimatedSavings: number;
+	listName: string
+	optimizedRoute: OptimizedMarket[]
+	totalEstimatedSavings: number
 	summary: {
-		totalMarkets: number;
-		totalItems: number;
-		itemsDistributed: number;
-	};
+		totalMarkets: number
+		totalItems: number
+		itemsDistributed: number
+	}
 }
 
 interface OptimizedShoppingRouteProps {
-	listId: string;
-	listName: string;
-	isOpen: boolean;
-	onClose: () => void;
+	listId: string
+	listName: string
+	isOpen: boolean
+	onClose: () => void
 }
 
-export function OptimizedShoppingRoute({
-	listId,
-	listName,
-	isOpen,
-	onClose,
-}: OptimizedShoppingRouteProps) {
-	const [loading, setLoading] = useState(false);
-	const [routeData, setRouteData] = useState<OptimizedRouteData | null>(null);
-	const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
+export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: OptimizedShoppingRouteProps) {
+	const [loading, setLoading] = useState(false)
+	const [routeData, setRouteData] = useState<OptimizedRouteData | null>(null)
+	const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
 
 	useEffect(() => {
 		if (isOpen && listId) {
-			fetchOptimizedRoute();
+			fetchOptimizedRoute()
 		}
-	}, [isOpen, listId]);
+	}, [isOpen, listId])
 
 	const fetchOptimizedRoute = async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
-			const response = await fetch(
-				`/api/shopping-lists/${listId}/optimize-route`,
-			);
+			const response = await fetch(`/api/shopping-lists/${listId}/optimize-route`)
 
 			if (!response.ok) {
-				throw new Error("Erro ao otimizar roteiro");
+				throw new Error("Erro ao otimizar roteiro")
 			}
 
-			const data = await response.json();
-			setRouteData(data);
+			const data = await response.json()
+			setRouteData(data)
 
 			// Inicialmente, selecionar todos os mercados
-			setSelectedMarkets(
-				data.optimizedRoute.map((market: OptimizedMarket) => market.marketId),
-			);
+			setSelectedMarkets(data.optimizedRoute.map((market: OptimizedMarket) => market.marketId))
 		} catch (error) {
-			console.error("Erro ao buscar roteiro otimizado:", error);
-			toast.error("Erro ao calcular roteiro otimizado");
+			console.error("Erro ao buscar roteiro otimizado:", error)
+			toast.error("Erro ao calcular roteiro otimizado")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const toggleMarketSelection = (marketId: string) => {
-		setSelectedMarkets((prev) =>
-			prev.includes(marketId)
-				? prev.filter((id) => id !== marketId)
-				: [...prev, marketId],
-		);
-	};
+		setSelectedMarkets((prev) => (prev.includes(marketId) ? prev.filter((id) => id !== marketId) : [...prev, marketId]))
+	}
 
 	const getSelectedSummary = () => {
-		if (!routeData) return { totalCost: 0, totalSavings: 0, totalItems: 0 };
+		if (!routeData) return { totalCost: 0, totalSavings: 0, totalItems: 0 }
 
-		const selectedMarketData = routeData.optimizedRoute.filter((market) =>
-			selectedMarkets.includes(market.marketId),
-		);
+		const selectedMarketData = routeData.optimizedRoute.filter((market) => selectedMarkets.includes(market.marketId))
 
 		return {
-			totalCost: selectedMarketData.reduce(
-				(sum, market) => sum + market.totalCost,
-				0,
-			),
-			totalSavings: selectedMarketData.reduce(
-				(sum, market) => sum + market.estimatedSavings,
-				0,
-			),
-			totalItems: selectedMarketData.reduce(
-				(sum, market) => sum + market.itemCount,
-				0,
-			),
-		};
-	};
+			totalCost: selectedMarketData.reduce((sum, market) => sum + market.totalCost, 0),
+			totalSavings: selectedMarketData.reduce((sum, market) => sum + market.estimatedSavings, 0),
+			totalItems: selectedMarketData.reduce((sum, market) => sum + market.itemCount, 0),
+		}
+	}
 
-	const selectedSummary = getSelectedSummary();
+	const selectedSummary = getSelectedSummary()
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -165,9 +136,7 @@ export function OptimizedShoppingRoute({
 										<div className="flex items-center gap-2">
 											<Store className="h-5 w-5 text-blue-600" />
 											<div>
-												<div className="text-2xl font-bold">
-													{routeData.summary.totalMarkets}
-												</div>
+												<div className="text-2xl font-bold">{routeData.summary.totalMarkets}</div>
 												<div className="text-sm text-gray-600">Mercados</div>
 											</div>
 										</div>
@@ -179,9 +148,7 @@ export function OptimizedShoppingRoute({
 										<div className="flex items-center gap-2">
 											<Package className="h-5 w-5 text-green-600" />
 											<div>
-												<div className="text-2xl font-bold">
-													{selectedSummary.totalItems}
-												</div>
+												<div className="text-2xl font-bold">{selectedSummary.totalItems}</div>
 												<div className="text-sm text-gray-600">Itens</div>
 											</div>
 										</div>
@@ -193,9 +160,7 @@ export function OptimizedShoppingRoute({
 										<div className="flex items-center gap-2">
 											<DollarSign className="h-5 w-5 text-purple-600" />
 											<div>
-												<div className="text-2xl font-bold">
-													R$ {selectedSummary.totalCost.toFixed(2)}
-												</div>
+												<div className="text-2xl font-bold">R$ {selectedSummary.totalCost.toFixed(2)}</div>
 												<div className="text-sm text-gray-600">Custo Total</div>
 											</div>
 										</div>
@@ -223,14 +188,10 @@ export function OptimizedShoppingRoute({
 									<div className="flex items-start gap-3">
 										<Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
 										<div>
-											<h3 className="font-semibold text-blue-900">
-												Como funciona
-											</h3>
+											<h3 className="font-semibold text-blue-900">Como funciona</h3>
 											<p className="text-blue-700 text-sm mt-1">
-												Analisamos o histórico de preços e sugerimos em quais
-												mercados comprar cada item para obter o melhor preço.
-												Você pode selecionar/desselecionar mercados conforme sua
-												preferência.
+												Analisamos o histórico de preços e sugerimos em quais mercados comprar cada item para obter o
+												melhor preço. Você pode selecionar/desselecionar mercados conforme sua preferência.
 											</p>
 										</div>
 									</div>
@@ -248,9 +209,7 @@ export function OptimizedShoppingRoute({
 									<Card
 										key={market.marketId}
 										className={`transition-all duration-200 ${
-											selectedMarkets.includes(market.marketId)
-												? "ring-2 ring-blue-500 bg-blue-50"
-												: "opacity-60"
+											selectedMarkets.includes(market.marketId) ? "ring-2 ring-blue-500 bg-blue-50" : "opacity-60"
 										}`}
 									>
 										<CardHeader>
@@ -266,13 +225,9 @@ export function OptimizedShoppingRoute({
 															{index + 1}
 														</div>
 														<div>
-															<CardTitle className="text-lg">
-																{market.marketName}
-															</CardTitle>
+															<CardTitle className="text-lg">{market.marketName}</CardTitle>
 															{market.marketLocation && (
-																<p className="text-sm text-gray-600">
-																	{market.marketLocation}
-																</p>
+																<p className="text-sm text-gray-600">{market.marketLocation}</p>
 															)}
 														</div>
 													</div>
@@ -280,9 +235,7 @@ export function OptimizedShoppingRoute({
 
 												<div className="flex items-center gap-4">
 													<div className="text-right">
-														<div className="text-lg font-bold">
-															R$ {market.totalCost.toFixed(2)}
-														</div>
+														<div className="text-lg font-bold">R$ {market.totalCost.toFixed(2)}</div>
 														<div className="text-sm text-green-600 flex items-center gap-1">
 															<TrendingDown className="h-3 w-3" />
 															Economia: R$ {market.estimatedSavings.toFixed(2)}
@@ -290,15 +243,9 @@ export function OptimizedShoppingRoute({
 													</div>
 
 													<Button
-														variant={
-															selectedMarkets.includes(market.marketId)
-																? "default"
-																: "outline"
-														}
+														variant={selectedMarkets.includes(market.marketId) ? "default" : "outline"}
 														size="sm"
-														onClick={() =>
-															toggleMarketSelection(market.marketId)
-														}
+														onClick={() => toggleMarketSelection(market.marketId)}
 													>
 														{selectedMarkets.includes(market.marketId) ? (
 															<>
@@ -320,15 +267,10 @@ export function OptimizedShoppingRoute({
 											<div className="space-y-3">
 												<div className="flex items-center gap-4 text-sm text-gray-600">
 													<Badge variant="secondary">
-														{market.itemCount}{" "}
-														{market.itemCount === 1 ? "item" : "itens"}
+														{market.itemCount} {market.itemCount === 1 ? "item" : "itens"}
 													</Badge>
-													<span>
-														Total estimado: R$ {market.totalCost.toFixed(2)}
-													</span>
-													<span className="text-green-600">
-														Economia: R$ {market.estimatedSavings.toFixed(2)}
-													</span>
+													<span>Total estimado: R$ {market.totalCost.toFixed(2)}</span>
+													<span className="text-green-600">Economia: R$ {market.estimatedSavings.toFixed(2)}</span>
 												</div>
 
 												<Separator />
@@ -340,22 +282,15 @@ export function OptimizedShoppingRoute({
 															className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
 														>
 															<div>
-																<div className="font-medium">
-																	{item.productName}
-																</div>
+																<div className="font-medium">{item.productName}</div>
 																<div className="text-sm text-gray-600">
-																	{item.quantity} unidades × R${" "}
-																	{item.bestPrice.toFixed(2)}
+																	{item.quantity} unidades × R$ {item.bestPrice.toFixed(2)}
 																</div>
 															</div>
 															<div className="text-right">
-																<div className="font-medium">
-																	R$ {item.estimatedTotal.toFixed(2)}
-																</div>
+																<div className="font-medium">R$ {item.estimatedTotal.toFixed(2)}</div>
 																{item.savings && item.savings > 0 && (
-																	<div className="text-xs text-green-600">
-																		-R$ {item.savings.toFixed(2)}
-																	</div>
+																	<div className="text-xs text-green-600">-R$ {item.savings.toFixed(2)}</div>
 																)}
 															</div>
 														</div>
@@ -371,15 +306,12 @@ export function OptimizedShoppingRoute({
 							<Card className="bg-green-50">
 								<CardContent className="pt-6">
 									<div className="text-center space-y-2">
-										<h3 className="text-lg font-semibold text-green-900">
-											Economia Total Estimada
-										</h3>
+										<h3 className="text-lg font-semibold text-green-900">Economia Total Estimada</h3>
 										<div className="text-3xl font-bold text-green-600">
 											R$ {selectedSummary.totalSavings.toFixed(2)}
 										</div>
 										<p className="text-green-700 text-sm">
-											Comprando {selectedSummary.totalItems} itens em{" "}
-											{selectedMarkets.length} mercado(s) selecionado(s)
+											Comprando {selectedSummary.totalItems} itens em {selectedMarkets.length} mercado(s) selecionado(s)
 										</p>
 									</div>
 								</CardContent>
@@ -387,13 +319,11 @@ export function OptimizedShoppingRoute({
 						</div>
 					) : (
 						<div className="p-6 text-center">
-							<p className="text-gray-600">
-								Erro ao carregar dados do roteiro.
-							</p>
+							<p className="text-gray-600">Erro ao carregar dados do roteiro.</p>
 						</div>
 					)}
 				</div>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }

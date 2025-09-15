@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { Check, FileText, X } from "lucide-react";
-import { Label } from "recharts";
-import { Button } from "@/components/ui/button";
+import { Check, FileText, X } from "lucide-react"
+import { Label } from "recharts"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -10,22 +10,17 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 
 interface OcrDebugDialogProps {
-	isOpen: boolean;
-	rawText: string;
-	onConfirm: () => void;
-	onCancel: () => void;
+	isOpen: boolean
+	rawText: string
+	onConfirm: () => void
+	onCancel: () => void
 }
 
-export function OcrDebugDialog({
-	isOpen,
-	rawText,
-	onConfirm,
-	onCancel,
-}: OcrDebugDialogProps) {
+export function OcrDebugDialog({ isOpen, rawText, onConfirm, onCancel }: OcrDebugDialogProps) {
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
 			<DialogContent className="max-w-2xl">
@@ -35,18 +30,12 @@ export function OcrDebugDialog({
 						Debug: Texto Extraído do Rótulo
 					</DialogTitle>
 					<DialogDescription>
-						Este é o texto bruto que o sistema conseguiu ler da imagem.
-						Verifique se está correto antes de continuar.
+						Este é o texto bruto que o sistema conseguiu ler da imagem. Verifique se está correto antes de continuar.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="my-4">
 					<Label>Texto Extraído:</Label>
-					<Textarea
-						id="rawText"
-						readOnly
-						value={rawText}
-						className="h-64 bg-secondary mt-2"
-					/>
+					<Textarea id="rawText" readOnly value={rawText} className="h-64 bg-secondary mt-2" />
 				</div>
 				<DialogFooter>
 					<Button variant="outline" onClick={onCancel}>
@@ -60,5 +49,5 @@ export function OcrDebugDialog({
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }

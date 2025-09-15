@@ -1,15 +1,15 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ListaClient } from "./lista-client";
+import { Plus } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ListaClient } from "./lista-client"
 
 interface ListaPageProps {
 	searchParams: {
-		search?: string;
-		sort?: string;
-		page?: string;
-		status?: string;
-	};
+		search?: string
+		sort?: string
+		page?: string
+		status?: string
+	}
 }
 
 export default function ListaPage({ searchParams }: ListaPageProps) {
@@ -30,5 +30,5 @@ export default function ListaPage({ searchParams }: ListaPageProps) {
 
 			<ListaClient searchParams={searchParams} />
 		</div>
-	);
+	)
 }

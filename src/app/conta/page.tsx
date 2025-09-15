@@ -1,15 +1,10 @@
-"use client";
+"use client"
 
-import {
-	AlertCircle,
-	Camera,
-	CheckCircle, Loader2, Save, Trash2,
-	User
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { signOut, useSession, updateSession } from "@/lib/auth-client";
-import { useState } from "react";
-import { toast } from "sonner";
+import { AlertCircle, Camera, CheckCircle, Loader2, Save, Trash2, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { SecurityTab } from "@/components/auth/security-tab"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,35 +15,29 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SecurityTab } from "@/components/auth/security-tab";
+} from "@/components/ui/alert-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { signOut, updateSession, useSession } from "@/lib/auth-client"
 
 export default function ContaPage() {
-	const { data: session } = useSession();
-	const router = useRouter();
+	const { data: session } = useSession()
+	const router = useRouter()
 
 	// Estados para perfil
-	const [name, setName] = useState(session?.user?.name || "");
-	const [email, setEmail] = useState(session?.user?.email || "");
-	const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+	const [name, setName] = useState(session?.user?.name || "")
+	const [email, setEmail] = useState(session?.user?.email || "")
+	const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
 
 	// Estados para exclusão de conta
-	const [deleteConfirmation, setDeleteConfirmation] = useState("");
-	const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+	const [deleteConfirmation, setDeleteConfirmation] = useState("")
+	const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
 	const getInitials = (name: string) => {
 		return name
@@ -56,12 +45,12 @@ export default function ContaPage() {
 			.map((n) => n[0])
 			.join("")
 			.toUpperCase()
-			.slice(0, 2);
-	};
+			.slice(0, 2)
+	}
 
 	const handleUpdateProfile = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setIsUpdatingProfile(true);
+		e.preventDefault()
+		setIsUpdatingProfile(true)
 
 		try {
 			const response = await fetch("/api/user/profile", {
@@ -73,30 +62,30 @@ export default function ContaPage() {
 					name,
 					email,
 				}),
-			});
+			})
 
 			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || "Erro ao atualizar perfil");
+				const data = await response.json()
+				throw new Error(data.error || "Erro ao atualizar perfil")
 			}
 
 			// Atualizar a sessão
-			await updateSession();
-			toast.success("Perfil atualizado com sucesso!");
+			await updateSession()
+			toast.success("Perfil atualizado com sucesso!")
 		} catch (error: any) {
-			toast.error(error.message || "Erro ao atualizar perfil");
+			toast.error(error.message || "Erro ao atualizar perfil")
 		} finally {
-			setIsUpdatingProfile(false);
+			setIsUpdatingProfile(false)
 		}
-	};
+	}
 
 	const handleDeleteAccount = async () => {
 		if (deleteConfirmation !== "DELETAR") {
-			toast.error('Digite "DELETAR" para confirmar');
-			return;
+			toast.error('Digite "DELETAR" para confirmar')
+			return
 		}
 
-		setIsDeletingAccount(true);
+		setIsDeletingAccount(true)
 
 		try {
 			const response = await fetch("/api/user/delete", {
@@ -104,33 +93,31 @@ export default function ContaPage() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-			});
+			})
 
 			if (!response.ok) {
-				const data = await response.json();
-				throw new Error(data.error || "Erro ao excluir conta");
+				const data = await response.json()
+				throw new Error(data.error || "Erro ao excluir conta")
 			}
 
-			toast.success("Conta excluída com sucesso!");
-			await signOut({ callbackUrl: "/auth/signin" });
+			toast.success("Conta excluída com sucesso!")
+			await signOut({ callbackUrl: "/auth/signin" })
 		} catch (error: any) {
-			toast.error(error.message || "Erro ao excluir conta");
+			toast.error(error.message || "Erro ao excluir conta")
 		} finally {
-			setIsDeletingAccount(false);
+			setIsDeletingAccount(false)
 		}
-	};
+	}
 
 	if (!session) {
 		return (
 			<div className="flex items-center justify-center min-h-[400px]">
 				<div className="text-center">
 					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-					<p className="text-muted-foreground">
-						Carregando informações da conta...
-					</p>
+					<p className="text-muted-foreground">Carregando informações da conta...</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -138,9 +125,7 @@ export default function ContaPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold">Minha Conta</h1>
-					<p className="text-muted-foreground">
-						Gerencie suas informações pessoais e configurações de segurança
-					</p>
+					<p className="text-muted-foreground">Gerencie suas informações pessoais e configurações de segurança</p>
 				</div>
 				<Button variant="outline" onClick={() => router.back()}>
 					Voltar
@@ -161,18 +146,14 @@ export default function ContaPage() {
 								<User className="h-5 w-5" />
 								Informações do Perfil
 							</CardTitle>
-							<CardDescription>
-								Atualize suas informações pessoais e foto de perfil
-							</CardDescription>
+							<CardDescription>Atualize suas informações pessoais e foto de perfil</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="flex items-center gap-6">
 								<div className="relative">
 									<Avatar className="h-24 w-24">
 										<AvatarImage src={session.user?.image || undefined} />
-										<AvatarFallback className="text-lg">
-											{getInitials(session.user?.name || "U")}
-										</AvatarFallback>
+										<AvatarFallback className="text-lg">{getInitials(session.user?.name || "U")}</AvatarFallback>
 									</Avatar>
 									<Button
 										size="sm"
@@ -185,9 +166,7 @@ export default function ContaPage() {
 								</div>
 								<div>
 									<h3 className="font-medium">{session.user?.name}</h3>
-									<p className="text-sm text-muted-foreground">
-										{session.user?.email}
-									</p>
+									<p className="text-sm text-muted-foreground">{session.user?.email}</p>
 									<Badge variant="outline" className="mt-2">
 										{session.user?.image ? "Google Account" : "Conta Local"}
 									</Badge>
@@ -255,17 +234,14 @@ export default function ContaPage() {
 								<AlertCircle className="h-5 w-5" />
 								Zona de Perigo
 							</CardTitle>
-							<CardDescription>
-								Ações irreversíveis relacionadas à sua conta
-							</CardDescription>
+							<CardDescription>Ações irreversíveis relacionadas à sua conta</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="p-4 bg-red-50 border border-red-200 rounded-lg">
 								<h3 className="font-medium text-red-800 mb-2">Excluir Conta</h3>
 								<p className="text-sm text-red-700 mb-4">
-									Esta ação não pode ser desfeita. Todos os seus dados,
-									incluindo compras, listas e histórico serão permanentemente
-									removidos.
+									Esta ação não pode ser desfeita. Todos os seus dados, incluindo compras, listas e histórico serão
+									permanentemente removidos.
 								</p>
 
 								<AlertDialog>
@@ -279,34 +255,22 @@ export default function ContaPage() {
 										<AlertDialogHeader>
 											<AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
 											<AlertDialogDescription className="space-y-3">
+												<p>Esta ação excluirá permanentemente sua conta e todos os dados associados.</p>
 												<p>
-													Esta ação excluirá permanentemente sua conta e todos
-													os dados associados.
-												</p>
-												<p>
-													Para confirmar, digite <strong>"DELETAR"</strong> no
-													campo abaixo:
+													Para confirmar, digite <strong>"DELETAR"</strong> no campo abaixo:
 												</p>
 												<Input
 													value={deleteConfirmation}
-													onChange={(e) =>
-														setDeleteConfirmation(e.target.value)
-													}
+													onChange={(e) => setDeleteConfirmation(e.target.value)}
 													placeholder="Digite DELETAR para confirmar"
 												/>
 											</AlertDialogDescription>
 										</AlertDialogHeader>
 										<AlertDialogFooter>
-											<AlertDialogCancel
-												onClick={() => setDeleteConfirmation("")}
-											>
-												Cancelar
-											</AlertDialogCancel>
+											<AlertDialogCancel onClick={() => setDeleteConfirmation("")}>Cancelar</AlertDialogCancel>
 											<AlertDialogAction
 												onClick={handleDeleteAccount}
-												disabled={
-													deleteConfirmation !== "DELETAR" || isDeletingAccount
-												}
+												disabled={deleteConfirmation !== "DELETAR" || isDeletingAccount}
 												className="bg-red-600 hover:bg-red-700"
 											>
 												{isDeletingAccount ? (
@@ -327,5 +291,5 @@ export default function ContaPage() {
 				</TabsContent>
 			</Tabs>
 		</div>
-	);
+	)
 }

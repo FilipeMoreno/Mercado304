@@ -1,96 +1,75 @@
-"use client";
+"use client"
 
-import {
-	ArrowLeft,
-	Edit,
-	Package,
-	Plus,
-	Save,
-	ShoppingCart,
-	Trash2,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { BestPriceAlert } from "@/components/best-price-alert";
-import { MarketSelect } from "@/components/selects/market-select";
-import { ProductSelect } from "@/components/selects/product-select";
-import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { toDateInputValue } from "@/lib/date-utils";
-import { TempStorage } from "@/lib/temp-storage";
-import { type Market, PaymentMethod, type Product } from "@/types";
+import { ArrowLeft, Edit, Package, Plus, Save, ShoppingCart, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { BestPriceAlert } from "@/components/best-price-alert"
+import { MarketSelect } from "@/components/selects/market-select"
+import { ProductSelect } from "@/components/selects/product-select"
+import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toDateInputValue } from "@/lib/date-utils"
+import { TempStorage } from "@/lib/temp-storage"
+import { type Market, PaymentMethod, type Product } from "@/types"
 
 interface PurchaseItem {
-	productId: string;
-	quantity: number;
-	unitPrice: number;
-	bestPriceAlert?: any;
+	productId: string
+	quantity: number
+	unitPrice: number
+	bestPriceAlert?: any
 }
 
 export default function EditarCompraPage() {
-	const params = useParams();
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const [products, setProducts] = useState<Product[]>([]); // Tipagem corrigida
-	const [loading, setLoading] = useState(false);
-	const [markets, setMarkets] = useState<Market[]>([]);
-	const [loadingData, setLoadingData] = useState(true);
+	const params = useParams()
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const [products, setProducts] = useState<Product[]>([]) // Tipagem corrigida
+	const [loading, setLoading] = useState(false)
+	const [markets, setMarkets] = useState<Market[]>([])
+	const [loadingData, setLoadingData] = useState(true)
 
 	const [formData, setFormData] = useState({
 		marketId: "",
 		purchaseDate: "",
 		paymentMethod: PaymentMethod.MONEY,
-	});
+	})
 
-	const [items, setItems] = useState<PurchaseItem[]>([]);
+	const [items, setItems] = useState<PurchaseItem[]>([])
 
 	useEffect(() => {
 		if (params.id) {
-			fetchData();
+			fetchData()
 		}
-	}, [params.id]);
+	}, [params.id])
 
 	useEffect(() => {
-		const storageKey = searchParams.get("storageKey");
+		const storageKey = searchParams.get("storageKey")
 		if (storageKey) {
-			const preservedData = TempStorage.get(storageKey);
+			const preservedData = TempStorage.get(storageKey)
 			if (preservedData) {
 				try {
-					if (preservedData.formData) setFormData(preservedData.formData);
-					if (preservedData.items) setItems(preservedData.items);
-					if (
-						preservedData.newProductId &&
-						preservedData.targetItemIndex !== undefined
-					) {
+					if (preservedData.formData) setFormData(preservedData.formData)
+					if (preservedData.items) setItems(preservedData.items)
+					if (preservedData.newProductId && preservedData.targetItemIndex !== undefined) {
 						setTimeout(() => {
-							updateItem(
-								preservedData.targetItemIndex,
-								"productId",
-								preservedData.newProductId,
-							);
-						}, 1000);
+							updateItem(preservedData.targetItemIndex, "productId", preservedData.newProductId)
+						}, 1000)
 					}
-					TempStorage.remove(storageKey);
-					window.history.replaceState({}, "", `/compras/editar/${params.id}`);
+					TempStorage.remove(storageKey)
+					window.history.replaceState({}, "", `/compras/editar/${params.id}`)
 				} catch (error) {
-					console.error("Erro ao restaurar dados:", error);
-					TempStorage.remove(storageKey);
+					console.error("Erro ao restaurar dados:", error)
+					TempStorage.remove(storageKey)
 				}
 			}
 		}
-	}, [searchParams, params.id]);
+	}, [searchParams, params.id])
 
 	const fetchData = async () => {
 		try {
@@ -98,26 +77,26 @@ export default function EditarCompraPage() {
 				fetch("/api/markets"),
 				fetch(`/api/purchases/${params.id}`),
 				fetch("/api/products"),
-			]);
+			])
 
-			const marketsData = await marketsRes.json();
-			const purchaseData = await purchaseRes.json();
-			const productsData = await productsRes.json(); // <-- Busca o objeto completo
+			const marketsData = await marketsRes.json()
+			const purchaseData = await purchaseRes.json()
+			const productsData = await productsRes.json() // <-- Busca o objeto completo
 
 			if (!purchaseRes.ok) {
-				toast.error("Compra não encontrada");
-				router.push("/compras");
-				return;
+				toast.error("Compra não encontrada")
+				router.push("/compras")
+				return
 			}
 
-			setMarkets(marketsData.markets || []); // <-- Garante que é um array
-			setProducts(productsData.products || []); // <-- CORREÇÃO APLICADA AQUI
+			setMarkets(marketsData.markets || []) // <-- Garante que é um array
+			setProducts(productsData.products || []) // <-- CORREÇÃO APLICADA AQUI
 
 			setFormData({
 				marketId: purchaseData.marketId,
 				purchaseDate: purchaseData.purchaseDate.split("T")[0],
 				paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY,
-			});
+			})
 
 			setItems(
 				purchaseData.items.map((item: any) => ({
@@ -126,87 +105,74 @@ export default function EditarCompraPage() {
 					unitPrice: item.unitPrice,
 					bestPriceAlert: null,
 				})),
-			);
+			)
 		} catch (error) {
-			console.error("Erro ao carregar dados:", error);
-			toast.error("Erro ao carregar dados");
-			router.push("/compras");
+			console.error("Erro ao carregar dados:", error)
+			toast.error("Erro ao carregar dados")
+			router.push("/compras")
 		} finally {
-			setLoadingData(false);
+			setLoadingData(false)
 		}
-	};
+	}
 
-	const updateItem = (
-		index: number,
-		field: keyof PurchaseItem,
-		value: string | number,
-	) => {
-		const newItems = [...items];
-		newItems[index] = { ...newItems[index], [field]: value };
-		setItems(newItems);
+	const updateItem = (index: number, field: keyof PurchaseItem, value: string | number) => {
+		const newItems = [...items]
+		newItems[index] = { ...newItems[index], [field]: value }
+		setItems(newItems)
 
 		if (field === "unitPrice" || field === "productId") {
-			const item = newItems[index];
+			const item = newItems[index]
 			if (item.productId && item.unitPrice > 0) {
 				setTimeout(() => {
-					checkBestPrice(index, item.productId, item.unitPrice);
-				}, 1000);
+					checkBestPrice(index, item.productId, item.unitPrice)
+				}, 1000)
 			}
 		}
-	};
+	}
 
-	const checkBestPrice = async (
-		index: number,
-		productId: string,
-		unitPrice: number,
-	) => {
-		if (!productId || !unitPrice) return;
+	const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice) return
 		try {
 			const response = await fetch("/api/best-price-check", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ productId, currentPrice: unitPrice }),
-			});
-			const bestPriceData = await response.json();
-			const newItems = [...items];
-			newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData };
-			setItems(newItems);
+			})
+			const bestPriceData = await response.json()
+			const newItems = [...items]
+			newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData }
+			setItems(newItems)
 		} catch (error) {
-			console.error("Erro ao verificar melhor preço:", error);
+			console.error("Erro ao verificar melhor preço:", error)
 		}
-	};
+	}
 
 	const addItem = () => {
-		setItems([
-			...items,
-			{ productId: "", quantity: 1, unitPrice: 0, bestPriceAlert: null },
-		]);
-	};
+		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, bestPriceAlert: null }])
+	}
 
 	const removeItem = (index: number) => {
 		if (items.length > 1) {
-			setItems(items.filter((_, i) => i !== index));
+			setItems(items.filter((_, i) => i !== index))
 		}
-	};
+	}
 
 	const calculateTotal = () => {
-		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-	};
+		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 		if (!formData.marketId) {
-			toast.error("Selecione um mercado");
-			return;
+			toast.error("Selecione um mercado")
+			return
 		}
-		const validItems = items.filter(
-			(item) => item.productId && item.quantity > 0 && item.unitPrice > 0,
-		);
+		const validItems = items.filter((item) => item.productId && item.quantity > 0 && item.unitPrice > 0)
 		if (validItems.length === 0) {
-			toast.error("Adicione pelo menos um item válido");
-			return;
+			toast.error("Adicione pelo menos um item válido")
+			return
 		}
-		setLoading(true);
+		setLoading(true)
 		try {
 			const response = await fetch(`/api/purchases/${params.id}`, {
 				method: "PUT",
@@ -217,24 +183,24 @@ export default function EditarCompraPage() {
 					purchaseDate: formData.purchaseDate,
 					paymentMethod: formData.paymentMethod,
 				}),
-			});
+			})
 			if (response.ok) {
-				toast.success("Compra atualizada com sucesso!"); // <-- Corrigido para success
-				router.push("/compras");
+				toast.success("Compra atualizada com sucesso!") // <-- Corrigido para success
+				router.push("/compras")
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao atualizar compra");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao atualizar compra")
 			}
 		} catch (error) {
-			console.error("Erro ao atualizar compra:", error);
-			toast.error("Erro ao atualizar compra");
+			console.error("Erro ao atualizar compra:", error)
+			toast.error("Erro ao atualizar compra")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	if (loadingData) {
-		return <NovaCompraSkeleton />;
+		return <NovaCompraSkeleton />
 	}
 
 	return (
@@ -265,9 +231,7 @@ export default function EditarCompraPage() {
 								<Label htmlFor="market">Mercado *</Label>
 								<MarketSelect
 									value={formData.marketId}
-									onValueChange={(value) =>
-										setFormData((prev) => ({ ...prev, marketId: value }))
-									}
+									onValueChange={(value) => setFormData((prev) => ({ ...prev, marketId: value }))}
 								/>
 							</div>
 							<div className="space-y-2">
@@ -299,25 +263,13 @@ export default function EditarCompraPage() {
 										<SelectValue placeholder="Selecione..." />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={PaymentMethod.MONEY}>
-											💵 Dinheiro
-										</SelectItem>
-										<SelectItem value={PaymentMethod.DEBIT}>
-											💳 Cartão de Débito
-										</SelectItem>
-										<SelectItem value={PaymentMethod.CREDIT}>
-											💳 Cartão de Crédito
-										</SelectItem>
+										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
 										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-										<SelectItem value={PaymentMethod.VOUCHER}>
-											🎫 Vale Alimentação/Refeição
-										</SelectItem>
-										<SelectItem value={PaymentMethod.CHECK}>
-											📄 Cheque
-										</SelectItem>
-										<SelectItem value={PaymentMethod.OTHER}>
-											🔄 Outros
-										</SelectItem>
+										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -334,9 +286,7 @@ export default function EditarCompraPage() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{items.map((item, index) => {
-							const selectedProduct = products.find(
-								(p) => p.id === item.productId,
-							);
+							const selectedProduct = products.find((p) => p.id === item.productId)
 							return (
 								<div key={index} className="space-y-4 p-4 border rounded-lg">
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -344,9 +294,7 @@ export default function EditarCompraPage() {
 											<Label>Produto *</Label>
 											<ProductSelect
 												value={item.productId}
-												onValueChange={(value) =>
-													updateItem(index, "productId", value)
-												}
+												onValueChange={(value) => updateItem(index, "productId", value)}
 												products={products}
 												preserveFormData={{
 													formData,
@@ -362,13 +310,7 @@ export default function EditarCompraPage() {
 												step="0.01"
 												min="0"
 												value={item.quantity}
-												onChange={(e) =>
-													updateItem(
-														index,
-														"quantity",
-														parseFloat(e.target.value) || 0,
-													)
-												}
+												onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 0)}
 												placeholder="0.00"
 											/>
 										</div>
@@ -379,13 +321,7 @@ export default function EditarCompraPage() {
 												step="0.01"
 												min="0"
 												value={item.unitPrice}
-												onChange={(e) =>
-													updateItem(
-														index,
-														"unitPrice",
-														parseFloat(e.target.value) || 0,
-													)
-												}
+												onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
 												placeholder="0.00"
 											/>
 										</div>
@@ -398,36 +334,28 @@ export default function EditarCompraPage() {
 											/>
 										</div>
 									</div>
-									{item.bestPriceAlert &&
-										item.bestPriceAlert.isBestPrice &&
-										!item.bestPriceAlert.isFirstRecord && (
-											<BestPriceAlert
-												productName={
-													products.find((p) => p.id === item.productId)?.name ||
-													"Produto"
+									{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+										<BestPriceAlert
+											productName={products.find((p) => p.id === item.productId)?.name || "Produto"}
+											currentPrice={item.unitPrice}
+											previousBestPrice={item.bestPriceAlert.previousBestPrice}
+											totalRecords={item.bestPriceAlert.totalRecords}
+											onClose={() => {
+												const newItems = [...items]
+												newItems[index] = {
+													...newItems[index],
+													bestPriceAlert: null,
 												}
-												currentPrice={item.unitPrice}
-												previousBestPrice={
-													item.bestPriceAlert.previousBestPrice
-												}
-												totalRecords={item.bestPriceAlert.totalRecords}
-												onClose={() => {
-													const newItems = [...items];
-													newItems[index] = {
-														...newItems[index],
-														bestPriceAlert: null,
-													};
-													setItems(newItems);
-												}}
-											/>
-										)}
+												setItems(newItems)
+											}}
+										/>
+									)}
 									<div className="flex justify-between items-center">
 										<div className="text-sm text-gray-600">
 											{selectedProduct && (
 												<span>
 													Unidade: {selectedProduct.unit}
-													{selectedProduct.category &&
-														` • Categoria: ${selectedProduct.category.name}`}
+													{selectedProduct.category && ` • Categoria: ${selectedProduct.category.name}`}
 												</span>
 											)}
 										</div>
@@ -442,7 +370,7 @@ export default function EditarCompraPage() {
 										</Button>
 									</div>
 								</div>
-							);
+							)
 						})}
 					</CardContent>
 				</Card>
@@ -467,5 +395,5 @@ export default function EditarCompraPage() {
 				</Card>
 			</form>
 		</div>
-	);
+	)
 }

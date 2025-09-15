@@ -1,58 +1,41 @@
-"use client";
+"use client"
 
-import { ArrowLeft, Loader2, Package, Save, ScanLine } from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { NutritionalInfoForm } from "@/components/nutritional-info-form";
-import { NutritionalScanner } from "@/components/nutritional-scanner";
-import { BrandSelect } from "@/components/selects/brand-select";
-import { CategorySelect } from "@/components/selects/category-select";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { parseGeminiResponse } from "@/lib/gemini-parser";
-import { useDataStore } from "@/store/useDataStore";
-import type { NutritionalInfo, Product } from "@/types";
+import { ArrowLeft, Loader2, Package, Save, ScanLine } from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import { NutritionalInfoForm } from "@/components/nutritional-info-form"
+import { NutritionalScanner } from "@/components/nutritional-scanner"
+import { BrandSelect } from "@/components/selects/brand-select"
+import { CategorySelect } from "@/components/selects/category-select"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { parseGeminiResponse } from "@/lib/gemini-parser"
+import { useDataStore } from "@/store/useDataStore"
+import type { NutritionalInfo, Product } from "@/types"
 
 // REMOVIDO: OcrDebugDialog não é mais necessário aqui
 
-const units = [
-	"unidade",
-	"kg",
-	"g",
-	"litro",
-	"ml",
-	"pacote",
-	"caixa",
-	"garrafa",
-	"lata",
-	"saco",
-];
+const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"]
 
 export default function EditarProdutoPage() {
-	const params = useParams();
-	const router = useRouter();
-	const productId = params.id as string;
-	const { categories, fetchCategories } = useDataStore();
+	const params = useParams()
+	const router = useRouter()
+	const productId = params.id as string
+	const { categories, fetchCategories } = useDataStore()
 
-	const [product, setProduct] = useState<Product | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [saving, setSaving] = useState(false);
+	const [product, setProduct] = useState<Product | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [saving, setSaving] = useState(false)
 
-	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false);
-	const [isScanning, setIsScanning] = useState(false);
+	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
+	const [isScanning, setIsScanning] = useState(false)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -65,39 +48,36 @@ export default function EditarProdutoPage() {
 		maxStock: "",
 		hasExpiration: false,
 		defaultShelfLifeDays: "",
-	});
+	})
 
-	const [nutritionalData, setNutritionalData] =
-		useState<Partial<NutritionalInfo> | null>(null);
+	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo> | null>(null)
 
 	useEffect(() => {
-		fetchCategories();
-	}, [fetchCategories]);
+		fetchCategories()
+	}, [fetchCategories])
 
 	const showNutritionalFields = useMemo(() => {
-		if (!formData.categoryId || categories.length === 0) return false;
-		const selectedCategory = categories.find(
-			(cat) => cat.id === formData.categoryId,
-		);
-		return selectedCategory?.isFood === true;
-	}, [formData.categoryId, categories]);
+		if (!formData.categoryId || categories.length === 0) return false
+		const selectedCategory = categories.find((cat) => cat.id === formData.categoryId)
+		return selectedCategory?.isFood === true
+	}, [formData.categoryId, categories])
 
 	useEffect(() => {
 		if (productId) {
-			fetchData();
+			fetchData()
 		}
-	}, [productId]);
+	}, [productId])
 
 	const fetchData = async () => {
 		try {
-			const productRes = await fetch(`/api/products/${productId}`);
+			const productRes = await fetch(`/api/products/${productId}`)
 			if (!productRes.ok) {
-				toast.error("Produto não encontrado");
-				router.push("/produtos");
-				return;
+				toast.error("Produto não encontrado")
+				router.push("/produtos")
+				return
 			}
-			const productData = await productRes.json();
-			setProduct(productData);
+			const productData = await productRes.json()
+			setProduct(productData)
 
 			setFormData({
 				name: productData.name,
@@ -109,94 +89,86 @@ export default function EditarProdutoPage() {
 				minStock: productData.minStock?.toString() || "",
 				maxStock: productData.maxStock?.toString() || "",
 				hasExpiration: productData.hasExpiration || false,
-				defaultShelfLifeDays:
-					productData.defaultShelfLifeDays?.toString() || "",
-			});
+				defaultShelfLifeDays: productData.defaultShelfLifeDays?.toString() || "",
+			})
 
-			const nutritionRes = await fetch(
-				`/api/products/${productId}/scan-nutrition`,
-			);
+			const nutritionRes = await fetch(`/api/products/${productId}/scan-nutrition`)
 			if (nutritionRes.ok) {
-				setNutritionalData(await nutritionRes.json());
+				setNutritionalData(await nutritionRes.json())
 			}
 		} catch (error) {
-			console.error("Erro ao buscar dados:", error);
-			toast.error("Erro ao carregar dados");
+			console.error("Erro ao buscar dados:", error)
+			toast.error("Erro ao carregar dados")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 		if (!formData.name.trim()) {
-			toast.error("Nome do produto é obrigatório");
-			return;
+			toast.error("Nome do produto é obrigatório")
+			return
 		}
-		setSaving(true);
+		setSaving(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData || {}).some(
-				(v) =>
-					v !== undefined &&
-					v !== "" &&
-					(Array.isArray(v) ? v.length > 0 : true),
-			);
+				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
+			)
 			const dataToSubmit = {
 				...formData,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays
-					? parseInt(formData.defaultShelfLifeDays)
-					: null,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
-			};
+			}
 			const response = await fetch(`/api/products/${productId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(dataToSubmit),
-			});
+			})
 			if (response.ok) {
-				toast.success("Produto atualizado com sucesso!");
-				router.push(`/produtos/${productId}`);
-				router.refresh();
+				toast.success("Produto atualizado com sucesso!")
+				router.push(`/produtos/${productId}`)
+				router.refresh()
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao atualizar produto");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao atualizar produto")
 			}
 		} catch (error) {
-			console.error("Erro ao atualizar produto:", error);
-			toast.error("Erro ao atualizar produto");
+			console.error("Erro ao atualizar produto:", error)
+			toast.error("Erro ao atualizar produto")
 		} finally {
-			setSaving(false);
+			setSaving(false)
 		}
-	};
+	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-	};
+		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+	}
 
 	const handleSelectChange = (name: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [name]: value }));
-	};
+		setFormData((prev) => ({ ...prev, [name]: value }))
+	}
 
 	// --- FUNÇÃO ATUALIZADA ---
 	const handleNutritionalScanComplete = (geminiResponse: any) => {
-		setIsScanning(true);
-		setShowNutritionalScanner(false);
+		setIsScanning(true)
+		setShowNutritionalScanner(false)
 		try {
 			if (!geminiResponse) {
-				throw new Error("A API não retornou uma resposta.");
+				throw new Error("A API não retornou uma resposta.")
 			}
-			const parsedData = parseGeminiResponse(geminiResponse);
-			setNutritionalData(parsedData);
-			toast.success("Dados nutricionais preenchidos pela IA!");
+			const parsedData = parseGeminiResponse(geminiResponse)
+			setNutritionalData(parsedData)
+			toast.success("Dados nutricionais preenchidos pela IA!")
 		} catch (error) {
-			toast.error("Não foi possível processar os dados do rótulo.");
-			console.error("Erro ao processar resposta do Gemini:", error);
+			toast.error("Não foi possível processar os dados do rótulo.")
+			console.error("Erro ao processar resposta do Gemini:", error)
 		} finally {
-			setIsScanning(false);
+			setIsScanning(false)
 		}
-	};
+	}
 
 	if (loading) {
 		return (
@@ -212,20 +184,17 @@ export default function EditarProdutoPage() {
 					<CardContent>
 						<div className="space-y-4">
 							{Array.from({ length: 8 }).map((_, i) => (
-								<div
-									key={i}
-									className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
-								/>
+								<div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
 							))}
 						</div>
 					</CardContent>
 				</Card>
 			</div>
-		);
+		)
 	}
 
 	if (!product) {
-		return null;
+		return null
 	}
 
 	return (
@@ -242,9 +211,7 @@ export default function EditarProdutoPage() {
 						<Package className="h-8 w-8" />
 						Editar: {product.name}
 					</h1>
-					<p className="text-gray-600 mt-2">
-						Atualize as informações do produto
-					</p>
+					<p className="text-gray-600 mt-2">Atualize as informações do produto</p>
 				</div>
 			</div>
 
@@ -271,28 +238,21 @@ export default function EditarProdutoPage() {
 									<Label htmlFor="brandId">Marca</Label>
 									<BrandSelect
 										value={formData.brandId}
-										onValueChange={(value) =>
-											handleSelectChange("brandId", value)
-										}
+										onValueChange={(value) => handleSelectChange("brandId", value)}
 									/>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="categoryId">Categoria</Label>
 									<CategorySelect
 										value={formData.categoryId}
-										onValueChange={(value) =>
-											handleSelectChange("categoryId", value)
-										}
+										onValueChange={(value) => handleSelectChange("categoryId", value)}
 									/>
 								</div>
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>
-									<Select
-										value={formData.unit}
-										onValueChange={(value) => handleSelectChange("unit", value)}
-									>
+									<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
 										<SelectTrigger>
 											<SelectValue />
 										</SelectTrigger>
@@ -329,9 +289,7 @@ export default function EditarProdutoPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="hasStock">
-										Produto com controle de estoque
-									</Label>
+									<Label htmlFor="hasStock">Produto com controle de estoque</Label>
 								</div>
 								{formData.hasStock && (
 									<div className="grid grid-cols-2 gap-4">
@@ -379,9 +337,7 @@ export default function EditarProdutoPage() {
 								</div>
 								{formData.hasExpiration && (
 									<div className="space-y-2">
-										<Label htmlFor="defaultShelfLifeDays">
-											Prazo de Validade Padrão (dias)
-										</Label>
+										<Label htmlFor="defaultShelfLifeDays">Prazo de Validade Padrão (dias)</Label>
 										<Input
 											id="defaultShelfLifeDays"
 											name="defaultShelfLifeDays"
@@ -390,9 +346,7 @@ export default function EditarProdutoPage() {
 											onChange={handleChange}
 											placeholder="Ex: 30"
 										/>
-										<p className="text-xs text-gray-500">
-											Usado para calcular a validade ao adicionar ao estoque.
-										</p>
+										<p className="text-xs text-gray-500">Usado para calcular a validade ao adicionar ao estoque.</p>
 									</div>
 								)}
 							</div>
@@ -405,10 +359,7 @@ export default function EditarProdutoPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Scanner de Rótulo</CardTitle>
-								<p className="text-sm text-gray-600">
-									Escaneie o rótulo para preencher ou atualizar os campos
-									abaixo.
-								</p>
+								<p className="text-sm text-gray-600">Escaneie o rótulo para preencher ou atualizar os campos abaixo.</p>
 							</CardHeader>
 							<CardContent>
 								<Button
@@ -433,10 +384,7 @@ export default function EditarProdutoPage() {
 							</CardContent>
 						</Card>
 
-						<NutritionalInfoForm
-							initialData={nutritionalData}
-							onDataChange={(data) => setNutritionalData(data)}
-						/>
+						<NutritionalInfoForm initialData={nutritionalData} onDataChange={(data) => setNutritionalData(data)} />
 					</>
 				)}
 
@@ -453,10 +401,7 @@ export default function EditarProdutoPage() {
 				</div>
 			</form>
 
-			<Dialog
-				open={showNutritionalScanner}
-				onOpenChange={setShowNutritionalScanner}
-			>
+			<Dialog open={showNutritionalScanner} onOpenChange={setShowNutritionalScanner}>
 				<DialogContent className="max-w-2xl">
 					<NutritionalScanner
 						onClose={() => setShowNutritionalScanner(false)}
@@ -465,5 +410,5 @@ export default function EditarProdutoPage() {
 				</DialogContent>
 			</Dialog>
 		</div>
-	);
+	)
 }

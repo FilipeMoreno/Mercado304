@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import ComparisionSkeleton from "@/components/skeletons/comparison-skeleton";
+import ComparisionSkeleton from "@/components/skeletons/comparison-skeleton"
 
 export default function Loading() {
-	return <ComparisionSkeleton />;
+	return <ComparisionSkeleton />
 }

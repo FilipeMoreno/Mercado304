@@ -1,9 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card"
 
 interface ProgressBarProps {
-	completedItems: number;
-	totalItems: number;
-	progress: number;
+	completedItems: number
+	totalItems: number
+	progress: number
 }
 
 export function ProgressBar({ completedItems, totalItems, progress }: ProgressBarProps) {
@@ -24,5 +24,5 @@ export function ProgressBar({ completedItems, totalItems, progress }: ProgressBa
 				</div>
 			</CardContent>
 		</Card>
-	);
+	)
 }

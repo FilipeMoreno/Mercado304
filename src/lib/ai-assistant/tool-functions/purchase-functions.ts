@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"
 
 export const purchaseFunctions = {
 	// Purchases Management
@@ -6,17 +6,14 @@ export const purchaseFunctions = {
 		try {
 			const market = await prisma.market.findFirst({
 				where: { name: { contains: marketName, mode: "insensitive" } },
-			});
+			})
 			if (!market)
 				return {
 					success: false,
 					message: `Mercado "${marketName}" não encontrado.`,
-				};
+				}
 
-			const totalAmount = items.reduce(
-				(sum: number, item: any) => sum + item.quantity * item.unitPrice,
-				0,
-			);
+			const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
 
 			const purchase = await prisma.purchase.create({
 				data: {
@@ -30,12 +27,12 @@ export const purchaseFunctions = {
 									where: {
 										name: { contains: item.productName, mode: "insensitive" },
 									},
-								});
+								})
 
 								if (!product) {
 									product = await prisma.product.create({
 										data: { name: item.productName },
-									});
+									})
 								}
 
 								return {
@@ -43,21 +40,21 @@ export const purchaseFunctions = {
 									quantity: item.quantity,
 									unitPrice: item.unitPrice,
 									totalPrice: item.quantity * item.unitPrice,
-								};
+								}
 							}),
 						),
 					},
 				},
 				include: { items: { include: { product: true } } },
-			});
+			})
 
 			return {
 				success: true,
 				message: `Compra registrada no ${marketName} com ${items.length} itens.`,
 				purchase,
-			};
+			}
 		} catch (error) {
-			return { success: false, message: `Erro ao registrar compra: ${error}` };
+			return { success: false, message: `Erro ao registrar compra: ${error}` }
 		}
 	},
 
@@ -75,7 +72,7 @@ export const purchaseFunctions = {
 			},
 			orderBy: { purchaseDate: "desc" },
 			take: limit,
-		});
-		return { success: true, purchases };
+		})
+		return { success: true, purchases }
 	},
-};
+}

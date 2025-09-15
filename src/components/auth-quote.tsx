@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 
 const quotes = [
 	{
@@ -35,19 +35,19 @@ const quotes = [
 		text: "Acompanhe o histórico de suas compras e identifique padrões de consumo. Tome decisões mais conscientes.",
 		footer: "Consumo consciente",
 	},
-];
+]
 
 export function AuthQuote() {
 	const [randomQuote, setRandomQuote] = useState({
 		text: "Carregando",
 		footer: "Carregando...",
-	});
+	})
 
 	useEffect(() => {
 		// Seleciona uma citação aleatória apenas no cliente
-		const randomIndex = Math.floor(Math.random() * quotes.length);
-		setRandomQuote(quotes[randomIndex]);
-	}, []);
+		const randomIndex = Math.floor(Math.random() * quotes.length)
+		setRandomQuote(quotes[randomIndex])
+	}, [])
 
 	return (
 		<div className="relative flex flex-col bg-muted p-10 text-white">
@@ -59,5 +59,5 @@ export function AuthQuote() {
 				</blockquote>
 			</div>
 		</div>
-	);
+	)
 }

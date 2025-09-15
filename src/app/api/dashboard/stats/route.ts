@@ -1,21 +1,21 @@
 // src/app/api/dashboard/stats/route.ts
-import { NextResponse } from "next/server";
-import { getAllProductPrices } from "@/lib/price-utils";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { getAllProductPrices } from "@/lib/price-utils"
+import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
 export async function GET() {
 	try {
-		const currentMonth = new Date();
-		currentMonth.setDate(1); // Primeiro dia do mês atual
+		const currentMonth = new Date()
+		currentMonth.setDate(1) // Primeiro dia do mês atual
 
-		const lastMonth = new Date(currentMonth);
-		lastMonth.setMonth(lastMonth.getMonth() - 1);
+		const lastMonth = new Date(currentMonth)
+		lastMonth.setMonth(lastMonth.getMonth() - 1)
 
 		// Período de 12 meses atrás para o novo gráfico
-		const twelveMonthsAgo = new Date();
-		twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+		const twelveMonthsAgo = new Date()
+		twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
 
 		const [
 			totalPurchases,
@@ -150,26 +150,21 @@ export async function GET() {
 			(async () => {
 				const productsWithBothSources = await prisma.product.findMany({
 					where: {
-						AND: [
-							{ purchaseItems: { some: {} } },
-							{ priceRecords: { some: {} } },
-						],
+						AND: [{ purchaseItems: { some: {} } }, { priceRecords: { some: {} } }],
 					},
 					select: { id: true, name: true },
-				});
+				})
 
 				return {
 					productsWithBothSources: productsWithBothSources.length,
 					productNames: productsWithBothSources.slice(0, 5).map((p) => p.name),
-				};
+				}
 			})(),
-		]);
+		])
 
 		// OTIMIZAÇÃO: Coletar todos os IDs de produtos e mercados
-		const productIds = topProducts
-			.map((item) => item.productId)
-			.filter((id): id is string => id !== null);
-		const marketIds = marketComparison.map((item) => item.marketId);
+		const productIds = topProducts.map((item) => item.productId).filter((id): id is string => id !== null)
+		const marketIds = marketComparison.map((item) => item.marketId)
 
 		// OTIMIZAÇÃO: Fazer duas consultas únicas para buscar todos os detalhes de uma vez
 		const [productsInfo, marketsInfo] = await Promise.all([
@@ -183,11 +178,11 @@ export async function GET() {
 			prisma.market.findMany({
 				where: { id: { in: marketIds } },
 			}),
-		]);
+		])
 
 		// OTIMIZAÇÃO: Mapear os resultados em memória, sem novas consultas ao banco
 		const topProductsWithNames = topProducts.map((item) => {
-			const product = productsInfo.find((p) => p.id === item.productId);
+			const product = productsInfo.find((p) => p.id === item.productId)
 			return {
 				productId: item.productId,
 				productName: product?.name || "Produto não encontrado",
@@ -195,51 +190,40 @@ export async function GET() {
 				totalPurchases: item._count.productId,
 				totalQuantity: item._sum.quantity || 0,
 				averagePrice: item._avg.unitPrice || 0,
-			};
-		});
+			}
+		})
 
 		const marketComparisonWithNames = marketComparison.map((item) => {
-			const market = marketsInfo.find((m) => m.id === item.marketId);
+			const market = marketsInfo.find((m) => m.id === item.marketId)
 			return {
 				marketId: item.marketId,
 				marketName: market?.name || "Mercado não encontrado",
 				totalPurchases: item._count.id,
 				averagePrice: item._avg.totalAmount || 0,
-			};
-		});
+			}
+		})
 
 		// Calcular comparação mensal
-		const currentMonthTotal = currentMonthStats?._sum?.totalAmount || 0;
-		const lastMonthTotal = lastMonthStats?._sum?.totalAmount || 0;
-		const currentMonthPurchases = currentMonthStats?._count?.id || 0;
-		const lastMonthPurchases = lastMonthStats?._count?.id || 0;
+		const currentMonthTotal = currentMonthStats?._sum?.totalAmount || 0
+		const lastMonthTotal = lastMonthStats?._sum?.totalAmount || 0
+		const currentMonthPurchases = currentMonthStats?._count?.id || 0
+		const lastMonthPurchases = lastMonthStats?._count?.id || 0
 
 		const monthlyComparison = {
 			currentMonth: {
 				totalSpent: currentMonthTotal,
 				totalPurchases: currentMonthPurchases,
-				averagePerPurchase:
-					currentMonthPurchases > 0
-						? currentMonthTotal / currentMonthPurchases
-						: 0,
+				averagePerPurchase: currentMonthPurchases > 0 ? currentMonthTotal / currentMonthPurchases : 0,
 			},
 			lastMonth: {
 				totalSpent: lastMonthTotal,
 				totalPurchases: lastMonthPurchases,
-				averagePerPurchase:
-					lastMonthPurchases > 0 ? lastMonthTotal / lastMonthPurchases : 0,
+				averagePerPurchase: lastMonthPurchases > 0 ? lastMonthTotal / lastMonthPurchases : 0,
 			},
-			spentChange:
-				lastMonthTotal > 0
-					? ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100
-					: 0,
+			spentChange: lastMonthTotal > 0 ? ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0,
 			purchasesChange:
-				lastMonthPurchases > 0
-					? ((currentMonthPurchases - lastMonthPurchases) /
-							lastMonthPurchases) *
-						100
-					: 0,
-		};
+				lastMonthPurchases > 0 ? ((currentMonthPurchases - lastMonthPurchases) / lastMonthPurchases) * 100 : 0,
+		}
 
 		// Processar estatísticas por categoria
 		const categoryStatsProcessed = (categoryStats as any[]).map((cat: any) => ({
@@ -251,13 +235,13 @@ export async function GET() {
 			totalPurchases: parseInt(cat.totalPurchases || "0"),
 			totalQuantity: parseFloat(cat.totalQuantity || "0"),
 			averagePrice: parseFloat(cat.averagePrice || "0"),
-		}));
+		}))
 
 		// Processar dados do novo gráfico
 		const monthlySpendingProcessed = (monthlySpending as any[]).map((data) => ({
 			...data,
 			totalSpent: parseFloat(data.totalSpent),
-		}));
+		}))
 
 		const stats = {
 			totalPurchases,
@@ -280,18 +264,13 @@ export async function GET() {
 				productsWithBothSources: combinedPriceStats.productsWithBothSources,
 				sampleProducts: combinedPriceStats.productNames,
 				dataIntegrationLevel:
-					totalProducts > 0
-						? (combinedPriceStats.productsWithBothSources / totalProducts) * 100
-						: 0,
+					totalProducts > 0 ? (combinedPriceStats.productsWithBothSources / totalProducts) * 100 : 0,
 			},
-		};
+		}
 
-		return NextResponse.json(stats);
+		return NextResponse.json(stats)
 	} catch (error) {
-		console.error("Dashboard stats error:", error);
-		return NextResponse.json(
-			{ error: "Erro ao buscar estatísticas" },
-			{ status: 500 },
-		);
+		console.error("Dashboard stats error:", error)
+		return NextResponse.json({ error: "Erro ao buscar estatísticas" }, { status: 500 })
 	}
 }

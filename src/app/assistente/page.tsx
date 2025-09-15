@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { ArrowLeft, Bot, Send } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { ChatMessage } from "@/components/ai-chat/chat-message";
-import { ChurrascoCard } from "@/components/ai-chat/churrasco-card";
-import { SelectionCard } from "@/components/ai-chat/selection-cards";
-import { TypingIndicator } from "@/components/ai-chat/typing-indicator";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAiChat } from "@/hooks/use-ai-chat";
+import { ArrowLeft, Bot, Send } from "lucide-react"
+import Link from "next/link"
+import { useState } from "react"
+import { ChatMessage } from "@/components/ai-chat/chat-message"
+import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
+import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAiChat } from "@/hooks/use-ai-chat"
 
 export default function AssistentePage() {
-	const [input, setInput] = useState("");
+	const [input, setInput] = useState("")
 	const {
 		messages,
 		isLoading,
@@ -23,15 +23,15 @@ export default function AssistentePage() {
 		retryLastMessage,
 		handleSelection,
 		handleChurrascoCalculate,
-	} = useAiChat();
+	} = useAiChat()
 
 	const handleSendMessage = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!input.trim()) return;
+		e.preventDefault()
+		if (!input.trim()) return
 
-		await sendMessage(input);
-		setInput("");
-	};
+		await sendMessage(input)
+		setInput("")
+	}
 
 	return (
 		<div className="max-w-4xl mx-auto">
@@ -50,12 +50,8 @@ export default function AssistentePage() {
 								<Bot className="h-6 w-6 text-white" />
 							</div>
 							<div>
-								<h1 className="text-2xl font-bold text-gray-900">
-									Zé, o Assistente
-								</h1>
-								<p className="text-sm text-gray-600">
-									Seu assistente inteligente para compras
-								</p>
+								<h1 className="text-2xl font-bold text-gray-900">Zé, o Assistente</h1>
+								<p className="text-sm text-gray-600">Seu assistente inteligente para compras</p>
 							</div>
 						</div>
 					</div>
@@ -133,28 +129,22 @@ export default function AssistentePage() {
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
 					<CardContent className="p-4 text-center">
 						<Bot className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">
-							Peça para criar listas de compras
-						</p>
+						<p className="text-sm text-gray-700 font-medium">Peça para criar listas de compras</p>
 					</CardContent>
 				</Card>
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
 					<CardContent className="p-4 text-center">
 						<Bot className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">
-							Compare preços entre mercados
-						</p>
+						<p className="text-sm text-gray-700 font-medium">Compare preços entre mercados</p>
 					</CardContent>
 				</Card>
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
 					<CardContent className="p-4 text-center">
 						<Bot className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">
-							Calcule seu churrasco perfeito
-						</p>
+						<p className="text-sm text-gray-700 font-medium">Calcule seu churrasco perfeito</p>
 					</CardContent>
 				</Card>
 			</div>
 		</div>
-	);
+	)
 }

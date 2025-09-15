@@ -1,81 +1,63 @@
-"use client";
+"use client"
 
-import { addDays, format } from "date-fns";
-import {
-	ArrowLeft,
-	Box,
-	Camera,
-	Package,
-	Plus,
-	Save,
-	Settings2,
-	Trash2,
-} from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { BarcodeScanner } from "@/components/barcode-scanner";
-import { BestPriceAlert } from "@/components/best-price-alert";
-import { PriceAiInsight } from "@/components/price-ai-insight";
-import { PriceAlert } from "@/components/price-alert";
-import { MarketSelect } from "@/components/selects/market-select";
-import { ProductSelect } from "@/components/selects/product-select";
-import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton";
-import {
-	type StockEntry,
-	StockEntryDialog,
-} from "@/components/stock-entry-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { toDateInputValue } from "@/lib/date-utils";
-import { TempStorage } from "@/lib/temp-storage";
-import { PaymentMethod, type Product } from "@/types";
+import { addDays, format } from "date-fns"
+import { ArrowLeft, Box, Camera, Package, Plus, Save, Settings2, Trash2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import * as React from "react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { BarcodeScanner } from "@/components/barcode-scanner"
+import { BestPriceAlert } from "@/components/best-price-alert"
+import { PriceAiInsight } from "@/components/price-ai-insight"
+import { PriceAlert } from "@/components/price-alert"
+import { MarketSelect } from "@/components/selects/market-select"
+import { ProductSelect } from "@/components/selects/product-select"
+import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
+import { type StockEntry, StockEntryDialog } from "@/components/stock-entry-dialog"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toDateInputValue } from "@/lib/date-utils"
+import { TempStorage } from "@/lib/temp-storage"
+import { PaymentMethod, type Product } from "@/types"
 
 interface PurchaseItem {
-	id?: string;
-	productId: string;
-	quantity: number;
-	unitPrice: number;
-	priceAlert?: any;
-	bestPriceAlert?: any;
-	addToStock: boolean;
-	stockEntries: StockEntry[];
-	aiInsight: string | null;
-	isAiLoading: boolean;
+	id?: string
+	productId: string
+	quantity: number
+	unitPrice: number
+	priceAlert?: any
+	bestPriceAlert?: any
+	addToStock: boolean
+	stockEntries: StockEntry[]
+	aiInsight: string | null
+	isAiLoading: boolean
 }
 
 export default function NovaCompraPage() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const [products, setProducts] = useState<Product[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [dataLoading, setDataLoading] = useState(true);
-	const restoredRef = React.useRef(false);
-	const [showScanner, setShowScanner] = useState(false);
-	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null);
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const [products, setProducts] = useState<Product[]>([])
+	const [loading, setLoading] = useState(false)
+	const [dataLoading, setDataLoading] = useState(true)
+	const restoredRef = React.useRef(false)
+	const [showScanner, setShowScanner] = useState(false)
+	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 
 	const [stockDialogState, setStockDialogState] = useState<{
-		isOpen: boolean;
-		itemIndex: number | null;
-	}>({ isOpen: false, itemIndex: null });
+		isOpen: boolean
+		itemIndex: number | null
+	}>({ isOpen: false, itemIndex: null })
 
 	const [formData, setFormData] = useState({
 		marketId: "",
 		purchaseDate: new Date().toISOString().split("T")[0],
 		paymentMethod: PaymentMethod.MONEY,
-	});
+	})
 
 	const [items, setItems] = useState<PurchaseItem[]>([
 		{
@@ -88,31 +70,31 @@ export default function NovaCompraPage() {
 			aiInsight: null,
 			isAiLoading: false, // Changed from boolean | null to boolean
 		},
-	]);
-	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false]);
+	])
+	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
 	useEffect(() => {
-		fetchData();
-	}, []);
+		fetchData()
+	}, [])
 
 	// Restaurar itens do storageKey quando a página carregar
 	useEffect(() => {
-		const storageKey = searchParams.get('storageKey');
+		const storageKey = searchParams.get("storageKey")
 		if (storageKey && !restoredRef.current) {
-			restoredRef.current = true;
-			const storedData = TempStorage.get(storageKey);
-			
+			restoredRef.current = true
+			const storedData = TempStorage.get(storageKey)
+
 			if (storedData?.items) {
-				console.log('Restaurando itens do storageKey:', storedData.items);
-				
+				console.log("Restaurando itens do storageKey:", storedData.items)
+
 				// Transformar os itens da lista em itens de compra
 				const purchaseItems = storedData.items.map((item: any) => ({
 					id: Math.random().toString(),
 					productId: item.productId || "",
 					quantity: item.quantity || 1,
 					unitPrice: item.unitPrice || 0,
-				}));
-				
+				}))
+
 				// Adicionar um item vazio no final se não houver
 				if (purchaseItems.length > 0) {
 					purchaseItems.push({
@@ -120,32 +102,32 @@ export default function NovaCompraPage() {
 						productId: "",
 						quantity: 1,
 						unitPrice: 0,
-					});
+					})
 				}
-				
-				setItems(purchaseItems);
-				
+
+				setItems(purchaseItems)
+
 				// Remover dados temporários após uso
-				TempStorage.remove(storageKey);
-				
-				toast.success(`${storedData.items.length} itens carregados da lista de compras!`);
+				TempStorage.remove(storageKey)
+
+				toast.success(`${storedData.items.length} itens carregados da lista de compras!`)
 			}
 		}
-	}, [searchParams]);
+	}, [searchParams])
 
 	const fetchData = async () => {
 		try {
-			const productsRes = await fetch("/api/products");
+			const productsRes = await fetch("/api/products")
 			if (productsRes.ok) {
-				const productsData = await productsRes.json();
-				setProducts(productsData.products);
+				const productsData = await productsRes.json()
+				setProducts(productsData.products)
 			}
 		} catch (error) {
-			console.error("Erro ao carregar dados:", error);
+			console.error("Erro ao carregar dados:", error)
 		} finally {
-			setDataLoading(false);
+			setDataLoading(false)
 		}
-	};
+	}
 
 	const addItem = () => {
 		setItems([
@@ -160,65 +142,45 @@ export default function NovaCompraPage() {
 				aiInsight: null,
 				isAiLoading: false, // Changed from boolean | null to boolean
 			},
-		]);
-		setCheckingPrices([...checkingPrices, false]);
-	};
+		])
+		setCheckingPrices([...checkingPrices, false])
+	}
 
-	const fetchAiAnalysis = async (
-		index: number,
-		productId: string,
-		unitPrice: number,
-	) => {
-		if (!productId || !unitPrice) return;
+	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice) return
 
 		setItems((current) =>
-			current.map((item, i) =>
-				i === index ? { ...item, isAiLoading: true, aiInsight: null } : item,
-			),
-		);
+			current.map((item, i) => (i === index ? { ...item, isAiLoading: true, aiInsight: null } : item)),
+		)
 
 		try {
 			const response = await fetch("/api/ai/prices", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ productId, currentPrice: unitPrice }),
-			});
+			})
 			if (response.ok) {
-				const data = await response.json();
-				setItems((current) =>
-					current.map((item, i) =>
-						i === index ? { ...item, aiInsight: data.analysis } : item,
-					),
-				);
+				const data = await response.json()
+				setItems((current) => current.map((item, i) => (i === index ? { ...item, aiInsight: data.analysis } : item)))
 			}
 		} catch (error) {
-			console.error("Erro na análise da IA:", error);
+			console.error("Erro na análise da IA:", error)
 		} finally {
-			setItems((current) =>
-				current.map((item, i) =>
-					i === index ? { ...item, isAiLoading: false } : item,
-				),
-			);
+			setItems((current) => current.map((item, i) => (i === index ? { ...item, isAiLoading: false } : item)))
 		}
-	};
+	}
 
 	const removeItem = (index: number) => {
 		if (items.length > 1) {
-			setItems(items.filter((_, i) => i !== index));
-			setCheckingPrices(checkingPrices.filter((_, i) => i !== index));
+			setItems(items.filter((_, i) => i !== index))
+			setCheckingPrices(checkingPrices.filter((_, i) => i !== index))
 		}
-	};
+	}
 
-	const checkPrice = async (
-		index: number,
-		productId: string,
-		unitPrice: number,
-	) => {
-		if (!productId || !unitPrice || !formData.marketId) return;
+	const checkPrice = async (index: number, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice || !formData.marketId) return
 
-		setCheckingPrices((current) =>
-			current.map((c, i) => (i === index ? true : c)),
-		);
+		setCheckingPrices((current) => current.map((c, i) => (i === index ? true : c)))
 
 		try {
 			const response = await fetch("/api/price-check", {
@@ -229,46 +191,36 @@ export default function NovaCompraPage() {
 					currentPrice: unitPrice,
 					currentMarketId: formData.marketId,
 				}),
-			});
-			const alertData = await response.json();
+			})
+			const alertData = await response.json()
 
 			setItems((currentItems) =>
-				currentItems.map((item, i) =>
-					i === index ? { ...item, priceAlert: alertData } : item,
-				),
-			);
+				currentItems.map((item, i) => (i === index ? { ...item, priceAlert: alertData } : item)),
+			)
 		} catch (error) {
-			console.error("Erro ao verificar preço:", error);
+			console.error("Erro ao verificar preço:", error)
 		} finally {
-			setCheckingPrices((current) =>
-				current.map((c, i) => (i === index ? false : c)),
-			);
+			setCheckingPrices((current) => current.map((c, i) => (i === index ? false : c)))
 		}
-	};
+	}
 
-	const checkBestPrice = async (
-		index: number,
-		productId: string,
-		unitPrice: number,
-	) => {
-		if (!productId || !unitPrice) return;
+	const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice) return
 
 		try {
 			const response = await fetch("/api/best-price-check", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ productId, currentPrice: unitPrice }),
-			});
-			const bestPriceData = await response.json();
+			})
+			const bestPriceData = await response.json()
 			setItems((currentItems) =>
-				currentItems.map((item, i) =>
-					i === index ? { ...item, bestPriceAlert: bestPriceData } : item,
-				),
-			);
+				currentItems.map((item, i) => (i === index ? { ...item, bestPriceAlert: bestPriceData } : item)),
+			)
 		} catch (error) {
-			console.error("Erro ao verificar melhor preço:", error);
+			console.error("Erro ao verificar melhor preço:", error)
 		}
-	};
+	}
 
 	const updateItem = (
 		index: number,
@@ -276,22 +228,19 @@ export default function NovaCompraPage() {
 		value: string | number | boolean | null | StockEntry[],
 	) => {
 		setItems((currentItems) => {
-			const newItems = [...currentItems];
-			const currentItem = { ...newItems[index] };
+			const newItems = [...currentItems]
+			const currentItem = { ...newItems[index] }
 
 			// @ts-expect-error
-			currentItem[field] = value;
+			currentItem[field] = value
 
 			if (field === "productId" || (field === "addToStock" && value === true)) {
-				const product = products.find((p) => p.id === currentItem.productId);
+				const product = products.find((p) => p.id === currentItem.productId)
 				if (product && currentItem.addToStock) {
 					const defaultExpiration =
 						product.hasExpiration && product.defaultShelfLifeDays
-							? format(
-									addDays(new Date(), product.defaultShelfLifeDays),
-									"yyyy-MM-dd",
-								)
-							: "";
+							? format(addDays(new Date(), product.defaultShelfLifeDays), "yyyy-MM-dd")
+							: ""
 
 					currentItem.stockEntries = Array.from({
 						length: Math.floor(currentItem.quantity),
@@ -301,17 +250,17 @@ export default function NovaCompraPage() {
 						expirationDate: defaultExpiration,
 						batchNumber: "",
 						notes: "",
-					}));
+					}))
 				}
 			} else if (field === "addToStock" && value === false) {
-				currentItem.stockEntries = [];
+				currentItem.stockEntries = []
 			}
 
 			if (field === "quantity") {
-				const product = products.find((p) => p.id === currentItem.productId);
+				const product = products.find((p) => p.id === currentItem.productId)
 				if (product && currentItem.addToStock) {
-					const newQuantity = Math.floor(Number(value) || 0);
-					const oldEntries = currentItem.stockEntries;
+					const newQuantity = Math.floor(Number(value) || 0)
+					const oldEntries = currentItem.stockEntries
 					const newEntries = Array.from({ length: newQuantity }).map(
 						(_, i) =>
 							oldEntries[i] || {
@@ -321,71 +270,65 @@ export default function NovaCompraPage() {
 								batchNumber: oldEntries[0]?.batchNumber || "",
 								notes: oldEntries[0]?.notes || "",
 							},
-					);
-					currentItem.stockEntries = newEntries;
+					)
+					currentItem.stockEntries = newEntries
 				}
 			}
 
-			newItems[index] = currentItem;
+			newItems[index] = currentItem
 
-			if (
-				(field === "unitPrice" || field === "productId") &&
-				currentItem.productId &&
-				currentItem.unitPrice > 0
-			) {
+			if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice > 0) {
 				setTimeout(() => {
-					checkBestPrice(index, currentItem.productId, currentItem.unitPrice);
-					checkPrice(index, currentItem.productId, currentItem.unitPrice);
-					fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice);
-				}, 1000);
+					checkBestPrice(index, currentItem.productId, currentItem.unitPrice)
+					checkPrice(index, currentItem.productId, currentItem.unitPrice)
+					fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice)
+				}, 1000)
 			}
 
-			return newItems;
-		});
-	};
+			return newItems
+		})
+	}
 
 	const calculateTotal = () => {
-		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-	};
+		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+	}
 
 	const handleBarcodeScanned = async (barcode: string) => {
 		try {
-			const response = await fetch(`/api/products/barcode/${barcode}`);
+			const response = await fetch(`/api/products/barcode/${barcode}`)
 			if (response.ok) {
-				const product = await response.json();
+				const product = await response.json()
 				if (scanningForIndex !== null) {
-					updateItem(scanningForIndex, "productId", product.id);
+					updateItem(scanningForIndex, "productId", product.id)
 				}
 			} else {
-				toast.error("Produto não encontrado para este código de barras");
+				toast.error("Produto não encontrado para este código de barras")
 			}
 		} catch (error) {
-			console.error("Erro ao buscar produto:", error);
-			toast.error("Erro ao buscar produto");
+			console.error("Erro ao buscar produto:", error)
+			toast.error("Erro ao buscar produto")
 		} finally {
-			setShowScanner(false);
-			setScanningForIndex(null);
+			setShowScanner(false)
+			setScanningForIndex(null)
 		}
-	};
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 
 		if (!formData.marketId) {
-			toast.error("Selecione um mercado");
-			return;
+			toast.error("Selecione um mercado")
+			return
 		}
 
-		const validItems = items.filter(
-			(item) => item.productId && item.quantity > 0 && item.unitPrice > 0,
-		);
+		const validItems = items.filter((item) => item.productId && item.quantity > 0 && item.unitPrice > 0)
 
 		if (validItems.length === 0) {
-			toast.error("Adicione pelo menos um item válido");
-			return;
+			toast.error("Adicione pelo menos um item válido")
+			return
 		}
 
-		setLoading(true);
+		setLoading(true)
 
 		try {
 			const response = await fetch("/api/purchases", {
@@ -397,31 +340,31 @@ export default function NovaCompraPage() {
 					paymentMethod: formData.paymentMethod,
 					items: validItems,
 				}),
-			});
+			})
 
 			if (response.ok) {
-				toast.success("Compra registrada com sucesso!");
-				router.push("/compras");
+				toast.success("Compra registrada com sucesso!")
+				router.push("/compras")
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao criar compra");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao criar compra")
 			}
 		} catch (error) {
-			console.error("Erro ao criar compra:", error);
-			toast.error("Erro ao criar compra");
+			console.error("Erro ao criar compra:", error)
+			toast.error("Erro ao criar compra")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	const handleSaveStockDetails = (entries: StockEntry[]) => {
 		if (stockDialogState.itemIndex !== null) {
-			updateItem(stockDialogState.itemIndex, "stockEntries", entries);
+			updateItem(stockDialogState.itemIndex, "stockEntries", entries)
 		}
-	};
+	}
 
 	if (dataLoading) {
-		return <NovaCompraSkeleton />;
+		return <NovaCompraSkeleton />
 	}
 
 	return (
@@ -451,7 +394,7 @@ export default function NovaCompraPage() {
 								<MarketSelect
 									value={formData.marketId}
 									onValueChange={(value) => {
-										setFormData((prev) => ({ ...prev, marketId: value }));
+										setFormData((prev) => ({ ...prev, marketId: value }))
 									}}
 								/>
 							</div>
@@ -485,25 +428,13 @@ export default function NovaCompraPage() {
 										<SelectValue placeholder="Selecione..." />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={PaymentMethod.MONEY}>
-											💵 Dinheiro
-										</SelectItem>
-										<SelectItem value={PaymentMethod.DEBIT}>
-											💳 Cartão de Débito
-										</SelectItem>
-										<SelectItem value={PaymentMethod.CREDIT}>
-											💳 Cartão de Crédito
-										</SelectItem>
+										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
 										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-										<SelectItem value={PaymentMethod.VOUCHER}>
-											🎫 Vale Alimentação/Refeição
-										</SelectItem>
-										<SelectItem value={PaymentMethod.CHECK}>
-											📄 Cheque
-										</SelectItem>
-										<SelectItem value={PaymentMethod.OTHER}>
-											🔄 Outros
-										</SelectItem>
+										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -527,23 +458,16 @@ export default function NovaCompraPage() {
 					<CardContent>
 						<div className="space-y-4">
 							{items.map((item, index) => {
-								const selectedProduct = products.find(
-									(p) => p.id === item.productId,
-								);
+								const selectedProduct = products.find((p) => p.id === item.productId)
 								return (
-									<div
-										key={item.id || index}
-										className="space-y-4 p-4 border rounded-lg"
-									>
+									<div key={item.id || index} className="space-y-4 p-4 border rounded-lg">
 										<div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-4 items-end">
 											<div className="space-y-2">
 												<Label>Produto *</Label>
 												<div className="flex gap-2">
 													<ProductSelect
 														value={item.productId || ""}
-														onValueChange={(value) =>
-															updateItem(index, "productId", value)
-														}
+														onValueChange={(value) => updateItem(index, "productId", value)}
 														products={products}
 														preserveFormData={{
 															formData,
@@ -568,13 +492,7 @@ export default function NovaCompraPage() {
 													step="0.01"
 													min="0.01"
 													value={item.quantity}
-													onChange={(e) =>
-														updateItem(
-															index,
-															"quantity",
-															parseFloat(e.target.value) || 1,
-														)
-													}
+													onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
 													placeholder="1.00"
 												/>
 											</div>
@@ -585,13 +503,7 @@ export default function NovaCompraPage() {
 													step="0.01"
 													min="0.01"
 													value={item.unitPrice}
-													onChange={(e) =>
-														updateItem(
-															index,
-															"unitPrice",
-															parseFloat(e.target.value) || 0,
-														)
-													}
+													onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
 													placeholder="0.00"
 												/>
 											</div>
@@ -611,93 +523,70 @@ export default function NovaCompraPage() {
 											onClose={() => updateItem(index, "priceAlert", null)}
 										/>
 
-										{item.bestPriceAlert &&
-											item.bestPriceAlert.isBestPrice &&
-											!item.bestPriceAlert.isFirstRecord && (
-												<BestPriceAlert
-													productName={selectedProduct?.name || "Produto"}
-													currentPrice={item.unitPrice}
-													previousBestPrice={
-														item.bestPriceAlert.previousBestPrice
-													}
-													totalRecords={item.bestPriceAlert.totalRecords}
-													onClose={() =>
-														updateItem(index, "bestPriceAlert", null)
-													}
-												/>
-											)}
+										{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+											<BestPriceAlert
+												productName={selectedProduct?.name || "Produto"}
+												currentPrice={item.unitPrice}
+												previousBestPrice={item.bestPriceAlert.previousBestPrice}
+												totalRecords={item.bestPriceAlert.totalRecords}
+												onClose={() => updateItem(index, "bestPriceAlert", null)}
+											/>
+										)}
 
-										<PriceAiInsight
-											analysis={item.aiInsight}
-											loading={item.isAiLoading}
-										/>
+										<PriceAiInsight analysis={item.aiInsight} loading={item.isAiLoading} />
 
-										{selectedProduct &&
-											(selectedProduct.hasStock ||
-												selectedProduct.hasExpiration) && (
-												<div className="pt-4 border-t space-y-4">
-													<div className="flex justify-between items-center">
-														<Label className="flex items-center gap-2 font-medium">
-															<Box className="h-4 w-4" />
-															Gestão de Estoque
-														</Label>
-														{item.addToStock && (
-															<Button
-																type="button"
-																variant="outline"
-																size="sm"
-																onClick={() =>
-																	setStockDialogState({
-																		isOpen: true,
-																		itemIndex: index,
-																	})
-																}
-															>
-																<Settings2 className="h-4 w-4 mr-2" />
-																Detalhar Estoque
-															</Button>
-														)}
-													</div>
-													<div className="flex items-center space-x-2">
-														<Checkbox
-															id={`addToStock-${index}`}
-															checked={item.addToStock}
-															onCheckedChange={(checked) =>
-																updateItem(index, "addToStock", !!checked)
+										{selectedProduct && (selectedProduct.hasStock || selectedProduct.hasExpiration) && (
+											<div className="pt-4 border-t space-y-4">
+												<div className="flex justify-between items-center">
+													<Label className="flex items-center gap-2 font-medium">
+														<Box className="h-4 w-4" />
+														Gestão de Estoque
+													</Label>
+													{item.addToStock && (
+														<Button
+															type="button"
+															variant="outline"
+															size="sm"
+															onClick={() =>
+																setStockDialogState({
+																	isOpen: true,
+																	itemIndex: index,
+																})
 															}
-														/>
-														<Label
-															htmlFor={`addToStock-${index}`}
-															className="cursor-pointer"
 														>
-															Adicionar ao estoque
-														</Label>
-													</div>
+															<Settings2 className="h-4 w-4 mr-2" />
+															Detalhar Estoque
+														</Button>
+													)}
 												</div>
-											)}
+												<div className="flex items-center space-x-2">
+													<Checkbox
+														id={`addToStock-${index}`}
+														checked={item.addToStock}
+														onCheckedChange={(checked) => updateItem(index, "addToStock", !!checked)}
+													/>
+													<Label htmlFor={`addToStock-${index}`} className="cursor-pointer">
+														Adicionar ao estoque
+													</Label>
+												</div>
+											</div>
+										)}
 
 										<div className="flex justify-end">
 											{items.length > 1 && (
-												<Button
-													type="button"
-													variant="destructive"
-													size="sm"
-													onClick={() => removeItem(index)}
-												>
+												<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
 													<Trash2 className="h-4 w-4 mr-1" />
 													Remover
 												</Button>
 											)}
 										</div>
 									</div>
-								);
+								)
 							})}
 						</div>
 
 						<div className="flex justify-between items-center pt-4 border-t">
-							<div className="text-lg font-bold">
-								Total da Compra: R$ {calculateTotal().toFixed(2)}
-							</div>
+							<div className="text-lg font-bold">Total da Compra: R$ {calculateTotal().toFixed(2)}</div>
 							<div className="flex gap-3">
 								<Button type="submit" disabled={loading}>
 									<Save className="h-4 w-4 mr-2" />
@@ -717,13 +606,9 @@ export default function NovaCompraPage() {
 			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (
 				<StockEntryDialog
 					isOpen={stockDialogState.isOpen}
-					onClose={() =>
-						setStockDialogState({ isOpen: false, itemIndex: null })
-					}
+					onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
 					onSave={handleSaveStockDetails}
-					product={products.find(
-						(p) => p.id === items[stockDialogState.itemIndex!].productId,
-					)}
+					product={products.find((p) => p.id === items[stockDialogState.itemIndex!].productId)}
 					quantity={items[stockDialogState.itemIndex!].quantity}
 					initialEntries={items[stockDialogState.itemIndex!].stockEntries}
 				/>
@@ -733,10 +618,10 @@ export default function NovaCompraPage() {
 				isOpen={showScanner}
 				onScan={handleBarcodeScanned}
 				onClose={() => {
-					setShowScanner(false);
-					setScanningForIndex(null);
+					setShowScanner(false)
+					setScanningForIndex(null)
 				}}
 			/>
 		</div>
-	);
+	)
 }

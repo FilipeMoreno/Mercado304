@@ -1,44 +1,33 @@
-"use client";
+"use client"
 
-import { AlertTriangle, DollarSign, Package, Trash2 } from "lucide-react";
-import * as React from "react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { AlertTriangle, DollarSign, Package, Trash2 } from "lucide-react"
+import * as React from "react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
 interface StockItem {
-	id: string;
-	quantity: number;
-	unitCost?: number;
+	id: string
+	quantity: number
+	unitCost?: number
 	product: {
-		name: string;
-		unit: string;
-		brand?: { name: string };
-	};
+		name: string
+		unit: string
+		brand?: { name: string }
+	}
 }
 
 interface WasteDialogProps {
-	stockItem: StockItem;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	onSuccess?: () => void;
+	stockItem: StockItem
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	onSuccess?: () => void
 }
 
 const wasteReasons = [
@@ -52,21 +41,16 @@ const wasteReasons = [
 	"Prazo vencido",
 	"Mudança de gosto",
 	"Outro",
-];
+]
 
-export function WasteDialog({
-	stockItem,
-	open,
-	onOpenChange,
-	onSuccess,
-}: WasteDialogProps) {
+export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteDialogProps) {
 	const [formData, setFormData] = useState({
 		quantity: 0,
 		wasteReason: "",
 		customReason: "",
 		notes: "",
-	});
-	const [loading, setLoading] = useState(false);
+	})
+	const [loading, setLoading] = useState(false)
 
 	React.useEffect(() => {
 		if (open) {
@@ -75,41 +59,36 @@ export function WasteDialog({
 				wasteReason: "",
 				customReason: "",
 				notes: "",
-			});
+			})
 		}
-	}, [open, stockItem]);
+	}, [open, stockItem])
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 
 		if (!formData.quantity || formData.quantity <= 0) {
-			toast.error("Quantidade deve ser maior que zero");
-			return;
+			toast.error("Quantidade deve ser maior que zero")
+			return
 		}
 
 		if (formData.quantity > stockItem.quantity) {
-			toast.error(
-				`Quantidade não pode ser maior que ${stockItem.quantity} ${stockItem.product.unit}`,
-			);
-			return;
+			toast.error(`Quantidade não pode ser maior que ${stockItem.quantity} ${stockItem.product.unit}`)
+			return
 		}
 
 		if (!formData.wasteReason) {
-			toast.error("Selecione o motivo do desperdício");
-			return;
+			toast.error("Selecione o motivo do desperdício")
+			return
 		}
 
 		if (formData.wasteReason === "Outro" && !formData.customReason.trim()) {
-			toast.error("Descreva o motivo do desperdício");
-			return;
+			toast.error("Descreva o motivo do desperdício")
+			return
 		}
 
-		setLoading(true);
+		setLoading(true)
 		try {
-			const finalReason =
-				formData.wasteReason === "Outro"
-					? formData.customReason
-					: formData.wasteReason;
+			const finalReason = formData.wasteReason === "Outro" ? formData.customReason : formData.wasteReason
 
 			const response = await fetch("/api/stock/waste", {
 				method: "POST",
@@ -120,25 +99,25 @@ export function WasteDialog({
 					wasteReason: finalReason,
 					notes: formData.notes,
 				}),
-			});
+			})
 
 			if (response.ok) {
-				toast.success("Desperdício registrado com sucesso!");
-				onOpenChange(false);
-				onSuccess?.();
+				toast.success("Desperdício registrado com sucesso!")
+				onOpenChange(false)
+				onSuccess?.()
 			} else {
-				const error = await response.json();
-				toast.error(error.error || "Erro ao registrar desperdício");
+				const error = await response.json()
+				toast.error(error.error || "Erro ao registrar desperdício")
 			}
 		} catch (error) {
-			console.error("Erro ao registrar desperdício:", error);
-			toast.error("Erro ao registrar desperdício");
+			console.error("Erro ao registrar desperdício:", error)
+			toast.error("Erro ao registrar desperdício")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
-	const calculatedWasteValue = (stockItem.unitCost || 0) * formData.quantity;
+	const calculatedWasteValue = (stockItem.unitCost || 0) * formData.quantity
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,14 +137,10 @@ export function WasteDialog({
 							<span className="font-medium">{stockItem.product.name}</span>
 						</div>
 						{stockItem.product.brand && (
-							<div className="text-sm text-gray-600">
-								Marca: {stockItem.product.brand.name}
-							</div>
+							<div className="text-sm text-gray-600">Marca: {stockItem.product.brand.name}</div>
 						)}
 						<div className="flex items-center justify-between">
-							<span className="text-sm text-gray-600">
-								Disponível em estoque:
-							</span>
+							<span className="text-sm text-gray-600">Disponível em estoque:</span>
 							<Badge variant="secondary">
 								{stockItem.quantity} {stockItem.product.unit}
 							</Badge>
@@ -173,9 +148,7 @@ export function WasteDialog({
 						{stockItem.unitCost && (
 							<div className="flex items-center justify-between">
 								<span className="text-sm text-gray-600">Valor unitário:</span>
-								<span className="text-sm font-medium">
-									R$ {stockItem.unitCost.toFixed(2)}
-								</span>
+								<span className="text-sm font-medium">R$ {stockItem.unitCost.toFixed(2)}</span>
 							</div>
 						)}
 					</div>
@@ -206,9 +179,7 @@ export function WasteDialog({
 						<Label htmlFor="wasteReason">Motivo do desperdício *</Label>
 						<Select
 							value={formData.wasteReason}
-							onValueChange={(value) =>
-								setFormData((prev) => ({ ...prev, wasteReason: value }))
-							}
+							onValueChange={(value) => setFormData((prev) => ({ ...prev, wasteReason: value }))}
 							required
 						>
 							<SelectTrigger>
@@ -249,9 +220,7 @@ export function WasteDialog({
 						<Textarea
 							id="notes"
 							value={formData.notes}
-							onChange={(e) =>
-								setFormData((prev) => ({ ...prev, notes: e.target.value }))
-							}
+							onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
 							placeholder="Observações sobre o desperdício..."
 							rows={3}
 						/>
@@ -262,13 +231,9 @@ export function WasteDialog({
 						<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
 							<div className="flex items-center gap-2 text-red-600">
 								<DollarSign className="h-4 w-4" />
-								<span className="font-medium">
-									Valor do desperdício: R$ {calculatedWasteValue.toFixed(2)}
-								</span>
+								<span className="font-medium">Valor do desperdício: R$ {calculatedWasteValue.toFixed(2)}</span>
 							</div>
-							<p className="text-xs text-red-500 mt-1">
-								Este valor será contabilizado nas estatísticas de desperdício
-							</p>
+							<p className="text-xs text-red-500 mt-1">Este valor será contabilizado nas estatísticas de desperdício</p>
 						</div>
 					)}
 
@@ -277,21 +242,13 @@ export function WasteDialog({
 						<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
 						<div className="text-sm text-yellow-800">
 							<p className="font-medium">Atenção!</p>
-							<p>
-								Este item será removido do estoque e registrado como
-								desperdício. Esta ação não pode ser desfeita.
-							</p>
+							<p>Este item será removido do estoque e registrado como desperdício. Esta ação não pode ser desfeita.</p>
 						</div>
 					</div>
 
 					{/* Botões */}
 					<div className="flex flex-col sm:flex-row gap-2 pt-4">
-						<Button
-							type="submit"
-							variant="destructive"
-							disabled={loading}
-							className="flex-1 w-full sm:w-auto"
-						>
+						<Button type="submit" variant="destructive" disabled={loading} className="flex-1 w-full sm:w-auto">
 							<Trash2 className="h-4 w-4 mr-2" />
 							{loading ? "Registrando..." : "Registrar Desperdício"}
 						</Button>
@@ -308,5 +265,5 @@ export function WasteDialog({
 				</form>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }

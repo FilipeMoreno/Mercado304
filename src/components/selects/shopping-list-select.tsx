@@ -1,18 +1,18 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { Combobox } from "@/components/ui/combobox";
-import { AppToasts } from "@/lib/toasts";
-import { createShoppingList } from "@/services/shoppingListService";
-import { useDataStore } from "@/store/useDataStore";
-import { ShoppingList } from "@/types";
+import { useEffect } from "react"
+import { Combobox } from "@/components/ui/combobox"
+import { AppToasts } from "@/lib/toasts"
+import { createShoppingList } from "@/services/shoppingListService"
+import { useDataStore } from "@/store/useDataStore"
+import { ShoppingList } from "@/types"
 
 interface ShoppingListSelectProps {
-	value?: string;
-	onValueChange?: (value: string) => void;
-	placeholder?: string;
-	className?: string;
-	disabled?: boolean;
+	value?: string
+	onValueChange?: (value: string) => void
+	placeholder?: string
+	className?: string
+	disabled?: boolean
 }
 
 export function ShoppingListSelect({
@@ -22,32 +22,28 @@ export function ShoppingListSelect({
 	className = "w-full",
 	disabled = false,
 }: ShoppingListSelectProps) {
-	const { shoppingLists, loading, fetchShoppingLists } = useDataStore();
+	const { shoppingLists, loading, fetchShoppingLists } = useDataStore()
 
 	useEffect(() => {
-		fetchShoppingLists();
-	}, [fetchShoppingLists]);
+		fetchShoppingLists()
+	}, [fetchShoppingLists])
 
 	const handleCreateList = async (name: string) => {
 		try {
 			const newList = await createShoppingList({
 				name: name.trim(),
 				isActive: true,
-			});
-			fetchShoppingLists(true); // Força a atualização da lista
-			onValueChange?.(newList.id);
-			AppToasts.created("Lista");
+			})
+			fetchShoppingLists(true) // Força a atualização da lista
+			onValueChange?.(newList.id)
+			AppToasts.created("Lista")
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar lista");
+			AppToasts.error(error, "Erro ao criar lista")
 		}
-	};
+	}
 
 	if (loading.shoppingLists && shoppingLists.length === 0) {
-		return (
-			<div
-				className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`}
-			/>
-		);
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
@@ -66,5 +62,5 @@ export function ShoppingListSelect({
 			className={className}
 			disabled={disabled}
 		/>
-	);
+	)
 }
