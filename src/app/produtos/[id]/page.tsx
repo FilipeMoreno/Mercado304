@@ -13,6 +13,7 @@ import {
 	DollarSign,
 	Edit,
 	Minus,
+	MoreVertical,
 	Package,
 	ShoppingCart,
 	Store,
@@ -32,6 +33,7 @@ import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-s
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { NutritionalInfo, Product } from "@/types"
 
 export default function ProdutoDetalhesPage() {
@@ -100,6 +102,29 @@ export default function ProdutoDetalhesPage() {
 		}
 	}
 
+	const handleDeleteProduct = async () => {
+		if (!confirm(`Tem certeza que deseja excluir o produto "${product?.name}"? Esta ação não pode ser desfeita.`)) {
+			return
+		}
+
+		try {
+			const response = await fetch(`/api/products/${productId}`, {
+				method: "DELETE",
+			})
+
+			if (response.ok) {
+				toast.success("Produto excluído com sucesso!")
+				router.push("/produtos")
+			} else {
+				const error = await response.json()
+				toast.error(error.error || "Erro ao excluir produto")
+			}
+		} catch (error) {
+			console.error("Erro ao excluir produto:", error)
+			toast.error("Erro ao excluir produto")
+		}
+	}
+
 	if (loading) {
 		return <ProductDetailsSkeleton />
 	}
@@ -110,41 +135,55 @@ export default function ProdutoDetalhesPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-4">
-				<Link href="/produtos">
-					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
-				</Link>
-				<div className="flex-1">
-					<div className="flex items-center gap-3">
-						<Package className="h-8 w-8 text-primary" />
-						<div>
-							<h1 className="text-3xl font-bold">{product.name}</h1>
-							<div className="flex items-center gap-2 mt-1">
-								{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
-								{product.category && (
-									<Badge variant="outline">
-										{product.category.icon} {product.category.name}
-									</Badge>
-								)}
-								<Badge variant="outline">{product.unit}</Badge>
-							</div>
+			{/* Header Simplificado */}
+			<div className="space-y-4">
+				{/* Título e Badges */}
+				<div className="flex items-start gap-3">
+					<div className="flex-1 min-w-0">
+						<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
+						<div className="flex flex-wrap items-center gap-2 mt-3">
+							{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
+							{product.category && (
+								<Badge variant="outline">
+									{product.category.icon} {product.category.name}
+								</Badge>
+							)}
+							<Badge variant="outline">{product.unit}</Badge>
 						</div>
 					</div>
 				</div>
-				<div className="flex gap-2">
-					<Link href={`/produtos/${productId}/editar`}>
-						<Button variant="outline" size="sm">
-							<Edit className="h-4 w-4 mr-2" />
-							Editar
-						</Button>
-					</Link>
-					<Button variant="destructive" size="sm">
-						<Trash2 className="h-4 w-4 mr-2" />
-						Excluir
+				<div className="flex flex-row gap-3">
+				<Link href="/produtos" className="flex-1">
+					<Button variant="outline" size="lg" className="w-full">
+						<ArrowLeft className="h-4 w-4 mr-2" />
+						Voltar para Produtos
 					</Button>
-				</div>
+				</Link>
+				
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="lg">
+							<MoreVertical className="h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem asChild>
+							<Link href={`/produtos/${productId}/editar`} className="flex items-center cursor-pointer">
+								<Edit className="h-4 w-4 mr-2" />
+								Editar Produto
+							</Link>
+						</DropdownMenuItem>
+						<DropdownMenuItem 
+							onClick={handleDeleteProduct}
+							className="text-red-600 focus:text-red-600 cursor-pointer"
+						>
+							<Trash2 className="h-4 w-4 mr-2" />
+							Excluir Produto
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+				
 			</div>
 
 			<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />

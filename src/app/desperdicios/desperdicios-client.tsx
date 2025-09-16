@@ -17,9 +17,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
-import { toast } from "sonner"
-import WasteSkeleton from "@/components/skeletons/waste-skeleton"
+import {  useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -174,7 +172,7 @@ export default function DesperdiciosClient() {
 	}
 
 	return (
-		<div className="container mx-auto p-6">
+		<div className="">
 			<div className="flex justify-between items-center mb-6">
 				<div>
 					<h1 className="text-3xl font-bold text-gray-900">Controle de Desperdícios</h1>
@@ -199,8 +197,7 @@ export default function DesperdiciosClient() {
 			{/* Estatísticas Principais */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
 				{isLoading ? (
-					<>
-						{Array.from({ length: 4 }).map((_, i) => (
+					Array.from({ length: 4 }).map((_, i) => (
 							<Card key={i}>
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 									<Skeleton className="h-4 w-24" />
@@ -210,8 +207,7 @@ export default function DesperdiciosClient() {
 									<Skeleton className="h-8 w-16" />
 								</CardContent>
 							</Card>
-						))}
-					</>
+						))
 				) : (
 					<>
 						<Card>

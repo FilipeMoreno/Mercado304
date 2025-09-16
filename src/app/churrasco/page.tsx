@@ -7,7 +7,6 @@ import {
 	Clock,
 	Drumstick,
 	Flame,
-	GlassWater,
 	History,
 	Loader2,
 	ShoppingCart,
@@ -97,7 +96,7 @@ export default function ChurrascoPage() {
 			} else {
 				toast.error("A IA não conseguiu calcular. Tente novamente.")
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro de comunicação com o servidor.")
 		} finally {
 			setLoading(false)
@@ -134,13 +133,12 @@ export default function ChurrascoPage() {
 	}
 
 	return (
-		<div className="container mx-auto p-6 space-y-6">
+		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 				<div>
 					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<Flame className="h-8 w-8 text-primary" />
-						Churrascômetro 304
+						Churrascômetro
 					</h1>
 					<p className="text-muted-foreground">
 						Calcule tudo para o seu churrasco perfeito com inteligência artificial

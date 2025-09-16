@@ -70,9 +70,9 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 
 	// Extract data from React Query
 	const brands = brandsData?.brands || []
-	const totalCount = brandsData?.totalCount || 0
+	const totalCount = brandsData?.pagination?.totalCount || 0
 	const itemsPerPage = 12
-	const totalPages = Math.ceil(totalCount / itemsPerPage)
+	const totalPages = brandsData?.pagination?.totalPages || Math.ceil(totalCount / itemsPerPage)
 
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },

@@ -129,7 +129,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			} else {
 				toast.error("Erro ao carregar registros de preços")
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro ao conectar com o servidor")
 		} finally {
 			setLoading(false)
@@ -145,7 +145,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 		}
 
 		const priceNum = parseFloat(price)
-		if (isNaN(priceNum) || priceNum < 0) {
+		if (Number.isNaN(priceNum) || priceNum < 0) {
 			toast.error("Preço deve ser um número válido maior ou igual a zero")
 			return
 		}
@@ -183,7 +183,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			} else {
 				toast.error(data.message || "Erro ao registrar preço")
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro ao conectar com o servidor")
 		} finally {
 			setIsSubmitting(false)
@@ -217,15 +217,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	useEffect(() => {
 		loadPriceRecords()
-	}, [])
+	}, [loadPriceRecords])
 
 	return (
-		<div className="container mx-auto p-6 space-y-6">
+		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 				<div>
 					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<Receipt className="h-8 w-8 text-primary" />
 						Registro de Preços
 					</h1>
 					<p className="text-muted-foreground">Registre preços que você viu mas não comprou para futuras comparações</p>

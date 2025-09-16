@@ -119,7 +119,7 @@ export default function EditarProdutoPage() {
 				...formData,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays) : null,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
 			}
 			const response = await fetch(`/api/products/${productId}`, {
@@ -199,19 +199,26 @@ export default function EditarProdutoPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-4">
-				<Link href={`/produtos/${productId}`}>
-					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
-						Voltar
-					</Button>
-				</Link>
+			{/* Header Responsivo */}
+			<div className="space-y-4">
+				{/* Ícone + Título */}
+				<div className="flex items-start gap-3">
+					<div className="flex-1 min-w-0">
+						<div className="flex flex-col sm:flex-row sm:items-center gap-2">
+							<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
+						</div>
+						<p className="text-sm md:text-base text-gray-600 mt-2">Atualize as informações do produto</p>
+					</div>
+				</div>
+				
+				{/* Botão Voltar abaixo do título */}
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<Package className="h-8 w-8" />
-						Editar: {product.name}
-					</h1>
-					<p className="text-gray-600 mt-2">Atualize as informações do produto</p>
+					<Link href={`/produtos/${productId}`}>
+						<Button variant="outline" size="sm" className="w-full sm:w-auto">
+							<ArrowLeft className="h-4 w-4 mr-2" />
+							Voltar para detalhes
+						</Button>
+					</Link>
 				</div>
 			</div>
 

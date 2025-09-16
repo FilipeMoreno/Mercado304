@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 		const searchTerm = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "name"
 		const page = parseInt(searchParams.get("page") || "1")
-		const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "12")
+		const itemsPerPage = parseInt(searchParams.get("limit") || "12")
 
 		const [orderBy, orderDirection] = sort.split("-").length === 2 ? sort.split("-") : [sort, "asc"]
 
@@ -36,13 +36,24 @@ export async function GET(request: Request) {
 			prisma.brand.count({ where }),
 		])
 
+		const totalPages = Math.ceil(totalCount / itemsPerPage)
+
 		return NextResponse.json({
 			brands: brands || [],
-			totalCount: totalCount || 0,
+			pagination: {
+				currentPage: page,
+				totalPages,
+				totalCount,
+				hasMore: page < totalPages,
+			},
 		})
 	} catch (error) {
 		console.error("Erro ao buscar marcas:", error)
-		return NextResponse.json({ error: "Erro ao buscar marcas", brands: [], totalCount: 0 }, { status: 500 })
+		return NextResponse.json({ 
+			error: "Erro ao buscar marcas", 
+			brands: [], 
+			pagination: { currentPage: 1, totalPages: 0, totalCount: 0, hasMore: false }
+		}, { status: 500 })
 	}
 }
 

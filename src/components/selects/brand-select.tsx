@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
-import { toast } from "sonner"
-import { Combobox } from "@/components/ui/combobox"
-import { AppToasts } from "@/lib/toasts"
-import { useDataStore } from "@/store/useDataStore"
+import { useCallback, useMemo, useState } from "react"
+import { BrandCombobox } from "@/components/ui/brand-combobox"
+import { useInfiniteBrandsQuery, useCreateBrandMutation } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Brand } from "@/types"
 
 interface BrandSelectProps {
@@ -22,47 +21,60 @@ export function BrandSelect({
 	className = "w-full",
 	disabled = false,
 }: BrandSelectProps) {
-	// Obter dados e actions do store
-	const { brands, loading, fetchBrands, addBrand } = useDataStore()
+	const [search, setSearch] = useState("")
+	const debouncedSearch = useDebounce(search, 300)
+	
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		isPlaceholderData,
+	} = useInfiniteBrandsQuery({ 
+		search: debouncedSearch,
+		enabled: true
+	})
 
-	useEffect(() => {
-		fetchBrands() // Busca os dados se não estiverem em cache
-	}, [fetchBrands])
+	const createBrandMutation = useCreateBrandMutation()
+
+	// Flatten all pages into a single array
+	const brands = useMemo(() => {
+		return data?.pages.flatMap(page => page.brands) || []
+	}, [data])
+
+	const handleSearchChange = useCallback((searchTerm: string) => {
+		setSearch(searchTerm)
+	}, [])
+
+	// Reset search when dropdown is closed
+	const handleValueChange = useCallback((newValue: string) => {
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+	}, [onValueChange])
 
 	const handleCreateBrand = async (name: string) => {
 		try {
-			const response = await fetch("/api/brands", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name: name.trim() }),
+			const newBrand = await createBrandMutation.mutateAsync({
+				name: name.trim()
 			})
-
-			if (response.ok) {
-				const newBrand: Brand = await response.json()
-				addBrand(newBrand) // Adiciona a nova marca ao store
-				onValueChange?.(newBrand.id)
-				AppToasts.created("Marca")
-			} else {
-				const error = await response.json()
-				AppToasts.error(error, "Erro ao criar marca")
-			}
+			onValueChange?.(newBrand.id)
 		} catch (error) {
-			AppToasts.error(error, "Erro ao criar marca")
+			console.error("Error creating brand:", error)
 		}
 	}
 
-	if (loading.brands && brands.length === 0) {
+	if (isLoading && brands.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
-		<Combobox
-			options={brands.map((brand) => ({
-				value: brand.id,
-				label: brand.name,
-			}))}
+		<BrandCombobox
+			brands={brands}
 			value={value}
-			onValueChange={onValueChange}
+			onValueChange={handleValueChange}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar marca..."
 			emptyText="Nenhuma marca encontrada."
@@ -70,6 +82,11 @@ export function BrandSelect({
 			createNewText="Criar marca"
 			className={className}
 			disabled={disabled}
+			hasNextPage={hasNextPage}
+			fetchNextPage={fetchNextPage}
+			isFetchingNextPage={isFetchingNextPage}
+			isLoading={isLoading || isPlaceholderData}
+			onSearchChange={handleSearchChange}
 		/>
 	)
 }

@@ -1,7 +1,9 @@
 "use client"
 
-import { Combobox } from "@/components/ui/combobox"
-import { useAllCategoriesQuery, useCreateCategoryMutation } from "@/hooks"
+import { useCallback, useMemo, useState } from "react"
+import { CategoryCombobox } from "@/components/ui/category-combobox"
+import { useInfiniteCategoriesQuery, useCreateCategoryMutation } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Category } from "@/types"
 
 interface CategorySelectProps {
@@ -19,9 +21,39 @@ export function CategorySelect({
 	className = "w-full",
 	disabled = false,
 }: CategorySelectProps) {
-	// Usar React Query para buscar categorias
-	const { data: categories = [], isLoading } = useAllCategoriesQuery()
+	const [search, setSearch] = useState("")
+	const debouncedSearch = useDebounce(search, 300)
+	
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		isPlaceholderData,
+	} = useInfiniteCategoriesQuery({ 
+		search: debouncedSearch,
+		enabled: true
+	})
+
 	const createCategoryMutation = useCreateCategoryMutation()
+
+	// Flatten all pages into a single array
+	const categories = useMemo(() => {
+		return data?.pages.flatMap(page => page.categories) || []
+	}, [data])
+
+	const handleSearchChange = useCallback((searchTerm: string) => {
+		setSearch(searchTerm)
+	}, [])
+
+	// Reset search when dropdown is closed
+	const handleValueChange = useCallback((newValue: string) => {
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+	}, [onValueChange])
 
 	const handleCreateCategory = async (name: string) => {
 		try {
@@ -32,7 +64,7 @@ export function CategorySelect({
 			})
 			onValueChange?.(newCategory.id)
 		} catch (error) {
-			console.error("Erro ao criar categoria:", error)
+			console.error("Error creating category:", error)
 		}
 	}
 
@@ -41,13 +73,10 @@ export function CategorySelect({
 	}
 
 	return (
-		<Combobox
-			options={categories.map((category: Category) => ({
-				value: category.id,
-				label: `${category.icon || "📦"} ${category.name}`,
-			}))}
+		<CategoryCombobox
+			categories={categories}
 			value={value}
-			onValueChange={onValueChange}
+			onValueChange={handleValueChange}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar categoria..."
 			emptyText="Nenhuma categoria encontrada."
@@ -55,6 +84,11 @@ export function CategorySelect({
 			createNewText="Criar categoria"
 			className={className}
 			disabled={disabled}
+			hasNextPage={hasNextPage}
+			fetchNextPage={fetchNextPage}
+			isFetchingNextPage={isFetchingNextPage}
+			isLoading={isLoading || isPlaceholderData}
+			onSearchChange={handleSearchChange}
 		/>
 	)
 }
