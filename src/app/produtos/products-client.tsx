@@ -1,4 +1,3 @@
-// src/app/produtos/products-client.tsx
 "use client"
 
 import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, Package, Plus, Search, Tag, Trash2 } from "lucide-react"
@@ -20,7 +19,7 @@ import {
 	useProductsQuery,
 	useUrlState,
 } from "@/hooks"
-import type { Brand, Category, Product } from "@/types"
+import type { Product } from "@/types"
 
 interface ProductsClientProps {
 	searchParams: {
@@ -42,7 +41,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			category: searchParams.category || "all",
 			brand: searchParams.brand || "all",
 			sort: searchParams.sort || "name-asc",
-			page: parseInt(searchParams.page || "1"),
+			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
 
@@ -141,7 +140,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			<SelectWithSearch
 				label="Categoria"
 				options={categoryOptions}
-				value={state.category}
+				value={state.category as string}
 				onValueChange={(value) => updateSingleValue("category", value)}
 				placeholder="Todas as categorias"
 				emptyMessage="Nenhuma categoria encontrada."
@@ -151,7 +150,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			<SelectWithSearch
 				label="Marca"
 				options={brandOptions}
-				value={state.brand}
+				value={state.brand as string}
 				onValueChange={(value) => updateSingleValue("brand", value)}
 				placeholder="Todas as marcas"
 				emptyMessage="Nenhuma marca encontrada."
@@ -211,7 +210,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Nome, código ou escaneie..."
-						value={state.search}
+						value={state.search as string}
 						onChange={(e) => updateSingleValue("search", e.target.value)}
 						className="pl-10"
 					/>

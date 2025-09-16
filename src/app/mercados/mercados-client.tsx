@@ -36,9 +36,9 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
 		const urlParams = new URLSearchParams({
-			search: state.search,
-			sort: state.sort,
-			page: state.page.toString(),
+			search: String(state.search),
+			sort: String(state.sort),
+			page: String(state.page),
 			limit: "12",
 		})
 		return urlParams
@@ -99,13 +99,13 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar mercados..."
-						value={state.search}
+						value={state.search as string}
 						onChange={(e) => updateSingleValue("search", e.target.value)}
 						className="pl-10"
 					/>
 				</div>
 				<FilterPopover
-					sortValue={state.sort}
+					sortValue={state.sort as string}
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
@@ -228,7 +228,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page - 1)}
+									onClick={() => handlePageChange(state.page as number - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -237,7 +237,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - (state.page as number)) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -258,7 +258,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page + 1)}
+									onClick={() => handlePageChange(state.page as number + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima

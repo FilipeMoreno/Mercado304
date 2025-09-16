@@ -1,10 +1,8 @@
-// src/app/lista/lista-client.tsx
 "use client"
 
-import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useState } from "react"
 import { toast } from "sonner"
 import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
@@ -38,21 +36,22 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 			search: searchParams.search || "",
 			sort: searchParams.sort || "date-desc",
 			status: searchParams.status || "all",
-			page: parseInt(searchParams.page || "1"),
+			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
 
 	// Build URLSearchParams for the shopping lists query
 	const shoppingListParams = React.useMemo(() => {
-		const urlParams = new URLSearchParams({
-			search: state.search,
-			sort: state.sort,
-			status: state.status,
-			page: state.page.toString(),
+		const params: Record<string, string> = {
+			search: String(state.search),
+			sort: String(state.sort),
+			status: String(state.status),
+			page: String(state.page),
 			limit: itemsPerPage.toString(),
-		})
-		return urlParams
+		}
+		return new URLSearchParams(params)
 	}, [state.search, state.sort, state.status, state.page, itemsPerPage])
+
 
 	// React Query hooks
 	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams)
@@ -149,7 +148,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 	const additionalFilters = (
 		<div className="space-y-2">
 			<Label>Status</Label>
-			<Select value={state.status} onValueChange={(value) => updateSingleValue("status", value)}>
+			<Select value={state.status as string} onValueChange={(value) => updateSingleValue("status", value)}>
 				<SelectTrigger>
 					<SelectValue placeholder="Todos" />
 				</SelectTrigger>
@@ -170,13 +169,13 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						<Input
 							placeholder="Buscar listas..."
-							value={state.search}
+							value={state.search as string}
 							onChange={(e) => updateSingleValue("search", e.target.value)}
 							className="pl-10"
 						/>
 					</div>
 					<FilterPopover
-						sortValue={state.sort}
+						sortValue={state.sort as string}
 						onSortChange={(value) => updateSingleValue("sort", value)}
 						sortOptions={sortOptions}
 						additionalFilters={additionalFilters}
@@ -272,7 +271,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page - 1)}
+									onClick={() => handlePageChange(state.page as number - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -281,7 +280,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - (state.page as number)) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -302,7 +301,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page + 1)}
+									onClick={() => handlePageChange(state.page as number + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima

@@ -1,4 +1,3 @@
-// src/app/estoque/estoque-client.tsx
 "use client"
 
 import { ptBR } from "date-fns/locale"
@@ -115,13 +114,13 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 
 	// Build URLSearchParams for the stock query
 	const stockParams = useMemo(() => {
-		const urlParams = new URLSearchParams({
-			location: state.location,
-			search: state.search,
-			filter: state.filter,
-			includeExpired: state.includeExpired,
-		})
-		return urlParams
+		const params: Record<string, string> = {
+			location: String(state.location),
+			search: String(state.search),
+			filter: String(state.filter),
+			includeExpired: String(state.includeExpired),
+		}
+		return new URLSearchParams(params)
 	}, [state.location, state.search, state.filter, state.includeExpired])
 
 	// React Query hooks
@@ -264,7 +263,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 		<>
 			<div className="space-y-2">
 				<Label>Status dos Produtos</Label>
-				<Select value={state.filter} onValueChange={(value) => updateSingleValue("filter", value)}>
+				<Select value={state.filter as string} onValueChange={(value) => updateSingleValue("filter", value)}>
 					<SelectTrigger>
 						<SelectValue placeholder="Todos os produtos" />
 					</SelectTrigger>
@@ -278,7 +277,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 			</div>
 			<div className="space-y-2">
 				<Label>Localização</Label>
-				<Select value={state.location} onValueChange={(value) => updateSingleValue("location", value)}>
+				<Select value={state.location as string} onValueChange={(value) => updateSingleValue("location", value)}>
 					<SelectTrigger>
 						<SelectValue placeholder="Todas as localizações" />
 					</SelectTrigger>
@@ -441,7 +440,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 									<Input
 										placeholder="Buscar produtos..."
-										value={state.search}
+										value={state.search as string}
 										onChange={(e) => updateSingleValue("search", e.target.value)}
 										className="pl-10"
 									/>

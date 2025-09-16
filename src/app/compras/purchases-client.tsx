@@ -1,4 +1,3 @@
-// src/app/compras/purchases-client.tsx
 "use client"
 
 import { format, startOfMonth, subDays } from "date-fns"
@@ -25,7 +24,6 @@ import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
 	useDeleteConfirmation,
 	useDeletePurchaseMutation,
@@ -64,24 +62,24 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 			period: searchParams.period || "all",
 			dateFrom: searchParams.dateFrom || "",
 			dateTo: searchParams.dateTo || "",
-			page: parseInt(searchParams.page || "1"),
+			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
 
 	// Build URLSearchParams for the queries
 	const purchaseParams = useMemo(() => {
-		const urlParams = new URLSearchParams({
-			search: state.search,
-			market: state.market,
-			sort: state.sort,
-			period: state.period,
-			dateFrom: state.dateFrom,
-			dateTo: state.dateTo,
-			page: state.page.toString(),
+		const params: Record<string, string> = {
+			search: String(state.search),
+			market: String(state.market),
+			sort: String(state.sort),
+			period: String(state.period),
+			dateFrom: String(state.dateFrom),
+			dateTo: String(state.dateTo),
+			page: String(state.page),
 			limit: itemsPerPage.toString(),
-		})
-		return urlParams
-	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page, itemsPerPage])
+		}
+		return new URLSearchParams(params)
+	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page])
 
 	// React Query hooks
 	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams)
@@ -96,8 +94,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const totalCount = purchasesData?.totalCount || 0
 	const markets = marketsData?.markets || []
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
-	const isLoading = purchasesLoading || marketsLoading
-
+	const _isLoading = purchasesLoading || marketsLoading
+_isLoading
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antigo" },
@@ -180,7 +178,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		<>
 			<div className="space-y-2">
 				<Label>Mercado</Label>
-				<Select value={state.market} onValueChange={(value) => updateSingleValue("market", value)}>
+				<Select value={state.market as string} onValueChange={(value) => updateSingleValue("market", value)}>
 					<SelectTrigger>
 						<SelectValue placeholder="Todos os mercados" />
 					</SelectTrigger>
@@ -195,7 +193,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 			</div>
 			<div className="space-y-2">
 				<Label>Período</Label>
-				<Select value={state.period} onValueChange={handlePeriodChange}>
+				<Select value={state.period as string} onValueChange={handlePeriodChange}>
 					<SelectTrigger>
 						<SelectValue placeholder="Selecione um período" />
 					</SelectTrigger>
@@ -215,7 +213,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						<Input
 							type="date"
 							id="dateFrom"
-							value={state.dateFrom}
+							value={state.dateFrom as string}
 							onChange={(e) => updateSingleValue("dateFrom", e.target.value)}
 						/>
 					</div>
@@ -224,7 +222,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						<Input
 							type="date"
 							id="dateTo"
-							value={state.dateTo}
+							value={state.dateTo as string}
 							onChange={(e) => updateSingleValue("dateTo", e.target.value)}
 						/>
 					</div>
@@ -240,13 +238,13 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar produtos..."
-						value={state.search}
+						value={state.search as string}
 						onChange={(e) => updateSingleValue("search", e.target.value)}
 						className="pl-10"
 					/>
 				</div>
 				<FilterPopover
-					sortValue={state.sort}
+					sortValue={state.sort as string}
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					additionalFilters={additionalFilters}
@@ -348,7 +346,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page - 1)}
+									onClick={() => handlePageChange(state.page as number - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -356,7 +354,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 								</Button>
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - (state.page as number)) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -376,7 +374,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page + 1)}
+									onClick={() => handlePageChange(state.page as number + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima
