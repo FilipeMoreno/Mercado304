@@ -1,6 +1,6 @@
 "use client"
 
-import { BrowserMultiFormatReader, DecodeHintType, NotFoundException, BarcodeFormat } from "@zxing/library"
+import { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType, NotFoundException } from "@zxing/library"
 import { Camera, CameraOff, Flashlight, FlashlightOff, RotateCcw, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -325,7 +325,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 						// Configurações básicas adicionais
 						const basicConstraints: any = {}
-						
+
 						// Tentar configurar resolução alta se suportado
 						if (capabilities.width && capabilities.height) {
 							const maxWidth = capabilities.width.max || 1920
@@ -340,7 +340,6 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 							await track.applyConstraints(basicConstraints)
 							console.log("📐 Resolução otimizada aplicada:", basicConstraints)
 						}
-
 					} catch (err) {
 						console.log("⚠️ Algumas otimizações não são suportadas:", err)
 					}
@@ -388,9 +387,9 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 		try {
 			// Criar canvas para capturar frame do vídeo
-			const canvas = document.createElement('canvas')
-			const context = canvas.getContext('2d')
-			
+			const canvas = document.createElement("canvas")
+			const context = canvas.getContext("2d")
+
 			if (!context) {
 				console.error("Não foi possível obter contexto do canvas")
 				if (isCameraActive) {
@@ -403,14 +402,14 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 			const sourceWidth = videoElement.videoWidth
 			const sourceHeight = videoElement.videoHeight
 			const scale = Math.min(1280 / sourceWidth, 720 / sourceHeight, 2) // Máximo 2x scale
-			
+
 			canvas.width = sourceWidth * scale
 			canvas.height = sourceHeight * scale
 
 			// Aplicar filtros para melhor contraste e nitidez
-			context.filter = 'contrast(1.2) brightness(1.1) saturate(0.8)'
+			context.filter = "contrast(1.2) brightness(1.1) saturate(0.8)"
 			context.imageSmoothingEnabled = false // Manter pixels nítidos
-			
+
 			// Desenhar frame com escala otimizada
 			context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
 
@@ -422,9 +421,9 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 			// Tentar múltiplas regiões para melhorar detecção
 			const regions = [
 				// Imagem completa em alta qualidade
-				{ dataUrl: canvas.toDataURL('image/png'), name: 'completa-png' },
+				{ dataUrl: canvas.toDataURL("image/png"), name: "completa-png" },
 				// Imagem completa em JPEG
-				{ dataUrl: canvas.toDataURL('image/jpeg', 0.95), name: 'completa-jpeg' },
+				{ dataUrl: canvas.toDataURL("image/jpeg", 0.95), name: "completa-jpeg" },
 			]
 
 			// Se a imagem for grande o suficiente, testar regiões centrais também
@@ -434,18 +433,18 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				const centerH = canvas.height * 0.7
 				const centerX = (canvas.width - centerW) / 2
 				const centerY = (canvas.height - centerH) / 2
-				
-				const centerCanvas = document.createElement('canvas')
-				const centerContext = centerCanvas.getContext('2d')
+
+				const centerCanvas = document.createElement("canvas")
+				const centerContext = centerCanvas.getContext("2d")
 				if (centerContext) {
 					centerCanvas.width = centerW
 					centerCanvas.height = centerH
-					centerContext.filter = 'contrast(1.3) brightness(1.2)'
+					centerContext.filter = "contrast(1.3) brightness(1.2)"
 					centerContext.imageSmoothingEnabled = false
 					centerContext.drawImage(canvas, centerX, centerY, centerW, centerH, 0, 0, centerW, centerH)
-					regions.push({ 
-						dataUrl: centerCanvas.toDataURL('image/png'), 
-						name: 'centro-png' 
+					regions.push({
+						dataUrl: centerCanvas.toDataURL("image/png"),
+						name: "centro-png",
 					})
 				}
 			}
@@ -455,7 +454,14 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				try {
 					const result = await codeReader.current.decodeFromImage(undefined, region.dataUrl)
 					if (result) {
-						console.log("🎉 Código detectado:", result.getText(), "Formato:", result.getBarcodeFormat(), "Região:", region.name)
+						console.log(
+							"🎉 Código detectado:",
+							result.getText(),
+							"Formato:",
+							result.getBarcodeFormat(),
+							"Região:",
+							region.name,
+						)
 						onScan(result.getText())
 						stopStream()
 						onClose()
@@ -468,7 +474,6 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 					}
 				}
 			}
-
 		} catch (err) {
 			// NotFoundException é esperado quando não há código visível
 			if (!(err instanceof NotFoundException)) {
@@ -498,19 +503,19 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		const hints = new Map()
 		// Incluir mais formatos de código usando enums
 		const formats = [
-			BarcodeFormat.CODE_128, 
-			BarcodeFormat.EAN_13, 
-			BarcodeFormat.EAN_8, 
-			BarcodeFormat.CODE_39, 
+			BarcodeFormat.CODE_128,
+			BarcodeFormat.EAN_13,
+			BarcodeFormat.EAN_8,
+			BarcodeFormat.CODE_39,
 			BarcodeFormat.CODE_93,
 			BarcodeFormat.CODABAR,
 			BarcodeFormat.ITF,
-			BarcodeFormat.QR_CODE, 
+			BarcodeFormat.QR_CODE,
 			BarcodeFormat.DATA_MATRIX,
 			BarcodeFormat.PDF_417,
-			BarcodeFormat.UPC_A, 
+			BarcodeFormat.UPC_A,
 			BarcodeFormat.UPC_E,
-			BarcodeFormat.UPC_EAN_EXTENSION
+			BarcodeFormat.UPC_EAN_EXTENSION,
 		]
 		hints.set(DecodeHintType.POSSIBLE_FORMATS, formats)
 		hints.set(DecodeHintType.TRY_HARDER, true)
@@ -569,16 +574,15 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 	if (!isOpen) return null
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50">
+		<div className="fixed bg-black bg-opacity-90 inset-0 flex items-center justify-center z-50">
 			<Card className="w-full max-w-2xl mx-4">
 				<CardContent className="p-6">
 					<div className="flex justify-between items-center mb-4">
-						<h3 className="text-lg font-semibold text-white">Scanner de Código de Barras</h3>
+						<h3 className="text-lg font-semibold">Scanner de Código de Barras</h3>
 						<Button
 							variant="outline"
 							size="sm"
 							onClick={onClose}
-							className="border-gray-600 text-white hover:bg-gray-800"
 						>
 							<X className="h-4 w-4" />
 						</Button>
@@ -652,36 +656,14 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 											<div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-400 rounded-tr-lg"></div>
 											<div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-400 rounded-bl-lg"></div>
 											<div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-400 rounded-br-lg"></div>
-											
+
 											{/* Área central destacada */}
 											<div className="absolute inset-4 border border-green-400/50 rounded-md bg-green-400/5">
 												{/* Linha de scanning animada */}
 												<div className="absolute inset-0 flex items-center justify-center">
 													<div className="w-full h-0.5 bg-red-500 animate-pulse shadow-lg"></div>
 												</div>
-											</div>
-											
-											{/* Instrução aprimorada */}
-											<div className="absolute -bottom-12 left-0 right-0 text-center">
-												<p className="text-sm text-white bg-black/80 px-3 py-2 rounded-lg font-medium shadow-lg">
-													📱 Mantenha 15-30cm de distância
-												</p>
-												<p className="text-xs text-gray-300 mt-1">
-													Código deve ocupar 50-80% da área verde
-												</p>
-											</div>
-										</div>
-
-										{/* Indicadores de zoom nas laterais */}
-										<div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-											<div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
-												🔍 HD
-											</div>
-										</div>
-										<div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-											<div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
-												↔️ Auto
-											</div>
+											</div>										
 										</div>
 									</div>
 								)}
@@ -731,18 +713,6 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 										</div>
 									)}
 								</div>
-							</div>
-
-							<div className="flex flex-col items-center space-y-2">
-								<p className="text-sm text-gray-400 text-center">
-									📏 <strong>Distância ideal:</strong> 15-30cm do código de barras
-								</p>
-								<p className="text-xs text-gray-500 text-center">
-									💡 O código deve ocupar 50-80% da área verde • Mantenha a câmera estável
-								</p>
-								<p className="text-xs text-gray-500 text-center">
-									🔍 Suporta: EAN, UPC, CODE 128/39/93, QR Code, Data Matrix e PDF-417
-								</p>
 							</div>
 						</div>
 					)}
