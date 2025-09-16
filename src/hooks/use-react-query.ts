@@ -862,8 +862,9 @@ export const useInfiniteProductsQuery = (options?: {
 	category?: string
 	brand?: string
 	sort?: string
+	enabled?: boolean
 }) => {
-	const { search, category, brand, sort } = options || {}
+	const { search, category, brand, sort, enabled = true } = options || {}
 
 	return useInfiniteQuery({
 		queryKey: ["products", "infinite", { search, category, brand, sort }],
@@ -872,7 +873,7 @@ export const useInfiniteProductsQuery = (options?: {
 			params.set("page", pageParam.toString())
 			params.set("limit", "50") // Aumentar limite para infinite scroll
 			
-			if (search) params.set("search", search)
+			if (search && search.trim()) params.set("search", search.trim())
 			if (category && category !== "all") params.set("category", category)
 			if (brand && brand !== "all") params.set("brand", brand)
 			if (sort) params.set("sort", sort)
@@ -882,8 +883,12 @@ export const useInfiniteProductsQuery = (options?: {
 		getNextPageParam: (lastPage) => {
 			return lastPage.pagination.hasMore ? lastPage.pagination.currentPage + 1 : undefined
 		},
-		staleTime: 3 * 60 * 1000,
+		staleTime: 30 * 1000, // Reduzir para 30 segundos para melhor reatividade na busca
+		gcTime: 5 * 60 * 1000, // Cache de 5 minutos no garbage collector
 		initialPageParam: 1,
+		enabled,
+		// Manter dados anteriores durante novas queries para evitar flickering
+		placeholderData: (previousData) => previousData,
 	})
 }
 

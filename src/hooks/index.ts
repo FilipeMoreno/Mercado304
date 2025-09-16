@@ -1,5 +1,6 @@
 export { useDataFetch } from "./use-data-fetch"
 export { useDataMutation } from "./use-data-mutation"
+export { useDebounce } from "./use-debounce"
 export { useDeleteConfirmation } from "./use-delete-confirmation"
 export { usePagination } from "./use-pagination"
 export * from "./use-react-query"

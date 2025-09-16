@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { ProductCombobox } from "@/components/ui/product-combobox"
 import { useInfiniteProductsQuery } from "@/hooks"
 import { TempStorage } from "@/lib/temp-storage"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Product } from "@/types"
 
 interface ProductSelectProps {
@@ -28,6 +29,7 @@ export function ProductSelect({
 	itemIndex,
 }: ProductSelectProps) {
 	const [search, setSearch] = useState("")
+	const debouncedSearch = useDebounce(search, 300)
 	
 	const {
 		data,
@@ -35,14 +37,28 @@ export function ProductSelect({
 		hasNextPage,
 		isFetchingNextPage,
 		isLoading,
-	} = useInfiniteProductsQuery({ search })
+		isPlaceholderData,
+	} = useInfiniteProductsQuery({ 
+		search: debouncedSearch,
+		enabled: true
+	})
 
 	// Flatten all pages into a single array
-	const products = data?.pages.flatMap(page => page.products) || []
+	const products = useMemo(() => {
+		return data?.pages.flatMap(page => page.products) || []
+	}, [data])
 
 	const handleSearchChange = useCallback((searchTerm: string) => {
 		setSearch(searchTerm)
 	}, [])
+
+	// Reset search when dropdown is closed
+	const handleValueChange = useCallback((newValue: string) => {
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+	}, [onValueChange])
 
 	const handleCreateProduct = (name: string) => {
 		if (preserveFormData) {
@@ -76,7 +92,7 @@ export function ProductSelect({
 		<ProductCombobox
 			products={products}
 			value={value}
-			onValueChange={onValueChange}
+			onValueChange={handleValueChange}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar produto ou código de barras..."
 			emptyText="Nenhum produto encontrado."
@@ -87,7 +103,7 @@ export function ProductSelect({
 			hasNextPage={hasNextPage}
 			fetchNextPage={fetchNextPage}
 			isFetchingNextPage={isFetchingNextPage}
-			isLoading={isLoading}
+			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
 		/>
 	)
