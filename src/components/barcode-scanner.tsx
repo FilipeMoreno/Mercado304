@@ -154,25 +154,47 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 				console.log("Inicializando câmera com dispositivo:", deviceId)
 
-				// Configurações progressivas da câmera (tentar configurações mais simples primeiro)
+				// Configurações progressivas da câmera (começar com alta qualidade)
 				const constraintSets = [
-					// Primeira tentativa: configurações específicas
+					// Primeira tentativa: máxima qualidade para scanner
 					{
 						video: deviceId
 							? {
 									deviceId: { exact: deviceId },
-									width: { ideal: 1280, min: 640 },
+									width: { ideal: 1920, min: 1280 },
+									height: { ideal: 1080, min: 720 },
+									frameRate: { ideal: 30, min: 20 },
+									focusMode: { ideal: "continuous" },
+									exposureMode: { ideal: "continuous" },
+									whiteBalanceMode: { ideal: "continuous" },
+								}
+							: {
+									facingMode: { ideal: "environment" },
+									width: { ideal: 1920, min: 1280 },
+									height: { ideal: 1080, min: 720 },
+									frameRate: { ideal: 30, min: 20 },
+									focusMode: { ideal: "continuous" },
+									exposureMode: { ideal: "continuous" },
+									whiteBalanceMode: { ideal: "continuous" },
+								},
+					},
+					// Segunda tentativa: boa qualidade
+					{
+						video: deviceId
+							? {
+									deviceId: { exact: deviceId },
+									width: { ideal: 1280, min: 720 },
 									height: { ideal: 720, min: 480 },
 									frameRate: { ideal: 30, min: 15 },
 								}
 							: {
 									facingMode: { ideal: "environment" },
-									width: { ideal: 1280, min: 640 },
+									width: { ideal: 1280, min: 720 },
 									height: { ideal: 720, min: 480 },
 									frameRate: { ideal: 30, min: 15 },
 								},
 					},
-					// Segunda tentativa: configurações mais simples
+					// Terceira tentativa: configurações simples
 					{
 						video: deviceId
 							? {
@@ -182,7 +204,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 									facingMode: "environment",
 								},
 					},
-					// Terceira tentativa: qualquer vídeo
+					// Quarta tentativa: qualquer vídeo
 					{
 						video: true,
 					},
@@ -247,7 +269,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 					// Em alguns navegadores, o play automático pode falhar, mas isso não é crítico
 				}
 
-				// Configurar track de vídeo
+				// Configurar track de vídeo com otimizações para scanner
 				const track = stream.getVideoTracks()[0]
 				if (track) {
 					console.log("Track de vídeo:", track.label, track.getSettings())
@@ -258,22 +280,69 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 						const advancedConstraints: any = {}
 
+						// Foco contínuo para manter código nítido
 						if (capabilities.focusMode?.includes("continuous")) {
 							advancedConstraints.focusMode = "continuous"
+						} else if (capabilities.focusMode?.includes("single-shot")) {
+							advancedConstraints.focusMode = "single-shot"
 						}
+
+						// Exposição contínua para compensar mudanças de luz
 						if (capabilities.exposureMode?.includes("continuous")) {
 							advancedConstraints.exposureMode = "continuous"
 						}
+
+						// Balance de branco automático
 						if (capabilities.whiteBalanceMode?.includes("continuous")) {
 							advancedConstraints.whiteBalanceMode = "continuous"
 						}
 
+						// Zoom para melhorar detecção (se disponível)
+						if (capabilities.zoom) {
+							const zoomRange = capabilities.zoom
+							const idealZoom = Math.min(zoomRange.max || 1, Math.max(zoomRange.min || 1, 1.5))
+							advancedConstraints.zoom = idealZoom
+						}
+
+						// Contraste e brilho otimizados para códigos
+						if (capabilities.contrast) {
+							const contrastRange = capabilities.contrast
+							const idealContrast = Math.min(contrastRange.max || 100, Math.max(contrastRange.min || 0, 120))
+							advancedConstraints.contrast = idealContrast
+						}
+
+						if (capabilities.brightness) {
+							const brightnessRange = capabilities.brightness
+							const idealBrightness = Math.min(brightnessRange.max || 100, Math.max(brightnessRange.min || 0, 110))
+							advancedConstraints.brightness = idealBrightness
+						}
+
+						// Aplicar configurações se houver alguma
 						if (Object.keys(advancedConstraints).length > 0) {
 							await track.applyConstraints({ advanced: [advancedConstraints] })
-							console.log("Configurações avançadas aplicadas:", advancedConstraints)
+							console.log("🎛️ Configurações otimizadas aplicadas:", advancedConstraints)
 						}
+
+						// Configurações básicas adicionais
+						const basicConstraints: any = {}
+						
+						// Tentar configurar resolução alta se suportado
+						if (capabilities.width && capabilities.height) {
+							const maxWidth = capabilities.width.max || 1920
+							const maxHeight = capabilities.height.max || 1080
+							if (maxWidth >= 1280 && maxHeight >= 720) {
+								basicConstraints.width = { ideal: Math.min(maxWidth, 1920) }
+								basicConstraints.height = { ideal: Math.min(maxHeight, 1080) }
+							}
+						}
+
+						if (Object.keys(basicConstraints).length > 0) {
+							await track.applyConstraints(basicConstraints)
+							console.log("📐 Resolução otimizada aplicada:", basicConstraints)
+						}
+
 					} catch (err) {
-						console.log("Algumas configurações avançadas não são suportadas:", err)
+						console.log("⚠️ Algumas otimizações não são suportadas:", err)
 					}
 				}
 
@@ -330,46 +399,95 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				return
 			}
 
-			// Configurar canvas com as dimensões do vídeo
-			canvas.width = videoElement.videoWidth
-			canvas.height = videoElement.videoHeight
+			// Usar dimensões maiores para melhor resolução
+			const sourceWidth = videoElement.videoWidth
+			const sourceHeight = videoElement.videoHeight
+			const scale = Math.min(1280 / sourceWidth, 720 / sourceHeight, 2) // Máximo 2x scale
+			
+			canvas.width = sourceWidth * scale
+			canvas.height = sourceHeight * scale
 
-			// Desenhar frame atual do vídeo no canvas
+			// Aplicar filtros para melhor contraste e nitidez
+			context.filter = 'contrast(1.2) brightness(1.1) saturate(0.8)'
+			context.imageSmoothingEnabled = false // Manter pixels nítidos
+			
+			// Desenhar frame com escala otimizada
 			context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
 
-			// Debug: mostrar dimensões do vídeo
-			console.log(`Processando frame: ${canvas.width}x${canvas.height}`)
-
-			// Converter canvas para URL e tentar decodificar
-			const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-			const result = await codeReader.current.decodeFromImage(undefined, dataUrl)
-
-			if (result) {
-				console.log("🎉 Código detectado:", result.getText(), "Formato:", result.getBarcodeFormat())
-				onScan(result.getText())
-				stopStream()
-				onClose()
-				return
+			// Debug apenas ocasionalmente
+			if (Math.random() < 0.01) {
+				console.log(`📷 Frame: ${canvas.width}x${canvas.height} (escala: ${scale.toFixed(2)}x)`)
 			}
+
+			// Tentar múltiplas regiões para melhorar detecção
+			const regions = [
+				// Imagem completa em alta qualidade
+				{ dataUrl: canvas.toDataURL('image/png'), name: 'completa-png' },
+				// Imagem completa em JPEG
+				{ dataUrl: canvas.toDataURL('image/jpeg', 0.95), name: 'completa-jpeg' },
+			]
+
+			// Se a imagem for grande o suficiente, testar regiões centrais também
+			if (canvas.width > 640 && canvas.height > 480) {
+				// Região central (70%)
+				const centerW = canvas.width * 0.7
+				const centerH = canvas.height * 0.7
+				const centerX = (canvas.width - centerW) / 2
+				const centerY = (canvas.height - centerH) / 2
+				
+				const centerCanvas = document.createElement('canvas')
+				const centerContext = centerCanvas.getContext('2d')
+				if (centerContext) {
+					centerCanvas.width = centerW
+					centerCanvas.height = centerH
+					centerContext.filter = 'contrast(1.3) brightness(1.2)'
+					centerContext.imageSmoothingEnabled = false
+					centerContext.drawImage(canvas, centerX, centerY, centerW, centerH, 0, 0, centerW, centerH)
+					regions.push({ 
+						dataUrl: centerCanvas.toDataURL('image/png'), 
+						name: 'centro-png' 
+					})
+				}
+			}
+
+			// Tentar decodificar em cada região
+			for (const region of regions) {
+				try {
+					const result = await codeReader.current.decodeFromImage(undefined, region.dataUrl)
+					if (result) {
+						console.log("🎉 Código detectado:", result.getText(), "Formato:", result.getBarcodeFormat(), "Região:", region.name)
+						onScan(result.getText())
+						stopStream()
+						onClose()
+						return
+					}
+				} catch (regionErr: any) {
+					// Continuar para próxima região
+					if (!(regionErr instanceof NotFoundException)) {
+						console.warn(`⚠️ Erro na região ${region.name}:`, regionErr?.message || regionErr)
+					}
+				}
+			}
+
 		} catch (err) {
 			// NotFoundException é esperado quando não há código visível
 			if (!(err instanceof NotFoundException)) {
 				console.error("❌ Erro de decodificação:", err)
 			} else {
-				// Mostrar tentativa a cada 20 ciclos (2 segundos aprox)
-				if (Math.random() < 0.05) {
+				// Mostrar tentativa a cada 50 ciclos (5 segundos aprox)
+				if (Math.random() < 0.02) {
 					console.log("🔍 Procurando código...")
 				}
 			}
 		}
 
-		// Continuar scanning com delay para melhor performance
+		// Continuar scanning com delay otimizado para qualidade
 		if (isCameraActive) {
 			setTimeout(() => {
 				if (isCameraActive) {
 					animationFrameRef.current = requestAnimationFrame(scanBarcode)
 				}
-			}, 100) // Delay de 100ms entre tentativas
+			}, 150) // Delay de 150ms para melhor processamento
 		}
 	}, [isCameraActive, onScan, onClose, stopStream])
 
@@ -524,27 +642,45 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 								<video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
 
-								{/* Overlay de scanning */}
+								{/* Overlay de scanning otimizado */}
 								{isCameraActive && (
 									<div className="absolute inset-0 flex items-center justify-center">
-										{/* Área de foco principal */}
-										<div className="relative w-3/4 h-40 border-2 border-green-400 rounded-lg bg-green-400/10">
-											{/* Cantos do scanner */}
-											<div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400"></div>
-											<div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400"></div>
-											<div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400"></div>
-											<div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400"></div>
+										{/* Área de foco principal - maior para permitir mais distância */}
+										<div className="relative w-4/5 h-48 border-2 border-green-400 rounded-lg bg-green-400/10">
+											{/* Cantos do scanner mais destacados */}
+											<div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-400 rounded-tl-lg"></div>
+											<div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-400 rounded-tr-lg"></div>
+											<div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-400 rounded-bl-lg"></div>
+											<div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-400 rounded-br-lg"></div>
 											
-											{/* Linha de scanning animada */}
-											<div className="absolute inset-0 flex items-center justify-center">
-												<div className="w-full h-0.5 bg-red-500 animate-pulse shadow-lg"></div>
+											{/* Área central destacada */}
+											<div className="absolute inset-4 border border-green-400/50 rounded-md bg-green-400/5">
+												{/* Linha de scanning animada */}
+												<div className="absolute inset-0 flex items-center justify-center">
+													<div className="w-full h-0.5 bg-red-500 animate-pulse shadow-lg"></div>
+												</div>
 											</div>
 											
-											{/* Texto de instrução */}
-											<div className="absolute -bottom-8 left-0 right-0 text-center">
-												<p className="text-xs text-white bg-black/70 px-2 py-1 rounded">
-													Centralize o código aqui
+											{/* Instrução aprimorada */}
+											<div className="absolute -bottom-12 left-0 right-0 text-center">
+												<p className="text-sm text-white bg-black/80 px-3 py-2 rounded-lg font-medium shadow-lg">
+													📱 Mantenha 15-30cm de distância
 												</p>
+												<p className="text-xs text-gray-300 mt-1">
+													Código deve ocupar 50-80% da área verde
+												</p>
+											</div>
+										</div>
+
+										{/* Indicadores de zoom nas laterais */}
+										<div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+											<div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
+												🔍 HD
+											</div>
+										</div>
+										<div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+											<div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
+												↔️ Auto
 											</div>
 										</div>
 									</div>
@@ -599,10 +735,13 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 							<div className="flex flex-col items-center space-y-2">
 								<p className="text-sm text-gray-400 text-center">
-									Posicione o código de barras dentro da área verde e mantenha a câmera estável
+									📏 <strong>Distância ideal:</strong> 15-30cm do código de barras
 								</p>
 								<p className="text-xs text-gray-500 text-center">
-									Funciona com códigos EAN, UPC, CODE 128/39/93, QR Code e Data Matrix
+									💡 O código deve ocupar 50-80% da área verde • Mantenha a câmera estável
+								</p>
+								<p className="text-xs text-gray-500 text-center">
+									🔍 Suporta: EAN, UPC, CODE 128/39/93, QR Code, Data Matrix e PDF-417
 								</p>
 							</div>
 						</div>
