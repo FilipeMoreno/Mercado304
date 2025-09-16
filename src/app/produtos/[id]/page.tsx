@@ -27,6 +27,7 @@ import { useEffect, useState } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
+import { AllergenIcons } from "@/components/allergen-icons"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
@@ -188,6 +189,7 @@ export default function ProdutoDetalhesPage() {
 			</div>
 
 			<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
+			<AllergenIcons nutritionalInfo={nutritionalInfo} />
 
 			{/* Cards de Estatísticas Rápidas */}
 			{stats && (
@@ -228,8 +230,8 @@ export default function ProdutoDetalhesPage() {
 								</div>
 								<div>
 									<p className="text-2xl font-bold">
-										{stats.lastPurchaseDate
-											? format(new Date(stats.lastPurchaseDate), "dd/MM", {
+										{stats.lastPriceDate
+											? format(new Date(stats.lastPriceDate), "dd/MM", {
 													locale: ptBR,
 												})
 											: "-"}

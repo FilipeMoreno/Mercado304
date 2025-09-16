@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Edit, Factory, Filter, Plus, Search, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { toast } from "sonner"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import {
 	useUpdateBrandMutation,
 	useUrlState,
 } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Brand } from "@/types"
 
 interface MarcasClientProps {
@@ -37,6 +38,8 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 	})
 	const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
 	const [editForm, setEditForm] = useState({ name: "" })
+	const [searchValue, setSearchValue] = useState(searchParams.search || "")
+	const debouncedSearch = useDebounce(searchValue, 500)
 
 	// URL state management
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -47,6 +50,19 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 			page: parseInt(searchParams.page || "1"),
 		},
 	})
+
+	// Atualizar a URL quando o debounce terminar
+	React.useEffect(() => {
+		if (debouncedSearch !== state.search) {
+			updateSingleValue("search", debouncedSearch)
+			updateSingleValue("page", 1) // Reset para primeira página
+		}
+	}, [debouncedSearch, state.search, updateSingleValue])
+
+	// Handler otimizado para mudanças no campo de busca
+	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchValue(e.target.value)
+	}, [])
 
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
@@ -156,8 +172,8 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar marcas..."
-						value={state.search}
-						onChange={(e) => updateSingleValue("search", e.target.value)}
+						value={searchValue}
+						onChange={handleSearchChange}
 						className="pl-10"
 					/>
 				</div>

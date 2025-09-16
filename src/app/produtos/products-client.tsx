@@ -3,7 +3,7 @@
 import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, Package, Plus, Search, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -19,6 +19,7 @@ import {
 	useProductsQuery,
 	useUrlState,
 } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Product } from "@/types"
 
 interface ProductsClientProps {
@@ -33,6 +34,8 @@ interface ProductsClientProps {
 
 export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
+	const [searchValue, setSearchValue] = useState(searchParams.search || "")
+	const debouncedSearch = useDebounce(searchValue, 500)
 
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/produtos",
@@ -44,6 +47,19 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
+
+	// Atualizar a URL quando o debounce terminar
+	React.useEffect(() => {
+		if (debouncedSearch !== state.search) {
+			updateSingleValue("search", debouncedSearch)
+			updateSingleValue("page", 1) // Reset para primeira página
+		}
+	}, [debouncedSearch, state.search, updateSingleValue])
+
+	// Handler otimizado para mudanças no campo de busca
+	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchValue(e.target.value)
+	}, [])
 
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
@@ -210,8 +226,8 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Nome, código ou escaneie..."
-						value={state.search as string}
-						onChange={(e) => updateSingleValue("search", e.target.value)}
+						value={searchValue}
+						onChange={handleSearchChange}
 						className="pl-10"
 					/>
 				</div>

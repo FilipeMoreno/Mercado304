@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight, Edit, Plus, Search, Tag, Trash2 } from "lucide-react"
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useCallback } from "react"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +18,7 @@ import {
 	useUpdateCategoryMutation,
 	useUrlState,
 } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Category } from "@/types"
 
 interface CategoriasClientProps {
@@ -38,6 +39,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	})
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "", isFood: false })
+	const [searchValue, setSearchValue] = useState(searchParams.search || "")
+	const debouncedSearch = useDebounce(searchValue, 500)
 
 	// URL state management
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -48,6 +51,19 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
+
+	// Atualizar a URL quando o debounce terminar
+	React.useEffect(() => {
+		if (debouncedSearch !== state.search) {
+			updateSingleValue("search", debouncedSearch)
+			updateSingleValue("page", 1) // Reset para primeira página
+		}
+	}, [debouncedSearch, state.search, updateSingleValue])
+
+	// Handler otimizado para mudanças no campo de busca
+	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchValue(e.target.value)
+	}, [])
 
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
@@ -166,8 +182,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar categorias..."
-						value={String(state.search)}
-						onChange={(e) => updateSingleValue("search", e.target.value)}
+						value={searchValue}
+						onChange={handleSearchChange}
 						className="pl-10"
 					/>
 				</div>

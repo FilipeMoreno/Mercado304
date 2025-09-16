@@ -3,7 +3,7 @@
 import { BarChart3, ChevronLeft, ChevronRight, Edit, MapPin, Plus, Search, Store, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -11,6 +11,7 @@ import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDeleteConfirmation, useDeleteMarketMutation, useMarketsQuery, useUrlState } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 import type { Market } from "@/types"
 
 interface MercadosClientProps {
@@ -23,6 +24,8 @@ interface MercadosClientProps {
 
 export function MercadosClient({ searchParams }: MercadosClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Market>()
+	const [searchValue, setSearchValue] = useState(searchParams.search || "")
+	const debouncedSearch = useDebounce(searchValue, 500)
 
 	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/mercados",
@@ -32,6 +35,19 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
+
+	// Atualizar a URL quando o debounce terminar
+	React.useEffect(() => {
+		if (debouncedSearch !== state.search) {
+			updateSingleValue("search", debouncedSearch)
+			updateSingleValue("page", 1) // Reset para primeira página
+		}
+	}, [debouncedSearch, state.search, updateSingleValue])
+
+	// Handler otimizado para mudanças no campo de busca
+	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchValue(e.target.value)
+	}, [])
 
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
@@ -99,8 +115,8 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar mercados..."
-						value={state.search as string}
-						onChange={(e) => updateSingleValue("search", e.target.value)}
+						value={searchValue}
+						onChange={handleSearchChange}
 						className="pl-10"
 					/>
 				</div>
