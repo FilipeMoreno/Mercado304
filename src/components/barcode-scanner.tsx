@@ -27,11 +27,24 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 	// Função para listar câmeras disponíveis
 	const getVideoDevices = useCallback(async () => {
 		try {
-			// Solicitar permissão primeiro
-			await navigator.mediaDevices.getUserMedia({ video: true })
+			// Verificar se a API está disponível
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				throw new Error("API de mídia não suportada neste navegador")
+			}
+
+			// Solicitar permissão básica primeiro
+			const stream = await navigator.mediaDevices.getUserMedia({ 
+				video: { facingMode: "environment" } 
+			})
+			
+			// Parar o stream temporário
+			stream.getTracks().forEach(track => track.stop())
 			
 			const deviceList = await navigator.mediaDevices.enumerateDevices()
 			const videoDevices = deviceList.filter((device) => device.kind === "videoinput")
+			
+			console.log("Dispositivos de vídeo encontrados:", videoDevices.map(d => ({ id: d.deviceId, label: d.label })))
+			
 			setDevices(videoDevices)
 
 			// Preferir câmera traseira se disponível
@@ -40,15 +53,32 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 					device.label.toLowerCase().includes("back") ||
 					device.label.toLowerCase().includes("rear") ||
 					device.label.toLowerCase().includes("environment") ||
-					device.label.toLowerCase().includes("facing back")
+					device.label.toLowerCase().includes("facing back") ||
+					device.label.toLowerCase().includes("traseira")
 			)
 
 			const selectedId = backCamera?.deviceId || videoDevices[0]?.deviceId || ""
+			console.log("Câmera selecionada:", selectedId, backCamera?.label || videoDevices[0]?.label)
+			
 			setSelectedDeviceId(selectedId)
 			return selectedId
-		} catch (err) {
+		} catch (err: any) {
 			console.error("Erro ao listar dispositivos:", err)
-			setError("Erro ao acessar a câmera. Verifique as permissões.")
+			let errorMessage = "Erro ao acessar a câmera."
+			
+			if (err.name === 'NotAllowedError') {
+				errorMessage = "Permissão negada. Permita o acesso à câmera."
+			} else if (err.name === 'NotFoundError') {
+				errorMessage = "Nenhuma câmera encontrada."
+			} else if (err.name === 'NotSupportedError') {
+				errorMessage = "Câmera não suportada neste navegador."
+			} else if (err.name === 'NotReadableError') {
+				errorMessage = "Câmera em uso por outro aplicativo."
+			} else if (err.name === 'OverconstrainedError') {
+				errorMessage = "Configurações de câmera não suportadas."
+			}
+			
+			setError(errorMessage)
 			return ""
 		}
 	}, [])
@@ -118,37 +148,104 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 			// Parar stream anterior se existir
 			stopStream()
 
-			// Configurações otimizadas da câmera para PWA
-			const constraints: MediaStreamConstraints = {
-				video: {
-					deviceId: deviceId ? { exact: deviceId } : undefined,
-					width: { ideal: 1280, min: 640 },
-					height: { ideal: 720, min: 480 },
-					aspectRatio: { ideal: 16 / 9 },
-					facingMode: deviceId ? undefined : { ideal: "environment" },
-					frameRate: { ideal: 30, min: 15 }
+			console.log("Inicializando câmera com dispositivo:", deviceId)
+
+			// Configurações progressivas da câmera (tentar configurações mais simples primeiro)
+			const constraintSets = [
+				// Primeira tentativa: configurações específicas
+				{
+					video: deviceId ? {
+						deviceId: { exact: deviceId },
+						width: { ideal: 1280, min: 640 },
+						height: { ideal: 720, min: 480 },
+						frameRate: { ideal: 30, min: 15 }
+					} : {
+						facingMode: { ideal: "environment" },
+						width: { ideal: 1280, min: 640 },
+						height: { ideal: 720, min: 480 },
+						frameRate: { ideal: 30, min: 15 }
+					}
 				},
+				// Segunda tentativa: configurações mais simples
+				{
+					video: deviceId ? {
+						deviceId: { exact: deviceId }
+					} : {
+						facingMode: "environment"
+					}
+				},
+				// Terceira tentativa: qualquer vídeo
+				{
+					video: true
+				}
+			]
+
+			let stream: MediaStream | null = null
+			let lastError: Error | null = null
+
+			for (const constraints of constraintSets) {
+				try {
+					console.log("Tentando configurações:", constraints)
+					stream = await navigator.mediaDevices.getUserMedia(constraints)
+					console.log("Stream obtido com sucesso:", stream.getVideoTracks().map(t => t.label))
+					break
+				} catch (err: any) {
+					console.log("Configuração falhou:", err.name, err.message)
+					lastError = err
+					continue
+				}
 			}
 
-			// Obter stream da câmera
-			const stream = await navigator.mediaDevices.getUserMedia(constraints)
+			if (!stream) {
+				throw lastError || new Error("Não foi possível obter stream de vídeo")
+			}
+
 			streamRef.current = stream
 			videoElement.srcObject = stream
 
-			// Aguardar o vídeo estar pronto
+			// Aguardar o vídeo estar pronto com timeout mais longo
 			await new Promise<void>((resolve, reject) => {
-				videoElement.onloadedmetadata = () => resolve()
-				videoElement.onerror = () => reject(new Error("Erro ao carregar vídeo"))
-				setTimeout(() => reject(new Error("Timeout ao carregar vídeo")), 10000)
+				const onLoadedMetadata = () => {
+					videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+					videoElement.removeEventListener('error', onError)
+					resolve()
+				}
+				
+				const onError = (e: any) => {
+					videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+					videoElement.removeEventListener('error', onError)
+					reject(new Error(`Erro ao carregar vídeo: ${e.message || 'Desconhecido'}`))
+				}
+
+				videoElement.addEventListener('loadedmetadata', onLoadedMetadata)
+				videoElement.addEventListener('error', onError)
+				
+				// Timeout maior para dispositivos mais lentos
+				setTimeout(() => {
+					videoElement.removeEventListener('loadedmetadata', onLoadedMetadata)
+					videoElement.removeEventListener('error', onError)
+					reject(new Error("Timeout ao carregar vídeo"))
+				}, 15000)
 			})
 
-			await videoElement.play()
+			// Tentar reproduzir o vídeo
+			try {
+				await videoElement.play()
+				console.log("Vídeo iniciado com sucesso")
+			} catch (playError: any) {
+				console.warn("Erro ao iniciar vídeo automaticamente:", playError)
+				// Em alguns navegadores, o play automático pode falhar, mas isso não é crítico
+			}
 
 			// Configurar track de vídeo
 			const track = stream.getVideoTracks()[0]
 			if (track) {
+				console.log("Track de vídeo:", track.label, track.getSettings())
+				
 				try {
 					const capabilities = track.getCapabilities() as any
+					console.log("Capacidades da câmera:", capabilities)
+					
 					const advancedConstraints: any = {}
 
 					if (capabilities.focusMode?.includes("continuous")) {
@@ -163,6 +260,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 					if (Object.keys(advancedConstraints).length > 0) {
 						await track.applyConstraints({ advanced: [advancedConstraints] })
+						console.log("Configurações avançadas aplicadas:", advancedConstraints)
 					}
 				} catch (err) {
 					console.log("Algumas configurações avançadas não são suportadas:", err)
@@ -171,9 +269,26 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 			setIsCameraActive(true)
 			setIsLoading(false)
-		} catch (err) {
+			console.log("Câmera inicializada com sucesso")
+		} catch (err: any) {
 			console.error("Erro ao inicializar câmera:", err)
-			setError("Erro ao acessar a câmera. Verifique as permissões.")
+			let errorMessage = "Erro ao acessar a câmera."
+			
+			if (err.name === 'NotAllowedError') {
+				errorMessage = "Permissão negada. Permita o acesso à câmera."
+			} else if (err.name === 'NotFoundError') {
+				errorMessage = "Câmera não encontrada ou dispositivo inválido."
+			} else if (err.name === 'NotSupportedError') {
+				errorMessage = "Câmera não suportada neste navegador."
+			} else if (err.name === 'NotReadableError') {
+				errorMessage = "Câmera em uso por outro aplicativo."
+			} else if (err.name === 'OverconstrainedError') {
+				errorMessage = "Configurações de câmera não suportadas."
+			} else if (err.message?.includes('Timeout')) {
+				errorMessage = "Timeout ao carregar câmera. Tente novamente."
+			}
+			
+			setError(errorMessage)
 			setIsLoading(false)
 		}
 	}, [stopStream])
@@ -234,21 +349,29 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		if (!isOpen) return
 
 		const initialize = async () => {
-			const deviceId = await getVideoDevices()
-			if (deviceId) {
-				await initializeCamera(deviceId)
+			try {
+				// Tentar inicializar sem deviceId específico primeiro
+				await initializeCamera("")
+			} catch (err) {
+				console.log("Tentativa inicial falhou, tentando enumerar dispositivos:", err)
+				// Se falhar, tentar listar dispositivos primeiro
+				const deviceId = await getVideoDevices()
+				if (deviceId) {
+					await initializeCamera(deviceId)
+				}
 			}
 		}
 
 		initialize()
 	}, [isOpen, getVideoDevices, initializeCamera])
 
-	// Trocar câmera quando selectedDeviceId mudar
+	// Trocar câmera quando selectedDeviceId mudar (apenas se já tivermos dispositivos)
 	useEffect(() => {
-		if (!isOpen || !selectedDeviceId) return
+		if (!isOpen || !selectedDeviceId || devices.length === 0 || isLoading) return
 		
+		console.log("Trocando para câmera:", selectedDeviceId)
 		initializeCamera(selectedDeviceId)
-	}, [selectedDeviceId, isOpen, initializeCamera])
+	}, [selectedDeviceId, isOpen, initializeCamera, devices.length, isLoading])
 
 	// Iniciar scanning quando câmera estiver ativa
 	useEffect(() => {
@@ -280,9 +403,19 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 					{error ? (
 						<div className="text-center py-8">
 							<p className="text-red-400 mb-4">{error}</p>
+							<div className="text-xs text-gray-500 mb-4 max-w-md mx-auto">
+								<p>Debug info:</p>
+								<p>Dispositivos encontrados: {devices.length}</p>
+								<p>ID selecionado: {selectedDeviceId || "Nenhum"}</p>
+								<p>Navegador: {navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Safari') ? 'Safari' : 'Outro'}</p>
+								<p>HTTPS: {window.location.protocol === 'https:' ? 'Sim' : 'Não'}</p>
+							</div>
 							<div className="flex gap-2 justify-center">
 								<Button onClick={() => initializeCamera(selectedDeviceId)} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
 									Tentar Novamente
+								</Button>
+								<Button onClick={() => getVideoDevices().then(id => id && initializeCamera(id))} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
+									Recarregar Dispositivos
 								</Button>
 								<Button onClick={onClose} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
 									Fechar
