@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react"
 import { CategoryCombobox } from "@/components/ui/category-combobox"
-import { useInfiniteCategoriesQuery, useCreateCategoryMutation } from "@/hooks"
+import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Category } from "@/types"
 
@@ -23,24 +23,18 @@ export function CategorySelect({
 }: CategorySelectProps) {
 	const [search, setSearch] = useState("")
 	const debouncedSearch = useDebounce(search, 300)
-	
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isLoading,
-		isPlaceholderData,
-	} = useInfiniteCategoriesQuery({ 
-		search: debouncedSearch,
-		enabled: true
-	})
+
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
+		useInfiniteCategoriesQuery({
+			search: debouncedSearch,
+			enabled: true,
+		})
 
 	const createCategoryMutation = useCreateCategoryMutation()
 
 	// Flatten all pages into a single array
 	const categories = useMemo(() => {
-		return data?.pages.flatMap(page => page.categories) || []
+		return data?.pages.flatMap((page) => page.categories) || []
 	}, [data])
 
 	const handleSearchChange = useCallback((searchTerm: string) => {
@@ -48,12 +42,15 @@ export function CategorySelect({
 	}, [])
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback((newValue: string) => {
-		onValueChange?.(newValue)
-		if (newValue) {
-			setSearch("")
-		}
-	}, [onValueChange])
+	const handleValueChange = useCallback(
+		(newValue: string) => {
+			onValueChange?.(newValue)
+			if (newValue) {
+				setSearch("")
+			}
+		},
+		[onValueChange],
+	)
 
 	const handleCreateCategory = async (name: string) => {
 		try {

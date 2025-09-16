@@ -60,16 +60,19 @@ export function ProductCombobox({
 	}, [searchTerm, onSearchChange])
 
 	// Handler para scroll com melhor detecção
-	const handleScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
-		const target = e.currentTarget
-		const { scrollTop, scrollHeight, clientHeight } = target
-		
-		// Carregar mais quando chegar perto do final (85% do scroll)
-		const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
-		if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
-			fetchNextPage?.()
-		}
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
+	const handleScroll = React.useCallback(
+		(e: React.UIEvent<HTMLDivElement>) => {
+			const target = e.currentTarget
+			const { scrollTop, scrollHeight, clientHeight } = target
+
+			// Carregar mais quando chegar perto do final (85% do scroll)
+			const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
+			if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
+				fetchNextPage?.()
+			}
+		},
+		[hasNextPage, isFetchingNextPage, fetchNextPage],
+	)
 
 	// Para infinite scroll, usar os produtos diretamente sem filtrar no cliente
 	// O filtro é feito no servidor através do useInfiniteProductsQuery
@@ -124,7 +127,7 @@ export function ProductCombobox({
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" sideOffset={4}>
 				<Command shouldFilter={false}>
 					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
-					<CommandList 
+					<CommandList
 						ref={scrollRef}
 						className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
 						onScroll={handleScroll}

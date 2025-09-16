@@ -872,7 +872,7 @@ export const useInfiniteProductsQuery = (options?: {
 			const params = new URLSearchParams()
 			params.set("page", pageParam.toString())
 			params.set("limit", "50") // Aumentar limite para infinite scroll
-			
+
 			if (search && search.trim()) params.set("search", search.trim())
 			if (category && category !== "all") params.set("category", category)
 			if (brand && brand !== "all") params.set("brand", brand)
@@ -893,11 +893,7 @@ export const useInfiniteProductsQuery = (options?: {
 }
 
 // Infinite Brands Query
-export const useInfiniteBrandsQuery = (options?: {
-	search?: string
-	sort?: string
-	enabled?: boolean
-}) => {
+export const useInfiniteBrandsQuery = (options?: { search?: string; sort?: string; enabled?: boolean }) => {
 	const { search, sort, enabled = true } = options || {}
 
 	return useInfiniteQuery({
@@ -906,7 +902,7 @@ export const useInfiniteBrandsQuery = (options?: {
 			const params = new URLSearchParams()
 			params.set("page", pageParam.toString())
 			params.set("limit", "50")
-			
+
 			if (search && search.trim()) params.set("search", search.trim())
 			if (sort) params.set("sort", sort)
 
@@ -924,11 +920,7 @@ export const useInfiniteBrandsQuery = (options?: {
 }
 
 // Infinite Categories Query
-export const useInfiniteCategoriesQuery = (options?: {
-	search?: string
-	sort?: string
-	enabled?: boolean
-}) => {
+export const useInfiniteCategoriesQuery = (options?: { search?: string; sort?: string; enabled?: boolean }) => {
 	const { search, sort, enabled = true } = options || {}
 
 	return useInfiniteQuery({
@@ -937,7 +929,7 @@ export const useInfiniteCategoriesQuery = (options?: {
 			const params = new URLSearchParams()
 			params.set("page", pageParam.toString())
 			params.set("limit", "50")
-			
+
 			if (search && search.trim()) params.set("search", search.trim())
 			if (sort) params.set("sort", sort)
 

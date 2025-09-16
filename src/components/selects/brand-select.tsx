@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react"
 import { BrandCombobox } from "@/components/ui/brand-combobox"
-import { useInfiniteBrandsQuery, useCreateBrandMutation } from "@/hooks"
+import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Brand } from "@/types"
 
@@ -23,24 +23,19 @@ export function BrandSelect({
 }: BrandSelectProps) {
 	const [search, setSearch] = useState("")
 	const debouncedSearch = useDebounce(search, 300)
-	
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isLoading,
-		isPlaceholderData,
-	} = useInfiniteBrandsQuery({ 
-		search: debouncedSearch,
-		enabled: true
-	})
+
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } = useInfiniteBrandsQuery(
+		{
+			search: debouncedSearch,
+			enabled: true,
+		},
+	)
 
 	const createBrandMutation = useCreateBrandMutation()
 
 	// Flatten all pages into a single array
 	const brands = useMemo(() => {
-		return data?.pages.flatMap(page => page.brands) || []
+		return data?.pages.flatMap((page) => page.brands) || []
 	}, [data])
 
 	const handleSearchChange = useCallback((searchTerm: string) => {
@@ -48,17 +43,20 @@ export function BrandSelect({
 	}, [])
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback((newValue: string) => {
-		onValueChange?.(newValue)
-		if (newValue) {
-			setSearch("")
-		}
-	}, [onValueChange])
+	const handleValueChange = useCallback(
+		(newValue: string) => {
+			onValueChange?.(newValue)
+			if (newValue) {
+				setSearch("")
+			}
+		},
+		[onValueChange],
+	)
 
 	const handleCreateBrand = async (name: string) => {
 		try {
 			const newBrand = await createBrandMutation.mutateAsync({
-				name: name.trim()
+				name: name.trim(),
 			})
 			onValueChange?.(newBrand.id)
 		} catch (error) {

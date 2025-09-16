@@ -44,7 +44,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		basePath: "/categorias",
 		initialValues: {
 			search: searchParams.search || "",
-			sort: searchParams.sort || "name",
+			sort: searchParams.sort || "name-asc",
 			page: parseInt(searchParams.page || "1", 10),
 		},
 	})
@@ -52,9 +52,9 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
 		const urlParams = new URLSearchParams({
-			search: state.search,
-			sort: state.sort,
-			page: state.page.toString(),
+			search: String(state.search),
+			sort: String(state.sort),
+			page: String(state.page),
 			limit: "12",
 		})
 		return urlParams
@@ -173,14 +173,11 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					/>
 				</div>
 				<FilterPopover
-					sortValue={state.sort}
+					sortValue={String(state.sort)}
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
+					onClearFilters={clearFilters}
 				/>
 				<Button onClick={() => setShowForm(true)}>
 					<Plus className="mr-2 h-4 w-4" />
@@ -198,13 +195,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
 								<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
-								<Button
-									variant="outline"
-									onClick={() => {
-										clearFilters()
-										updateSingleValue("page", 1)
-									}}
-								>
+								<Button variant="outline" onClick={clearFilters}>
 									Limpar Filtros
 								</Button>
 							</CardContent>
@@ -244,7 +235,9 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 												</CardTitle>
 												<CardDescription className="mt-2 flex items-center gap-2">
 													{category._count?.products || 0} produtos
-													{category.isFood && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>}
+													{category.isFood && (
+														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>
+													)}
 												</CardDescription>
 											</div>
 										</div>
@@ -268,8 +261,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page - 1)}
-									disabled={state.page === 1}
+									onClick={() => handlePageChange(Number(state.page) - 1)}
+									disabled={Number(state.page) === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
 									Anterior

@@ -3,8 +3,8 @@
 import { useCallback, useMemo, useState } from "react"
 import { ProductCombobox } from "@/components/ui/product-combobox"
 import { useInfiniteProductsQuery } from "@/hooks"
-import { TempStorage } from "@/lib/temp-storage"
 import { useDebounce } from "@/hooks/use-debounce"
+import { TempStorage } from "@/lib/temp-storage"
 import type { Product } from "@/types"
 
 interface ProductSelectProps {
@@ -30,22 +30,16 @@ export function ProductSelect({
 }: ProductSelectProps) {
 	const [search, setSearch] = useState("")
 	const debouncedSearch = useDebounce(search, 300)
-	
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		isLoading,
-		isPlaceholderData,
-	} = useInfiniteProductsQuery({ 
-		search: debouncedSearch,
-		enabled: true
-	})
+
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
+		useInfiniteProductsQuery({
+			search: debouncedSearch,
+			enabled: true,
+		})
 
 	// Flatten all pages into a single array
 	const products = useMemo(() => {
-		return data?.pages.flatMap(page => page.products) || []
+		return data?.pages.flatMap((page) => page.products) || []
 	}, [data])
 
 	const handleSearchChange = useCallback((searchTerm: string) => {
@@ -53,12 +47,15 @@ export function ProductSelect({
 	}, [])
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback((newValue: string) => {
-		onValueChange?.(newValue)
-		if (newValue) {
-			setSearch("")
-		}
-	}, [onValueChange])
+	const handleValueChange = useCallback(
+		(newValue: string) => {
+			onValueChange?.(newValue)
+			if (newValue) {
+				setSearch("")
+			}
+		},
+		[onValueChange],
+	)
 
 	const handleCreateProduct = (name: string) => {
 		if (preserveFormData) {

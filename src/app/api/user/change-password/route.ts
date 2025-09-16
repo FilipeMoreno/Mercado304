@@ -19,9 +19,9 @@ export async function PUT(request: NextRequest) {
 
 		// Buscar conta com senha (Better Auth armazena senhas na tabela Account)
 		const account = await prisma.account.findFirst({
-			where: { 
+			where: {
 				userId: session.user.id,
-				providerId: "credential" // Better Auth usa "credential" para contas de email/senha
+				providerId: "credential", // Better Auth usa "credential" para contas de email/senha
 			},
 			select: {
 				id: true,

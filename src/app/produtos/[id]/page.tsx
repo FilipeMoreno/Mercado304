@@ -153,37 +153,36 @@ export default function ProdutoDetalhesPage() {
 					</div>
 				</div>
 				<div className="flex flex-row gap-3">
-				<Link href="/produtos" className="flex-1">
-					<Button variant="outline" size="lg" className="w-full">
-						<ArrowLeft className="h-4 w-4 mr-2" />
-						Voltar para Produtos
-					</Button>
-				</Link>
-				
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" size="lg">
-							<MoreVertical className="h-4 w-4" />
+					<Link href="/produtos" className="flex-1">
+						<Button variant="outline" size="lg" className="w-full">
+							<ArrowLeft className="h-4 w-4 mr-2" />
+							Voltar para Produtos
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuItem asChild>
-							<Link href={`/produtos/${productId}/editar`} className="flex items-center cursor-pointer">
-								<Edit className="h-4 w-4 mr-2" />
-								Editar Produto
-							</Link>
-						</DropdownMenuItem>
-						<DropdownMenuItem 
-							onClick={handleDeleteProduct}
-							className="text-red-600 focus:text-red-600 cursor-pointer"
-						>
-							<Trash2 className="h-4 w-4 mr-2" />
-							Excluir Produto
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-				
+					</Link>
+
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" size="lg">
+								<MoreVertical className="h-4 w-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem asChild>
+								<Link href={`/produtos/${productId}/editar`} className="flex items-center cursor-pointer">
+									<Edit className="h-4 w-4 mr-2" />
+									Editar Produto
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={handleDeleteProduct}
+								className="text-red-600 focus:text-red-600 cursor-pointer"
+							>
+								<Trash2 className="h-4 w-4 mr-2" />
+								Excluir Produto
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			</div>
 
 			<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />

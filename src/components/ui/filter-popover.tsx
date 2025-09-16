@@ -33,8 +33,8 @@ export function FilterPopover({
 	const [open, setOpen] = useState(false)
 
 	const handleClearFilters = () => {
-		onSortChange?.("")
 		onClearFilters?.()
+		setOpen(false)
 	}
 
 	return (

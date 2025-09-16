@@ -210,7 +210,7 @@ export default function EditarProdutoPage() {
 						<p className="text-sm md:text-base text-gray-600 mt-2">Atualize as informações do produto</p>
 					</div>
 				</div>
-				
+
 				{/* Botão Voltar abaixo do título */}
 				<div>
 					<Link href={`/produtos/${productId}`}>

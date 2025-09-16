@@ -56,20 +56,23 @@ export function CategoryCombobox({
 		onSearchChange?.(searchTerm)
 	}, [searchTerm, onSearchChange])
 
-	const handleScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
-		const target = e.currentTarget
-		const { scrollTop, scrollHeight, clientHeight } = target
-		
-		const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
-		if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
-			fetchNextPage?.()
-		}
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
+	const handleScroll = React.useCallback(
+		(e: React.UIEvent<HTMLDivElement>) => {
+			const target = e.currentTarget
+			const { scrollTop, scrollHeight, clientHeight } = target
+
+			const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
+			if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
+				fetchNextPage?.()
+			}
+		},
+		[hasNextPage, isFetchingNextPage, fetchNextPage],
+	)
 
 	const options: CategoryComboboxOption[] = React.useMemo(() => {
 		return categories.map((category) => ({
 			value: category.id,
-			label: `${category.icon || '📦'} ${category.name}`,
+			label: `${category.icon || "📦"} ${category.name}`,
 			category,
 		}))
 	}, [categories])
@@ -88,7 +91,7 @@ export function CategoryCombobox({
 						{value
 							? (() => {
 									const selectedCategory = categories.find((c) => c.id === value)
-									return selectedCategory ? `${selectedCategory.icon || '📦'} ${selectedCategory.name}` : placeholder
+									return selectedCategory ? `${selectedCategory.icon || "📦"} ${selectedCategory.name}` : placeholder
 								})()
 							: placeholder}
 					</span>
@@ -98,7 +101,7 @@ export function CategoryCombobox({
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" sideOffset={4}>
 				<Command shouldFilter={false}>
 					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
-					<CommandList 
+					<CommandList
 						ref={scrollRef}
 						className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
 						onScroll={handleScroll}

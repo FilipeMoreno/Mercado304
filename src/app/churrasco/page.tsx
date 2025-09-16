@@ -137,9 +137,7 @@ export default function ChurrascoPage() {
 			{/* Header */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
-						Churrascômetro
-					</h1>
+					<h1 className="text-3xl font-bold flex items-center gap-2">Churrascômetro</h1>
 					<p className="text-muted-foreground">
 						Calcule tudo para o seu churrasco perfeito com inteligência artificial
 					</p>

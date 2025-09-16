@@ -49,11 +49,11 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
 		const urlParams = new URLSearchParams({
-			search: state.search,
-			category: state.category,
-			brand: state.brand,
-			sort: state.sort,
-			page: state.page.toString(),
+			search: String(state.search),
+			category: String(state.category),
+			brand: String(state.brand),
+			sort: String(state.sort),
+			page: String(state.page),
 			limit: "12",
 		})
 		return urlParams
@@ -217,15 +217,12 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					/>
 				</div>
 				<FilterPopover
-					sortValue={state.sort}
+					sortValue={String(state.sort)}
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					additionalFilters={additionalFilters}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
+					onClearFilters={clearFilters}
 				/>
 			</div>
 

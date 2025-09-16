@@ -49,11 +49,14 @@ export async function GET(request: Request) {
 		})
 	} catch (error) {
 		console.error("Erro ao buscar marcas:", error)
-		return NextResponse.json({ 
-			error: "Erro ao buscar marcas", 
-			brands: [], 
-			pagination: { currentPage: 1, totalPages: 0, totalCount: 0, hasMore: false }
-		}, { status: 500 })
+		return NextResponse.json(
+			{
+				error: "Erro ao buscar marcas",
+				brands: [],
+				pagination: { currentPage: 1, totalPages: 0, totalCount: 0, hasMore: false },
+			},
+			{ status: 500 },
+		)
 	}
 }
 

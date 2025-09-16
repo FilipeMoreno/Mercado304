@@ -91,7 +91,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 	fetchCategories: async (force = false) => {
 		// Só busca se forçado ou se não há categorias carregadas
 		if (!force && get().categories.length > 0) return
-		
+
 		set((state) => ({ loading: { ...state.loading, categories: true } }))
 		try {
 			const categories = await categoryService.getAllCategories()

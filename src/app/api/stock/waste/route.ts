@@ -140,7 +140,8 @@ export async function GET(request: Request) {
 
 		// Comparar com período anterior
 		const previousPeriod = new Date(dateFilter.wasteDate?.gte || new Date())
-		const periodLength = (dateFilter.wasteDate?.lte || new Date()).getTime() - (dateFilter.wasteDate?.gte || new Date()).getTime()
+		const periodLength =
+			(dateFilter.wasteDate?.lte || new Date()).getTime() - (dateFilter.wasteDate?.gte || new Date()).getTime()
 		previousPeriod.setTime(previousPeriod.getTime() - periodLength)
 
 		const previousWasteStats = await prisma.wasteRecord.aggregate({

@@ -43,7 +43,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 		basePath: "/marcas",
 		initialValues: {
 			search: searchParams.search || "",
-			sort: searchParams.sort || "name",
+			sort: searchParams.sort || "name-asc",
 			page: parseInt(searchParams.page || "1"),
 		},
 	})
@@ -51,9 +51,9 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 	// Build URLSearchParams for the query
 	const params = useMemo(() => {
 		const urlParams = new URLSearchParams({
-			search: state.search,
-			sort: state.sort,
-			page: state.page.toString(),
+			search: String(state.search),
+			sort: String(state.sort),
+			page: String(state.page),
 			limit: "12",
 		})
 		return urlParams
@@ -162,14 +162,11 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 					/>
 				</div>
 				<FilterPopover
-					sortValue={state.sort}
+					sortValue={String(state.sort)}
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
+					onClearFilters={clearFilters}
 				/>
 			</div>
 
@@ -183,13 +180,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<Factory className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma marca encontrada</h3>
 								<p className="text-gray-600 mb-4">Nenhuma marca corresponde aos filtros aplicados</p>
-								<Button
-									variant="outline"
-									onClick={() => {
-										clearFilters()
-										updateSingleValue("page", 1)
-									}}
-								>
+								<Button variant="outline" onClick={clearFilters}>
 									Limpar Filtros
 								</Button>
 							</CardContent>
@@ -250,8 +241,8 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page - 1)}
-									disabled={state.page === 1}
+									onClick={() => handlePageChange(Number(state.page) - 1)}
+									disabled={Number(state.page) === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
 									Anterior
@@ -259,14 +250,14 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
 													<span className="px-2 py-1 text-gray-400">...</span>
 												)}
 												<Button
-													variant={state.page === page ? "default" : "outline"}
+													variant={Number(state.page) === page ? "default" : "outline"}
 													size="sm"
 													onClick={() => handlePageChange(page)}
 													className="w-8 h-8 p-0"
@@ -280,8 +271,8 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page + 1)}
-									disabled={state.page === totalPages}
+									onClick={() => handlePageChange(Number(state.page) + 1)}
+									disabled={Number(state.page) === totalPages}
 								>
 									Próxima
 									<ChevronRight className="h-4 w-4" />
