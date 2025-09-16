@@ -1,6 +1,12 @@
 "use client"
 
-import { Camera, Flashlight, FlashlightOff, Loader2, RotateCcw, } from "lucide-react"
+import {
+	Camera,
+	Flashlight,
+	FlashlightOff,
+	Loader2,
+	RotateCcw,
+} from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -11,7 +17,10 @@ interface NutritionalScannerProps {
 	onClose: () => void
 }
 
-export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScannerProps) {
+export function NutritionalScanner({
+	onScanComplete,
+	onClose,
+}: NutritionalScannerProps) {
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -24,38 +33,39 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 	const getVideoDevices = useCallback(async () => {
 		try {
-			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+			if (!navigator.mediaDevices?.getUserMedia) {
 				throw new Error("API de mídia não suportada neste navegador")
 			}
 			await navigator.mediaDevices.getUserMedia({ video: true })
 			const deviceList = await navigator.mediaDevices.enumerateDevices()
-			const videoDevices = deviceList.filter((device) => device.kind === "videoinput")
+			const videoDevices = deviceList.filter((d) => d.kind === "videoinput")
 			setDevices(videoDevices)
 
-			const backCamera = videoDevices.find(
-				(device) =>
-					device.label.toLowerCase().includes("back") ||
-					device.label.toLowerCase().includes("traseira") ||
-					device.label.toLowerCase().includes("environment"),
+			const backCamera = videoDevices.find((d) =>
+				["back", "traseira", "environment"].some((kw) =>
+					d.label.toLowerCase().includes(kw),
+				),
 			)
 			const selectedId = backCamera?.deviceId || videoDevices[0]?.deviceId || ""
 			setSelectedDeviceId(selectedId)
 			return selectedId
 		} catch (err: any) {
-			let errorMessage = "Erro ao aceder à câmara."
+			let msg = "Erro ao acessar a câmera."
 			if (err.name === "NotAllowedError") {
-				errorMessage = "Permissão de câmara negada. Por favor, autorize o acesso nas configurações do seu navegador."
+				msg =
+					"Permissão de câmera negada. Autorize o acesso nas configurações do navegador."
 			} else if (err.name === "NotFoundError") {
-				errorMessage = "Nenhuma câmara encontrada."
+				msg = "Nenhuma câmera encontrada."
 			}
-			setError(errorMessage)
+			console.error("Erro getVideoDevices:", err)
+			setError(msg)
 			return ""
 		}
 	}, [])
 
 	const stopCamera = useCallback(() => {
 		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop())
+			streamRef.current.getTracks().forEach((t) => t.stop())
 			streamRef.current = null
 		}
 		setIsFlashOn(false)
@@ -74,77 +84,33 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				setError("")
 				stopCamera()
 
-				const constraintSets = [
-					{
-						video: deviceId
-							? {
-									deviceId: { exact: deviceId },
-									width: { ideal: 1920, min: 1280 },
-									height: { ideal: 1080, min: 720 },
-									frameRate: { ideal: 30, min: 20 },
-									focusMode: { ideal: "continuous" },
-								}
-							: {
-									facingMode: { ideal: "environment" },
-									width: { ideal: 1920, min: 1280 },
-									height: { ideal: 1080, min: 720 },
-									frameRate: { ideal: 30, min: 20 },
-									focusMode: { ideal: "continuous" },
-								},
-					},
-					{
-						video: deviceId
-							? {
-									deviceId: { exact: deviceId },
-									width: { ideal: 1280, min: 720 },
-									height: { ideal: 720, min: 480 },
-								}
-							: {
-									facingMode: { ideal: "environment" },
-									width: { ideal: 1280, min: 720 },
-									height: { ideal: 720, min: 480 },
-								},
-					},
-					{ video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" } },
-					{ video: true },
-				]
+				// constraints simples e compatíveis
+				const constraints = deviceId
+					? { video: { deviceId: { exact: deviceId } } }
+					: { video: { facingMode: "environment" } }
 
-				let stream: MediaStream | null = null
-				let lastError: Error | null = null
-
-				for (const constraints of constraintSets) {
-					try {
-						stream = await navigator.mediaDevices.getUserMedia(constraints)
-						break
-					} catch (err: any) {
-						lastError = err
-					}
-				}
-
-				if (!stream) {
-					throw lastError || new Error("Não foi possível obter stream de vídeo.")
-				}
+				const stream = await navigator.mediaDevices.getUserMedia(constraints)
+				console.log("Stream inicializada:", stream)
 
 				streamRef.current = stream
 				videoElement.srcObject = stream
 
 				await new Promise<void>((resolve, reject) => {
 					videoElement.onloadedmetadata = () => resolve()
-					videoElement.onerror = () => reject(new Error("Erro ao carregar metadados do vídeo."))
+					videoElement.onerror = () =>
+						reject(new Error("Erro ao carregar metadados do vídeo."))
 					setTimeout(() => reject(new Error("Timeout ao carregar vídeo")), 10000)
 				})
 
 				await videoElement.play()
 			} catch (err: any) {
-				let errorMessage = "Erro ao iniciar a câmara."
-				if (err.name === "NotAllowedError") {
-					errorMessage = "Permissão de câmara negada."
-				} else if (err.name === "NotFoundError") {
-					errorMessage = "Câmara não encontrada."
-				} else if (err.name === "NotReadableError") {
-					errorMessage = "Câmara em uso por outro aplicativo."
-				}
-				setError(errorMessage)
+				console.error("Erro initializeCamera:", err)
+				let msg = "Erro ao iniciar a câmera."
+				if (err.name === "NotAllowedError") msg = "Permissão de câmera negada."
+				else if (err.name === "NotFoundError") msg = "Câmera não encontrada."
+				else if (err.name === "NotReadableError")
+					msg = "Câmera em uso por outro aplicativo."
+				setError(msg)
 			} finally {
 				setIsLoading(false)
 			}
@@ -160,17 +126,8 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			}
 		}
 		init()
-
-		return () => {
-			stopCamera()
-		}
+		return () => stopCamera()
 	}, [getVideoDevices, initializeCamera, stopCamera])
-
-	useEffect(() => {
-		if (selectedDeviceId && devices.length > 0) {
-			initializeCamera(selectedDeviceId)
-		}
-	}, [selectedDeviceId, devices, initializeCamera])
 
 	const toggleFlash = useCallback(async () => {
 		if (!streamRef.current) return
@@ -187,15 +144,19 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				toast.error("Não foi possível controlar o flash.")
 			}
 		} else {
-			toast.info("O flash não é suportado por esta câmara.")
+			toast.info("O flash não é suportado por esta câmera.")
 		}
 	}, [isFlashOn])
 
 	const switchCamera = useCallback(() => {
-		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDeviceId)
+		if (devices.length < 2) return
+		const currentIndex = devices.findIndex(
+			(d) => d.deviceId === selectedDeviceId,
+		)
 		const nextIndex = (currentIndex + 1) % devices.length
 		setSelectedDeviceId(devices[nextIndex].deviceId)
-	}, [devices, selectedDeviceId])
+		initializeCamera(devices[nextIndex].deviceId)
+	}, [devices, selectedDeviceId, initializeCamera])
 
 	const takePictureAndProcess = async () => {
 		const video = videoRef.current
@@ -224,9 +185,9 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			}
 			const result = await response.json()
 			onScanComplete(result)
-		} catch (error) {
+		} catch (err) {
 			toast.error("Erro ao processar a imagem.")
-			console.error("Erro ao chamar a API de OCR:", error)
+			console.error("Erro ao chamar a API de OCR:", err)
 		} finally {
 			setIsProcessing(false)
 			onClose()
@@ -247,11 +208,15 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				) : isLoading ? (
 					<div className="w-full h-full flex flex-col items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-						<p className="text-white">Iniciando câmara...</p>
+						<p className="text-white">Iniciando câmera...</p>
 					</div>
 				) : isProcessing && capturedImage ? (
 					<div className="relative w-full h-full">
-						<img src={capturedImage} alt="Rótulo capturado" className="w-full h-full object-cover" />
+						<img
+							src={capturedImage}
+							alt="Rótulo capturado"
+							className="w-full h-full object-cover"
+						/>
 						<div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
 							<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
 							<p className="text-white">Processando imagem...</p>
@@ -259,14 +224,34 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 					</div>
 				) : (
 					<>
-						<video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
+						<video
+							ref={videoRef}
+							autoPlay
+							playsInline
+							muted
+							className="w-full h-full object-cover"
+						></video>
 						<div className="absolute inset-0 border-4 border-dashed border-white/50 rounded-lg m-4"></div>
 						<div className="absolute top-4 right-4 flex flex-col gap-2">
-							<Button variant="secondary" size="icon" onClick={toggleFlash} className="bg-black/50 hover:bg-black/80">
-								{isFlashOn ? <FlashlightOff className="h-5 w-5" /> : <Flashlight className="h-5 w-5" />}
+							<Button
+								variant="secondary"
+								size="icon"
+								onClick={toggleFlash}
+								className="bg-black/50 hover:bg-black/80"
+							>
+								{isFlashOn ? (
+									<FlashlightOff className="h-5 w-5" />
+								) : (
+									<Flashlight className="h-5 w-5" />
+								)}
 							</Button>
 							{devices.length > 1 && (
-								<Button variant="secondary" size="icon" onClick={switchCamera} className="bg-black/50 hover:bg-black/80">
+								<Button
+									variant="secondary"
+									size="icon"
+									onClick={switchCamera}
+									className="bg-black/50 hover:bg-black/80"
+								>
 									<RotateCcw className="h-5 w-5" />
 								</Button>
 							)}
@@ -275,7 +260,11 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				)}
 			</div>
 
-			<Button onClick={takePictureAndProcess} className="w-full mt-4" disabled={isProcessing || isLoading || !!error}>
+			<Button
+				onClick={takePictureAndProcess}
+				className="w-full mt-4"
+				disabled={isProcessing || isLoading || !!error}
+			>
 				<Camera className="mr-2 h-4 w-4" />
 				{isProcessing ? "Aguarde..." : "Capturar Imagem"}
 			</Button>
