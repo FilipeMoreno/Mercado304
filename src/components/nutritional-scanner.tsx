@@ -1,4 +1,3 @@
-// src/components/nutritional-scanner.tsx
 "use client"
 
 import { Camera, Flashlight, FlashlightOff, Loader2, RotateCcw, } from "lucide-react"
@@ -65,69 +64,113 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	const initializeCamera = useCallback(
 		async (deviceId: string) => {
 			const videoElement = videoRef.current
-			// Verificação crucial: só continua se o elemento de vídeo já existir no ecrã
 			if (!videoElement) {
+				console.error("Elemento de vídeo não encontrado no DOM.")
 				return
 			}
+
 			try {
+				setIsLoading(true)
 				setError("")
 				stopCamera()
 
 				const constraintSets = [
 					{
-						video: {
-							deviceId: { exact: deviceId },
-							width: { ideal: 1920 },
-							height: { ideal: 1080 },
-							focusMode: "continuous",
-						},
+						video: deviceId
+							? {
+									deviceId: { exact: deviceId },
+									width: { ideal: 1920, min: 1280 },
+									height: { ideal: 1080, min: 720 },
+									frameRate: { ideal: 30, min: 20 },
+									focusMode: { ideal: "continuous" },
+								}
+							: {
+									facingMode: { ideal: "environment" },
+									width: { ideal: 1920, min: 1280 },
+									height: { ideal: 1080, min: 720 },
+									frameRate: { ideal: 30, min: 20 },
+									focusMode: { ideal: "continuous" },
+								},
 					},
-					{ video: { deviceId: { exact: deviceId } } },
-					{ video: { facingMode: "environment" } },
+					{
+						video: deviceId
+							? {
+									deviceId: { exact: deviceId },
+									width: { ideal: 1280, min: 720 },
+									height: { ideal: 720, min: 480 },
+								}
+							: {
+									facingMode: { ideal: "environment" },
+									width: { ideal: 1280, min: 720 },
+									height: { ideal: 720, min: 480 },
+								},
+					},
+					{ video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" } },
+					{ video: true },
 				]
 
 				let stream: MediaStream | null = null
+				let lastError: Error | null = null
+
 				for (const constraints of constraintSets) {
 					try {
 						stream = await navigator.mediaDevices.getUserMedia(constraints)
 						break
-					} catch (err) {
-						console.warn("Falha na configuração:", constraints, err)
+					} catch (err: any) {
+						lastError = err
 					}
 				}
 
-				if (!stream) throw new Error("Não foi possível aceder à câmara com as configurações disponíveis.")
+				if (!stream) {
+					throw lastError || new Error("Não foi possível obter stream de vídeo.")
+				}
 
 				streamRef.current = stream
 				videoElement.srcObject = stream
+
+				await new Promise<void>((resolve, reject) => {
+					videoElement.onloadedmetadata = () => resolve()
+					videoElement.onerror = () => reject(new Error("Erro ao carregar metadados do vídeo."))
+					setTimeout(() => reject(new Error("Timeout ao carregar vídeo")), 10000)
+				})
+
 				await videoElement.play()
 			} catch (err: any) {
-				setError(`Erro ao iniciar câmara: ${err.message}`)
+				let errorMessage = "Erro ao iniciar a câmara."
+				if (err.name === "NotAllowedError") {
+					errorMessage = "Permissão de câmara negada."
+				} else if (err.name === "NotFoundError") {
+					errorMessage = "Câmara não encontrada."
+				} else if (err.name === "NotReadableError") {
+					errorMessage = "Câmara em uso por outro aplicativo."
+				}
+				setError(errorMessage)
+			} finally {
+				setIsLoading(false)
 			}
 		},
 		[stopCamera],
 	)
 
-	// Efeito para obter os dispositivos na primeira renderização
 	useEffect(() => {
 		const init = async () => {
-			setIsLoading(true)
-			await getVideoDevices()
-			setIsLoading(false)
+			const deviceId = await getVideoDevices()
+			if (deviceId) {
+				await initializeCamera(deviceId)
+			}
 		}
 		init()
 
 		return () => {
 			stopCamera()
 		}
-	}, [getVideoDevices, stopCamera])
+	}, [getVideoDevices, initializeCamera, stopCamera])
 
-	// Efeito para inicializar ou trocar de câmara quando o ID do dispositivo muda
 	useEffect(() => {
-		if (selectedDeviceId && !isLoading) {
+		if (selectedDeviceId && devices.length > 0) {
 			initializeCamera(selectedDeviceId)
 		}
-	}, [selectedDeviceId, isLoading, initializeCamera])
+	}, [selectedDeviceId, devices, initializeCamera])
 
 	const toggleFlash = useCallback(async () => {
 		if (!streamRef.current) return
@@ -204,14 +247,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				) : isLoading ? (
 					<div className="w-full h-full flex flex-col items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-						<p className="text-white">A iniciar câmara...</p>
+						<p className="text-white">Iniciando câmara...</p>
 					</div>
 				) : isProcessing && capturedImage ? (
 					<div className="relative w-full h-full">
 						<img src={capturedImage} alt="Rótulo capturado" className="w-full h-full object-cover" />
 						<div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
 							<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-							<p className="text-white">A processar imagem...</p>
+							<p className="text-white">Processando imagem...</p>
 						</div>
 					</div>
 				) : (
@@ -234,7 +277,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 			<Button onClick={takePictureAndProcess} className="w-full mt-4" disabled={isProcessing || isLoading || !!error}>
 				<Camera className="mr-2 h-4 w-4" />
-				{isProcessing ? "A aguardar..." : "Capturar Imagem"}
+				{isProcessing ? "Aguarde..." : "Capturar Imagem"}
 			</Button>
 		</>
 	)
