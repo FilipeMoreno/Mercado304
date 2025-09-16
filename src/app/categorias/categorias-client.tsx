@@ -71,7 +71,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 	// Extract data from React Query
 	const categories = categoriesData?.categories || []
-	// --- CORREÇÃO APLICADA AQUI ---
 	const totalCount = categoriesData?.pagination?.totalCount || 0
 	const itemsPerPage = 12
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
@@ -167,7 +166,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar categorias..."
-						value={state.search}
+						value={String(state.search)}
 						onChange={(e) => updateSingleValue("search", e.target.value)}
 						className="pl-10"
 					/>
@@ -177,7 +176,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={clearFilters}
+					onClearFilters={() => {
+						clearFilters()
+						updateSingleValue("page", 1)
+					}}
 				/>
 				<Button onClick={() => setShowForm(true)}>
 					<Plus className="mr-2 h-4 w-4" />
@@ -189,13 +191,19 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				{isLoading ? (
 					<CategoriesSkeleton />
 				) : categories.length === 0 ? (
-					state.search || state.sort !== "name" ? (
+					state.search || state.sort !== "name-asc" ? (
 						<Card>
 							<CardContent className="text-center py-12">
 								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
 								<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
-								<Button variant="outline" onClick={clearFilters}>
+								<Button
+									variant="outline"
+									onClick={() => {
+										clearFilters()
+										updateSingleValue("page", 1)
+									}}
+								>
 									Limpar Filtros
 								</Button>
 							</CardContent>
@@ -236,7 +244,9 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 												<CardDescription className="mt-2 flex items-center gap-2">
 													{category._count?.products || 0} produtos
 													{category.isFood && (
-														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>
+														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+															Alimento
+														</span>
 													)}
 												</CardDescription>
 											</div>
@@ -270,14 +280,16 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2)
+										.filter(
+											(page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2,
+										)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
 													<span className="px-2 py-1 text-gray-400">...</span>
 												)}
 												<Button
-													variant={state.page === page ? "default" : "outline"}
+													variant={Number(state.page) === page ? "default" : "outline"}
 													size="sm"
 													onClick={() => handlePageChange(page)}
 													className="w-8 h-8 p-0"
@@ -291,8 +303,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page + 1)}
-									disabled={state.page === totalPages}
+									onClick={() => handlePageChange(Number(state.page) + 1)}
+									disabled={Number(state.page) === totalPages}
 								>
 									Próxima
 									<ChevronRight className="h-4 w-4" />
