@@ -153,6 +153,15 @@ export interface NutritionalInfo {
 	// Outros nutrientes (valores opcionais)
 	taurine?: number
 	caffeine?: number
+	// Ácidos graxos e gorduras especiais (valores opcionais)
+	omega3?: number // Ômega 3 em mg
+	omega6?: number // Ômega 6 em g
+	monounsaturatedFat?: number // Gordura monoinsaturada em g
+	polyunsaturatedFat?: number // Gordura poli-insaturada em g
+	cholesterol?: number // Colesterol em mg
+	epa?: number // EPA em mg
+	dha?: number // DHA em mg
+	linolenicAcid?: number // Ácido linolênico em mg
 	// Minerais (valores opcionais)
 	calcium?: number
 	iron?: number

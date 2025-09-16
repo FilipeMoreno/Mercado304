@@ -105,8 +105,6 @@ export async function POST(request: Request) {
       - "Carboidratos" ou "Carboidratos totais" corresponde a "carbohydrates".
       - "Açúcares totais" corresponde a "totalSugars".
       - "Açúcares adicionados" corresponde a "addedSugars".
-      - "Lactose" corresponde a "lactose".
-      - "Galactose" corresponde a "galactose".
       - "Proteínas" corresponde a "proteins".
       - "Gorduras totais" corresponde a "totalFat".
       - "Gorduras saturadas" corresponde a "saturatedFat".
@@ -146,6 +144,18 @@ export async function POST(request: Request) {
       OUTROS NUTRIENTES (se presentes):
       - "Taurina" corresponde a "taurine" (mg).
       - "Cafeína" corresponde a "caffeine" (mg).
+      - "Lactose" corresponde a "lactose". (g)
+      - "Galactose" corresponde a "galactose". (g)
+
+      ÁCIDOS e Graxos
+      - "Ômega 3" corresponde a "omega3." (mg)
+      - "Ômega 6" corresponde a "omega6." (g)
+      - "Gordura Monoinsaturada" corresponde a "monounsaturatedFat". (g)
+      - "Gordura Poli-insaturada" corresponde a "polyunsaturatedFat". (g)
+      - "Colesterol" corresponde a "cholesterol". (mg)
+      - "EPA" corresponde a "epa." (mg)
+      - "DHA" corresponde a "dha." (mg)
+      - Ácido Linolênico" corresponde a "linoleicAcid". (mg)
       
       ALÉRGENOS:
       - Para "allergensContains", procure por textos como "ALÉRGICOS: CONTÉM...".

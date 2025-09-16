@@ -308,6 +308,16 @@ model NutritionalInfo {
   caffeine  Float? // Cafeína em mg
   lactose   Float? // Lactose em g
   galactose Float? // Galactose em g
+  
+  // Ácidos graxos e gorduras especiais (valores opcionais)
+  omega3                Float? // Ômega 3 em mg
+  omega6                Float? // Ômega 6 em g
+  monounsaturatedFat    Float? // Gordura monoinsaturada em g
+  polyunsaturatedFat    Float? // Gordura poli-insaturada em g
+  cholesterol           Float? // Colesterol em mg
+  epa                   Float? // EPA em mg
+  dha                   Float? // DHA em mg
+  linolenicAcid         Float? // Ácido linolênico em mg
 
   // Minerais (valores opcionais)
   calcium    Float? // Cálcio em mg

@@ -55,6 +55,15 @@ const optionalFields = [
 	{ key: "galactose", label: "Galactose", unit: "g", category: "Outros" },
 	{ key: "taurine", label: "Taurina", unit: "mg", category: "Outros" },
 	{ key: "caffeine", label: "Cafeína", unit: "mg", category: "Outros" },
+	// Ácidos graxos e gorduras especiais
+	{ key: "omega3", label: "Ômega 3", unit: "mg", category: "Ácidos Graxos" },
+	{ key: "omega6", label: "Ômega 6", unit: "g", category: "Ácidos Graxos" },
+	{ key: "monounsaturatedFat", label: "Gordura Monoinsaturada", unit: "g", category: "Ácidos Graxos" },
+	{ key: "polyunsaturatedFat", label: "Gordura Poli-insaturada", unit: "g", category: "Ácidos Graxos" },
+	{ key: "cholesterol", label: "Colesterol", unit: "mg", category: "Ácidos Graxos" },
+	{ key: "epa", label: "EPA", unit: "mg", category: "Ácidos Graxos" },
+	{ key: "dha", label: "DHA", unit: "mg", category: "Ácidos Graxos" },
+	{ key: "linolenicAcid", label: "Ácido Linolênico", unit: "mg", category: "Ácidos Graxos" },
 	// Vitaminas
 	{ key: "vitaminA", label: "Vitamina A", unit: "mcg", category: "Vitaminas" },
 	{ key: "vitaminC", label: "Vitamina C", unit: "mg", category: "Vitaminas" },
@@ -306,7 +315,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 									<SelectValue placeholder="Selecione um elemento..." />
 								</SelectTrigger>
 								<SelectContent>
-									{["Vitaminas", "Minerais", "Outros"].map((category) => {
+									{["Vitaminas", "Minerais", "Ácidos Graxos", "Outros"].map((category) => {
 										const categoryFields = availableOptionalFields.filter((field) => field.category === category)
 										if (categoryFields.length === 0) return null
 

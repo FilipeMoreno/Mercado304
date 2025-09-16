@@ -62,6 +62,16 @@ export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 	parsedInfo.galactose = geminiData.galactose
 	parsedInfo.taurine = geminiData.taurine
 	parsedInfo.caffeine = geminiData.caffeine
+	
+	// Ácidos graxos e gorduras especiais (valores opcionais)
+	parsedInfo.omega3 = geminiData.omega3
+	parsedInfo.omega6 = geminiData.omega6
+	parsedInfo.monounsaturatedFat = geminiData.monounsaturatedFat
+	parsedInfo.polyunsaturatedFat = geminiData.polyunsaturatedFat
+	parsedInfo.cholesterol = geminiData.cholesterol
+	parsedInfo.epa = geminiData.epa
+	parsedInfo.dha = geminiData.dha
+	parsedInfo.linolenicAcid = geminiData.linolenicAcid
 
 	// Minerais (valores opcionais)
 	parsedInfo.calcium = geminiData.calcium
@@ -115,6 +125,16 @@ const nutrientTextMap = {
 	caffeine: [/cafeína/i, /cafeina/i],
 	lactose: [/lactose/i],
 	galactose: [/galactose/i],
+	
+	// Ácidos graxos e gorduras especiais (valores opcionais)
+	omega3: [/ômega 3/i, /omega 3/i, /ácido graxo ômega 3/i, /omega-3/i],
+	omega6: [/ômega 6/i, /omega 6/i, /ácido graxo ômega 6/i, /omega-6/i],
+	monounsaturatedFat: [/gordura monoinsaturada/i, /ácidos graxos monoinsaturados/i, /monoinsaturados/i],
+	polyunsaturatedFat: [/gordura poli-insaturada/i, /gordura poliinsaturada/i, /ácidos graxos poli-insaturados/i, /poliinsaturados/i],
+	cholesterol: [/colesterol/i],
+	epa: [/EPA/i, /ácido eicosapentaenóico/i],
+	dha: [/DHA/i, /ácido docosahexaenóico/i],
+	linolenicAcid: [/ácido linolênico/i, /ácido linolenico/i],
 
 	// Minerais (valores opcionais)
 	calcium: [/cálcio/i, /calcio/i],
