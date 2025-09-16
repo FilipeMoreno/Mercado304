@@ -414,7 +414,12 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 								<Button onClick={() => initializeCamera(selectedDeviceId)} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
 									Tentar Novamente
 								</Button>
-								<Button onClick={() => getVideoDevices().then(id => id && initializeCamera(id))} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
+								<Button onClick={async () => {
+									const id = await getVideoDevices()
+									if (id) {
+										await initializeCamera(id)
+									}
+								}} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
 									Recarregar Dispositivos
 								</Button>
 								<Button onClick={onClose} variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
