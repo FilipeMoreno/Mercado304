@@ -26,6 +26,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
+import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
@@ -34,6 +35,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { NutritionalInfo, Product } from "@/types"
 
 export default function ProdutoDetalhesPage() {
@@ -374,47 +376,62 @@ export default function ProdutoDetalhesPage() {
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Informações Básicas */}
 				<Card>
-					<CardHeader>
-						<CardTitle>Informações do Produto</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Código de Barras</p>
-								<p className="text-lg font-mono">{product.barcode || "Não informado"}</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Unidade</p>
-								<p className="text-lg">{product.unit}</p>
-							</div>
-						</div>
-
-						{product.hasStock && (
-							<div className="border-t pt-4">
-								<h4 className="font-medium mb-2">Controle de Estoque</h4>
+					<Tabs defaultValue="info">
+						<CardHeader>
+							<TabsList className="grid w-full grid-cols-2">
+								<TabsTrigger value="info">Informações Gerais</TabsTrigger>
+								<TabsTrigger value="nutrition" disabled={!nutritionalInfo}>
+									Tabela Nutricional
+								</TabsTrigger>
+							</TabsList>
+						</CardHeader>
+						<TabsContent value="info">
+							<CardContent className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
 									<div>
-										<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Mínimo</p>
-										<p className="font-medium">{product.minStock || "-"}</p>
+										<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Código de Barras</p>
+										<p className="text-lg font-mono">{product.barcode || "Não informado"}</p>
 									</div>
 									<div>
-										<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Máximo</p>
-										<p className="font-medium">{product.maxStock || "-"}</p>
+										<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Unidade</p>
+										<p className="text-lg">{product.unit}</p>
 									</div>
 								</div>
-							</div>
-						)}
 
-						{product.hasExpiration && (
-							<div className="border-t pt-4">
-								<h4 className="font-medium mb-2">Controle de Validade</h4>
-								<div>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Prazo padrão</p>
-									<p className="font-medium">{product.defaultShelfLifeDays || "-"} dias</p>
-								</div>
-							</div>
-						)}
-					</CardContent>
+								{product.hasStock && (
+									<div className="border-t pt-4">
+										<h4 className="font-medium mb-2">Controle de Estoque</h4>
+										<div className="grid grid-cols-2 gap-4">
+											<div>
+												<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Mínimo</p>
+												<p className="font-medium">{product.minStock || "-"}</p>
+											</div>
+											<div>
+												<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Máximo</p>
+												<p className="font-medium">{product.maxStock || "-"}</p>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{product.hasExpiration && (
+									<div className="border-t pt-4">
+										<h4 className="font-medium mb-2">Controle de Validade</h4>
+										<div>
+											<p className="text-sm text-gray-600 dark:text-gray-400">Prazo padrão</p>
+											<p className="font-medium">{product.defaultShelfLifeDays || "-"} dias</p>
+										</div>
+									</div>
+								)}
+							</CardContent>
+						</TabsContent>
+
+						<TabsContent value="nutrition">
+							<CardContent>
+								<AnvisaNutritionalTable nutritionalInfo={nutritionalInfo} />
+							</CardContent>
+						</TabsContent>
+					</Tabs>
 				</Card>
 
 				{/* Análise do melhor dia */}

@@ -132,6 +132,8 @@ export interface NutritionalInfo {
 	carbohydrates?: number
 	totalSugars?: number
 	addedSugars?: number
+	lactose?: number
+	galactose?: number
 	fiber?: number
 	sodium?: number
 	// Vitaminas (valores opcionais)

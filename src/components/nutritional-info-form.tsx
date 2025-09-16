@@ -1,36 +1,37 @@
+// src/components/nutritional-info-form.tsx
 "use client"
 
-import { Apple, Plus, X } from "lucide-react"
+import { AlertTriangle, Apple, Check, Plus, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import type { NutritionalInfo } from "@/types"
 
-// Lista de alérgenos comuns no Brasil
+// Lista de alérgenos comuns no Brasil (em ordem alfabética)
 const commonAllergens = [
-	"Leite",
-	"Ovos",
-	"Peixe",
-	"Crustáceos",
-	"Amendoim",
-	"Soja",
-	"Trigo",
-	"Centeio",
-	"Cevada",
-	"Aveia",
-	"Glúten",
 	"Amêndoa",
+	"Amendoim",
+	"Aveia",
 	"Avelã",
 	"Castanha-de-caju",
 	"Castanha-do-Pará",
+	"Centeio",
+	"Cevada",
+	"Crustáceos",
+	"Glúten",
+	"Leite",
 	"Macadâmia",
 	"Nozes",
+	"Ovos",
 	"Pecã",
+	"Peixe",
 	"Pistache",
+	"Soja",
+	"Trigo",
 ]
 
 // Campos obrigatórios da tabela nutricional
@@ -49,6 +50,11 @@ const requiredFields = [
 
 // Elementos opcionais disponíveis
 const optionalFields = [
+	// Outros (Lactose e Galactose movidos para cá)
+	{ key: "lactose", label: "Lactose", unit: "g", category: "Outros" },
+	{ key: "galactose", label: "Galactose", unit: "g", category: "Outros" },
+	{ key: "taurine", label: "Taurina", unit: "mg", category: "Outros" },
+	{ key: "caffeine", label: "Cafeína", unit: "mg", category: "Outros" },
 	// Vitaminas
 	{ key: "vitaminA", label: "Vitamina A", unit: "mcg", category: "Vitaminas" },
 	{ key: "vitaminC", label: "Vitamina C", unit: "mg", category: "Vitaminas" },
@@ -101,9 +107,6 @@ const optionalFields = [
 	{ key: "iodine", label: "Iodo", unit: "mcg", category: "Minerais" },
 	{ key: "chromium", label: "Cromo", unit: "mcg", category: "Minerais" },
 	{ key: "molybdenum", label: "Molibdênio", unit: "mcg", category: "Minerais" },
-	// Outros nutrientes
-	{ key: "taurine", label: "Taurina", unit: "mg", category: "Outros" },
-	{ key: "caffeine", label: "Cafeína", unit: "mg", category: "Outros" },
 ]
 
 interface NutritionalInfoFormProps {
@@ -177,15 +180,15 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 		onDataChange(updatedData)
 	}
 
-	const handleAllergenChange = (allergen: string, type: "contains" | "mayContain", checked: boolean) => {
+	const handleAllergenChange = (allergen: string, type: "contains" | "mayContain") => {
 		const key = type === "contains" ? "allergensContains" : "allergensMayContain"
 		const currentAllergens = formData[key] || []
 		let newAllergens: string[]
 
-		if (checked) {
-			newAllergens = [...currentAllergens, allergen]
-		} else {
+		if (currentAllergens.includes(allergen)) {
 			newAllergens = currentAllergens.filter((a) => a !== allergen)
+		} else {
+			newAllergens = [...currentAllergens, allergen]
 		}
 
 		const updatedData = { ...formData, [key]: newAllergens }
@@ -329,38 +332,66 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 				)}
 
 				{/* Seção de Alergênicos */}
-				<div className="space-y-4 pt-4 border-t">
-					<h4 className="font-medium">Alergénios</h4>
-					<div className="space-y-2">
-						<Label className="text-red-600">CONTÉM:</Label>
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-							{commonAllergens.map((allergen) => (
-								<div key={allergen} className="flex items-center space-x-2">
-									<Checkbox
-										id={`contains-${allergen}`}
-										checked={formData.allergensContains?.includes(allergen)}
-										onCheckedChange={(checked) => handleAllergenChange(allergen, "contains", !!checked)}
-									/>
-									<Label htmlFor={`contains-${allergen}`}>{allergen}</Label>
-								</div>
-							))}
-						</div>
-					</div>
-					<div className="space-y-2">
-						<Label className="text-yellow-600">PODE CONTER:</Label>
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-							{commonAllergens.map((allergen) => (
-								<div key={allergen} className="flex items-center space-x-2">
-									<Checkbox
-										id={`mayContain-${allergen}`}
-										checked={formData.allergensMayContain?.includes(allergen)}
-										onCheckedChange={(checked) => handleAllergenChange(allergen, "mayContain", !!checked)}
-									/>
-									<Label htmlFor={`mayContain-${allergen}`}>{allergen}</Label>
-								</div>
-							))}
-						</div>
-					</div>
+				<div className="space-y-6 pt-4 border-t">
+					<Card className="border-red-200 bg-red-50/50">
+						<CardHeader className="pb-4">
+							<CardTitle className="flex items-center gap-2 text-sm text-red-800">
+								<AlertTriangle className="h-4 w-4" />
+								ALÉRGICOS: CONTÉM
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="flex flex-wrap gap-2">
+								{commonAllergens.map((allergen) => {
+									const isSelected = formData.allergensContains?.includes(allergen)
+									return (
+										<Button
+											key={`contains-${allergen}`}
+											type="button"
+											variant={isSelected ? "destructive" : "outline"}
+											size="sm"
+											onClick={() => handleAllergenChange(allergen, "contains")}
+										>
+											{isSelected && <Check className="mr-2 h-4 w-4" />}
+											{allergen}
+										</Button>
+									)
+								})}
+							</div>
+						</CardContent>
+					</Card>
+
+					<Card className="border-orange-200 bg-orange-50/50">
+						<CardHeader className="pb-4">
+							<CardTitle className="flex items-center gap-2 text-sm text-orange-800">
+								<AlertTriangle className="h-4 w-4" />
+								ALÉRGICOS: PODE CONTER
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="flex flex-wrap gap-2">
+								{commonAllergens.map((allergen) => {
+									const isSelected = formData.allergensMayContain?.includes(allergen)
+									return (
+										<Button
+											key={`may-contain-${allergen}`}
+											type="button"
+											variant={isSelected ? "secondary" : "outline"}
+											size="sm"
+											className={cn(
+												isSelected && "bg-orange-500 text-white hover:bg-orange-500/90",
+												"border-orange-200",
+											)}
+											onClick={() => handleAllergenChange(allergen, "mayContain")}
+										>
+											{isSelected && <Check className="mr-2 h-4 w-4" />}
+											{allergen}
+										</Button>
+									)
+								})}
+							</div>
+						</CardContent>
+					</Card>
 				</div>
 			</CardContent>
 		</Card>

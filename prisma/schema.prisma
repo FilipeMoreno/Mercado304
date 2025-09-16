@@ -304,8 +304,10 @@ model NutritionalInfo {
   pantothenicAcid Float? // Ácido Pantotênico em mg
 
   // Outros nutrientes (valores opcionais)
-  taurine  Float? // Taurina em mg
-  caffeine Float? // Cafeína em mg
+  taurine   Float? // Taurina em mg
+  caffeine  Float? // Cafeína em mg
+  lactose   Float? // Lactose em g
+  galactose Float? // Galactose em g
 
   // Minerais (valores opcionais)
   calcium    Float? // Cálcio em mg

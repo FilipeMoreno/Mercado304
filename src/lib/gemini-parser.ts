@@ -1,10 +1,6 @@
-// src/lib/gemini-parser.ts
-
 import type { NutritionalInfo } from "@/types"
 
-// --- SEÇÃO PARA O PARSER DO GEMINI (JSON) ---
-
-const nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
+const _nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
 	"valor energético": "calories",
 	carboidratos: "carbohydrates",
 	"carboidratos totais": "carbohydrates",
@@ -21,7 +17,7 @@ const nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
 	sodio: "sodium",
 }
 
-function parseNutrientAmount(amount: string | null): number | undefined {
+function _parseNutrientAmount(amount: string | null): number | undefined {
 	if (!amount) return undefined
 	const match = amount.match(/(\d+[,.]?\d*)/)
 	return match ? parseFloat(match[1].replace(",", ".")) : undefined
@@ -62,6 +58,8 @@ export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 	parsedInfo.pantothenicAcid = geminiData.pantothenicAcid
 
 	// Outros nutrientes (valores opcionais)
+	parsedInfo.lactose = geminiData.lactose
+	parsedInfo.galactose = geminiData.galactose
 	parsedInfo.taurine = geminiData.taurine
 	parsedInfo.caffeine = geminiData.caffeine
 
@@ -115,6 +113,8 @@ const nutrientTextMap = {
 	// Outros nutrientes (valores opcionais)
 	taurine: [/taurina/i],
 	caffeine: [/cafeína/i, /cafeina/i],
+	lactose: [/lactose/i],
+	galactose: [/galactose/i],
 
 	// Minerais (valores opcionais)
 	calcium: [/cálcio/i, /calcio/i],

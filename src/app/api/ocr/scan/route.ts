@@ -52,6 +52,8 @@ export async function POST(request: Request) {
         "carbohydrates": number,
         "totalSugars": number,
         "addedSugars": number,
+        "lactose": number,
+        "galactose": number,
         "proteins": number,
         "totalFat": number,
         "saturatedFat": number,
@@ -103,6 +105,8 @@ export async function POST(request: Request) {
       - "Carboidratos" ou "Carboidratos totais" corresponde a "carbohydrates".
       - "Açúcares totais" corresponde a "totalSugars".
       - "Açúcares adicionados" corresponde a "addedSugars".
+      - "Lactose" corresponde a "lactose".
+      - "Galactose" corresponde a "galactose".
       - "Proteínas" corresponde a "proteins".
       - "Gorduras totais" corresponde a "totalFat".
       - "Gorduras saturadas" corresponde a "saturatedFat".
