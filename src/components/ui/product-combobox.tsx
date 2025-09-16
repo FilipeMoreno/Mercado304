@@ -1,6 +1,6 @@
 "use client"
 
-import { Barcode, Check, ChevronsUpDown } from "lucide-react"
+import { Barcode, Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -26,6 +26,11 @@ interface ProductComboboxProps {
 	disabled?: boolean
 	onCreateNew?: (searchTerm: string) => void
 	createNewText?: string
+	hasNextPage?: boolean
+	fetchNextPage?: () => void
+	isFetchingNextPage?: boolean
+	isLoading?: boolean
+	onSearchChange?: (search: string) => void
 }
 
 export function ProductCombobox({
@@ -39,22 +44,33 @@ export function ProductCombobox({
 	disabled = false,
 	onCreateNew,
 	createNewText = "Criar novo",
+	hasNextPage = false,
+	fetchNextPage,
+	isFetchingNextPage = false,
+	isLoading = false,
+	onSearchChange,
 }: ProductComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
 
-	const filteredProducts = React.useMemo(() => {
-		return filterProducts(products, searchTerm)
-	}, [products, searchTerm])
+	// Debounce search to avoid too many API calls
+	React.useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			onSearchChange?.(searchTerm)
+		}, 300)
+		return () => clearTimeout(timeoutId)
+	}, [searchTerm, onSearchChange])
 
+	// Para infinite scroll, usar os produtos diretamente sem filtrar no cliente
+	// O filtro é feito no servidor através do useInfiniteProductsQuery
 	const options: ProductComboboxOption[] = React.useMemo(() => {
-		return filteredProducts.map((product) => ({
+		return products.map((product) => ({
 			value: product.id,
 			label: `${product.name} ${product.brand ? `- ${product.brand.name}` : ""} (${product.unit})`,
 			barcode: product.barcode,
 			product,
 		}))
-	}, [filteredProducts])
+	}, [products])
 
 	const exactBarcodeMatch = React.useMemo(() => {
 		if (isBarcode(searchTerm)) {
@@ -98,52 +114,78 @@ export function ProductCombobox({
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
 				<Command shouldFilter={false}>
 					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
-					<CommandList>
-						<CommandEmpty>
+					<CommandList 
+						className="max-h-[300px]"
+						onScroll={(e) => {
+							const target = e.target as HTMLElement
+							const { scrollTop, scrollHeight, clientHeight } = target
+							
+							// Carregar mais quando chegar perto do final (80% do scroll)
+							if (scrollTop + clientHeight >= scrollHeight * 0.8 && hasNextPage && !isFetchingNextPage) {
+								fetchNextPage?.()
+							}
+						}}
+					>
+						{isLoading && options.length === 0 ? (
 							<div className="py-6 text-center text-sm">
-								<p className="text-muted-foreground">{emptyText}</p>
-								{isBarcode(searchTerm) && (
-									<p className="text-xs text-blue-600 mt-1">🔍 Buscando por código de barras: {searchTerm}</p>
-								)}
-								{onCreateNew && searchTerm && !isBarcode(searchTerm) && (
-									<Button
-										variant="ghost"
-										size="sm"
-										className="mt-2 text-blue-600 hover:text-blue-700"
-										onClick={() => {
-											onCreateNew(searchTerm)
-											setOpen(false)
-											setSearchTerm("")
-										}}
-									>
-										{createNewText} "{searchTerm}"
-									</Button>
-								)}
+								<Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+								<p className="text-muted-foreground">Carregando produtos...</p>
 							</div>
-						</CommandEmpty>
-						<CommandGroup>
-							{options.map((option) => (
-								<CommandItem
-									key={option.value}
-									value={option.value}
-									onSelect={(currentValue) => {
-										onValueChange?.(currentValue === value ? "" : currentValue)
-										setOpen(false)
-										setSearchTerm("")
-									}}
-								>
-									<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-									<div className="flex-1">
-										<div>{option.label}</div>
-										{option.barcode && (
-											<div className="flex text-xs text-gray-500 mt-1">
-												<Barcode className="h-4 w-4 mr-1" /> {option.barcode}
-											</div>
+						) : (
+							<>
+								<CommandEmpty>
+									<div className="py-6 text-center text-sm">
+										<p className="text-muted-foreground">{emptyText}</p>
+										{isBarcode(searchTerm) && (
+											<p className="text-xs text-blue-600 mt-1">🔍 Buscando por código de barras: {searchTerm}</p>
+										)}
+										{onCreateNew && searchTerm && !isBarcode(searchTerm) && (
+											<Button
+												variant="ghost"
+												size="sm"
+												className="mt-2 text-blue-600 hover:text-blue-700"
+												onClick={() => {
+													onCreateNew(searchTerm)
+													setOpen(false)
+													setSearchTerm("")
+												}}
+											>
+												{createNewText} "{searchTerm}"
+											</Button>
 										)}
 									</div>
-								</CommandItem>
-							))}
-						</CommandGroup>
+								</CommandEmpty>
+								<CommandGroup>
+									{options.map((option) => (
+										<CommandItem
+											key={option.value}
+											value={option.value}
+											onSelect={(currentValue) => {
+												onValueChange?.(currentValue === value ? "" : currentValue)
+												setOpen(false)
+												setSearchTerm("")
+											}}
+										>
+											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+											<div className="flex-1">
+												<div>{option.label}</div>
+												{option.barcode && (
+													<div className="flex text-xs text-gray-500 mt-1">
+														<Barcode className="h-4 w-4 mr-1" /> {option.barcode}
+													</div>
+												)}
+											</div>
+										</CommandItem>
+									))}
+									{isFetchingNextPage && (
+										<div className="py-2 text-center">
+											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
+											<p className="text-xs text-muted-foreground mt-1">Carregando mais produtos...</p>
+										</div>
+									)}
+								</CommandGroup>
+							</>
+						)}
 					</CommandList>
 				</Command>
 			</PopoverContent>

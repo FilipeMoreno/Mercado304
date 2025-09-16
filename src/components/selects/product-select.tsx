@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useState } from "react"
 import { ProductCombobox } from "@/components/ui/product-combobox"
+import { useInfiniteProductsQuery } from "@/hooks"
 import { TempStorage } from "@/lib/temp-storage"
-import { useDataStore } from "@/store/useDataStore"
 import type { Product } from "@/types"
 
 interface ProductSelectProps {
@@ -27,11 +27,22 @@ export function ProductSelect({
 	preserveFormData,
 	itemIndex,
 }: ProductSelectProps) {
-	const { products, loading, fetchProducts } = useDataStore()
+	const [search, setSearch] = useState("")
+	
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+	} = useInfiniteProductsQuery({ search })
 
-	useEffect(() => {
-		fetchProducts()
-	}, [fetchProducts])
+	// Flatten all pages into a single array
+	const products = data?.pages.flatMap(page => page.products) || []
+
+	const handleSearchChange = useCallback((searchTerm: string) => {
+		setSearch(searchTerm)
+	}, [])
 
 	const handleCreateProduct = (name: string) => {
 		if (preserveFormData) {
@@ -57,7 +68,7 @@ export function ProductSelect({
 		}
 	}
 
-	if (loading.products && products.length === 0) {
+	if (isLoading && products.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
@@ -73,6 +84,11 @@ export function ProductSelect({
 			createNewText="Criar produto"
 			className={className}
 			disabled={disabled}
+			hasNextPage={hasNextPage}
+			fetchNextPage={fetchNextPage}
+			isFetchingNextPage={isFetchingNextPage}
+			isLoading={isLoading}
+			onSearchChange={handleSearchChange}
 		/>
 	)
 }

@@ -1,6 +1,6 @@
 // src/hooks/use-react-query.ts
 "use client"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 // Types
 import type { Brand, Category, Market, Product, ShoppingList } from "@/types"
@@ -853,6 +853,37 @@ export const useCreateDashboardPreferencesMutation = () => {
 		onError: (error) => {
 			toast.error(`Erro ao criar preferências: ${error.message}`)
 		},
+	})
+}
+
+// Infinite Products Query
+export const useInfiniteProductsQuery = (options?: {
+	search?: string
+	category?: string
+	brand?: string
+	sort?: string
+}) => {
+	const { search, category, brand, sort } = options || {}
+
+	return useInfiniteQuery({
+		queryKey: ["products", "infinite", { search, category, brand, sort }],
+		queryFn: async ({ pageParam = 1 }) => {
+			const params = new URLSearchParams()
+			params.set("page", pageParam.toString())
+			params.set("limit", "50") // Aumentar limite para infinite scroll
+			
+			if (search) params.set("search", search)
+			if (category && category !== "all") params.set("category", category)
+			if (brand && brand !== "all") params.set("brand", brand)
+			if (sort) params.set("sort", sort)
+
+			return fetchWithErrorHandling(`/api/products?${params.toString()}`)
+		},
+		getNextPageParam: (lastPage) => {
+			return lastPage.pagination.hasMore ? lastPage.pagination.currentPage + 1 : undefined
+		},
+		staleTime: 3 * 60 * 1000,
+		initialPageParam: 1,
 	})
 }
 
