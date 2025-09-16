@@ -64,13 +64,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 	const initializeCamera = useCallback(
 		async (deviceId: string) => {
+			const videoElement = videoRef.current
+			// Verificação crucial: só continua se o elemento de vídeo já existir no ecrã
+			if (!videoElement) {
+				return
+			}
 			try {
-				setIsLoading(true)
 				setError("")
 				stopCamera()
-
-				const videoElement = videoRef.current
-				if (!videoElement) throw new Error("Elemento de vídeo não encontrado.")
 
 				const constraintSets = [
 					{
@@ -100,34 +101,33 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				streamRef.current = stream
 				videoElement.srcObject = stream
 				await videoElement.play()
-				setIsLoading(false)
 			} catch (err: any) {
 				setError(`Erro ao iniciar câmara: ${err.message}`)
-				setIsLoading(false)
 			}
 		},
 		[stopCamera],
 	)
 
+	// Efeito para obter os dispositivos na primeira renderização
 	useEffect(() => {
 		const init = async () => {
-			const deviceId = await getVideoDevices()
-			if (deviceId) {
-				await initializeCamera(deviceId)
-			}
+			setIsLoading(true)
+			await getVideoDevices()
+			setIsLoading(false)
 		}
 		init()
 
 		return () => {
 			stopCamera()
 		}
-	}, [getVideoDevices, initializeCamera, stopCamera])
+	}, [getVideoDevices, stopCamera])
 
+	// Efeito para inicializar ou trocar de câmara quando o ID do dispositivo muda
 	useEffect(() => {
-		if (selectedDeviceId && devices.length > 0) {
+		if (selectedDeviceId && !isLoading) {
 			initializeCamera(selectedDeviceId)
 		}
-	}, [selectedDeviceId, devices, initializeCamera])
+	}, [selectedDeviceId, isLoading, initializeCamera])
 
 	const toggleFlash = useCallback(async () => {
 		if (!streamRef.current) return
@@ -204,14 +204,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				) : isLoading ? (
 					<div className="w-full h-full flex flex-col items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-						<p className="text-white">Iniciando câmara...</p>
+						<p className="text-white">A iniciar câmara...</p>
 					</div>
 				) : isProcessing && capturedImage ? (
 					<div className="relative w-full h-full">
 						<img src={capturedImage} alt="Rótulo capturado" className="w-full h-full object-cover" />
 						<div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
 							<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-							<p className="text-white">Processando imagem...</p>
+							<p className="text-white">A processar imagem...</p>
 						</div>
 					</div>
 				) : (
@@ -234,7 +234,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 			<Button onClick={takePictureAndProcess} className="w-full mt-4" disabled={isProcessing || isLoading || !!error}>
 				<Camera className="mr-2 h-4 w-4" />
-				{isProcessing ? "Aguarde..." : "Capturar Imagem"}
+				{isProcessing ? "A aguardar..." : "Capturar Imagem"}
 			</Button>
 		</>
 	)
