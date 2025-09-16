@@ -182,6 +182,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						updateSingleValue("page", 1)
 					}}
 				/>
+				<Button onClick={() => setShowForm(true)}>
+					<Plus className="mr-2 h-4 w-4" />
+					Nova Categoria
+				</Button>
 			</div>
 
 			<div className="space-y-4">
