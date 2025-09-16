@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface NutritionalScannerProps {
-	onScanComplete: (response: any) => void // Altere de 'string' para 'any'
+	onScanComplete: (response: any) => void
 	onClose: () => void
 }
 
@@ -19,7 +19,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	useEffect(() => {
 		startCamera()
 		return () => stopCamera()
-	}, [stopCamera, startCamera])
+	}, [])
 
 	const startCamera = async () => {
 		try {
@@ -71,7 +71,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				}
 
 				const result = await response.json()
-				onScanComplete(result)
+				onScanComplete(result) // Enviar o texto recebido para a página
 			} catch (error) {
 				console.error("Erro ao chamar a API de OCR:", error)
 			} finally {
