@@ -38,7 +38,7 @@ export function AddItemDialog({
 }: AddItemDialogProps) {
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="max-w-md">
+			<DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Plus className="h-5 w-5" />
@@ -54,12 +54,14 @@ export function AddItemDialog({
 								Novo Produto
 							</Button>
 						</div>
-						<ProductSelect
-							value={newItem.productId}
-							products={products}
-							onValueChange={(value) => onNewItemChange({ ...newItem, productId: value })}
-							preserveFormData={preserveFormData}
-						/>
+						<div className="min-w-0">
+							<ProductSelect
+								value={newItem.productId}
+								products={products}
+								onValueChange={(value) => onNewItemChange({ ...newItem, productId: value })}
+								preserveFormData={preserveFormData}
+							/>
+						</div>
 					</div>
 
 					<div className="space-y-2">

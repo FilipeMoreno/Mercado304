@@ -98,13 +98,14 @@ export function BrandCombobox({
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" sideOffset={4}>
+			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[60]" sideOffset={4}>
 				<Command shouldFilter={false}>
 					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
 					<CommandList
 						ref={scrollRef}
-						className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
+						className="max-h-[300px] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
 						onScroll={handleScroll}
+						style={{ touchAction: 'auto', overscrollBehavior: 'contain' }}
 					>
 						{isLoading && options.length === 0 ? (
 							<div className="py-6 text-center text-sm">
