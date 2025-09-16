@@ -144,8 +144,8 @@ export function BrandCombobox({
 											}}
 										>
 											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-											<div className="flex-1">
-												<div>{option.label}</div>
+											<div className="flex-1 min-w-0">
+												<div className="truncate">{option.label}</div>
 											</div>
 										</CommandItem>
 									))}

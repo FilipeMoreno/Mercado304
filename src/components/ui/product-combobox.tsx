@@ -173,11 +173,12 @@ export function ProductCombobox({
 											}}
 										>
 											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-											<div className="flex-1">
-												<div>{option.label}</div>
+											<div className="flex-1 min-w-0">
+												<div className="truncate">{option.label}</div>
 												{option.barcode && (
 													<div className="flex text-xs text-gray-500 mt-1">
-														<Barcode className="h-4 w-4 mr-1" /> {option.barcode}
+														<Barcode className="h-4 w-4 mr-1 shrink-0" /> 
+														<span className="truncate">{option.barcode}</span>
 													</div>
 												)}
 											</div>

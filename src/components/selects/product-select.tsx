@@ -2,9 +2,12 @@
 
 import { useCallback, useMemo, useState } from "react"
 import { ProductCombobox } from "@/components/ui/product-combobox"
+import { BarcodeScanner } from "@/components/barcode-scanner"
 import { useInfiniteProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
+import { Button } from "@/components/ui/button"
+import { Camera } from "lucide-react"
 import type { Product } from "@/types"
 
 interface ProductSelectProps {
@@ -29,6 +32,7 @@ export function ProductSelect({
 	itemIndex,
 }: ProductSelectProps) {
 	const [search, setSearch] = useState("")
+	const [isScannerOpen, setIsScannerOpen] = useState(false)
 	const debouncedSearch = useDebounce(search, 300)
 
 	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
@@ -81,27 +85,67 @@ export function ProductSelect({
 		}
 	}
 
+	const handleBarcodeScanned = async (barcode: string) => {
+		try {
+			// Buscar produto pelo código de barras
+			const response = await fetch(`/api/products/barcode/${barcode}`)
+			if (response.ok) {
+				const product = await response.json()
+				onValueChange?.(product.id)
+				setSearch(product.name) // Mostrar o nome do produto encontrado
+			} else {
+				// Produto não encontrado, buscar no search para ver se encontra produtos similares
+				setSearch(barcode)
+			}
+		} catch (error) {
+			console.error("Erro ao buscar produto por código de barras:", error)
+			// Em caso de erro, usar o código como busca
+			setSearch(barcode)
+		}
+		setIsScannerOpen(false)
+	}
+
 	if (isLoading && products.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
 	return (
-		<ProductCombobox
-			products={products}
-			value={value}
-			onValueChange={handleValueChange}
-			placeholder={placeholder}
-			searchPlaceholder="Buscar produto ou código de barras..."
-			emptyText="Nenhum produto encontrado."
-			onCreateNew={handleCreateProduct}
-			createNewText="Criar produto"
-			className={className}
-			disabled={disabled}
-			hasNextPage={hasNextPage}
-			fetchNextPage={fetchNextPage}
-			isFetchingNextPage={isFetchingNextPage}
-			isLoading={isLoading || isPlaceholderData}
-			onSearchChange={handleSearchChange}
-		/>
+		<>
+			<div className="flex gap-2">
+				<ProductCombobox
+					products={products}
+					value={value}
+					onValueChange={handleValueChange}
+					placeholder={placeholder}
+					searchPlaceholder="Buscar produto ou código de barras..."
+					emptyText="Nenhum produto encontrado."
+					onCreateNew={handleCreateProduct}
+					createNewText="Criar produto"
+					className={className}
+					disabled={disabled}
+					hasNextPage={hasNextPage}
+					fetchNextPage={fetchNextPage}
+					isFetchingNextPage={isFetchingNextPage}
+					isLoading={isLoading || isPlaceholderData}
+					onSearchChange={handleSearchChange}
+				/>
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={() => setIsScannerOpen(true)}
+					disabled={disabled}
+					className="shrink-0"
+					title="Escanear código de barras"
+				>
+					<Camera className="h-4 w-4" />
+				</Button>
+			</div>
+
+			<BarcodeScanner
+				isOpen={isScannerOpen}
+				onScan={handleBarcodeScanned}
+				onClose={() => setIsScannerOpen(false)}
+			/>
+		</>
 	)
 }
