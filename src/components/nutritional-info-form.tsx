@@ -137,7 +137,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 			// CORREÇÃO: Derivar campos ativos a partir das CHAVES do objeto, não dos VALORES.
 			// Isso garante que campos adicionados (com valor `undefined`) sejam exibidos.
 			const activeKeys = optionalFields
-				.filter((field) => Object.hasOwn(initialData, field.key))
+				.filter((field) => Object.prototype.hasOwnProperty.call(initialData, field.key))
 				.map((field) => field.key)
 			setActiveOptionalFields(activeKeys)
 		}
@@ -175,7 +175,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 	const addOptionalFields = () => {
 		if (fieldsToAdd.length > 0) {
 			// Adiciona os novos campos à lista de campos ativos
-			setActiveOptionalFields((prev) => [...new Set([...prev, ...fieldsToAdd])])
+			setActiveOptionalFields((prev) => Array.from(new Set([...prev, ...fieldsToAdd])))
 
 			// Atualiza o objeto de dados principal para incluir as novas chaves (com valor undefined)
 			// e notifica o componente pai.
