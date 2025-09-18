@@ -120,7 +120,7 @@ export default function ContaPage() {
 	}
 
 	return (
-		<div className="container py-6 w-full">
+		<div className="w-full">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold">Minha Conta</h1>
