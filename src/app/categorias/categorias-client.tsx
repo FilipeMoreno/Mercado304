@@ -271,7 +271,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										</div>
 									</CardHeader>
 									<CardContent className="pt-0">
-										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+										<div className="flex gap-2 ">
 											<Link href={`/categorias/${category.id}`} className="flex-1">
 												<Button variant="outline" size="sm" className="w-full justify-center">
 													<ArrowRight className="h-4 w-4 mr-1" />

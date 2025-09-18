@@ -1,10 +1,9 @@
 "use client"
 
-import { ArrowRight, ChevronLeft, ChevronRight, Edit, Factory, Filter, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { ArrowRight, ChevronLeft, ChevronRight, Edit, Factory, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import { toast } from "sonner"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -246,7 +245,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 										</div>
 									</CardHeader>
 									<CardContent className="pt-0">
-										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+										<div className="flex gap-2">
 											<Link href={`/marcas/${brand.id}`} className="flex-1">
 												<Button variant="outline" size="sm" className="w-full justify-center">
 													<ArrowRight className="h-4 w-4 mr-1" />

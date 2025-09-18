@@ -333,7 +333,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 										</div>
 									</CardHeader>
 									<CardContent className="pt-0">
-										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+										<div className="flex gap-2 ">
 											<Link href={`/produtos/${product.id}`} className="flex-1">
 												<Button variant="outline" size="sm" className="w-full justify-center">
 													<BarChart3 className="h-4 w-4 mr-1" />
