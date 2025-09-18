@@ -1,11 +1,11 @@
 "use client"
 
-import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, Package, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, Package, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo, useState, useCallback } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -37,13 +37,12 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 
-
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/produtos",
 		// CORREÇÃO: initialValues devem ser SEMPRE os valores padrão, não os searchParams atuais
 		initialValues: {
 			search: "",
-			category: "all", 
+			category: "all",
 			brand: "all",
 			sort: "name-asc",
 			page: 1,
@@ -67,9 +66,9 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			const newState = {
 				...currentState,
 				search: debouncedSearch,
-				page: 1 // Reset page quando mudar search
+				page: 1, // Reset page quando mudar search
 			}
-			
+
 			// Usar updateState ao invés de updateSingleValue para ter mais controle
 			updateState(newState)
 		}
@@ -298,43 +297,60 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							</span>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{products.map((product: any) => (
-								<Card key={product.id} className="hover:shadow-md transition-shadow">
+								<Card
+									key={product.id}
+									className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl"
+								>
 									<CardHeader className="pb-3">
-										<div className="flex justify-between items-start">
-											<CardTitle className="text-lg flex items-center gap-2">
-												<Package className="h-5 w-5" />
-												{product.name}
-											</CardTitle>
+										<div className="flex items-center gap-3 mb-2">
+											<div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
+												<Package className="h-6 w-6 text-orange-600" />
+											</div>
+											<div className="flex-1 min-w-0">
+												<CardTitle className="text-lg font-semibold text-gray-900 truncate">{product.name}</CardTitle>
+												<div className="flex items-center gap-2 mt-1">
+													{product.category && (
+														<span className="inline-flex items-center text-xs text-gray-600">
+															{product.category.icon} {product.category.name}
+														</span>
+													)}
+												</div>
+											</div>
 										</div>
-										<CardDescription className="space-y-1">
-											{product.category && (
+										<div className="space-y-1 text-xs text-gray-500">
+											{product.brand && (
 												<div className="flex items-center gap-1">
-													<Tag className="h-3 w-3" />
-													<span>
-														{product.category.icon} {product.category.name}
-													</span>
+													<span className="font-medium">Marca:</span>
+													<span>{product.brand.name}</span>
 												</div>
 											)}
-											{product.brand && <div className="text-sm text-gray-600">Marca: {product.brand.name}</div>}
-											<div className="text-sm text-gray-600">Unidade: {product.unit}</div>
-										</CardDescription>
+											<div className="flex items-center gap-1">
+												<span className="font-medium">Unidade:</span>
+												<span>{product.unit}</span>
+											</div>
+										</div>
 									</CardHeader>
 									<CardContent className="pt-0">
-										<div className="flex gap-2">
-											<Link href={`/produtos/${product.id}`}>
-												<Button variant="outline" size="sm">
+										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											<Link href={`/produtos/${product.id}`} className="flex-1">
+												<Button variant="outline" size="sm" className="w-full justify-center">
 													<BarChart3 className="h-4 w-4 mr-1" />
-													Detalhes
+													Ver
 												</Button>
 											</Link>
 											<Link href={`/produtos/${product.id}/editar`}>
-												<Button variant="outline" size="sm">
+												<Button variant="outline" size="sm" className="w-10 h-8 p-0">
 													<Edit className="h-4 w-4" />
 												</Button>
 											</Link>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(product)}>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => openDeleteConfirm(product)}
+												className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+											>
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>

@@ -3,7 +3,7 @@
 import { BarChart3, ChevronLeft, ChevronRight, Edit, MapPin, Plus, Search, Store, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo, useState, useCallback } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -54,9 +54,9 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 			const newState = {
 				...currentState,
 				search: debouncedSearch,
-				page: 1 // Reset page quando mudar search
+				page: 1, // Reset page quando mudar search
 			}
-			
+
 			// Usar updateState ao invés de updateSingleValue para ter mais controle
 			updateState(newState)
 		}
@@ -131,12 +131,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 			<div className="flex items-center gap-2 mb-6">
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-					<Input
-						placeholder="Buscar mercados..."
-						value={searchValue}
-						onChange={handleSearchChange}
-						className="pl-10"
-					/>
+					<Input placeholder="Buscar mercados..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
 				<FilterPopover
 					sortValue={state.sort as string}
@@ -182,6 +177,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<Button
 									variant="outline"
 									onClick={() => {
+										setSearchValue("") // Reset o input local
 										clearFilters()
 										updateSingleValue("page", 1)
 									}}
@@ -215,37 +211,45 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								Página {state.page} de {totalPages}
 							</span>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{markets.map((market: any) => (
-								<Card key={market.id}>
-									<CardHeader>
-										<div className="flex justify-between items-start">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													<Store className="h-5 w-5" />
-													{market.name}
-												</CardTitle>
-												<CardDescription className="flex items-center gap-1 mt-2">
-													<MapPin className="h-3 w-3" />
-													{market.location}
+								<Card
+									key={market.id}
+									className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl"
+								>
+									<CardHeader className="pb-3">
+										<div className="flex items-center gap-3 mb-2">
+											<div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center shadow-sm">
+												<Store className="h-6 w-6 text-purple-600" />
+											</div>
+											<div className="flex-1 min-w-0">
+												<CardTitle className="text-lg font-semibold text-gray-900 truncate">{market.name}</CardTitle>
+												<CardDescription className="flex items-center gap-1 mt-1 text-sm text-gray-600">
+													<MapPin className="h-4 w-4 flex-shrink-0" />
+													<span className="truncate">{market.location}</span>
 												</CardDescription>
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent>
-										<div className="flex gap-2">
-											<Link href={`/mercados/${market.id}`}>
-												<Button variant="outline" size="sm">
+									<CardContent className="pt-0">
+										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											<Link href={`/mercados/${market.id}`} className="flex-1">
+												<Button variant="outline" size="sm" className="w-full justify-center">
 													<BarChart3 className="h-4 w-4 mr-1" />
-													Detalhes
+													Ver
 												</Button>
 											</Link>
 											<Link href={`/mercados/${market.id}/editar`}>
-												<Button variant="outline" size="sm">
+												<Button variant="outline" size="sm" className="w-10 h-8 p-0">
 													<Edit className="h-4 w-4" />
 												</Button>
 											</Link>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(market)}>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => openDeleteConfirm(market)}
+												className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+											>
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
@@ -259,7 +263,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number - 1)}
+									onClick={() => handlePageChange((state.page as number) - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -289,7 +293,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number + 1)}
+									onClick={() => handlePageChange((state.page as number) + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima

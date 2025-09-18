@@ -227,31 +227,36 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								Página {state.page} de {totalPages}
 							</span>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{brands.map((brand: any) => (
-								<Card key={brand.id}>
-									<CardHeader>
-										<div className="flex justify-between items-start">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													<Factory className="h-5 w-5" />
+								<Card key={brand.id} className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl">
+									<CardHeader className="pb-3">
+										<div className="flex items-center gap-3 mb-2">
+											<div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shadow-sm">
+												<Factory className="h-6 w-6 text-blue-600" />
+											</div>
+											<div className="flex-1 min-w-0">
+												<CardTitle className="text-lg font-semibold text-gray-900 truncate">
 													{brand.name}
 												</CardTitle>
-												<CardDescription className="mt-2">{brand._count?.products || 0} produtos</CardDescription>
+												<CardDescription className="text-sm text-gray-600 mt-1">
+													{brand._count?.products || 0} produtos
+												</CardDescription>
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent>
-										<div className="flex gap-2">
-											<Link href={`${`/marcas/${brand.id}`}`}>
-												<Button variant="outline" size="sm">
-													Detalhes <ArrowRight className="h-4 w-4" />
+									<CardContent className="pt-0">
+										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											<Link href={`/marcas/${brand.id}`} className="flex-1">
+												<Button variant="outline" size="sm" className="w-full justify-center">
+													<ArrowRight className="h-4 w-4 mr-1" />
+													Ver
 												</Button>
 											</Link>
-											<Button variant="outline" size="sm" onClick={() => startEdit(brand)}>
+											<Button variant="outline" size="sm" onClick={() => startEdit(brand)} className="w-10 h-8 p-0">
 												<Edit className="h-4 w-4" />
 											</Button>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(brand)}>
+											<Button variant="outline" size="sm" onClick={() => openDeleteConfirm(brand)} className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>

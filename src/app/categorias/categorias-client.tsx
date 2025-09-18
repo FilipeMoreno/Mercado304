@@ -236,36 +236,52 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								Página {state.page} de {totalPages}
 							</span>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{categories.map((category: any) => (
-								<Card key={category.id}>
-									<CardHeader>
-										<div className="flex justify-between items-start">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													{category.icon && <span className="text-lg">{category.icon}</span>}
+								<Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl">
+									<CardHeader className="pb-3">
+										<div className="flex items-center gap-3 mb-2">
+											{category.icon ? (
+												<div 
+													className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm"
+													style={{ backgroundColor: category.color ? `${category.color}20` : '#f3f4f6' }}
+												>
+													{category.icon}
+												</div>
+											) : (
+												<div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shadow-sm">
+													<Tag className="h-5 w-5 text-gray-400" />
+												</div>
+											)}
+											<div className="flex-1 min-w-0">
+												<CardTitle className="text-lg font-semibold text-gray-900 truncate">
 													{category.name}
 												</CardTitle>
-												<CardDescription className="mt-2 flex items-center gap-2">
-													{category._count?.products || 0} produtos
+												<div className="flex items-center gap-2 mt-1">
+													<CardDescription className="text-sm text-gray-600">
+														{category._count?.products || 0} produtos
+													</CardDescription>
 													{category.isFood && (
-														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>
+														<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+															Alimento
+														</span>
 													)}
-												</CardDescription>
+												</div>
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent>
-										<div className="flex gap-2">
-											<Link href={`${`/categorias/${category.id}`}`}>
-												<Button variant="outline" size="sm">
-													Detalhes <ArrowRight className="h-4 w-4" /> 
+									<CardContent className="pt-0">
+										<div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+											<Link href={`/categorias/${category.id}`} className="flex-1">
+												<Button variant="outline" size="sm" className="w-full justify-center">
+													<ArrowRight className="h-4 w-4 mr-1" />
+													Ver
 												</Button>
 											</Link>
-											<Button variant="outline" size="sm" onClick={() => _startEdit(category)}>
+											<Button variant="outline" size="sm" onClick={() => _startEdit(category)} className="w-10 h-8 p-0">
 												<Edit className="h-4 w-4" />
 											</Button>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(category)}>
+											<Button variant="outline" size="sm" onClick={() => openDeleteConfirm(category)} className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
