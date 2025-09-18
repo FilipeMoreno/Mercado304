@@ -168,8 +168,8 @@ export default function ProdutoDetalhesPage() {
 		return null
 	}
 
-	const _hasValue = (value: number | null | undefined) => {
-		return value !== null && value !== undefined && value !== 0
+	const _hasValue = (value: number | null | undefined): value is number => {
+		return value !== null && typeof value !== "undefined" && value > 0
 	}
 
 	return (

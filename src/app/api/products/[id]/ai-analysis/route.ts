@@ -47,13 +47,12 @@ export async function POST(_request: Request, { params }: { params: { id: string
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
-    // 🔹 Remove campos nulos
     const filteredInfo = Object.entries(nutritionalInfo)
-      .filter(([_, value]) => typeof value === "number" && value !== null)
-      .reduce((acc, [key, value]) => {
-        acc[key] = value
-        return acc
-      }, {} as Record<string, number>)
+    .filter(([_, value]) => typeof value === "number" && value !== null)
+    .reduce((acc, [key, value]) => {
+      acc[key] = value as number
+      return acc
+    }, {} as Record<string, number>)
 
     const perServing = calculatePerServing(filteredInfo, nutritionalInfo.servingSize)
 
