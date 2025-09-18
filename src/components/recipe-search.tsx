@@ -1,25 +1,63 @@
 "use client"
 
 import { useState } from "react"
-import { Search, X } from "lucide-react"
+import { Search, X, Sparkles, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface RecipeSearchProps {
 	onSearch: (search: string, ingredients: string[]) => void
+	onAISearch?: (search: string, ingredients: string[], mealTypes?: string[]) => void
+	onSurpriseMe?: (mealTypes: string[]) => void
 	availableIngredients?: string[]
 }
 
-export function RecipeSearch({ onSearch, availableIngredients = [] }: RecipeSearchProps) {
+export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngredients = [] }: RecipeSearchProps) {
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedIngredients, setSelectedIngredients] = useState<string[]>([])
 	const [ingredientInput, setIngredientInput] = useState("")
 	const [showSuggestions, setShowSuggestions] = useState(false)
+	const [useAI, setUseAI] = useState(false)
+	const [showSurpriseSettings, setShowSurpriseSettings] = useState(false)
+	const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>([])
+
+	const mealTypes = [
+		{ id: "cafe_da_manha", label: "Café da Manhã" },
+		{ id: "almoco", label: "Almoço" },
+		{ id: "jantar", label: "Jantar" },
+		{ id: "lanche", label: "Lanche" },
+		{ id: "sobremesa", label: "Sobremesa" },
+		{ id: "entrada", label: "Entrada" }
+	]
 
 	const handleSearch = () => {
-		onSearch(searchTerm, selectedIngredients)
+		if (useAI && onAISearch) {
+			onAISearch(searchTerm, selectedIngredients, selectedMealTypes)
+		} else {
+			onSearch(searchTerm, selectedIngredients)
+		}
+	}
+
+	const handleSurpriseMe = () => {
+		if (onSurpriseMe) {
+			const mealTypesToUse = selectedMealTypes.length > 0 ? selectedMealTypes : ["almoco", "jantar"]
+			onSurpriseMe(mealTypesToUse)
+		}
+		setShowSurpriseSettings(false)
+	}
+
+	const handleMealTypeToggle = (mealTypeId: string) => {
+		setSelectedMealTypes(prev => 
+			prev.includes(mealTypeId) 
+				? prev.filter(id => id !== mealTypeId)
+				: [...prev, mealTypeId]
+		)
 	}
 
 	const handleClearSearch = () => {
@@ -67,11 +105,68 @@ export function RecipeSearch({ onSearch, availableIngredients = [] }: RecipeSear
 		<Card>
 			<CardContent className="pt-6">
 				<div className="space-y-4">
+					{/* Switch para alternar entre busca local e IA */}
+					<div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+						<div className="flex items-center space-x-2">
+							<Switch
+								id="ai-mode"
+								checked={useAI}
+								onCheckedChange={setUseAI}
+							/>
+							<Label htmlFor="ai-mode" className="text-sm font-medium">
+								{useAI ? "🤖 Buscar com IA" : "📚 Buscar receitas salvas"}
+							</Label>
+						</div>
+						
+						{/* Botão Me Surpreenda */}
+						<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
+							<DialogTrigger asChild>
+								<Button variant="outline" size="sm" disabled={!useAI}>
+									<Sparkles className="h-4 w-4 mr-2" />
+									Me Surpreenda
+								</Button>
+							</DialogTrigger>
+							<DialogContent>
+								<DialogHeader>
+									<DialogTitle>Me Surpreenda! ✨</DialogTitle>
+									<DialogDescription>
+										Selecione os tipos de refeição que você gostaria de receber sugestões.
+									</DialogDescription>
+								</DialogHeader>
+								<div className="space-y-4">
+									<div className="grid grid-cols-2 gap-3">
+										{mealTypes.map((mealType) => (
+											<div key={mealType.id} className="flex items-center space-x-2">
+												<Checkbox
+													id={mealType.id}
+													checked={selectedMealTypes.includes(mealType.id)}
+													onCheckedChange={() => handleMealTypeToggle(mealType.id)}
+												/>
+												<Label htmlFor={mealType.id} className="text-sm">
+													{mealType.label}
+												</Label>
+											</div>
+										))}
+									</div>
+									<div className="flex gap-2">
+										<Button onClick={handleSurpriseMe} className="flex-1">
+											<Sparkles className="h-4 w-4 mr-2" />
+											Gerar Receitas Surpresa
+										</Button>
+										<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
+											Cancelar
+										</Button>
+									</div>
+								</div>
+							</DialogContent>
+						</Dialog>
+					</div>
+
 					{/* Busca por nome/descrição */}
 					<div className="relative">
 						<Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
 						<Input
-							placeholder="Buscar receitas por nome ou descrição..."
+							placeholder={useAI ? "Descreva o que você quer cozinhar..." : "Buscar receitas por nome ou descrição..."}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							onKeyPress={handleKeyPress}
@@ -131,7 +226,7 @@ export function RecipeSearch({ onSearch, availableIngredients = [] }: RecipeSear
 					<div className="flex gap-2">
 						<Button onClick={handleSearch} className="flex-1">
 							<Search className="h-4 w-4 mr-2" />
-							Buscar Receitas
+							{useAI ? "Gerar com IA" : "Buscar Receitas"}
 						</Button>
 						{(searchTerm || selectedIngredients.length > 0) && (
 							<Button variant="outline" onClick={handleClearSearch}>
