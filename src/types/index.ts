@@ -153,6 +153,7 @@ export interface NutritionalInfo {
 	// Outros nutrientes (valores opcionais)
 	taurine?: number
 	caffeine?: number
+	alcoholContent?: number // Teor alcoólico em % (para bebidas alcoólicas)
 	// Ácidos graxos e gorduras especiais (valores opcionais)
 	omega3?: number // Ômega 3 em mg
 	omega6?: number // Ômega 6 em g

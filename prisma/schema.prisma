@@ -301,13 +301,14 @@ model NutritionalInfo {
   folate          Float? // Folato em mcg
   vitaminB12      Float? // Vitamina B12 em mcg
   biotin          Float? // Biotina em mcg
-  pantothenicAcid Float? // Ácido Pantotênico em mg
+  pantothenicAcid Float? // Ácido Pantotênico (Vitamina B5) em mg
 
   // Outros nutrientes (valores opcionais)
   taurine   Float? // Taurina em mg
   caffeine  Float? // Cafeína em mg
-  lactose   Float? // Lactose em g
-  galactose Float? // Galactose em g
+  lactose      Float? // Lactose em g
+  galactose    Float? // Galactose em g
+  alcoholContent Float? // Teor alcoólico em % (para bebidas alcoólicas)
   
   // Ácidos graxos e gorduras especiais (valores opcionais)
   omega3                Float? // Ômega 3 em mg

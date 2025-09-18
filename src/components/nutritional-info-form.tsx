@@ -32,6 +32,7 @@ const commonAllergens = [
 	"Pistache",
 	"Soja",
 	"Trigo",
+	"Triticale",
 ]
 
 // Campos obrigatórios da tabela nutricional
@@ -55,6 +56,7 @@ const optionalFields = [
 	{ key: "galactose", label: "Galactose", unit: "g", category: "Outros" },
 	{ key: "taurine", label: "Taurina", unit: "mg", category: "Outros" },
 	{ key: "caffeine", label: "Cafeína", unit: "mg", category: "Outros" },
+	{ key: "alcoholContent", label: "Teor Alcoólico", unit: "%", category: "Outros" },
 	// Ácidos graxos e gorduras especiais
 	{ key: "omega3", label: "Ômega 3", unit: "mg", category: "Ácidos Graxos" },
 	{ key: "omega6", label: "Ômega 6", unit: "g", category: "Ácidos Graxos" },
@@ -99,7 +101,7 @@ const optionalFields = [
 	{ key: "biotin", label: "Biotina", unit: "mcg", category: "Vitaminas" },
 	{
 		key: "pantothenicAcid",
-		label: "Ácido Pantotênico",
+		label: "Vitamina B5 (Ácido Pantotênico)",
 		unit: "mg",
 		category: "Vitaminas",
 	},
@@ -113,7 +115,7 @@ const optionalFields = [
 	{ key: "copper", label: "Cobre", unit: "mg", category: "Minerais" },
 	{ key: "manganese", label: "Manganês", unit: "mg", category: "Minerais" },
 	{ key: "selenium", label: "Selênio", unit: "mcg", category: "Minerais" },
-	{ key: "iodine", label: "Iodo", unit: "mcg", category: "Minerais" },
+	{ key: "iodine", label: "Iodo", unit: "μg", category: "Minerais" },
 	{ key: "chromium", label: "Cromo", unit: "mcg", category: "Minerais" },
 	{ key: "molybdenum", label: "Molibdênio", unit: "mcg", category: "Minerais" },
 ]
