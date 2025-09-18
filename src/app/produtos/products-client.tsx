@@ -1,12 +1,14 @@
 "use client"
 
-import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, Package, Plus, Search, Trash2 } from "lucide-react"
+import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, MoreHorizontal, Package, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
@@ -301,7 +303,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							{products.map((product: any) => (
 								<Card
 									key={product.id}
-									className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl"
+									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
 								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
@@ -309,7 +311,16 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 												<Package className="h-5 w-5 text-orange-600" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<CardTitle className="text-lg font-semibold text-gray-900 truncate">{product.name}</CardTitle>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">{product.name}</CardTitle>
+														</TooltipTrigger>
+														<TooltipContent side="top" className="max-w-xs">
+															<p>{product.name}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
 												<div className="flex items-center gap-2 mt-1">
 													{product.category && (
 														<span className="inline-flex items-center text-xs text-gray-600">
@@ -332,29 +343,39 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="flex gap-2 ">
+									<CardContent className="flex-1" />
+									<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+										<div className="flex gap-2 w-full">
 											<Link href={`/produtos/${product.id}`} className="flex-1">
-												<Button variant="outline" size="sm" className="w-full justify-center">
-													<BarChart3 className="h-4 w-4 mr-1" />
-													Ver
+												<Button variant="outline" className="w-full justify-center">
+													<BarChart3 className="h-4 w-4 mr-2" />
+													Ver Produto
 												</Button>
 											</Link>
-											<Link href={`/produtos/${product.id}/editar`}>
-												<Button variant="outline" size="sm" className="w-10 h-8 p-0">
-													<Edit className="h-4 w-4" />
-												</Button>
-											</Link>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => openDeleteConfirm(product)}
-												className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="outline" size="icon">
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem asChild>
+														<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
+															<Edit className="h-4 w-4 mr-2" />
+															Editar
+														</Link>
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => openDeleteConfirm(product)}
+														className="text-red-600 focus:text-red-600"
+													>
+														<Trash2 className="h-4 w-4 mr-2" />
+														Excluir
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
 										</div>
-									</CardContent>
+									</CardFooter>
 								</Card>
 							))}
 						</div>

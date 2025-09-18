@@ -1,12 +1,14 @@
 "use client"
 
-import { BarChart3, ChevronLeft, ChevronRight, Edit, MapPin, Plus, Search, Store, Trash2 } from "lucide-react"
+import { BarChart3, ChevronLeft, ChevronRight, Edit, MapPin, MoreHorizontal, Plus, Search, Store, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -215,7 +217,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 							{markets.map((market: any) => (
 								<Card
 									key={market.id}
-									className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl"
+									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
 								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
@@ -223,7 +225,16 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 												<Store className="h-6 w-6 text-purple-600" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<CardTitle className="text-lg font-semibold text-gray-900 truncate">{market.name}</CardTitle>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">{market.name}</CardTitle>
+														</TooltipTrigger>
+														<TooltipContent side="top" className="max-w-xs">
+															<p>{market.name}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
 												<CardDescription className="flex items-center gap-1 mt-1 text-sm text-gray-600">
 													<MapPin className="h-4 w-4 flex-shrink-0" />
 													<span className="truncate">{market.location}</span>
@@ -231,29 +242,39 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="flex gap-2 ">
+									<CardContent className="flex-1" />
+									<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+										<div className="flex gap-2 w-full">
 											<Link href={`/mercados/${market.id}`} className="flex-1">
-												<Button variant="outline" size="sm" className="w-full justify-center">
-													<BarChart3 className="h-4 w-4 mr-1" />
-													Ver
+												<Button variant="outline" className="w-full justify-center">
+													<BarChart3 className="h-4 w-4 mr-2" />
+													Ver Mercado
 												</Button>
 											</Link>
-											<Link href={`/mercados/${market.id}/editar`}>
-												<Button variant="outline" size="sm" className="w-10 h-8 p-0">
-													<Edit className="h-4 w-4" />
-												</Button>
-											</Link>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => openDeleteConfirm(market)}
-												className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="outline" size="icon">
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem asChild>
+														<Link href={`/mercados/${market.id}/editar`} className="flex items-center">
+															<Edit className="h-4 w-4 mr-2" />
+															Editar
+														</Link>
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => openDeleteConfirm(market)}
+														className="text-red-600 focus:text-red-600"
+													>
+														<Trash2 className="h-4 w-4 mr-2" />
+														Excluir
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
 										</div>
-									</CardContent>
+									</CardFooter>
 								</Card>
 							))}
 						</div>

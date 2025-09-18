@@ -1,12 +1,14 @@
 "use client"
 
-import { ArrowRight, ChevronLeft, ChevronRight, Edit, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { ArrowRight, ChevronLeft, ChevronRight, Edit, MoreHorizontal, Plus, Search, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import React, { useCallback, useMemo, useState } from "react"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -238,7 +240,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{categories.map((category: any) => (
-								<Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border-0 shadow-md hover:shadow-xl">
+								<Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col">
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
 											{category.icon ? (
@@ -254,9 +256,18 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 												</div>
 											)}
 											<div className="flex-1 min-w-0">
-												<CardTitle className="text-lg font-semibold text-gray-900 truncate">
-													{category.name}
-												</CardTitle>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
+																{category.name}
+															</CardTitle>
+														</TooltipTrigger>
+														<TooltipContent side="top" className="max-w-xs">
+															<p>{category.name}</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
 												<div className="flex items-center gap-2 mt-1">
 													<CardDescription className="text-sm text-gray-600">
 														{category._count?.products || 0} produtos
@@ -270,22 +281,37 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 											</div>
 										</div>
 									</CardHeader>
-									<CardContent className="pt-0">
-										<div className="flex gap-2 ">
+									<CardContent className="flex-1" />
+									<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+										<div className="flex gap-2 w-full">
 											<Link href={`/categorias/${category.id}`} className="flex-1">
-												<Button variant="outline" size="sm" className="w-full justify-center">
-													<ArrowRight className="h-4 w-4 mr-1" />
-													Ver
+												<Button variant="outline" className="w-full justify-center">
+													<ArrowRight className="h-4 w-4 mr-2" />
+													Ver Categoria
 												</Button>
 											</Link>
-											<Button variant="outline" size="sm" onClick={() => _startEdit(category)} className="w-10 h-8 p-0">
-												<Edit className="h-4 w-4" />
-											</Button>
-											<Button variant="outline" size="sm" onClick={() => openDeleteConfirm(category)} className="w-10 h-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
-												<Trash2 className="h-4 w-4" />
-											</Button>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="outline" size="icon">
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem onClick={() => _startEdit(category)}>
+														<Edit className="h-4 w-4 mr-2" />
+														Editar
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => openDeleteConfirm(category)}
+														className="text-red-600 focus:text-red-600"
+													>
+														<Trash2 className="h-4 w-4 mr-2" />
+														Excluir
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
 										</div>
-									</CardContent>
+									</CardFooter>
 								</Card>
 							))}
 						</div>
