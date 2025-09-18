@@ -2,10 +2,18 @@
 
 import { Check, ChevronsUpDown } from "lucide-react"
 import * as React from "react"
+
 import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, normalizeString } from "@/lib/utils"
 
 interface ComboboxOption {
 	value: string
@@ -40,10 +48,13 @@ export function Combobox({
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
 
-	// Filtrar opções baseado no termo de busca
+	// Filtrar opções baseado no termo de busca normalizado
 	const filteredOptions = React.useMemo(() => {
 		if (!searchTerm) return options
-		return options.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
+		const normalizedSearchTerm = normalizeString(searchTerm)
+		return options.filter((option) =>
+			normalizeString(option.label).includes(normalizedSearchTerm),
+		)
 	}, [options, searchTerm])
 
 	return (
@@ -57,15 +68,26 @@ export function Combobox({
 					disabled={disabled}
 				>
 					<span className="truncate flex-1 text-left font-normal">
-						{value ? options.find((option) => option.value === value)?.label : placeholder}
+						{value
+							? options.find((option) => option.value === value)?.label
+							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[60]">
+			<PopoverContent
+				className="w-[var(--radix-popover-trigger-width)] p-0 z-[60]"
+			>
 				<Command shouldFilter={false}>
-					<CommandInput placeholder={searchPlaceholder} value={searchTerm} onValueChange={setSearchTerm} />
-					<CommandList className="max-h-[300px] overflow-y-auto overscroll-contain" style={{ touchAction: 'auto', overscrollBehavior: 'contain' }}>
+					<CommandInput
+						placeholder={searchPlaceholder}
+						value={searchTerm}
+						onValueChange={setSearchTerm}
+					/>
+					<CommandList
+						className="max-h-[300px] overflow-y-auto overscroll-contain"
+						style={{ touchAction: "auto", overscrollBehavior: "contain" }}
+					>
 						<CommandEmpty>
 							<div className="py-6 text-center text-sm">
 								<p className="text-muted-foreground">{emptyText}</p>
@@ -96,10 +118,13 @@ export function Combobox({
 										setSearchTerm("")
 									}}
 								>
-									<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-									<div className="flex-1 truncate">
-										{option.label}
-									</div>
+									<Check
+										className={cn(
+											"mr-2 h-4 w-4",
+											value === option.value ? "opacity-100" : "opacity-0",
+										)}
+									/>
+									<div className="flex-1 truncate">{option.label}</div>
 								</CommandItem>
 							))}
 						</CommandGroup>
