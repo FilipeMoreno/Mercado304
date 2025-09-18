@@ -6,7 +6,32 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
 	try {
+		const { searchParams } = new URL(request.url)
+		const search = searchParams.get("search")
+		const ingredients = searchParams.get("ingredients")
+		
+		const whereClause: any = {}
+		
+		// Busca por nome ou descrição
+		if (search) {
+			whereClause.OR = [
+				{ name: { contains: search, mode: "insensitive" } },
+				{ description: { contains: search, mode: "insensitive" } }
+			]
+		}
+		
+		// Busca por ingredientes
+		if (ingredients) {
+			const ingredientList = ingredients.split(",").map(i => i.trim()).filter(Boolean)
+			if (ingredientList.length > 0) {
+				whereClause.ingredients = {
+					hasSome: ingredientList
+				}
+			}
+		}
+		
 		const recipes = await prisma.recipe.findMany({
+			where: whereClause,
 			orderBy: {
 				createdAt: "desc",
 			},
