@@ -57,7 +57,7 @@ export default function SignInPage() {
 				router.push("/")
 			},
 			onError: (_error: any) => {
-				handleAut_errorr({ message: "Erro no login com Google One Tap" }, "signin")
+				handleAuthError({ message: "Erro no login com Google One Tap" }, "signin")
 			},
 		},
 	})
