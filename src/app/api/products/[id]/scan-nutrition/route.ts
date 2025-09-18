@@ -13,7 +13,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
 			throw new AppError("GEN_001", "Texto não fornecido.")
 		}
 
-		// CORREÇÃO: Usando a nova função para processar texto bruto
 		const parsedData = parseOcrText(text)
 
 		const nutritionalInfo = await prisma.nutritionalInfo.upsert({
@@ -31,7 +30,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
 	}
 }
 
-// O resto do arquivo (GET e DELETE) permanece o mesmo.
 export async function GET(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const productId = params.id

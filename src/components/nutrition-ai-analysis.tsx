@@ -1,14 +1,15 @@
 "use client"
 
-import { AlertTriangle, Wand2 } from "lucide-react"
+import { Wand2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface NutritionAiAnalysisProps {
 	productId: string
+	productName: string
 }
 
-export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
+export function NutritionAiAnalysis({ productId, productName }: NutritionAiAnalysisProps) {
 	const [analysis, setAnalysis] = useState<string | null>(null)
 	const [loading, setLoading] = useState(true)
 
@@ -17,7 +18,11 @@ export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
 			if (!productId) return
 			setLoading(true)
 			try {
-				const response = await fetch(`/api/products/${productId}/ai-analysis`)
+				const response = await fetch(`/api/products/${productId}/ai-analysis`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ productName: productName }),
+				})
 				if (response.ok) {
 					const data = await response.json()
 					setAnalysis(data.analysis)
@@ -32,7 +37,7 @@ export function NutritionAiAnalysis({ productId }: NutritionAiAnalysisProps) {
 			}
 		}
 		fetchAnalysis()
-	}, [productId])
+	}, [productId, productName])
 
 	if (loading) {
 		return (

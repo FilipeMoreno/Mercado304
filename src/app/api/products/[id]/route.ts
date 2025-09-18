@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getAllProductPrices, getProductPriceHistory } from "@/lib/price-utils"
+import { getProductPriceHistory } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -66,7 +66,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		const totalPurchases = purchaseItems.length
 		const totalRecords = allPrices.filter((p) => p.source === "record").length
 		const totalEntries = allPrices.length
-		const totalSpent = purchaseItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+		const _totalSpent = purchaseItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 		const averagePrice = totalEntries > 0 ? allPrices.reduce((sum, price) => sum + price.price, 0) / totalEntries : 0
 
 		const lastPriceDate = allPrices.length > 0 ? allPrices[0].date : null
@@ -77,9 +77,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		const recentPrices = allPrices.filter((price) => new Date(price.date) >= thirtyDaysAgo)
 		const olderPrices = allPrices.filter((price) => new Date(price.date) < thirtyDaysAgo)
 
-		const recentAveragePrice =
+		const _recentAveragePrice =
 			recentPrices.length > 0 ? recentPrices.reduce((sum, price) => sum + price.price, 0) / recentPrices.length : 0
-		const olderAveragePrice =
+		const _olderAveragePrice =
 			olderPrices.length > 0 ? olderPrices.reduce((sum, price) => sum + price.price, 0) / olderPrices.length : 0
 
 		// Calculate price change using more reliable logic
@@ -179,7 +179,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		const allWeeks = new Set<string>()
 
 		priceHistoryByMarket.forEach((marketData) => {
-			marketData.data.forEach((weekData: any, weekKey: string) => {
+			marketData.data.forEach((_weekData: any, weekKey: string) => {
 				allWeeks.add(weekKey)
 			})
 		})
@@ -190,7 +190,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 				const dataPoint: any = { week: "" }
 				let hasData = false
 
-				priceHistoryByMarket.forEach((marketData, marketId) => {
+				priceHistoryByMarket.forEach((marketData, _marketId) => {
 					if (marketData.data.has(weekKey)) {
 						const weekData = marketData.data.get(weekKey)
 						const averagePrice =
@@ -242,7 +242,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			recentPrices: recentPriceEntries,
 			stockAlerts,
 		})
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao buscar produto" }, { status: 500 })
 	}
 }
@@ -271,6 +271,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 		if (nutritionalInfo) {
 			const {
 				servingSize,
+				servingsPerPackage,
 				calories,
 				proteins,
 				totalFat,
@@ -295,6 +296,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				// Outros campos opcionais existentes
 				taurine,
 				caffeine,
+				alcoholContent,
 				// Vitaminas
 				vitaminA,
 				vitaminC,
@@ -329,6 +331,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 			cleanNutritionalInfoData = {
 				servingSize,
+				servingsPerPackage,
 				calories,
 				proteins,
 				totalFat,
@@ -339,20 +342,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				addedSugars,
 				fiber,
 				sodium,
-				// Novos campos adicionados
-				lactose,
-				galactose,
-				omega3,
-				omega6,
-				monounsaturatedFat,
-				polyunsaturatedFat,
-				cholesterol,
-				epa,
-				dha,
-				linolenicAcid,
-				// Outros campos opcionais existentes
-				taurine,
-				caffeine,
 				// Vitaminas
 				vitaminA,
 				vitaminC,
@@ -367,6 +356,21 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				vitaminB12,
 				biotin,
 				pantothenicAcid,
+				// Outros
+				taurine,
+				caffeine,
+				lactose,
+				galactose,
+				alcoholContent,
+				// Ácidos graxos e gorduras especiais
+				omega3,
+				omega6,
+				monounsaturatedFat,
+				polyunsaturatedFat,
+				cholesterol,
+				epa,
+				dha,
+				linolenicAcid,
 				// Minerais
 				calcium,
 				iron,
@@ -422,14 +426,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
 	try {
 		await prisma.product.delete({
 			where: { id: params.id },
 		})
 
 		return NextResponse.json({ message: "Produto excluído com sucesso" })
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao excluir produto" }, { status: 500 })
 	}
 }

@@ -168,6 +168,10 @@ export default function ProdutoDetalhesPage() {
 		return null
 	}
 
+	const _hasValue = (value: number | null | undefined) => {
+		return value !== null && value !== undefined && value !== 0
+	}
+
 	return (
 		<div className="space-y-6">
 			{/* Header Simplificado */}
@@ -611,12 +615,14 @@ export default function ProdutoDetalhesPage() {
 						<div className="space-y-8">
 							{/* Macronutrientes */}
 							<div>
-								<div className="flex items-center gap-2 mb-4">
-									<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
-									<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
-								</div>
+								{_hasValue(nutritionalInfo.calories) || _hasValue(nutritionalInfo.carbohydrates) || _hasValue(nutritionalInfo.proteins) || _hasValue(nutritionalInfo.totalFat) && (
+									<div className="flex items-center gap-2 mb-4">
+										<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
+										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
+									</div>
+								)}
 								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-									{nutritionalInfo.calories && (
+									{_hasValue(nutritionalInfo.calories) && (
 										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
 											<div className="relative z-10">
 												<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
@@ -625,7 +631,7 @@ export default function ProdutoDetalhesPage() {
 											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 										</div>
 									)}
-									{nutritionalInfo.carbohydrates && (
+									{_hasValue(nutritionalInfo.carbohydrates) && (
 										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
 											<div className="relative z-10">
 												<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
@@ -634,7 +640,7 @@ export default function ProdutoDetalhesPage() {
 											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 										</div>
 									)}
-									{nutritionalInfo.proteins && (
+									{_hasValue(nutritionalInfo.proteins) && (
 										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
 											<div className="relative z-10">
 												<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
@@ -643,7 +649,7 @@ export default function ProdutoDetalhesPage() {
 											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
 										</div>
 									)}
-									{nutritionalInfo.totalFat && (
+									{_hasValue(nutritionalInfo.totalFat) && (
 										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
 											<div className="relative z-10">
 												<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">Gorduras Totais</p>
@@ -663,7 +669,7 @@ export default function ProdutoDetalhesPage() {
 										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Açúcares e Fibras</h4>
 									</div>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-										{nutritionalInfo.totalSugars && (
+										{_hasValue(nutritionalInfo.totalSugars) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-4 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-pink-700 dark:text-pink-300 mb-1">Açúcares Totais</p>
@@ -672,7 +678,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.addedSugars && (
+										{_hasValue(nutritionalInfo.addedSugars) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<div className="flex items-center justify-between mb-1">
@@ -689,7 +695,7 @@ export default function ProdutoDetalhesPage() {
 															if (addedSugarsPerServing >= threshold) {
 																return (
 																	<Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1">
-																		Alto em Açúcar
+																		Alto
 																	</Badge>
 																)
 															}
@@ -701,7 +707,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.fiber && (
+										{_hasValue(nutritionalInfo.fiber) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Fibras</p>
@@ -722,7 +728,7 @@ export default function ProdutoDetalhesPage() {
 										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Gorduras Detalhadas</h4>
 									</div>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-										{nutritionalInfo.saturatedFat && (
+										{_hasValue(nutritionalInfo.saturatedFat) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Saturadas</p>
@@ -731,7 +737,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.transFat && (
+										{_hasValue(nutritionalInfo.transFat) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-4 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Trans</p>
@@ -740,7 +746,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.monounsaturatedFat && (
+										{_hasValue(nutritionalInfo.monounsaturatedFat) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">Monoinsaturadas</p>
@@ -749,7 +755,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.polyunsaturatedFat && (
+										{_hasValue(nutritionalInfo.polyunsaturatedFat) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Poli-insaturadas</p>
@@ -758,7 +764,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.cholesterol && (
+										{_hasValue(nutritionalInfo.cholesterol) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Colesterol</p>
@@ -779,79 +785,79 @@ export default function ProdutoDetalhesPage() {
 										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Vitaminas</h4>
 									</div>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-										{nutritionalInfo.vitaminA && (
+										{_hasValue(nutritionalInfo.vitaminA) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 p-3 border border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">Vitamina A</p>
 												<p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">{getDisplayValue(nutritionalInfo.vitaminA, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminC && (
+										{_hasValue(nutritionalInfo.vitaminC) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950 dark:to-cyan-900 p-3 border border-cyan-200 dark:border-cyan-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-cyan-700 dark:text-cyan-300 mb-1">Vitamina C</p>
 												<p className="text-lg font-bold text-cyan-900 dark:text-cyan-100">{getDisplayValue(nutritionalInfo.vitaminC, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminD && (
+										{_hasValue(nutritionalInfo.vitaminD) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-3 border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-yellow-700 dark:text-yellow-300 mb-1">Vitamina D</p>
 												<p className="text-lg font-bold text-yellow-900 dark:text-yellow-100">{getDisplayValue(nutritionalInfo.vitaminD, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminE && (
+										{_hasValue(nutritionalInfo.vitaminE) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 p-3 border border-amber-200 dark:border-amber-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Vitamina E</p>
 												<p className="text-lg font-bold text-amber-900 dark:text-amber-100">{getDisplayValue(nutritionalInfo.vitaminE, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminK && (
+										{_hasValue(nutritionalInfo.vitaminK) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-lime-50 to-lime-100 dark:from-lime-950 dark:to-lime-900 p-3 border border-lime-200 dark:border-lime-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-lime-700 dark:text-lime-300 mb-1">Vitamina K</p>
 												<p className="text-lg font-bold text-lime-900 dark:text-lime-100">{getDisplayValue(nutritionalInfo.vitaminK, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.thiamine && (
+										{_hasValue(nutritionalInfo.thiamine) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-3 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">B1 (Tiamina)</p>
 												<p className="text-lg font-bold text-blue-900 dark:text-blue-100">{getDisplayValue(nutritionalInfo.thiamine, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.riboflavin && (
+										{_hasValue(nutritionalInfo.riboflavin) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900 p-3 border border-indigo-200 dark:border-indigo-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-indigo-700 dark:text-indigo-300 mb-1">B2 (Riboflavina)</p>
 												<p className="text-lg font-bold text-indigo-900 dark:text-indigo-100">{getDisplayValue(nutritionalInfo.riboflavin, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.niacin && (
+										{_hasValue(nutritionalInfo.niacin) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900 p-3 border border-violet-200 dark:border-violet-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-violet-700 dark:text-violet-300 mb-1">B3 (Niacina)</p>
 												<p className="text-lg font-bold text-violet-900 dark:text-violet-100">{getDisplayValue(nutritionalInfo.niacin, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminB6 && (
+										{_hasValue(nutritionalInfo.vitaminB6) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-3 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Vitamina B6</p>
 												<p className="text-lg font-bold text-purple-900 dark:text-purple-100">{getDisplayValue(nutritionalInfo.vitaminB6, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.folate && (
+										{_hasValue(nutritionalInfo.folate) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-fuchsia-50 to-fuchsia-100 dark:from-fuchsia-950 dark:to-fuchsia-900 p-3 border border-fuchsia-200 dark:border-fuchsia-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-fuchsia-700 dark:text-fuchsia-300 mb-1">Folato</p>
 												<p className="text-lg font-bold text-fuchsia-900 dark:text-fuchsia-100">{getDisplayValue(nutritionalInfo.folate, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.vitaminB12 && (
+										{_hasValue(nutritionalInfo.vitaminB12) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-3 border border-pink-200 dark:border-pink-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-pink-700 dark:text-pink-300 mb-1">Vitamina B12</p>
 												<p className="text-lg font-bold text-pink-900 dark:text-pink-100">{getDisplayValue(nutritionalInfo.vitaminB12, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.biotin && (
+										{_hasValue(nutritionalInfo.biotin) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950 dark:to-rose-900 p-3 border border-rose-200 dark:border-rose-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-rose-700 dark:text-rose-300 mb-1">Biotina</p>
 												<p className="text-lg font-bold text-rose-900 dark:text-rose-100">{getDisplayValue(nutritionalInfo.biotin, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.pantothenicAcid && (
+										{_hasValue(nutritionalInfo.pantothenicAcid) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 p-3 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">B5 (Ác. Pantotênico)</p>
 												<p className="text-lg font-bold text-slate-900 dark:text-slate-100">{getDisplayValue(nutritionalInfo.pantothenicAcid, "mg")}</p>
@@ -869,79 +875,79 @@ export default function ProdutoDetalhesPage() {
 										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Minerais</h4>
 									</div>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-										{nutritionalInfo.sodium && (
+										{_hasValue(nutritionalInfo.sodium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-3 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sódio</p>
 												<p className="text-lg font-bold text-gray-900 dark:text-gray-100">{getDisplayValue(nutritionalInfo.sodium, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.calcium && (
+										{_hasValue(nutritionalInfo.calcium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-700 p-3 border border-stone-200 dark:border-stone-600 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-stone-700 dark:text-stone-300 mb-1">Cálcio</p>
 												<p className="text-lg font-bold text-stone-900 dark:text-stone-100">{getDisplayValue(nutritionalInfo.calcium, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.iron && (
+										{_hasValue(nutritionalInfo.iron) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-3 border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Ferro</p>
 												<p className="text-lg font-bold text-red-900 dark:text-red-100">{getDisplayValue(nutritionalInfo.iron, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.magnesium && (
+										{_hasValue(nutritionalInfo.magnesium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-3 border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Magnésio</p>
 												<p className="text-lg font-bold text-green-900 dark:text-green-100">{getDisplayValue(nutritionalInfo.magnesium, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.phosphorus && (
+										{_hasValue(nutritionalInfo.phosphorus) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-3 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">Fósforo</p>
 												<p className="text-lg font-bold text-orange-900 dark:text-orange-100">{getDisplayValue(nutritionalInfo.phosphorus, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.potassium && (
+										{_hasValue(nutritionalInfo.potassium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-3 border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-yellow-700 dark:text-yellow-300 mb-1">Potássio</p>
 												<p className="text-lg font-bold text-yellow-900 dark:text-yellow-100">{getDisplayValue(nutritionalInfo.potassium, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.zinc && (
+										{_hasValue(nutritionalInfo.zinc) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-3 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Zinco</p>
 												<p className="text-lg font-bold text-blue-900 dark:text-blue-100">{getDisplayValue(nutritionalInfo.zinc, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.copper && (
+										{_hasValue(nutritionalInfo.copper) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 p-3 border border-amber-200 dark:border-amber-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Cobre</p>
 												<p className="text-lg font-bold text-amber-900 dark:text-amber-100">{getDisplayValue(nutritionalInfo.copper, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.manganese && (
+										{_hasValue(nutritionalInfo.manganese) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-3 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Manganês</p>
 												<p className="text-lg font-bold text-purple-900 dark:text-purple-100">{getDisplayValue(nutritionalInfo.manganese, "mg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.selenium && (
+										{_hasValue(nutritionalInfo.selenium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950 dark:to-cyan-900 p-3 border border-cyan-200 dark:border-cyan-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-cyan-700 dark:text-cyan-300 mb-1">Selênio</p>
 												<p className="text-lg font-bold text-cyan-900 dark:text-cyan-100">{getDisplayValue(nutritionalInfo.selenium, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.iodine && (
+										{_hasValue(nutritionalInfo.iodine) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900 p-3 border border-indigo-200 dark:border-indigo-800 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-indigo-700 dark:text-indigo-300 mb-1">Iodo</p>
 												<p className="text-lg font-bold text-indigo-900 dark:text-indigo-100">{getDisplayValue(nutritionalInfo.iodine, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.chromium && (
+										{_hasValue(nutritionalInfo.chromium) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 p-3 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Cromo</p>
 												<p className="text-lg font-bold text-slate-900 dark:text-slate-100">{getDisplayValue(nutritionalInfo.chromium, "mcg")}</p>
 											</div>
 										)}
-										{nutritionalInfo.molybdenum && (
+										{_hasValue(nutritionalInfo.molybdenum) && (
 											<div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-700 p-3 border border-neutral-200 dark:border-neutral-600 hover:shadow-md transition-all duration-300">
 												<p className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">Molibdênio</p>
 												<p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{getDisplayValue(nutritionalInfo.molybdenum, "mcg")}</p>
@@ -959,7 +965,7 @@ export default function ProdutoDetalhesPage() {
 										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Outros Compostos</h4>
 									</div>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-										{nutritionalInfo.omega3 && (
+										{_hasValue(nutritionalInfo.omega3) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Ômega 3</p>
@@ -968,7 +974,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.omega6 && (
+										{_hasValue(nutritionalInfo.omega6) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 p-4 border border-emerald-200 dark:border-emerald-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">Ômega 6</p>
@@ -977,7 +983,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-emerald-200 dark:bg-emerald-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.epa && (
+										{_hasValue(nutritionalInfo.epa) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">EPA</p>
@@ -986,7 +992,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.dha && (
+										{_hasValue(nutritionalInfo.dha) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950 dark:to-cyan-900 p-4 border border-cyan-200 dark:border-cyan-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-cyan-700 dark:text-cyan-300 mb-1">DHA</p>
@@ -995,7 +1001,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-cyan-200 dark:bg-cyan-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.taurine && (
+										{_hasValue(nutritionalInfo.taurine) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-4 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Taurina</p>
@@ -1004,7 +1010,7 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.caffeine && (
+										{_hasValue(nutritionalInfo.caffeine) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 p-4 border border-amber-200 dark:border-amber-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">Cafeína</p>
@@ -1013,11 +1019,29 @@ export default function ProdutoDetalhesPage() {
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-amber-200 dark:bg-amber-700 opacity-20"></div>
 											</div>
 										)}
-										{nutritionalInfo.alcoholContent && (
+										{_hasValue(nutritionalInfo.galactose) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+												<div className="relative z-10">
+													<p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Galactose</p>
+													<p className="text-xl font-bold text-red-900 dark:text-red-100">{getDisplayValue(nutritionalInfo.lactose, "g")}</p>
+												</div>
+												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+											</div>
+										)}
+										{_hasValue(nutritionalInfo.lactose) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+												<div className="relative z-10">
+													<p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Lactose</p>
+													<p className="text-xl font-bold text-red-900 dark:text-red-100">{getDisplayValue(nutritionalInfo.lactose, "g")}</p>
+												</div>
+												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+											</div>
+										)}
+										{_hasValue(nutritionalInfo.alcoholContent) && (
 											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
 													<p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Teor Alcoólico</p>
-													<p className="text-xl font-bold text-red-900 dark:text-red-100">{getDisplayValue(nutritionalInfo.alcoholContent, "%")}</p>
+													<p className="text-xl font-bold text-red-900 dark:text-red-100">{nutritionalInfo.alcoholContent} %</p>
 												</div>
 												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 											</div>
@@ -1030,7 +1054,7 @@ export default function ProdutoDetalhesPage() {
 				</Card>
 			)}
 
-			<NutritionAiAnalysis productId={productId} />
+			<NutritionAiAnalysis productId={productId} productName={product.name} />
 
 			{/* Informações sobre Alérgenos */}
 			{nutritionalInfo &&
