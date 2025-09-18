@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { MultiSelect } from "@/components/ui/multi-select"
 import { cn } from "@/lib/utils"
 import type { NutritionalInfo } from "@/types"
 
+// ... (as constantes commonAllergens, requiredFields e optionalFields permanecem as mesmas)
 // Lista de alérgenos comuns no Brasil (em ordem alfabética)
 const commonAllergens = [
 	"Amêndoa",
@@ -126,60 +127,25 @@ interface NutritionalInfoFormProps {
 }
 
 export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalInfoFormProps) {
-	const [formData, setFormData] = useState<Partial<NutritionalInfo>>({
-		servingSize: "",
-		servingsPerPackage: undefined,
-		calories: undefined,
-		carbohydrates: undefined,
-		proteins: undefined,
-		totalFat: undefined,
-		saturatedFat: undefined,
-		transFat: undefined,
-		fiber: undefined,
-		sodium: undefined,
-		totalSugars: undefined,
-		addedSugars: undefined,
-		allergensContains: [],
-		allergensMayContain: [],
-	})
-
+	const [formData, setFormData] = useState<Partial<NutritionalInfo>>({})
 	const [activeOptionalFields, setActiveOptionalFields] = useState<string[]>([])
-	const [selectedFieldToAdd, setSelectedFieldToAdd] = useState<string>("")
+	const [fieldsToAdd, setFieldsToAdd] = useState<string[]>([])
 
 	useEffect(() => {
 		if (initialData) {
-			setFormData({
-				...initialData,
-				calories: initialData.calories ?? undefined,
-				carbohydrates: initialData.carbohydrates ?? undefined,
-				proteins: initialData.proteins ?? undefined,
-				totalFat: initialData.totalFat ?? undefined,
-				saturatedFat: initialData.saturatedFat ?? undefined,
-				transFat: initialData.transFat ?? undefined,
-				fiber: initialData.fiber ?? undefined,
-				sodium: initialData.sodium ?? undefined,
-				totalSugars: initialData.totalSugars ?? undefined,
-				addedSugars: initialData.addedSugars ?? undefined,
-				allergensContains: initialData.allergensContains || [],
-				allergensMayContain: initialData.allergensMayContain || [],
-			})
-
-			// Ativar campos opcionais que têm valores
-			const fieldsWithValues = optionalFields
-				.filter(
-					(field) =>
-						initialData[field.key as keyof NutritionalInfo] !== undefined &&
-						initialData[field.key as keyof NutritionalInfo] !== null,
-				)
+			setFormData(initialData)
+			// CORREÇÃO: Derivar campos ativos a partir das CHAVES do objeto, não dos VALORES.
+			// Isso garante que campos adicionados (com valor `undefined`) sejam exibidos.
+			const activeKeys = optionalFields
+				.filter((field) => Object.hasOwn(initialData, field.key))
 				.map((field) => field.key)
-			setActiveOptionalFields(fieldsWithValues)
+			setActiveOptionalFields(activeKeys)
 		}
 	}, [initialData])
 
 	const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
 		const numericValue = value === "" ? undefined : parseFloat(value)
-
 		const updatedData = { ...formData, [name]: numericValue }
 		setFormData(updatedData)
 		onDataChange(updatedData)
@@ -196,35 +162,49 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 		const key = type === "contains" ? "allergensContains" : "allergensMayContain"
 		const currentAllergens = formData[key] || []
 		let newAllergens: string[]
-
 		if (currentAllergens.includes(allergen)) {
 			newAllergens = currentAllergens.filter((a) => a !== allergen)
 		} else {
 			newAllergens = [...currentAllergens, allergen]
 		}
-
 		const updatedData = { ...formData, [key]: newAllergens }
 		setFormData(updatedData)
 		onDataChange(updatedData)
 	}
 
-	const addOptionalField = () => {
-		if (selectedFieldToAdd && !activeOptionalFields.includes(selectedFieldToAdd)) {
-			setActiveOptionalFields([...activeOptionalFields, selectedFieldToAdd])
-			setSelectedFieldToAdd("")
+	const addOptionalFields = () => {
+		if (fieldsToAdd.length > 0) {
+			// Adiciona os novos campos à lista de campos ativos
+			setActiveOptionalFields((prev) => [...new Set([...prev, ...fieldsToAdd])])
+
+			// Atualiza o objeto de dados principal para incluir as novas chaves (com valor undefined)
+			// e notifica o componente pai.
+			const updatedData = { ...formData }
+			fieldsToAdd.forEach((fieldKey) => {
+				// @ts-expect-error
+				updatedData[fieldKey] = undefined
+			})
+			onDataChange(updatedData)
+
+			setFieldsToAdd([]) // Limpa a seleção
 		}
 	}
 
 	const removeOptionalField = (fieldKey: string) => {
-		setActiveOptionalFields(activeOptionalFields.filter((f) => f !== fieldKey))
-		// Remove o valor do formData também
+		// Remove o campo da lista de campos ativos
+		setActiveOptionalFields((prev) => prev.filter((f) => f !== fieldKey))
+
+		// Remove a chave do objeto de dados e notifica o componente pai
 		const updatedData = { ...formData }
 		delete updatedData[fieldKey as keyof NutritionalInfo]
-		setFormData(updatedData)
 		onDataChange(updatedData)
 	}
 
 	const availableOptionalFields = optionalFields.filter((field) => !activeOptionalFields.includes(field.key))
+	const optionalFieldOptions = availableOptionalFields.map((field) => ({
+		value: field.key,
+		label: `${field.label} (${field.unit})`,
+	}))
 
 	return (
 		<Card>
@@ -330,29 +310,14 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 					<div className="space-y-4 pt-4 border-t">
 						<h4 className="font-medium text-gray-900">Adicionar Elementos Nutricionais</h4>
 						<div className="flex gap-2">
-							<Select value={selectedFieldToAdd} onValueChange={setSelectedFieldToAdd}>
-								<SelectTrigger className="w-[250px]">
-									<SelectValue placeholder="Selecione um elemento..." />
-								</SelectTrigger>
-								<SelectContent>
-									{["Vitaminas", "Minerais", "Ácidos Graxos", "Outros"].map((category) => {
-										const categoryFields = availableOptionalFields.filter((field) => field.category === category)
-										if (categoryFields.length === 0) return null
-
-										return (
-											<div key={category}>
-												<div className="px-2 py-1 text-sm font-medium text-gray-500">{category}</div>
-												{categoryFields.map((field) => (
-													<SelectItem key={field.key} value={field.key}>
-														{field.label} ({field.unit})
-													</SelectItem>
-												))}
-											</div>
-										)
-									})}
-								</SelectContent>
-							</Select>
-							<Button type="button" variant="outline" onClick={addOptionalField} disabled={!selectedFieldToAdd}>
+							<MultiSelect
+								selected={fieldsToAdd}
+								onSelectedChange={setFieldsToAdd}
+								options={optionalFieldOptions}
+								placeholder="Selecione elementos..."
+								className="w-full"
+							/>
+							<Button type="button" variant="outline" onClick={addOptionalFields} disabled={fieldsToAdd.length === 0}>
 								<Plus className="h-4 w-4 mr-2" />
 								Adicionar
 							</Button>

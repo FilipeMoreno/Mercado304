@@ -464,9 +464,10 @@ export default function NovaCompraPage() {
 										<div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-4 items-end">
 											<div className="space-y-2">
 												<Label>Produto *</Label>
-												<div className="flex gap-2">
+												<div className="flex gap-2 w-full">
 													<ProductSelect
 														value={item.productId || ""}
+														className="w-full"
 														onValueChange={(value) => updateItem(index, "productId", value)}
 														products={products}
 														preserveFormData={{
@@ -475,14 +476,6 @@ export default function NovaCompraPage() {
 															targetItemIndex: index,
 														}}
 													/>
-													<Button
-														type="button"
-														variant="outline"
-														size="icon"
-														onClick={() => setScanningForIndex(index)}
-													>
-														<Camera className="h-4 w-4" />
-													</Button>
 												</div>
 											</div>
 											<div className="space-y-2">
@@ -614,14 +607,6 @@ export default function NovaCompraPage() {
 				/>
 			)}
 
-			<BarcodeScanner
-				isOpen={showScanner}
-				onScan={handleBarcodeScanned}
-				onClose={() => {
-					setShowScanner(false)
-					setScanningForIndex(null)
-				}}
-			/>
 		</div>
 	)
 }
