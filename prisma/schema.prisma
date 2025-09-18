@@ -277,6 +277,7 @@ model NutritionalInfo {
   product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   // Informações da Tabela Nutricional Obrigatórias
   servingSize   String? // Ex: "200 ml" ou "30 g"
+  servingsPerPackage Float? // Quantas porções o produto tem
   calories      Float? // Valor energético em kcal
   proteins      Float? // Proteínas em g
   totalFat      Float? // Gorduras totais em g

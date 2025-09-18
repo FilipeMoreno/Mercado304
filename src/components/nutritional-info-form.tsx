@@ -128,6 +128,7 @@ interface NutritionalInfoFormProps {
 export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalInfoFormProps) {
 	const [formData, setFormData] = useState<Partial<NutritionalInfo>>({
 		servingSize: "",
+		servingsPerPackage: undefined,
 		calories: undefined,
 		carbohydrates: undefined,
 		proteins: undefined,
@@ -235,16 +236,33 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 				<CardDescription>Preencha os valores nutricionais do produto.</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
-				{/* Porção de Referência */}
-				<div className="space-y-2">
-					<Label htmlFor="servingSize">Porção de Referência</Label>
-					<Input
-						id="servingSize"
-						name="servingSize"
-						value={formData.servingSize || ""}
-						onChange={handleChange}
-						placeholder="Ex: 100g, 200ml, 1 unidade"
-					/>
+				{/* Informações da Porção */}
+				<div className="space-y-4">
+					<h4 className="font-medium text-gray-900">Informações da Porção</h4>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="servingSize">Porção de Referência</Label>
+							<Input
+								id="servingSize"
+								name="servingSize"
+								value={formData.servingSize || ""}
+								onChange={handleChange}
+								placeholder="Ex: 100g, 200ml, 1 unidade"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="servingsPerPackage">Quantidade de Porções</Label>
+							<Input
+								id="servingsPerPackage"
+								name="servingsPerPackage"
+								type="number"
+								step="0.1"
+								value={String(formData.servingsPerPackage ?? "")}
+								onChange={handleNumericChange}
+								placeholder="Ex: 4, 2.5"
+							/>
+						</div>
+					</div>
 				</div>
 
 				{/* Campos Obrigatórios */}

@@ -18,7 +18,7 @@ interface AnvisaWarningsProps {
 const LupaHeader = ({ className }: { className?: string }) => (
 	<div
 		className={cn(
-			"flex h-full items-center gap-1 border-2 border-black bg-white p-2 text-black",
+			"flex h-full items-center gap-2 border-2 border-black bg-white p-3 text-black shadow-lg",
 			"dark:border-white dark:bg-zinc-800 dark:text-white", // Estilos para o Dark Mode
 			className,
 		)}
@@ -33,12 +33,12 @@ const LupaHeader = ({ className }: { className?: string }) => (
 			strokeWidth="3"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="h-6 w-6 flex-shrink-0"
+			className="h-7 w-7 flex-shrink-0"
 		>
 			<circle cx="11" cy="11" r="8" />
 			<line x1="21" y1="21" x2="16.65" y2="16.65" />
 		</svg>
-		<span className="block font-extrabold text-xs leading-tight">ALTO EM</span>
+		<span className="block font-extrabold text-sm leading-tight">ALTO EM</span>
 	</div>
 )
 
@@ -46,7 +46,7 @@ const LupaHeader = ({ className }: { className?: string }) => (
 const NutrientBlock = ({ nutrient, className }: { nutrient: string; className?: string }) => (
 	<div
 		className={cn(
-			"border-2 border-black bg-black p-2 text-center text-white",
+			"border-2 border-black bg-black p-3 text-center text-white shadow-lg",
 			"dark:border-white dark:bg-white dark:text-black", // Estilos para o Dark Mode
 			className,
 		)}
@@ -69,20 +69,45 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 	const warnings: string[] = []
 	const isLiquid = ["ml", "litro"].includes(unit.toLowerCase())
 
+	// Thresholds da ANVISA são por porção de consumo, não por 100g/ml
+	// Nossos dados do DB são por 100g/ml, então precisamos converter para a porção
 	const thresholds = {
 		addedSugars: isLiquid ? 7.5 : 15,
 		saturatedFat: isLiquid ? 3 : 6,
 		sodium: isLiquid ? 300 : 600,
 	}
 
-	if (nutritionalInfo.addedSugars && nutritionalInfo.addedSugars >= thresholds.addedSugars) {
-		warnings.push("AÇÚCAR ADICIONADO")
+	// Helper para extrair o valor numérico da porção (ex: "30g" -> 30)
+	const getServingValue = (servingSize?: string): number => {
+		if (!servingSize) return 100 // Se não há porção definida, usa 100g/ml como padrão
+		const match = servingSize.match(/(\d+[.,]?\d*)/)
+		return match ? parseFloat(match[1].replace(",", ".")) : 100
 	}
-	if (nutritionalInfo.saturatedFat && nutritionalInfo.saturatedFat >= thresholds.saturatedFat) {
-		warnings.push("GORDURA SATURADA")
+
+	// Converte valores de 100g/ml para a porção real
+	const servingValue = getServingValue(nutritionalInfo.servingSize)
+	const multiplier = servingValue / 100
+
+	// Converte os valores para a porção e compara com os thresholds
+	if (nutritionalInfo.addedSugars) {
+		const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
+		if (addedSugarsPerServing >= thresholds.addedSugars) {
+			warnings.push("AÇÚCAR ADICIONADO")
+		}
 	}
-	if (nutritionalInfo.sodium && nutritionalInfo.sodium >= thresholds.sodium) {
-		warnings.push("SÓDIO")
+	
+	if (nutritionalInfo.saturatedFat) {
+		const saturatedFatPerServing = nutritionalInfo.saturatedFat * multiplier
+		if (saturatedFatPerServing >= thresholds.saturatedFat) {
+			warnings.push("GORDURA SATURADA")
+		}
+	}
+	
+	if (nutritionalInfo.sodium) {
+		const sodiumPerServing = nutritionalInfo.sodium * multiplier
+		if (sodiumPerServing >= thresholds.sodium) {
+			warnings.push("SÓDIO")
+		}
 	}
 
 	if (warnings.length === 0) return null
@@ -122,5 +147,5 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 		)
 	}
 
-	return <div className="my-4">{content}</div>
+	return <div className="my-6">{content}</div>
 }

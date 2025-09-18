@@ -124,6 +124,7 @@ export interface NutritionalInfo {
 	productId: string
 	// Informações da Tabela Nutricional Obrigatórias
 	servingSize?: string
+	servingsPerPackage?: number
 	calories?: number
 	proteins?: number
 	totalFat?: number

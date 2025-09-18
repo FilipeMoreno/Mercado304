@@ -31,6 +31,7 @@ export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 
 	// Informações da Tabela Nutricional Obrigatórias
 	parsedInfo.servingSize = geminiData.servingSize || ""
+	parsedInfo.servingsPerPackage = geminiData.servingsPerPackage
 	parsedInfo.calories = geminiData.calories
 	parsedInfo.carbohydrates = geminiData.carbohydrates
 	parsedInfo.totalSugars = geminiData.totalSugars
@@ -205,6 +206,30 @@ function extractServingSize(text: string): string | undefined {
 	return match ? match[1] : undefined
 }
 
+function extractServingsPerPackage(text: string): number | undefined {
+	// Padrões para identificar quantidade de porções
+	const patterns = [
+		/por[çc][õo]es por embalagem:?\s*(\d+(?:[,.]?\d+)?)/i,
+		/(\d+(?:[,.]?\d+)?)\s*por[çc][õo]es por embalagem/i,
+		/embalagem cont[eé]m:?\s*(\d+(?:[,.]?\d+)?)\s*por[çc][õo]es/i,
+		/cont[eé]m:?\s*(\d+(?:[,.]?\d+)?)\s*por[çc][õo]es/i,
+		/(\d+(?:[,.]?\d+)?)\s*por[çc][õo]es/i,
+		/quantidade de por[çc][õo]es:?\s*(\d+(?:[,.]?\d+)?)/i,
+		/total de por[çc][õo]es:?\s*(\d+(?:[,.]?\d+)?)/i,
+	]
+
+	for (const pattern of patterns) {
+		const match = text.match(pattern)
+		if (match) {
+			const value = parseFloat(match[1].replace(",", "."))
+			if (value > 0 && value <= 100) { // Validação básica
+				return value
+			}
+		}
+	}
+	return undefined
+}
+
 function extractAllergens(text: string): {
 	contains: string[]
 	mayContain: string[]
@@ -259,10 +284,12 @@ export function parseOcrText(text: string): Partial<NutritionalInfo> {
 	}
 
 	const servingSize = extractServingSize(cleaned)
+	const servingsPerPackage = extractServingsPerPackage(cleaned)
 	const allergens = extractAllergens(cleaned)
 
 	return {
 		servingSize,
+		servingsPerPackage,
 		...nutrients,
 		allergensContains: allergens.contains,
 		allergensMayContain: allergens.mayContain,

@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       A estrutura do JSON de saída deve incluir campos obrigatórios e opcionais:
       {
         "servingSize": "string (ex: '100g', '200ml', '1 unidade')",
+        "servingsPerPackage": number,
         
         // Campos obrigatórios
         "calories": number,
@@ -161,10 +162,15 @@ export async function POST(request: Request) {
       - Para "allergensContains", procure por textos como "ALÉRGICOS: CONTÉM...".
       - Para "allergensMayContain", procure por textos como "PODE CONTER...".
       
+      PORÇÕES:
+      - Para "servingSize", procure por textos como "Porção: 100g" ou "Porção de 200ml".
+      - Para "servingsPerPackage", procure por textos como "Porções por embalagem: 4", "Embalagem contém: 2,5 porções", ou "4 porções".
+      
       IMPORTANTE: 
       - PRIORIZE os valores da coluna "100 g" ou "100 ml". Se essa coluna não existir, use os valores da coluna "por porção".
       - Inclua TODOS os elementos nutricionais encontrados na tabela, mesmo que não sejam obrigatórios.
       - Converta unidades para os padrões especificados (mg, mcg, g, kcal).
+      - Para porções decimais, aceite valores como 2.5, 3.5, etc.
     `
 
 		const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl)
