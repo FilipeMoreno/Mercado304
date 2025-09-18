@@ -141,6 +141,14 @@ model ShoppingListItem {
   isChecked      Boolean @default(false)
   productName    String?
   productUnit    String?
+  
+  // Campos para itens temporários
+  isTemporary     Boolean  @default(false)
+  tempDescription String?  // Descrição adicional do item temporário
+  tempBarcode     String?  // Código de barras se escaneado
+  tempBrand       String?  // Marca temporária
+  tempCategory    String?  // Categoria temporária
+  tempNotes       String?  // Observações sobre o item temporário
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

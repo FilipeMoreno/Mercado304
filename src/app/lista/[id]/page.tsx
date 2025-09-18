@@ -1,11 +1,13 @@
 "use client"
 
-import { Package, Plus } from "lucide-react"
+import { Package, Plus, ShoppingCart } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import type * as React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route"
+import { TemporaryItemForm } from "@/components/temporary-item-form"
+import { TemporaryItemCard } from "@/components/temporary-item-card"
 import {
 	AddItemDialog,
 	DeleteItemDialog,
@@ -32,6 +34,13 @@ interface ShoppingListItem {
 	bestPriceAlert?: any
 	productName?: string
 	productUnit?: string
+	// Campos para itens temporários
+	isTemporary?: boolean
+	tempDescription?: string
+	tempBarcode?: string
+	tempBrand?: string
+	tempCategory?: string
+	tempNotes?: string
 	product?: {
 		id: string
 		name: string
@@ -107,6 +116,9 @@ export default function ListaDetalhesPage() {
 
 	// Estados para roteiro otimizado
 	const [showOptimizedRoute, setShowOptimizedRoute] = useState(false)
+
+	// Estados para itens temporários
+	const [showTemporaryForm, setShowTemporaryForm] = useState(false)
 
 	const fetchListDetails = useCallback(async () => {
 		try {
@@ -411,6 +423,73 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
+	const handleAddTemporaryItem = async (itemData: any) => {
+		try {
+			const response = await fetch(`/api/shopping-lists/${listId}/items`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(itemData),
+			})
+
+			if (response.ok) {
+				setShowTemporaryForm(false)
+				fetchListDetails()
+				toast.success("Item temporário adicionado com sucesso")
+			} else {
+				const error = await response.json()
+				toast.error(error.error || "Erro ao adicionar item temporário")
+			}
+		} catch (error) {
+			console.error("Erro ao adicionar item temporário:", error)
+			toast.error("Erro ao adicionar item temporário")
+		}
+	}
+
+	const handleUpdateTemporaryItem = async (itemId: string, updates: any) => {
+		try {
+			const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(updates),
+			})
+
+			if (response.ok) {
+				fetchListDetails()
+				toast.success("Item atualizado com sucesso")
+			} else {
+				const error = await response.json()
+				toast.error(error.error || "Erro ao atualizar item")
+			}
+		} catch (error) {
+			console.error("Erro ao atualizar item:", error)
+			toast.error("Erro ao atualizar item")
+		}
+	}
+
+	const handleConvertTemporaryItem = async (itemId: string, productData: any) => {
+		try {
+			const response = await fetch(`/api/shopping-lists/convert-temporary`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					shoppingListItemId: itemId,
+					productData: productData,
+				}),
+			})
+
+			if (response.ok) {
+				fetchListDetails()
+				toast.success("Item convertido em produto permanente com sucesso!")
+			} else {
+				const error = await response.json()
+				toast.error(error.error || "Erro ao converter item")
+			}
+		} catch (error) {
+			console.error("Erro ao converter item:", error)
+			toast.error("Erro ao converter item")
+		}
+	}
+
 	const handleUpdateItem = async () => {
 		if (!editingItem) return
 
@@ -601,13 +680,29 @@ export default function ListaDetalhesPage() {
 							<Package className="h-5 w-5" />
 							Itens da Lista
 						</CardTitle>
-						<Button onClick={() => setShowAddItem(true)} size="sm">
-							<Plus className="h-4 w-4 mr-2" />
-							Adicionar Item
-						</Button>
+						<div className="flex gap-2">
+							<Button onClick={() => setShowTemporaryForm(true)} variant="outline" size="sm">
+								<ShoppingCart className="h-4 w-4 mr-2" />
+								Item Temporário
+							</Button>
+							<Button onClick={() => setShowAddItem(true)} size="sm">
+								<Plus className="h-4 w-4 mr-2" />
+								Adicionar Item
+							</Button>
+						</div>
 					</div>
 				</CardHeader>
 				<CardContent>
+					{/* Formulário para itens temporários */}
+					{showTemporaryForm && (
+						<div className="mb-4">
+							<TemporaryItemForm
+								onAddItem={handleAddTemporaryItem}
+								onCancel={() => setShowTemporaryForm(false)}
+							/>
+						</div>
+					)}
+
 					{list.items.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
 							<Package className="h-12 w-12 mx-auto mb-4" />
@@ -617,19 +712,35 @@ export default function ListaDetalhesPage() {
 					) : (
 						<div className="space-y-3">
 							{list.items.map((item) => (
-								<ShoppingListItemComponent
-									key={item.id}
-									item={item}
-									onToggle={toggleItem}
-									onEdit={(item) => {
-										setEditingItem(item)
-										setEditItemData({
-											quantity: item.quantity,
-											estimatedPrice: item.estimatedPrice || 0,
-										})
-									}}
-									onDelete={(item) => setDeleteItemConfirm(item)}
-								/>
+								item.isTemporary ? (
+									<TemporaryItemCard
+										key={item.id}
+										item={item}
+										onUpdateItem={handleUpdateTemporaryItem}
+										onDeleteItem={async (itemId) => {
+											// Usar a mesma lógica de delete existente
+											const itemToDelete = list.items.find(i => i.id === itemId)
+											if (itemToDelete) {
+												setDeleteItemConfirm(itemToDelete)
+											}
+										}}
+										onConvertToProduct={handleConvertTemporaryItem}
+									/>
+								) : (
+									<ShoppingListItemComponent
+										key={item.id}
+										item={item}
+										onToggle={toggleItem}
+										onEdit={(item) => {
+											setEditingItem(item)
+											setEditItemData({
+												quantity: item.quantity,
+												estimatedPrice: item.estimatedPrice || 0,
+											})
+										}}
+										onDelete={(item) => setDeleteItemConfirm(item)}
+									/>
+								)
 							))}
 						</div>
 					)}
