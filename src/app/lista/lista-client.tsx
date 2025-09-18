@@ -52,7 +52,6 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 		return new URLSearchParams(params)
 	}, [state.search, state.sort, state.status, state.page, itemsPerPage])
 
-
 	// React Query hooks
 	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams)
 	const deleteShoppingListMutation = useDeleteShoppingListMutation()
@@ -271,7 +270,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number - 1)}
+									onClick={() => handlePageChange((state.page as number) - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -301,7 +300,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number + 1)}
+									onClick={() => handlePageChange((state.page as number) + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima

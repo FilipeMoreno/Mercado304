@@ -606,7 +606,6 @@ export default function NovaCompraPage() {
 					initialEntries={items[stockDialogState.itemIndex!].stockEntries}
 				/>
 			)}
-
 		</div>
 	)
 }

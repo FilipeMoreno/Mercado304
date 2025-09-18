@@ -1,13 +1,13 @@
 "use client"
 
+import { Barcode, Plus } from "lucide-react"
 import { useState } from "react"
-import { Plus, Barcode } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 
 interface TemporaryItemFormProps {
 	onAddItem: (itemData: any) => void
@@ -29,7 +29,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		
+
 		if (!formData.productName.trim()) {
 			alert("Nome do produto é obrigatório")
 			return
@@ -42,7 +42,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 		}
 
 		onAddItem(itemData)
-		
+
 		// Reset form
 		setFormData({
 			productName: "",
@@ -58,9 +58,9 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 	}
 
 	const handleInputChange = (field: string, value: string | number) => {
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
-			[field]: value
+			[field]: value,
 		}))
 	}
 
@@ -71,9 +71,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 					<Plus className="h-5 w-5 text-orange-500" />
 					<CardTitle className="text-lg">Adicionar Item Temporário</CardTitle>
 				</div>
-				<CardDescription>
-					Adicione um produto que não está cadastrado no sistema
-				</CardDescription>
+				<CardDescription>Adicione um produto que não está cadastrado no sistema</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form onSubmit={handleSubmit} className="space-y-4">
@@ -131,7 +129,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 					{/* Informações adicionais */}
 					<div className="space-y-4 border-t pt-4">
 						<h4 className="font-medium text-sm text-gray-700">Informações Adicionais (Opcional)</h4>
-						
+
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<Label htmlFor="tempBrand">Marca</Label>
@@ -203,7 +201,9 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 									<span className="font-medium">{formData.productName}</span>
 								</div>
 								<div className="text-sm text-gray-600 space-y-1">
-									<div>Quantidade: {formData.quantity} {formData.productUnit}</div>
+									<div>
+										Quantidade: {formData.quantity} {formData.productUnit}
+									</div>
 									{formData.estimatedPrice && (
 										<div>Preço estimado: R$ {parseFloat(formData.estimatedPrice).toFixed(2)}</div>
 									)}

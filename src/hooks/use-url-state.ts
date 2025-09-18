@@ -9,7 +9,7 @@ interface UrlStateConfig {
 export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	
+
 	// Create a stable reference to initialValues to avoid recreating dependencies
 	const initialValuesRef = useRef(initialValues)
 	initialValuesRef.current = initialValues
@@ -27,7 +27,6 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 				current[key] = defaultValue
 			}
 		}
-
 
 		return current
 	}, [searchParams]) // Removed initialValues dependency
@@ -89,7 +88,6 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 				currentState.page = 1
 			}
 
-			
 			updateUrl(currentState)
 		},
 		[state, updateUrl],
@@ -119,13 +117,13 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 			if (key === "brand") {
 				return value !== "all"
 			}
-			if (key === "sort" && basePath !== '/compras' && basePath !== '/lista') {
+			if (key === "sort" && basePath !== "/compras" && basePath !== "/lista") {
 				return value !== "name-asc"
 			}
-			if (key === "sort" && basePath === '/compras') {
+			if (key === "sort" && basePath === "/compras") {
 				return value !== "date-desc"
 			}
-			if (key === "sort" && basePath === '/lista') {
+			if (key === "sort" && basePath === "/lista") {
 				return value !== "date-desc"
 			}
 			if (key === "sort") {

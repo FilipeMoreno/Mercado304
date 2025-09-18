@@ -14,14 +14,14 @@ import { useCreateBrandMutation } from "@/hooks"
 export default function NovaMarcaPage() {
 	const router = useRouter()
 	const createBrandMutation = useCreateBrandMutation()
-	
+
 	const [formData, setFormData] = useState({
 		name: "",
 	})
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		
+
 		if (!formData.name.trim()) {
 			toast.error("Nome da marca é obrigatório")
 			return
@@ -31,7 +31,7 @@ export default function NovaMarcaPage() {
 			await createBrandMutation.mutateAsync({
 				name: formData.name.trim(),
 			})
-			
+
 			toast.success("Marca criada com sucesso!")
 			router.push("/marcas")
 		} catch (error) {
@@ -70,13 +70,11 @@ export default function NovaMarcaPage() {
 							<Input
 								id="name"
 								value={formData.name}
-								onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+								onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Ex: Coca-Cola, Nestlé, Unilever..."
 								required
 							/>
-							<p className="text-xs text-gray-500">
-								Digite o nome da marca ou fabricante do produto
-							</p>
+							<p className="text-xs text-gray-500">Digite o nome da marca ou fabricante do produto</p>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">
@@ -88,12 +86,7 @@ export default function NovaMarcaPage() {
 								<Save className="h-4 w-4 mr-2" />
 								{createBrandMutation.isPending ? "Criando..." : "Criar Marca"}
 							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={handleCancel}
-								disabled={createBrandMutation.isPending}
-							>
+							<Button type="button" variant="outline" onClick={handleCancel} disabled={createBrandMutation.isPending}>
 								<X className="h-4 w-4 mr-2" />
 								Cancelar
 							</Button>

@@ -4,10 +4,7 @@ import { prisma } from "@/lib/prisma"
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { 
-			shoppingListItemId,
-			productData 
-		} = body
+		const { shoppingListItemId, productData } = body
 
 		if (!shoppingListItemId || !productData) {
 			return NextResponse.json({ error: "shoppingListItemId e productData são obrigatórios" }, { status: 400 })
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
 		let categoryId = productData.categoryId
 		if (!categoryId && productData.categoryName) {
 			const category = await prisma.category.findFirst({
-				where: { name: { equals: productData.categoryName, mode: "insensitive" } }
+				where: { name: { equals: productData.categoryName, mode: "insensitive" } },
 			})
 
 			if (category) {
@@ -38,7 +35,7 @@ export async function POST(request: Request) {
 						icon: "📦",
 						color: "#64748b",
 						isFood: true,
-					}
+					},
 				})
 				categoryId = newCategory.id
 			}
@@ -48,7 +45,7 @@ export async function POST(request: Request) {
 		let brandId = productData.brandId
 		if (!brandId && productData.brandName) {
 			const brand = await prisma.brand.findFirst({
-				where: { name: { equals: productData.brandName, mode: "insensitive" } }
+				where: { name: { equals: productData.brandName, mode: "insensitive" } },
 			})
 
 			if (brand) {
@@ -57,7 +54,7 @@ export async function POST(request: Request) {
 				const newBrand = await prisma.brand.create({
 					data: {
 						name: productData.brandName,
-					}
+					},
 				})
 				brandId = newBrand.id
 			}
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
 			include: {
 				category: true,
 				brand: true,
-			}
+			},
 		})
 
 		// Atualizar o item da lista para referenciar o produto criado

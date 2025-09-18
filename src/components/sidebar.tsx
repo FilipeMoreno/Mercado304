@@ -16,6 +16,7 @@ import {
 	Package,
 	Receipt,
 	ShoppingCart,
+	Sparkles,
 	Store,
 	Tag,
 	Trash2,
@@ -37,7 +38,15 @@ const navigation = [
 	{ name: "Marcas", href: "/marcas", icon: Tag },
 	{ name: "Compras", href: "/compras", icon: ShoppingCart },
 	{ name: "Lista de Compras", href: "/lista", icon: List },
-	{ name: "Receitas", href: "/receitas", icon: ChefHat },
+	{
+		name: "Receitas",
+		href: "/receitas",
+		icon: ChefHat,
+		subItems: [
+			{ name: "Minhas Receitas", href: "/receitas", icon: ChefHat },
+			{ name: "Gerar Receitas", href: "/receitas/gerar", icon: Sparkles },
+		],
+	},
 	{ name: "Registro de Preços", href: "/precos", icon: Receipt },
 	{ name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
 	{ name: "Análise Nutricional", href: "/nutricao", icon: Apple },
@@ -53,17 +62,37 @@ interface SidebarProps {
 
 function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 	const pathname = usePathname()
+	const [expandedItems, setExpandedItems] = useState<string[]>(() => {
+		// Auto-expand receitas se estiver em uma página de receitas
+		if (pathname.startsWith("/receitas")) {
+			return ["Receitas"]
+		}
+		return []
+	})
+
+	const toggleExpanded = (itemName: string) => {
+		setExpandedItems((prev) =>
+			prev.includes(itemName) ? prev.filter((name) => name !== itemName) : [...prev, itemName],
+		)
+	}
+
+	// Auto-expand ao navegar para páginas de receitas
+	useEffect(() => {
+		if (pathname.startsWith("/receitas") && !expandedItems.includes("Receitas")) {
+			setExpandedItems((prev) => [...prev, "Receitas"])
+		}
+	}, [pathname, expandedItems])
 
 	return (
 		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>
 			<div className={cn("p-6", collapsed && "p-4")}>
 				<div className="flex items-center justify-between">
-					{!collapsed && 
+					{!collapsed && (
 						<div className="flex items-center justify-center">
 							<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
 							<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 						</div>
-					}
+					)}
 					{onToggleCollapse && (
 						<Button variant="ghost" size="icon" onClick={onToggleCollapse} className="ml-auto">
 							{collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -76,6 +105,54 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 				{navigation.map((item) => {
 					const Icon = item.icon
 					const isActive = pathname === item.href
+					const hasSubItems = item.subItems && item.subItems.length > 0
+					const isExpanded = expandedItems.includes(item.name)
+					const isSubItemActive = hasSubItems && item.subItems.some((subItem) => pathname === subItem.href)
+
+					if (hasSubItems && !collapsed) {
+						return (
+							<div key={item.name} className="space-y-1">
+								<Button
+									variant="ghost"
+									onClick={() => toggleExpanded(item.name)}
+									className={cn(
+										"w-full justify-start h-auto py-3 px-4 rounded-xl",
+										"text-muted-foreground",
+										isActive || isSubItemActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
+									)}
+								>
+									<Icon className="h-5 w-5 mr-3" />
+									{item.name}
+									<ChevronRight className={cn("h-4 w-4 ml-auto transition-transform", isExpanded && "rotate-90")} />
+								</Button>
+
+								{isExpanded && (
+									<div className="pl-4 space-y-1">
+										{item.subItems.map((subItem) => {
+											const SubIcon = subItem.icon
+											const isSubActive = pathname === subItem.href
+											return (
+												<Link key={subItem.name} href={subItem.href}>
+													<Button
+														variant="ghost"
+														className={cn(
+															"w-full justify-start h-auto py-2 px-4 rounded-lg",
+															"text-muted-foreground text-sm",
+															isSubActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted",
+														)}
+													>
+														<SubIcon className="h-4 w-4 mr-3" />
+														{subItem.name}
+													</Button>
+												</Link>
+											)
+										})}
+									</div>
+								)}
+							</div>
+						)
+					}
+
 					return (
 						<Link key={item.name} href={item.href}>
 							<Button

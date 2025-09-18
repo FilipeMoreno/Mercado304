@@ -5,19 +5,8 @@ import * as React from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command"
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
 interface MultiSelectOption {
@@ -43,11 +32,7 @@ export function MultiSelect({
 	const [open, setOpen] = React.useState(false)
 
 	const handleSelect = (value: string) => {
-		onSelectedChange(
-			selected.includes(value)
-				? selected.filter((v) => v !== value)
-				: [...selected, value],
-		)
+		onSelectedChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value])
 	}
 
 	const handleUnselect = (e: React.MouseEvent, value: string) => {
@@ -71,19 +56,12 @@ export function MultiSelect({
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className={cn(
-						"w-full justify-between h-auto min-h-[36px]",
-						className,
-					)}
+					className={cn("w-full justify-between h-auto min-h-[36px]", className)}
 				>
 					{selected.length > 0 ? (
 						<div className="flex flex-wrap items-center gap-1">
 							{selectedLabels.map((option) => (
-								<Badge
-									key={option.value}
-									variant="secondary"
-									className="whitespace-nowrap"
-								>
+								<Badge key={option.value} variant="secondary" className="whitespace-nowrap">
 									{option.label}
 									<button
 										className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -121,18 +99,9 @@ export function MultiSelect({
 						<CommandGroup>
 							<CommandEmpty>Nenhum mercado encontrado.</CommandEmpty>
 							{options.map((option) => (
-								<CommandItem
-									key={option.value}
-									value={option.label}
-									onSelect={() => handleSelect(option.value)}
-								>
+								<CommandItem key={option.value} value={option.label} onSelect={() => handleSelect(option.value)}>
 									<Check
-										className={cn(
-											"mr-2 h-4 w-4",
-											selected.includes(option.value)
-												? "opacity-100"
-												: "opacity-0",
-										)}
+										className={cn("mr-2 h-4 w-4", selected.includes(option.value) ? "opacity-100" : "opacity-0")}
 									/>
 									{option.label}
 								</CommandItem>

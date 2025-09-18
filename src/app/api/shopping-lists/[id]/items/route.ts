@@ -4,18 +4,18 @@ import { prisma } from "@/lib/prisma"
 export async function POST(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const body = await request.json()
-		const { 
-			productId, 
-			quantity, 
-			isTemporary, 
-			productName, 
-			tempDescription, 
-			tempBarcode, 
-			tempBrand, 
-			tempCategory, 
+		const {
+			productId,
+			quantity,
+			isTemporary,
+			productName,
+			tempDescription,
+			tempBarcode,
+			tempBrand,
+			tempCategory,
 			tempNotes,
 			productUnit,
-			estimatedPrice 
+			estimatedPrice,
 		} = body
 
 		// Validação: pelo menos productId ou productName (para temporários) deve estar presente

@@ -1,13 +1,13 @@
 "use client"
 
+import { Camera } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
-import { ProductCombobox } from "@/components/ui/product-combobox"
 import { BarcodeScanner } from "@/components/barcode-scanner"
+import { Button } from "@/components/ui/button"
+import { ProductCombobox } from "@/components/ui/product-combobox"
 import { useInfiniteProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
-import { Button } from "@/components/ui/button"
-import { Camera } from "lucide-react"
 import type { Product } from "@/types"
 
 interface ProductSelectProps {
@@ -141,11 +141,7 @@ export function ProductSelect({
 				</Button>
 			</div>
 
-			<BarcodeScanner
-				isOpen={isScannerOpen}
-				onScan={handleBarcodeScanned}
-				onClose={() => setIsScannerOpen(false)}
-			/>
+			<BarcodeScanner isOpen={isScannerOpen} onScan={handleBarcodeScanned} onClose={() => setIsScannerOpen(false)} />
 		</>
 	)
 }

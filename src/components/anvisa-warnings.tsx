@@ -95,14 +95,14 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 			warnings.push("AÇÚCAR ADICIONADO")
 		}
 	}
-	
+
 	if (nutritionalInfo.saturatedFat) {
 		const saturatedFatPerServing = nutritionalInfo.saturatedFat * multiplier
 		if (saturatedFatPerServing >= thresholds.saturatedFat) {
 			warnings.push("GORDURA SATURADA")
 		}
 	}
-	
+
 	if (nutritionalInfo.sodium) {
 		const sodiumPerServing = nutritionalInfo.sodium * multiplier
 		if (sodiumPerServing >= thresholds.sodium) {

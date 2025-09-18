@@ -579,11 +579,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				<CardContent className="p-6">
 					<div className="flex justify-between items-center mb-4">
 						<h3 className="text-lg font-semibold">Scanner de Código de Barras</h3>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={onClose}
-						>
+						<Button variant="outline" size="sm" onClick={onClose}>
 							<X className="h-4 w-4" />
 						</Button>
 					</div>
@@ -663,7 +659,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 												<div className="absolute inset-0 flex items-center justify-center">
 													<div className="w-full h-0.5 bg-red-500 animate-pulse shadow-lg"></div>
 												</div>
-											</div>										
+											</div>
 										</div>
 									</div>
 								)}

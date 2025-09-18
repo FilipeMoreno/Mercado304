@@ -1,18 +1,28 @@
 "use client"
 
-import { ArrowRight, ChevronLeft, ChevronRight, Edit, Factory, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
+import {
+	ArrowRight,
+	ChevronLeft,
+	ChevronRight,
+	Edit,
+	Factory,
+	MoreHorizontal,
+	Plus,
+	Search,
+	Trash2,
+} from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	useBrandsQuery,
 	useDeleteBrandMutation,
@@ -230,7 +240,10 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{brands.map((brand: any) => (
-								<Card key={brand.id} className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col">
+								<Card
+									key={brand.id}
+									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
+								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
 											<div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shadow-sm">

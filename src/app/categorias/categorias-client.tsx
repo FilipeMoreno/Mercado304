@@ -6,13 +6,13 @@ import React, { useCallback, useMemo, useState } from "react"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	useCategoriesQuery,
 	useDeleteCategoryMutation,
@@ -240,13 +240,16 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{categories.map((category: any) => (
-								<Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col">
+								<Card
+									key={category.id}
+									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
+								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
 											{category.icon ? (
-												<div 
+												<div
 													className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm"
-													style={{ backgroundColor: category.color ? `${category.color}20` : '#f3f4f6' }}
+													style={{ backgroundColor: category.color ? `${category.color}20` : "#f3f4f6" }}
 												>
 													{category.icon}
 												</div>

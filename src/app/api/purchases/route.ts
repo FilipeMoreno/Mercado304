@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 		const purchase = await prisma.$transaction(async (tx) => {
 			// Converter itens temporários em produtos se solicitado
 			const convertedProducts: any[] = []
-			let allItemsData = [...items]
+			const allItemsData = [...items]
 
 			if (convertTemporaryItems && temporaryItems.length > 0) {
 				for (const tempItem of temporaryItems) {
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
 						let categoryId = tempItem.categoryId
 						if (!categoryId && tempItem.tempCategory) {
 							const category = await tx.category.findFirst({
-								where: { name: { equals: tempItem.tempCategory, mode: "insensitive" } }
+								where: { name: { equals: tempItem.tempCategory, mode: "insensitive" } },
 							})
 
 							if (category) {
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 										icon: "📦",
 										color: "#64748b",
 										isFood: true,
-									}
+									},
 								})
 								categoryId = newCategory.id
 							}
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
 						let brandId = tempItem.brandId
 						if (!brandId && tempItem.tempBrand) {
 							const brand = await tx.brand.findFirst({
-								where: { name: { equals: tempItem.tempBrand, mode: "insensitive" } }
+								where: { name: { equals: tempItem.tempBrand, mode: "insensitive" } },
 							})
 
 							if (brand) {
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
 								const newBrand = await tx.brand.create({
 									data: {
 										name: tempItem.tempBrand,
-									}
+									},
 								})
 								brandId = newBrand.id
 							}
@@ -172,13 +172,13 @@ export async function POST(request: Request) {
 								maxStock: tempItem.maxStock || 0,
 								hasExpiration: tempItem.hasExpiration || false,
 								defaultShelfLifeDays: tempItem.defaultShelfLifeDays || 30,
-							}
+							},
 						})
 
 						convertedProducts.push(newProduct)
 
 						// Atualizar o item para referenciar o produto criado
-						const updatedItemIndex = allItemsData.findIndex(item => item.tempId === tempItem.tempId)
+						const updatedItemIndex = allItemsData.findIndex((item) => item.tempId === tempItem.tempId)
 						if (updatedItemIndex !== -1) {
 							allItemsData[updatedItemIndex] = {
 								...tempItem,
@@ -198,8 +198,8 @@ export async function POST(request: Request) {
 					paymentMethod: paymentMethod || "MONEY",
 					items: {
 						create: allItemsData.map((item: any) => {
-							const product = products.find((p) => p.id === item.productId) || 
-											convertedProducts.find((p) => p.id === item.productId)
+							const product =
+								products.find((p) => p.id === item.productId) || convertedProducts.find((p) => p.id === item.productId)
 							return {
 								productId: item.isTemporary ? null : item.productId,
 								quantity: item.quantity,

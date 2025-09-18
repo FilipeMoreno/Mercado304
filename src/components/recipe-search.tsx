@@ -1,29 +1,43 @@
 "use client"
 
+import { Search, Settings, Sparkles, X } from "lucide-react"
 import { useState } from "react"
-import { Search, X, Sparkles, Settings } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 interface RecipeSearchProps {
 	onSearch: (search: string, ingredients: string[]) => void
 	onAISearch?: (search: string, ingredients: string[], mealTypes?: string[]) => void
 	onSurpriseMe?: (mealTypes: string[]) => void
 	availableIngredients?: string[]
+	hideNormalSearch?: boolean
 }
 
-export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngredients = [] }: RecipeSearchProps) {
+export function RecipeSearch({
+	onSearch,
+	onAISearch,
+	onSurpriseMe,
+	availableIngredients = [],
+	hideNormalSearch = false,
+}: RecipeSearchProps) {
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedIngredients, setSelectedIngredients] = useState<string[]>([])
 	const [ingredientInput, setIngredientInput] = useState("")
 	const [showSuggestions, setShowSuggestions] = useState(false)
-	const [useAI, setUseAI] = useState(false)
+	const [useAI, setUseAI] = useState(hideNormalSearch)
 	const [showSurpriseSettings, setShowSurpriseSettings] = useState(false)
 	const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>([])
 
@@ -33,7 +47,7 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 		{ id: "jantar", label: "Jantar" },
 		{ id: "lanche", label: "Lanche" },
 		{ id: "sobremesa", label: "Sobremesa" },
-		{ id: "entrada", label: "Entrada" }
+		{ id: "entrada", label: "Entrada" },
 	]
 
 	const handleSearch = () => {
@@ -53,10 +67,8 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 	}
 
 	const handleMealTypeToggle = (mealTypeId: string) => {
-		setSelectedMealTypes(prev => 
-			prev.includes(mealTypeId) 
-				? prev.filter(id => id !== mealTypeId)
-				: [...prev, mealTypeId]
+		setSelectedMealTypes((prev) =>
+			prev.includes(mealTypeId) ? prev.filter((id) => id !== mealTypeId) : [...prev, mealTypeId],
 		)
 	}
 
@@ -78,7 +90,7 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 	}
 
 	const handleRemoveIngredient = (ingredient: string) => {
-		const newIngredients = selectedIngredients.filter(i => i !== ingredient)
+		const newIngredients = selectedIngredients.filter((i) => i !== ingredient)
 		setSelectedIngredients(newIngredients)
 		onSearch(searchTerm, newIngredients)
 	}
@@ -95,9 +107,9 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 	}
 
 	const filteredSuggestions = availableIngredients
-		.filter(ingredient => 
-			ingredient.toLowerCase().includes(ingredientInput.toLowerCase()) &&
-			!selectedIngredients.includes(ingredient)
+		.filter(
+			(ingredient) =>
+				ingredient.toLowerCase().includes(ingredientInput.toLowerCase()) && !selectedIngredients.includes(ingredient),
 		)
 		.slice(0, 10)
 
@@ -106,61 +118,106 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 			<CardContent className="pt-6">
 				<div className="space-y-4">
 					{/* Switch para alternar entre busca local e IA */}
-					<div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-						<div className="flex items-center space-x-2">
-							<Switch
-								id="ai-mode"
-								checked={useAI}
-								onCheckedChange={setUseAI}
-							/>
-							<Label htmlFor="ai-mode" className="text-sm font-medium">
-								{useAI ? "🤖 Buscar com IA" : "📚 Buscar receitas salvas"}
-							</Label>
+					{!hideNormalSearch && (
+						<div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+							<div className="flex items-center space-x-2">
+								<Switch id="ai-mode" checked={useAI} onCheckedChange={setUseAI} />
+								<Label htmlFor="ai-mode" className="text-sm font-medium">
+									{useAI ? "🤖 Buscar com IA" : "📚 Buscar receitas salvas"}
+								</Label>
+							</div>
+
+							{/* Botão Me Surpreenda */}
+							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
+								<DialogTrigger asChild>
+									<Button variant="outline" size="sm" disabled={!useAI}>
+										<Sparkles className="h-4 w-4 mr-2" />
+										Me Surpreenda
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Me Surpreenda! ✨</DialogTitle>
+										<DialogDescription>
+											Selecione os tipos de refeição que você gostaria de receber sugestões.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="space-y-4">
+										<div className="grid grid-cols-2 gap-3">
+											{mealTypes.map((mealType) => (
+												<div key={mealType.id} className="flex items-center space-x-2">
+													<Checkbox
+														id={mealType.id}
+														checked={selectedMealTypes.includes(mealType.id)}
+														onCheckedChange={() => handleMealTypeToggle(mealType.id)}
+													/>
+													<Label htmlFor={mealType.id} className="text-sm">
+														{mealType.label}
+													</Label>
+												</div>
+											))}
+										</div>
+										<div className="flex gap-2">
+											<Button onClick={handleSurpriseMe} className="flex-1">
+												<Sparkles className="h-4 w-4 mr-2" />
+												Gerar Receitas Surpresa
+											</Button>
+											<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
+												Cancelar
+											</Button>
+										</div>
+									</div>
+								</DialogContent>
+							</Dialog>
 						</div>
-						
-						{/* Botão Me Surpreenda */}
-						<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
-							<DialogTrigger asChild>
-								<Button variant="outline" size="sm" disabled={!useAI}>
-									<Sparkles className="h-4 w-4 mr-2" />
-									Me Surpreenda
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>Me Surpreenda! ✨</DialogTitle>
-									<DialogDescription>
-										Selecione os tipos de refeição que você gostaria de receber sugestões.
-									</DialogDescription>
-								</DialogHeader>
-								<div className="space-y-4">
-									<div className="grid grid-cols-2 gap-3">
-										{mealTypes.map((mealType) => (
-											<div key={mealType.id} className="flex items-center space-x-2">
-												<Checkbox
-													id={mealType.id}
-													checked={selectedMealTypes.includes(mealType.id)}
-													onCheckedChange={() => handleMealTypeToggle(mealType.id)}
-												/>
-												<Label htmlFor={mealType.id} className="text-sm">
-													{mealType.label}
-												</Label>
-											</div>
-										))}
+					)}
+
+					{/* Botão Me Surpreenda para página dedicada */}
+					{hideNormalSearch && (
+						<div className="flex justify-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
+								<DialogTrigger asChild>
+									<Button variant="outline" size="lg" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+										<Sparkles className="h-5 w-5 mr-2" />
+										Me Surpreenda com Receitas Criativas!
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Me Surpreenda! ✨</DialogTitle>
+										<DialogDescription>
+											Selecione os tipos de refeição que você gostaria de receber sugestões.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="space-y-4">
+										<div className="grid grid-cols-2 gap-3">
+											{mealTypes.map((mealType) => (
+												<div key={mealType.id} className="flex items-center space-x-2">
+													<Checkbox
+														id={mealType.id}
+														checked={selectedMealTypes.includes(mealType.id)}
+														onCheckedChange={() => handleMealTypeToggle(mealType.id)}
+													/>
+													<Label htmlFor={mealType.id} className="text-sm">
+														{mealType.label}
+													</Label>
+												</div>
+											))}
+										</div>
+										<div className="flex gap-2">
+											<Button onClick={handleSurpriseMe} className="flex-1">
+												<Sparkles className="h-4 w-4 mr-2" />
+												Gerar Receitas Surpresa
+											</Button>
+											<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
+												Cancelar
+											</Button>
+										</div>
 									</div>
-									<div className="flex gap-2">
-										<Button onClick={handleSurpriseMe} className="flex-1">
-											<Sparkles className="h-4 w-4 mr-2" />
-											Gerar Receitas Surpresa
-										</Button>
-										<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
-											Cancelar
-										</Button>
-									</div>
-								</div>
-							</DialogContent>
-						</Dialog>
-					</div>
+								</DialogContent>
+							</Dialog>
+						</div>
+					)}
 
 					{/* Busca por nome/descrição */}
 					<div className="relative">
@@ -187,7 +244,7 @@ export function RecipeSearch({ onSearch, onAISearch, onSurpriseMe, availableIngr
 								onKeyPress={handleKeyPress}
 								onFocus={() => setShowSuggestions(ingredientInput.length > 0)}
 							/>
-							
+
 							{/* Sugestões de ingredientes */}
 							{showSuggestions && filteredSuggestions.length > 0 && (
 								<div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">

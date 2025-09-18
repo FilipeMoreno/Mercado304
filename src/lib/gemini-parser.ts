@@ -63,7 +63,7 @@ export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 	parsedInfo.galactose = geminiData.galactose
 	parsedInfo.taurine = geminiData.taurine
 	parsedInfo.caffeine = geminiData.caffeine
-	
+
 	// Ácidos graxos e gorduras especiais (valores opcionais)
 	parsedInfo.omega3 = geminiData.omega3
 	parsedInfo.omega6 = geminiData.omega6
@@ -126,12 +126,17 @@ const nutrientTextMap = {
 	caffeine: [/cafeína/i, /cafeina/i],
 	lactose: [/lactose/i],
 	galactose: [/galactose/i],
-	
+
 	// Ácidos graxos e gorduras especiais (valores opcionais)
 	omega3: [/ômega 3/i, /omega 3/i, /ácido graxo ômega 3/i, /omega-3/i],
 	omega6: [/ômega 6/i, /omega 6/i, /ácido graxo ômega 6/i, /omega-6/i],
 	monounsaturatedFat: [/gordura monoinsaturada/i, /ácidos graxos monoinsaturados/i, /monoinsaturados/i],
-	polyunsaturatedFat: [/gordura poli-insaturada/i, /gordura poliinsaturada/i, /ácidos graxos poli-insaturados/i, /poliinsaturados/i],
+	polyunsaturatedFat: [
+		/gordura poli-insaturada/i,
+		/gordura poliinsaturada/i,
+		/ácidos graxos poli-insaturados/i,
+		/poliinsaturados/i,
+	],
 	cholesterol: [/colesterol/i],
 	epa: [/EPA/i, /ácido eicosapentaenóico/i],
 	dha: [/DHA/i, /ácido docosahexaenóico/i],
@@ -222,7 +227,8 @@ function extractServingsPerPackage(text: string): number | undefined {
 		const match = text.match(pattern)
 		if (match) {
 			const value = parseFloat(match[1].replace(",", "."))
-			if (value > 0 && value <= 100) { // Validação básica
+			if (value > 0 && value <= 100) {
+				// Validação básica
 				return value
 			}
 		}

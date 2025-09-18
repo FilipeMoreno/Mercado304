@@ -1,17 +1,28 @@
 "use client"
 
-import { BarChart3, ChevronLeft, ChevronRight, Edit, MapPin, MoreHorizontal, Plus, Search, Store, Trash2 } from "lucide-react"
+import {
+	BarChart3,
+	ChevronLeft,
+	ChevronRight,
+	Edit,
+	MapPin,
+	MoreHorizontal,
+	Plus,
+	Search,
+	Store,
+	Trash2,
+} from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDeleteConfirmation, useDeleteMarketMutation, useMarketsQuery, useUrlState } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Market } from "@/types"
@@ -228,7 +239,9 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 												<TooltipProvider>
 													<Tooltip>
 														<TooltipTrigger asChild>
-															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">{market.name}</CardTitle>
+															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
+																{market.name}
+															</CardTitle>
 														</TooltipTrigger>
 														<TooltipContent side="top" className="max-w-xs">
 															<p>{market.name}</p>

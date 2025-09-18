@@ -19,11 +19,11 @@ export async function POST(request: Request) {
 		if (mealTypes && mealTypes.length > 0) {
 			const mealTypeLabels = {
 				cafe_da_manha: "Café da Manhã",
-				almoco: "Almoço", 
+				almoco: "Almoço",
 				jantar: "Jantar",
 				lanche: "Lanche",
 				sobremesa: "Sobremesa",
-				entrada: "Entrada"
+				entrada: "Entrada",
 			}
 			const mealTypeNames = mealTypes.map((type: string) => mealTypeLabels[type as keyof typeof mealTypeLabels] || type)
 			prompt += `Tipos de refeição: ${mealTypeNames.join(", ")}\n`
@@ -48,19 +48,22 @@ Gere 3-5 receitas diferentes que atendam aos critérios. Para cada receita, reto
 
 Seja criativo mas prático. Use ingredientes comuns e técnicas acessíveis.`
 
-		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				contents: [{ parts: [{ text: prompt }] }],
-				generationConfig: {
-					temperature: 0.8,
-					topK: 40,
-					topP: 0.95,
-					maxOutputTokens: 2048,
-				},
-			}),
-		})
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: prompt }] }],
+					generationConfig: {
+						temperature: 0.8,
+						topK: 40,
+						topP: 0.95,
+						maxOutputTokens: 2048,
+					},
+				}),
+			},
+		)
 
 		if (!response.ok) {
 			throw new Error(`Erro da API do Gemini: ${response.status}`)
@@ -78,31 +81,29 @@ Seja criativo mas prático. Use ingredientes comuns e técnicas acessíveis.`
 			// Limpar possível markdown
 			aiResponse = aiResponse.replace(/```json\s*/, "").replace(/```\s*$/, "")
 			const recipes = JSON.parse(aiResponse)
-			
+
 			return NextResponse.json(recipes)
 		} catch (parseError) {
 			console.error("Erro ao fazer parse da resposta da IA:", parseError)
 			console.log("Resposta da IA:", aiResponse)
-			
+
 			// Fallback: retornar resposta como texto
 			return NextResponse.json({
-				sugestoes: [{
-					refeicao: "Sugestão",
-					prato: "Receita Personalizada",
-					descricao: "Receita criada pela IA",
-					tempo_preparo: "30 minutos",
-					ingredientes: ingredients || ["Ingredientes diversos"],
-					modo_preparo: aiResponse,
-					dica_chef: "Ajuste os temperos ao seu gosto!"
-				}]
+				sugestoes: [
+					{
+						refeicao: "Sugestão",
+						prato: "Receita Personalizada",
+						descricao: "Receita criada pela IA",
+						tempo_preparo: "30 minutos",
+						ingredientes: ingredients || ["Ingredientes diversos"],
+						modo_preparo: aiResponse,
+						dica_chef: "Ajuste os temperos ao seu gosto!",
+					},
+				],
 			})
 		}
-
 	} catch (error) {
 		console.error("Erro ao buscar receitas com IA:", error)
-		return NextResponse.json(
-			{ error: "Erro ao gerar receitas com IA" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro ao gerar receitas com IA" }, { status: 500 })
 	}
 }

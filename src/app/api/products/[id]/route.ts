@@ -83,20 +83,20 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			olderPrices.length > 0 ? olderPrices.reduce((sum, price) => sum + price.price, 0) / olderPrices.length : 0
 
 		// Calculate price change using more reliable logic
-	let priceChange = 0
-	if (allPrices.length >= 2) {
-		// Get the most recent price and compare with previous prices
-		const latestPrice = allPrices[0].price
-		
-		if (olderPrices.length > 0) {
-			const olderAveragePrice = olderPrices.reduce((sum, price) => sum + price.price, 0) / olderPrices.length
-			priceChange = ((latestPrice - olderAveragePrice) / olderAveragePrice) * 100
-		} else {
-			// If no older prices, compare with second most recent price
-			const secondPrice = allPrices[1].price
-			priceChange = ((latestPrice - secondPrice) / secondPrice) * 100
+		let priceChange = 0
+		if (allPrices.length >= 2) {
+			// Get the most recent price and compare with previous prices
+			const latestPrice = allPrices[0].price
+
+			if (olderPrices.length > 0) {
+				const olderAveragePrice = olderPrices.reduce((sum, price) => sum + price.price, 0) / olderPrices.length
+				priceChange = ((latestPrice - olderAveragePrice) / olderAveragePrice) * 100
+			} else {
+				// If no older prices, compare with second most recent price
+				const secondPrice = allPrices[1].price
+				priceChange = ((latestPrice - secondPrice) / secondPrice) * 100
+			}
 		}
-	}
 
 		const marketStats = new Map()
 		allPrices.forEach((price) => {
@@ -152,9 +152,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			const marketName = price.marketName
 			const date = new Date(price.date)
 			// Calculate proper week number
-		const yearStart = new Date(date.getFullYear(), 0, 1)
-		const weekNumber = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + yearStart.getDay() + 1) / 7)
-		const weekKey = `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`
+			const yearStart = new Date(date.getFullYear(), 0, 1)
+			const weekNumber = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + yearStart.getDay() + 1) / 7)
+			const weekKey = `${date.getFullYear()}-W${weekNumber.toString().padStart(2, "0")}`
 
 			if (!priceHistoryByMarket.has(marketId)) {
 				priceHistoryByMarket.set(marketId, {
@@ -209,12 +209,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		let stockAlerts = null
 		if (product.hasStock) {
 			// Calculate actual current stock from stock items
-		const stockItems = await prisma.stockItem.findMany({
-			where: { productId },
-			select: { quantity: true },
-		})
-		
-		const currentStock = stockItems.reduce((total, item) => total + item.quantity, 0)
+			const stockItems = await prisma.stockItem.findMany({
+				where: { productId },
+				select: { quantity: true },
+			})
+
+			const currentStock = stockItems.reduce((total, item) => total + item.quantity, 0)
 			const status = product.minStock && currentStock < product.minStock ? "low" : "ok"
 
 			stockAlerts = {

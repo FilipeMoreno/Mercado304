@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "next/image"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
 	return (
@@ -6,14 +6,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 			{/* Painel esquerdo fixo - imagem e overlay */}
 			<div className="hidden lg:flex lg:flex-col lg:justify-center lg:items-center lg:relative lg:overflow-hidden">
 				{/* Imagem de fundo */}
-				<Image
-					src="/login-image.png"
-					alt="Login Image"
-					fill
-					className="object-cover"
-					priority
-				/>
-				
+				<Image src="/login-image.png" alt="Login Image" fill className="object-cover" priority />
+
 				{/* Overlay de cor (gradiente) */}
 				<div className="absolute inset-0 bg-gradient-to-br from-blue-600/60 to-teal-600/40"></div>
 

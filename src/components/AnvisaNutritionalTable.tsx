@@ -8,15 +8,15 @@ interface AnvisaNutritionalTableProps {
 
 // Helper para formatar os valores numéricos
 const formatValue = (value: number | null | undefined, precision = 1) => {
-  if (value === null || typeof value === "undefined") return "-";
+	if (value === null || typeof value === "undefined") return "-"
 
-  // Usa toLocaleString para formatar no padrão pt-BR
-  // e controla os decimais de forma inteligente.
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 0, // Não força decimais em números inteiros (ex: 45)
-    maximumFractionDigits: precision, // Mostra até 'precision' casas se houver (ex: 42,5)
-  });
-};
+	// Usa toLocaleString para formatar no padrão pt-BR
+	// e controla os decimais de forma inteligente.
+	return value.toLocaleString("pt-BR", {
+		minimumFractionDigits: 0, // Não força decimais em números inteiros (ex: 45)
+		maximumFractionDigits: precision, // Mostra até 'precision' casas se houver (ex: 42,5)
+	})
+}
 
 // Helper para extrair o valor numérico da porção (ex: "30g" -> 30)
 const getServingValue = (servingSize?: string): number => {
@@ -58,7 +58,7 @@ export function AnvisaNutritionalTable({ nutritionalInfo }: AnvisaNutritionalTab
 		{ label: "Colesterol (mg)", value100g: nutritionalInfo.cholesterol, unit: "mg", indent: true },
 		{ label: "Fibra alimentar (g)", value100g: nutritionalInfo.fiber, unit: "g" },
 		{ label: "Sódio (mg)", value100g: nutritionalInfo.sodium, unit: "mg" },
-		
+
 		// Vitaminas
 		{ label: "Vitamina A (mcg)", value100g: nutritionalInfo.vitaminA, unit: "mcg" },
 		{ label: "Vitamina C (mg)", value100g: nutritionalInfo.vitaminC, unit: "mg" },
@@ -73,7 +73,7 @@ export function AnvisaNutritionalTable({ nutritionalInfo }: AnvisaNutritionalTab
 		{ label: "Vitamina B12 (mcg)", value100g: nutritionalInfo.vitaminB12, unit: "mcg" },
 		{ label: "Biotina (mcg)", value100g: nutritionalInfo.biotin, unit: "mcg" },
 		{ label: "Ácido Pantotênico - B5 (mg)", value100g: nutritionalInfo.pantothenicAcid, unit: "mg" },
-		
+
 		// Minerais
 		{ label: "Cálcio (mg)", value100g: nutritionalInfo.calcium, unit: "mg" },
 		{ label: "Ferro (mg)", value100g: nutritionalInfo.iron, unit: "mg" },
@@ -87,14 +87,14 @@ export function AnvisaNutritionalTable({ nutritionalInfo }: AnvisaNutritionalTab
 		{ label: "Iodo (mcg)", value100g: nutritionalInfo.iodine, unit: "mcg" },
 		{ label: "Cromo (mcg)", value100g: nutritionalInfo.chromium, unit: "mcg" },
 		{ label: "Molibdênio (mcg)", value100g: nutritionalInfo.molybdenum, unit: "mcg" },
-		
+
 		// Ácidos graxos especiais
 		{ label: "Ômega 3 (mg)", value100g: nutritionalInfo.omega3, unit: "mg" },
 		{ label: "Ômega 6 (g)", value100g: nutritionalInfo.omega6, unit: "g" },
 		{ label: "EPA (mg)", value100g: nutritionalInfo.epa, unit: "mg" },
 		{ label: "DHA (mg)", value100g: nutritionalInfo.dha, unit: "mg" },
 		{ label: "Ácido Linolênico (mg)", value100g: nutritionalInfo.linolenicAcid, unit: "mg" },
-		
+
 		// Outros compostos
 		{ label: "Taurina (mg)", value100g: nutritionalInfo.taurine, unit: "mg" },
 		{ label: "Cafeína (mg)", value100g: nutritionalInfo.caffeine, unit: "mg" },

@@ -105,7 +105,7 @@ export function BrandCombobox({
 						ref={scrollRef}
 						className="max-h-[300px] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
 						onScroll={handleScroll}
-						style={{ touchAction: 'auto', overscrollBehavior: 'contain' }}
+						style={{ touchAction: "auto", overscrollBehavior: "contain" }}
 					>
 						{isLoading && options.length === 0 ? (
 							<div className="py-6 text-center text-sm">

@@ -6,8 +6,6 @@ import type * as React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route"
-import { TemporaryItemForm } from "@/components/temporary-item-form"
-import { TemporaryItemCard } from "@/components/temporary-item-card"
 import {
 	AddItemDialog,
 	DeleteItemDialog,
@@ -21,6 +19,8 @@ import {
 	ShoppingMode,
 	ShoppingSummary,
 } from "@/components/shopping-list"
+import { TemporaryItemCard } from "@/components/temporary-item-card"
+import { TemporaryItemForm } from "@/components/temporary-item-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TempStorage } from "@/lib/temp-storage"
@@ -696,10 +696,7 @@ export default function ListaDetalhesPage() {
 					{/* Formulário para itens temporários */}
 					{showTemporaryForm && (
 						<div className="mb-4">
-							<TemporaryItemForm
-								onAddItem={handleAddTemporaryItem}
-								onCancel={() => setShowTemporaryForm(false)}
-							/>
+							<TemporaryItemForm onAddItem={handleAddTemporaryItem} onCancel={() => setShowTemporaryForm(false)} />
 						</div>
 					)}
 
@@ -711,7 +708,7 @@ export default function ListaDetalhesPage() {
 						</div>
 					) : (
 						<div className="space-y-3">
-							{list.items.map((item) => (
+							{list.items.map((item) =>
 								item.isTemporary ? (
 									<TemporaryItemCard
 										key={item.id}
@@ -719,7 +716,7 @@ export default function ListaDetalhesPage() {
 										onUpdateItem={handleUpdateTemporaryItem}
 										onDeleteItem={async (itemId) => {
 											// Usar a mesma lógica de delete existente
-											const itemToDelete = list.items.find(i => i.id === itemId)
+											const itemToDelete = list.items.find((i) => i.id === itemId)
 											if (itemToDelete) {
 												setDeleteItemConfirm(itemToDelete)
 											}
@@ -740,8 +737,8 @@ export default function ListaDetalhesPage() {
 										}}
 										onDelete={(item) => setDeleteItemConfirm(item)}
 									/>
-								)
-							))}
+								),
+							)}
 						</div>
 					)}
 				</CardContent>

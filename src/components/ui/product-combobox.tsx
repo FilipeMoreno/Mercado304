@@ -131,7 +131,7 @@ export function ProductCombobox({
 						ref={scrollRef}
 						className="max-h-[300px] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
 						onScroll={handleScroll}
-						style={{ touchAction: 'auto', overscrollBehavior: 'contain' }}
+						style={{ touchAction: "auto", overscrollBehavior: "contain" }}
 					>
 						{isLoading && options.length === 0 ? (
 							<div className="py-6 text-center text-sm">
@@ -178,7 +178,7 @@ export function ProductCombobox({
 												<div className="truncate">{option.label}</div>
 												{option.barcode && (
 													<div className="flex text-xs text-gray-500 mt-1">
-														<Barcode className="h-4 w-4 mr-1 shrink-0" /> 
+														<Barcode className="h-4 w-4 mr-1 shrink-0" />
 														<span className="truncate">{option.barcode}</span>
 													</div>
 												)}

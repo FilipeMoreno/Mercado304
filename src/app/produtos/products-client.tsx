@@ -1,18 +1,29 @@
 "use client"
 
-import { BarChart3, ChevronLeft, ChevronRight, Edit, Filter, MoreHorizontal, Package, Plus, Search, Trash2 } from "lucide-react"
+import {
+	BarChart3,
+	ChevronLeft,
+	ChevronRight,
+	Edit,
+	Filter,
+	MoreHorizontal,
+	Package,
+	Plus,
+	Search,
+	Trash2,
+} from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	useAllBrandsQuery,
 	useAllCategoriesQuery,
@@ -314,7 +325,9 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 												<TooltipProvider>
 													<Tooltip>
 														<TooltipTrigger asChild>
-															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">{product.name}</CardTitle>
+															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
+																{product.name}
+															</CardTitle>
 														</TooltipTrigger>
 														<TooltipContent side="top" className="max-w-xs">
 															<p>{product.name}</p>

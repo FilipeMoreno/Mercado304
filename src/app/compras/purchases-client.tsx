@@ -95,7 +95,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const markets = marketsData?.markets || []
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
 	const _isLoading = purchasesLoading || marketsLoading
-_isLoading
+	_isLoading
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antigo" },
@@ -346,7 +346,7 @@ _isLoading
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number - 1)}
+									onClick={() => handlePageChange((state.page as number) - 1)}
 									disabled={state.page === 1}
 								>
 									<ChevronLeft className="h-4 w-4" />
@@ -374,7 +374,7 @@ _isLoading
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handlePageChange(state.page as number + 1)}
+									onClick={() => handlePageChange((state.page as number) + 1)}
 									disabled={state.page === totalPages}
 								>
 									Próxima

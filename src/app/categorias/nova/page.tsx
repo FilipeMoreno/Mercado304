@@ -15,7 +15,7 @@ import { useCreateCategoryMutation } from "@/hooks"
 export default function NovaCategoriaPage() {
 	const router = useRouter()
 	const createCategoryMutation = useCreateCategoryMutation()
-	
+
 	const [formData, setFormData] = useState({
 		name: "",
 		icon: "",
@@ -25,7 +25,7 @@ export default function NovaCategoriaPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		
+
 		if (!formData.name.trim()) {
 			toast.error("Nome da categoria é obrigatório")
 			return
@@ -38,7 +38,7 @@ export default function NovaCategoriaPage() {
 				color: formData.color,
 				isFood: formData.isFood,
 			})
-			
+
 			toast.success("Categoria criada com sucesso!")
 			router.push("/categorias")
 		} catch (error) {
@@ -77,7 +77,7 @@ export default function NovaCategoriaPage() {
 							<Input
 								id="name"
 								value={formData.name}
-								onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+								onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Ex: Bebidas, Laticínios, Carnes..."
 								required
 							/>
@@ -88,13 +88,11 @@ export default function NovaCategoriaPage() {
 							<Input
 								id="icon"
 								value={formData.icon}
-								onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
+								onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
 								placeholder="📦 🥛 🍖 🍞 (opcional)"
 								maxLength={10}
 							/>
-							<p className="text-xs text-gray-500">
-								Use emojis para representar visualmente a categoria
-							</p>
+							<p className="text-xs text-gray-500">Use emojis para representar visualmente a categoria</p>
 						</div>
 
 						<div className="space-y-2">
@@ -104,12 +102,12 @@ export default function NovaCategoriaPage() {
 									id="color"
 									type="color"
 									value={formData.color}
-									onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
 									className="w-20 h-10"
 								/>
 								<Input
 									value={formData.color}
-									onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
 									placeholder="#3b82f6"
 									className="flex-1"
 								/>
@@ -120,13 +118,11 @@ export default function NovaCategoriaPage() {
 							<Switch
 								id="isFood"
 								checked={formData.isFood}
-								onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFood: checked }))}
+								onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isFood: checked }))}
 							/>
 							<div>
 								<Label htmlFor="isFood">Esta categoria é um alimento?</Label>
-								<p className="text-xs text-gray-500">
-									Marque se esta categoria representa produtos alimentícios
-								</p>
+								<p className="text-xs text-gray-500">Marque se esta categoria representa produtos alimentícios</p>
 							</div>
 						</div>
 
