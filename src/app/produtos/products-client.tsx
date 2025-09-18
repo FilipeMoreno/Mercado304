@@ -305,8 +305,8 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
-											<div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
-												<Package className="h-6 w-6 text-orange-600" />
+											<div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
+												<Package className="h-5 w-5 text-orange-600" />
 											</div>
 											<div className="flex-1 min-w-0">
 												<CardTitle className="text-lg font-semibold text-gray-900 truncate">{product.name}</CardTitle>

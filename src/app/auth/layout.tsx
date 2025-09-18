@@ -1,16 +1,22 @@
+import Image from "next/image";
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<div className="min-h-screen grid lg:grid-cols-2">
-			{/* Painel esquerdo fixo - imagem e texto */}
-			<div className="hidden lg:flex lg:flex-col lg:justify-center lg:items-center lg:bg-gradient-to-br lg:from-blue-600 lg:to-teal-600 lg:p-12 lg:relative lg:overflow-hidden">
-				<div className="text-center text-white z-10">
-					<h1 className="text-4xl font-bold mb-6">Mercado304</h1>
-					<blockquote className="text-xl mb-4 leading-relaxed">
-						"Organize suas compras por categorias e estabelecimentos. Planeje suas idas ao supermercado de forma
-						otimizada."
-					</blockquote>
-					<p className="text-lg opacity-90">Planejamento eficiente</p>
-				</div>
+			{/* Painel esquerdo fixo - imagem e overlay */}
+			<div className="hidden lg:flex lg:flex-col lg:justify-center lg:items-center lg:relative lg:overflow-hidden">
+				{/* Imagem de fundo */}
+				<Image
+					src="/login-image.png"
+					alt="Login Image"
+					fill
+					className="object-cover"
+					priority
+				/>
+				
+				{/* Overlay de cor (gradiente) */}
+				<div className="absolute inset-0 bg-gradient-to-br from-blue-600/60 to-teal-600/40"></div>
+
 				{/* Elementos decorativos */}
 				<div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
 				<div className="absolute bottom-20 right-20 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>

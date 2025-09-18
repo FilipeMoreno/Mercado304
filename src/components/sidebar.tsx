@@ -21,7 +21,6 @@ import {
 	Trash2,
 	Utensils,
 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -59,7 +58,12 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>
 			<div className={cn("p-6", collapsed && "p-4")}>
 				<div className="flex items-center justify-between">
-					{!collapsed && <Image src="/logo.png" alt="Logo" width={140} height={30} />}
+					{!collapsed && 
+						<div className="flex items-center justify-center">
+							<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+							<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
+						</div>
+					}
 					{onToggleCollapse && (
 						<Button variant="ghost" size="icon" onClick={onToggleCollapse} className="ml-auto">
 							{collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
