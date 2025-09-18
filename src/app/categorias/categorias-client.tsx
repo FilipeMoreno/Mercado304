@@ -1,7 +1,8 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Edit, Plus, Search, Tag, Trash2 } from "lucide-react"
-import React, { useMemo, useState, useCallback } from "react"
+import { ArrowRight, ChevronLeft, ChevronRight, Edit, Plus, Search, Tag, Trash2 } from "lucide-react"
+import Link from "next/link"
+import React, { useCallback, useMemo, useState } from "react"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,7 +13,6 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
 	useCategoriesQuery,
-	useCreateCategoryMutation,
 	useDeleteCategoryMutation,
 	useDeleteConfirmation,
 	useUpdateCategoryMutation,
@@ -30,35 +30,45 @@ interface CategoriasClientProps {
 }
 
 export function CategoriasClient({ searchParams }: CategoriasClientProps) {
-	const [showForm, setShowForm] = useState(false)
-	const [newCategory, setNewCategory] = useState({
-		name: "",
-		icon: "",
-		color: "",
-		isFood: false,
-	})
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "", isFood: false })
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 
 	// URL state management
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/categorias",
 		initialValues: {
-			search: searchParams.search || "",
-			sort: searchParams.sort || "name-asc",
-			page: parseInt(searchParams.page || "1", 10),
+			search: "",
+			sort: "name-asc",
+			page: 1,
 		},
 	})
 
-	// Atualizar a URL quando o debounce terminar
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search (navegação, etc.)
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Atualizar a URL quando o debounce terminar - com melhor preservação de estado
 	React.useEffect(() => {
 		if (debouncedSearch !== state.search) {
-			updateSingleValue("search", debouncedSearch)
-			updateSingleValue("page", 1) // Reset para primeira página
+			// Usar uma versão mais robusta que preserva explicitamente todos os filtros
+			const currentState = stateRef.current
+			const newState = {
+				...currentState,
+				search: debouncedSearch,
+				page: 1, // Reset page quando mudar search
+			}
+
+			// Usar updateState ao invés de updateSingleValue para ter mais controle
+			updateState(newState)
 		}
-	}, [debouncedSearch, state.search, updateSingleValue])
+	}, [debouncedSearch, state.search, updateState])
 
 	// Handler otimizado para mudanças no campo de busca
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +88,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 	// React Query hooks
 	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)
-	const createCategoryMutation = useCreateCategoryMutation()
 	const updateCategoryMutation = useUpdateCategoryMutation()
 	const deleteCategoryMutation = useDeleteCategoryMutation()
 
@@ -103,21 +112,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
-		}
-	}
-
-	const handleCreateCategory = async () => {
-		try {
-			await createCategoryMutation.mutateAsync({
-				name: newCategory.name,
-				icon: newCategory.icon,
-				color: newCategory.color,
-				isFood: newCategory.isFood,
-			})
-			setNewCategory({ name: "", icon: "", color: "", isFood: false })
-			setShowForm(false)
-		} catch (error) {
-			console.error("Error creating category:", error)
 		}
 	}
 
@@ -152,7 +146,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		}
 	}
 
-	const startEdit = (category: Category) => {
+	const _startEdit = (category: Category) => {
 		setEditingCategory(category)
 		setEditForm({
 			name: category.name,
@@ -192,15 +186,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
+					onClearFilters={clearFilters}
 				/>
-				<Button onClick={() => setShowForm(true)}>
-					<Plus className="mr-2 h-4 w-4" />
-					Nova Categoria
-				</Button>
 			</div>
 
 			<div className="space-y-4">
@@ -216,8 +203,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<Button
 									variant="outline"
 									onClick={() => {
+										setSearchValue("") // Reset o input local
 										clearFilters()
-										updateSingleValue("page", 1)
 									}}
 								>
 									Limpar Filtros
@@ -230,10 +217,12 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma categoria cadastrada</h3>
 								<p className="text-gray-600 mb-4">Comece adicionando sua primeira categoria</p>
-								<Button onClick={() => setShowForm(true)}>
-									<Plus className="mr-2 h-4 w-4" />
-									Cadastrar Primeira Categoria
-								</Button>
+								<Link href="/categorias/nova">
+									<Button>
+										<Plus className="mr-2 h-4 w-4" />
+										Cadastrar Primeira Categoria
+									</Button>
+								</Link>
 							</CardContent>
 						</Card>
 					)
@@ -260,9 +249,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 												<CardDescription className="mt-2 flex items-center gap-2">
 													{category._count?.products || 0} produtos
 													{category.isFood && (
-														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-															Alimento
-														</span>
+														<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Alimento</span>
 													)}
 												</CardDescription>
 											</div>
@@ -270,7 +257,12 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 									</CardHeader>
 									<CardContent>
 										<div className="flex gap-2">
-											<Button variant="outline" size="sm" onClick={() => startEdit(category)}>
+											<Link href={`${`/categorias/${category.id}`}`}>
+												<Button variant="outline" size="sm">
+													Detalhes <ArrowRight className="h-4 w-4" /> 
+												</Button>
+											</Link>
+											<Button variant="outline" size="sm" onClick={() => _startEdit(category)}>
 												<Edit className="h-4 w-4" />
 											</Button>
 											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(category)}>
@@ -296,9 +288,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 								<div className="flex gap-1">
 									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter(
-											(page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2,
-										)
+										.filter((page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2)
 										.map((page, index, array) => (
 											<React.Fragment key={page}>
 												{index > 0 && array[index - 1] !== page - 1 && (
@@ -330,60 +320,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 					</>
 				)}
 			</div>
-
-			{/* Form Dialog */}
-			<Dialog open={showForm} onOpenChange={setShowForm}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Nova Categoria</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="name">Nome</Label>
-							<Input
-								id="name"
-								value={newCategory.name}
-								onChange={(e) => setNewCategory((prev) => ({ ...prev, name: e.target.value }))}
-								placeholder="Nome da categoria"
-							/>
-						</div>
-						<div>
-							<Label htmlFor="icon">Ícone</Label>
-							<Input
-								id="icon"
-								value={newCategory.icon}
-								onChange={(e) => setNewCategory((prev) => ({ ...prev, icon: e.target.value }))}
-								placeholder="📦"
-							/>
-						</div>
-						<div>
-							<Label htmlFor="color">Cor</Label>
-							<Input
-								id="color"
-								type="color"
-								value={newCategory.color}
-								onChange={(e) => setNewCategory((prev) => ({ ...prev, color: e.target.value }))}
-							/>
-						</div>
-						<div className="flex items-center space-x-2">
-							<Switch
-								id="isFood"
-								checked={newCategory.isFood}
-								onCheckedChange={(checked) => setNewCategory((prev) => ({ ...prev, isFood: checked }))}
-							/>
-							<Label htmlFor="isFood">É um alimento?</Label>
-						</div>
-						<div className="flex gap-2 pt-4">
-							<Button onClick={handleCreateCategory} disabled={createCategoryMutation.isPending} className="flex-1">
-								{createCategoryMutation.isPending ? "Criando..." : "Criar Categoria"}
-							</Button>
-							<Button variant="outline" onClick={() => setShowForm(false)}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
 
 			{/* Edit Dialog */}
 			<Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>

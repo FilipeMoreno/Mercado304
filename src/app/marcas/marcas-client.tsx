@@ -1,9 +1,9 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Edit, Factory, Filter, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { ArrowRight, ChevronLeft, ChevronRight, Edit, Factory, Filter, Plus, Search, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
-import { useMemo, useState, useCallback } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
 	useBrandsQuery,
-	useCreateBrandMutation,
 	useDeleteBrandMutation,
 	useDeleteConfirmation,
 	useUpdateBrandMutation,
@@ -32,32 +31,46 @@ interface MarcasClientProps {
 }
 
 export function MarcasClient({ searchParams }: MarcasClientProps) {
-	const [showForm, setShowForm] = useState(false)
-	const [newBrand, setNewBrand] = useState({
-		name: "",
-	})
 	const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
 	const [editForm, setEditForm] = useState({ name: "" })
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 
 	// URL state management
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/marcas",
+		// CORREÇÃO: initialValues devem ser SEMPRE os valores padrão, não os searchParams atuais
 		initialValues: {
-			search: searchParams.search || "",
-			sort: searchParams.sort || "name-asc",
-			page: parseInt(searchParams.page || "1"),
+			search: "",
+			sort: "name-asc",
+			page: 1,
 		},
 	})
 
-	// Atualizar a URL quando o debounce terminar
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search (navegação, etc.)
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Atualizar a URL quando o debounce terminar - com melhor preservação de estado
 	React.useEffect(() => {
 		if (debouncedSearch !== state.search) {
-			updateSingleValue("search", debouncedSearch)
-			updateSingleValue("page", 1) // Reset para primeira página
+			// Usar uma versão mais robusta que preserva explicitamente todos os filtros
+			const currentState = stateRef.current
+			const newState = {
+				...currentState,
+				search: debouncedSearch,
+				page: 1, // Reset page quando mudar search
+			}
+
+			// Usar updateState ao invés de updateSingleValue para ter mais controle
+			updateState(newState)
 		}
-	}, [debouncedSearch, state.search, updateSingleValue])
+	}, [debouncedSearch, state.search, updateState])
 
 	// Handler otimizado para mudanças no campo de busca
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +90,6 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 
 	// React Query hooks
 	const { data: brandsData, isLoading, error } = useBrandsQuery(params)
-	const createBrandMutation = useCreateBrandMutation()
 	const updateBrandMutation = useUpdateBrandMutation()
 	const deleteBrandMutation = useDeleteBrandMutation()
 
@@ -102,18 +114,6 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
-		}
-	}
-
-	const handleCreateBrand = async () => {
-		try {
-			await createBrandMutation.mutateAsync({
-				name: newBrand.name,
-			})
-			setNewBrand({ name: "" })
-			setShowForm(false)
-		} catch (error) {
-			console.error("Error creating brand:", error)
 		}
 	}
 
@@ -170,12 +170,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 			<div className="flex items-center gap-2 mb-6">
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-					<Input
-						placeholder="Buscar marcas..."
-						value={searchValue}
-						onChange={handleSearchChange}
-						className="pl-10"
-					/>
+					<Input placeholder="Buscar marcas..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
 				<FilterPopover
 					sortValue={String(state.sort)}
@@ -196,7 +191,13 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<Factory className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma marca encontrada</h3>
 								<p className="text-gray-600 mb-4">Nenhuma marca corresponde aos filtros aplicados</p>
-								<Button variant="outline" onClick={clearFilters}>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setSearchValue("") // Reset o input local
+										clearFilters()
+									}}
+								>
 									Limpar Filtros
 								</Button>
 							</CardContent>
@@ -207,10 +208,12 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<Factory className="h-12 w-12 mx-auto text-gray-400 mb-4" />
 								<h3 className="text-lg font-medium mb-2">Nenhuma marca cadastrada</h3>
 								<p className="text-gray-600 mb-4">Comece adicionando sua primeira marca</p>
-								<Button onClick={() => setShowForm(true)}>
-									<Plus className="mr-2 h-4 w-4" />
-									Cadastrar Primeira Marca
-								</Button>
+								<Link href="/marcas/nova">
+									<Button>
+										<Plus className="mr-2 h-4 w-4" />
+										Cadastrar Primeira Marca
+									</Button>
+								</Link>
 							</CardContent>
 						</Card>
 					)
@@ -240,6 +243,11 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 									</CardHeader>
 									<CardContent>
 										<div className="flex gap-2">
+											<Link href={`${`/marcas/${brand.id}`}`}>
+												<Button variant="outline" size="sm">
+													Detalhes <ArrowRight className="h-4 w-4" />
+												</Button>
+											</Link>
 											<Button variant="outline" size="sm" onClick={() => startEdit(brand)}>
 												<Edit className="h-4 w-4" />
 											</Button>
@@ -298,34 +306,6 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 					</>
 				)}
 			</div>
-
-			{/* Form Dialog */}
-			<Dialog open={showForm} onOpenChange={setShowForm}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Nova Marca</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="name">Nome</Label>
-							<Input
-								id="name"
-								value={newBrand.name}
-								onChange={(e) => setNewBrand((prev) => ({ ...prev, name: e.target.value }))}
-								placeholder="Nome da marca"
-							/>
-						</div>
-						<div className="flex gap-2 pt-4">
-							<Button onClick={handleCreateBrand} disabled={createBrandMutation.isPending} className="flex-1">
-								{createBrandMutation.isPending ? "Criando..." : "Criar Marca"}
-							</Button>
-							<Button variant="outline" onClick={() => setShowForm(false)}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
 
 			{/* Edit Dialog */}
 			<Dialog open={!!editingBrand} onOpenChange={(open) => !open && setEditingBrand(null)}>

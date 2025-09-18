@@ -27,22 +27,40 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/mercados",
+		// CORREÇÃO: initialValues devem ser SEMPRE os valores padrão, não os searchParams atuais
 		initialValues: {
-			search: searchParams.search || "",
-			sort: searchParams.sort || "name-asc",
-			page: parseInt(searchParams.page || "1", 10),
+			search: "",
+			sort: "name-asc",
+			page: 1,
 		},
 	})
 
-	// Atualizar a URL quando o debounce terminar
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search (navegação, etc.)
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Atualizar a URL quando o debounce terminar - com melhor preservação de estado
 	React.useEffect(() => {
 		if (debouncedSearch !== state.search) {
-			updateSingleValue("search", debouncedSearch)
-			updateSingleValue("page", 1) // Reset para primeira página
+			// Usar uma versão mais robusta que preserva explicitamente todos os filtros
+			const currentState = stateRef.current
+			const newState = {
+				...currentState,
+				search: debouncedSearch,
+				page: 1 // Reset page quando mudar search
+			}
+			
+			// Usar updateState ao invés de updateSingleValue para ter mais controle
+			updateState(newState)
 		}
-	}, [debouncedSearch, state.search, updateSingleValue])
+	}, [debouncedSearch, state.search, updateState])
 
 	// Handler otimizado para mudanças no campo de busca
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,10 +143,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 					onSortChange={(value) => updateSingleValue("sort", value)}
 					sortOptions={sortOptions}
 					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
+					onClearFilters={clearFilters}
 				/>
 			</div>
 

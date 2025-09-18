@@ -28,6 +28,7 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 			}
 		}
 
+
 		return current
 	}, [searchParams]) // Removed initialValues dependency
 
@@ -40,6 +41,7 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 			for (const [key, value] of Object.entries(newState)) {
 				const defaultValue = defaults[key]
 				const stringValue = String(value)
+				const shouldInclude = value !== defaultValue && stringValue !== "" && stringValue !== "all"
 
 				// Add to URL if different from default and not empty
 				if (key === "page") {
@@ -47,7 +49,7 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 					if (value !== 1) {
 						params.set(key, stringValue)
 					}
-				} else if (value !== defaultValue && stringValue !== "" && stringValue !== "all") {
+				} else if (shouldInclude) {
 					params.set(key, stringValue)
 				}
 			}
@@ -78,14 +80,17 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 	// Update a single value
 	const updateSingleValue = useCallback(
 		(key: string, value: string | number) => {
-			const newState = { ...state, [key]: value }
+			// Use a more explicit approach to ensure state preservation
+			const currentState = { ...state }
+			currentState[key] = value
 
 			// Reset to page 1 when changing filters (except for page and sort)
 			if (key !== "page" && key !== "sort") {
-				newState.page = 1
+				currentState.page = 1
 			}
 
-			updateUrl(newState)
+			
+			updateUrl(currentState)
 		},
 		[state, updateUrl],
 	)
@@ -101,8 +106,6 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 		const defaults = initialValuesRef.current
 		return Object.entries(state).some(([key, value]) => {
 			const defaultValue = defaults[key]
-
-			console.log(defaultValue)
 
 			if (key === "search") {
 				return value !== ""

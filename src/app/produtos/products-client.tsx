@@ -37,24 +37,43 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/produtos",
+		// CORREÇÃO: initialValues devem ser SEMPRE os valores padrão, não os searchParams atuais
 		initialValues: {
-			search: searchParams.search || "",
-			category: searchParams.category || "all",
-			brand: searchParams.brand || "all",
-			sort: searchParams.sort || "name-asc",
-			page: parseInt(searchParams.page || "1", 10),
+			search: "",
+			category: "all", 
+			brand: "all",
+			sort: "name-asc",
+			page: 1,
 		},
 	})
 
-	// Atualizar a URL quando o debounce terminar
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search (navegação, clearFilters, etc.)
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Atualizar a URL quando o debounce terminar - com melhor preservação de estado
 	React.useEffect(() => {
 		if (debouncedSearch !== state.search) {
-			updateSingleValue("search", debouncedSearch)
-			updateSingleValue("page", 1) // Reset para primeira página
+			// Usar uma versão mais robusta que preserva explicitamente todos os filtros
+			const currentState = stateRef.current
+			const newState = {
+				...currentState,
+				search: debouncedSearch,
+				page: 1 // Reset page quando mudar search
+			}
+			
+			// Usar updateState ao invés de updateSingleValue para ter mais controle
+			updateState(newState)
 		}
-	}, [debouncedSearch, state.search, updateSingleValue])
+	}, [debouncedSearch, state.search, updateState])
 
 	// Handler otimizado para mudanças no campo de busca
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,8 +223,8 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 						<Button
 							variant="outline"
 							onClick={() => {
+								setSearchValue("") // Reset o input local
 								clearFilters()
-								updateSingleValue("page", 1)
 							}}
 						>
 							<Filter className="h-4 w-4 mr-2" />
