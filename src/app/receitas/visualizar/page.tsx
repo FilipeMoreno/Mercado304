@@ -9,17 +9,28 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { RecipeTimer } from "@/components/recipe-timer"
 import { useDataMutation } from "@/hooks/use-data-mutation" // <-- Importar o hook
 import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
-	refeicao: string
-	prato: string
-	descricao: string
-	tempo_preparo: string
-	ingredientes: string[]
-	modo_preparo: string
-	dica_chef: string
+	// AI generated recipe fields
+	refeicao?: string
+	prato?: string
+	descricao?: string
+	tempo_preparo?: string
+	ingredientes?: string[]
+	modo_preparo?: string
+	dica_chef?: string
+	
+	// Saved recipe fields
+	name?: string
+	description?: string
+	mealType?: string
+	ingredients?: string[]
+	instructions?: string
+	cookingTime?: string
+	chefTip?: string
 }
 
 export default function VisualizarReceitaPage() {
@@ -32,7 +43,9 @@ export default function VisualizarReceitaPage() {
 		const storageKey = searchParams.get("storageKey")
 		if (storageKey) {
 			const data = TempStorage.get(storageKey)
+			console.log("📋 Dados recuperados do storage:", data)
 			if (data?.recipe) {
+				console.log("🍽️ Receita para visualizar:", data.recipe)
 				setRecipe(data.recipe)
 			} else {
 				router.push("/receitas")
@@ -46,13 +59,13 @@ export default function VisualizarReceitaPage() {
 		await create(
 			"/api/recipes",
 			{
-				name: recipe.prato,
-				description: recipe.descricao,
-				prepTime: recipe.tempo_preparo,
-				mealType: recipe.refeicao,
-				ingredients: recipe.ingredientes,
-				instructions: recipe.modo_preparo,
-				chefTip: recipe.dica_chef,
+				name: recipe.prato || recipe.name || "Receita sem nome",
+				description: recipe.descricao || recipe.description || "",
+				prepTime: recipe.tempo_preparo || recipe.cookingTime || "",
+				mealType: recipe.refeicao || recipe.mealType || "",
+				ingredients: recipe.ingredientes || recipe.ingredients || [],
+				instructions: recipe.modo_preparo || recipe.instructions || "",
+				chefTip: recipe.dica_chef || recipe.chefTip || "",
 			},
 			{
 				successMessage: "Receita salva com sucesso!",
@@ -69,21 +82,32 @@ export default function VisualizarReceitaPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-4">
-				<Button variant="outline" size="sm" onClick={() => router.back()}>
-					<ArrowLeft className="h-4 w-4 mr-2" />
-					Voltar
-				</Button>
-				<div>
-					<Badge>{recipe.refeicao}</Badge>
-					<h1 className="text-3xl font-bold mt-1">{recipe.prato}</h1>
-					<p className="text-gray-600 mt-2">{recipe.descricao}</p>
+			{/* Header Responsivo */}
+			<div className="space-y-4">
+				<div className="flex items-center justify-between">
+					<Button variant="outline" size="sm" onClick={() => router.back()} className="flex-shrink-0">
+						<ArrowLeft className="h-4 w-4 mr-2" />
+						Voltar
+					</Button>
+					<Badge className="hidden sm:block">{recipe.refeicao || recipe.mealType}</Badge>
+				</div>
+				
+				<div className="space-y-3">
+					<div className="flex items-center gap-2 sm:hidden">
+						<Badge>{recipe.refeicao || recipe.mealType}</Badge>
+					</div>
+					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+						{recipe.prato || recipe.name}
+					</h1>
+					<p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+						{recipe.descricao || recipe.description}
+					</p>
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{/* Coluna Principal */}
-				<div className="md:col-span-2 space-y-6">
+				<div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
@@ -93,7 +117,7 @@ export default function VisualizarReceitaPage() {
 						</CardHeader>
 						<CardContent>
 							<ul className="list-disc list-inside space-y-2">
-								{recipe.ingredientes.map((ing, index) => (
+								{(recipe.ingredientes || recipe.ingredients || []).map((ing, index) => (
 									<li key={index}>{ing}</li>
 								))}
 							</ul>
@@ -107,28 +131,101 @@ export default function VisualizarReceitaPage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="prose dark:prose-invert">
-								{recipe.modo_preparo
-									.split(/(Passo \d+:)/)
-									.filter((p) => p.trim())
-									.reduce((acc, part, index) => {
-										if (part.startsWith("Passo")) {
-											acc.push(part)
-										} else if (acc.length > 0) {
-											acc[acc.length - 1] += part
+							<div className="space-y-4">
+								{(() => {
+									const instructions = recipe.modo_preparo || recipe.instructions || ""
+									
+									if (!instructions.trim()) {
+										return <p className="text-gray-500 italic">Modo de preparo não disponível</p>
+									}
+
+									console.log("🔍 Texto original do modo de preparo:", instructions)
+
+									let steps: string[] = []
+									
+									// Método mais direto: dividir por padrões de numeração
+									// Exemplo: "1. texto 2. texto 3. texto" ou "Passo 1: texto Passo 2: texto"
+									
+									if (instructions.includes("Passo")) {
+										// Dividir por "Passo X:"
+										steps = instructions.split(/(?=Passo \d+:)/).filter(step => step.trim())
+									} else if (/\d+\.\s/.test(instructions)) {
+										// Dividir por "1. " "2. " etc.
+										steps = instructions.split(/(?=\d+\.\s)/).filter(step => step.trim())
+									} else if (/\d+\)\s/.test(instructions)) {
+										// Dividir por "1) " "2) " etc.
+										steps = instructions.split(/(?=\d+\)\s)/).filter(step => step.trim())
+									} else {
+										// Tentar dividir por quebras de linha
+										steps = instructions.split(/\n/).filter(step => step.trim())
+									}
+
+									// Se ainda tem apenas 1 item muito longo, forçar divisão por números
+									if (steps.length === 1 && steps[0].length > 50) {
+										// Usar regex para capturar cada passo numerado
+										const matches = instructions.match(/\d+\.\s[^0-9]+(?=\d+\.|$)/g)
+										if (matches && matches.length > 1) {
+											steps = matches
+										} else {
+											// Última tentativa: dividir manualmente por pontos + espaços + maiúsculas
+											steps = instructions
+												.split(/\.\s+(?=[A-Z])/)
+												.map(step => step.trim())
+												.filter(step => step)
 										}
-										return acc
-									}, [] as string[])
-									.map((step, index) => (
-										<p key={index}>{step}</p>
-									))}
+									}
+
+									console.log("📝 Passos divididos:", steps)
+
+									return (
+										<div className="space-y-3">
+											{steps.map((step, index) => {
+												const cleanStep = step.trim()
+												const isNumberedStep = /^(\d+\.|Passo \d+:|\d+\))/.test(cleanStep)
+												
+												return (
+													<div 
+														key={index} 
+														className={`flex gap-3 p-3 rounded-lg ${
+															isNumberedStep 
+																? 'bg-orange-50 border-l-4 border-orange-200' 
+																: 'bg-gray-50 border-l-4 border-gray-200'
+														}`}
+													>
+														{isNumberedStep ? (
+															<>
+																<div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+																	{index + 1}
+																</div>
+																<div className="flex-1">
+																	<p className="text-gray-800 leading-relaxed">
+																		{cleanStep.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, '').trim()}
+																	</p>
+																</div>
+															</>
+														) : (
+															<>
+																<div className="flex-shrink-0 w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">
+																	{index + 1}
+																</div>
+																<div className="flex-1">
+																	<p className="text-gray-800 leading-relaxed">{cleanStep}</p>
+																</div>
+															</>
+														)}
+													</div>
+												)
+											})}
+										</div>
+									)
+								})()}
 							</div>
 						</CardContent>
 					</Card>
 				</div>
 
 				{/* Coluna Lateral */}
-				<div className="space-y-6">
+				<div className="space-y-6 order-1 lg:order-2">
 					<Card>
 						<CardHeader>
 							<CardTitle>Detalhes</CardTitle>
@@ -137,18 +234,24 @@ export default function VisualizarReceitaPage() {
 							<div className="flex items-center gap-2">
 								<Clock className="h-5 w-5 text-primary" />
 								<div>
-									<p className="font-semibold">{recipe.tempo_preparo}</p>
+									<p className="font-semibold">{recipe.tempo_preparo || recipe.cookingTime || "Não especificado"}</p>
 									<p className="text-sm text-gray-500">Tempo de Preparo</p>
 								</div>
 							</div>
-							<div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-								<h4 className="font-semibold text-yellow-800 flex items-center gap-2">
-									<ThumbsUp size={16} /> Dica do Chef
-								</h4>
-								<p className="text-sm text-yellow-700 mt-1">{recipe.dica_chef}</p>
-							</div>
+							{(recipe.dica_chef || recipe.chefTip) && (
+								<div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+									<h4 className="font-semibold text-yellow-800 flex items-center gap-2">
+										<ThumbsUp size={16} /> Dica do Chef
+									</h4>
+									<p className="text-sm text-yellow-700 mt-1">{recipe.dica_chef || recipe.chefTip}</p>
+								</div>
+							)}
 						</CardContent>
 					</Card>
+					
+					{/* Cronômetro */}
+					<RecipeTimer suggestedTime={recipe.tempo_preparo || recipe.cookingTime} />
+					
 					<Card>
 						<CardHeader>
 							<CardTitle>Gostou da Receita?</CardTitle>

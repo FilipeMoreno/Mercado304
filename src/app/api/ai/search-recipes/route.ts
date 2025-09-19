@@ -1,4 +1,7 @@
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from "next/server"
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function POST(request: Request) {
 	try {
@@ -39,38 +42,33 @@ Gere 3-5 receitas diferentes que atendam aos critérios. Para cada receita, reto
 			"prato": "nome do prato",
 			"descricao": "breve descrição atrativa",
 			"tempo_preparo": "tempo estimado",
-			"ingredientes": ["lista", "de", "ingredientes"],
-			"modo_preparo": "instruções passo a passo detalhadas",
+			"ingredientes": ["lista", "de", "ingredientes", "com", "quantidades"],
+			"modo_preparo": "Passo 1: [instrução detalhada]\nPasso 2: [instrução detalhada]\nPasso 3: [instrução detalhada]\n...",
 			"dica_chef": "dica especial do chef"
 		}
 	]
 }
 
-Seja criativo mas prático. Use ingredientes comuns e técnicas acessíveis.`
+IMPORTANTE: 
+- O campo "modo_preparo" deve conter instruções DETALHADAS passo a passo
+- Cada passo deve começar com "Passo X:" seguido da instrução
+- Seja específico sobre tempos, temperaturas e técnicas
+- Use ingredientes comuns e técnicas acessíveis`
 
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: prompt }] }],
-					generationConfig: {
-						temperature: 0.8,
-						topK: 40,
-						topP: 0.95,
-						maxOutputTokens: 2048,
-					},
-				}),
+		// Usar a biblioteca oficial do Google
+		const model = genAI.getGenerativeModel({ 
+			model: "gemini-1.5-flash",
+			generationConfig: {
+				temperature: 0.8,
+				topK: 40,
+				topP: 0.95,
+				maxOutputTokens: 2048,
 			},
-		)
+		})
 
-		if (!response.ok) {
-			throw new Error(`Erro da API do Gemini: ${response.status}`)
-		}
-
-		const data = await response.json()
-		let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text
+		const result = await model.generateContent(prompt)
+		const response = await result.response
+		let aiResponse = response.text()
 
 		if (!aiResponse) {
 			throw new Error("Resposta vazia da IA")

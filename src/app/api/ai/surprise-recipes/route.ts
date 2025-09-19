@@ -1,4 +1,7 @@
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from "next/server"
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function POST(request: Request) {
 	try {
@@ -23,7 +26,14 @@ export async function POST(request: Request) {
 		prompt += `Tipos de refeição: ${mealTypeNames.join(", ")}\n`
 
 		if (ingredients && ingredients.length > 0) {
-			prompt += `Ingredientes disponíveis (use alguns se desejar): ${ingredients.join(", ")}\n`
+			prompt += `Ingredientes disponíveis no estoque: ${ingredients.join(", ")}\n`
+			prompt += `
+IMPORTANTE: Crie receitas criativas que:
+1. Usem ALGUNS dos ingredientes disponíveis (não precisa usar todos)
+2. Podem incluir ingredientes adicionais que não estão no estoque
+3. Seja realista sobre quais ingredientes são comuns de se ter em casa
+
+Para cada receita, analise quais ingredientes estão disponíveis e quais precisarão ser comprados.`
 		}
 
 		prompt += `
@@ -39,38 +49,37 @@ Para cada receita, retorne no formato JSON:
 			"prato": "nome criativo e apetitoso",
 			"descricao": "descrição que desperte curiosidade",
 			"tempo_preparo": "tempo estimado",
-			"ingredientes": ["lista", "completa", "de", "ingredientes"],
-			"modo_preparo": "instruções detalhadas passo a passo",
-			"dica_chef": "dica especial que faz toda a diferença"
+			"ingredientes": ["lista", "completa", "de", "ingredientes", "com", "quantidades"],
+			"ingredientes_disponiveis": ["ingredientes", "que", "já", "tem"],
+			"ingredientes_faltantes": ["ingredientes", "que", "precisa", "comprar"],
+			"modo_preparo": "Passo 1: [instrução detalhada com tempo e temperatura]\nPasso 2: [instrução detalhada]\nPasso 3: [instrução detalhada]\n...",
+			"dica_chef": "dica especial que faz toda a diferença",
+			"custo_estimado": "baixo/médio/alto"
 		}
 	]
 }
 
-Pense fora da caixa! Sugira pratos únicos, fusões interessantes, ou versões criativas de clássicos.`
+IMPORTANTE:
+- O campo "modo_preparo" é OBRIGATÓRIO e deve ser muito detalhado
+- Cada passo deve começar com "Passo X:" e incluir instruções específicas
+- Inclua tempos de cozimento, temperaturas e técnicas detalhadas
+- Pense fora da caixa! Sugira pratos únicos, fusões interessantes, ou versões criativas de clássicos
+- Se não há ingredientes disponíveis no estoque, crie receitas com ingredientes comuns e acessíveis`
 
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: prompt }] }],
-					generationConfig: {
-						temperature: 0.9, // Mais criativo
-						topK: 40,
-						topP: 0.95,
-						maxOutputTokens: 2048,
-					},
-				}),
+		// Usar a biblioteca oficial do Google
+		const model = genAI.getGenerativeModel({ 
+			model: "gemini-1.5-flash",
+			generationConfig: {
+				temperature: 0.9, // Mais criativo
+				topK: 40,
+				topP: 0.95,
+				maxOutputTokens: 2048,
 			},
-		)
+		})
 
-		if (!response.ok) {
-			throw new Error(`Erro da API do Gemini: ${response.status}`)
-		}
-
-		const data = await response.json()
-		let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text
+		const result = await model.generateContent(prompt)
+		const response = await result.response
+		let aiResponse = response.text()
 
 		if (!aiResponse) {
 			throw new Error("Resposta vazia da IA")

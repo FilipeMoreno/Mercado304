@@ -1,11 +1,12 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Eye, Loader2, Save, Sparkles } from "lucide-react"
+import { ChefHat, Eye, Loader2, Save, Sparkles, ShoppingCart } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { RecipeSearch } from "@/components/recipe-search"
+import { RecipeGenerationSkeleton, RecipeCardsSkeleton } from "@/components/skeletons/recipe-generation-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TempStorage } from "@/lib/temp-storage"
@@ -16,6 +17,9 @@ interface Recipe {
 	mealType: string
 	description?: string
 	ingredients: string[]
+	ingredientes_disponiveis?: string[]
+	ingredientes_faltantes?: string[]
+	custo_estimado?: string
 }
 
 async function fetchProducts(): Promise<{ id: string; name: string }[]> {
@@ -29,6 +33,30 @@ export function GerarReceitasClient() {
 	const router = useRouter()
 	const [aiRecipes, setAiRecipes] = useState<Recipe[]>([])
 	const [aiLoading, setAiLoading] = useState(false)
+
+	// Restaurar receitas do localStorage na inicialização
+	useEffect(() => {
+		const savedRecipes = localStorage.getItem('mercado304_generated_recipes')
+		if (savedRecipes) {
+			try {
+				const recipes = JSON.parse(savedRecipes)
+				setAiRecipes(recipes)
+			} catch (error) {
+				console.error('Erro ao carregar receitas salvas:', error)
+			}
+		}
+	}, [])
+
+	// Função para salvar receitas no localStorage
+	const saveRecipesToStorage = (recipes: Recipe[]) => {
+		try {
+			localStorage.setItem('mercado304_generated_recipes', JSON.stringify(recipes))
+			setAiRecipes(recipes)
+		} catch (error) {
+			console.error('Erro ao salvar receitas:', error)
+			setAiRecipes(recipes) // Set state anyway
+		}
+	}
 
 	const {
 		data: products,
@@ -48,17 +76,21 @@ export function GerarReceitasClient() {
 
 			if (response.ok) {
 				const data = await response.json()
+				console.log("🧑‍🍳 Dados da API:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: any, index: number) => ({
-						id: `ai-${Date.now()}-${index}`,
-						name: recipe.prato,
-						mealType: recipe.refeicao,
-						description: recipe.descricao,
-						ingredients: recipe.ingredientes || [],
-						...recipe,
-					})) || []
+					data.sugestoes?.map((recipe: any, index: number) => {
+						console.log(`🍽️ Receita ${index + 1}:`, recipe)
+						return {
+							id: `ai-${Date.now()}-${index}`,
+							name: recipe.prato,
+							mealType: recipe.refeicao,
+							description: recipe.descricao,
+							ingredients: recipe.ingredientes || [],
+							...recipe,
+						}
+					}) || []
 
-				setAiRecipes(formattedRecipes)
+				saveRecipesToStorage(formattedRecipes)
 				toast.success(`${formattedRecipes.length} receitas geradas pela IA!`)
 			} else {
 				toast.error("Erro ao gerar receitas com IA")
@@ -84,17 +116,21 @@ export function GerarReceitasClient() {
 
 			if (response.ok) {
 				const data = await response.json()
+				console.log("🎉 Dados da API Surprise:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: any, index: number) => ({
-						id: `surprise-${Date.now()}-${index}`,
-						name: recipe.prato,
-						mealType: recipe.refeicao,
-						description: recipe.descricao,
-						ingredients: recipe.ingredientes || [],
-						...recipe,
-					})) || []
+					data.sugestoes?.map((recipe: any, index: number) => {
+						console.log(`🌟 Receita surpresa ${index + 1}:`, recipe)
+						return {
+							id: `surprise-${Date.now()}-${index}`,
+							name: recipe.prato,
+							mealType: recipe.refeicao,
+							description: recipe.descricao,
+							ingredients: recipe.ingredientes || [],
+							...recipe,
+						}
+					}) || []
 
-				setAiRecipes(formattedRecipes)
+				saveRecipesToStorage(formattedRecipes)
 				toast.success(`Surprise! ${formattedRecipes.length} receitas criativas geradas! ✨`)
 			} else {
 				toast.error("Erro ao gerar receitas surpresa")
@@ -139,17 +175,53 @@ export function GerarReceitasClient() {
 		}
 	}
 
+	const addToShoppingList = async (ingredients: string[]) => {
+		try {
+			// Primeiro, buscar ou criar uma lista de compras padrão
+			const listsResponse = await fetch("/api/shopping-lists")
+			if (!listsResponse.ok) throw new Error("Erro ao buscar listas")
+			
+			const lists = await listsResponse.json()
+			let targetList = lists.find((list: any) => list.name === "Lista de Receitas") || lists[0]
+			
+			if (!targetList) {
+				// Criar uma nova lista se não existir nenhuma
+				const createResponse = await fetch("/api/shopping-lists", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						name: "Lista de Receitas",
+						description: "Ingredientes para receitas geradas pela IA"
+					}),
+				})
+				if (!createResponse.ok) throw new Error("Erro ao criar lista")
+				targetList = await createResponse.json()
+			}
+
+			// Adicionar ingredientes à lista
+			const addPromises = ingredients.map(ingredient => 
+				fetch(`/api/shopping-lists/${targetList.id}/items`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						name: ingredient,
+						quantity: 1,
+						unit: "un",
+						isTemporary: true
+					}),
+				})
+			)
+
+			await Promise.all(addPromises)
+			toast.success(`${ingredients.length} ingredientes adicionados à lista de compras!`)
+		} catch (error) {
+			console.error("Erro ao adicionar à lista:", error)
+			toast.error("Erro ao adicionar ingredientes à lista de compras")
+		}
+	}
+
 	if (loadingProducts) {
-		return (
-			<div className="space-y-6">
-				<div className="flex justify-between items-center">
-					<div>
-						<h1 className="text-3xl font-bold">Gerar Receitas</h1>
-						<p className="text-gray-600 mt-2">Carregando produtos...</p>
-					</div>
-				</div>
-			</div>
-		)
+		return <RecipeGenerationSkeleton />
 	}
 
 	if (errorProducts) {
@@ -198,10 +270,7 @@ export function GerarReceitasClient() {
 				</CardHeader>
 				<CardContent>
 					{aiLoading ? (
-						<div className="text-center py-12">
-							<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-							<p className="text-gray-500">Gerando receitas com IA...</p>
-						</div>
+						<RecipeCardsSkeleton count={3} />
 					) : aiRecipes.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
 							<ChefHat className="h-12 w-12 mx-auto mb-4" />
@@ -221,32 +290,92 @@ export function GerarReceitasClient() {
 										<CardDescription>{recipe.mealType}</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<p className="text-sm text-gray-600 mb-3 h-10 overflow-hidden">{recipe.description}</p>
+										<div className="space-y-3">
+											<p className="text-sm text-gray-600 h-10 overflow-hidden">{recipe.description}</p>
 
-										{/* Ingredientes */}
-										{recipe.ingredients && recipe.ingredients.length > 0 && (
-											<div className="mb-3">
-												<p className="text-xs font-medium text-gray-500 mb-1">Ingredientes:</p>
-												<div className="flex flex-wrap gap-1">
-													{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
-														<span
-															key={index}
-															className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
-														>
-															{ingredient}
-														</span>
-													))}
-													{recipe.ingredients.length > 3 && (
-														<span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
-															+{recipe.ingredients.length - 3} mais
-														</span>
-													)}
+											{/* Custo Estimado */}
+											{recipe.custo_estimado && (
+												<div className="flex items-center gap-2">
+													<span className="text-xs font-medium text-gray-500">Custo:</span>
+													<span className={`text-xs px-2 py-1 rounded ${
+														recipe.custo_estimado === 'baixo' ? 'bg-green-50 text-green-700' :
+														recipe.custo_estimado === 'médio' ? 'bg-yellow-50 text-yellow-700' :
+														'bg-red-50 text-red-700'
+													}`}>
+														{recipe.custo_estimado.charAt(0).toUpperCase() + recipe.custo_estimado.slice(1)}
+													</span>
 												</div>
-											</div>
-										)}
+											)}
+
+											{/* Ingredientes Disponíveis */}
+											{recipe.ingredientes_disponiveis && recipe.ingredientes_disponiveis.length > 0 && (
+												<div>
+													<p className="text-xs font-medium text-green-600 mb-1">✅ Você já tem:</p>
+													<div className="flex flex-wrap gap-1">
+														{recipe.ingredientes_disponiveis.slice(0, 3).map((ingredient, index) => (
+															<span
+																key={index}
+																className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded border border-green-200"
+															>
+																{ingredient}
+															</span>
+														))}
+														{recipe.ingredientes_disponiveis.length > 3 && (
+															<span className="inline-block px-2 py-1 text-xs bg-green-50 text-green-600 rounded">
+																+{recipe.ingredientes_disponiveis.length - 3} mais
+															</span>
+														)}
+													</div>
+												</div>
+											)}
+
+											{/* Ingredientes Faltantes */}
+											{recipe.ingredientes_faltantes && recipe.ingredientes_faltantes.length > 0 && (
+												<div>
+													<p className="text-xs font-medium text-orange-600 mb-1">🛒 Precisa comprar:</p>
+													<div className="flex flex-wrap gap-1">
+														{recipe.ingredientes_faltantes.slice(0, 3).map((ingredient, index) => (
+															<span
+																key={index}
+																className="inline-block px-2 py-1 text-xs bg-orange-50 text-orange-700 rounded border border-orange-200"
+															>
+																{ingredient}
+															</span>
+														))}
+														{recipe.ingredientes_faltantes.length > 3 && (
+															<span className="inline-block px-2 py-1 text-xs bg-orange-50 text-orange-600 rounded">
+																+{recipe.ingredientes_faltantes.length - 3} mais
+															</span>
+														)}
+													</div>
+												</div>
+											)}
+
+											{/* Fallback para ingredientes normais (se não tiver a separação) */}
+											{(!recipe.ingredientes_disponiveis && !recipe.ingredientes_faltantes) && recipe.ingredients && recipe.ingredients.length > 0 && (
+												<div>
+													<p className="text-xs font-medium text-gray-500 mb-1">Ingredientes:</p>
+													<div className="flex flex-wrap gap-1">
+														{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
+															<span
+																key={index}
+																className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
+															>
+																{ingredient}
+															</span>
+														))}
+														{recipe.ingredients.length > 3 && (
+															<span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+																+{recipe.ingredients.length - 3} mais
+															</span>
+														)}
+													</div>
+												</div>
+											)}
+										</div>
 
 										<div className="flex gap-2">
-											<Button variant="outline" size="sm" onClick={() => viewRecipe(recipe)}>
+											<Button variant="outline" size="sm" onClick={() => viewRecipe(recipe)} className="flex-1">
 												<Eye className="h-4 w-4 mr-1" />
 												Ver
 											</Button>
@@ -254,6 +383,17 @@ export function GerarReceitasClient() {
 												<Save className="h-4 w-4 mr-1" />
 												Salvar
 											</Button>
+											{recipe.ingredientes_faltantes && recipe.ingredientes_faltantes.length > 0 && (
+												<Button 
+													variant="outline" 
+													size="sm" 
+													onClick={() => addToShoppingList(recipe.ingredientes_faltantes || [])}
+													className="text-orange-600 border-orange-200 hover:bg-orange-50"
+													title="Adicionar ingredientes faltantes à lista de compras"
+												>
+													<ShoppingCart className="h-4 w-4" />
+												</Button>
+											)}
 										</div>
 									</CardContent>
 								</Card>

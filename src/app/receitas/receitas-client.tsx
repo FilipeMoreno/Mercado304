@@ -70,7 +70,28 @@ export function ReceitasClient() {
 	}
 
 	if (loadingRecipes) {
-		return <RecipesSkeleton />
+		return (
+			<div className="space-y-6">
+				{/* Header */}
+				<div className="flex justify-between items-center">
+					<div className="space-y-2">
+						<div className="flex items-center gap-2">
+							<ChefHat className="h-8 w-8 text-orange-500" />
+							<h1 className="text-3xl font-bold">Minhas Receitas</h1>
+						</div>
+						<p className="text-gray-600">Suas receitas favoritas guardadas para consulta.</p>
+					</div>
+					<Button 
+						onClick={() => router.push("/receitas/gerar")}
+						className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+					>
+						<Sparkles className="h-4 w-4 mr-2" />
+						Gerar Novas Receitas
+					</Button>
+				</div>
+				<RecipesSkeleton />
+			</div>
+		)
 	}
 
 	if (errorRecipes) {
