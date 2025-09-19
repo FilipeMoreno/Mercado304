@@ -19,7 +19,8 @@ import { useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -386,14 +387,12 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				)}
 			</div>
 
-			<Dialog open={!!viewingPurchase} onOpenChange={(open) => !open && setViewingPurchase(null)}>
-				<DialogContent className="max-w-2xl">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Eye className="h-5 w-5" />
-							Detalhes da Compra
-						</DialogTitle>
-					</DialogHeader>
+			<ResponsiveDialog
+				open={!!viewingPurchase}
+				onOpenChange={(open) => !open && setViewingPurchase(null)}
+				title="Detalhes da Compra"
+				maxWidth="2xl"
+			>
 					{detailsLoading ? (
 						<div className="space-y-4">
 							<div className="animate-pulse space-y-2">
@@ -442,41 +441,28 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</div>
 						</div>
 					) : null}
-				</DialogContent>
-			</Dialog>
+			</ResponsiveDialog>
 
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?
-						</p>
-						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita e todos os itens da compra serão perdidos.
-						</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={deletePurchase}
-								disabled={deletePurchaseMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deletePurchaseMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={deletePurchase}
+				onCancel={closeDeleteConfirm}
+				confirmText={deletePurchaseMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deletePurchaseMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todos os itens da compra serão perdidos permanentemente.
+				</p>
+			</ResponsiveConfirmDialog>
 		</>
 	)
 }

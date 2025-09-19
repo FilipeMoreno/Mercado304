@@ -1,31 +1,21 @@
 "use client"
 
-import {
-	Filter,
-	Package,
-	Plus,
-	Search,
-	Trash2,
-} from "lucide-react"
-import Link from "next/link"
+import { motion } from "framer-motion"
+import { Filter, Package, Plus, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { FilterPopover } from "@/components/ui/filter-popover"
-import { SelectWithSearch } from "@/components/ui/select-with-search"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { FloatingActionButton } from "@/components/ui/floating-action-button"
-import { ProductList } from "@/components/products/product-list"
-import { ProductStats } from "@/components/products/product-stats"
+import { toast } from "sonner"
 import { ProductEmptyState } from "@/components/products/product-empty-state"
+import { ProductList } from "@/components/products/product-list"
 import { ProductPagination } from "@/components/products/product-pagination"
-import { MobileModal } from "@/components/ui/mobile-modal"
-import { useMobile } from "@/hooks/use-mobile"
+import { ProductStats } from "@/components/products/product-stats"
+import { Card, CardContent } from "@/components/ui/card"
+import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { SelectWithSearch } from "@/components/ui/select-with-search"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
 	useAllBrandsQuery,
 	useAllCategoriesQuery,
@@ -35,8 +25,9 @@ import {
 	useUrlState,
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
+import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
-import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 
 interface ProductsClientProps {
 	searchParams: {
@@ -178,7 +169,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			icon: <Plus className="h-5 w-5" />,
 			label: "Novo Produto",
 			onClick: () => router.push("/produtos/novo"),
-			bgColor: "bg-green-500"
+			bgColor: "bg-green-500",
 		},
 		{
 			icon: <Search className="h-5 w-5" />,
@@ -187,16 +178,15 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				const searchInput = document.querySelector('input[placeholder*="Nome"]') as HTMLInputElement
 				searchInput?.focus()
 			},
-			bgColor: "bg-blue-500"
+			bgColor: "bg-blue-500",
 		},
 		{
 			icon: <Filter className="h-5 w-5" />,
 			label: "Filtros",
 			onClick: () => toast.info("Abrindo filtros"),
-			bgColor: "bg-purple-500"
-		}
+			bgColor: "bg-purple-500",
+		},
 	]
-
 
 	// Extract data from React Query
 	const products = productsData?.products || []
@@ -208,7 +198,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	}
 	const loading = productsLoading || categoriesLoading || brandsLoading
 	const error = productsError
-
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= pagination.totalPages) {
@@ -240,7 +229,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		</>
 	)
 
-
 	// Handle error states
 	if (error) {
 		return (
@@ -257,7 +245,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	return (
 		<>
 			{/* Animated search header */}
-			<motion.div 
+			<motion.div
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
 				className="flex items-center gap-2 mb-6"
@@ -281,12 +269,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				/>
 			</motion.div>
 
-			<motion.div 
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.1 }}
-				className="space-y-4"
-			>
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
 				{loading ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{Array.from({ length: 9 }).map((_, i) => (
@@ -346,85 +329,27 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				)}
 			</motion.div>
 
-			{/* Modal de confirmação - alterna entre Dialog (desktop) e MobileModal (mobile) */}
-			{mobile.isTouchDevice ? (
-				<MobileModal
-					isOpen={deleteState.show}
-					onClose={closeDeleteConfirm}
-					title="Confirmar Exclusão"
-					subtitle="Esta ação não pode ser desfeita"
-					dragToClose={true}
-					swipeToClose={true}
-				>
-					<div className="space-y-4">
-						<div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
-							<Trash2 className="h-8 w-8 text-red-500" />
-						</div>
-						
-						<div className="text-center space-y-2">
-							<p className="text-lg font-medium">
-								Tem certeza que deseja excluir o produto <strong>{deleteState.item?.name}</strong>?
-							</p>
-							<p className="text-sm text-gray-600">
-								Todas as informações relacionadas ao produto serão perdidas permanentemente.
-							</p>
-						</div>
-
-						<div className="flex flex-col gap-3 pt-4">
-							<Button
-								variant="destructive"
-								onClick={deleteProduct}
-								disabled={deleteProductMutation.isPending}
-								className="w-full"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteProductMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button 
-								variant="outline" 
-								onClick={closeDeleteConfirm}
-								disabled={deleteProductMutation.isPending}
-								className="w-full"
-							>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</MobileModal>
-			) : (
-				<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-					<DialogContent className="max-w-md">
-						<DialogHeader>
-							<DialogTitle className="flex items-center gap-2">
-								<Trash2 className="h-5 w-5 text-red-500" />
-								Confirmar Exclusão
-							</DialogTitle>
-						</DialogHeader>
-						<div className="space-y-4">
-							<p>
-								Tem certeza que deseja excluir o produto <strong>{deleteState.item?.name}</strong>?
-							</p>
-							<p className="text-sm text-gray-600">
-								Esta ação não pode ser desfeita e todas as informações relacionadas ao produto serão perdidas.
-							</p>
-							<div className="flex gap-2 pt-4">
-								<Button
-									variant="destructive"
-									onClick={deleteProduct}
-									disabled={deleteProductMutation.isPending}
-									className="flex-1"
-								>
-									<Trash2 className="h-4 w-4 mr-2" />
-									{deleteProductMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-								</Button>
-								<Button variant="outline" onClick={closeDeleteConfirm}>
-									Cancelar
-								</Button>
-							</div>
-						</div>
-					</DialogContent>
-				</Dialog>
-			)}
+			{/* Modal de confirmação responsivo */}
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={deleteProduct}
+				onCancel={closeDeleteConfirm}
+				confirmText={deleteProductMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteProductMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir o produto <strong>{deleteState.item?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todas as informações relacionadas ao produto serão perdidas permanentemente.
+				</p>
+			</ResponsiveConfirmDialog>
 
 			{/* FAB for mobile users */}
 			{mobile.isTouchDevice && (

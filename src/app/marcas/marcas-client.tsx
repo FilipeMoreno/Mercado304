@@ -17,7 +17,8 @@ import { useCallback, useMemo, useState } from "react"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -351,66 +352,47 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 			</div>
 
 			{/* Edit Dialog */}
-			<Dialog open={!!editingBrand} onOpenChange={(open) => !open && setEditingBrand(null)}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Editar Marca</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="edit-name">Nome</Label>
-							<Input
-								id="edit-name"
-								value={editForm.name}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-								placeholder="Nome da marca"
-							/>
-						</div>
-						<div className="flex gap-2 pt-4">
-							<Button onClick={handleUpdateBrand} disabled={updateBrandMutation.isPending} className="flex-1">
-								{updateBrandMutation.isPending ? "Atualizando..." : "Atualizar"}
-							</Button>
-							<Button variant="outline" onClick={() => setEditingBrand(null)}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveFormDialog
+				open={!!editingBrand}
+				onOpenChange={(open) => !open && setEditingBrand(null)}
+				title="Editar Marca"
+				onSubmit={handleUpdateBrand}
+				onCancel={() => setEditingBrand(null)}
+				submitText={updateBrandMutation.isPending ? "Atualizando..." : "Atualizar"}
+				isLoading={updateBrandMutation.isPending}
+			>
+				<div>
+					<Label htmlFor="edit-name">Nome</Label>
+					<Input
+						id="edit-name"
+						value={editForm.name}
+						onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+						placeholder="Nome da marca"
+					/>
+				</div>
+			</ResponsiveFormDialog>
 
 			{/* Delete Confirmation Dialog */}
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja excluir a marca <strong>{deleteState.item?.name}</strong>?
-						</p>
-						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita. Todos os produtos desta marca ficarão sem marca.
-						</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={handleDeleteBrand}
-								disabled={deleteBrandMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteBrandMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={handleDeleteBrand}
+				onCancel={closeDeleteConfirm}
+				confirmText={deleteBrandMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteBrandMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir a marca <strong>{deleteState.item?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todos os produtos desta marca ficarão sem marca.
+				</p>
+			</ResponsiveConfirmDialog>
 		</>
 	)
 }

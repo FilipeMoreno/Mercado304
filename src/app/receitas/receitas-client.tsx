@@ -9,6 +9,7 @@ import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
@@ -32,6 +33,8 @@ async function fetchRecipes(search?: string): Promise<Recipe[]> {
 export function ReceitasClient() {
 	const router = useRouter()
 	const [searchTerm, setSearchTerm] = useState("")
+	const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	const {
 		data: recipes,
@@ -51,14 +54,18 @@ export function ReceitasClient() {
 		router.push(`/receitas/visualizar?storageKey=${storageKey}`)
 	}
 
-	const deleteRecipe = async (recipeId: string) => {
+	const handleDeleteRecipe = async () => {
+		if (!deletingRecipe) return
+		
+		setIsDeleting(true)
 		try {
-			const response = await fetch(`/api/recipes/${recipeId}`, {
+			const response = await fetch(`/api/recipes/${deletingRecipe.id}`, {
 				method: "DELETE",
 			})
 
 			if (response.ok) {
 				toast.success("Receita excluída com sucesso!")
+				setDeletingRecipe(null)
 				// Revalidar a query para atualizar a lista
 			} else {
 				toast.error("Erro ao excluir receita")
@@ -66,7 +73,13 @@ export function ReceitasClient() {
 		} catch (error) {
 			console.error("Erro ao excluir receita:", error)
 			toast.error("Erro ao excluir receita")
+		} finally {
+			setIsDeleting(false)
 		}
+	}
+
+	const openDeleteConfirm = (recipe: Recipe) => {
+		setDeletingRecipe(recipe)
 	}
 
 	if (loadingRecipes) {
@@ -209,7 +222,7 @@ export function ReceitasClient() {
 												<Eye className="h-4 w-4 mr-1" />
 												Ver Receita
 											</Button>
-											<Button variant="destructive" size="sm" onClick={() => deleteRecipe(recipe.id)}>
+											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(recipe)}>
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
@@ -220,6 +233,28 @@ export function ReceitasClient() {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Dialog de confirmação de exclusão */}
+			<ResponsiveConfirmDialog
+				open={!!deletingRecipe}
+				onOpenChange={(open) => !open && setDeletingRecipe(null)}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={handleDeleteRecipe}
+				onCancel={() => setDeletingRecipe(null)}
+				confirmText={isDeleting ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={isDeleting}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir a receita <strong>{deletingRecipe?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todos os dados da receita serão perdidos permanentemente.
+				</p>
+			</ResponsiveConfirmDialog>
 		</div>
 	)
 }

@@ -17,7 +17,7 @@ import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -339,38 +339,26 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				)}
 			</div>
 
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja excluir o mercado <strong>{deleteState.item?.name}</strong>?
-						</p>
-						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita e todas as compras relacionadas a este mercado serão afetadas.
-						</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={deleteMarket}
-								disabled={deleteMarketMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteMarketMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={deleteMarket}
+				onCancel={closeDeleteConfirm}
+				confirmText={deleteMarketMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteMarketMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir o mercado <strong>{deleteState.item?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todas as compras relacionadas a este mercado serão afetadas.
+				</p>
+			</ResponsiveConfirmDialog>
 		</>
 	)
 }

@@ -6,7 +6,8 @@ import React, { useCallback, useMemo, useState } from "react"
 import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -367,92 +368,73 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			</div>
 
 			{/* Edit Dialog */}
-			<Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Editar Categoria</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="edit-name">Nome</Label>
-							<Input
-								id="edit-name"
-								value={editForm.name}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-								placeholder="Nome da categoria"
-							/>
-						</div>
-						<div>
-							<Label htmlFor="edit-icon">Ícone</Label>
-							<Input
-								id="edit-icon"
-								value={editForm.icon}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, icon: e.target.value }))}
-								placeholder="📦"
-							/>
-						</div>
-						<div>
-							<Label htmlFor="edit-color">Cor</Label>
-							<Input
-								id="edit-color"
-								type="color"
-								value={editForm.color}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, color: e.target.value }))}
-							/>
-						</div>
-						<div className="flex items-center space-x-2">
-							<Switch
-								id="edit-isFood"
-								checked={editForm.isFood}
-								onCheckedChange={(checked) => setEditForm((prev) => ({ ...prev, isFood: checked }))}
-							/>
-							<Label htmlFor="edit-isFood">É um alimento?</Label>
-						</div>
-						<div className="flex gap-2 pt-4">
-							<Button onClick={handleUpdateCategory} disabled={updateCategoryMutation.isPending} className="flex-1">
-								{updateCategoryMutation.isPending ? "Atualizando..." : "Atualizar"}
-							</Button>
-							<Button variant="outline" onClick={() => setEditingCategory(null)}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveFormDialog
+				open={!!editingCategory}
+				onOpenChange={(open) => !open && setEditingCategory(null)}
+				title="Editar Categoria"
+				onSubmit={handleUpdateCategory}
+				onCancel={() => setEditingCategory(null)}
+				submitText={updateCategoryMutation.isPending ? "Atualizando..." : "Atualizar"}
+				isLoading={updateCategoryMutation.isPending}
+			>
+				<div>
+					<Label htmlFor="edit-name">Nome</Label>
+					<Input
+						id="edit-name"
+						value={editForm.name}
+						onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+						placeholder="Nome da categoria"
+					/>
+				</div>
+				<div>
+					<Label htmlFor="edit-icon">Ícone</Label>
+					<Input
+						id="edit-icon"
+						value={editForm.icon}
+						onChange={(e) => setEditForm((prev) => ({ ...prev, icon: e.target.value }))}
+						placeholder="📦"
+					/>
+				</div>
+				<div>
+					<Label htmlFor="edit-color">Cor</Label>
+					<Input
+						id="edit-color"
+						type="color"
+						value={editForm.color}
+						onChange={(e) => setEditForm((prev) => ({ ...prev, color: e.target.value }))}
+					/>
+				</div>
+				<div className="flex items-center space-x-2">
+					<Switch
+						id="edit-isFood"
+						checked={editForm.isFood}
+						onCheckedChange={(checked) => setEditForm((prev) => ({ ...prev, isFood: checked }))}
+					/>
+					<Label htmlFor="edit-isFood">É um alimento?</Label>
+				</div>
+			</ResponsiveFormDialog>
 
 			{/* Delete Confirmation Dialog */}
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja excluir a categoria <strong>{deleteState.item?.name}</strong>?
-						</p>
-						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita. Todos os produtos desta categoria ficarão sem categoria.
-						</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={handleDeleteCategory}
-								disabled={deleteCategoryMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteCategoryMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={handleDeleteCategory}
+				onCancel={closeDeleteConfirm}
+				confirmText={deleteCategoryMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteCategoryMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir a categoria <strong>{deleteState.item?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Todos os produtos desta categoria ficarão sem categoria.
+				</p>
+			</ResponsiveConfirmDialog>
 		</>
 	)
 }
