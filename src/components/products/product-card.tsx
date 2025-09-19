@@ -2,11 +2,11 @@
 
 import { BarChart3, Edit, MoreHorizontal, Package, Trash2 } from "lucide-react"
 import Link from "next/link"
+import * as React from "react" // Adicione esta importação
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
 
 interface ProductCardProps {
 	product: any
@@ -14,7 +14,12 @@ interface ProductCardProps {
 	onDelete?: (product: any) => void
 }
 
-export function ProductCard({ product, isMobile = false, onDelete }: ProductCardProps) {
+// Envolvemos a definição do componente com React.memo
+export const ProductCard = React.memo(function ProductCard({ 
+	product, 
+	isMobile = false, 
+	onDelete 
+}: ProductCardProps) {
 	return (
 		<Card className={`group hover:shadow-lg transition-all duration-200 flex flex-col ${
 			isMobile 
@@ -98,4 +103,4 @@ export function ProductCard({ product, isMobile = false, onDelete }: ProductCard
 			)}
 		</Card>
 	)
-}
+})
