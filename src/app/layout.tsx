@@ -35,6 +35,21 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="pt-BR" suppressHydrationWarning>
+			<head>
+				<script 
+					dangerouslySetInnerHTML={{
+						__html: `
+							if ('serviceWorker' in navigator) {
+								window.addEventListener('load', () => {
+									navigator.serviceWorker.register('/custom-sw.js')
+										.then(registration => console.log('SW registered:', registration))
+										.catch(error => console.log('SW registration failed:', error))
+								})
+							}
+						`
+					}}
+				/>
+			</head>
 			<body className={inter.className}>
 				<SpeedInsights />
 				<Analytics />

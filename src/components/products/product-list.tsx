@@ -4,11 +4,12 @@ import { Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { memo, useMemo } from "react"
 import { SwipeableCard } from "@/components/ui/swipeable-card"
 import { AnimatedList, ListItem } from "@/components/ui/animated-list"
+import { VirtualizedList } from "@/components/ui/virtualized-list"
 import { ProductCard } from "./product-card"
 import { useMobile } from "@/hooks/use-mobile"
-import { useMemo } from "react"
 
 interface ProductListProps {
 	products: any[]
@@ -17,7 +18,7 @@ interface ProductListProps {
 	onArchive: (product: any) => void
 }
 
-export function ProductList({ products, onEdit, onDelete, onArchive }: ProductListProps) {
+export const ProductList = memo(function ProductList({ products, onEdit, onDelete, onArchive }: ProductListProps) {
 	const mobile = useMobile()
 	const router = useRouter()
 
@@ -53,6 +54,21 @@ export function ProductList({ products, onEdit, onDelete, onArchive }: ProductLi
 			)
 		})), [products, onEdit, onDelete, router])
 
+	// Render individual product item for virtualization
+	const renderProductItem = useMemo(() => (product: any, index: number) => (
+		<motion.div
+			key={product.id}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: index * 0.05 }}
+			className="p-2"
+		>
+			<Link href={`/produtos/${product.id}`}>
+				<ProductCard product={product} onDelete={onDelete} />
+			</Link>
+		</motion.div>
+	), [onDelete])
+
 	if (mobile.isTouchDevice) {
 		return (
 			<AnimatedList
@@ -63,6 +79,25 @@ export function ProductList({ products, onEdit, onDelete, onArchive }: ProductLi
 				onItemDelete={onDelete}
 				onItemArchive={onArchive}
 			/>
+		)
+	}
+
+	// Use virtualization for large lists (>50 items)
+	if (products.length > 50) {
+		return (
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ delay: 0.2 }}
+			>
+				<VirtualizedList
+					items={products}
+					height={600} // 6 rows of ~100px each
+					itemHeight={120}
+					renderItem={renderProductItem}
+					className="w-full"
+				/>
+			</motion.div>
 		)
 	}
 
@@ -87,4 +122,4 @@ export function ProductList({ products, onEdit, onDelete, onArchive }: ProductLi
 			))}
 		</motion.div>
 	)
-}
+})

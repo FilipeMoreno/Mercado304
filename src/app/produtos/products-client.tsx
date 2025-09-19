@@ -24,6 +24,8 @@ import {
 	useProductsQuery,
 	useUrlState,
 } from "@/hooks"
+import { useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/hooks/use-react-query"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
@@ -101,10 +103,25 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	}, [state.search, state.category, state.brand, state.sort, state.page])
 
 	// React Query hooks
+	const queryClient = useQueryClient()
 	const { data: productsData, error: productsError } = useProductsQuery(params, { suspense: true })
 	const { data: categories = [] } = useAllCategoriesQuery({ suspense: true })
 	const { data: brands = [] } = useAllBrandsQuery({ suspense: true })
 	const deleteProductMutation = useDeleteProductMutation()
+
+	// Prefetch próxima página para melhor UX
+	React.useEffect(() => {
+		if (productsData?.pagination?.hasMore && state.page) {
+			const nextPageParams = new URLSearchParams(params)
+			nextPageParams.set("page", String(Number(state.page) + 1))
+			
+			queryClient.prefetchQuery({
+				queryKey: queryKeys.products(nextPageParams),
+				queryFn: () => fetch(`/api/products?${nextPageParams.toString()}`).then(r => r.json()),
+				staleTime: 2 * 60 * 1000, // 2 minutos
+			})
+		}
+	}, [productsData?.pagination?.hasMore, state.page, params, queryClient])
 
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },

@@ -64,7 +64,9 @@ export const useAllCategoriesQuery = (options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.allCategories(),
 		queryFn: () => fetchWithErrorHandling("/api/categories/all"),
-		staleTime: 5 * 60 * 1000,
+		staleTime: 10 * 60 * 1000, // Dados mais estáticos
+		gcTime: 15 * 60 * 1000,
+		placeholderData: (previousData) => previousData,
 		...options,
 	})
 }
@@ -135,7 +137,9 @@ export const useBrandsQuery = (params?: URLSearchParams, options?: { suspense?: 
 	return useQuery({
 		queryKey: queryKeys.brands(params),
 		queryFn: () => fetchWithErrorHandling(`/api/brands?${params?.toString() || ""}`),
-		staleTime: 3 * 60 * 1000,
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		placeholderData: (previousData) => previousData,
 		...options,
 	})
 }
@@ -216,7 +220,9 @@ export const useMarketsQuery = (params?: URLSearchParams, options?: { suspense?:
 	return useQuery({
 		queryKey: queryKeys.markets(params),
 		queryFn: () => fetchWithErrorHandling(`/api/markets?${params?.toString() || ""}`),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 5 * 60 * 1000, // Increased from 2min to 5min
+		gcTime: 10 * 60 * 1000, // Added garbage collection time
+		placeholderData: (previousData) => previousData, // Maintain previous data
 		...options,
 	})
 }

@@ -4,7 +4,7 @@ import { ptBR } from "date-fns/locale"
 import { DollarSign, Package, Receipt, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, memo, useMemo } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
@@ -33,7 +33,7 @@ const MonthlySpendingChart = lazy(() =>
 	})),
 )
 
-export function DashboardClient() {
+export const DashboardClient = memo(function DashboardClient() {
 	const router = useRouter()
 
 	// React Query hooks
@@ -44,21 +44,23 @@ export function DashboardClient() {
 	const { data: expirationData, isLoading: expirationLoading } = useExpirationAlertsQuery()
 	const { data: preferences, isLoading: preferencesLoading } = useDashboardPreferencesQuery()
 
-	const isLoading =
-		statsLoading || savingsLoading || temporalLoading || consumptionLoading || expirationLoading || preferencesLoading
+	const isLoading = useMemo(() =>
+		statsLoading || savingsLoading || temporalLoading || consumptionLoading || expirationLoading || preferencesLoading,
+		[statsLoading, savingsLoading, temporalLoading, consumptionLoading, expirationLoading, preferencesLoading]
+	)
 
-	const handleRefresh = () => {
+	const handleRefresh = useMemo(() => () => {
 		router.refresh()
 		AppToasts.info("Atualizando dados do dashboard...")
-	}
+	}, [router])
 
-	const handleAddToShoppingList = async (productId: string, quantity: number) => {
+	const handleAddToShoppingList = useMemo(() => async (productId: string, quantity: number) => {
 		console.log(`Adicionando ${quantity} do produto ${productId} à lista.`)
 		AppToasts.success(`Produto adicionado à lista de compras!`)
-	}
+	}, [])
 
 	// Usar preferências ou defaults
-	const currentPrefs: DashboardPreferences = preferences || {
+	const currentPrefs: DashboardPreferences = useMemo(() => preferences || {
 		cardOrder: ["total-purchases", "total-spent", "total-products", "total-markets", "price-records"],
 		hiddenCards: [],
 		layoutStyle: "grid",
@@ -77,10 +79,10 @@ export function DashboardClient() {
 		showPaymentStats: true,
 		customTitle: undefined,
 		customSubtitle: undefined,
-	}
+	}, [preferences])
 
 	// Função para renderizar os cards principais
-	const renderMainCard = (cardId: string) => {
+	const renderMainCard = useMemo(() => (cardId: string) => {
 		if (currentPrefs.hiddenCards.includes(cardId)) return null
 
 		switch (cardId) {
@@ -159,10 +161,10 @@ export function DashboardClient() {
 			default:
 				return null
 		}
-	}
+	}, [currentPrefs.hiddenCards, stats])
 
 	// Determinar classe CSS baseada no layout
-	const getLayoutClassName = () => {
+	const getLayoutClassName = useMemo(() => {
 		switch (currentPrefs.layoutStyle) {
 			case "list":
 				return "grid grid-cols-1 gap-4 md:gap-6"
@@ -171,7 +173,7 @@ export function DashboardClient() {
 			default:
 				return `grid grid-cols-2 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 5)} gap-4 md:gap-6`
 		}
-	}
+	}, [currentPrefs.layoutStyle, currentPrefs.cardsPerRow])
 
 	if (statsError) {
 		return (
@@ -536,4 +538,4 @@ export function DashboardClient() {
 			)}
 		</div>
 	)
-}
+})
