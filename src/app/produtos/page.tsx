@@ -4,7 +4,12 @@ import { Plus } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ProductsClient } from "./products-client"
+import { Suspense, lazy } from "react"
+import { ProductsSkeleton } from "@/components/skeletons/products-skeleton"
+
+const ProductsClient = lazy(() =>
+  import("./products-client").then((module) => ({ default: module.ProductsClient }))
+)
 
 interface ProductsPageProps {
 	searchParams: {
@@ -57,7 +62,9 @@ export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 				</motion.div>
 			</motion.div>
 
-			<ProductsClient searchParams={searchParams} />
+			<Suspense fallback={<ProductsSkeleton />}>
+				<ProductsClient searchParams={searchParams} />
+			</Suspense>
 		</div>
 	)
 }

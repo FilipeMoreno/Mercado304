@@ -57,11 +57,12 @@ export const useCategoriesQuery = (params?: URLSearchParams) => {
 	})
 }
 
-export const useAllCategoriesQuery = () => {
+export const useAllCategoriesQuery = (options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.allCategories(),
 		queryFn: () => fetchWithErrorHandling("/api/categories/all"),
 		staleTime: 5 * 60 * 1000,
+		...options,
 	})
 }
 
@@ -135,12 +136,13 @@ export const useBrandsQuery = (params?: URLSearchParams) => {
 	})
 }
 
-export const useAllBrandsQuery = () => {
+export const useAllBrandsQuery = (options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.allBrands(),
 		// CORREÇÃO: A rota correta agora é /api/brands/all
 		queryFn: () => fetchWithErrorHandling("/api/brands/all"),
 		staleTime: 5 * 60 * 1000,
+		...options,
 	})
 }
 
@@ -273,11 +275,12 @@ export const useDeleteMarketMutation = () => {
 }
 
 // Products
-export const useProductsQuery = (params?: URLSearchParams) => {
+export const useProductsQuery = (params?: URLSearchParams, options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.products(params),
 		queryFn: () => fetchWithErrorHandling(`/api/products?${params?.toString() || ""}`),
 		staleTime: 3 * 60 * 1000,
+		...options,
 	})
 }
 

@@ -101,9 +101,9 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	}, [state.search, state.category, state.brand, state.sort, state.page])
 
 	// React Query hooks
-	const { data: productsData, isLoading: productsLoading, error: productsError } = useProductsQuery(params)
-	const { data: categories = [], isLoading: categoriesLoading } = useAllCategoriesQuery()
-	const { data: brands = [], isLoading: brandsLoading } = useAllBrandsQuery()
+	const { data: productsData, error: productsError } = useProductsQuery(params, { suspense: true })
+	const { data: categories = [] } = useAllCategoriesQuery({ suspense: true })
+	const { data: brands = [] } = useAllBrandsQuery({ suspense: true })
 	const deleteProductMutation = useDeleteProductMutation()
 
 	const sortOptions = [
@@ -196,12 +196,15 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		totalCount: 0,
 		hasMore: false,
 	}
-	const loading = productsLoading || categoriesLoading || brandsLoading
 	const error = productsError
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= pagination.totalPages) {
 			updateSingleValue("page", page)
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			})
 		}
 	}
 
@@ -270,34 +273,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			</motion.div>
 
 			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
-				{loading ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{Array.from({ length: 9 }).map((_, i) => (
-							<motion.div
-								key={i}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: i * 0.1 }}
-							>
-								<Card>
-									<CardContent className="p-4">
-										<div className="flex items-center gap-2 mb-2">
-											<Skeleton className="h-5 w-5" />
-											<Skeleton className="h-6 w-28" />
-										</div>
-										<div className="space-y-1">
-											<div className="flex items-center gap-1">
-												<Skeleton className="h-3 w-3" />
-												<Skeleton className="h-4 w-20" />
-											</div>
-											<Skeleton className="h-4 w-24" />
-										</div>
-									</CardContent>
-								</Card>
-							</motion.div>
-						))}
-					</div>
-				) : products.length > 0 ? (
+				{products.length > 0 ? (
 					<>
 						<ProductStats
 							currentCount={products.length}
