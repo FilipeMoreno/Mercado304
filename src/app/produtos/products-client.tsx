@@ -11,10 +11,13 @@ import {
 	Plus,
 	Search,
 	Trash2,
+	Archive,
+	Heart,
 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -24,6 +27,10 @@ import { Input } from "@/components/ui/input"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { SwipeableCard } from "@/components/ui/swipeable-card"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
+import { AnimatedList, ListItem } from "@/components/ui/animated-list"
+import { useMobile } from "@/hooks/use-mobile"
 import {
 	useAllBrandsQuery,
 	useAllCategoriesQuery,
@@ -34,6 +41,7 @@ import {
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Product } from "@/types"
+import { toast } from "sonner"
 
 interface ProductsClientProps {
 	searchParams: {
@@ -49,10 +57,10 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
+	const mobile = useMobile()
 
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/produtos",
-		// CORREÇÃO: initialValues devem ser SEMPRE os valores padrão, não os searchParams atuais
 		initialValues: {
 			search: "",
 			category: "all",
@@ -152,6 +160,132 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		}
 	}
 
+	// Mobile-specific action handlers
+	const handleProductEdit = (product: any) => {
+		if (mobile.isTouchDevice) {
+			toast.success(`Editando ${product.name}`)
+		}
+		window.location.href = `/produtos/${product.id}/editar`
+	}
+
+	const handleProductDelete = (product: any) => {
+		openDeleteConfirm(product)
+	}
+
+	const handleProductFavorite = (product: any) => {
+		toast.success(`${product.name} adicionado aos favoritos!`)
+	}
+
+	const handleProductArchive = (product: any) => {
+		toast.info(`${product.name} foi arquivado`)
+	}
+
+	// FAB actions for mobile
+	const fabActions = [
+		{
+			icon: <Plus className="h-5 w-5" />,
+			label: "Novo Produto",
+			onClick: () => window.location.href = "/produtos/novo",
+			bgColor: "bg-green-500"
+		},
+		{
+			icon: <Search className="h-5 w-5" />,
+			label: "Buscar",
+			onClick: () => {
+				const searchInput = document.querySelector('input[placeholder*="Nome"]') as HTMLInputElement
+				searchInput?.focus()
+			},
+			bgColor: "bg-blue-500"
+		},
+		{
+			icon: <Filter className="h-5 w-5" />,
+			label: "Filtros",
+			onClick: () => toast.info("Abrindo filtros"),
+			bgColor: "bg-purple-500"
+		}
+	]
+
+	// ProductCard component for reuse
+	const ProductCard = ({ product }: { product: any }) => (
+		<Card className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col">
+			<CardHeader className="pb-3">
+				<div className="flex items-center gap-3 mb-2">
+					<div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
+						<Package className="h-5 w-5 text-orange-600" />
+					</div>
+					<div className="flex-1 min-w-0">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
+										{product.name}
+									</CardTitle>
+								</TooltipTrigger>
+								<TooltipContent side="top" className="max-w-xs">
+									<p>{product.name}</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+						<div className="flex items-center gap-2 mt-1">
+							{product.category && (
+								<span className="inline-flex items-center text-xs text-gray-600">
+									{product.category.icon} {product.category.name}
+								</span>
+							)}
+						</div>
+					</div>
+				</div>
+				<div className="space-y-1 text-xs text-gray-500">
+					{product.brand && (
+						<div className="flex items-center gap-1">
+							<span className="font-medium">Marca:</span>
+							<span>{product.brand.name}</span>
+						</div>
+					)}
+					<div className="flex items-center gap-1">
+						<span className="font-medium">Unidade:</span>
+						<span>{product.unit}</span>
+					</div>
+				</div>
+			</CardHeader>
+			<CardContent className="flex-1" />
+			{!mobile.isTouchDevice && (
+				<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+					<div className="flex gap-2 w-full">
+						<Link href={`/produtos/${product.id}`} className="flex-1">
+							<Button variant="outline" className="w-full justify-center">
+								<BarChart3 className="h-4 w-4 mr-2" />
+								Ver Produto
+							</Button>
+						</Link>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" size="icon">
+									<MoreHorizontal className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem asChild>
+									<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
+										<Edit className="h-4 w-4 mr-2" />
+										Editar
+									</Link>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => openDeleteConfirm(product)}
+									className="text-red-600 focus:text-red-600"
+								>
+									<Trash2 className="h-4 w-4 mr-2" />
+									Excluir
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</CardFooter>
+			)}
+		</Card>
+	)
+
 	// Extract data from React Query
 	const products = productsData?.products || []
 	const pagination = productsData?.pagination || {
@@ -163,18 +297,41 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const loading = productsLoading || categoriesLoading || brandsLoading
 	const error = productsError
 
-	// Handle error states
-	if (error) {
-		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar produtos</h3>
-					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
-				</CardContent>
-			</Card>
-		)
-	}
+	// Convert products to ListItems for AnimatedList (now after products is defined)
+	const productListItems: ListItem[] = useMemo(() => 
+		products.map((product: any) => ({
+			id: product.id,
+			content: (
+				<SwipeableCard
+					leftActions={[
+						{
+							icon: <Heart className="h-5 w-5" />,
+							color: "text-red-600",
+							background: "bg-red-100",
+							action: () => handleProductFavorite(product)
+						}
+					]}
+					rightActions={[
+						{
+							icon: <Edit className="h-5 w-5" />,
+							color: "text-blue-600", 
+							background: "bg-blue-100",
+							action: () => handleProductEdit(product)
+						},
+						{
+							icon: <Trash2 className="h-5 w-5" />,
+							color: "text-red-600",
+							background: "bg-red-100", 
+							action: () => handleProductDelete(product)
+						}
+					]}
+					onLongPress={() => toast.info(`Produto selecionado: ${product.name}`)}
+					className="mb-0"
+				>
+					<ProductCard product={product} />
+				</SwipeableCard>
+			)
+		})), [products])
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= pagination.totalPages) {
@@ -250,9 +407,27 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		return null
 	}
 
+	// Handle error states
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar produtos</h3>
+					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
+				</CardContent>
+			</Card>
+		)
+	}
+
 	return (
 		<>
-			<div className="flex items-center gap-2 mb-6">
+			{/* Animated search header */}
+			<motion.div 
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center gap-2 mb-6"
+			>
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
@@ -270,128 +445,97 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					hasActiveFilters={hasActiveFilters}
 					onClearFilters={clearFilters}
 				/>
-			</div>
+			</motion.div>
 
-			<div className="space-y-4">
+			<motion.div 
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ delay: 0.1 }}
+				className="space-y-4"
+			>
 				{loading ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{Array.from({ length: 9 }).map((_, i) => (
-							<Card key={i}>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<Skeleton className="h-5 w-5" />
-										<Skeleton className="h-6 w-28" />
-									</div>
-									<div className="space-y-1">
-										<div className="flex items-center gap-1">
-											<Skeleton className="h-3 w-3" />
-											<Skeleton className="h-4 w-20" />
+							<motion.div
+								key={i}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: i * 0.1 }}
+							>
+								<Card>
+									<CardHeader>
+										<div className="flex items-center gap-2">
+											<Skeleton className="h-5 w-5" />
+											<Skeleton className="h-6 w-28" />
 										</div>
-										<Skeleton className="h-4 w-24" />
-									</div>
-								</CardHeader>
-								<CardContent>
-									<div className="flex gap-2">
-										<Skeleton className="h-8 w-8" />
-										<Skeleton className="h-8 w-8" />
-									</div>
-								</CardContent>
-							</Card>
+										<div className="space-y-1">
+											<div className="flex items-center gap-1">
+												<Skeleton className="h-3 w-3" />
+												<Skeleton className="h-4 w-20" />
+											</div>
+											<Skeleton className="h-4 w-24" />
+										</div>
+									</CardHeader>
+									<CardContent>
+										<div className="flex gap-2">
+											<Skeleton className="h-8 w-8" />
+											<Skeleton className="h-8 w-8" />
+										</div>
+									</CardContent>
+								</Card>
+							</motion.div>
 						))}
 					</div>
 				) : products.length > 0 ? (
 					<>
-						<div className="flex justify-between items-center text-sm text-gray-600">
+						<motion.div 
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							className="flex justify-between items-center text-sm text-gray-600"
+						>
 							<span>
 								Mostrando {products.length} de {pagination.totalCount} produtos
 							</span>
 							<span>
 								Página {pagination.currentPage} de {pagination.totalPages}
 							</span>
-						</div>
+						</motion.div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-							{products.map((product: any) => (
-								<Card
-									key={product.id}
-									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
-								>
-									<CardHeader className="pb-3">
-										<div className="flex items-center gap-3 mb-2">
-											<div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
-												<Package className="h-5 w-5 text-orange-600" />
-											</div>
-											<div className="flex-1 min-w-0">
-												<TooltipProvider>
-													<Tooltip>
-														<TooltipTrigger asChild>
-															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
-																{product.name}
-															</CardTitle>
-														</TooltipTrigger>
-														<TooltipContent side="top" className="max-w-xs">
-															<p>{product.name}</p>
-														</TooltipContent>
-													</Tooltip>
-												</TooltipProvider>
-												<div className="flex items-center gap-2 mt-1">
-													{product.category && (
-														<span className="inline-flex items-center text-xs text-gray-600">
-															{product.category.icon} {product.category.name}
-														</span>
-													)}
-												</div>
-											</div>
-										</div>
-										<div className="space-y-1 text-xs text-gray-500">
-											{product.brand && (
-												<div className="flex items-center gap-1">
-													<span className="font-medium">Marca:</span>
-													<span>{product.brand.name}</span>
-												</div>
-											)}
-											<div className="flex items-center gap-1">
-												<span className="font-medium">Unidade:</span>
-												<span>{product.unit}</span>
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="flex-1" />
-									<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
-										<div className="flex gap-2 w-full">
-											<Link href={`/produtos/${product.id}`} className="flex-1">
-												<Button variant="outline" className="w-full justify-center">
-													<BarChart3 className="h-4 w-4 mr-2" />
-													Ver Produto
-												</Button>
-											</Link>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="outline" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem asChild>
-														<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
-															<Edit className="h-4 w-4 mr-2" />
-															Editar
-														</Link>
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={() => openDeleteConfirm(product)}
-														className="text-red-600 focus:text-red-600"
-													>
-														<Trash2 className="h-4 w-4 mr-2" />
-														Excluir
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</div>
-									</CardFooter>
-								</Card>
-							))}
-						</div>
+						{/* Mobile-optimized product list */}
+						{mobile.isTouchDevice ? (
+							<AnimatedList
+								items={productListItems}
+								enableSwipeActions={true}
+								enableAnimations={true}
+								onItemEdit={handleProductEdit}
+								onItemDelete={handleProductDelete}
+								onItemArchive={handleProductArchive}
+								onItemLongPress={(id) => {
+									const product = products.find((p: any) => p.id === id)
+									if (product) {
+										toast.info(`Produto selecionado: ${product.name}`)
+									}
+								}}
+							/>
+						) : (
+							<motion.div 
+								className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ delay: 0.2 }}
+							>
+								{products.map((product: any, index: number) => (
+									<motion.div
+										key={product.id}
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: index * 0.05 }}
+									>
+										<ProductCard product={product} />
+									</motion.div>
+								))}
+							</motion.div>
+						)}
 
 						{pagination.totalPages > 1 && (
 							<div className="flex justify-center items-center gap-2 pt-6">
@@ -443,7 +587,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				) : (
 					renderEmptyState()
 				)}
-			</div>
+			</motion.div>
 
 			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
 				<DialogContent className="max-w-md">
@@ -477,6 +621,17 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					</div>
 				</DialogContent>
 			</Dialog>
+
+			{/* FAB for mobile users */}
+			{mobile.isTouchDevice && (
+				<FloatingActionButton
+					actions={fabActions}
+					position="bottom-right"
+					size="md"
+					expandDirection="up"
+					showLabels={true}
+				/>
+			)}
 		</>
 	)
 }
