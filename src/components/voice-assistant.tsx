@@ -27,12 +27,12 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 	const [messages, setMessages] = useState<Message[]>([])
 	const [showChat, setShowChat] = useState(false)
 	
-	const recognitionRef = useRef<SpeechRecognition | null>(null)
+	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 
 	useEffect(() => {
 		// Verificar suporte do navegador
-		const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 		const speechSynthesis = window.speechSynthesis
 
 		if (SpeechRecognition && speechSynthesis) {
@@ -53,12 +53,12 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 				setIsListening(false)
 			}
 
-			recognition.onresult = (event) => {
+			recognition.onresult = (event: any) => {
 				const transcript = event.results[0][0].transcript.toLowerCase()
 				handleVoiceCommand(transcript)
 			}
 
-			recognition.onerror = (event) => {
+			recognition.onerror = (event: any) => {
 				console.error('Erro no reconhecimento de voz:', event.error)
 				setIsListening(false)
 				toast.error('Erro no reconhecimento de voz. Tente novamente.')
@@ -164,8 +164,8 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 			} else if (transcript.includes('modo de preparo') || transcript.includes('preparo') || transcript.includes('passos')) {
 				const instructions = recipe?.modo_preparo || recipe?.instructions
 				if (instructions) {
-					const steps = instructions.split(/\n/).filter(step => step.trim())
-					const stepsText = steps.map((step, index) => `Passo ${index + 1}: ${step.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, '')}`).join('. ')
+					const steps = instructions.split(/\n/).filter((step: string) => step.trim())
+					const stepsText = steps.map((step: string, index: number) => `Passo ${index + 1}: ${step.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, '')}`).join('. ')
 					speak(stepsText)
 					response = 'Lendo o modo de preparo!'
 				} else {

@@ -22,7 +22,7 @@ export function AiAssistantChat() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	
-	const recognitionRef = useRef<SpeechRecognition | null>(null)
+	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 	
 	const {
@@ -37,7 +37,7 @@ export function AiAssistantChat() {
 
 	// Configurar assistente de voz
 	useEffect(() => {
-		const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 		const speechSynthesis = window.speechSynthesis
 
 		if (SpeechRecognition && speechSynthesis) {
@@ -53,7 +53,7 @@ export function AiAssistantChat() {
 			recognition.onend = () => setIsListening(false)
 			recognition.onerror = () => setIsListening(false)
 
-			recognition.onresult = (event) => {
+			recognition.onresult = (event: any) => {
 				const transcript = event.results[0][0].transcript
 				setInput(transcript)
 				toast.success(`🎤 Entendi: "${transcript}"`)
