@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMarketsQuery, useProductsQuery } from "@/hooks/use-react-query"
 
 function PriceAnalysisCard({ className }: { className?: string }) {
 	return (
@@ -87,14 +88,12 @@ interface Market {
 	location?: string
 }
 
-interface PriceRecordClientProps {
-	initialProducts: Product[]
-	initialMarkets: Market[]
-}
+export function PriceRecordClient() {
+	const { data: productsData } = useProductsQuery()
+	const { data: marketsData } = useMarketsQuery()
 
-export function PriceRecordClient({ initialProducts, initialMarkets }: PriceRecordClientProps) {
-	const products = Array.isArray(initialProducts) ? initialProducts : []
-	const markets = Array.isArray(initialMarkets) ? initialMarkets : []
+	const products = productsData?.products || []
+	const markets = marketsData?.markets || []
 
 	const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([])
 	const [loading, setLoading] = useState(false)

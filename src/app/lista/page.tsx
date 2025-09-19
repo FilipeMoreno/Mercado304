@@ -1,7 +1,14 @@
+"use client"
+
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ListaClient } from "./lista-client"
+import { Suspense, lazy } from "react"
+import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
+
+const ListaClient = lazy(() =>
+	import("./lista-client").then((module) => ({ default: module.ListaClient }))
+)
 
 interface ListaPageProps {
 	searchParams: {
@@ -28,7 +35,9 @@ export default function ListaPage({ searchParams }: ListaPageProps) {
 				</Link>
 			</div>
 
-			<ListaClient searchParams={searchParams} />
+			<Suspense fallback={<ShoppingListSkeleton />}>
+				<ListaClient searchParams={searchParams} />
+			</Suspense>
 		</div>
 	)
 }

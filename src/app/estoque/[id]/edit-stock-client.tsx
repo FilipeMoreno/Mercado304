@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ArrowLeft, Calendar, DollarSign, FileText, MapPin, Package, Save } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ProductSelect } from "@/components/selects/product-select"
 import { Button } from "@/components/ui/button"
@@ -34,26 +34,70 @@ interface StockItem {
 }
 
 interface EditStockClientProps {
-	stockItem: StockItem
-	products: any[]
+	params: { id: string }
 }
 
-export function EditStockClient({ stockItem, products }: EditStockClientProps) {
+export function EditStockClient({ params }: EditStockClientProps) {
+	const [stockItem, setStockItem] = useState<StockItem | null>(null)
+	const [products, setProducts] = useState<any[]>([])
+	const [loading, setLoading] = useState(true)
 	const router = useRouter()
 	const [saving, setSaving] = useState(false)
 
 	const [formData, setFormData] = useState({
-		productId: stockItem.productId,
-		quantity: stockItem.quantity,
-		expirationDate: stockItem.expirationDate ? format(new Date(stockItem.expirationDate), "yyyy-MM-dd") : "",
-		batchNumber: stockItem.batchNumber || "",
-		location: stockItem.location || "Despensa",
-		unitCost: stockItem.unitCost || 0,
-		notes: stockItem.notes || "",
+		productId: "",
+		quantity: 0,
+		expirationDate: "",
+		batchNumber: "",
+		location: "Despensa",
+		unitCost: 0,
+		notes: "",
 	})
+
+	useEffect(() => {
+		async function fetchData() {
+			try {
+				const [stockResponse, productsResponse] = await Promise.all([
+					fetch(`/api/stock/${params.id}`),
+					fetch("/api/products")
+				])
+
+				if (!stockResponse.ok) {
+					toast.error("Item de estoque não encontrado")
+					router.push("/estoque")
+					return
+				}
+
+				const stockData = await stockResponse.json()
+				const productsData = await productsResponse.json()
+
+				setStockItem(stockData)
+				setProducts(productsData || [])
+				
+				setFormData({
+					productId: stockData.productId,
+					quantity: stockData.quantity,
+					expirationDate: stockData.expirationDate ? format(new Date(stockData.expirationDate), "yyyy-MM-dd") : "",
+					batchNumber: stockData.batchNumber || "",
+					location: stockData.location || "Despensa",
+					unitCost: stockData.unitCost || 0,
+					notes: stockData.notes || "",
+				})
+			} catch (error) {
+				console.error("Erro ao carregar dados:", error)
+				toast.error("Erro ao carregar dados do estoque")
+				router.push("/estoque")
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchData()
+	}, [params.id, router])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		if (!stockItem) return
 		setSaving(true)
 
 		try {
@@ -79,6 +123,10 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 		} finally {
 			setSaving(false)
 		}
+	}
+
+	if (loading || !stockItem) {
+		return <div>Carregando...</div>
 	}
 
 	return (

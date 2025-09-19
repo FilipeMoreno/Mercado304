@@ -101,7 +101,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 	}, [state.search, state.sort, state.page])
 
 	// React Query hooks
-	const { data: brandsData, isLoading, error } = useBrandsQuery(params)
+	const { data: brandsData, error } = useBrandsQuery(params, { suspense: true })
 	const updateBrandMutation = useUpdateBrandMutation()
 	const deleteBrandMutation = useDeleteBrandMutation()
 
@@ -126,6 +126,10 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			})
 		}
 	}
 
@@ -194,9 +198,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 			</div>
 
 			<div className="space-y-4">
-				{isLoading ? (
-					<BrandsSkeleton />
-				) : brands.length === 0 ? (
+				{brands.length === 0 ? (
 					state.search || state.sort !== "name" ? (
 						<Card>
 							<CardContent className="text-center py-12">

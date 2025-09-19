@@ -1,7 +1,14 @@
+"use client"
+
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { CategoriasClient } from "./categorias-client"
+import { Suspense, lazy } from "react"
+import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
+
+const CategoriasClient = lazy(() =>
+  import("./categorias-client").then((module) => ({ default: module.CategoriasClient }))
+)
 
 interface CategoriasPageProps {
 	searchParams: {
@@ -27,7 +34,9 @@ export default function CategoriasPage({ searchParams }: CategoriasPageProps) {
 				</Link>
 			</div>
 
-			<CategoriasClient searchParams={searchParams} />
+			<Suspense fallback={<CategoriesSkeleton />}>
+				<CategoriasClient searchParams={searchParams} />
+			</Suspense>
 		</div>
 	)
 }

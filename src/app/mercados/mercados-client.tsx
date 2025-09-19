@@ -92,7 +92,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 	}, [state.search, state.sort, state.page])
 
 	// React Query hooks
-	const { data: marketsData, isLoading, error } = useMarketsQuery(params)
+	const { data: marketsData, error } = useMarketsQuery(params, { suspense: true })
 	const deleteMarketMutation = useDeleteMarketMutation()
 
 	const sortOptions = [
@@ -123,6 +123,10 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			})
 		}
 	}
 
@@ -156,31 +160,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 			</div>
 
 			<div className="space-y-4">
-				{isLoading ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{Array.from({ length: 6 }).map((_, i) => (
-							<Card key={i}>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<Skeleton className="h-5 w-5" />
-										<Skeleton className="h-6 w-32" />
-									</div>
-									<div className="flex items-center gap-1 mt-2">
-										<Skeleton className="h-3 w-3" />
-										<Skeleton className="h-4 w-24" />
-									</div>
-								</CardHeader>
-								<CardContent>
-									<div className="flex gap-2">
-										<Skeleton className="h-8 w-20" />
-										<Skeleton className="h-8 w-8" />
-										<Skeleton className="h-8 w-8" />
-									</div>
-								</CardContent>
-							</Card>
-						))}
-					</div>
-				) : markets.length === 0 ? (
+				{markets.length === 0 ? (
 					state.search || state.sort !== "name-asc" ? (
 						<Card>
 							<CardContent className="text-center py-12">

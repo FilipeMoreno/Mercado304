@@ -1,4 +1,11 @@
-import { EstoqueClient } from "./estoque-client"
+"use client"
+
+import { Suspense, lazy } from "react"
+import { StockSkeleton } from "@/components/skeletons/stock-skeleton"
+
+const EstoqueClient = lazy(() =>
+	import("./estoque-client").then((module) => ({ default: module.EstoqueClient }))
+)
 
 interface EstoquePageProps {
 	searchParams: {
@@ -8,5 +15,9 @@ interface EstoquePageProps {
 }
 
 export default function EstoquePage({ searchParams }: EstoquePageProps) {
-	return <EstoqueClient searchParams={searchParams} />
+	return (
+		<Suspense fallback={<StockSkeleton />}>
+			<EstoqueClient searchParams={searchParams} />
+		</Suspense>
+	)
 }

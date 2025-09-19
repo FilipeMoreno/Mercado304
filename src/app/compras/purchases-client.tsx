@@ -83,8 +83,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page])
 
 	// React Query hooks
-	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams)
-	const { data: marketsData, isLoading: marketsLoading } = useMarketsQuery()
+	const { data: purchasesData, error: purchasesError } = usePurchasesQuery(purchaseParams, { suspense: true })
+	const { data: marketsData } = useMarketsQuery(undefined, { suspense: true })
 	const { data: purchaseDetails, isLoading: detailsLoading } = usePurchaseQuery(viewingPurchase?.id || "", {
 		enabled: !!viewingPurchase?.id,
 	})
@@ -95,8 +95,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const totalCount = purchasesData?.totalCount || 0
 	const markets = marketsData?.markets || []
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
-	const _isLoading = purchasesLoading || marketsLoading
-	_isLoading
+
 	const sortOptions = [
 		{ value: "date-desc", label: "Mais recente" },
 		{ value: "date-asc", label: "Mais antigo" },
@@ -152,10 +151,6 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 
 	// React Query handles data synchronization automatically
 
-	// Handle loading and error states
-	if (purchasesLoading && purchases.length === 0) {
-		return <PurchasesSkeleton />
-	}
 
 	if (purchasesError) {
 		return (
@@ -172,6 +167,10 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			})
 		}
 	}
 

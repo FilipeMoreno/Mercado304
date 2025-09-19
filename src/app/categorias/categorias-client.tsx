@@ -90,7 +90,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	}, [state.search, state.sort, state.page])
 
 	// React Query hooks
-	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)
+	const { data: categoriesData, error } = useCategoriesQuery(params, { suspense: true })
 	const updateCategoryMutation = useUpdateCategoryMutation()
 	const deleteCategoryMutation = useDeleteCategoryMutation()
 
@@ -115,6 +115,10 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			updateSingleValue("page", page)
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			})
 		}
 	}
 
@@ -194,9 +198,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 			</div>
 
 			<div className="space-y-4">
-				{isLoading ? (
-					<CategoriesSkeleton />
-				) : categories.length === 0 ? (
+				{categories.length === 0 ? (
 					state.search || state.sort !== "name-asc" ? (
 						<Card>
 							<CardContent className="text-center py-12">

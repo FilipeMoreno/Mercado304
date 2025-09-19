@@ -1,35 +1,54 @@
-import { notFound } from "next/navigation"
-import API_BASE_URL from "@/lib/api"
-import { EditStockClient } from "./edit-stock-client"
+"use client"
+
+import { Suspense, lazy } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
+
+const EditStockClient = lazy(() =>
+	import("./edit-stock-client").then((module) => ({ default: module.EditStockClient }))
+)
 
 interface EditStockPageProps {
 	params: { id: string }
 }
 
-async function fetchStockItem(id: string) {
-	const response = await fetch(`${API_BASE_URL}/stock/${id}`, {
-		cache: "no-store",
-	})
-	if (!response.ok) {
-		return null
-	}
-	return response.json()
+function EditStockSkeleton() {
+	return (
+		<div className="space-y-6">
+			<div className="flex items-center gap-4">
+				<Skeleton className="h-9 w-20" />
+				<div>
+					<Skeleton className="h-8 w-48 mb-2" />
+					<Skeleton className="h-4 w-64" />
+				</div>
+			</div>
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div className="space-y-4">
+					<Skeleton className="h-6 w-32" />
+					<Skeleton className="h-10 w-full" />
+					<Skeleton className="h-6 w-32" />
+					<Skeleton className="h-10 w-full" />
+					<Skeleton className="h-6 w-32" />
+					<Skeleton className="h-10 w-full" />
+				</div>
+				<div className="space-y-4">
+					<Skeleton className="h-6 w-32" />
+					<Skeleton className="h-10 w-full" />
+					<Skeleton className="h-6 w-32" />
+					<Skeleton className="h-20 w-full" />
+				</div>
+			</div>
+			<div className="flex gap-3">
+				<Skeleton className="h-10 w-24" />
+				<Skeleton className="h-10 w-24" />
+			</div>
+		</div>
+	)
 }
 
-async function fetchProducts() {
-	const response = await fetch(`${API_BASE_URL}/products`, {
-		cache: "no-store",
-	})
-	const products = await response.json()
-	return products
-}
-
-export default async function EditStockPage({ params }: EditStockPageProps) {
-	const [stockItem, products] = await Promise.all([fetchStockItem(params.id), fetchProducts()])
-
-	if (!stockItem) {
-		notFound()
-	}
-
-	return <EditStockClient stockItem={stockItem} products={products || []} />
+export default function EditStockPage({ params }: EditStockPageProps) {
+	return (
+		<Suspense fallback={<EditStockSkeleton />}>
+			<EditStockClient params={params} />
+		</Suspense>
+	)
 }

@@ -1,7 +1,14 @@
+"use client"
+
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MarcasClient } from "./marcas-client"
+import { Suspense, lazy } from "react"
+import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
+
+const MarcasClient = lazy(() =>
+  import("./marcas-client").then((module) => ({ default: module.MarcasClient }))
+)
 
 interface MarcasPageProps {
 	searchParams: {
@@ -27,7 +34,9 @@ export default function MarcasPage({ searchParams }: MarcasPageProps) {
 				</Link>
 			</div>
 
-			<MarcasClient searchParams={searchParams} />
+			<Suspense fallback={<BrandsSkeleton />}>
+				<MarcasClient searchParams={searchParams} />
+			</Suspense>
 		</div>
 	)
 }

@@ -1,30 +1,16 @@
-import API_BASE_URL from "@/lib/api"
-import { ComparisonClient } from "./comparison-client"
+"use client"
 
-async function fetchInitialData() {
-	const [listsRes, marketsRes, productsRes] = await Promise.all([
-		fetch(`${API_BASE_URL}/shopping-lists`, { cache: "no-store" }),
-		fetch(`${API_BASE_URL}/markets`, { cache: "no-store" }),
-		fetch(`${API_BASE_URL}/products`, { cache: "no-store" }),
-	])
+import { Suspense, lazy } from "react"
+import { ComparisonSkeleton } from "@/components/skeletons/comparison-skeleton"
 
-	const [lists, marketsData, products] = await Promise.all([listsRes.json(), marketsRes.json(), productsRes.json()])
+const ComparisonClient = lazy(() =>
+	import("./comparison-client").then((module) => ({ default: module.ComparisonClient }))
+)
 
-	// Extrair o array 'markets' do objeto de resposta
-	const markets = marketsData.markets || []
-
-	return { lists, markets, products }
-}
-
-export default async function ComparacaoPage({ searchParams }: { searchParams: { lista?: string } }) {
-	const { lists, markets, products } = await fetchInitialData()
-
+export default function ComparacaoPage({ searchParams }: { searchParams: { lista?: string } }) {
 	return (
-		<ComparisonClient
-			initialLists={lists}
-			initialMarkets={markets}
-			initialProducts={products}
-			searchParams={searchParams}
-		/>
+		<Suspense fallback={<ComparisonSkeleton />}>
+			<ComparisonClient searchParams={searchParams} />
+		</Suspense>
 	)
 }

@@ -1,7 +1,14 @@
+"use client"
+
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MercadosClient } from "./mercados-client"
+import { Suspense, lazy } from "react"
+import { MarketsSkeleton } from "@/components/skeletons/markets-skeleton"
+
+const MercadosClient = lazy(() =>
+  import("./mercados-client").then((module) => ({ default: module.MercadosClient }))
+)
 
 interface MercadosPageProps {
 	searchParams: {
@@ -27,7 +34,9 @@ export default function MercadosPage({ searchParams }: MercadosPageProps) {
 				</Link>
 			</div>
 
-			<MercadosClient searchParams={searchParams} />
+			<Suspense fallback={<MarketsSkeleton />}>
+				<MercadosClient searchParams={searchParams} />
+			</Suspense>
 		</div>
 	)
 }

@@ -49,11 +49,14 @@ const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
 }
 
 // Categories
-export const useCategoriesQuery = (params?: URLSearchParams) => {
+export const useCategoriesQuery = (params?: URLSearchParams, options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.categories(params),
 		queryFn: () => fetchWithErrorHandling(`/api/categories?${params?.toString() || ""}`),
-		staleTime: 3 * 60 * 1000,
+		staleTime: 5 * 60 * 1000, // Aumentar para 5min - categorias mudam pouco
+		gcTime: 10 * 60 * 1000, // 10min no garbage collector
+		placeholderData: (previousData) => previousData, // Manter dados anteriores
+		...options,
 	})
 }
 
@@ -128,11 +131,12 @@ export const useDeleteCategoryMutation = () => {
 }
 
 // Brands
-export const useBrandsQuery = (params?: URLSearchParams) => {
+export const useBrandsQuery = (params?: URLSearchParams, options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.brands(params),
 		queryFn: () => fetchWithErrorHandling(`/api/brands?${params?.toString() || ""}`),
 		staleTime: 3 * 60 * 1000,
+		...options,
 	})
 }
 
@@ -208,11 +212,12 @@ export const useDeleteBrandMutation = () => {
 }
 
 // Markets
-export const useMarketsQuery = (params?: URLSearchParams) => {
+export const useMarketsQuery = (params?: URLSearchParams, options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.markets(params),
 		queryFn: () => fetchWithErrorHandling(`/api/markets?${params?.toString() || ""}`),
 		staleTime: 2 * 60 * 1000,
+		...options,
 	})
 }
 
@@ -357,11 +362,12 @@ export const useDeleteProductMutation = () => {
 }
 
 // Purchases
-export const usePurchasesQuery = (params?: URLSearchParams) => {
+export const usePurchasesQuery = (params?: URLSearchParams, options?: { suspense?: boolean }) => {
 	return useQuery({
 		queryKey: queryKeys.purchases(params),
 		queryFn: () => fetchWithErrorHandling(`/api/purchases?${params?.toString() || ""}`),
 		staleTime: 2 * 60 * 1000,
+		...options,
 	})
 }
 

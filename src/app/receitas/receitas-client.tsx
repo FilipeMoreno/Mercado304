@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { ChefHat, Eye, Plus, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { useDeleteRecipeMutation, useRecipesQuery } from "@/hooks/use-react-query"
 import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
@@ -20,30 +20,18 @@ interface Recipe {
 	ingredients: string[]
 }
 
-async function fetchRecipes(search?: string): Promise<Recipe[]> {
-	const params = new URLSearchParams()
-	if (search) params.append("search", search)
-
-	const url = `/api/recipes${params.toString() ? `?${params.toString()}` : ""}`
-	const res = await fetch(url)
-	if (!res.ok) throw new Error("Erro ao buscar receitas")
-	return res.json()
-}
-
 export function ReceitasClient() {
 	const router = useRouter()
 	const [searchTerm, setSearchTerm] = useState("")
 	const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null)
-	const [isDeleting, setIsDeleting] = useState(false)
 
 	const {
 		data: recipes,
 		isLoading: loadingRecipes,
 		error: errorRecipes,
-	} = useQuery({
-		queryKey: ["recipes", searchTerm],
-		queryFn: () => fetchRecipes(searchTerm || undefined),
-	})
+	} = useRecipesQuery()
+
+	const deleteRecipeMutation = useDeleteRecipeMutation()
 
 	const handleSearch = (value: string) => {
 		setSearchTerm(value)
@@ -56,25 +44,12 @@ export function ReceitasClient() {
 
 	const handleDeleteRecipe = async () => {
 		if (!deletingRecipe) return
-		
-		setIsDeleting(true)
-		try {
-			const response = await fetch(`/api/recipes/${deletingRecipe.id}`, {
-				method: "DELETE",
-			})
 
-			if (response.ok) {
-				toast.success("Receita excluída com sucesso!")
-				setDeletingRecipe(null)
-				// Revalidar a query para atualizar a lista
-			} else {
-				toast.error("Erro ao excluir receita")
-			}
+		try {
+			await deleteRecipeMutation.mutateAsync(deletingRecipe.id)
+			setDeletingRecipe(null)
 		} catch (error) {
 			console.error("Erro ao excluir receita:", error)
-			toast.error("Erro ao excluir receita")
-		} finally {
-			setIsDeleting(false)
 		}
 	}
 
@@ -242,10 +217,10 @@ export function ReceitasClient() {
 				description="Esta ação não pode ser desfeita"
 				onConfirm={handleDeleteRecipe}
 				onCancel={() => setDeletingRecipe(null)}
-				confirmText={isDeleting ? "Excluindo..." : "Sim, Excluir"}
+				confirmText={deleteRecipeMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
 				cancelText="Cancelar"
 				confirmVariant="destructive"
-				isLoading={isDeleting}
+				isLoading={deleteRecipeMutation.isPending}
 				icon={<Trash2 className="h-8 w-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
