@@ -1,9 +1,9 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { Bot, ExternalLink, Send, Sparkles, X } from "lucide-react"
+import { Bot, ExternalLink, Send, Sparkles, X, Mic, MicOff, Volume2, VolumeX } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect, useRef } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
@@ -13,10 +13,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat } from "@/hooks/use-ai-chat"
+import { toast } from "sonner"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
+	const [isListening, setIsListening] = useState(false)
+	const [isSpeaking, setIsSpeaking] = useState(false)
+	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
+	
+	const recognitionRef = useRef<SpeechRecognition | null>(null)
+	const synthRef = useRef<SpeechSynthesis | null>(null)
+	
 	const {
 		messages,
 		isLoading,
@@ -26,6 +34,108 @@ export function AiAssistantChat() {
 		handleSelection,
 		handleChurrascoCalculate,
 	} = useAiChat()
+
+	// Configurar assistente de voz
+	useEffect(() => {
+		const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+		const speechSynthesis = window.speechSynthesis
+
+		if (SpeechRecognition && speechSynthesis) {
+			setIsVoiceSupported(true)
+			synthRef.current = speechSynthesis
+
+			const recognition = new SpeechRecognition()
+			recognition.continuous = false
+			recognition.interimResults = false
+			recognition.lang = 'pt-BR'
+
+			recognition.onstart = () => setIsListening(true)
+			recognition.onend = () => setIsListening(false)
+			recognition.onerror = () => setIsListening(false)
+
+			recognition.onresult = (event) => {
+				const transcript = event.results[0][0].transcript
+				setInput(transcript)
+				toast.success(`🎤 Entendi: "${transcript}"`)
+				// Auto-enviar mensagem quando terminar de falar
+				setTimeout(() => {
+					sendMessage(transcript)
+					setInput("")
+				}, 500)
+			}
+
+			recognitionRef.current = recognition
+		}
+
+		return () => {
+			if (recognitionRef.current) {
+				recognitionRef.current.stop()
+			}
+			if (synthRef.current) {
+				synthRef.current.cancel()
+			}
+		}
+	}, [sendMessage])
+
+	// Ler respostas do assistente em voz alta
+	useEffect(() => {
+		if (isOpen && messages.length > 0) {
+			const lastMessage = messages[messages.length - 1]
+			if (lastMessage.role === 'assistant' && !lastMessage.isStreaming && !lastMessage.isError) {
+				speakMessage(lastMessage.content)
+			}
+		}
+	}, [messages, isOpen])
+
+	const speakMessage = (text: string) => {
+		if (!synthRef.current || !isVoiceSupported) return
+
+		// Cancelar fala anterior
+		synthRef.current.cancel()
+
+		// Limpar markdown básico e links
+		const cleanText = text
+			.replace(/\*\*(.*?)\*\*/g, '$1') // **texto** -> texto
+			.replace(/\*(.*?)\*/g, '$1') // *texto* -> texto
+			.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [texto](link) -> texto
+			.replace(/`([^`]+)`/g, '$1') // `código` -> código
+			.replace(/#+\s*/g, '') // # título -> título
+			.substring(0, 500) // Limitar tamanho
+
+		const utterance = new SpeechSynthesisUtterance(cleanText)
+		utterance.lang = 'pt-BR'
+		utterance.rate = 0.9
+		utterance.pitch = 1.1
+		utterance.volume = 0.7
+
+		utterance.onstart = () => setIsSpeaking(true)
+		utterance.onend = () => setIsSpeaking(false)
+		utterance.onerror = () => setIsSpeaking(false)
+
+		synthRef.current.speak(utterance)
+	}
+
+	const startListening = () => {
+		if (!recognitionRef.current) return
+		try {
+			recognitionRef.current.start()
+		} catch (error) {
+			console.error('Erro ao iniciar reconhecimento:', error)
+		}
+	}
+
+	const stopListening = () => {
+		if (recognitionRef.current) {
+			recognitionRef.current.stop()
+		}
+	}
+
+	const stopSpeaking = () => {
+		if (synthRef.current) {
+			synthRef.current.cancel()
+			setIsSpeaking(false)
+		}
+	}
 
 	const handleSendMessage = useCallback(
 		async (e: React.FormEvent) => {
@@ -73,6 +183,32 @@ export function AiAssistantChat() {
 										Zé, o assistente
 									</CardTitle>
 									<div className="flex items-center gap-1">
+										{isVoiceSupported && (
+											<>
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={isSpeaking ? stopSpeaking : undefined}
+													disabled={!isSpeaking}
+													className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
+													title={isSpeaking ? "Parar fala" : "Ouvindo..."}
+												>
+													{isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={isListening ? stopListening : startListening}
+													disabled={isLoading}
+													className={`rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors ${
+														isListening ? 'bg-red-500/30 animate-pulse' : ''
+													}`}
+													title={isListening ? "Parar gravação" : "Falar com Zé"}
+												>
+													{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+												</Button>
+											</>
+										)}
 										<Link href="/assistente">
 											<Button
 												variant="ghost"
@@ -130,10 +266,23 @@ export function AiAssistantChat() {
 										<Input
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
-											placeholder="Como posso ajudar?"
-											disabled={isLoading}
+											placeholder={isListening ? "Ouvindo..." : "Como posso ajudar?"}
+											disabled={isLoading || isListening}
+											className={isListening ? "border-red-300 bg-red-50" : ""}
 										/>
-										<Button type="submit" size="icon" disabled={isLoading}>
+										{isVoiceSupported && (
+											<Button
+												type="button"
+												size="icon"
+												variant="outline"
+												onClick={isListening ? stopListening : startListening}
+												disabled={isLoading}
+												className={`${isListening ? 'bg-red-100 border-red-300 text-red-600' : ''}`}
+											>
+												{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+											</Button>
+										)}
+										<Button type="submit" size="icon" disabled={isLoading || isListening}>
 											<Send className="h-4 w-4" />
 										</Button>
 									</form>
@@ -179,9 +328,19 @@ export function AiAssistantChat() {
 									repeatType: "reverse",
 								},
 							}}
-							className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 border-white/20"
+							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 ${
+								isListening || isSpeaking 
+									? 'border-red-400 shadow-red-400/50' 
+									: 'border-white/20'
+							}`}
 						>
-							<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
+							{isListening ? (
+								<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+							) : isSpeaking ? (
+								<Volume2 className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+							) : (
+								<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
+							)}
 						</motion.button>
 					)}
 				</AnimatePresence>

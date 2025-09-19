@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RecipeTimer } from "@/components/recipe-timer"
+import { VoiceAssistant } from "@/components/voice-assistant"
 import { useDataMutation } from "@/hooks/use-data-mutation" // <-- Importar o hook
 import { TempStorage } from "@/lib/temp-storage"
 
@@ -37,6 +38,7 @@ export default function VisualizarReceitaPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [recipe, setRecipe] = useState<Recipe | null>(null)
+	const [timerRef, setTimerRef] = useState<any>(null)
 	const { create, loading } = useDataMutation() // <-- Usar o hook
 
 	useEffect(() => {
@@ -74,6 +76,33 @@ export default function VisualizarReceitaPage() {
 				},
 			},
 		)
+	}
+
+	// Funções para controle do cronômetro via voz
+	const handleTimerCommand = (command: 'start' | 'pause' | 'reset' | 'set', value?: number) => {
+		// Estas funções serão chamadas pelo assistente de voz
+		// O RecipeTimer precisa ser refatorado para aceitar refs ou callbacks
+		console.log('🔊 Comando do timer:', command, value)
+	}
+
+	const handleReadRecipe = () => {
+		if (!recipe) return
+		
+		const recipeText = `
+			${recipe.prato || recipe.name}. 
+			${recipe.descricao || recipe.description}
+			
+			Ingredientes: ${(recipe.ingredientes || recipe.ingredients || []).join(', ')}
+			
+			Modo de preparo: ${recipe.modo_preparo || recipe.instructions || ''}
+			
+			Tempo de preparo: ${recipe.tempo_preparo || recipe.cookingTime || 'não especificado'}
+			
+			${recipe.dica_chef || recipe.chefTip ? `Dica do chef: ${recipe.dica_chef || recipe.chefTip}` : ''}
+		`
+		
+		// O VoiceAssistant já fará a leitura
+		return recipeText
 	}
 
 	if (!recipe) {
@@ -251,6 +280,13 @@ export default function VisualizarReceitaPage() {
 					
 					{/* Cronômetro */}
 					<RecipeTimer suggestedTime={recipe.tempo_preparo || recipe.cookingTime} />
+					
+					{/* Assistente de Voz */}
+					<VoiceAssistant 
+						onTimerCommand={handleTimerCommand}
+						onReadRecipe={handleReadRecipe}
+						recipe={recipe}
+					/>
 					
 					<Card>
 						<CardHeader>
