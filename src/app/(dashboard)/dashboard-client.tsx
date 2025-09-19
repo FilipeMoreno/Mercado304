@@ -4,10 +4,10 @@ import { ptBR } from "date-fns/locale"
 import { DollarSign, Package, Receipt, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { lazy, Suspense } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
-import { MonthlySpendingChart } from "@/components/monthly-spending-chart"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
@@ -26,6 +26,12 @@ import {
 } from "@/hooks"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
+
+const MonthlySpendingChart = lazy(() =>
+	import("@/components/monthly-spending-chart").then((module) => ({
+		default: module.MonthlySpendingChart,
+	})),
+)
 
 export function DashboardClient() {
 	const router = useRouter()
@@ -162,7 +168,6 @@ export function DashboardClient() {
 				return "grid grid-cols-1 gap-4 md:gap-6"
 			case "compact":
 				return `grid grid-cols-3 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 6)} gap-2 md:gap-3`
-			case "grid":
 			default:
 				return `grid grid-cols-2 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 5)} gap-4 md:gap-6`
 		}
@@ -222,7 +227,21 @@ export function DashboardClient() {
 			</div>
 
 			{currentPrefs.showMonthlyChart && stats?.monthlySpending && stats.monthlySpending.length > 0 && (
-				<MonthlySpendingChart data={stats.monthlySpending} loading={statsLoading} />
+				<Suspense
+					fallback={
+						<Card>
+							<CardHeader>
+								<Skeleton className="h-6 w-48 mb-2" />
+								<Skeleton className="h-4 w-64" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-64 w-full" />
+							</CardContent>
+						</Card>
+					}
+				>
+					<MonthlySpendingChart data={stats.monthlySpending} loading={statsLoading} />
+				</Suspense>
 			)}
 
 			{currentPrefs.showReplenishment && consumptionData?.replenishmentAlerts?.length > 0 && (
