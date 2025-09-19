@@ -2,9 +2,8 @@
 
 import { motion, AnimatePresence, PanInfo } from "framer-motion"
 import { useState, ReactNode, useRef } from "react"
-import { Trash2, Edit3, Archive, Star, MoreHorizontal } from "lucide-react"
+import { Trash2, Edit3, Archive, MoreHorizontal } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface SwipeAction {
@@ -21,6 +20,7 @@ interface SwipeableCardProps {
   leftActions?: SwipeAction[]
   rightActions?: SwipeAction[]
   onLongPress?: () => void
+  onClick?: () => void
   disabled?: boolean
   dragConstraints?: { left: number; right: number }
 }
@@ -58,6 +58,7 @@ export function SwipeableCard({
   leftActions = defaultLeftActions,
   rightActions = defaultRightActions,
   onLongPress,
+  onClick,
   disabled = false,
   dragConstraints
 }: SwipeableCardProps) {
@@ -200,21 +201,28 @@ export function SwipeableCard({
         ref={dragRef}
         drag="x"
         dragConstraints={dragConstraints || { left: -200, right: 200 }}
-        dragElastic={0.2}
-        dragMomentum={false}
+        dragElastic={0.1}
+        dragMomentum={true}
+        dragTransition={{ 
+          bounceStiffness: 600, 
+          bounceDamping: 10,
+          power: 0.3
+        }}
         onDragStart={handleDragStart}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onClick={onClick}
         animate={{
           x: isDragging ? undefined : 0,
           scale: isDragging ? 0.98 : 1
         }}
         transition={{
           type: "spring",
-          stiffness: 300,
-          damping: 30
+          stiffness: 400,
+          damping: 25,
+          duration: 0.3
         }}
         className="relative z-10"
         whileTap={{ scale: 0.98 }}
