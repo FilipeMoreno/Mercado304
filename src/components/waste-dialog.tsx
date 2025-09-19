@@ -1,14 +1,13 @@
 "use client"
 
-import { AlertTriangle, DollarSign, Package, Trash2 } from "lucide-react"
+import { AlertTriangle, DollarSign, Package, } from "lucide-react"
 import * as React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -63,9 +62,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 		}
 	}, [open, stockItem])
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-
+	const handleSubmit = async () => {
 		if (!formData.quantity || formData.quantity <= 0) {
 			toast.error("Quantidade deve ser maior que zero")
 			return
@@ -120,150 +117,133 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 	const calculatedWasteValue = (stockItem.unitCost || 0) * formData.quantity
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2 text-red-600">
-						<Trash2 className="h-5 w-5" />
-						Registrar Desperdício
-					</DialogTitle>
-				</DialogHeader>
-
-				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* Informações do produto */}
-					<div className="p-3 bg-gray-50 rounded-lg space-y-2">
-						<div className="flex items-center gap-2">
-							<Package className="h-4 w-4 text-gray-500" />
-							<span className="font-medium">{stockItem.product.name}</span>
-						</div>
-						{stockItem.product.brand && (
-							<div className="text-sm text-gray-600">Marca: {stockItem.product.brand.name}</div>
-						)}
-						<div className="flex items-center justify-between">
-							<span className="text-sm text-gray-600">Disponível em estoque:</span>
-							<Badge variant="secondary">
-								{stockItem.quantity} {stockItem.product.unit}
-							</Badge>
-						</div>
-						{stockItem.unitCost && (
-							<div className="flex items-center justify-between">
-								<span className="text-sm text-gray-600">Valor unitário:</span>
-								<span className="text-sm font-medium">R$ {stockItem.unitCost.toFixed(2)}</span>
-							</div>
-						)}
+		<ResponsiveFormDialog
+			open={open}
+			onOpenChange={onOpenChange}
+			title="Registrar Desperdício"
+			description="Informe os detalhes do item a ser descartado."
+			onSubmit={handleSubmit}
+			onCancel={() => onOpenChange(false)}
+			submitText={loading ? "Registrando..." : "Registrar Desperdício"}
+			submitVariant="destructive"
+			isLoading={loading}
+			isSubmitDisabled={!formData.wasteReason || formData.quantity <= 0}
+			maxWidth="md"
+		>
+			<div className="space-y-4">
+				{/* Informações do produto */}
+				<div className="p-3 bg-gray-50 rounded-lg space-y-2">
+					<div className="flex items-center gap-2">
+						<Package className="h-4 w-4 text-gray-500" />
+						<span className="font-medium">{stockItem.product.name}</span>
 					</div>
+					{stockItem.product.brand && <div className="text-sm text-gray-600">Marca: {stockItem.product.brand.name}</div>}
+					<div className="flex items-center justify-between">
+						<span className="text-sm text-gray-600">Disponível em estoque:</span>
+						<Badge variant="secondary">
+							{stockItem.quantity} {stockItem.product.unit}
+						</Badge>
+					</div>
+					{stockItem.unitCost && (
+						<div className="flex items-center justify-between">
+							<span className="text-sm text-gray-600">Valor unitário:</span>
+							<span className="text-sm font-medium">R$ {stockItem.unitCost.toFixed(2)}</span>
+						</div>
+					)}
+				</div>
 
-					{/* Quantidade desperdiçada */}
+				{/* Quantidade desperdiçada */}
+				<div className="space-y-2">
+					<Label htmlFor="quantity">Quantidade desperdiçada *</Label>
+					<Input
+						id="quantity"
+						type="number"
+						step="0.01"
+						min="0.01"
+						max={stockItem.quantity}
+						value={formData.quantity}
+						onChange={(e) =>
+							setFormData((prev) => ({
+								...prev,
+								quantity: parseFloat(e.target.value) || 0,
+							}))
+						}
+						placeholder={`Máx: ${stockItem.quantity} ${stockItem.product.unit}`}
+						required
+					/>
+				</div>
+
+				{/* Motivo do desperdício */}
+				<div className="space-y-2">
+					<Label htmlFor="wasteReason">Motivo do desperdício *</Label>
+					<Select
+						value={formData.wasteReason}
+						onValueChange={(value) => setFormData((prev) => ({ ...prev, wasteReason: value }))}
+					>
+						<SelectTrigger>
+							<SelectValue placeholder="Selecione o motivo" />
+						</SelectTrigger>
+						<SelectContent>
+							{wasteReasons.map((reason) => (
+								<SelectItem key={reason} value={reason}>
+									{reason}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+
+				{/* Motivo personalizado */}
+				{formData.wasteReason === "Outro" && (
 					<div className="space-y-2">
-						<Label htmlFor="quantity">Quantidade desperdiçada *</Label>
+						<Label htmlFor="customReason">Descreva o motivo *</Label>
 						<Input
-							id="quantity"
-							type="number"
-							step="0.01"
-							min="0.01"
-							max={stockItem.quantity}
-							value={formData.quantity}
+							id="customReason"
+							value={formData.customReason}
 							onChange={(e) =>
 								setFormData((prev) => ({
 									...prev,
-									quantity: parseFloat(e.target.value) || 0,
+									customReason: e.target.value,
 								}))
 							}
-							placeholder={`Máx: ${stockItem.quantity} ${stockItem.product.unit}`}
+							placeholder="Descreva o motivo do desperdício..."
 							required
 						/>
 					</div>
+				)}
 
-					{/* Motivo do desperdício */}
-					<div className="space-y-2">
-						<Label htmlFor="wasteReason">Motivo do desperdício *</Label>
-						<Select
-							value={formData.wasteReason}
-							onValueChange={(value) => setFormData((prev) => ({ ...prev, wasteReason: value }))}
-							required
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Selecione o motivo" />
-							</SelectTrigger>
-							<SelectContent>
-								{wasteReasons.map((reason) => (
-									<SelectItem key={reason} value={reason}>
-										{reason}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+				{/* Observações */}
+				<div className="space-y-2">
+					<Label htmlFor="notes">Observações adicionais</Label>
+					<Textarea
+						id="notes"
+						value={formData.notes}
+						onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+						placeholder="Observações sobre o desperdício..."
+						rows={3}
+					/>
+				</div>
 
-					{/* Motivo personalizado */}
-					{formData.wasteReason === "Outro" && (
-						<div className="space-y-2">
-							<Label htmlFor="customReason">Descreva o motivo *</Label>
-							<Input
-								id="customReason"
-								value={formData.customReason}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										customReason: e.target.value,
-									}))
-								}
-								placeholder="Descreva o motivo do desperdício..."
-								required
-							/>
+				{/* Valor do desperdício */}
+				{calculatedWasteValue > 0 && (
+					<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+						<div className="flex items-center gap-2 text-red-600">
+							<DollarSign className="h-4 w-4" />
+							<span className="font-medium">Valor do desperdício: R$ {calculatedWasteValue.toFixed(2)}</span>
 						</div>
-					)}
-
-					{/* Observações */}
-					<div className="space-y-2">
-						<Label htmlFor="notes">Observações adicionais</Label>
-						<Textarea
-							id="notes"
-							value={formData.notes}
-							onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-							placeholder="Observações sobre o desperdício..."
-							rows={3}
-						/>
+						<p className="text-xs text-red-500 mt-1">Este valor será contabilizado nas estatísticas de desperdício</p>
 					</div>
+				)}
 
-					{/* Valor do desperdício */}
-					{calculatedWasteValue > 0 && (
-						<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-							<div className="flex items-center gap-2 text-red-600">
-								<DollarSign className="h-4 w-4" />
-								<span className="font-medium">Valor do desperdício: R$ {calculatedWasteValue.toFixed(2)}</span>
-							</div>
-							<p className="text-xs text-red-500 mt-1">Este valor será contabilizado nas estatísticas de desperdício</p>
-						</div>
-					)}
-
-					{/* Alerta */}
-					<div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-						<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-						<div className="text-sm text-yellow-800">
-							<p className="font-medium">Atenção!</p>
-							<p>Este item será removido do estoque e registrado como desperdício. Esta ação não pode ser desfeita.</p>
-						</div>
+				{/* Alerta */}
+				<div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+					<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+					<div className="text-sm text-yellow-800">
+						<p className="font-medium">Atenção!</p>
+						<p>Este item será removido do estoque e registrado como desperdício. Esta ação não pode ser desfeita.</p>
 					</div>
-
-					{/* Botões */}
-					<div className="flex flex-col sm:flex-row gap-2 pt-4">
-						<Button type="submit" variant="destructive" disabled={loading} className="flex-1 w-full sm:w-auto">
-							<Trash2 className="h-4 w-4 mr-2" />
-							{loading ? "Registrando..." : "Registrar Desperdício"}
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-							disabled={loading}
-							className="w-full sm:w-auto"
-						>
-							Cancelar
-						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
+				</div>
+			</div>
+		</ResponsiveFormDialog>
 	)
 }

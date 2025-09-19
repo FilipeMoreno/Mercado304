@@ -1,5 +1,6 @@
 "use client"
 
+import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
 	AlertCircle,
@@ -19,9 +20,11 @@ import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
+
 import { RecipeSuggester } from "@/components/recipe-suggester"
 import { ProductSelect } from "@/components/selects/product-select"
 import { StockHistory } from "@/components/stock-history"
+import { WasteDialog } from "@/components/waste-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -89,6 +92,8 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const [consumedQuantity, setConsumedQuantity] = useState("")
 	const [saving, setSaving] = useState(false)
 	const [activeTab, setActiveTab] = useState("stock")
+	const [showWasteDialog, setShowWasteDialog] = useState(false)
+	const [wasteItem, setWasteItem] = useState<StockItem | null>(null)
 
 	const [formData, setFormData] = useState({
 		productId: "",
@@ -124,7 +129,12 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	}, [state.location, state.search, state.filter, state.includeExpired])
 
 	// React Query hooks
-	const { data: stockData, isLoading: stockLoading, error: stockError } = useStockQuery(stockParams)
+	const {
+		data: stockData,
+		isLoading: stockLoading,
+		error: stockError,
+		refetch: refetchStock,
+	} = useStockQuery(stockParams)
 	const { data: productsData, isLoading: productsLoading } = useProductsQuery()
 	const createStockMutation = useCreateStockMutation()
 	const updateStockMutation = useUpdateStockMutation()
@@ -207,6 +217,11 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 		setUseItem(item)
 		setConsumedQuantity("")
 		setShowUseDialog(true)
+	}
+
+	const handleOpenWasteDialog = (item: StockItem) => {
+		setWasteItem(item)
+		setShowWasteDialog(true)
 	}
 
 	const handleConsumeItem = async () => {
@@ -550,12 +565,13 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 														Usar
 													</Button>
 													<Button
-														variant="ghost"
+														variant="outline"
 														size="sm"
-														onClick={() => openDeleteConfirm(item)}
-														className="text-red-600 hover:text-red-700 hover:bg-red-50"
+														onClick={() => handleOpenWasteDialog(item)}
+														className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
 													>
-														<Trash2 className="h-3 w-3" />
+														<AlertTriangle className="h-4 w-4 mr-1" />
+														Desperdício
 													</Button>
 												</div>
 											</CardContent>
@@ -772,6 +788,18 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 					</div>
 				</DialogContent>
 			</Dialog>
+
+			{wasteItem && (
+				<WasteDialog
+					stockItem={wasteItem}
+					open={showWasteDialog}
+					onOpenChange={setShowWasteDialog}
+					onSuccess={() => {
+						refetchStock()
+						setWasteItem(null)
+					}}
+				/>
+			)}
 		</div>
 	)
 }
