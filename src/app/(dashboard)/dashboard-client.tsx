@@ -224,7 +224,7 @@ export const DashboardClient = memo(function DashboardClient() {
 			{currentPrefs.showSummaryCard && <AiDashboardSummary />}
 
 			{/* Cards principais ordenados conforme preferências */}
-			<div className={getLayoutClassName()}>
+			<div className={getLayoutClassName}>
 				{currentPrefs.cardOrder.map((cardId) => renderMainCard(cardId)).filter(Boolean)}
 			</div>
 

@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "sonner"
 import { ClientLayout } from "@/components/client-layout"
-import { ThemeProvider } from "@/lib/theme"
+import { ThemeProvider } from "@/lib/theme-zustand"
 import Provider from "./provider"
 
 const inter = Inter({ subsets: ["latin"] })

@@ -13,21 +13,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat } from "@/hooks/use-ai-chat"
+import { 
+	useAIChatOpen, 
+	useAIChatMessages, 
+	useAIChatListening, 
+	useAIChatSpeaking,
+	useAIChatLoading,
+	useAIChatActions 
+} from "@/stores/app-store"
 import { toast } from "sonner"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
-	const [isOpen, setIsOpen] = useState(false)
-	const [isListening, setIsListening] = useState(false)
-	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
+	
+	// Use Zustand store for AI chat state
+	const isOpen = useAIChatOpen()
+	const messages = useAIChatMessages()
+	const isListening = useAIChatListening()
+	const isSpeaking = useAIChatSpeaking()
+	const isLoading = useAIChatLoading()
+	const { 
+		setAIChatOpen, 
+		toggleAIChat, 
+		addAIChatMessage, 
+		setAIChatListening, 
+		setAIChatSpeaking,
+		setAIChatLoading 
+	} = useAIChatActions()
 	
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 	
 	const {
-		messages,
-		isLoading,
 		lastUserMessage,
 		sendMessage,
 		retryLastMessage,
@@ -49,9 +67,9 @@ export function AiAssistantChat() {
 			recognition.interimResults = false
 			recognition.lang = 'pt-BR'
 
-			recognition.onstart = () => setIsListening(true)
-			recognition.onend = () => setIsListening(false)
-			recognition.onerror = () => setIsListening(false)
+			recognition.onstart = () => setAIChatListening(true)
+			recognition.onend = () => setAIChatListening(false)
+			recognition.onerror = () => setAIChatListening(false)
 
 			recognition.onresult = (event: any) => {
 				const transcript = event.results[0][0].transcript
@@ -108,9 +126,9 @@ export function AiAssistantChat() {
 		utterance.pitch = 1.1
 		utterance.volume = 0.7
 
-		utterance.onstart = () => setIsSpeaking(true)
-		utterance.onend = () => setIsSpeaking(false)
-		utterance.onerror = () => setIsSpeaking(false)
+		utterance.onstart = () => setAIChatSpeaking(true)
+		utterance.onend = () => setAIChatSpeaking(false)
+		utterance.onerror = () => setAIChatSpeaking(false)
 
 		synthRef.current.speak(utterance)
 	}
@@ -133,7 +151,7 @@ export function AiAssistantChat() {
 	const stopSpeaking = () => {
 		if (synthRef.current) {
 			synthRef.current.cancel()
-			setIsSpeaking(false)
+			setAIChatSpeaking(false)
 		}
 	}
 
@@ -149,12 +167,12 @@ export function AiAssistantChat() {
 	)
 
 	const handleOpenChat = useCallback(() => {
-		setIsOpen(true)
-	}, [])
+		setAIChatOpen(true)
+	}, [setAIChatOpen])
 
 	const handleCloseChat = useCallback(() => {
-		setIsOpen(false)
-	}, [])
+		setAIChatOpen(false)
+	}, [setAIChatOpen])
 
 	return (
 		<div className="fixed bottom-4 right-4 z-[100]">

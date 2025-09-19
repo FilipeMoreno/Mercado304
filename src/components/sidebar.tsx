@@ -26,6 +26,12 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { 
+	useSidebarCollapsed, 
+	useSidebarExpandedItems, 
+	useSidebarMobile,
+	useSidebarActions 
+} from "@/stores/app-store"
 import { UserNav } from "./user-nav"
 
 const navigation = [
@@ -60,26 +66,22 @@ interface SidebarProps {
 
 function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 	const pathname = usePathname()
-	const [expandedItems, setExpandedItems] = useState<string[]>(() => {
-		// Auto-expand receitas se estiver em uma página de receitas
-		if (pathname.startsWith("/receitas")) {
-			return ["Receitas"]
-		}
-		return []
-	})
+	
+	// Use Zustand store for expanded items
+	const expandedItems = useSidebarExpandedItems()
+	const { setExpandedItem } = useSidebarActions()
 
 	const toggleExpanded = (itemName: string) => {
-		setExpandedItems((prev) =>
-			prev.includes(itemName) ? prev.filter((name) => name !== itemName) : [...prev, itemName],
-		)
+		const isExpanded = expandedItems.includes(itemName)
+		setExpandedItem(itemName, !isExpanded)
 	}
 
 	// Auto-expand ao navegar para páginas de receitas
 	useEffect(() => {
 		if (pathname.startsWith("/receitas") && !expandedItems.includes("Receitas")) {
-			setExpandedItems((prev) => [...prev, "Receitas"])
+			setExpandedItem("Receitas", true)
 		}
-	}, [pathname, expandedItems])
+	}, [pathname, expandedItems, setExpandedItem])
 
 	return (
 		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>
@@ -179,28 +181,28 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 }
 
 export function Sidebar() {
-	const [collapsed, setCollapsed] = useState(false)
-	const [isMobile, setIsMobile] = useState(false)
 	const [mounted, setMounted] = useState(false)
+	
+	// Use Zustand store for sidebar state
+	const collapsed = useSidebarCollapsed()
+	const isMobile = useSidebarMobile()
+	const { toggleSidebar, setSidebarMobile } = useSidebarActions()
 
 	useEffect(() => {
 		setMounted(true)
 
 		const checkScreenSize = () => {
-			setIsMobile(window.innerWidth < 768)
+			const mobile = window.innerWidth < 768
+			setSidebarMobile(mobile)
 		}
 
 		checkScreenSize()
 		window.addEventListener("resize", checkScreenSize)
 		return () => window.removeEventListener("resize", checkScreenSize)
-	}, [])
+	}, [setSidebarMobile])
 
 	if (!mounted) {
 		return null
-	}
-
-	const toggleCollapse = () => {
-		setCollapsed(!collapsed)
 	}
 
 	if (isMobile) {
@@ -224,7 +226,7 @@ export function Sidebar() {
 
 	return (
 		<div className="hidden md:block">
-			<SidebarContent collapsed={collapsed} onToggleCollapse={toggleCollapse} />
+			<SidebarContent collapsed={collapsed} onToggleCollapse={toggleSidebar} />
 		</div>
 	)
 }

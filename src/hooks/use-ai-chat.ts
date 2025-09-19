@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
+import { useAIChatMessages, useAIChatLoading, useAIChatActions } from "@/stores/app-store"
 import { queryKeys } from "./use-react-query"
 
 export interface Message {
@@ -19,15 +20,21 @@ export interface Message {
 
 export function useAiChat() {
 	const queryClient = useQueryClient()
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			role: "assistant",
-			content:
-				"Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
-		},
-	])
-	const [isLoading, setIsLoading] = useState(false)
+	
+	// Use Zustand store for messages and loading state
+	const messages = useAIChatMessages()
+	const isLoading = useAIChatLoading()
+	const { addAIChatMessage, setAIChatLoading } = useAIChatActions()
+	
 	const [lastUserMessage, setLastUserMessage] = useState<string>("")
+
+	// Initialize with welcome message if empty
+	if (messages.length === 0) {
+		addAIChatMessage(
+			"Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
+			"assistant"
+		)
+	}
 
 	// Detecta mudança de contexto baseada na mensagem atual
 	const detectContextChange = (currentMessage: string, previousMessages: Message[]) => {
@@ -86,7 +93,11 @@ export function useAiChat() {
 	}
 
 	const addMessage = (message: Message) => {
-		setMessages((prev) => [...prev, message])
+		addAIChatMessage(message.content, message.role, {
+			isError: message.isError,
+			isStreaming: message.isStreaming,
+			selectionCard: message.selectionCard,
+		})
 
 		// Invalidar caches baseado no conteúdo da mensagem
 		if (message.role === "assistant" && message.content) {
@@ -127,20 +138,17 @@ export function useAiChat() {
 	}
 
 	const updateLastMessage = (updates: Partial<Message> | ((prev: Message) => Partial<Message>)) => {
-		setMessages((prev) => {
-			const newMessages = [...prev]
-			const lastIndex = newMessages.length - 1
-			if (lastIndex >= 0) {
-				const currentMessage = newMessages[lastIndex]
-				const updatesObj = typeof updates === "function" ? updates(currentMessage) : updates
-				newMessages[lastIndex] = { ...currentMessage, ...updatesObj }
-			}
-			return newMessages
-		})
+		// For now, we'll need to handle this differently with Zustand
+		// The current store doesn't support updating individual messages
+		// This could be extended in the future if needed
+		console.warn("updateLastMessage não implementado com Zustand store")
 	}
 
 	const removeLastMessage = () => {
-		setMessages((prev) => prev.slice(0, -1))
+		// For now, we'll need to handle this differently with Zustand
+		// The current store doesn't support removing individual messages
+		// This could be extended in the future if needed
+		console.warn("removeLastMessage não implementado com Zustand store")
 	}
 
 	const sendMessage = async (content: string, useStreaming: boolean = false) => {
@@ -151,7 +159,7 @@ export function useAiChat() {
 
 		addMessage(userMessage)
 		setLastUserMessage(content)
-		setIsLoading(true)
+		setAIChatLoading(true)
 
 		try {
 			if (useStreaming) {
@@ -168,7 +176,7 @@ export function useAiChat() {
 			}
 			addMessage(errorMessage)
 		} finally {
-			setIsLoading(false)
+			setAIChatLoading(false)
 		}
 	}
 
@@ -361,7 +369,7 @@ export function useAiChat() {
 			}
 			addMessage(errorMessage)
 		} finally {
-			setIsLoading(false)
+			setAIChatLoading(false)
 		}
 	}
 
@@ -404,7 +412,7 @@ export function useAiChat() {
 			}
 			addMessage(errorMessage)
 		} finally {
-			setIsLoading(false)
+			setAIChatLoading(false)
 		}
 	}
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { FixedSizeList as List, type ListChildComponentProps } from "react-window"
+import { FixedSizeList, type ListChildComponentProps } from "react-window"
 import { useMemo } from "react"
 
 interface VirtualizedListProps<T> {
@@ -29,7 +29,7 @@ export function VirtualizedList<T>({
 	if (items.length === 0) return null
 
 	return (
-		<List
+		<FixedSizeList
 			className={className}
 			height={height}
 			itemCount={items.length}
@@ -37,6 +37,6 @@ export function VirtualizedList<T>({
 			width="100%"
 		>
 			{Row}
-		</List>
+		</FixedSizeList>
 	)
 }
