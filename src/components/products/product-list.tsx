@@ -7,7 +7,6 @@ import { motion } from "framer-motion"
 import { memo, useMemo } from "react"
 import { SwipeableCard } from "@/components/ui/swipeable-card"
 import { AnimatedList, ListItem } from "@/components/ui/animated-list"
-import { VirtualizedList } from "@/components/ui/virtualized-list"
 import { ProductCard } from "./product-card"
 import { useMobile } from "@/hooks/use-mobile"
 
@@ -82,24 +81,8 @@ export const ProductList = memo(function ProductList({ products, onEdit, onDelet
 		)
 	}
 
-	// Use virtualization for large lists (>50 items)
-	if (products.length > 50) {
-		return (
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.2 }}
-			>
-				<VirtualizedList
-					items={products}
-					height={600} // 6 rows of ~100px each
-					itemHeight={120}
-					renderItem={renderProductItem}
-					className="w-full"
-				/>
-			</motion.div>
-		)
-	}
+	// For large lists, use regular grid (virtualization removed)
+	// Note: Could implement react-window or react-virtualized in the future if needed
 
 	return (
 		<motion.div 

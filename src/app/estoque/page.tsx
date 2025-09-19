@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, lazy } from "react"
-import { StockSkeleton } from "@/components/skeletons/stock-skeleton"
+import StockSkeleton from "@/components/skeletons/stock-skeleton"
 
 const EstoqueClient = lazy(() =>
 	import("./estoque-client").then((module) => ({ default: module.EstoqueClient }))

@@ -159,7 +159,7 @@ export function ReceitasClient() {
 						</div>
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{recipes?.map((recipe) => (
+							{recipes?.map((recipe: any) => (
 								<Card key={recipe.id} className="hover:shadow-md transition-shadow">
 									<CardHeader>
 										<CardTitle className="text-lg">{recipe.name}</CardTitle>
@@ -175,7 +175,7 @@ export function ReceitasClient() {
 											<div className="mb-3">
 												<p className="text-xs font-medium text-gray-500 mb-1">Ingredientes:</p>
 												<div className="flex flex-wrap gap-1">
-													{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
+													{recipe.ingredients.slice(0, 3).map((ingredient: any, index: number) => (
 														<span
 															key={index}
 															className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded"

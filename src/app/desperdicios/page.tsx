@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, lazy } from "react"
-import { WasteSkeleton } from "@/components/skeletons/waste-skeleton"
+import WasteSkeleton from "@/components/skeletons/waste-skeleton"
 
 const DesperdiciosClient = lazy(() =>
 	import("./desperdicios-client").then((module) => ({ default: module.default }))

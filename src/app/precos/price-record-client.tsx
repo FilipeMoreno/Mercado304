@@ -150,8 +150,8 @@ export function PriceRecordClient() {
 		}
 
 		// Encontrar produto e mercado pelos IDs
-		const selectedProduct = products.find((p) => p.id === formData.productId)
-		const selectedMarket = markets.find((m) => m.id === formData.marketId)
+		const selectedProduct = products.find((p: any) => p.id === formData.productId)
+		const selectedMarket = markets.find((m: any) => m.id === formData.marketId)
 
 		if (!selectedProduct || !selectedMarket) {
 			toast.error("Produto ou mercado selecionado é inválido")

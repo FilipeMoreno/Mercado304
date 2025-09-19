@@ -319,7 +319,7 @@ export function useAiChat() {
 	const retryLastMessage = async () => {
 		if (!lastUserMessage.trim() || isLoading) return
 
-		setIsLoading(true)
+		setAIChatLoading(true)
 		await sendMessage(lastUserMessage)
 	}
 
@@ -332,7 +332,7 @@ export function useAiChat() {
 			content: `Selecionei: ${option.name}`,
 		}
 		addMessage(selectionMessage)
-		setIsLoading(true)
+		setAIChatLoading(true)
 
 		try {
 			const response = await fetch("/api/ai/assistant", {
@@ -381,7 +381,7 @@ export function useAiChat() {
 		const userMessage: Message = { role: "user", content: churrascoMessage }
 		addMessage(userMessage)
 		setLastUserMessage(churrascoMessage)
-		setIsLoading(true)
+		setAIChatLoading(true)
 
 		try {
 			const response = await fetch("/api/ai/assistant", {
