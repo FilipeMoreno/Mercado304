@@ -92,6 +92,31 @@ export const tools: any = [
 				},
 			},
 			{
+				name: "analyzeCostBenefit",
+				description: "Analisa o custo-benefício entre dois ou mais produtos considerando quantidade, preço e valor por unidade.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						products: {
+							type: SchemaType.ARRAY,
+							description: "Lista de produtos para comparar",
+							items: {
+								type: SchemaType.OBJECT,
+								properties: {
+									name: { type: SchemaType.STRING, description: "Nome do produto" },
+									price: { type: SchemaType.NUMBER, description: "Preço do produto" },
+									quantity: { type: SchemaType.NUMBER, description: "Quantidade (volume/peso)" },
+									unit: { type: SchemaType.STRING, description: "Unidade de medida (L, ml, kg, g, unidade)" },
+									market: { type: SchemaType.STRING, description: "Nome do mercado (opcional)" }
+								},
+								required: ["name", "price", "quantity", "unit"]
+							}
+						}
+					},
+					required: ["products"]
+				}
+			},
+			{
 				name: "getBestDayToBuy",
 				description: "Identifica o melhor dia da semana para comprar um produto com base no histórico de preços.",
 				parameters: {
