@@ -26,7 +26,8 @@ export function AiAssistantChat() {
 	const [position, setPosition] = useState({ x: 16, y: 16 }) // bottom-4 right-4 = 16px
 	const [isDragging, setIsDragging] = useState(false)
 	const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-	const [dragStartTime, setDragStartTime] = useState(0)
+	const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
+	const [isLongPress, setIsLongPress] = useState(false)
 	
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
@@ -59,12 +60,12 @@ export function AiAssistantChat() {
 		localStorage.setItem('ai-assistant-position', JSON.stringify(position))
 	}, [position])
 
-	// Funções para arrastar o botão
+	// Funções para arrastar o botão - somente com long press
 	const handleMouseDown = useCallback((e: React.MouseEvent) => {
 		if (isOpen) return // Não permitir arrastar quando o chat estiver aberto
 		
 		e.preventDefault()
-		setDragStartTime(Date.now())
+		setIsLongPress(false)
 		
 		const rect = (e.target as HTMLElement).getBoundingClientRect()
 		setDragOffset({
@@ -72,13 +73,14 @@ export function AiAssistantChat() {
 			y: e.clientY - rect.top
 		})
 		
-		// Delay para iniciar o drag, permitindo cliques normais
-		setTimeout(() => {
-			if (Date.now() - dragStartTime >= 150) {
-				setIsDragging(true)
-			}
-		}, 150)
-	}, [isOpen, dragStartTime])
+		// Iniciar timer para long press (800ms)
+		const timer = setTimeout(() => {
+			setIsLongPress(true)
+			setIsDragging(true)
+		}, 800)
+		
+		setLongPressTimer(timer)
+	}, [isOpen])
 
 	const handleMouseMove = useCallback((e: MouseEvent) => {
 		if (!isDragging) return
@@ -105,8 +107,15 @@ export function AiAssistantChat() {
 	}, [isDragging, dragOffset])
 
 	const handleMouseUp = useCallback(() => {
+		// Cancelar timer se ainda estiver ativo
+		if (longPressTimer) {
+			clearTimeout(longPressTimer)
+			setLongPressTimer(null)
+		}
+		
 		setIsDragging(false)
-	}, [])
+		setIsLongPress(false)
+	}, [longPressTimer])
 
 	// Event listeners para arrastar
 	useEffect(() => {
@@ -125,7 +134,7 @@ export function AiAssistantChat() {
 		if (isOpen) return
 		
 		e.preventDefault()
-		setIsDragging(true)
+		setIsLongPress(false)
 		
 		const touch = e.touches[0]
 		const rect = (e.target as HTMLElement).getBoundingClientRect()
@@ -133,6 +142,14 @@ export function AiAssistantChat() {
 			x: touch.clientX - rect.left,
 			y: touch.clientY - rect.top
 		})
+		
+		// Iniciar timer para long press no mobile (800ms)
+		const timer = setTimeout(() => {
+			setIsLongPress(true)
+			setIsDragging(true)
+		}, 800)
+		
+		setLongPressTimer(timer)
 	}, [isOpen])
 
 	const handleTouchMove = useCallback((e: TouchEvent) => {
@@ -160,8 +177,15 @@ export function AiAssistantChat() {
 	}, [isDragging, dragOffset])
 
 	const handleTouchEnd = useCallback(() => {
+		// Cancelar timer se ainda estiver ativo
+		if (longPressTimer) {
+			clearTimeout(longPressTimer)
+			setLongPressTimer(null)
+		}
+		
 		setIsDragging(false)
-	}, [])
+		setIsLongPress(false)
+	}, [longPressTimer])
 
 	// Touch event listeners
 	useEffect(() => {
@@ -174,6 +198,15 @@ export function AiAssistantChat() {
 			}
 		}
 	}, [isDragging, handleTouchMove, handleTouchEnd])
+
+	// Limpeza do timer ao desmontar o componente
+	useEffect(() => {
+		return () => {
+			if (longPressTimer) {
+				clearTimeout(longPressTimer)
+			}
+		}
+	}, [longPressTimer])
 
 	// Configurar assistente de voz
 	useEffect(() => {
@@ -289,10 +322,10 @@ export function AiAssistantChat() {
 	)
 
 	const handleOpenChat = useCallback(() => {
-		// Não abrir o chat se estiver arrastando ou se foi um drag recente
-		if (isDragging || (Date.now() - dragStartTime < 200)) return
+		// Não abrir o chat se estiver arrastando ou se foi um long press
+		if (isDragging || isLongPress) return
 		setIsOpen(true)
-	}, [isDragging, dragStartTime])
+	}, [isDragging, isLongPress])
 
 	const handleCloseChat = useCallback(() => {
 		setIsOpen(false)
@@ -481,11 +514,13 @@ export function AiAssistantChat() {
 									repeatType: "reverse",
 								},
 							}}
-							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-${isDragging ? 'grabbing' : 'grab'} select-none ${
+							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-${isDragging ? 'grabbing' : 'pointer'} select-none ${
 								isListening || isSpeaking 
 									? 'border-red-400 shadow-red-400/50' 
 									: isDragging 
 									? 'border-yellow-400 shadow-yellow-400/50'
+									: isLongPress
+									? 'border-orange-400 shadow-orange-400/50'
 									: 'border-white/20'
 							}`}
 							style={{
