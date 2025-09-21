@@ -52,6 +52,10 @@ export default function NovoProdutoPage() {
 	})
 
 	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo>>({})
+	
+	// Estados para erros específicos de campos
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+	const [showFieldErrors, setShowFieldErrors] = useState(false)
 
 	useEffect(() => {
 		fetchCategories()
@@ -67,12 +71,80 @@ export default function NovoProdutoPage() {
 		return selectedCategory?.isFood === true
 	}, [formData.categoryId, categories])
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-		if (!formData.name.trim()) {
-			AppToasts.error("O nome do produto é obrigatório.")
+	// Funções para gerenciar erros de campos
+	const clearFieldError = (field: string) => {
+		setFieldErrors(prev => {
+			const newErrors = { ...prev }
+			delete newErrors[field]
+			return newErrors
+		})
+	}
+
+	const setFieldError = (field: string, message: string) => {
+		setFieldErrors(prev => ({
+			...prev,
+			[field]: message
+		}))
+		setShowFieldErrors(true)
+	}
+
+	const clearAllErrors = () => {
+		setFieldErrors({})
+		setShowFieldErrors(false)
+	}
+
+	// Função para mapear erros da API para campos específicos
+	const parseApiError = (error: string, status: number) => {
+		clearAllErrors()
+		
+		// Erro de conflito - código de barras duplicado
+		if (status === 409) {
+			if (error.includes("Código de barras") || error.includes("código de barras")) {
+				setFieldError("barcode", error)
+				AppToasts.error("⚠️ Código de barras já existe!")
+				return
+			}
+		}
+		
+		// Erro de validação - campo obrigatório
+		if (status === 400) {
+			if (error.includes("Nome é obrigatório") || error.includes("name")) {
+				setFieldError("name", "Por favor, digite o nome do produto")
+				AppToasts.error("❌ Nome do produto é obrigatório")
+				return
+			}
+		}
+		
+		// Erros relacionados ao código de barras
+		if (error.toLowerCase().includes("barcode") || error.toLowerCase().includes("código")) {
+			setFieldError("barcode", error)
+			AppToasts.error("❌ Erro no código de barras")
 			return
 		}
+		
+		// Erros relacionados ao nome
+		if (error.toLowerCase().includes("name") || error.toLowerCase().includes("nome")) {
+			setFieldError("name", error)
+			AppToasts.error("❌ Erro no nome do produto")
+			return
+		}
+		
+		// Erro genérico se não conseguir mapear
+		AppToasts.error(`❌ ${error}`)
+	}
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault()
+		
+		// Limpar erros anteriores
+		clearAllErrors()
+		
+		// Validação local
+		if (!formData.name.trim()) {
+			setFieldError("name", "O nome do produto é obrigatório")
+			return
+		}
+		
 		setLoading(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData).some(
@@ -113,13 +185,7 @@ export default function NovoProdutoPage() {
 				}
 			} else {
 				const errorData = await response.json()
-				
-				// Tratamento específico para erro de código de barras duplicado
-				if (response.status === 409) {
-					AppToasts.error(errorData.error)
-				} else {
-					AppToasts.error(errorData.error || "Erro ao criar produto")
-				}
+				parseApiError(errorData.error || "Erro ao criar produto", response.status)
 			}
 		} catch (error) {
 			AppToasts.error(error, "Erro ao criar produto")
@@ -129,7 +195,13 @@ export default function NovoProdutoPage() {
 	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+		const { name, value } = e.target
+		setFormData((prev) => ({ ...prev, [name]: value }))
+		
+		// Limpar erro do campo quando o usuário começar a digitar
+		if (fieldErrors[name]) {
+			clearFieldError(name)
+		}
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
@@ -197,7 +269,11 @@ export default function NovoProdutoPage() {
 									onChange={handleChange}
 									placeholder="Ex: Arroz Branco"
 									required
+									className={fieldErrors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 								/>
+								{fieldErrors.name && (
+									<p className="text-sm text-red-600 mt-1">{fieldErrors.name}</p>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="barcode">Código de Barras</Label>
@@ -208,11 +284,15 @@ export default function NovoProdutoPage() {
 										value={formData.barcode}
 										onChange={handleChange}
 										placeholder="Digite ou escaneie o código"
+										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 									/>
 									<Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)}>
 										<Camera className="h-4 w-4" />
 									</Button>
 								</div>
+								{fieldErrors.barcode && (
+									<p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>

@@ -51,6 +51,10 @@ export default function EditarProdutoPage() {
 	})
 
 	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo> | null>(null)
+	
+	// Estados para erros específicos de campos
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+	const [showFieldErrors, setShowFieldErrors] = useState(false)
 
 	useEffect(() => {
 		fetchCategories()
@@ -61,6 +65,68 @@ export default function EditarProdutoPage() {
 		const selectedCategory = categories.find((cat) => cat.id === formData.categoryId)
 		return selectedCategory?.isFood === true
 	}, [formData.categoryId, categories])
+
+	// Funções para gerenciar erros de campos
+	const clearFieldError = (field: string) => {
+		setFieldErrors(prev => {
+			const newErrors = { ...prev }
+			delete newErrors[field]
+			return newErrors
+		})
+	}
+
+	const setFieldError = (field: string, message: string) => {
+		setFieldErrors(prev => ({
+			...prev,
+			[field]: message
+		}))
+		setShowFieldErrors(true)
+	}
+
+	const clearAllErrors = () => {
+		setFieldErrors({})
+		setShowFieldErrors(false)
+	}
+
+	// Função para mapear erros da API para campos específicos
+	const parseApiError = (error: string, status: number) => {
+		clearAllErrors()
+		
+		// Erro de conflito - código de barras duplicado
+		if (status === 409) {
+			if (error.includes("Código de barras") || error.includes("código de barras")) {
+				setFieldError("barcode", error)
+				toast.error("⚠️ Código de barras já existe!")
+				return
+			}
+		}
+		
+		// Erro de validação - campo obrigatório
+		if (status === 400) {
+			if (error.includes("Nome é obrigatório") || error.includes("name")) {
+				setFieldError("name", "Por favor, digite o nome do produto")
+				toast.error("❌ Nome do produto é obrigatório")
+				return
+			}
+		}
+		
+		// Erros relacionados ao código de barras
+		if (error.toLowerCase().includes("barcode") || error.toLowerCase().includes("código")) {
+			setFieldError("barcode", error)
+			toast.error("❌ Erro no código de barras")
+			return
+		}
+		
+		// Erros relacionados ao nome
+		if (error.toLowerCase().includes("name") || error.toLowerCase().includes("nome")) {
+			setFieldError("name", error)
+			toast.error("❌ Erro no nome do produto")
+			return
+		}
+		
+		// Erro genérico se não conseguir mapear
+		toast.error(`❌ ${error}`)
+	}
 
 	useEffect(() => {
 		if (productId) {
@@ -106,10 +172,16 @@ export default function EditarProdutoPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		
+		// Limpar erros anteriores
+		clearAllErrors()
+		
+		// Validação local
 		if (!formData.name.trim()) {
-			toast.error("Nome do produto é obrigatório")
+			setFieldError("name", "Nome do produto é obrigatório")
 			return
 		}
+		
 		setSaving(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData || {}).some(
@@ -133,13 +205,7 @@ export default function EditarProdutoPage() {
 				router.refresh()
 			} else {
 				const errorData = await response.json()
-				
-				// Tratamento específico para erro de código de barras duplicado
-				if (response.status === 409) {
-					toast.error(errorData.error)
-				} else {
-					toast.error(errorData.error || "Erro ao atualizar produto")
-				}
+				parseApiError(errorData.error || "Erro ao atualizar produto", response.status)
 			}
 		} catch (error) {
 			console.error("Erro ao atualizar produto:", error)
@@ -150,7 +216,13 @@ export default function EditarProdutoPage() {
 	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+		const { name, value } = e.target
+		setFormData((prev) => ({ ...prev, [name]: value }))
+		
+		// Limpar erro do campo quando o usuário começar a digitar
+		if (fieldErrors[name]) {
+			clearFieldError(name)
+		}
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
@@ -244,7 +316,11 @@ export default function EditarProdutoPage() {
 									onChange={handleChange}
 									placeholder="Ex: Leite Integral"
 									required
+									className={fieldErrors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 								/>
+								{fieldErrors.name && (
+									<p className="text-sm text-red-600 mt-1">{fieldErrors.name}</p>
+								)}
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
@@ -286,7 +362,11 @@ export default function EditarProdutoPage() {
 										value={formData.barcode}
 										onChange={handleChange}
 										placeholder="Ex: 7891234567890"
+										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 									/>
+									{fieldErrors.barcode && (
+										<p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>
+									)}
 								</div>
 							</div>
 							<div className="space-y-4 pt-4 border-t">
