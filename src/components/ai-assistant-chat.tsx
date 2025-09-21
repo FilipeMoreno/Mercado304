@@ -22,6 +22,12 @@ export function AiAssistantChat() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	
+	// Estados para arrastar o botão
+	const [position, setPosition] = useState({ x: 16, y: 16 }) // bottom-4 right-4 = 16px
+	const [isDragging, setIsDragging] = useState(false)
+	const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+	const [dragStartTime, setDragStartTime] = useState(0)
+	
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 	
@@ -34,6 +40,140 @@ export function AiAssistantChat() {
 		handleSelection,
 		handleChurrascoCalculate,
 	} = useAiChat()
+
+	// Carregar posição salva do localStorage
+	useEffect(() => {
+		const savedPosition = localStorage.getItem('ai-assistant-position')
+		if (savedPosition) {
+			try {
+				const parsed = JSON.parse(savedPosition)
+				setPosition(parsed)
+			} catch (error) {
+				console.error('Erro ao carregar posição salva:', error)
+			}
+		}
+	}, [])
+
+	// Salvar posição no localStorage quando mudar
+	useEffect(() => {
+		localStorage.setItem('ai-assistant-position', JSON.stringify(position))
+	}, [position])
+
+	// Funções para arrastar o botão
+	const handleMouseDown = useCallback((e: React.MouseEvent) => {
+		if (isOpen) return // Não permitir arrastar quando o chat estiver aberto
+		
+		e.preventDefault()
+		setDragStartTime(Date.now())
+		
+		const rect = (e.target as HTMLElement).getBoundingClientRect()
+		setDragOffset({
+			x: e.clientX - rect.left,
+			y: e.clientY - rect.top
+		})
+		
+		// Delay para iniciar o drag, permitindo cliques normais
+		setTimeout(() => {
+			if (Date.now() - dragStartTime >= 150) {
+				setIsDragging(true)
+			}
+		}, 150)
+	}, [isOpen, dragStartTime])
+
+	const handleMouseMove = useCallback((e: MouseEvent) => {
+		if (!isDragging) return
+		
+		e.preventDefault()
+		
+		// Calcular nova posição baseada no cursor
+		const buttonSize = 64 // 64px = largura/altura do botão
+		const margin = 16 // Margem mínima das bordas
+		
+		// Calcular posição absoluta do botão
+		const buttonX = e.clientX - dragOffset.x
+		const buttonY = e.clientY - dragOffset.y
+		
+		// Converter para coordenadas bottom/right para o CSS
+		const newX = window.innerWidth - buttonX - buttonSize
+		const newY = window.innerHeight - buttonY - buttonSize
+		
+		// Limitar às bordas da tela
+		const constrainedX = Math.max(margin, Math.min(window.innerWidth - buttonSize - margin, newX))
+		const constrainedY = Math.max(margin, Math.min(window.innerHeight - buttonSize - margin, newY))
+		
+		setPosition({ x: constrainedX, y: constrainedY })
+	}, [isDragging, dragOffset])
+
+	const handleMouseUp = useCallback(() => {
+		setIsDragging(false)
+	}, [])
+
+	// Event listeners para arrastar
+	useEffect(() => {
+		if (isDragging) {
+			document.addEventListener('mousemove', handleMouseMove)
+			document.addEventListener('mouseup', handleMouseUp)
+			return () => {
+				document.removeEventListener('mousemove', handleMouseMove)
+				document.removeEventListener('mouseup', handleMouseUp)
+			}
+		}
+	}, [isDragging, handleMouseMove, handleMouseUp])
+
+	// Touch events para mobile
+	const handleTouchStart = useCallback((e: React.TouchEvent) => {
+		if (isOpen) return
+		
+		e.preventDefault()
+		setIsDragging(true)
+		
+		const touch = e.touches[0]
+		const rect = (e.target as HTMLElement).getBoundingClientRect()
+		setDragOffset({
+			x: touch.clientX - rect.left,
+			y: touch.clientY - rect.top
+		})
+	}, [isOpen])
+
+	const handleTouchMove = useCallback((e: TouchEvent) => {
+		if (!isDragging) return
+		
+		e.preventDefault()
+		
+		const touch = e.touches[0]
+		const buttonSize = 64
+		const margin = 16
+		
+		// Calcular posição absoluta do botão
+		const buttonX = touch.clientX - dragOffset.x
+		const buttonY = touch.clientY - dragOffset.y
+		
+		// Converter para coordenadas bottom/right para o CSS
+		const newX = window.innerWidth - buttonX - buttonSize
+		const newY = window.innerHeight - buttonY - buttonSize
+		
+		// Limitar às bordas da tela
+		const constrainedX = Math.max(margin, Math.min(window.innerWidth - buttonSize - margin, newX))
+		const constrainedY = Math.max(margin, Math.min(window.innerHeight - buttonSize - margin, newY))
+		
+		setPosition({ x: constrainedX, y: constrainedY })
+	}, [isDragging, dragOffset])
+
+	const handleTouchEnd = useCallback(() => {
+		setIsDragging(false)
+	}, [])
+
+	// Touch event listeners
+	useEffect(() => {
+		if (isDragging) {
+			document.addEventListener('touchmove', handleTouchMove, { passive: false })
+			document.addEventListener('touchend', handleTouchEnd)
+			return () => {
+				document.removeEventListener('touchmove', handleTouchMove)
+				document.removeEventListener('touchend', handleTouchEnd)
+			}
+		}
+	}, [isDragging, handleTouchMove, handleTouchEnd])
 
 	// Configurar assistente de voz
 	useEffect(() => {
@@ -149,15 +289,24 @@ export function AiAssistantChat() {
 	)
 
 	const handleOpenChat = useCallback(() => {
+		// Não abrir o chat se estiver arrastando ou se foi um drag recente
+		if (isDragging || (Date.now() - dragStartTime < 200)) return
 		setIsOpen(true)
-	}, [])
+	}, [isDragging, dragStartTime])
 
 	const handleCloseChat = useCallback(() => {
 		setIsOpen(false)
 	}, [])
 
 	return (
-		<div className="fixed bottom-4 right-4 z-[100]">
+		<div 
+			className="fixed z-[100]" 
+			style={{ 
+				bottom: `${position.y}px`, 
+				right: `${position.x}px`,
+				transition: isDragging ? 'none' : 'all 0.3s ease'
+			}}
+		>
 			<div className="relative">
 				<AnimatePresence>
 					{isOpen && (
@@ -295,12 +444,16 @@ export function AiAssistantChat() {
 						<motion.button
 							key="bubble"
 							onClick={handleOpenChat}
+							onMouseDown={handleMouseDown}
+							onTouchStart={handleTouchStart}
 							initial={{ opacity: 0, scale: 0.5, y: 40 }}
 							animate={{
 								opacity: 1,
-								scale: 1,
+								scale: isDragging ? 1.1 : 1,
 								y: 0,
-								boxShadow: [
+								boxShadow: isDragging ? [
+									"0 8px 30px rgba(59, 130, 246, 0.6)",
+								] : [
 									"0 4px 20px rgba(59, 130, 246, 0.4)",
 									"0 8px 30px rgba(59, 130, 246, 0.6)",
 									"0 4px 20px rgba(59, 130, 246, 0.4)",
@@ -312,27 +465,34 @@ export function AiAssistantChat() {
 								y: 40,
 								transition: { duration: 0.2 },
 							}}
-							whileHover={{
+							whileHover={!isDragging ? {
 								scale: 1.1,
 								boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
-							}}
-							whileTap={{ scale: 0.95 }}
+							} : {}}
+							whileTap={!isDragging ? { scale: 0.95 } : {}}
 							transition={{
 								duration: 0.3,
 								type: "spring",
 								stiffness: 400,
 								damping: 20,
 								boxShadow: {
-									duration: 2,
-									repeat: Infinity,
+									duration: isDragging ? 0.5 : 2,
+									repeat: isDragging ? 0 : Infinity,
 									repeatType: "reverse",
 								},
 							}}
-							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 ${
+							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-${isDragging ? 'grabbing' : 'grab'} select-none ${
 								isListening || isSpeaking 
 									? 'border-red-400 shadow-red-400/50' 
+									: isDragging 
+									? 'border-yellow-400 shadow-yellow-400/50'
 									: 'border-white/20'
 							}`}
+							style={{
+								userSelect: 'none',
+								WebkitUserSelect: 'none',
+								touchAction: 'none'
+							}}
 						>
 							{isListening ? (
 								<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
