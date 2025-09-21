@@ -132,8 +132,14 @@ export default function EditarProdutoPage() {
 				router.push(`/produtos/${productId}`)
 				router.refresh()
 			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao atualizar produto")
+				const errorData = await response.json()
+				
+				// Tratamento específico para erro de código de barras duplicado
+				if (response.status === 409) {
+					toast.error(errorData.error)
+				} else {
+					toast.error(errorData.error || "Erro ao atualizar produto")
+				}
 			}
 		} catch (error) {
 			console.error("Erro ao atualizar produto:", error)

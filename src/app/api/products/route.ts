@@ -92,6 +92,20 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
 		}
 
+		// Verificar se o código de barras já existe
+		if (barcode) {
+			const existingProduct = await prisma.product.findUnique({
+				where: { barcode },
+				select: { id: true, name: true }
+			})
+
+			if (existingProduct) {
+				return NextResponse.json({ 
+					error: `Código de barras já cadastrado para o produto: ${existingProduct.name}` 
+				}, { status: 409 })
+			}
+		}
+
 		const product = await prisma.product.create({
 			data: {
 				name,

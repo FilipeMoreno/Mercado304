@@ -92,6 +92,7 @@ export default function NovoProdutoPage() {
 			})
 			if (response.ok) {
 				const newProduct = await response.json()
+				AppToasts.success("Produto criado com sucesso!")
 				const returnTo = searchParams.get("returnTo")
 				const storageKey = searchParams.get("storageKey")
 				if (returnTo && storageKey) {
@@ -111,8 +112,14 @@ export default function NovoProdutoPage() {
 					router.push("/produtos")
 				}
 			} else {
-				const error = await response.json()
-				AppToasts.error(error, "Erro ao criar produto")
+				const errorData = await response.json()
+				
+				// Tratamento específico para erro de código de barras duplicado
+				if (response.status === 409) {
+					AppToasts.error(errorData.error)
+				} else {
+					AppToasts.error(errorData.error || "Erro ao criar produto")
+				}
 			}
 		} catch (error) {
 			AppToasts.error(error, "Erro ao criar produto")
