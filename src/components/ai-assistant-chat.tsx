@@ -331,6 +331,63 @@ export function AiAssistantChat() {
 		setIsOpen(false)
 	}, [])
 
+	// Função para calcular a melhor posição do diálogo baseado na posição do botão
+	const calculateDialogPosition = useCallback(() => {
+		const screenWidth = window.innerWidth
+		const screenHeight = window.innerHeight
+		const dialogWidth = 384 // w-96 = 384px
+		const dialogHeight = 500 // altura aproximada do diálogo
+		const buttonSize = 64
+		const margin = 16
+
+		// Posição atual do botão (convertida de bottom/right para top/left)
+		const buttonLeft = screenWidth - position.x - buttonSize
+		const buttonTop = screenHeight - position.y - buttonSize
+
+		// Determinar posicionamento horizontal
+		let horizontalPosition = 'right'
+		let leftOffset = 0
+		let rightOffset = 0
+
+		if (buttonLeft < dialogWidth / 2) {
+			// Botão está muito à esquerda - abrir à direita
+			horizontalPosition = 'left'
+			leftOffset = buttonSize + margin
+		} else if (buttonLeft > screenWidth - dialogWidth / 2) {
+			// Botão está muito à direita - abrir à esquerda  
+			horizontalPosition = 'right'
+			rightOffset = buttonSize + margin
+		} else {
+			// Botão está no centro - centralizar diálogo
+			horizontalPosition = 'center'
+			rightOffset = (buttonSize - dialogWidth) / 2
+		}
+
+		// Determinar posicionamento vertical
+		let verticalPosition = 'bottom'
+		let topOffset = 0
+		let bottomOffset = 0
+
+		if (buttonTop < dialogHeight / 2) {
+			// Botão está muito no topo - abrir abaixo
+			verticalPosition = 'top'
+			topOffset = buttonSize + margin
+		} else {
+			// Botão está na parte inferior ou centro - abrir acima (padrão)
+			verticalPosition = 'bottom'
+			bottomOffset = buttonSize + margin
+		}
+
+		return {
+			horizontal: horizontalPosition,
+			vertical: verticalPosition,
+			leftOffset,
+			rightOffset,
+			topOffset,
+			bottomOffset
+		}
+	}, [position])
+
 	return (
 		<div 
 			className="fixed z-[100]" 
@@ -342,21 +399,92 @@ export function AiAssistantChat() {
 		>
 			<div className="relative">
 				<AnimatePresence>
-					{isOpen && (
-						<motion.div
-							key="chat"
-							initial={{ opacity: 0, scale: 0.8, y: 50 }}
-							animate={{ opacity: 1, scale: 1, y: 0 }}
-							exit={{ opacity: 0, scale: 0.7, y: 50, transition: { duration: 0.2 } }}
-							transition={{
-								duration: 0.4,
-								type: "spring",
-								stiffness: 300,
-								damping: 30,
-							}}
-							className="absolute bottom-0 right-0 w-96"
-						>
-							<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90">
+					{isOpen && (() => {
+						const dialogPos = calculateDialogPosition()
+						
+						// Calcular classes CSS dinâmicas baseadas na posição
+						let positionClasses = "absolute w-96"
+						let style: React.CSSProperties = {}
+						
+						// Posicionamento horizontal
+						if (dialogPos.horizontal === 'left') {
+							positionClasses += " left-0"
+							style.left = `${dialogPos.leftOffset}px`
+						} else if (dialogPos.horizontal === 'right') {
+							positionClasses += " right-0"
+							style.right = `${dialogPos.rightOffset}px`
+						} else {
+							// center
+							positionClasses += " right-0"
+							style.right = `${dialogPos.rightOffset}px`
+						}
+						
+						// Posicionamento vertical
+						if (dialogPos.vertical === 'top') {
+							positionClasses += " top-0"
+							style.top = `${dialogPos.topOffset}px`
+						} else {
+							positionClasses += " bottom-0"
+							style.bottom = `${dialogPos.bottomOffset}px`
+						}
+
+						// Animações baseadas na posição
+						const getInitialAnimation = () => {
+							const scale = 0.8
+							const opacity = 0
+							let x = 0, y = 0
+							
+							if (dialogPos.horizontal === 'left') {
+								x = -50 // Vem da esquerda
+							} else if (dialogPos.horizontal === 'right') {
+								x = 50 // Vem da direita
+							}
+							
+							if (dialogPos.vertical === 'top') {
+								y = -50 // Vem de cima
+							} else {
+								y = 50 // Vem de baixo
+							}
+							
+							return { opacity, scale, x, y }
+						}
+
+						const getExitAnimation = () => {
+							const scale = 0.7
+							const opacity = 0
+							let x = 0, y = 0
+							
+							if (dialogPos.horizontal === 'left') {
+								x = -50
+							} else if (dialogPos.horizontal === 'right') {
+								x = 50
+							}
+							
+							if (dialogPos.vertical === 'top') {
+								y = -50
+							} else {
+								y = 50
+							}
+							
+							return { opacity, scale, x, y, transition: { duration: 0.2 } }
+						}
+
+						return (
+							<motion.div
+								key="chat"
+								initial={getInitialAnimation()}
+								animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+								exit={getExitAnimation()}
+								transition={{
+									duration: 0.4,
+									type: "spring",
+									stiffness: 300,
+									damping: 30,
+								}}
+								className={positionClasses}
+								style={style}
+							>
+								<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90">
 								<CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
 									<CardTitle className="flex items-center gap-2">
 										<div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -471,7 +599,7 @@ export function AiAssistantChat() {
 								</CardContent>
 							</Card>
 						</motion.div>
-					)}
+					)})()}
 
 					{!isOpen && (
 						<motion.button
