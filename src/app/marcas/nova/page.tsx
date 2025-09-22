@@ -33,7 +33,10 @@ export default function NovaMarcaPage() {
 			})
 
 			toast.success("Marca criada com sucesso!")
-			router.push("/marcas")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
+				router.push("/marcas")
+			}, 100)
 		} catch (error) {
 			console.error("Error creating brand:", error)
 			toast.error("Erro ao criar marca")

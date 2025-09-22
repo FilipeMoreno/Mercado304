@@ -208,7 +208,12 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 				</div>
 			</motion.div>
 
-			<div className="space-y-4">
+			<motion.div 
+				initial={{ opacity: 0 }} 
+				animate={{ opacity: 1 }} 
+				transition={{ delay: 0.1 }} 
+				className="space-y-4"
+			>
 				{isLoading ? (
 					<BrandsSkeleton />
 				) : brands.length === 0 ? (
@@ -254,12 +259,22 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								Página {state.page} de {totalPages}
 							</span>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-							{brands.map((brand: any) => (
-								<Card
+						<motion.div 
+							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.2 }}
+						>
+							{brands.map((brand: any, index: number) => (
+								<motion.div
 									key={brand.id}
-									className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.05 }}
 								>
+									<Card
+										className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
+									>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-3 mb-2">
 											<div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shadow-sm">
@@ -314,10 +329,11 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 												</DropdownMenuContent>
 											</DropdownMenu>
 										</div>
-									</CardFooter>
-								</Card>
+								</CardFooter>
+							</Card>
+								</motion.div>
 							))}
-						</div>
+						</motion.div>
 
 						{totalPages > 1 && (
 							<div className="flex justify-center items-center gap-2">
@@ -364,7 +380,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 						)}
 					</>
 				)}
-			</div>
+			</motion.div>
 
 			{/* Edit Dialog */}
 			<ResponsiveFormDialog

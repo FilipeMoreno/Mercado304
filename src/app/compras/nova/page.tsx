@@ -1,13 +1,12 @@
 "use client"
 
 import { addDays, format } from "date-fns"
-import { ArrowLeft, Box, Camera, Package, Plus, Save, Settings2, Trash2 } from "lucide-react"
+import { ArrowLeft, Box, Package, Plus, Save, Settings2, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { BarcodeScanner } from "@/components/barcode-scanner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { PriceAiInsight } from "@/components/price-ai-insight"
 import { PriceAlert } from "@/components/price-alert"
@@ -21,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCreatePurchaseMutation } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod, type Product } from "@/types"
@@ -41,12 +41,13 @@ interface PurchaseItem {
 export default function NovaCompraPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const createPurchaseMutation = useCreatePurchaseMutation()
 	const [products, setProducts] = useState<Product[]>([])
 	const [loading, setLoading] = useState(false)
 	const [dataLoading, setDataLoading] = useState(true)
 	const restoredRef = React.useRef(false)
 	const [showScanner, setShowScanner] = useState(false)
-	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
+	const [_showScannerIndex, setScanningForIndex] = useState<number | null>(null)
 
 	const [stockDialogState, setStockDialogState] = useState<{
 		isOpen: boolean
@@ -76,7 +77,7 @@ export default function NovaCompraPage() {
 	useEffect(() => {
 		fetchData()
 	}, [])
-
+fetchData
 	// Restaurar itens do storageKey quando a página carregar
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -294,7 +295,7 @@ export default function NovaCompraPage() {
 	}
 
 	const handleBarcodeScanned = async (barcode: string) => {
-		try {
+		try {_handleBarcodeScanned
 			const response = await fetch(`/api/products/barcode/${barcode}`)
 			if (response.ok) {
 				const product = await response.json()
@@ -331,24 +332,18 @@ export default function NovaCompraPage() {
 		setLoading(true)
 
 		try {
-			const response = await fetch("/api/purchases", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					marketId: formData.marketId,
-					purchaseDate: formData.purchaseDate,
-					paymentMethod: formData.paymentMethod,
-					items: validItems,
-				}),
+			await createPurchaseMutation.mutateAsync({
+				marketId: formData.marketId,
+				purchaseDate: formData.purchaseDate,
+				paymentMethod: formData.paymentMethod,
+				items: validItems,
 			})
 
-			if (response.ok) {
-				toast.success("Compra registrada com sucesso!")
+			toast.success("Compra registrada com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
 				router.push("/compras")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao criar compra")
-			}
+			}, 100)
 		} catch (error) {
 			console.error("Erro ao criar compra:", error)
 			toast.error("Erro ao criar compra")
@@ -516,7 +511,7 @@ export default function NovaCompraPage() {
 											onClose={() => updateItem(index, "priceAlert", null)}
 										/>
 
-										{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+										{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
 											<BestPriceAlert
 												productName={selectedProduct?.name || "Produto"}
 												currentPrice={item.unitPrice}

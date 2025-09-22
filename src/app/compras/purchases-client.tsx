@@ -274,7 +274,12 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				</div>
 			</motion.div>
 
-			<div className="space-y-4">
+			<motion.div 
+				initial={{ opacity: 0 }} 
+				animate={{ opacity: 1 }} 
+				transition={{ delay: 0.1 }} 
+				className="space-y-4"
+			>
 				{purchases.length === 0 ? (
 					<Card>
 						<CardContent className="text-center py-12">
@@ -310,8 +315,14 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</span>
 						</div>
 
-						{purchases.map((purchase: any) => (
-							<Card key={purchase.id}>
+						{purchases.map((purchase: any, index: number) => (
+							<motion.div
+								key={purchase.id}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: index * 0.05 }}
+							>
+								<Card>
 								<CardHeader>
 									<div className="flex justify-between items-start">
 										<div>
@@ -355,6 +366,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 									</div>
 								</CardContent>
 							</Card>
+							</motion.div>
 						))}
 
 						{totalPages > 1 && (
@@ -400,7 +412,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						)}
 					</>
 				)}
-			</div>
+			</motion.div>
 
 			<ResponsiveDialog
 				open={!!viewingPurchase}

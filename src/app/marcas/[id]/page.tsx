@@ -3,11 +3,10 @@
 import { ArrowLeft, BarChart3, Edit, Factory, Package, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useDataMutation } from "@/hooks/use-data-mutation"
+import { useBrandQuery, useDeleteBrandMutation } from "@/hooks"
 import type { Brand } from "@/types"
 
 interface BrandDetails extends Brand {
@@ -27,47 +26,26 @@ export default function MarcaDetalhesPage() {
 	const router = useRouter()
 	const brandId = params.id as string
 
-	const [brand, setBrand] = useState<BrandDetails | null>(null)
-	const [loading, setLoading] = useState(true)
-
-	const { remove, loading: deleting } = useDataMutation()
-
-	const fetchBrandDetails = useCallback(async () => {
-		try {
-			const response = await fetch(`/api/brands/${brandId}`)
-
-			if (!response.ok) {
-				toast.error("Marca não encontrada")
-				router.push("/marcas")
-				return
-			}
-
-			const data = await response.json()
-			setBrand(data)
-		} catch (error) {
-			console.error("Erro ao buscar detalhes da marca:", error)
-			toast.error("Erro ao carregar detalhes da marca")
-			router.push("/marcas")
-		} finally {
-			setLoading(false)
-		}
-	}, [brandId, router])
-
-	useEffect(() => {
-		if (brandId) {
-			fetchBrandDetails()
-		}
-	}, [brandId, fetchBrandDetails])
+	const { data: brand, isLoading, error } = useBrandQuery(brandId)
+	const deleteBrandMutation = useDeleteBrandMutation()
 
 	const deleteBrand = async () => {
-		if (!brand) return
-		await remove(`/api/brands/${brand.id}`, {
-			successMessage: "Marca excluída com sucesso!",
-			onSuccess: () => router.push("/marcas"),
-		})
+		if (!brandId) return
+
+		try {
+			await deleteBrandMutation.mutateAsync(brandId)
+			toast.success("Marca excluída com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
+				router.push("/marcas")
+			}, 100)
+		} catch (error) {
+			console.error("Erro ao excluir marca:", error)
+			toast.error("Erro ao excluir marca")
+		}
 	}
 
-	if (loading) {
+	if (isLoading) {
 		return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">

@@ -232,9 +232,20 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 							</span>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-							{shoppingLists.map((list: any) => (
-								<Card key={list.id}>
+						<motion.div 
+							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.2 }}
+						>
+							{shoppingLists.map((list: any, index: number) => (
+								<motion.div
+									key={list.id}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.05 }}
+								>
+									<Card>
 									<CardHeader>
 										<div className="flex justify-between items-start">
 											<div>
@@ -269,10 +280,11 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 												<Trash2 className="h-4 w-4" />
 											</Button>
 										</div>
-									</CardContent>
-								</Card>
+								</CardContent>
+							</Card>
+								</motion.div>
 							))}
-						</div>
+						</motion.div>
 
 						{totalPages > 1 && (
 							<div className="flex justify-center items-center gap-2 pt-6">

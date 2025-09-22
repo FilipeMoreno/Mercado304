@@ -14,9 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useCreateShoppingListMutation } from "@/hooks"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
-import type { Brand, Product } from "@/types"
 
 interface ShoppingListItem {
 	productId: string
@@ -28,16 +28,17 @@ interface ShoppingListItem {
 export default function NovaListaPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const createShoppingListMutation = useCreateShoppingListMutation()
 	const [products, setProducts] = useState<any[]>([])
 	const [brands, setBrands] = useState<any[]>([])
-	const [dataLoading, setDataLoading] = useState(true)
+	const [_brandsading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 	const { showInsight } = useProactiveAiStore()
 
 	const [selectedProductIdForSuggestions, setSelectedProductIdForSuggestions] = useState<string | null>(null)
-	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
+	const [_selectedProductIdForSuggestionses] = useState<boolean[]>([false])
 
 	const [listName, setListName] = useState("")
 
@@ -95,7 +96,7 @@ export default function NovaListaPage() {
 	useEffect(() => {
 		fetchData()
 	}, [])
-
+fetchData
 	const fetchData = async () => {
 		try {
 			const [productsRes, brandsRes] = await Promise.all([fetch("/api/products"), fetch("/api/brands")])
@@ -231,21 +232,16 @@ export default function NovaListaPage() {
 		setLoading(true)
 
 		try {
-			const response = await fetch("/api/shopping-lists", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: listName,
-					items: validItems,
-				}),
+			await createShoppingListMutation.mutateAsync({
+				name: listName,
+				items: validItems,
 			})
 
-			if (response.ok) {
+			toast.success("Lista criada com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
 				router.push("/lista")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao criar lista")
-			}
+			}, 100)
 		} catch (error) {
 			console.error("Erro ao criar lista:", error)
 			toast.error("Erro ao criar lista")

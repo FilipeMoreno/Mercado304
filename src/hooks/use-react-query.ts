@@ -53,7 +53,7 @@ export const useCategoriesQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.categories(params),
 		queryFn: () => fetchWithErrorHandling(`/api/categories?${params?.toString() || ""}`),
-		staleTime: 3 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -75,9 +75,9 @@ export const useCreateCategoryMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.categories() })
+			queryClient.invalidateQueries({ queryKey: ["categories"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Categoria criada com sucesso!")
 		},
 		onError: (error) => {
@@ -96,9 +96,9 @@ export const useUpdateCategoryMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.categories() })
+			queryClient.invalidateQueries({ queryKey: ["categories"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Categoria atualizada com sucesso!")
 		},
 		onError: (error) => {
@@ -115,9 +115,9 @@ export const useDeleteCategoryMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.categories() })
+			queryClient.invalidateQueries({ queryKey: ["categories"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Categoria excluída com sucesso!")
 		},
 		onError: (error) => {
@@ -131,7 +131,7 @@ export const useBrandsQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.brands(params),
 		queryFn: () => fetchWithErrorHandling(`/api/brands?${params?.toString() || ""}`),
-		staleTime: 3 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -154,9 +154,9 @@ export const useCreateBrandMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.brands() })
+			queryClient.invalidateQueries({ queryKey: ["brands"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Marca criada com sucesso!")
 		},
 		onError: (error) => {
@@ -175,9 +175,9 @@ export const useUpdateBrandMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.brands() })
+			queryClient.invalidateQueries({ queryKey: ["brands"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Marca atualizada com sucesso!")
 		},
 		onError: (error) => {
@@ -194,9 +194,9 @@ export const useDeleteBrandMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.brands() })
+			queryClient.invalidateQueries({ queryKey: ["brands"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			toast.success("Marca excluída com sucesso!")
 		},
 		onError: (error) => {
@@ -210,7 +210,7 @@ export const useMarketsQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.markets(params),
 		queryFn: () => fetchWithErrorHandling(`/api/markets?${params?.toString() || ""}`),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -224,7 +224,7 @@ export const useCreateMarketMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.markets() })
+			queryClient.invalidateQueries({ queryKey: ["markets"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado criado com sucesso!")
 		},
@@ -244,7 +244,7 @@ export const useUpdateMarketMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.markets() })
+			queryClient.invalidateQueries({ queryKey: ["markets"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado atualizado com sucesso!")
 		},
@@ -262,7 +262,7 @@ export const useDeleteMarketMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.markets() })
+			queryClient.invalidateQueries({ queryKey: ["markets"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado excluído com sucesso!")
 		},
@@ -277,7 +277,7 @@ export const useProductsQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.products(params),
 		queryFn: () => fetchWithErrorHandling(`/api/products?${params?.toString() || ""}`),
-		staleTime: 3 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -300,9 +300,9 @@ export const useCreateProductMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
 			toast.success("Produto criado com sucesso!")
 		},
 		onError: (error) => {
@@ -321,10 +321,10 @@ export const useUpdateProductMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.product(id) })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
 			toast.success("Produto atualizado com sucesso!")
 		},
 		onError: (error) => {
@@ -341,10 +341,10 @@ export const useDeleteProductMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.products() })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
 			toast.success("Produto excluído com sucesso!")
 		},
 		onError: (error) => {
@@ -358,7 +358,7 @@ export const usePurchasesQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.purchases(params),
 		queryFn: () => fetchWithErrorHandling(`/api/purchases?${params?.toString() || ""}`),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -381,9 +381,9 @@ export const useCreatePurchaseMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
-			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
 			toast.success("Compra registrada com sucesso!")
 		},
 		onError: (error) => {
@@ -402,7 +402,7 @@ export const useUpdatePurchaseMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.purchase(id) })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Compra atualizada com sucesso!")
@@ -421,7 +421,7 @@ export const useDeletePurchaseMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.purchases() })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Compra excluída com sucesso!")
 		},
@@ -719,7 +719,7 @@ export const useShoppingListsQuery = (params?: URLSearchParams) => {
 	return useQuery({
 		queryKey: queryKeys.shoppingLists(params),
 		queryFn: () => fetchWithErrorHandling(`/api/shopping-lists?${params?.toString() || ""}`),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }
 
@@ -742,7 +742,7 @@ export const useCreateShoppingListMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() })
+			queryClient.invalidateQueries({ queryKey: ["shopping-lists"] })
 			toast.success("Lista criada com sucesso!")
 		},
 		onError: (error) => {
@@ -761,7 +761,7 @@ export const useUpdateShoppingListMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() })
+			queryClient.invalidateQueries({ queryKey: ["shopping-lists"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingList(id) })
 			toast.success("Lista atualizada com sucesso!")
 		},
@@ -779,7 +779,7 @@ export const useDeleteShoppingListMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.shoppingLists() })
+			queryClient.invalidateQueries({ queryKey: ["shopping-lists"] })
 			toast.success("Lista excluída com sucesso!")
 		},
 		onError: (error) => {
@@ -873,7 +873,7 @@ export const useInfiniteProductsQuery = (options?: {
 			params.set("page", pageParam.toString())
 			params.set("limit", "50") // Aumentar limite para infinite scroll
 
-			if (search && search.trim()) params.set("search", search.trim())
+			if (search?.trim()) params.set("search", search.trim())
 			if (category && category !== "all") params.set("category", category)
 			if (brand && brand !== "all") params.set("brand", brand)
 			if (sort) params.set("sort", sort)
@@ -903,7 +903,7 @@ export const useInfiniteBrandsQuery = (options?: { search?: string; sort?: strin
 			params.set("page", pageParam.toString())
 			params.set("limit", "50")
 
-			if (search && search.trim()) params.set("search", search.trim())
+			if (search?.trim()) params.set("search", search.trim())
 			if (sort) params.set("sort", sort)
 
 			return fetchWithErrorHandling(`/api/brands?${params.toString()}`)
@@ -930,7 +930,7 @@ export const useInfiniteCategoriesQuery = (options?: { search?: string; sort?: s
 			params.set("page", pageParam.toString())
 			params.set("limit", "50")
 
-			if (search && search.trim()) params.set("search", search.trim())
+			if (search?.trim()) params.set("search", search.trim())
 			if (sort) params.set("sort", sort)
 
 			return fetchWithErrorHandling(`/api/categories?${params.toString()}`)

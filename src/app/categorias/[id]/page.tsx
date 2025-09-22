@@ -40,7 +40,7 @@ export default function CategoriaDetalhesPage() {
 			fetchCategoryDetails()
 		}
 	}, [categoryId])
-
+, fetchCategoryDetails
 	const fetchCategoryDetails = async () => {
 		try {
 			const response = await fetch(`/api/categories/${categoryId}`)
@@ -63,10 +63,19 @@ export default function CategoriaDetalhesPage() {
 	}
 
 	const deleteCategory = async () => {
-		// Implementar lógica de exclusão (diálogo de confirmação, etc.)
-		// Você pode usar o useDataMutation hook para isso
-		// Exemplo: await remove(`/api/categories/${categoryId}`)
-		toast.error("Exclusão de categorias não implementada neste exemplo.")
+		if (!categoryId) return
+
+		try {
+			await deleteCategoryMutation.mutateAsync(categoryId)
+			toast.success("Categoria excluída com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
+				router.push("/categorias")
+			}, 100)
+		} catch (error) {
+			console.error("Erro ao excluir categoria:", error)
+			toast.error("Erro ao excluir categoria")
+		}
 	}
 
 	if (loading) {

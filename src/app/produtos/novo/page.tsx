@@ -17,10 +17,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation } from "@/hooks"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { TempStorage } from "@/lib/temp-storage"
 import { AppToasts } from "@/lib/toasts"
-import { useDataStore } from "@/store/useDataStore"
 import type { NutritionalInfo } from "@/types"
 
 // REMOVIDO: OcrDebugDialog não é mais necessário aqui
@@ -33,7 +33,9 @@ export default function NovoProdutoPage() {
 
 	const [loading, setLoading] = useState(false)
 	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
-	const { categories, fetchCategories } = useDataStore()
+	const { data: categories = [] } = useAllCategoriesQuery()
+	const { data: brands = [] } = useAllBrandsQuery()
+	const createProductMutation = useCreateProductMutation()
 
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
 	const [isScanning, setIsScanning] = useState(false)
@@ -52,10 +54,10 @@ export default function NovoProdutoPage() {
 	})
 
 	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo>>({})
-	
+
 	// Estados para erros específicos de campos
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-	const [showFieldErrors, setShowFieldErrors] = useState(false)
+	const [_showFieldErrors, setShowFieldErrors] = useState(false)
 
 	useEffect(() => {
 		fetchCategories()
@@ -63,7 +65,7 @@ export default function NovoProdutoPage() {
 		if (nameParam) {
 			setFormData((prev) => ({ ...prev, name: nameParam }))
 		}
-	}, [searchParams, fetchCategories])
+	}, [searchParams])
 
 	const showNutritionalFields = useMemo(() => {
 		if (!formData.categoryId || categories.length === 0) return false
@@ -73,7 +75,7 @@ export default function NovoProdutoPage() {
 
 	// Funções para gerenciar erros de campos
 	const clearFieldError = (field: string) => {
-		setFieldErrors(prev => {
+		setFieldErrors((prev) => {
 			const newErrors = { ...prev }
 			delete newErrors[field]
 			return newErrors
@@ -81,9 +83,9 @@ export default function NovoProdutoPage() {
 	}
 
 	const setFieldError = (field: string, message: string) => {
-		setFieldErrors(prev => ({
+		setFieldErrors((prev) => ({
 			...prev,
-			[field]: message
+			[field]: message,
 		}))
 		setShowFieldErrors(true)
 	}
@@ -94,9 +96,9 @@ export default function NovoProdutoPage() {
 	}
 
 	// Função para mapear erros da API para campos específicos
-	const parseApiError = (error: string, status: number) => {
+	const _parseApiError = (error: string, status: number) => {
 		clearAllErrors()
-		
+
 		// Erro de conflito - código de barras duplicado
 		if (status === 409) {
 			if (error.includes("Código de barras") || error.includes("código de barras")) {
@@ -105,7 +107,7 @@ export default function NovoProdutoPage() {
 				return
 			}
 		}
-		
+
 		// Erro de validação - campo obrigatório
 		if (status === 400) {
 			if (error.includes("Nome é obrigatório") || error.includes("name")) {
@@ -114,37 +116,37 @@ export default function NovoProdutoPage() {
 				return
 			}
 		}
-		
+
 		// Erros relacionados ao código de barras
 		if (error.toLowerCase().includes("barcode") || error.toLowerCase().includes("código")) {
 			setFieldError("barcode", error)
 			AppToasts.error("❌ Erro no código de barras")
 			return
 		}
-		
+
 		// Erros relacionados ao nome
 		if (error.toLowerCase().includes("name") || error.toLowerCase().includes("nome")) {
 			setFieldError("name", error)
 			AppToasts.error("❌ Erro no nome do produto")
 			return
 		}
-		
+
 		// Erro genérico se não conseguir mapear
 		AppToasts.error(`❌ ${error}`)
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		
+
 		// Limpar erros anteriores
 		clearAllErrors()
-		
+
 		// Validação local
 		if (!formData.name.trim()) {
 			setFieldError("name", "O nome do produto é obrigatório")
 			return
 		}
-		
+
 		setLoading(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData).some(
@@ -154,38 +156,38 @@ export default function NovoProdutoPage() {
 				...formData,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays) : null,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
 			}
-			const response = await fetch("/api/products", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(dataToSubmit),
-			})
-			if (response.ok) {
-				const newProduct = await response.json()
-				AppToasts.success("Produto criado com sucesso!")
-				const returnTo = searchParams.get("returnTo")
-				const storageKey = searchParams.get("storageKey")
-				if (returnTo && storageKey) {
-					const preservedData = TempStorage.get(storageKey)
-					if (preservedData) {
-						const updatedData = {
-							...preservedData,
-							newProductId: newProduct.id,
-						}
-						const newStorageKey = TempStorage.save(updatedData)
-						TempStorage.remove(storageKey)
-						router.push(`${returnTo}?storageKey=${newStorageKey}`)
-					} else {
-						router.push(returnTo)
+			const newProduct = await createProductMutation.mutateAsync(dataToSubmit)
+			AppToasts.success("Produto criado com sucesso!")
+
+			const returnTo = searchParams.get("returnTo")
+			const storageKey = searchParams.get("storageKey")
+			if (returnTo && storageKey) {
+				const preservedData = TempStorage.get(storageKey)
+				if (preservedData) {
+					const updatedData = {
+						...preservedData,
+						newProductId: newProduct.id,
 					}
+					const newStorageKey = TempStorage.save(updatedData)
+					TempStorage.remove(storageKey)
+					// Pequeno delay para garantir que a invalidação seja processada
+					setTimeout(() => {
+						router.push(`${returnTo}?storageKey=${newStorageKey}`)
+					}, 100)
 				} else {
-					router.push("/produtos")
+					// Pequeno delay para garantir que a invalidação seja processada
+					setTimeout(() => {
+						router.push(returnTo)
+					}, 100)
 				}
 			} else {
-				const errorData = await response.json()
-				parseApiError(errorData.error || "Erro ao criar produto", response.status)
+				// Pequeno delay para garantir que a invalidação seja processada
+				setTimeout(() => {
+					router.push("/produtos")
+				}, 100)
 			}
 		} catch (error) {
 			AppToasts.error(error, "Erro ao criar produto")
@@ -197,7 +199,7 @@ export default function NovoProdutoPage() {
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target
 		setFormData((prev) => ({ ...prev, [name]: value }))
-		
+
 		// Limpar erro do campo quando o usuário começar a digitar
 		if (fieldErrors[name]) {
 			clearFieldError(name)
@@ -271,9 +273,7 @@ export default function NovoProdutoPage() {
 									required
 									className={fieldErrors.name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 								/>
-								{fieldErrors.name && (
-									<p className="text-sm text-red-600 mt-1">{fieldErrors.name}</p>
-								)}
+								{fieldErrors.name && <p className="text-sm text-red-600 mt-1">{fieldErrors.name}</p>}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="barcode">Código de Barras</Label>
@@ -290,9 +290,7 @@ export default function NovoProdutoPage() {
 										<Camera className="h-4 w-4" />
 									</Button>
 								</div>
-								{fieldErrors.barcode && (
-									<p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>
-								)}
+								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>

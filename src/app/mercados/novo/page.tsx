@@ -10,10 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useCreateMarketMutation } from "@/hooks"
 
 export default function NovoMercadoPage() {
 	const router = useRouter()
-	const [loading, setLoading] = useState(false)
+	const createMarketMutation = useCreateMarketMutation()
 	const [formData, setFormData] = useState({
 		name: "",
 		location: "",
@@ -27,29 +28,20 @@ export default function NovoMercadoPage() {
 			return
 		}
 
-		setLoading(true)
-
 		try {
-			const response = await fetch("/api/markets", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: formData.name.trim(),
-					location: formData.location.trim() || null,
-				}),
+			await createMarketMutation.mutateAsync({
+				name: formData.name.trim(),
+				location: formData.location.trim() || null,
 			})
 
-			if (response.ok) {
+			toast.success("Mercado criado com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
 				router.push("/mercados")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao criar mercado")
-			}
+			}, 100)
 		} catch (error) {
 			console.error("Erro ao criar mercado:", error)
 			toast.error("Erro ao criar mercado")
-		} finally {
-			setLoading(false)
 		}
 	}
 
@@ -109,12 +101,12 @@ export default function NovoMercadoPage() {
 						</div>
 
 						<div className="flex gap-3 pt-4">
-							<Button type="submit" disabled={loading}>
+							<Button type="submit" disabled={createMarketMutation.isPending || !formData.name.trim()}>
 								<Save className="h-4 w-4 mr-2" />
-								{loading ? "Salvando..." : "Salvar Mercado"}
+								{createMarketMutation.isPending ? "Criando..." : "Criar Mercado"}
 							</Button>
 							<Link href="/mercados">
-								<Button type="button" variant="outline">
+								<Button type="button" variant="outline" disabled={createMarketMutation.isPending}>
 									Cancelar
 								</Button>
 							</Link>

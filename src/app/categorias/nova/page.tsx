@@ -40,7 +40,10 @@ export default function NovaCategoriaPage() {
 			})
 
 			toast.success("Categoria criada com sucesso!")
-			router.push("/categorias")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
+				router.push("/categorias")
+			}, 100)
 		} catch (error) {
 			console.error("Error creating category:", error)
 			toast.error("Erro ao criar categoria")
