@@ -8,10 +8,10 @@ import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
 import type { ShoppingList } from "@/types"
@@ -250,10 +250,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 												</Button>
 											</Link>
 											<Link href={`/lista/${list.id}/editar`}>
-												<Button
-													variant="outline"
-													size="sm"
-												>
+												<Button variant="outline" size="sm">
 													<Edit className="h-4 w-4" />
 												</Button>
 											</Link>
@@ -317,38 +314,26 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 				<AiShoppingList onGenerateList={handleGenerateAutoList} onCreateShoppingList={handleCreateAutoList} />
 			</div>
 
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja excluir a lista <strong>{deleteState.item?.name}</strong>?
-						</p>
-						<p className="text-sm text-gray-600">
-							Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
-						</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={deleteShoppingList}
-								disabled={deleteShoppingListMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteShoppingListMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				description="Esta ação não pode ser desfeita"
+				onConfirm={deleteShoppingList}
+				onCancel={closeDeleteConfirm}
+				confirmText={deleteShoppingListMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteShoppingListMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<p className="text-lg font-medium">
+					Tem certeza que deseja excluir a lista <strong>{deleteState.item?.name}</strong>?
+				</p>
+				<p className="text-sm text-gray-600 mt-2">
+					Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
+				</p>
+			</ResponsiveConfirmDialog>
 		</div>
 	)
 }
