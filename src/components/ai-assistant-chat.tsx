@@ -1,9 +1,9 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { Bot, ExternalLink, Send, Sparkles, X, Mic, MicOff, Volume2, VolumeX } from "lucide-react"
+import { Bot, ExternalLink, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useState, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
@@ -13,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat } from "@/hooks/use-ai-chat"
-import { toast } from "sonner"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
@@ -21,17 +20,11 @@ export function AiAssistantChat() {
 	const [isListening, setIsListening] = useState(false)
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
-	
-	// Estados para arrastar o botão
-	const [position, setPosition] = useState({ x: 16, y: 16 }) // bottom-4 right-4 = 16px
-	const [isDragging, setIsDragging] = useState(false)
-	const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-	const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
-	const [isLongPress, setIsLongPress] = useState(false)
-	
+	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
-	
+
 	const {
 		messages,
 		isLoading,
@@ -40,173 +33,8 @@ export function AiAssistantChat() {
 		retryLastMessage,
 		handleSelection,
 		handleChurrascoCalculate,
+		addMessage,
 	} = useAiChat()
-
-	// Carregar posição salva do localStorage
-	useEffect(() => {
-		const savedPosition = localStorage.getItem('ai-assistant-position')
-		if (savedPosition) {
-			try {
-				const parsed = JSON.parse(savedPosition)
-				setPosition(parsed)
-			} catch (error) {
-				console.error('Erro ao carregar posição salva:', error)
-			}
-		}
-	}, [])
-
-	// Salvar posição no localStorage quando mudar
-	useEffect(() => {
-		localStorage.setItem('ai-assistant-position', JSON.stringify(position))
-	}, [position])
-
-	// Funções para arrastar o botão - somente com long press
-	const handleMouseDown = useCallback((e: React.MouseEvent) => {
-		if (isOpen) return // Não permitir arrastar quando o chat estiver aberto
-		
-		e.preventDefault()
-		setIsLongPress(false)
-		
-		const rect = (e.target as HTMLElement).getBoundingClientRect()
-		setDragOffset({
-			x: e.clientX - rect.left,
-			y: e.clientY - rect.top
-		})
-		
-		// Iniciar timer para long press (800ms)
-		const timer = setTimeout(() => {
-			setIsLongPress(true)
-			setIsDragging(true)
-		}, 800)
-		
-		setLongPressTimer(timer)
-	}, [isOpen])
-
-	const handleMouseMove = useCallback((e: MouseEvent) => {
-		if (!isDragging) return
-		
-		e.preventDefault()
-		
-		// Calcular nova posição baseada no cursor
-		const buttonSize = 64 // 64px = largura/altura do botão
-		const margin = 16 // Margem mínima das bordas
-		
-		// Calcular posição absoluta do botão
-		const buttonX = e.clientX - dragOffset.x
-		const buttonY = e.clientY - dragOffset.y
-		
-		// Converter para coordenadas bottom/right para o CSS
-		const newX = window.innerWidth - buttonX - buttonSize
-		const newY = window.innerHeight - buttonY - buttonSize
-		
-		// Limitar às bordas da tela
-		const constrainedX = Math.max(margin, Math.min(window.innerWidth - buttonSize - margin, newX))
-		const constrainedY = Math.max(margin, Math.min(window.innerHeight - buttonSize - margin, newY))
-		
-		setPosition({ x: constrainedX, y: constrainedY })
-	}, [isDragging, dragOffset])
-
-	const handleMouseUp = useCallback(() => {
-		// Cancelar timer se ainda estiver ativo
-		if (longPressTimer) {
-			clearTimeout(longPressTimer)
-			setLongPressTimer(null)
-		}
-		
-		setIsDragging(false)
-		setIsLongPress(false)
-	}, [longPressTimer])
-
-	// Event listeners para arrastar
-	useEffect(() => {
-		if (isDragging) {
-			document.addEventListener('mousemove', handleMouseMove)
-			document.addEventListener('mouseup', handleMouseUp)
-			return () => {
-				document.removeEventListener('mousemove', handleMouseMove)
-				document.removeEventListener('mouseup', handleMouseUp)
-			}
-		}
-	}, [isDragging, handleMouseMove, handleMouseUp])
-
-	// Touch events para mobile
-	const handleTouchStart = useCallback((e: React.TouchEvent) => {
-		if (isOpen) return
-		
-		e.preventDefault()
-		setIsLongPress(false)
-		
-		const touch = e.touches[0]
-		const rect = (e.target as HTMLElement).getBoundingClientRect()
-		setDragOffset({
-			x: touch.clientX - rect.left,
-			y: touch.clientY - rect.top
-		})
-		
-		// Iniciar timer para long press no mobile (800ms)
-		const timer = setTimeout(() => {
-			setIsLongPress(true)
-			setIsDragging(true)
-		}, 800)
-		
-		setLongPressTimer(timer)
-	}, [isOpen])
-
-	const handleTouchMove = useCallback((e: TouchEvent) => {
-		if (!isDragging) return
-		
-		e.preventDefault()
-		
-		const touch = e.touches[0]
-		const buttonSize = 64
-		const margin = 16
-		
-		// Calcular posição absoluta do botão
-		const buttonX = touch.clientX - dragOffset.x
-		const buttonY = touch.clientY - dragOffset.y
-		
-		// Converter para coordenadas bottom/right para o CSS
-		const newX = window.innerWidth - buttonX - buttonSize
-		const newY = window.innerHeight - buttonY - buttonSize
-		
-		// Limitar às bordas da tela
-		const constrainedX = Math.max(margin, Math.min(window.innerWidth - buttonSize - margin, newX))
-		const constrainedY = Math.max(margin, Math.min(window.innerHeight - buttonSize - margin, newY))
-		
-		setPosition({ x: constrainedX, y: constrainedY })
-	}, [isDragging, dragOffset])
-
-	const handleTouchEnd = useCallback(() => {
-		// Cancelar timer se ainda estiver ativo
-		if (longPressTimer) {
-			clearTimeout(longPressTimer)
-			setLongPressTimer(null)
-		}
-		
-		setIsDragging(false)
-		setIsLongPress(false)
-	}, [longPressTimer])
-
-	// Touch event listeners
-	useEffect(() => {
-		if (isDragging) {
-			document.addEventListener('touchmove', handleTouchMove, { passive: false })
-			document.addEventListener('touchend', handleTouchEnd)
-			return () => {
-				document.removeEventListener('touchmove', handleTouchMove)
-				document.removeEventListener('touchend', handleTouchEnd)
-			}
-		}
-	}, [isDragging, handleTouchMove, handleTouchEnd])
-
-	// Limpeza do timer ao desmontar o componente
-	useEffect(() => {
-		return () => {
-			if (longPressTimer) {
-				clearTimeout(longPressTimer)
-			}
-		}
-	}, [longPressTimer])
 
 	// Configurar assistente de voz
 	useEffect(() => {
@@ -219,25 +47,102 @@ export function AiAssistantChat() {
 
 			const recognition = new SpeechRecognition()
 			recognition.continuous = false
-			recognition.interimResults = false
-			recognition.lang = 'pt-BR'
+			recognition.interimResults = true // Habilitar resultados intermediários
+			recognition.lang = "pt-BR"
+			recognition.maxAlternatives = 1
 
-			recognition.onstart = () => setIsListening(true)
-			recognition.onend = () => setIsListening(false)
-			recognition.onerror = () => setIsListening(false)
+			recognition.onstart = () => {
+				setIsListening(true)
+				// Adicionar mensagem informativa no chat (não enviada para o assistente)
+				addMessage({
+					role: "assistant",
+					content: "🎤 Ouvindo... Fale agora",
+				})
+			}
+
+			recognition.onend = () => {
+				setIsListening(false)
+			}
+
+			recognition.onerror = (event: any) => {
+				setIsListening(false)
+				console.error("Erro no reconhecimento de voz:", event.error)
+				
+				// Não mostrar toast para erros comuns que não são críticos
+				if (event.error === "no-speech") {
+					// Silencioso - usuário pode não ter falado
+					return
+				}
+				
+				switch (event.error) {
+					case "audio-capture":
+						addMessage({
+							role: "assistant",
+							content: "❌ Erro no microfone. Verifique as permissões.",
+						})
+						break
+					case "not-allowed":
+						addMessage({
+							role: "assistant",
+							content: "❌ Permissão de microfone negada.",
+						})
+						break
+					case "network":
+						addMessage({
+							role: "assistant",
+							content: "❌ Erro de rede. Verifique sua conexão.",
+						})
+						break
+					case "aborted":
+						// Silencioso - reconhecimento foi cancelado intencionalmente
+						break
+					default:
+						addMessage({
+							role: "assistant",
+							content: "❌ Erro no reconhecimento de voz. Tente novamente.",
+						})
+				}
+			}
 
 			recognition.onresult = (event: any) => {
-				const transcript = event.results[0][0].transcript
-				setInput(transcript)
-				toast.success(`🎤 Entendi: "${transcript}"`)
-				// Auto-enviar mensagem quando terminar de falar
-				setTimeout(() => {
-					sendMessage(transcript)
-					setInput("")
-				}, 500)
+				let finalTranscript = ""
+				let interimTranscript = ""
+
+				// Processar resultados intermediários e finais
+				for (let i = event.resultIndex; i < event.results.length; i++) {
+					const transcript = event.results[i][0].transcript
+					if (event.results[i].isFinal) {
+						finalTranscript += transcript
+					} else {
+						interimTranscript += transcript
+					}
+				}
+
+				// Atualizar input com resultado intermediário
+				if (interimTranscript) {
+					setInput(interimTranscript)
+				}
+
+				// Processar resultado final
+				if (finalTranscript) {
+					const cleanTranscript = finalTranscript.trim()
+					if (cleanTranscript) {
+						setInput(cleanTranscript)
+						
+						// Auto-enviar mensagem quando terminar de falar
+						setTimeout(() => {
+							sendMessage(cleanTranscript)
+							setInput("")
+						}, 800) // Aumentar delay para dar tempo de processar
+					}
+				}
 			}
 
 			recognitionRef.current = recognition
+			setIsVoiceInitialized(true)
+		} else {
+			setIsVoiceSupported(false)
+			setIsVoiceInitialized(false)
 		}
 
 		return () => {
@@ -248,58 +153,88 @@ export function AiAssistantChat() {
 				synthRef.current.cancel()
 			}
 		}
-	}, [sendMessage])
+	}, [sendMessage, addMessage])
+
+	const speakMessage = useCallback(
+		(text: string) => {
+			if (!synthRef.current || !isVoiceSupported) return
+
+			// Cancelar fala anterior
+			synthRef.current.cancel()
+
+			// Limpar markdown básico e links
+			const cleanText = text
+				.replace(/\*\*(.*?)\*\*/g, "$1") // **texto** -> texto
+				.replace(/\*(.*?)\*/g, "$1") // *texto* -> texto
+				.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // [texto](link) -> texto
+				.replace(/`([^`]+)`/g, "$1") // `código` -> código
+				.replace(/#+\s*/g, "") // # título -> título
+				.substring(0, 500) // Limitar tamanho
+
+			const utterance = new SpeechSynthesisUtterance(cleanText)
+			utterance.lang = "pt-BR"
+			utterance.rate = 0.9
+			utterance.pitch = 1.1
+			utterance.volume = 0.7
+
+			utterance.onstart = () => setIsSpeaking(true)
+			utterance.onend = () => setIsSpeaking(false)
+			utterance.onerror = () => setIsSpeaking(false)
+
+			synthRef.current.speak(utterance)
+		},
+		[isVoiceSupported],
+	)
 
 	// Ler respostas do assistente em voz alta
 	useEffect(() => {
 		if (isOpen && messages.length > 0) {
 			const lastMessage = messages[messages.length - 1]
-			if (lastMessage.role === 'assistant' && !lastMessage.isStreaming && !lastMessage.isError) {
+			if (lastMessage.role === "assistant" && !lastMessage.isStreaming && !lastMessage.isError) {
 				speakMessage(lastMessage.content)
 			}
 		}
-	}, [messages, isOpen])
-
-	const speakMessage = (text: string) => {
-		if (!synthRef.current || !isVoiceSupported) return
-
-		// Cancelar fala anterior
-		synthRef.current.cancel()
-
-		// Limpar markdown básico e links
-		const cleanText = text
-			.replace(/\*\*(.*?)\*\*/g, '$1') // **texto** -> texto
-			.replace(/\*(.*?)\*/g, '$1') // *texto* -> texto
-			.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [texto](link) -> texto
-			.replace(/`([^`]+)`/g, '$1') // `código` -> código
-			.replace(/#+\s*/g, '') // # título -> título
-			.substring(0, 500) // Limitar tamanho
-
-		const utterance = new SpeechSynthesisUtterance(cleanText)
-		utterance.lang = 'pt-BR'
-		utterance.rate = 0.9
-		utterance.pitch = 1.1
-		utterance.volume = 0.7
-
-		utterance.onstart = () => setIsSpeaking(true)
-		utterance.onend = () => setIsSpeaking(false)
-		utterance.onerror = () => setIsSpeaking(false)
-
-		synthRef.current.speak(utterance)
-	}
+	}, [messages, isOpen, speakMessage])
 
 	const startListening = () => {
-		if (!recognitionRef.current) return
+		if (!recognitionRef.current || isListening || !isVoiceInitialized) return
+		
 		try {
-			recognitionRef.current.start()
+			// Parar qualquer reconhecimento anterior
+			if (recognitionRef.current) {
+				recognitionRef.current.stop()
+			}
+			
+			// Pequeno delay para garantir que o stop anterior foi processado
+			setTimeout(() => {
+				try {
+					if (recognitionRef.current && !isListening) {
+						recognitionRef.current.start()
+					}
+				} catch (error) {
+					console.error("Erro ao iniciar reconhecimento:", error)
+					addMessage({
+						role: "assistant",
+						content: "❌ Erro ao iniciar gravação. Tente novamente.",
+					})
+				}
+			}, 200) // Aumentar delay para mobile
 		} catch (error) {
-			console.error('Erro ao iniciar reconhecimento:', error)
+			console.error("Erro ao preparar reconhecimento:", error)
+			addMessage({
+				role: "assistant",
+				content: "❌ Erro ao preparar gravação. Tente novamente.",
+			})
 		}
 	}
 
 	const stopListening = () => {
-		if (recognitionRef.current) {
-			recognitionRef.current.stop()
+		if (recognitionRef.current && isListening) {
+			try {
+				recognitionRef.current.stop()
+			} catch (error) {
+				console.error("Erro ao parar reconhecimento:", error)
+			}
 		}
 	}
 
@@ -322,169 +257,32 @@ export function AiAssistantChat() {
 	)
 
 	const handleOpenChat = useCallback(() => {
-		// Não abrir o chat se estiver arrastando ou se foi um long press
-		if (isDragging || isLongPress) return
 		setIsOpen(true)
-	}, [isDragging, isLongPress])
+	}, [])
 
 	const handleCloseChat = useCallback(() => {
 		setIsOpen(false)
 	}, [])
 
-	// Função para calcular a melhor posição do diálogo baseado na posição do botão
-	const calculateDialogPosition = useCallback(() => {
-		const screenWidth = window.innerWidth
-		const screenHeight = window.innerHeight
-		const dialogWidth = 384 // w-96 = 384px
-		const dialogHeight = 500 // altura aproximada do diálogo
-		const buttonSize = 64
-		const margin = 16
-
-		// Posição atual do botão (convertida de bottom/right para top/left)
-		const buttonLeft = screenWidth - position.x - buttonSize
-		const buttonTop = screenHeight - position.y - buttonSize
-
-		// Determinar posicionamento horizontal
-		let horizontalPosition = 'right'
-		let leftOffset = 0
-		let rightOffset = 0
-
-		if (buttonLeft < dialogWidth / 2) {
-			// Botão está muito à esquerda - abrir à direita
-			horizontalPosition = 'left'
-			leftOffset = buttonSize + margin
-		} else if (buttonLeft > screenWidth - dialogWidth / 2) {
-			// Botão está muito à direita - abrir à esquerda  
-			horizontalPosition = 'right'
-			rightOffset = buttonSize + margin
-		} else {
-			// Botão está no centro - centralizar diálogo
-			horizontalPosition = 'center'
-			rightOffset = (buttonSize - dialogWidth) / 2
-		}
-
-		// Determinar posicionamento vertical
-		let verticalPosition = 'bottom'
-		let topOffset = 0
-		let bottomOffset = 0
-
-		if (buttonTop < dialogHeight / 2) {
-			// Botão está muito no topo - abrir abaixo
-			verticalPosition = 'top'
-			topOffset = buttonSize + margin
-		} else {
-			// Botão está na parte inferior ou centro - abrir acima (padrão)
-			verticalPosition = 'bottom'
-			bottomOffset = buttonSize + margin
-		}
-
-		return {
-			horizontal: horizontalPosition,
-			vertical: verticalPosition,
-			leftOffset,
-			rightOffset,
-			topOffset,
-			bottomOffset
-		}
-	}, [position])
-
 	return (
-		<div 
-			className="fixed z-[100]" 
-			style={{ 
-				bottom: `${position.y}px`, 
-				right: `${position.x}px`,
-				transition: isDragging ? 'none' : 'all 0.3s ease'
-			}}
-		>
+		<div className="fixed bottom-4 right-4 z-[100]">
 			<div className="relative">
 				<AnimatePresence>
-					{isOpen && (() => {
-						const dialogPos = calculateDialogPosition()
-						
-						// Calcular classes CSS dinâmicas baseadas na posição
-						let positionClasses = "absolute w-96"
-						let style: React.CSSProperties = {}
-						
-						// Posicionamento horizontal
-						if (dialogPos.horizontal === 'left') {
-							positionClasses += " left-0"
-							style.left = `${dialogPos.leftOffset}px`
-						} else if (dialogPos.horizontal === 'right') {
-							positionClasses += " right-0"
-							style.right = `${dialogPos.rightOffset}px`
-						} else {
-							// center
-							positionClasses += " right-0"
-							style.right = `${dialogPos.rightOffset}px`
-						}
-						
-						// Posicionamento vertical
-						if (dialogPos.vertical === 'top') {
-							positionClasses += " top-0"
-							style.top = `${dialogPos.topOffset}px`
-						} else {
-							positionClasses += " bottom-0"
-							style.bottom = `${dialogPos.bottomOffset}px`
-						}
-
-						// Animações baseadas na posição
-						const getInitialAnimation = () => {
-							const scale = 0.8
-							const opacity = 0
-							let x = 0, y = 0
-							
-							if (dialogPos.horizontal === 'left') {
-								x = -50 // Vem da esquerda
-							} else if (dialogPos.horizontal === 'right') {
-								x = 50 // Vem da direita
-							}
-							
-							if (dialogPos.vertical === 'top') {
-								y = -50 // Vem de cima
-							} else {
-								y = 50 // Vem de baixo
-							}
-							
-							return { opacity, scale, x, y }
-						}
-
-						const getExitAnimation = () => {
-							const scale = 0.7
-							const opacity = 0
-							let x = 0, y = 0
-							
-							if (dialogPos.horizontal === 'left') {
-								x = -50
-							} else if (dialogPos.horizontal === 'right') {
-								x = 50
-							}
-							
-							if (dialogPos.vertical === 'top') {
-								y = -50
-							} else {
-								y = 50
-							}
-							
-							return { opacity, scale, x, y, transition: { duration: 0.2 } }
-						}
-
-						return (
-							<motion.div
-								key="chat"
-								initial={getInitialAnimation()}
-								animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-								exit={getExitAnimation()}
-								transition={{
-									duration: 0.4,
-									type: "spring",
-									stiffness: 300,
-									damping: 30,
-								}}
-								className={positionClasses}
-								style={style}
-							>
-								<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90">
+					{isOpen && (
+						<motion.div
+							key="chat"
+							initial={{ opacity: 0, scale: 0.8, y: 100 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.7, y: 100 }}
+							transition={{
+								duration: 0.3,
+								type: "spring",
+								stiffness: 300,
+								damping: 30,
+							}}
+							className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 max-h-[80vh] sm:max-w-96"
+						>
+							<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90">
 								<CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
 									<CardTitle className="flex items-center gap-2">
 										<div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -511,7 +309,7 @@ export function AiAssistantChat() {
 													onClick={isListening ? stopListening : startListening}
 													disabled={isLoading}
 													className={`rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors ${
-														isListening ? 'bg-red-500/30 animate-pulse' : ''
+														isListening ? "bg-red-500/30 animate-pulse" : ""
 													}`}
 													title={isListening ? "Parar gravação" : "Falar com Zé"}
 												>
@@ -540,10 +338,10 @@ export function AiAssistantChat() {
 									</div>
 								</CardHeader>
 								<CardContent className="p-0">
-									<ScrollArea className="h-72 p-4">
+									<ScrollArea className="h-96 p-4">
 										<div className="space-y-4">
 											{messages.map((msg, index) => (
-												<div key={index}>
+												<div key={`${msg.role}-${index}`}>
 													<ChatMessage
 														role={msg.role}
 														content={msg.content}
@@ -576,9 +374,9 @@ export function AiAssistantChat() {
 										<Input
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
-											placeholder={isListening ? "Ouvindo..." : "Como posso ajudar?"}
+											placeholder={isListening ? "🎤 Ouvindo... Fale agora" : "Como posso ajudar?"}
 											disabled={isLoading || isListening}
-											className={isListening ? "border-red-300 bg-red-50" : ""}
+											className={isListening ? "border-red-300 bg-red-50 animate-pulse" : ""}
 										/>
 										{isVoiceSupported && (
 											<Button
@@ -586,8 +384,8 @@ export function AiAssistantChat() {
 												size="icon"
 												variant="outline"
 												onClick={isListening ? stopListening : startListening}
-												disabled={isLoading}
-												className={`${isListening ? 'bg-red-100 border-red-300 text-red-600' : ''}`}
+												disabled={isLoading || !isVoiceInitialized}
+												className={`${isListening ? "bg-red-100 border-red-300 text-red-600 animate-pulse" : ""} ${!isVoiceInitialized ? "opacity-50" : ""}`}
 											>
 												{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
 											</Button>
@@ -599,22 +397,18 @@ export function AiAssistantChat() {
 								</CardContent>
 							</Card>
 						</motion.div>
-					)})()}
+					)}
 
 					{!isOpen && (
 						<motion.button
 							key="bubble"
 							onClick={handleOpenChat}
-							onMouseDown={handleMouseDown}
-							onTouchStart={handleTouchStart}
 							initial={{ opacity: 0, scale: 0.5, y: 40 }}
 							animate={{
 								opacity: 1,
-								scale: isDragging ? 1.1 : 1,
+								scale: 1,
 								y: 0,
-								boxShadow: isDragging ? [
-									"0 8px 30px rgba(59, 130, 246, 0.6)",
-								] : [
+								boxShadow: [
 									"0 4px 20px rgba(59, 130, 246, 0.4)",
 									"0 8px 30px rgba(59, 130, 246, 0.6)",
 									"0 4px 20px rgba(59, 130, 246, 0.4)",
@@ -626,36 +420,25 @@ export function AiAssistantChat() {
 								y: 40,
 								transition: { duration: 0.2 },
 							}}
-							whileHover={!isDragging ? {
+							whileHover={{
 								scale: 1.1,
 								boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
-							} : {}}
-							whileTap={!isDragging ? { scale: 0.95 } : {}}
+							}}
+							whileTap={{ scale: 0.95 }}
 							transition={{
 								duration: 0.3,
 								type: "spring",
 								stiffness: 400,
 								damping: 20,
 								boxShadow: {
-									duration: isDragging ? 0.5 : 2,
-									repeat: isDragging ? 0 : Infinity,
+									duration: 2,
+									repeat: Infinity,
 									repeatType: "reverse",
 								},
 							}}
-							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-${isDragging ? 'grabbing' : 'pointer'} select-none ${
-								isListening || isSpeaking 
-									? 'border-red-400 shadow-red-400/50' 
-									: isDragging 
-									? 'border-yellow-400 shadow-yellow-400/50'
-									: isLongPress
-									? 'border-orange-400 shadow-orange-400/50'
-									: 'border-white/20'
+							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none ${
+								isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
 							}`}
-							style={{
-								userSelect: 'none',
-								WebkitUserSelect: 'none',
-								touchAction: 'none'
-							}}
 						>
 							{isListening ? (
 								<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />

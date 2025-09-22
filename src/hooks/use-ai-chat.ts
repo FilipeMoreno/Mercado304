@@ -34,7 +34,7 @@ export function useAiChat() {
 		const current = currentMessage.toLowerCase()
 
 		// Palavras que indicam nova tarefa
-		const newTaskIndicators = [
+		const _newTaskIndicators = [
 			"adicione",
 			"adicionar",
 			"add",
@@ -203,7 +203,7 @@ export function useAiChat() {
 			isError: data.error || false,
 		}
 
-		if (data.selectionData && data.selectionData.showCards) {
+		if (data.selectionData?.showCards) {
 			assistantMessage.selectionCard = {
 				type: data.selectionData.cardType,
 				options: data.selectionData.options,
@@ -353,7 +353,7 @@ export function useAiChat() {
 				isError: data.error || false,
 			}
 			addMessage(assistantMessage)
-		} catch (error) {
+		} catch (_error) {
 			const errorMessage: Message = {
 				role: "assistant",
 				content: "Não foi possível processar sua seleção. Tente novamente.",
@@ -396,7 +396,7 @@ export function useAiChat() {
 				isError: responseData.error || false,
 			}
 			addMessage(assistantMessage)
-		} catch (error) {
+		} catch (_error) {
 			const errorMessage: Message = {
 				role: "assistant",
 				content: "Não foi possível calcular o churrasco. Tente novamente.",
@@ -416,5 +416,6 @@ export function useAiChat() {
 		retryLastMessage,
 		handleSelection,
 		handleChurrascoCalculate,
+		addMessage,
 	}
 }

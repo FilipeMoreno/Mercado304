@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import {
 	ArrowRight,
 	ChevronLeft,
@@ -12,17 +13,18 @@ import {
 	Trash2,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { BrandsSkeleton } from "@/components/skeletons/brands-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	useBrandsQuery,
@@ -43,6 +45,7 @@ interface MarcasClientProps {
 }
 
 export function MarcasClient({ searchParams }: MarcasClientProps) {
+	const router = useRouter()
 	const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
 	const [editForm, setEditForm] = useState({ name: "" })
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
@@ -179,19 +182,31 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 
 	return (
 		<>
-			<div className="flex items-center gap-2 mb-6">
+			{/* Header with search and create button */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center gap-2 mb-6"
+			>
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input placeholder="Buscar marcas..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
-				<FilterPopover
-					sortValue={String(state.sort)}
-					onSortChange={(value) => updateSingleValue("sort", value)}
-					sortOptions={sortOptions}
-					hasActiveFilters={hasActiveFilters}
-					onClearFilters={clearFilters}
-				/>
-			</div>
+				<div className="flex items-center gap-2">
+					<FilterPopover
+						sortValue={String(state.sort)}
+						onSortChange={(value) => updateSingleValue("sort", value)}
+						sortOptions={sortOptions}
+						hasActiveFilters={hasActiveFilters}
+						onClearFilters={clearFilters}
+					/>
+					<Button onClick={() => router.push("/marcas/nova")} className="bg-green-600 hover:bg-green-700 text-white">
+						<Plus className="h-4 w-4 mr-2" />
+						<span className="hidden sm:inline">Nova Marca</span>
+						<span className="sm:hidden">Nova</span>
+					</Button>
+				</div>
+			</motion.div>
 
 			<div className="space-y-4">
 				{isLoading ? (
@@ -389,9 +404,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir a marca <strong>{deleteState.item?.name}</strong>?
 				</p>
-				<p className="text-sm text-gray-600 mt-2">
-					Todos os produtos desta marca ficarão sem marca.
-				</p>
+				<p className="text-sm text-gray-600 mt-2">Todos os produtos desta marca ficarão sem marca.</p>
 			</ResponsiveConfirmDialog>
 		</>
 	)

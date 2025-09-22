@@ -2,6 +2,7 @@
 
 import { format, startOfMonth, subDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { motion } from "framer-motion"
 import {
 	Calendar,
 	ChevronLeft,
@@ -9,21 +10,24 @@ import {
 	Edit,
 	Eye,
 	Filter,
+	Plus,
 	Search,
 	ShoppingCart,
 	Store,
 	Trash2,
 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
 	useDeleteConfirmation,
@@ -35,7 +39,6 @@ import {
 } from "@/hooks"
 import { formatLocalDate } from "@/lib/date-utils"
 import type { Purchase } from "@/types"
-import Link from "next/link"
 
 interface PurchasesClientProps {
 	searchParams: {
@@ -50,6 +53,7 @@ interface PurchasesClientProps {
 }
 
 export function PurchasesClient({ searchParams }: PurchasesClientProps) {
+	const router = useRouter()
 	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null)
 	const itemsPerPage = 12
 
@@ -235,7 +239,12 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 
 	return (
 		<>
-			<div className="flex items-center gap-2 mb-6">
+			{/* Header with search and create button */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center gap-2 mb-6"
+			>
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
@@ -245,18 +254,25 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						className="pl-10"
 					/>
 				</div>
-				<FilterPopover
-					sortValue={state.sort as string}
-					onSortChange={(value) => updateSingleValue("sort", value)}
-					sortOptions={sortOptions}
-					additionalFilters={additionalFilters}
-					hasActiveFilters={hasActiveFilters}
-					onClearFilters={() => {
-						clearFilters()
-						updateSingleValue("page", 1)
-					}}
-				/>
-			</div>
+				<div className="flex items-center gap-2">
+					<FilterPopover
+						sortValue={state.sort as string}
+						onSortChange={(value) => updateSingleValue("sort", value)}
+						sortOptions={sortOptions}
+						additionalFilters={additionalFilters}
+						hasActiveFilters={hasActiveFilters}
+						onClearFilters={() => {
+							clearFilters()
+							updateSingleValue("page", 1)
+						}}
+					/>
+					<Button onClick={() => router.push("/compras/nova")} className="bg-green-600 hover:bg-green-700 text-white">
+						<Plus className="h-4 w-4 mr-2" />
+						<span className="hidden sm:inline">Nova Compra</span>
+						<span className="sm:hidden">Nova</span>
+					</Button>
+				</div>
+			</motion.div>
 
 			<div className="space-y-4">
 				{purchases.length === 0 ? (
@@ -329,10 +345,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											Detalhes
 										</Button>
 										<Link href={`/compras/editar/${purchase.id}`}>
-											<Button
-												variant="outline"
-												size="sm"
-											>
+											<Button variant="outline" size="sm">
 												<Edit className="h-4 w-4" />
 											</Button>
 										</Link>
@@ -395,54 +408,54 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				title="Detalhes da Compra"
 				maxWidth="2xl"
 			>
-					{detailsLoading ? (
-						<div className="space-y-4">
-							<div className="animate-pulse space-y-2">
-								<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-								<div className="h-4 bg-gray-200 rounded w-1/2"></div>
-							</div>
+				{detailsLoading ? (
+					<div className="space-y-4">
+						<div className="animate-pulse space-y-2">
+							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
+							<div className="h-4 bg-gray-200 rounded w-1/2"></div>
 						</div>
-					) : purchaseDetails && !detailsLoading ? (
-						<div className="space-y-4">
-							<div className="grid grid-cols-2 gap-4 pb-4 border-b">
-								<div>
-									<p className="text-sm text-gray-600">Mercado</p>
-									<p className="font-medium">{purchaseDetails.market?.name}</p>
-								</div>
-								<div>
-									<p className="text-sm text-gray-600">Data</p>
-									<p className="font-medium">
-										{formatLocalDate(purchaseDetails.purchaseDate, "dd/MM/yyyy", { locale: ptBR })}
-									</p>
-								</div>
-							</div>
-
+					</div>
+				) : purchaseDetails && !detailsLoading ? (
+					<div className="space-y-4">
+						<div className="grid grid-cols-2 gap-4 pb-4 border-b">
 							<div>
-								<h4 className="font-medium mb-3">Itens da Compra</h4>
-								<div className="space-y-2 max-h-60 overflow-y-auto">
-									{purchaseDetails.items?.map((item: any, index: number) => (
-										<div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-											<div>
-												<p className="font-medium">
-													{item.product?.name || item.productName}
-													{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
-												</p>
-												<p className="text-sm text-gray-600">
-													{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
-												</p>
-											</div>
-											<p className="font-medium">R$ {item.totalPrice.toFixed(2)}</p>
-										</div>
-									))}
-								</div>
+								<p className="text-sm text-gray-600">Mercado</p>
+								<p className="font-medium">{purchaseDetails.market?.name}</p>
 							</div>
-
-							<div className="flex justify-between items-center pt-4 border-t">
-								<span className="text-lg font-bold">Total:</span>
-								<span className="text-lg font-bold">R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
+							<div>
+								<p className="text-sm text-gray-600">Data</p>
+								<p className="font-medium">
+									{formatLocalDate(purchaseDetails.purchaseDate, "dd/MM/yyyy", { locale: ptBR })}
+								</p>
 							</div>
 						</div>
-					) : null}
+
+						<div>
+							<h4 className="font-medium mb-3">Itens da Compra</h4>
+							<div className="space-y-2 max-h-60 overflow-y-auto">
+								{purchaseDetails.items?.map((item: any, index: number) => (
+									<div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+										<div>
+											<p className="font-medium">
+												{item.product?.name || item.productName}
+												{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
+											</p>
+											<p className="text-sm text-gray-600">
+												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
+											</p>
+										</div>
+										<p className="font-medium">R$ {item.totalPrice.toFixed(2)}</p>
+									</div>
+								))}
+							</div>
+						</div>
+
+						<div className="flex justify-between items-center pt-4 border-t">
+							<span className="text-lg font-bold">Total:</span>
+							<span className="text-lg font-bold">R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
+						</div>
+					</div>
+				) : null}
 			</ResponsiveDialog>
 
 			<ResponsiveConfirmDialog
@@ -461,9 +474,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?
 				</p>
-				<p className="text-sm text-gray-600 mt-2">
-					Todos os itens da compra serão perdidos permanentemente.
-				</p>
+				<p className="text-sm text-gray-600 mt-2">Todos os itens da compra serão perdidos permanentemente.</p>
 			</ResponsiveConfirmDialog>
 		</>
 	)

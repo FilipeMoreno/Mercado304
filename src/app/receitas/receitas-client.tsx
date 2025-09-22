@@ -1,7 +1,8 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Eye, Plus, Sparkles, Trash2 } from "lucide-react"
+import { motion } from "framer-motion"
+import { Eye, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -56,7 +57,7 @@ export function ReceitasClient() {
 
 	const handleDeleteRecipe = async () => {
 		if (!deletingRecipe) return
-		
+
 		setIsDeleting(true)
 		try {
 			const response = await fetch(`/api/recipes/${deletingRecipe.id}`, {
@@ -85,23 +86,30 @@ export function ReceitasClient() {
 	if (loadingRecipes) {
 		return (
 			<div className="space-y-6">
-				{/* Header */}
-				<div className="flex justify-between items-center">
-					<div className="space-y-2">
-						<div className="flex items-center gap-2">
-							<ChefHat className="h-8 w-8 text-orange-500" />
-							<h1 className="text-3xl font-bold">Minhas Receitas</h1>
-						</div>
-						<p className="text-gray-600">Suas receitas favoritas guardadas para consulta.</p>
+				{/* Header with search and generate button */}
+				<motion.div
+					initial={{ opacity: 0, y: -20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className="flex items-center gap-2 mb-6"
+				>
+					<div className="relative flex-1">
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Input
+							placeholder="Buscar receitas..."
+							value={searchTerm}
+							onChange={(e) => handleSearch(e.target.value)}
+							className="pl-10"
+						/>
 					</div>
-					<Button 
+					<Button
 						onClick={() => router.push("/receitas/gerar")}
 						className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
 					>
 						<Sparkles className="h-4 w-4 mr-2" />
-						Gerar Novas Receitas
+						<span className="hidden sm:inline">Gerar Receitas</span>
+						<span className="sm:hidden">Gerar</span>
 					</Button>
-				</div>
+				</motion.div>
 				<RecipesSkeleton />
 			</div>
 		)
@@ -113,36 +121,30 @@ export function ReceitasClient() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<ChefHat className="h-8 w-8 text-orange-500" />
-						Minhas Receitas
-					</h1>
-					<p className="text-gray-600 mt-2">Suas receitas favoritas guardadas para consulta.</p>
+			{/* Header with search and generate button */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center gap-2 mb-6"
+			>
+				<div className="relative flex-1">
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+					<Input
+						placeholder="Buscar receitas..."
+						value={searchTerm}
+						onChange={(e) => handleSearch(e.target.value)}
+						className="pl-10"
+					/>
 				</div>
 				<Button
 					onClick={() => router.push("/receitas/gerar")}
 					className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
 				>
 					<Sparkles className="h-4 w-4 mr-2" />
-					Gerar Novas Receitas
+					<span className="hidden sm:inline">Gerar Receitas</span>
+					<span className="sm:hidden">Gerar</span>
 				</Button>
-			</div>
-
-			{/* Busca simples */}
-			<Card>
-				<CardContent className="pt-6">
-					<div className="relative">
-						<Input
-							placeholder="Buscar receitas por nome ou descrição..."
-							value={searchTerm}
-							onChange={(e) => handleSearch(e.target.value)}
-							className="w-full"
-						/>
-					</div>
-				</CardContent>
-			</Card>
+			</motion.div>
 
 			<Card>
 				<CardHeader>
@@ -202,7 +204,7 @@ export function ReceitasClient() {
 												<div className="flex flex-wrap gap-1">
 													{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
 														<span
-															key={index}
+															key={`${recipe.id}-ingredient-${index}`}
 															className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded"
 														>
 															{ingredient}
@@ -251,9 +253,7 @@ export function ReceitasClient() {
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir a receita <strong>{deletingRecipe?.name}</strong>?
 				</p>
-				<p className="text-sm text-gray-600 mt-2">
-					Todos os dados da receita serão perdidos permanentemente.
-				</p>
+				<p className="text-sm text-gray-600 mt-2">Todos os dados da receita serão perdidos permanentemente.</p>
 			</ResponsiveConfirmDialog>
 		</div>
 	)

@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import {
 	BarChart3,
 	ChevronLeft,
@@ -13,14 +14,15 @@ import {
 	Trash2,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDeleteConfirmation, useDeleteMarketMutation, useMarketsQuery, useUrlState } from "@/hooks"
@@ -36,6 +38,7 @@ interface MercadosClientProps {
 }
 
 export function MercadosClient({ searchParams }: MercadosClientProps) {
+	const router = useRouter()
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Market>()
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
@@ -141,19 +144,31 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 
 	return (
 		<>
-			<div className="flex items-center gap-2 mb-6">
+			{/* Header with search and create button */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center gap-2 mb-6"
+			>
 				<div className="relative flex-1">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input placeholder="Buscar mercados..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
-				<FilterPopover
-					sortValue={state.sort as string}
-					onSortChange={(value) => updateSingleValue("sort", value)}
-					sortOptions={sortOptions}
-					hasActiveFilters={hasActiveFilters}
-					onClearFilters={clearFilters}
-				/>
-			</div>
+				<div className="flex items-center gap-2">
+					<FilterPopover
+						sortValue={state.sort as string}
+						onSortChange={(value) => updateSingleValue("sort", value)}
+						sortOptions={sortOptions}
+						hasActiveFilters={hasActiveFilters}
+						onClearFilters={clearFilters}
+					/>
+					<Button onClick={() => router.push("/mercados/novo")} className="bg-green-600 hover:bg-green-700 text-white">
+						<Plus className="h-4 w-4 mr-2" />
+						<span className="hidden sm:inline">Novo Mercado</span>
+						<span className="sm:hidden">Novo</span>
+					</Button>
+				</div>
+			</motion.div>
 
 			<div className="space-y-4">
 				{isLoading ? (
@@ -355,9 +370,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir o mercado <strong>{deleteState.item?.name}</strong>?
 				</p>
-				<p className="text-sm text-gray-600 mt-2">
-					Todas as compras relacionadas a este mercado serão afetadas.
-				</p>
+				<p className="text-sm text-gray-600 mt-2">Todas as compras relacionadas a este mercado serão afetadas.</p>
 			</ResponsiveConfirmDialog>
 		</>
 	)

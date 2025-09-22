@@ -1,7 +1,9 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Search, Trash2 } from "lucide-react"
+import { motion } from "framer-motion"
+import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { toast } from "sonner"
 import { AiShoppingList } from "@/components/ai-shopping-list"
@@ -26,6 +28,7 @@ interface ListaClientProps {
 }
 
 export function ListaClient({ searchParams }: ListaClientProps) {
+	const router = useRouter()
 	const itemsPerPage = 12
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<ShoppingList>()
@@ -163,7 +166,8 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 	return (
 		<div className="flex flex-col md:flex-row gap-6">
 			<div className="flex-1 space-y-4">
-				<div className="flex items-center gap-2">
+				{/* Header with search and create button */}
+				<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2">
 					<div className="relative flex-1">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						<Input
@@ -173,18 +177,25 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 							className="pl-10"
 						/>
 					</div>
-					<FilterPopover
-						sortValue={state.sort as string}
-						onSortChange={(value) => updateSingleValue("sort", value)}
-						sortOptions={sortOptions}
-						additionalFilters={additionalFilters}
-						hasActiveFilters={hasActiveFilters}
-						onClearFilters={() => {
-							clearFilters()
-							updateSingleValue("page", 1)
-						}}
-					/>
-				</div>
+					<div className="flex items-center gap-2">
+						<FilterPopover
+							sortValue={state.sort as string}
+							onSortChange={(value) => updateSingleValue("sort", value)}
+							sortOptions={sortOptions}
+							additionalFilters={additionalFilters}
+							hasActiveFilters={hasActiveFilters}
+							onClearFilters={() => {
+								clearFilters()
+								updateSingleValue("page", 1)
+							}}
+						/>
+						<Button onClick={() => router.push("/lista/nova")} className="bg-green-600 hover:bg-green-700 text-white">
+							<Plus className="h-4 w-4 mr-2" />
+							<span className="hidden sm:inline">Nova Lista</span>
+							<span className="sm:hidden">Nova</span>
+						</Button>
+					</div>
+				</motion.div>
 
 				{shoppingLists.length === 0 ? (
 					<Card>

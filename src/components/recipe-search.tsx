@@ -1,7 +1,7 @@
 "use client"
 
-import { Search, Settings, Sparkles, X } from "lucide-react"
-import { useState } from "react"
+import { Search, Sparkles, X } from "lucide-react"
+import { useId, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -33,6 +33,7 @@ export function RecipeSearch({
 	availableIngredients = [],
 	hideNormalSearch = false,
 }: RecipeSearchProps) {
+	const aiModeId = useId()
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedIngredients, setSelectedIngredients] = useState<string[]>([])
 	const [ingredientInput, setIngredientInput] = useState("")
@@ -114,15 +115,21 @@ export function RecipeSearch({
 		.slice(0, 10)
 
 	return (
-		<Card>
-			<CardContent className="pt-6">
-				<div className="space-y-4">
+		<Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+			<CardContent className="p-8">
+				<div className="space-y-6">
+					{/* Header */}
+					<div className="text-center space-y-2">
+						<h2 className="text-2xl font-bold text-gray-900">Criar Receitas com IA</h2>
+						<p className="text-gray-600">Descreva o que você quer cozinhar ou adicione ingredientes para receitas personalizadas</p>
+					</div>
+
 					{/* Switch para alternar entre busca local e IA */}
 					{!hideNormalSearch && (
-						<div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-							<div className="flex items-center space-x-2">
-								<Switch id="ai-mode" checked={useAI} onCheckedChange={setUseAI} />
-								<Label htmlFor="ai-mode" className="text-sm font-medium">
+						<div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+							<div className="flex items-center space-x-3">
+								<Switch id={aiModeId} checked={useAI} onCheckedChange={setUseAI} />
+								<Label htmlFor={aiModeId} className="text-sm font-semibold text-gray-700">
 									{useAI ? "🤖 Buscar com IA" : "📚 Buscar receitas salvas"}
 								</Label>
 							</div>
@@ -130,7 +137,7 @@ export function RecipeSearch({
 							{/* Botão Me Surpreenda */}
 							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
 								<DialogTrigger asChild>
-									<Button variant="outline" size="sm" disabled={!useAI}>
+									<Button variant="outline" size="sm" disabled={!useAI} className="border-blue-300 text-blue-700 hover:bg-blue-100">
 										<Sparkles className="h-4 w-4 mr-2" />
 										Me Surpreenda
 									</Button>
@@ -174,11 +181,15 @@ export function RecipeSearch({
 
 					{/* Botão Me Surpreenda para página dedicada */}
 					{hideNormalSearch && (
-						<div className="flex justify-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+						<div className="flex justify-center p-6 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl border border-yellow-200 shadow-sm">
 							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
 								<DialogTrigger asChild>
-									<Button variant="outline" size="lg" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-										<Sparkles className="h-5 w-5 mr-2" />
+									<Button 
+										variant="outline" 
+										size="lg" 
+										className="border-yellow-300 text-yellow-700 hover:bg-yellow-100 hover:border-yellow-400 px-8 py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+									>
+										<Sparkles className="h-5 w-5 mr-3" />
 										Me Surpreenda com Receitas Criativas!
 									</Button>
 								</DialogTrigger>
@@ -220,22 +231,26 @@ export function RecipeSearch({
 					)}
 
 					{/* Busca por nome/descrição */}
-					<div className="relative">
-						<Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-						<Input
-							placeholder={useAI ? "Descreva o que você quer cozinhar..." : "Buscar receitas por nome ou descrição..."}
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							onKeyPress={handleKeyPress}
-							className="pl-9"
-						/>
+					<div className="space-y-2">
+						<Label className="text-sm font-semibold text-gray-700">O que você quer cozinhar?</Label>
+						<div className="relative">
+							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+							<Input
+								placeholder={useAI ? "Ex: massa com frango e legumes..." : "Buscar receitas por nome ou descrição..."}
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								onKeyPress={handleKeyPress}
+								className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-200"
+							/>
+						</div>
 					</div>
 
 					{/* Busca por ingredientes */}
-					<div className="space-y-2">
+					<div className="space-y-3">
+						<Label className="text-sm font-semibold text-gray-700">Ingredientes disponíveis</Label>
 						<div className="relative">
 							<Input
-								placeholder="Adicionar ingrediente..."
+								placeholder="Digite um ingrediente e pressione Enter..."
 								value={ingredientInput}
 								onChange={(e) => {
 									setIngredientInput(e.target.value)
@@ -243,18 +258,20 @@ export function RecipeSearch({
 								}}
 								onKeyPress={handleKeyPress}
 								onFocus={() => setShowSuggestions(ingredientInput.length > 0)}
+								className="h-12 text-base border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-200"
 							/>
 
 							{/* Sugestões de ingredientes */}
 							{showSuggestions && filteredSuggestions.length > 0 && (
-								<div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+								<div className="absolute z-10 w-full mt-2 bg-white border-2 border-green-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
 									{filteredSuggestions.map((ingredient) => (
 										<button
 											key={ingredient}
-											className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+											type="button"
+											className="w-full px-4 py-3 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors duration-150"
 											onClick={() => handleAddIngredient(ingredient)}
 										>
-											{ingredient}
+											<span className="text-gray-700 font-medium">{ingredient}</span>
 										</button>
 									))}
 								</div>
@@ -263,30 +280,45 @@ export function RecipeSearch({
 
 						{/* Ingredientes selecionados */}
 						{selectedIngredients.length > 0 && (
-							<div className="flex flex-wrap gap-2">
-								{selectedIngredients.map((ingredient) => (
-									<Badge key={ingredient} variant="secondary" className="pr-1">
-										{ingredient}
-										<button
-											onClick={() => handleRemoveIngredient(ingredient)}
-											className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+							<div className="space-y-2">
+								<Label className="text-sm font-medium text-gray-600">Ingredientes selecionados:</Label>
+								<div className="flex flex-wrap gap-2">
+									{selectedIngredients.map((ingredient) => (
+										<Badge 
+											key={ingredient} 
+											variant="secondary" 
+											className="pr-1 bg-green-100 text-green-800 border border-green-200 hover:bg-green-200 transition-colors duration-150"
 										>
-											<X className="h-3 w-3" />
-										</button>
-									</Badge>
-								))}
+											{ingredient}
+											<button
+												type="button"
+												onClick={() => handleRemoveIngredient(ingredient)}
+												className="ml-2 hover:bg-green-300 rounded-full p-0.5 transition-colors duration-150"
+											>
+												<X className="h-3 w-3" />
+											</button>
+										</Badge>
+									))}
+								</div>
 							</div>
 						)}
 					</div>
 
 					{/* Botões de ação */}
-					<div className="flex gap-2">
-						<Button onClick={handleSearch} className="flex-1">
-							<Search className="h-4 w-4 mr-2" />
-							{useAI ? "Gerar com IA" : "Buscar Receitas"}
+					<div className="flex gap-3 pt-2">
+						<Button 
+							onClick={handleSearch} 
+							className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+						>
+							{!useAI && <Search className="h-5 w-5 mr-2" />}
+							{useAI ? "✨ Gerar com IA" : "🔍 Buscar Receitas"}
 						</Button>
 						{(searchTerm || selectedIngredients.length > 0) && (
-							<Button variant="outline" onClick={handleClearSearch}>
+							<Button 
+								variant="outline" 
+								onClick={handleClearSearch}
+								className="h-12 px-6 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+							>
 								<X className="h-4 w-4 mr-2" />
 								Limpar
 							</Button>
