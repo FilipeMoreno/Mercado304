@@ -1,9 +1,6 @@
 "use client"
 
-import { Plus } from "lucide-react"
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 import { ProductsClient } from "./products-client"
 
 interface ProductsPageProps {
@@ -42,19 +39,6 @@ export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 						Gerencie o catálogo de produtos
 					</motion.p>
 				</div>
-				<motion.div
-					initial={{ opacity: 0, x: 20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ delay: 0.3 }}
-					className="hidden sm:block"
-				>
-					<Link href="/produtos/novo">
-						<Button>
-							<Plus className="mr-2 h-4 w-4" />
-							Novo Produto
-						</Button>
-					</Link>
-				</motion.div>
 			</motion.div>
 
 			<ProductsClient searchParams={searchParams} />

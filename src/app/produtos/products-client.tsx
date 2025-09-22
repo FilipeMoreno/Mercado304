@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Filter, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
@@ -14,7 +14,6 @@ import { ProductStats } from "@/components/products/product-stats"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
-import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
@@ -28,7 +27,6 @@ import {
 	useUrlState,
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
-import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
 
 interface ProductsClientProps {
@@ -46,7 +44,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
-	const mobile = useMobile()
 	const [showScanner, setShowScanner] = useState(false)
 
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -165,52 +162,11 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		}
 	}
 
-	// Mobile-specific action handlers
-	const handleProductEdit = (product: any) => {
-		if (mobile.isTouchDevice) {
-			toast.success(`Editando ${product.name}`)
-		}
-		router.push(`/produtos/${product.id}/editar`)
-	}
-
+	// Action handlers
 	const handleProductDelete = (product: any) => {
 		openDeleteConfirm(product)
 	}
 
-	const handleProductArchive = (product: any) => {
-		toast.info(`${product.name} foi arquivado`)
-	}
-
-	// FAB actions for mobile
-	const fabActions = [
-		{
-			icon: <Plus className="h-5 w-5" />,
-			label: "Novo Produto",
-			onClick: () => router.push("/produtos/novo"),
-			bgColor: "bg-green-500",
-		},
-		{
-			icon: <QrCode className="h-5 w-5" />,
-			label: "Escanear",
-			onClick: handleOpenScanner,
-			bgColor: "bg-orange-500",
-		},
-		{
-			icon: <Search className="h-5 w-5" />,
-			label: "Buscar",
-			onClick: () => {
-				const searchInput = document.querySelector('input[placeholder*="Nome"]') as HTMLInputElement
-				searchInput?.focus()
-			},
-			bgColor: "bg-blue-500",
-		},
-		{
-			icon: <Filter className="h-5 w-5" />,
-			label: "Filtros",
-			onClick: () => toast.info("Abrindo filtros"),
-			bgColor: "bg-purple-500",
-		},
-	]
 
 	// Extract data from React Query
 	const products = productsData?.products || []
@@ -268,67 +224,82 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 
 	return (
 		<>
-			{/* Animated search header */}
-			<motion.div
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="flex items-center gap-2 mb-6"
-			>
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-					<Input
-						placeholder="Nome, código ou escaneie..."
-						value={searchValue}
-						onChange={handleSearchChange}
-						className="pl-10 pr-12"
-					/>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={handleOpenScanner}
-						className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
-						title="Escanear código de barras"
-					>
-						<QrCode className="h-4 w-4 text-gray-500" />
-					</Button>
-				</div>
-				<FilterPopover
-					sortValue={String(state.sort)}
-					onSortChange={(value) => updateSingleValue("sort", value)}
-					sortOptions={sortOptions}
-					additionalFilters={additionalFilters}
-					hasActiveFilters={hasActiveFilters}
-					onClearFilters={clearFilters}
-				/>
-			</motion.div>
+			{/* Fixed header for mobile */}
+			<div className="sticky top-0 z-10 bg-white dark:bg-gray-900 dark:border-gray-800 pb-4 mb-6">
+				<motion.div
+					initial={{ opacity: 0, y: -20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className="flex items-center gap-2"
+				>
+					<div className="relative flex-1">
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Input
+							placeholder="Nome, código ou escaneie..."
+							value={searchValue}
+							onChange={handleSearchChange}
+							className="pl-10 pr-12"
+						/>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={handleOpenScanner}
+							className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+							title="Escanear código de barras"
+						>
+							<QrCode className="h-4 w-4 text-gray-500" />
+						</Button>
+					</div>
+					<div className="flex items-center gap-2">
+						<FilterPopover
+							sortValue={String(state.sort)}
+							onSortChange={(value) => updateSingleValue("sort", value)}
+							sortOptions={sortOptions}
+							additionalFilters={additionalFilters}
+							hasActiveFilters={hasActiveFilters}
+							onClearFilters={clearFilters}
+						/>
+						<Button
+							onClick={() => router.push("/produtos/novo")}
+							className="bg-green-600 hover:bg-green-700 text-white"
+						>
+							<Plus className="h-4 w-4 mr-2" />
+							<span className="hidden sm:inline">Novo Produto</span>
+							<span className="sm:hidden">Novo</span>
+						</Button>
+					</div>
+				</motion.div>
+			</div>
 
 			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
 				{loading ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{Array.from({ length: 9 }).map((_, i) => (
-							<motion.div
-								key={i}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: i * 0.1 }}
-							>
-								<Card>
-									<CardContent className="p-4">
-										<div className="flex items-center gap-2 mb-2">
-											<Skeleton className="h-5 w-5" />
-											<Skeleton className="h-6 w-28" />
-										</div>
-										<div className="space-y-1">
-											<div className="flex items-center gap-1">
-												<Skeleton className="h-3 w-3" />
-												<Skeleton className="h-4 w-20" />
+						{Array.from({ length: 9 }, (_, i) => {
+							const uniqueKey = `skeleton-${i}-${Math.random().toString(36).substr(2, 9)}`
+							return (
+								<motion.div
+									key={uniqueKey}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: i * 0.1 }}
+								>
+									<Card>
+										<CardContent className="p-4">
+											<div className="flex items-center gap-2 mb-2">
+												<Skeleton className="h-5 w-5" />
+												<Skeleton className="h-6 w-28" />
 											</div>
-											<Skeleton className="h-4 w-24" />
-										</div>
-									</CardContent>
-								</Card>
-							</motion.div>
-						))}
+											<div className="space-y-1">
+												<div className="flex items-center gap-1">
+													<Skeleton className="h-3 w-3" />
+													<Skeleton className="h-4 w-20" />
+												</div>
+												<Skeleton className="h-4 w-24" />
+											</div>
+										</CardContent>
+									</Card>
+								</motion.div>
+							)
+						})}
 					</div>
 				) : products.length > 0 ? (
 					<>
@@ -341,9 +312,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 
 						<ProductList
 							products={products}
-							onEdit={handleProductEdit}
 							onDelete={handleProductDelete}
-							onArchive={handleProductArchive}
 						/>
 
 						<ProductPagination
@@ -384,16 +353,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				</p>
 			</ResponsiveConfirmDialog>
 
-			{/* FAB for mobile users */}
-			{mobile.isTouchDevice && (
-				<FloatingActionButton
-					actions={fabActions}
-					position="bottom-right"
-					size="md"
-					expandDirection="up"
-					showLabels={true}
-				/>
-			)}
 
 			{/* Scanner de código de barras */}
 			<BarcodeScanner isOpen={showScanner} onScan={handleScanResult} onClose={handleCloseScanner} />

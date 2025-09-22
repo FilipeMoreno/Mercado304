@@ -2,30 +2,24 @@
 
 import { BarChart3, Edit, MoreHorizontal, Package, Trash2 } from "lucide-react"
 import Link from "next/link"
-import * as React from "react" // Adicione esta importação
+import * as React from "react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ProductCardProps {
 	product: any
-	isMobile?: boolean
 	onDelete?: (product: any) => void
 }
 
-// Envolvemos a definição do componente com React.memo
 export const ProductCard = React.memo(function ProductCard({ 
 	product, 
-	isMobile = false, 
 	onDelete 
 }: ProductCardProps) {
 	return (
-		<Card className={`group hover:shadow-lg transition-all duration-200 flex flex-col ${
-			isMobile 
-				? "border-0 shadow-none bg-transparent" 
-				: "border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl"
-		}`}>
+		<Card className="group hover:shadow-lg transition-all duration-200 h-full flex flex-col">
 			<CardHeader className="pb-3">
 				<div className="flex items-center gap-3 mb-2">
 					<div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
@@ -44,63 +38,61 @@ export const ProductCard = React.memo(function ProductCard({
 								</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
-						<div className="flex items-center gap-2 mt-1">
-							{product.category && (
+						<CardDescription className="mt-1">
+							{product.category?.name && (
 								<span className="inline-flex items-center text-xs text-gray-600">
 									{product.category.icon} {product.category.name}
 								</span>
 							)}
-						</div>
+						</CardDescription>
 					</div>
 				</div>
-				<div className="space-y-1 text-xs text-gray-500">
+			</CardHeader>
+			<CardContent className="flex-1 flex flex-col">
+				<div className="space-y-2 mb-4">
 					{product.brand && (
-						<div className="flex items-center gap-1">
+						<div className="flex items-center gap-1 text-sm text-gray-600">
 							<span className="font-medium">Marca:</span>
 							<span>{product.brand.name}</span>
 						</div>
 					)}
-					<div className="flex items-center gap-1">
-						<span className="font-medium">Unidade:</span>
-						<span>{product.unit}</span>
-					</div>
+					{product.unit && (
+						<Badge variant="secondary" className="w-fit">
+							{product.unit}
+						</Badge>
+					)}
 				</div>
-			</CardHeader>
-			<CardContent className="flex-1" />
-			{!isMobile && (
-				<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
-					<div className="flex gap-2 w-full">
-						<Link href={`/produtos/${product.id}`} className="flex-1">
-							<Button variant="outline" className="w-full justify-center">
-								<BarChart3 className="h-4 w-4 mr-2" />
-								Ver Produto
+				<div className="flex gap-2 mt-auto">
+					<Link href={`/produtos/${product.id}`} className="flex-1">
+						<Button variant="outline" className="w-full justify-center">
+							<BarChart3 className="h-4 w-4 mr-2" />
+							Ver Detalhes
+						</Button>
+					</Link>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" size="icon">
+								<MoreHorizontal className="h-4 w-4" />
 							</Button>
-						</Link>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="outline" size="icon">
-									<MoreHorizontal className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuItem asChild>
-									<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
-										<Edit className="h-4 w-4 mr-2" />
-										Editar
-									</Link>
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() => onDelete?.(product)}
-									className="text-red-600 focus:text-red-600"
-								>
-									<Trash2 className="h-4 w-4 mr-2" />
-									Excluir
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				</CardFooter>
-			)}
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem asChild>
+								<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
+									<Edit className="h-4 w-4 mr-2" />
+									Editar
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => onDelete?.(product)}
+								className="text-red-600 focus:text-red-600"
+							>
+								<Trash2 className="h-4 w-4 mr-2" />
+								Excluir
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			</CardContent>
 		</Card>
 	)
 })
