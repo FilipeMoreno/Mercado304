@@ -50,7 +50,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 			limit: itemsPerPage.toString(),
 		}
 		return new URLSearchParams(params)
-	}, [state.search, state.sort, state.status, state.page, itemsPerPage])
+	}, [state.search, state.sort, state.status, state.page])
 
 	// React Query hooks
 	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams)
@@ -249,13 +249,14 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 													Ver Lista
 												</Button>
 											</Link>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => window.open(`/lista/${list.id}/editar`, "_blank")}
-											>
-												<Edit className="h-4 w-4" />
-											</Button>
+											<Link href={`/lista/${list.id}/editar`}>
+												<Button
+													variant="outline"
+													size="sm"
+												>
+													<Edit className="h-4 w-4" />
+												</Button>
+											</Link>
 											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(list)}>
 												<Trash2 className="h-4 w-4" />
 											</Button>
