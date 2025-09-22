@@ -1,18 +1,21 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Filter, Package, Plus, Search, Trash2 } from "lucide-react"
+import { Filter, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
+import { BarcodeScanner } from "@/components/barcode-scanner"
 import { ProductEmptyState } from "@/components/products/product-empty-state"
 import { ProductList } from "@/components/products/product-list"
 import { ProductPagination } from "@/components/products/product-pagination"
 import { ProductStats } from "@/components/products/product-stats"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
+import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -27,7 +30,6 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
-import { Input } from "@/components/ui/input"
 
 interface ProductsClientProps {
 	searchParams: {
@@ -45,6 +47,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 	const mobile = useMobile()
+	const [showScanner, setShowScanner] = useState(false)
 
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/produtos",
@@ -85,6 +88,21 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	// Handler otimizado para mudanças no campo de busca
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchValue(e.target.value)
+	}, [])
+
+	// Handlers para o scanner
+	const handleScanResult = useCallback((barcode: string) => {
+		setSearchValue(barcode)
+		setShowScanner(false)
+		toast.success(`Código escaneado: ${barcode}`)
+	}, [])
+
+	const handleOpenScanner = useCallback(() => {
+		setShowScanner(true)
+	}, [])
+
+	const handleCloseScanner = useCallback(() => {
+		setShowScanner(false)
 	}, [])
 
 	// Build URLSearchParams for the query
@@ -172,6 +190,12 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			bgColor: "bg-green-500",
 		},
 		{
+			icon: <QrCode className="h-5 w-5" />,
+			label: "Escanear",
+			onClick: handleOpenScanner,
+			bgColor: "bg-orange-500",
+		},
+		{
 			icon: <Search className="h-5 w-5" />,
 			label: "Buscar",
 			onClick: () => {
@@ -256,8 +280,17 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 						placeholder="Nome, código ou escaneie..."
 						value={searchValue}
 						onChange={handleSearchChange}
-						className="pl-10"
+						className="pl-10 pr-12"
 					/>
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={handleOpenScanner}
+						className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+						title="Escanear código de barras"
+					>
+						<QrCode className="h-4 w-4 text-gray-500" />
+					</Button>
 				</div>
 				<FilterPopover
 					sortValue={String(state.sort)}
@@ -361,6 +394,9 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					showLabels={true}
 				/>
 			)}
+
+			{/* Scanner de código de barras */}
+			<BarcodeScanner isOpen={showScanner} onScan={handleScanResult} onClose={handleCloseScanner} />
 		</>
 	)
 }
