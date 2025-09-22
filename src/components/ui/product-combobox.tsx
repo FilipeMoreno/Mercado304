@@ -5,7 +5,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { filterProducts, isBarcode } from "@/lib/barcode-utils"
+import { isBarcode } from "@/lib/barcode-utils"
 import { cn } from "@/lib/utils"
 
 interface ProductComboboxOption {
@@ -85,6 +85,18 @@ export function ProductCombobox({
 		}))
 	}, [products])
 
+	// Verificar se existe correspondência exata (ignorando códigos de barras)
+	const hasExactMatch = React.useMemo(() => {
+		if (!searchTerm || isBarcode(searchTerm)) return false
+		const normalizedSearchTerm = searchTerm.toLowerCase().trim()
+		return options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
+	}, [options, searchTerm])
+
+	// Verificar se deve mostrar a opção de criar novo
+	const shouldShowCreateNew = React.useMemo(() => {
+		return onCreateNew && searchTerm && !isBarcode(searchTerm) && !hasExactMatch
+	}, [onCreateNew, searchTerm, hasExactMatch])
+
 	const exactBarcodeMatch = React.useMemo(() => {
 		if (isBarcode(searchTerm)) {
 			return products.find((product) => product.barcode === searchTerm)
@@ -139,60 +151,80 @@ export function ProductCombobox({
 								<p className="text-muted-foreground">Carregando produtos...</p>
 							</div>
 						) : (
-							<>
-								<CommandEmpty>
-									<div className="py-6 text-center text-sm">
-										<p className="text-muted-foreground">{emptyText}</p>
-										{isBarcode(searchTerm) && (
-											<p className="text-xs text-blue-600 mt-1">🔍 Buscando por código de barras: {searchTerm}</p>
-										)}
-										{onCreateNew && searchTerm && !isBarcode(searchTerm) && (
-											<Button
-												variant="ghost"
-												size="sm"
-												className="mt-2 text-blue-600 hover:text-blue-700"
-												onClick={() => {
-													onCreateNew(searchTerm)
-													setOpen(false)
-													setSearchTerm("")
-												}}
-											>
-												{createNewText} "{searchTerm}"
-											</Button>
-										)}
-									</div>
-								</CommandEmpty>
-								<CommandGroup>
-									{options.map((option) => (
-										<CommandItem
-											key={option.value}
-											value={option.value}
-											onSelect={(currentValue) => {
-												onValueChange?.(currentValue === value ? "" : currentValue)
-												setOpen(false)
-												setSearchTerm("")
-											}}
-										>
-											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-											<div className="flex-1 min-w-0">
-												<div className="truncate">{option.label}</div>
-												{option.barcode && (
-													<div className="flex text-xs text-gray-500 mt-1">
-														<Barcode className="h-4 w-4 mr-1 shrink-0" />
-														<span className="truncate">{option.barcode}</span>
-													</div>
-												)}
-											</div>
-										</CommandItem>
-									))}
-									{isFetchingNextPage && (
-										<div className="py-2 text-center">
-											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
-											<p className="text-xs text-muted-foreground mt-1">Carregando mais produtos...</p>
+							options.length === 0 ? (
+									<CommandEmpty>
+										<div className="py-6 text-center text-sm">
+											<p className="text-muted-foreground">{emptyText}</p>
+											{isBarcode(searchTerm) && (
+												<p className="text-xs text-blue-600 mt-1">🔍 Buscando por código de barras: {searchTerm}</p>
+											)}
+											{shouldShowCreateNew && (
+												<Button
+													variant="ghost"
+													size="sm"
+													className="mt-2 text-blue-600 hover:text-blue-700"
+													onClick={() => {
+														onCreateNew(searchTerm)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+												>
+													{createNewText} "{searchTerm}"
+												</Button>
+											)}
 										</div>
-									)}
-								</CommandGroup>
-							</>
+									</CommandEmpty>
+								) : (
+									<>
+										<CommandGroup>
+											{options.map((option) => (
+												<CommandItem
+													key={option.value}
+													value={option.value}
+													onSelect={(currentValue) => {
+														onValueChange?.(currentValue === value ? "" : currentValue)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+												>
+													<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+													<div className="flex-1 min-w-0">
+														<div className="truncate">{option.label}</div>
+														{option.barcode && (
+															<div className="flex text-xs text-gray-500 mt-1">
+																<Barcode className="h-4 w-4 mr-1 shrink-0" />
+																<span className="truncate">{option.barcode}</span>
+															</div>
+														)}
+													</div>
+												</CommandItem>
+											))}
+											{isFetchingNextPage && (
+												<div className="py-2 text-center">
+													<Loader2 className="h-4 w-4 animate-spin mx-auto" />
+													<p className="text-xs text-muted-foreground mt-1">Carregando mais produtos...</p>
+												</div>
+											)}
+										</CommandGroup>
+										{shouldShowCreateNew && (
+											<CommandGroup>
+												<CommandItem
+													value="create-new"
+													onSelect={() => {
+														onCreateNew(searchTerm)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+													className="text-blue-600 hover:text-blue-700"
+												>
+													<div className="flex-1 truncate">
+														{createNewText} "{searchTerm}"
+													</div>
+												</CommandItem>
+											</CommandGroup>
+										)}
+									</>
+								)
 						)}
 					</CommandList>
 				</Command>

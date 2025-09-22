@@ -48,6 +48,18 @@ export function Combobox({
 		return options.filter((option) => normalizeString(option.label).includes(normalizedSearchTerm))
 	}, [options, searchTerm])
 
+	// Verificar se existe correspondência exata
+	const hasExactMatch = React.useMemo(() => {
+		if (!searchTerm) return false
+		const normalizedSearchTerm = normalizeString(searchTerm)
+		return options.some((option) => normalizeString(option.label) === normalizedSearchTerm)
+	}, [options, searchTerm])
+
+	// Verificar se deve mostrar a opção de criar novo
+	const shouldShowCreateNew = React.useMemo(() => {
+		return onCreateNew && searchTerm && !hasExactMatch
+	}, [onCreateNew, searchTerm, hasExactMatch])
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
@@ -71,41 +83,63 @@ export function Combobox({
 						className="max-h-[300px] overflow-y-auto overscroll-contain"
 						style={{ touchAction: "auto", overscrollBehavior: "contain" }}
 					>
-						<CommandEmpty>
-							<div className="py-6 text-center text-sm">
-								<p className="text-muted-foreground">{emptyText}</p>
-								{onCreateNew && searchTerm && (
-									<Button
-										variant="ghost"
-										size="sm"
-										className="mt-2 text-blue-600 hover:text-blue-700"
-										onClick={() => {
-											onCreateNew(searchTerm)
-											setOpen(false)
-											setSearchTerm("")
-										}}
-									>
-										{createNewText} "{searchTerm}"
-									</Button>
+						{filteredOptions.length === 0 ? (
+							<CommandEmpty>
+								<div className="py-6 text-center text-sm">
+									<p className="text-muted-foreground">{emptyText}</p>
+									{shouldShowCreateNew && (
+										<Button
+											variant="ghost"
+											size="sm"
+											className="mt-2 text-blue-600 hover:text-blue-700"
+											onClick={() => {
+												onCreateNew(searchTerm)
+												setOpen(false)
+												setSearchTerm("")
+											}}
+										>
+											{createNewText} "{searchTerm}"
+										</Button>
+									)}
+								</div>
+							</CommandEmpty>
+						) : (
+							<>
+								<CommandGroup>
+									{filteredOptions.map((option) => (
+										<CommandItem
+											key={option.value}
+											value={option.value}
+											onSelect={(currentValue) => {
+												onValueChange?.(currentValue === value ? "" : currentValue)
+												setOpen(false)
+												setSearchTerm("")
+											}}
+										>
+											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+											<div className="flex-1 truncate">{option.label}</div>
+										</CommandItem>
+									))}
+								</CommandGroup>
+								{shouldShowCreateNew && (
+									<CommandGroup>
+										<CommandItem
+											value="create-new"
+											onSelect={() => {
+												onCreateNew(searchTerm)
+												setOpen(false)
+												setSearchTerm("")
+											}}
+											className="text-blue-600 hover:text-blue-700"
+										>
+											<div className="flex-1 truncate">
+												{createNewText} "{searchTerm}"
+											</div>
+										</CommandItem>
+									</CommandGroup>
 								)}
-							</div>
-						</CommandEmpty>
-						<CommandGroup>
-							{filteredOptions.map((option) => (
-								<CommandItem
-									key={option.value}
-									value={option.value}
-									onSelect={(currentValue) => {
-										onValueChange?.(currentValue === value ? "" : currentValue)
-										setOpen(false)
-										setSearchTerm("")
-									}}
-								>
-									<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-									<div className="flex-1 truncate">{option.label}</div>
-								</CommandItem>
-							))}
-						</CommandGroup>
+							</>
+						)}
 					</CommandList>
 				</Command>
 			</PopoverContent>
