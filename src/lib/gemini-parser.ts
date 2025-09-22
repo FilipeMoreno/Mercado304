@@ -1,5 +1,95 @@
 import type { NutritionalInfo } from "@/types"
 
+// Mapeamento de alérgenos detectados pela IA para os nomes padrão do formulário
+const allergenMapping: { [key: string]: string } = {
+	// Variações comuns do português
+	leite: "Leite",
+	lactose: "Leite",
+	"derivados de leite": "Leite",
+	"produtos lácteos": "Leite",
+	ovos: "Ovos",
+	ovo: "Ovos",
+	albumina: "Ovos",
+	peixe: "Peixe",
+	peixes: "Peixe",
+	crustáceos: "Crustáceos",
+	crustaceos: "Crustáceos",
+	camarão: "Crustáceos",
+	lagosta: "Crustáceos",
+	amendoim: "Amendoim",
+	soja: "Soja",
+	trigo: "Trigo",
+	centeio: "Centeio",
+	cevada: "Cevada",
+	aveia: "Aveia",
+	glúten: "Glúten",
+	gluten: "Glúten",
+	amêndoa: "Amêndoa",
+	amêndoas: "Amêndoa",
+	avelã: "Avelã",
+	avelãs: "Avelã",
+	"castanha de caju": "Castanha-de-caju",
+	"castanha-de-caju": "Castanha-de-caju",
+	"castanha do pará": "Castanha-do-Pará",
+	"castanha-do-pará": "Castanha-do-Pará",
+	macadâmia: "Macadâmia",
+	macadamia: "Macadâmia",
+	nozes: "Nozes",
+	noz: "Nozes",
+	pecã: "Pecã",
+	peca: "Pecã",
+	pistache: "Pistache",
+	triticale: "Triticale",
+
+	// Variações em inglês que podem aparecer
+	milk: "Leite",
+	egg: "Ovos",
+	fish: "Peixe",
+	shellfish: "Crustáceos",
+	peanut: "Amendoim",
+	soy: "Soja",
+	wheat: "Trigo",
+	rye: "Centeio",
+	barley: "Cevada",
+	oats: "Aveia",
+	almond: "Amêndoa",
+	hazelnut: "Avelã",
+	cashew: "Castanha-de-caju",
+	"brazil nut": "Castanha-do-Pará",
+	walnut: "Nozes",
+	pecan: "Pecã",
+	pistachio: "Pistache",
+}
+
+// Função para mapear alérgenos detectados para os nomes padrão
+function mapAllergens(detectedAllergens: string[]): string[] {
+	if (!Array.isArray(detectedAllergens)) return []
+
+	const mappedAllergens = new Set<string>()
+
+	detectedAllergens.forEach((allergen) => {
+		if (typeof allergen !== "string") return
+
+		const cleanAllergen = allergen.toLowerCase().trim()
+
+		// Procurar correspondência exata
+		if (allergenMapping[cleanAllergen]) {
+			mappedAllergens.add(allergenMapping[cleanAllergen])
+			return
+		}
+
+		// Procurar correspondência parcial
+		for (const [key, value] of Object.entries(allergenMapping)) {
+			if (cleanAllergen.includes(key) || key.includes(cleanAllergen)) {
+				mappedAllergens.add(value)
+				break
+			}
+		}
+	})
+
+	return Array.from(mappedAllergens)
+}
+
 const _nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
 	"valor energético": "calories",
 	carboidratos: "carbohydrates",
@@ -24,9 +114,13 @@ function _parseNutrientAmount(amount: string | null): number | undefined {
 }
 
 export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
+	// Mapear alérgenos detectados para os nomes padrão do formulário
+	const mappedContains = mapAllergens(geminiData.allergensContains || [])
+	const mappedMayContain = mapAllergens(geminiData.allergensMayContain || [])
+
 	const parsedInfo: Partial<NutritionalInfo> = {
-		allergensContains: geminiData.allergensContains || [],
-		allergensMayContain: geminiData.allergensMayContain || [],
+		allergensContains: mappedContains,
+		allergensMayContain: mappedMayContain,
 	}
 
 	// Informações da Tabela Nutricional Obrigatórias
@@ -240,8 +334,8 @@ function extractAllergens(text: string): {
 	contains: string[]
 	mayContain: string[]
 } {
-	const contains: Set<string> = new Set()
-	const mayContain: Set<string> = new Set()
+	const contains: string[] = []
+	const mayContain: string[] = []
 	const cleanedText = text.toLowerCase().replace(/\s+/g, " ")
 
 	const containsMatch = cleanedText.match(/alergicos\s*:\s*contem\s+([^.]+)/i)
@@ -249,7 +343,7 @@ function extractAllergens(text: string): {
 		const allergensText = containsMatch[1]
 		commonAllergens.forEach((allergen) => {
 			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
-				contains.add(allergen.charAt(0).toUpperCase() + allergen.slice(1))
+				contains.push(allergen)
 			}
 		})
 	}
@@ -259,18 +353,18 @@ function extractAllergens(text: string): {
 		const allergensText = mayContainMatch[1]
 		commonAllergens.forEach((allergen) => {
 			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
-				mayContain.add(allergen.charAt(0).toUpperCase() + allergen.slice(1))
+				mayContain.push(allergen)
 			}
 		})
 	}
 
 	if (/contem gluten/i.test(cleanedText)) {
-		contains.add("Glúten")
+		contains.push("glúten")
 	}
 
 	return {
-		contains: Array.from(contains),
-		mayContain: Array.from(mayContain),
+		contains: mapAllergens(contains),
+		mayContain: mapAllergens(mayContain),
 	}
 }
 

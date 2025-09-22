@@ -35,6 +35,7 @@ import {
 } from "@/hooks"
 import { formatLocalDate } from "@/lib/date-utils"
 import type { Purchase } from "@/types"
+import Link from "next/link"
 
 interface PurchasesClientProps {
 	searchParams: {
@@ -327,13 +328,14 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											<Eye className="h-4 w-4 mr-1" />
 											Detalhes
 										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => window.open(`/compras/editar/${purchase.id}`, "_blank")}
-										>
-											<Edit className="h-4 w-4" />
-										</Button>
+										<Link href={`/compras/editar/${purchase.id}`}>
+											<Button
+												variant="outline"
+												size="sm"
+											>
+												<Edit className="h-4 w-4" />
+											</Button>
+										</Link>
 										<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
 											<Trash2 className="h-4 w-4" />
 										</Button>
