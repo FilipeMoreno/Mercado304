@@ -113,74 +113,87 @@ function _parseNutrientAmount(amount: string | null): number | undefined {
 	return match ? parseFloat(match[1].replace(",", ".")) : undefined
 }
 
+// Função auxiliar para verificar se um valor é válido (não vazio)
+function hasValidValue(value: any): boolean {
+	return value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0)
+}
+
+// Função auxiliar para adicionar campo apenas se tiver valor válido
+function addIfValid(target: any, key: string, value: any): void {
+	if (hasValidValue(value)) {
+		target[key] = value
+	}
+}
+
 export function parseGeminiResponse(geminiData: any): Partial<NutritionalInfo> {
 	// Mapear alérgenos detectados para os nomes padrão do formulário
 	const mappedContains = mapAllergens(geminiData.allergensContains || [])
 	const mappedMayContain = mapAllergens(geminiData.allergensMayContain || [])
 
-	const parsedInfo: Partial<NutritionalInfo> = {
-		allergensContains: mappedContains,
-		allergensMayContain: mappedMayContain,
-	}
+	const parsedInfo: Partial<NutritionalInfo> = {}
+
+	// Alérgenos (sempre incluir, mesmo se vazio, para manter a estrutura)
+	parsedInfo.allergensContains = mappedContains
+	parsedInfo.allergensMayContain = mappedMayContain
 
 	// Informações da Tabela Nutricional Obrigatórias
-	parsedInfo.servingSize = geminiData.servingSize || ""
-	parsedInfo.servingsPerPackage = geminiData.servingsPerPackage
-	parsedInfo.calories = geminiData.calories
-	parsedInfo.carbohydrates = geminiData.carbohydrates
-	parsedInfo.totalSugars = geminiData.totalSugars
-	parsedInfo.addedSugars = geminiData.addedSugars
-	parsedInfo.proteins = geminiData.proteins
-	parsedInfo.totalFat = geminiData.totalFat
-	parsedInfo.saturatedFat = geminiData.saturatedFat
-	parsedInfo.transFat = geminiData.transFat
-	parsedInfo.fiber = geminiData.fiber
-	parsedInfo.sodium = geminiData.sodium
+	addIfValid(parsedInfo, "servingSize", geminiData.servingSize)
+	addIfValid(parsedInfo, "servingsPerPackage", geminiData.servingsPerPackage)
+	addIfValid(parsedInfo, "calories", geminiData.calories)
+	addIfValid(parsedInfo, "carbohydrates", geminiData.carbohydrates)
+	addIfValid(parsedInfo, "totalSugars", geminiData.totalSugars)
+	addIfValid(parsedInfo, "addedSugars", geminiData.addedSugars)
+	addIfValid(parsedInfo, "proteins", geminiData.proteins)
+	addIfValid(parsedInfo, "totalFat", geminiData.totalFat)
+	addIfValid(parsedInfo, "saturatedFat", geminiData.saturatedFat)
+	addIfValid(parsedInfo, "transFat", geminiData.transFat)
+	addIfValid(parsedInfo, "fiber", geminiData.fiber)
+	addIfValid(parsedInfo, "sodium", geminiData.sodium)
 
-	// Vitaminas (valores opcionais)
-	parsedInfo.vitaminA = geminiData.vitaminA
-	parsedInfo.vitaminC = geminiData.vitaminC
-	parsedInfo.vitaminD = geminiData.vitaminD
-	parsedInfo.vitaminE = geminiData.vitaminE
-	parsedInfo.vitaminK = geminiData.vitaminK
-	parsedInfo.thiamine = geminiData.thiamine
-	parsedInfo.riboflavin = geminiData.riboflavin
-	parsedInfo.niacin = geminiData.niacin
-	parsedInfo.vitaminB6 = geminiData.vitaminB6
-	parsedInfo.folate = geminiData.folate
-	parsedInfo.vitaminB12 = geminiData.vitaminB12
-	parsedInfo.biotin = geminiData.biotin
-	parsedInfo.pantothenicAcid = geminiData.pantothenicAcid
+	// Vitaminas (valores opcionais) - só adicionar se tiverem valor
+	addIfValid(parsedInfo, "vitaminA", geminiData.vitaminA)
+	addIfValid(parsedInfo, "vitaminC", geminiData.vitaminC)
+	addIfValid(parsedInfo, "vitaminD", geminiData.vitaminD)
+	addIfValid(parsedInfo, "vitaminE", geminiData.vitaminE)
+	addIfValid(parsedInfo, "vitaminK", geminiData.vitaminK)
+	addIfValid(parsedInfo, "thiamine", geminiData.thiamine)
+	addIfValid(parsedInfo, "riboflavin", geminiData.riboflavin)
+	addIfValid(parsedInfo, "niacin", geminiData.niacin)
+	addIfValid(parsedInfo, "vitaminB6", geminiData.vitaminB6)
+	addIfValid(parsedInfo, "folate", geminiData.folate)
+	addIfValid(parsedInfo, "vitaminB12", geminiData.vitaminB12)
+	addIfValid(parsedInfo, "biotin", geminiData.biotin)
+	addIfValid(parsedInfo, "pantothenicAcid", geminiData.pantothenicAcid)
 
-	// Outros nutrientes (valores opcionais)
-	parsedInfo.lactose = geminiData.lactose
-	parsedInfo.galactose = geminiData.galactose
-	parsedInfo.taurine = geminiData.taurine
-	parsedInfo.caffeine = geminiData.caffeine
+	// Outros nutrientes (valores opcionais) - só adicionar se tiverem valor
+	addIfValid(parsedInfo, "lactose", geminiData.lactose)
+	addIfValid(parsedInfo, "galactose", geminiData.galactose)
+	addIfValid(parsedInfo, "taurine", geminiData.taurine)
+	addIfValid(parsedInfo, "caffeine", geminiData.caffeine)
 
-	// Ácidos graxos e gorduras especiais (valores opcionais)
-	parsedInfo.omega3 = geminiData.omega3
-	parsedInfo.omega6 = geminiData.omega6
-	parsedInfo.monounsaturatedFat = geminiData.monounsaturatedFat
-	parsedInfo.polyunsaturatedFat = geminiData.polyunsaturatedFat
-	parsedInfo.cholesterol = geminiData.cholesterol
-	parsedInfo.epa = geminiData.epa
-	parsedInfo.dha = geminiData.dha
-	parsedInfo.linolenicAcid = geminiData.linolenicAcid
+	// Ácidos graxos e gorduras especiais (valores opcionais) - só adicionar se tiverem valor
+	addIfValid(parsedInfo, "omega3", geminiData.omega3)
+	addIfValid(parsedInfo, "omega6", geminiData.omega6)
+	addIfValid(parsedInfo, "monounsaturatedFat", geminiData.monounsaturatedFat)
+	addIfValid(parsedInfo, "polyunsaturatedFat", geminiData.polyunsaturatedFat)
+	addIfValid(parsedInfo, "cholesterol", geminiData.cholesterol)
+	addIfValid(parsedInfo, "epa", geminiData.epa)
+	addIfValid(parsedInfo, "dha", geminiData.dha)
+	addIfValid(parsedInfo, "linolenicAcid", geminiData.linolenicAcid)
 
-	// Minerais (valores opcionais)
-	parsedInfo.calcium = geminiData.calcium
-	parsedInfo.iron = geminiData.iron
-	parsedInfo.magnesium = geminiData.magnesium
-	parsedInfo.phosphorus = geminiData.phosphorus
-	parsedInfo.potassium = geminiData.potassium
-	parsedInfo.zinc = geminiData.zinc
-	parsedInfo.copper = geminiData.copper
-	parsedInfo.manganese = geminiData.manganese
-	parsedInfo.selenium = geminiData.selenium
-	parsedInfo.iodine = geminiData.iodine
-	parsedInfo.chromium = geminiData.chromium
-	parsedInfo.molybdenum = geminiData.molybdenum
+	// Minerais (valores opcionais) - só adicionar se tiverem valor
+	addIfValid(parsedInfo, "calcium", geminiData.calcium)
+	addIfValid(parsedInfo, "iron", geminiData.iron)
+	addIfValid(parsedInfo, "magnesium", geminiData.magnesium)
+	addIfValid(parsedInfo, "phosphorus", geminiData.phosphorus)
+	addIfValid(parsedInfo, "potassium", geminiData.potassium)
+	addIfValid(parsedInfo, "zinc", geminiData.zinc)
+	addIfValid(parsedInfo, "copper", geminiData.copper)
+	addIfValid(parsedInfo, "manganese", geminiData.manganese)
+	addIfValid(parsedInfo, "selenium", geminiData.selenium)
+	addIfValid(parsedInfo, "iodine", geminiData.iodine)
+	addIfValid(parsedInfo, "chromium", geminiData.chromium)
+	addIfValid(parsedInfo, "molybdenum", geminiData.molybdenum)
 
 	return parsedInfo
 }

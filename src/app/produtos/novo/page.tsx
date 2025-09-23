@@ -60,7 +60,6 @@ export default function NovoProdutoPage() {
 	const [_showFieldErrors, setShowFieldErrors] = useState(false)
 
 	useEffect(() => {
-		fetchCategories()
 		const nameParam = searchParams.get("name")
 		if (nameParam) {
 			setFormData((prev) => ({ ...prev, name: nameParam }))
@@ -154,10 +153,10 @@ export default function NovoProdutoPage() {
 			)
 			const dataToSubmit = {
 				...formData,
-				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
-				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : null,
-				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
+				minStock: formData.minStock ? parseFloat(formData.minStock) : undefined,
+				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
+				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : undefined,
+				nutritionalInfo: hasNutritionalData ? nutritionalData : undefined,
 			}
 			const newProduct = await createProductMutation.mutateAsync(dataToSubmit)
 			AppToasts.success("Produto criado com sucesso!")

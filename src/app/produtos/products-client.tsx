@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Filter, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
@@ -14,6 +14,7 @@ import { ProductStats } from "@/components/products/product-stats"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
@@ -27,6 +28,7 @@ import {
 	useUrlState,
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
+import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
 
 interface ProductsClientProps {
@@ -44,6 +46,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
+	const mobile = useMobile()
 	const [showScanner, setShowScanner] = useState(false)
 
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -167,6 +170,36 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		openDeleteConfirm(product)
 	}
 
+	// FAB actions for mobile
+	const fabActions = [
+		{
+			icon: <Plus className="h-5 w-5" />,
+			label: "Novo Produto",
+			onClick: () => router.push("/produtos/novo"),
+			bgColor: "bg-green-500",
+		},
+		{
+			icon: <QrCode className="h-5 w-5" />,
+			label: "Escanear",
+			onClick: handleOpenScanner,
+			bgColor: "bg-orange-500",
+		},
+		{
+			icon: <Search className="h-5 w-5" />,
+			label: "Buscar",
+			onClick: () => {
+				const searchInput = document.querySelector('input[placeholder*="Nome"]') as HTMLInputElement
+				searchInput?.focus()
+			},
+			bgColor: "bg-blue-500",
+		},
+		{
+			icon: <Filter className="h-5 w-5" />,
+			label: "Filtros",
+			onClick: () => toast.info("Abrindo filtros"),
+			bgColor: "bg-purple-500",
+		},
+	]
 
 	// Extract data from React Query
 	const products = productsData?.products || []
@@ -226,11 +259,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		<>
 			{/* Fixed header for mobile */}
 			<div className="sticky top-0 z-10 bg-white dark:bg-gray-900 dark:border-gray-800 pb-4 mb-6">
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="flex items-center gap-2"
-				>
+				<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2">
 					<div className="relative flex-1">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						<Input
@@ -310,10 +339,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							totalPages={pagination.totalPages}
 						/>
 
-						<ProductList
-							products={products}
-							onDelete={handleProductDelete}
-						/>
+						<ProductList products={products} onDelete={handleProductDelete} />
 
 						<ProductPagination
 							currentPage={pagination.currentPage}
@@ -353,6 +379,16 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				</p>
 			</ResponsiveConfirmDialog>
 
+			{/* FAB for mobile users */}
+			{mobile.isTouchDevice && (
+				<FloatingActionButton
+					actions={fabActions}
+					position="bottom-right"
+					size="md"
+					expandDirection="up"
+					showLabels={true}
+				/>
+			)}
 
 			{/* Scanner de código de barras */}
 			<BarcodeScanner isOpen={showScanner} onScan={handleScanResult} onClose={handleCloseScanner} />
