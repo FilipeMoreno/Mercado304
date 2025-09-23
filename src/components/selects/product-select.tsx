@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import { ProductCombobox } from "@/components/ui/product-combobox"
-import { useInfiniteProductsQuery } from "@/hooks"
+import { useInfiniteProductsQuery, useAllProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
 import type { Product } from "@/types"
@@ -35,6 +35,11 @@ export function ProductSelect({
 	const [isScannerOpen, setIsScannerOpen] = useState(false)
 	const debouncedSearch = useDebounce(search, 300)
 
+	// Query para todos os produtos (para encontrar o produto selecionado)
+	const { data: allProductsData } = useAllProductsQuery()
+	const allProducts = allProductsData?.products || []
+
+	// Query infinita para o dropdown (com busca)
 	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
 		useInfiniteProductsQuery({
 			search: debouncedSearch,
@@ -45,6 +50,12 @@ export function ProductSelect({
 	const products = useMemo(() => {
 		return data?.pages.flatMap((page) => page.products) || []
 	}, [data])
+
+	// Encontrar o produto selecionado na lista completa
+	const selectedProduct = useMemo(() => {
+		if (!value) return null
+		return allProducts.find((p: Product) => p.id === value) || null
+	}, [value, allProducts])
 
 	const handleSearchChange = useCallback((searchTerm: string) => {
 		setSearch(searchTerm)
@@ -128,6 +139,7 @@ export function ProductSelect({
 					isFetchingNextPage={isFetchingNextPage}
 					isLoading={isLoading || isPlaceholderData}
 					onSearchChange={handleSearchChange}
+					selectedProduct={selectedProduct}
 				/>
 				<Button
 					variant="outline"

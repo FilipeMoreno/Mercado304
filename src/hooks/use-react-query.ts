@@ -302,7 +302,7 @@ export const useProductQuery = (id: string) => {
 export const useAllProductsQuery = () => {
 	return useQuery({
 		queryKey: ["products", "all"],
-		queryFn: () => fetchWithErrorHandling("/api/products"),
+		queryFn: () => fetchWithErrorHandling("/api/products?limit=10000"),
 		staleTime: 0, // Sempre refetch quando invalidado
 	})
 }

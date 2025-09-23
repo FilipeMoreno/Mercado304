@@ -31,6 +31,7 @@ interface ProductComboboxProps {
 	isFetchingNextPage?: boolean
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
+	selectedProduct?: any
 }
 
 export function ProductCombobox({
@@ -49,6 +50,7 @@ export function ProductCombobox({
 	isFetchingNextPage = false,
 	isLoading = false,
 	onSearchChange,
+	selectedProduct,
 }: ProductComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -122,15 +124,9 @@ export function ProductCombobox({
 					className={cn("w-full justify-between", className)}
 					disabled={disabled}
 				>
-					{/* --- ALTERAÇÃO APLICADA AQUI --- */}
 					<span className="truncate flex-1 text-left font-normal">
-						{value
-							? (() => {
-									const selectedProduct = products.find((p) => p.id === value)
-									return selectedProduct
-										? `${selectedProduct.name} ${selectedProduct.brand ? `- ${selectedProduct.brand.name}` : ""} (${selectedProduct.unit})`
-										: placeholder
-								})()
+						{value && selectedProduct
+							? `${selectedProduct.name} ${selectedProduct.brand ? `- ${selectedProduct.brand.name}` : ""} (${selectedProduct.unit})`
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

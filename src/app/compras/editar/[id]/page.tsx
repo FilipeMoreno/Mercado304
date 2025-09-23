@@ -48,8 +48,6 @@ export default function EditarCompraPage() {
 
 	const products = productsData?.products || []
 
-	console.log(purchaseData)
-	console.log(productsData)
 	const _markets = marketsData?.markets || []
 
 	const [formData, setFormData] = useState({
@@ -286,12 +284,13 @@ export default function EditarCompraPage() {
 						{items.map((item, index) => {
 							const selectedProduct = products.find((p: any) => p.id === item.productId)
 							return (
-								<div key={index} className="space-y-4 p-4 border rounded-lg">
+								<div key={`item-${item.productId}-${index}`} className="space-y-4 p-4 border rounded-lg">
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 										<div className="space-y-2">
 											<Label>Produto *</Label>
 											<ProductSelect
 												value={item.productId}
+												products={products}
 												onValueChange={(value) => updateItem(index, "productId", value)}
 												preserveFormData={{
 													formData,
