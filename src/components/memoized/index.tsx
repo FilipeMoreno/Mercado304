@@ -72,8 +72,8 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 							</div>
 
 							{brandName && (
-								<div className="mb-2">
-									<p className="text-xs text-gray-600">{brandName}</p>
+								<div className="mb-2 flex items-center gap-2">
+									<Badge variant="secondary" className="text-xs">{brandName}</Badge>
 									<Badge variant="secondary" className="text-xs">
 										{productUnit}
 									</Badge>
@@ -353,4 +353,269 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 	},
 )
 
-BrandCardMemo.displayName = "BrandCardMemo"
+// PurchaseCard memoizado
+interface PurchaseCardMemoProps {
+	purchase: any
+	onDelete: (purchase: any) => void
+	onEdit?: (purchase: any) => void
+}
+
+export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
+	({ purchase, onDelete, onEdit }) => {
+		const handleDelete = useCallback(() => {
+			onDelete(purchase)
+		}, [purchase, onDelete])
+
+		const handleEdit = useCallback(() => {
+			onEdit?.(purchase)
+		}, [purchase, onEdit])
+
+		const purchaseDate = useMemo(() => {
+			return new Date(purchase.purchaseDate).toLocaleDateString()
+		}, [purchase.purchaseDate])
+
+		const totalAmount = useMemo(() => {
+			return purchase.totalAmount?.toFixed(2) || "0.00"
+		}, [purchase.totalAmount])
+
+		const itemCount = useMemo(() => {
+			return purchase.items?.length || 0
+		}, [purchase.items?.length])
+
+		return (
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+				<CardHeader className="pb-3">
+					<div className="flex items-start justify-between">
+						<div className="flex-1">
+							<CardTitle className="text-lg font-medium line-clamp-2">
+								{purchase.market?.name || "Mercado"}
+							</CardTitle>
+							<p className="text-sm text-gray-600 mt-1">{purchaseDate}</p>
+							<p className="text-sm text-gray-500">{itemCount} itens</p>
+						</div>
+						
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+									<MoreHorizontal className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={handleEdit}>
+									<Edit className="h-4 w-4 mr-2" />
+									Editar
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
+									<Trash2 className="h-4 w-4 mr-2" />
+									Excluir
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</CardHeader>
+				
+				<CardContent className="pt-0">
+					<div className="text-right mb-3">
+						<p className="font-bold text-lg">R$ {totalAmount}</p>
+					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						className="w-full"
+						onClick={() => (window.location.href = `/compras/${purchase.id}`)}
+					>
+						<BarChart3 className="h-4 w-4 mr-2" />
+						Ver Detalhes
+					</Button>
+				</CardContent>
+			</Card>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.purchase.id === nextProps.purchase.id &&
+			prevProps.purchase.totalAmount === nextProps.purchase.totalAmount &&
+			prevProps.purchase.purchaseDate === nextProps.purchase.purchaseDate &&
+			prevProps.purchase.items?.length === nextProps.purchase.items?.length &&
+			prevProps.purchase.updatedAt === nextProps.purchase.updatedAt
+		)
+	},
+)
+
+PurchaseCardMemo.displayName = "PurchaseCardMemo"
+
+// ShoppingListCard memoizado
+interface ShoppingListCardMemoProps {
+	shoppingList: any
+	onDelete: (shoppingList: any) => void
+	onEdit?: (shoppingList: any) => void
+}
+
+export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
+	({ shoppingList, onDelete, onEdit }) => {
+		const handleDelete = useCallback(() => {
+			onDelete(shoppingList)
+		}, [shoppingList, onDelete])
+
+		const handleEdit = useCallback(() => {
+			onEdit?.(shoppingList)
+		}, [shoppingList, onEdit])
+
+		const listName = useMemo(() => {
+			return shoppingList.name || "Lista sem nome"
+		}, [shoppingList.name])
+
+		const itemCount = useMemo(() => {
+			return shoppingList.items?.length || 0
+		}, [shoppingList.items?.length])
+
+		const createdAt = useMemo(() => {
+			return new Date(shoppingList.createdAt).toLocaleDateString()
+		}, [shoppingList.createdAt])
+
+		return (
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+				<CardHeader className="pb-3">
+					<div className="flex items-start justify-between">
+						<div className="flex-1">
+							<CardTitle className="text-lg font-medium line-clamp-2">
+								{listName}
+							</CardTitle>
+							<p className="text-sm text-gray-600 mt-1">{createdAt}</p>
+							<p className="text-sm text-gray-500">{itemCount} itens</p>
+						</div>
+						
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+									<MoreHorizontal className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={handleEdit}>
+									<Edit className="h-4 w-4 mr-2" />
+									Editar
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
+									<Trash2 className="h-4 w-4 mr-2" />
+									Excluir
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</CardHeader>
+				
+				<CardContent className="pt-0">
+					<Button
+						variant="outline"
+						size="sm"
+						className="w-full"
+						onClick={() => (window.location.href = `/lista/${shoppingList.id}`)}
+					>
+						<BarChart3 className="h-4 w-4 mr-2" />
+						Ver Lista
+					</Button>
+				</CardContent>
+			</Card>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.shoppingList.id === nextProps.shoppingList.id &&
+			prevProps.shoppingList.name === nextProps.shoppingList.name &&
+			prevProps.shoppingList.items?.length === nextProps.shoppingList.items?.length &&
+			prevProps.shoppingList.createdAt === nextProps.shoppingList.createdAt &&
+			prevProps.shoppingList.updatedAt === nextProps.shoppingList.updatedAt
+		)
+	},
+)
+
+ShoppingListCardMemo.displayName = "ShoppingListCardMemo"
+
+// RecipeCard memoizado
+interface RecipeCardMemoProps {
+	recipe: any
+	onDelete: (recipe: any) => void
+	onEdit?: (recipe: any) => void
+}
+
+export const RecipeCardMemo = memo<RecipeCardMemoProps>(
+	({ recipe, onDelete, onEdit }) => {
+		const handleDelete = useCallback(() => {
+			onDelete(recipe)
+		}, [recipe, onDelete])
+
+		const handleEdit = useCallback(() => {
+			onEdit?.(recipe)
+		}, [recipe, onEdit])
+
+		const recipeName = useMemo(() => {
+			return recipe.name || "Receita sem nome"
+		}, [recipe.name])
+
+		const ingredientCount = useMemo(() => {
+			return recipe.ingredients?.length || 0
+		}, [recipe.ingredients?.length])
+
+		const prepTime = useMemo(() => {
+			return recipe.prepTime || "N/A"
+		}, [recipe.prepTime])
+
+		return (
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+				<CardHeader className="pb-3">
+					<div className="flex items-start justify-between">
+						<div className="flex-1">
+							<CardTitle className="text-lg font-medium line-clamp-2">
+								{recipeName}
+							</CardTitle>
+							<p className="text-sm text-gray-600 mt-1">{ingredientCount} ingredientes</p>
+							<p className="text-sm text-gray-500">Tempo: {prepTime}min</p>
+						</div>
+						
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+									<MoreHorizontal className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={handleEdit}>
+									<Edit className="h-4 w-4 mr-2" />
+									Editar
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
+									<Trash2 className="h-4 w-4 mr-2" />
+									Excluir
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</CardHeader>
+				
+				<CardContent className="pt-0">
+					<Button
+						variant="outline"
+						size="sm"
+						className="w-full"
+						onClick={() => (window.location.href = `/receitas/${recipe.id}`)}
+					>
+						<BarChart3 className="h-4 w-4 mr-2" />
+						Ver Receita
+					</Button>
+				</CardContent>
+			</Card>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.recipe.id === nextProps.recipe.id &&
+			prevProps.recipe.name === nextProps.recipe.name &&
+			prevProps.recipe.ingredients?.length === nextProps.recipe.ingredients?.length &&
+			prevProps.recipe.prepTime === nextProps.recipe.prepTime &&
+			prevProps.recipe.updatedAt === nextProps.recipe.updatedAt
+		)
+	},
+)
+
+RecipeCardMemo.displayName = "RecipeCardMemo"

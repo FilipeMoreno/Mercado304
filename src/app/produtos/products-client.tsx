@@ -27,7 +27,6 @@ import {
 	useUrlState,
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
-import { useMobile } from "@/hooks/use-mobile"
 import type { Product } from "@/types"
 
 interface ProductsClientProps {

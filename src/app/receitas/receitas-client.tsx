@@ -5,6 +5,12 @@ import { motion } from "framer-motion"
 import { ChefHat, Eye, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+
 import { toast } from "sonner"
 import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"

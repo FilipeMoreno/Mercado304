@@ -5,6 +5,12 @@ import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
+
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+
 import { toast } from "sonner"
 import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"

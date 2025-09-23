@@ -1,158 +1,89 @@
 "use client"
 
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useEffect, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 // Configurações otimizadas para React Query
 export const queryConfig = {
 	defaultStaleTime: 5 * 60 * 1000, // 5 minutos
 	defaultCacheTime: 10 * 60 * 1000, // 10 minutos
-	retry: 3,
-	retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
-	refetchOnWindowFocus: false,
-	refetchOnMount: false,
-	refetchOnReconnect: true,
+	refetchOnWindowFocus: false, // Desativa refetching automático ao focar na janela
+	refetchOnMount: false, // Desativa refetching automático ao montar
+	retry: 1, // Tenta novamente 1 vez em caso de falha
 }
 
-// Hook para queries com paginação otimizada
-export function useOptimizedInfiniteQuery<T>(
+// Hook para queries otimizadas
+export function useOptimizedQuery<TData, TError = unknown>(
 	queryKey: string[],
-	queryFn: (pageParam: number) => Promise<{ data: T[]; nextPage?: number }>,
-	options: {
+	queryFn: () => Promise<TData>,
+	options?: {
 		enabled?: boolean
 		staleTime?: number
-		cacheTime?: number
-		pageSize?: number
-	} = {},
-) {
-	const {
-		enabled = true,
-		staleTime = queryConfig.defaultStaleTime,
-		cacheTime = queryConfig.defaultCacheTime,
-		pageSize = 20,
-	} = options
-
-	return useInfiniteQuery({
-		queryKey,
-		queryFn: ({ pageParam = 0 }) => queryFn(pageParam),
-		getNextPageParam: (lastPage) => lastPage.nextPage,
-		enabled,
-		staleTime,
-		cacheTime,
-		retry: queryConfig.retry,
-		retryDelay: queryConfig.retryDelay,
-		refetchOnWindowFocus: queryConfig.refetchOnWindowFocus,
-		refetchOnMount: queryConfig.refetchOnMount,
-		refetchOnReconnect: queryConfig.refetchOnReconnect,
-	})
-}
-
-// Hook para queries simples otimizadas
-export function useOptimizedQuery<T>(
-	queryKey: string[],
-	queryFn: () => Promise<T>,
-	options: {
-		enabled?: boolean
-		staleTime?: number
-		cacheTime?: number
+		gcTime?: number
 		refetchInterval?: number
-	} = {},
+	},
 ) {
 	const {
 		enabled = true,
 		staleTime = queryConfig.defaultStaleTime,
-		cacheTime = queryConfig.defaultCacheTime,
+		gcTime = queryConfig.defaultCacheTime,
 		refetchInterval,
-	} = options
+	} = options || {}
 
-	return useQuery({
+	return useQuery<TData, TError>({
 		queryKey,
 		queryFn,
 		enabled,
 		staleTime,
-		cacheTime,
-		retry: queryConfig.retry,
-		retryDelay: queryConfig.retryDelay,
+		gcTime,
+		refetchInterval,
 		refetchOnWindowFocus: queryConfig.refetchOnWindowFocus,
 		refetchOnMount: queryConfig.refetchOnMount,
-		refetchOnReconnect: queryConfig.refetchOnReconnect,
-		refetchInterval,
+		retry: queryConfig.retry,
 	})
 }
 
-// Hook para prefetch inteligente
-export function useSmartPrefetch() {
+// Hook para prefetching inteligente (ex: para navegação)
+export function useSmartPrefetch(queryKey: string[], queryFn: () => Promise<any>) {
 	const queryClient = useQueryClient()
 
-	const prefetchPage = useCallback(
-		async (pageNumber: number, queryKey: string[], queryFn: () => Promise<any>) => {
-			const nextPageKey = [...queryKey, { page: pageNumber }]
+	const prefetch = useCallback(() => {
+		queryClient.prefetchQuery({
+			queryKey,
+			queryFn,
+			staleTime: queryConfig.defaultStaleTime,
+		})
+	}, [queryClient, queryKey, queryFn])
 
-			// Só prefetch se não estiver no cache
-			if (!queryClient.getQueryData(nextPageKey)) {
-				await queryClient.prefetchQuery({
-					queryKey: nextPageKey,
-					queryFn,
-					staleTime: queryConfig.defaultStaleTime,
-				})
-			}
-		},
-		[queryClient],
-	)
-
-	const prefetchRelated = useCallback(
-		async (entityType: string, entityId: string) => {
-			// Prefetch dados relacionados baseado no tipo de entidade
-			const prefetchMap = {
-				product: [
-					["products", entityId],
-					["products", entityId, "prices"],
-					["products", entityId, "history"],
-				],
-				market: [
-					["markets", entityId],
-					["markets", entityId, "purchases"],
-				],
-				category: [
-					["categories", entityId],
-					["categories", entityId, "products"],
-				],
-				brand: [
-					["brands", entityId],
-					["brands", entityId, "products"],
-				],
-			}
-
-			const queriesToPrefetch = prefetchMap[entityType as keyof typeof prefetchMap] || []
-
-			for (const queryKey of queriesToPrefetch) {
-				if (!queryClient.getQueryData(queryKey)) {
-					queryClient.prefetchQuery({
-						queryKey,
-						queryFn: () => fetch(`/api/${queryKey.join("/")}`).then((res) => res.json()),
-						staleTime: queryConfig.defaultStaleTime,
-					})
-				}
-			}
-		},
-		[queryClient],
-	)
-
-	return { prefetchPage, prefetchRelated }
+	return { prefetch }
 }
 
-// Hook para cache inteligente
+// Hook para monitorar e otimizar re-renders de componentes
+export function useComponentRenderMonitor(componentName: string) {
+	const renderCount = useRef(0)
+	renderCount.current++
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === "development") {
+			console.log(`${componentName} rendered: ${renderCount.current} times`)
+		}
+	})
+
+	return { renderCount: renderCount.current }
+}
+
+// Hook para invalidação inteligente de cache
 export function useSmartCache() {
 	const queryClient = useQueryClient()
 
 	const invalidateRelated = useCallback(
-		(entityType: string, entityId?: string) => {
+		(entityType: string, _entityId?: string) => {
 			const invalidationMap = {
-				product: [["products"], ["products", entityId], ["categories"], ["brands"], ["dashboard", "stats"]],
-				market: [["markets"], ["markets", entityId], ["purchases"], ["dashboard", "stats"]],
-				category: [["categories"], ["categories", entityId], ["products"], ["dashboard", "stats"]],
-				brand: [["brands"], ["brands", entityId], ["products"], ["dashboard", "stats"]],
-				purchase: [["purchases"], ["purchases", entityId], ["markets"], ["dashboard", "stats"]],
+				product: [["products"], ["categories"], ["brands"], ["dashboard", "stats"]],
+				market: [["markets"], ["purchases"], ["dashboard", "stats"]],
+				category: [["categories"], ["products"], ["dashboard", "stats"]],
+				brand: [["brands"], ["products"], ["dashboard", "stats"]],
+				purchase: [["purchases"], ["markets"], ["dashboard", "stats"]],
 			}
 
 			const queriesToInvalidate = invalidationMap[entityType as keyof typeof invalidationMap] || []
@@ -184,10 +115,10 @@ export function useSmartCache() {
 }
 
 // Hook para queries com debounce
-export function useDebouncedQuery<T>(
+export function useDebouncedQuery<TData>(
 	queryKey: string[],
-	queryFn: () => Promise<T>,
-	debounceMs: number = 300,
+	queryFn: () => Promise<TData>,
+	delay: number = 500,
 	options: {
 		enabled?: boolean
 		staleTime?: number
@@ -198,35 +129,10 @@ export function useDebouncedQuery<T>(
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setDebouncedQueryKey(queryKey)
-		}, debounceMs)
+		}, delay)
 
 		return () => clearTimeout(timer)
-	}, [queryKey, debounceMs])
+	}, [queryKey, delay])
 
 	return useOptimizedQuery(debouncedQueryKey, queryFn, options)
-}
-
-// Hook para queries com retry inteligente
-export function useResilientQuery<T>(
-	queryKey: string[],
-	queryFn: () => Promise<T>,
-	options: {
-		enabled?: boolean
-		maxRetries?: number
-		backoffMultiplier?: number
-	} = {},
-) {
-	const { enabled = true, maxRetries = 5, backoffMultiplier = 2 } = options
-
-	return useOptimizedQuery(queryKey, queryFn, {
-		enabled,
-		retry: (failureCount, error) => {
-			// Não retry para erros 4xx (client errors)
-			if (error instanceof Error && error.message.includes("4")) {
-				return false
-			}
-			return failureCount < maxRetries
-		},
-		retryDelay: (attemptIndex) => Math.min(1000 * backoffMultiplier ** attemptIndex, 30000),
-	})
 }

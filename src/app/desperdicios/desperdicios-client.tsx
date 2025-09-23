@@ -18,6 +18,12 @@ import {
 	TrendingUp,
 } from "lucide-react"
 import { useMemo, useState } from "react"
+
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

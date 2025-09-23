@@ -1,21 +1,20 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, ChevronLeft, ChevronRight, Edit, MoreHorizontal, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Search, Tag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useMemo, useState } from "react"
-import { CategoriesSkeleton } from "@/components/skeletons/categories-skeleton"
+import { CategoryCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Card, CardContent, } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { Switch } from "@/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
 	useCategoriesQuery,
 	useDeleteCategoryMutation,
@@ -211,194 +210,115 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				</div>
 			</motion.div>
 
-			<motion.div 
-				initial={{ opacity: 0 }} 
-				animate={{ opacity: 1 }} 
-				transition={{ delay: 0.1 }} 
-				className="space-y-4"
-			>
-				{isLoading ? (
-					<CategoriesSkeleton />
-				) : categories.length === 0 ? (
-					state.search || state.sort !== "name-asc" ? (
-						<Card>
-							<CardContent className="text-center py-12">
-								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-								<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
-								<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
-								<Button
-									variant="outline"
-									onClick={() => {
-										setSearchValue("") // Reset o input local
-										clearFilters()
-									}}
-								>
-									Limpar Filtros
-								</Button>
-							</CardContent>
-						</Card>
-					) : (
-						<Card>
-							<CardContent className="text-center py-12">
-								<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-								<h3 className="text-lg font-medium mb-2">Nenhuma categoria cadastrada</h3>
-								<p className="text-gray-600 mb-4">Comece adicionando sua primeira categoria</p>
-								<Link href="/categorias/nova">
-									<Button>
-										<Plus className="mr-2 h-4 w-4" />
-										Cadastrar Primeira Categoria
-									</Button>
-								</Link>
-							</CardContent>
-						</Card>
-					)
-				) : (
-					<>
-						<div className="flex justify-between items-center text-sm text-gray-600">
-							<span>
-								Mostrando {categories.length} de {totalCount} categorias
-							</span>
-							<span>
-								Página {state.page} de {totalPages}
-							</span>
-						</div>
-						<motion.div 
-							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ delay: 0.2 }}
-						>
-							{categories.map((category: any, index: number) => (
-								<motion.div
-									key={category.id}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: index * 0.05 }}
-								>
-									<Card
-										className="group hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-800 shadow-md hover:shadow-xl flex flex-col"
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
+				<OptimizedLoading isLoading={isLoading} skeletonType="category" skeletonCount={6}>
+					{categories.length === 0 ? (
+						state.search || state.sort !== "name-asc" ? (
+							<Card>
+								<CardContent className="text-center py-12">
+									<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+									<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
+									<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
+									<Button
+										variant="outline"
+										onClick={() => {
+											setSearchValue("") // Reset o input local
+											clearFilters()
+										}}
 									>
-									<CardHeader className="pb-3">
-										<div className="flex items-center gap-3 mb-2">
-											{category.icon ? (
-												<div
-													className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm"
-													style={{ backgroundColor: category.color ? `${category.color}20` : "#f3f4f6" }}
-												>
-													{category.icon}
-												</div>
-											) : (
-												<div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shadow-sm">
-													<Tag className="h-5 w-5 text-gray-400" />
-												</div>
-											)}
-											<div className="flex-1 min-w-0">
-												<TooltipProvider>
-													<Tooltip>
-														<TooltipTrigger asChild>
-															<CardTitle className="text-lg font-semibold text-gray-900 truncate cursor-help">
-																{category.name}
-															</CardTitle>
-														</TooltipTrigger>
-														<TooltipContent side="top" className="max-w-xs">
-															<p>{category.name}</p>
-														</TooltipContent>
-													</Tooltip>
-												</TooltipProvider>
-												<div className="flex items-center gap-2 mt-1">
-													<CardDescription className="text-sm text-gray-600">
-														{category._count?.products || 0} produtos
-													</CardDescription>
-													{category.isFood && (
-														<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-															Alimento
-														</span>
-													)}
-												</div>
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="flex-1" />
-									<CardFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
-										<div className="flex gap-2 w-full">
-											<Link href={`/categorias/${category.id}`} className="flex-1">
-												<Button variant="outline" className="w-full justify-center">
-													<ArrowRight className="h-4 w-4 mr-2" />
-													Ver Categoria
-												</Button>
-											</Link>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="outline" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem onClick={() => _startEdit(category)}>
-														<Edit className="h-4 w-4 mr-2" />
-														Editar
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={() => openDeleteConfirm(category)}
-														className="text-red-600 focus:text-red-600"
-													>
-														<Trash2 className="h-4 w-4 mr-2" />
-														Excluir
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</div>
-								</CardFooter>
+										Limpar Filtros
+									</Button>
+								</CardContent>
 							</Card>
-								</motion.div>
-							))}
-						</motion.div>
-
-						{totalPages > 1 && (
-							<div className="flex justify-center items-center gap-2">
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => handlePageChange(Number(state.page) - 1)}
-									disabled={Number(state.page) === 1}
-								>
-									<ChevronLeft className="h-4 w-4" />
-									Anterior
-								</Button>
-
-								<div className="flex gap-1">
-									{Array.from({ length: totalPages }, (_, i) => i + 1)
-										.filter((page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2)
-										.map((page, index, array) => (
-											<React.Fragment key={page}>
-												{index > 0 && array[index - 1] !== page - 1 && (
-													<span className="px-2 py-1 text-gray-400">...</span>
-												)}
-												<Button
-													variant={Number(state.page) === page ? "default" : "outline"}
-													size="sm"
-													onClick={() => handlePageChange(page)}
-													className="w-8 h-8 p-0"
-												>
-													{page}
-												</Button>
-											</React.Fragment>
-										))}
-								</div>
-
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => handlePageChange(Number(state.page) + 1)}
-									disabled={Number(state.page) === totalPages}
-								>
-									Próxima
-									<ChevronRight className="h-4 w-4" />
-								</Button>
+						) : (
+							<Card>
+								<CardContent className="text-center py-12">
+									<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+									<h3 className="text-lg font-medium mb-2">Nenhuma categoria cadastrada</h3>
+									<p className="text-gray-600 mb-4">Comece adicionando sua primeira categoria</p>
+									<Link href="/categorias/nova">
+										<Button>
+											<Plus className="mr-2 h-4 w-4" />
+											Cadastrar Primeira Categoria
+										</Button>
+									</Link>
+								</CardContent>
+							</Card>
+						)
+					) : (
+						<>
+							<div className="flex justify-between items-center text-sm text-gray-600">
+								<span>
+									Mostrando {categories.length} de {totalCount} categorias
+								</span>
+								<span>
+									Página {state.page} de {totalPages}
+								</span>
 							</div>
-						)}
-					</>
-				)}
+							<motion.div
+								className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ delay: 0.2 }}
+							>
+								{categories.map((category: any, index: number) => (
+									<motion.div
+										key={category.id}
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: index * 0.05 }}
+									>
+										<CategoryCardMemo category={category} onDelete={openDeleteConfirm} />
+									</motion.div>
+								))}
+							</motion.div>
+
+							{totalPages > 1 && (
+								<div className="flex justify-center items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => handlePageChange(Number(state.page) - 1)}
+										disabled={Number(state.page) === 1}
+									>
+										<ChevronLeft className="h-4 w-4" />
+										Anterior
+									</Button>
+
+									<div className="flex gap-1">
+										{Array.from({ length: totalPages }, (_, i) => i + 1)
+											.filter((page) => page === 1 || page === totalPages || Math.abs(page - Number(state.page)) <= 2)
+											.map((page, index, array) => (
+												<React.Fragment key={page}>
+													{index > 0 && array[index - 1] !== page - 1 && (
+														<span className="px-2 py-1 text-gray-400">...</span>
+													)}
+													<Button
+														variant={Number(state.page) === page ? "default" : "outline"}
+														size="sm"
+														onClick={() => handlePageChange(page)}
+														className="w-8 h-8 p-0"
+													>
+														{page}
+													</Button>
+												</React.Fragment>
+											))}
+									</div>
+
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => handlePageChange(Number(state.page) + 1)}
+										disabled={Number(state.page) === totalPages}
+									>
+										Próxima
+										<ChevronRight className="h-4 w-4" />
+									</Button>
+								</div>
+							)}
+						</>
+					)}
+				</OptimizedLoading>
 			</motion.div>
 
 			{/* Edit Dialog */}
