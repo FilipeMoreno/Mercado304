@@ -1,10 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
-import { toast } from "sonner"
 import { Combobox } from "@/components/ui/combobox"
-import { useDataStore } from "@/store/useDataStore" // Importar o store
-import type { Market } from "@/types"
+import { useAllMarketsQuery, useCreateMarketMutation } from "@/hooks"
 
 interface MarketSelectProps {
 	value?: string
@@ -21,36 +18,23 @@ export function MarketSelect({
 	className = "w-full",
 	disabled = false,
 }: MarketSelectProps) {
-	// Obter dados e actions do store
-	const { markets, loading, fetchMarkets, addMarket } = useDataStore()
+	const { data: marketsData, isLoading } = useAllMarketsQuery()
+	const createMarketMutation = useCreateMarketMutation()
 
-	useEffect(() => {
-		fetchMarkets() // Busca os mercados quando o componente é montado (se já não estiverem no cache)
-	}, [fetchMarkets])
+	const markets = marketsData?.markets || []
 
 	const handleCreateMarket = async (name: string) => {
 		try {
-			const response = await fetch("/api/markets", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name: name.trim() }),
+			const newMarket = await createMarketMutation.mutateAsync({
+				name: name.trim(),
 			})
-
-			if (response.ok) {
-				const newMarket: Market = await response.json()
-				addMarket(newMarket) // Adiciona o novo mercado ao store
-				onValueChange?.(newMarket.id)
-				toast.success("Mercado criado com sucesso!")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao criar mercado")
-			}
+			onValueChange?.(newMarket.id)
 		} catch (error) {
-			toast.error("Erro ao criar mercado")
+			console.error("Error creating market:", error)
 		}
 	}
 
-	if (loading.markets && markets.length === 0) {
+	if (isLoading && markets.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 

@@ -77,6 +77,18 @@ export function CategoryCombobox({
 		}))
 	}, [categories])
 
+	// Verificar se existe correspondência exata
+	const hasExactMatch = React.useMemo(() => {
+		if (!searchTerm) return false
+		const normalizedSearchTerm = searchTerm.toLowerCase().trim()
+		return options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
+	}, [options, searchTerm])
+
+	// Verificar se deve mostrar a opção de criar novo
+	const shouldShowCreateNew = React.useMemo(() => {
+		return onCreateNew && searchTerm && !hasExactMatch
+	}, [onCreateNew, searchTerm, hasExactMatch])
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
@@ -113,51 +125,71 @@ export function CategoryCombobox({
 								<p className="text-muted-foreground">Carregando categorias...</p>
 							</div>
 						) : (
-							<>
-								<CommandEmpty>
-									<div className="py-6 text-center text-sm">
-										<p className="text-muted-foreground">{emptyText}</p>
-										{onCreateNew && searchTerm && (
-											<Button
-												variant="ghost"
-												size="sm"
-												className="mt-2 text-blue-600 hover:text-blue-700"
-												onClick={() => {
-													onCreateNew(searchTerm)
-													setOpen(false)
-													setSearchTerm("")
-												}}
-											>
-												{createNewText} "{searchTerm}"
-											</Button>
-										)}
-									</div>
-								</CommandEmpty>
-								<CommandGroup>
-									{options.map((option) => (
-										<CommandItem
-											key={option.value}
-											value={option.value}
-											onSelect={(currentValue) => {
-												onValueChange?.(currentValue === value ? "" : currentValue)
-												setOpen(false)
-												setSearchTerm("")
-											}}
-										>
-											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-											<div className="flex-1 min-w-0">
-												<div className="truncate">{option.label}</div>
-											</div>
-										</CommandItem>
-									))}
-									{isFetchingNextPage && (
-										<div className="py-2 text-center">
-											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
-											<p className="text-xs text-muted-foreground mt-1">Carregando mais categorias...</p>
+							options.length === 0 ? (
+									<CommandEmpty>
+										<div className="py-6 text-center text-sm">
+											<p className="text-muted-foreground">{emptyText}</p>
+											{shouldShowCreateNew && (
+												<Button
+													variant="ghost"
+													size="sm"
+													className="mt-2 text-blue-600 hover:text-blue-700"
+													onClick={() => {
+														onCreateNew(searchTerm)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+												>
+													{createNewText} "{searchTerm}"
+												</Button>
+											)}
 										</div>
-									)}
-								</CommandGroup>
-							</>
+									</CommandEmpty>
+								) : (
+									<>
+										<CommandGroup>
+											{options.map((option) => (
+												<CommandItem
+													key={option.value}
+													value={option.value}
+													onSelect={(currentValue) => {
+														onValueChange?.(currentValue === value ? "" : currentValue)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+												>
+													<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+													<div className="flex-1 min-w-0">
+														<div className="truncate">{option.label}</div>
+													</div>
+												</CommandItem>
+											))}
+											{isFetchingNextPage && (
+												<div className="py-2 text-center">
+													<Loader2 className="h-4 w-4 animate-spin mx-auto" />
+													<p className="text-xs text-muted-foreground mt-1">Carregando mais categorias...</p>
+												</div>
+											)}
+										</CommandGroup>
+										{shouldShowCreateNew && (
+											<CommandGroup>
+												<CommandItem
+													value="create-new"
+													onSelect={() => {
+														onCreateNew(searchTerm)
+														setOpen(false)
+														setSearchTerm("")
+													}}
+													className="text-blue-600 hover:text-blue-700"
+												>
+													<div className="flex-1 truncate">
+														{createNewText} "{searchTerm}"
+													</div>
+												</CommandItem>
+											</CommandGroup>
+										)}
+									</>
+								)
 						)}
 					</CommandList>
 				</Command>

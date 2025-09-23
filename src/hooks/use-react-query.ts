@@ -290,6 +290,22 @@ export const useProductQuery = (id: string) => {
 	})
 }
 
+export const useAllProductsQuery = () => {
+	return useQuery({
+		queryKey: ["products", "all"],
+		queryFn: () => fetchWithErrorHandling("/api/products"),
+		staleTime: 0, // Sempre refetch quando invalidado
+	})
+}
+
+export const useAllMarketsQuery = () => {
+	return useQuery({
+		queryKey: ["markets", "all"],
+		queryFn: () => fetchWithErrorHandling("/api/markets"),
+		staleTime: 0, // Sempre refetch quando invalidado
+	})
+}
+
 export const useCreateProductMutation = () => {
 	const queryClient = useQueryClient()
 	return useMutation({

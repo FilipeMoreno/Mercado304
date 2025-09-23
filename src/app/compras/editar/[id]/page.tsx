@@ -1,9 +1,9 @@
 "use client"
 
-import { ArrowLeft, Edit, Package, Plus, Save, ShoppingCart, Trash2 } from "lucide-react"
+import { ArrowLeft, Edit, Plus, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -14,9 +14,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAllProductsQuery, useMarketsQuery, usePurchaseQuery, useUpdatePurchaseMutation } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
-import { type Market, PaymentMethod, type Product } from "@/types"
+import { PaymentMethod, } from "@/types"
 
 interface PurchaseItem {
 	productId: string
@@ -29,10 +30,24 @@ export default function EditarCompraPage() {
 	const params = useParams()
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<Product[]>([]) // Tipagem corrigida
+	const purchaseId = params.id as string
+
 	const [loading, setLoading] = useState(false)
-	const [markets, setMarkets] = useState<Market[]>([])
-	const [loadingData, setLoadingData] = useState(true)
+
+	// React Query hooks
+	const { data: productsData } = useAllProductsQuery()
+	const { data: marketsData } = useMarketsQuery()
+	const {
+		data: purchaseData,
+		isLoading: purchaseLoading,
+		error: purchaseError,
+	} = usePurchaseQuery(purchaseId, {
+		enabled: !!purchaseId,
+	})
+	const updatePurchaseMutation = useUpdatePurchaseMutation()
+
+	const products = productsData?.products || []
+	const _markets = marketsData?.markets || []
 
 	const [formData, setFormData] = useState({
 		marketId: "",
@@ -42,11 +57,59 @@ export default function EditarCompraPage() {
 
 	const [items, setItems] = useState<PurchaseItem[]>([])
 
-	useEffect(() => {
-		if (params.id) {
-			fetchData()
+	const checkBestPrice = useCallback(async (index: number, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice) return
+		try {
+			const response = await fetch("/api/best-price-check", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId, currentPrice: unitPrice }),
+			})
+			const bestPriceData = await response.json()
+			setItems(prevItems => {
+				const newItems = [...prevItems]
+				newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData }
+				return newItems
+			})
+		} catch (error) {
+			console.error("Erro ao verificar melhor preço:", error)
 		}
-	}, [params.id])
+	}, [])
+
+	const updateItem = useCallback((index: number, field: keyof PurchaseItem, value: string | number) => {
+		const newItems = [...items]
+		newItems[index] = { ...newItems[index], [field]: value }
+		setItems(newItems)
+
+		if (field === "unitPrice" || field === "productId") {
+			const item = newItems[index]
+			if (item.productId && item.unitPrice > 0) {
+				setTimeout(() => {
+					checkBestPrice(index, item.productId, item.unitPrice)
+				}, 1000)
+			}
+		}
+	}, [items, checkBestPrice])
+
+	// Carregar dados da compra quando os dados estiverem disponíveis
+	useEffect(() => {
+		if (purchaseData && !purchaseLoading) {
+			setFormData({
+				marketId: purchaseData.marketId,
+				purchaseDate: purchaseData.purchaseDate.split("T")[0],
+				paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY,
+			})
+
+			setItems(
+				purchaseData.items.map((item: any) => ({
+					productId: item.productId || "",
+					quantity: item.quantity,
+					unitPrice: item.unitPrice,
+					bestPriceAlert: null,
+				})),
+			)
+		}
+	}, [purchaseData, purchaseLoading])
 
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -69,83 +132,15 @@ export default function EditarCompraPage() {
 				}
 			}
 		}
-	}, [searchParams, params.id])
+	}, [searchParams, params.id, updateItem])
 
-	const fetchData = async () => {
-		try {
-			const [marketsRes, purchaseRes, productsRes] = await Promise.all([
-				fetch("/api/markets"),
-				fetch(`/api/purchases/${params.id}`),
-				fetch("/api/products"),
-			])
-
-			const marketsData = await marketsRes.json()
-			const purchaseData = await purchaseRes.json()
-			const productsData = await productsRes.json() // <-- Busca o objeto completo
-
-			if (!purchaseRes.ok) {
-				toast.error("Compra não encontrada")
-				router.push("/compras")
-				return
-			}
-
-			setMarkets(marketsData.markets || []) // <-- Garante que é um array
-			setProducts(productsData.products || []) // <-- CORREÇÃO APLICADA AQUI
-
-			setFormData({
-				marketId: purchaseData.marketId,
-				purchaseDate: purchaseData.purchaseDate.split("T")[0],
-				paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY,
-			})
-
-			setItems(
-				purchaseData.items.map((item: any) => ({
-					productId: item.productId || "",
-					quantity: item.quantity,
-					unitPrice: item.unitPrice,
-					bestPriceAlert: null,
-				})),
-			)
-		} catch (error) {
-			console.error("Erro ao carregar dados:", error)
-			toast.error("Erro ao carregar dados")
+	// Verificar se há erro ao carregar a compra
+	useEffect(() => {
+		if (purchaseError) {
+			toast.error("Compra não encontrada")
 			router.push("/compras")
-		} finally {
-			setLoadingData(false)
 		}
-	}
-
-	const updateItem = (index: number, field: keyof PurchaseItem, value: string | number) => {
-		const newItems = [...items]
-		newItems[index] = { ...newItems[index], [field]: value }
-		setItems(newItems)
-
-		if (field === "unitPrice" || field === "productId") {
-			const item = newItems[index]
-			if (item.productId && item.unitPrice > 0) {
-				setTimeout(() => {
-					checkBestPrice(index, item.productId, item.unitPrice)
-				}, 1000)
-			}
-		}
-	}
-
-	const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
-		if (!productId || !unitPrice) return
-		try {
-			const response = await fetch("/api/best-price-check", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ productId, currentPrice: unitPrice }),
-			})
-			const bestPriceData = await response.json()
-			const newItems = [...items]
-			newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData }
-			setItems(newItems)
-		} catch (error) {
-			console.error("Erro ao verificar melhor preço:", error)
-		}
-	}
+	}, [purchaseError, router])
 
 	const addItem = () => {
 		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, bestPriceAlert: null }])
@@ -174,23 +169,20 @@ export default function EditarCompraPage() {
 		}
 		setLoading(true)
 		try {
-			const response = await fetch(`/api/purchases/${params.id}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
+			await updatePurchaseMutation.mutateAsync({
+				id: purchaseId,
+				data: {
 					marketId: formData.marketId,
 					items: validItems,
 					purchaseDate: formData.purchaseDate,
 					paymentMethod: formData.paymentMethod,
-				}),
+				},
 			})
-			if (response.ok) {
-				toast.success("Compra atualizada com sucesso!") // <-- Corrigido para success
+			toast.success("Compra atualizada com sucesso!")
+			// Pequeno delay para garantir que a invalidação seja processada
+			setTimeout(() => {
 				router.push("/compras")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao atualizar compra")
-			}
+			}, 100)
 		} catch (error) {
 			console.error("Erro ao atualizar compra:", error)
 			toast.error("Erro ao atualizar compra")
@@ -199,7 +191,7 @@ export default function EditarCompraPage() {
 		}
 	}
 
-	if (loadingData) {
+	if (purchaseLoading) {
 		return <NovaCompraSkeleton />
 	}
 
@@ -295,7 +287,6 @@ export default function EditarCompraPage() {
 											<ProductSelect
 												value={item.productId}
 												onValueChange={(value) => updateItem(index, "productId", value)}
-												products={products}
 												preserveFormData={{
 													formData,
 													items,
@@ -334,7 +325,7 @@ export default function EditarCompraPage() {
 											/>
 										</div>
 									</div>
-									{item.bestPriceAlert && item.bestPriceAlert.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+									{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
 										<BestPriceAlert
 											productName={products.find((p) => p.id === item.productId)?.name || "Produto"}
 											currentPrice={item.unitPrice}
