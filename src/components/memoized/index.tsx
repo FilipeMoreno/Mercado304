@@ -1,10 +1,10 @@
 "use client"
 
-import { BarChart3, Edit, MoreHorizontal, Trash2 } from "lucide-react"
+import { BarChart3, DollarSign, Edit, MoreHorizontal, Package, Receipt, ShoppingCart, Store, Trash2 } from "lucide-react"
 import { memo, useCallback, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -443,6 +443,146 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 )
 
 PurchaseCardMemo.displayName = "PurchaseCardMemo"
+
+// DashboardCardMemo memoizado
+interface DashboardCardMemoProps {
+	cardId: string
+	stats: any
+	onClick?: () => void
+}
+
+export const DashboardCardMemo = memo<DashboardCardMemoProps>(
+	({ cardId, stats, onClick }) => {
+		const cardContent = useMemo(() => {
+			switch (cardId) {
+				case "total-purchases":
+					return {
+						title: "Total de Compras",
+						value: stats?.totalPurchases || 0,
+						icon: "ShoppingCart",
+						format: "number"
+					}
+				case "total-spent":
+					return {
+						title: "Total Gasto",
+						value: stats?.totalSpent || 0,
+						icon: "DollarSign",
+						format: "currency"
+					}
+				case "total-products":
+					return {
+						title: "Produtos Cadastrados",
+						value: stats?.totalProducts || 0,
+						icon: "Package",
+						format: "number"
+					}
+				case "total-markets":
+					return {
+						title: "Mercados Cadastrados",
+						value: stats?.totalMarkets || 0,
+						icon: "Store",
+						format: "number"
+					}
+				case "price-records":
+					return {
+						title: "Preços Registrados",
+						value: stats?.priceRecords?.totalRecords || 0,
+						icon: "Receipt",
+						format: "number",
+						subtitle: stats?.priceRecords?.averagePrice > 0 ? `Média: R$ ${stats.priceRecords.averagePrice.toFixed(2)}` : undefined
+					}
+				default:
+					return null
+			}
+		}, [cardId, stats])
+
+		if (!cardContent) return null
+
+		const formatValue = (value: number, format: string) => {
+			switch (format) {
+				case "currency":
+					return `R$ ${value.toFixed(2)}`
+				default:
+					return value.toString()
+			}
+		}
+
+		const CardComponent = onClick ? "button" : "div"
+		const cardProps = onClick ? { onClick } : {}
+
+		return (
+			<CardComponent
+				{...cardProps}
+				className={`shadow-sm hover:shadow-lg transition-shadow ${onClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+			>
+				<Card className="h-full">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-xs md:text-sm font-medium">{cardContent.title}</CardTitle>
+						{cardContent.icon === "ShoppingCart" && <ShoppingCart className="h-4 w-4 text-muted-foreground" />}
+						{cardContent.icon === "DollarSign" && <DollarSign className="h-4 w-4 text-muted-foreground" />}
+						{cardContent.icon === "Package" && <Package className="h-4 w-4 text-muted-foreground" />}
+						{cardContent.icon === "Store" && <Store className="h-4 w-4 text-muted-foreground" />}
+						{cardContent.icon === "Receipt" && <Receipt className="h-4 w-4 text-muted-foreground" />}
+					</CardHeader>
+					<CardContent>
+						<div className="text-xl md:text-2xl font-bold">{formatValue(cardContent.value, cardContent.format)}</div>
+						{cardContent.subtitle && (
+							<div className="text-xs text-muted-foreground mt-1">{cardContent.subtitle}</div>
+						)}
+					</CardContent>
+				</Card>
+			</CardComponent>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.cardId === nextProps.cardId &&
+			prevProps.stats?.totalPurchases === nextProps.stats?.totalPurchases &&
+			prevProps.stats?.totalSpent === nextProps.stats?.totalSpent &&
+			prevProps.stats?.totalProducts === nextProps.stats?.totalProducts &&
+			prevProps.stats?.totalMarkets === nextProps.stats?.totalMarkets &&
+			prevProps.stats?.priceRecords?.totalRecords === nextProps.stats?.priceRecords?.totalRecords &&
+			prevProps.stats?.priceRecords?.averagePrice === nextProps.stats?.priceRecords?.averagePrice
+		)
+	},
+)
+
+DashboardCardMemo.displayName = "DashboardCardMemo"
+
+// DashboardStatsCardMemo memoizado
+interface DashboardStatsCardMemoProps {
+	title: string
+	description: string
+	icon: React.ReactNode
+	children: React.ReactNode
+}
+
+export const DashboardStatsCardMemo = memo<DashboardStatsCardMemoProps>(
+	({ title, description, icon, children }) => {
+		return (
+			<Card className="shadow-sm hover:shadow-lg transition-shadow">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						{icon}
+						{title}
+					</CardTitle>
+					<CardDescription>{description}</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{children}
+				</CardContent>
+			</Card>
+		)
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.title === nextProps.title &&
+			prevProps.description === nextProps.description
+		)
+	},
+)
+
+DashboardStatsCardMemo.displayName = "DashboardStatsCardMemo"
 
 // ShoppingListCard memoizado
 interface ShoppingListCardMemoProps {

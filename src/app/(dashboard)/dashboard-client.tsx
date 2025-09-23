@@ -1,19 +1,22 @@
 "use client"
 
 import { ptBR } from "date-fns/locale"
-import { DollarSign, Package, Receipt, ShoppingCart, Store, TrendingUp } from "lucide-react"
+import { motion } from "framer-motion"
+import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useCallback, useMemo } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
+import { DashboardCardMemo, DashboardStatsCardMemo } from "@/components/memoized"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
 	type DashboardPreferences,
@@ -79,90 +82,26 @@ export function DashboardClient() {
 		customSubtitle: undefined,
 	}
 
-	// Função para renderizar os cards principais
-	const renderMainCard = (cardId: string) => {
-		if (currentPrefs.hiddenCards.includes(cardId)) return null
+	// Função otimizada para renderizar os cards principais
+	const renderMainCard = useCallback(
+		(cardId: string) => {
+			if (currentPrefs.hiddenCards.includes(cardId)) return null
 
-		switch (cardId) {
-			case "total-purchases":
-				return (
-					<Card key={cardId} className="shadow-sm hover:shadow-lg transition-shadow">
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<CardTitle className="text-xs md:text-sm font-medium">Total de Compras</CardTitle>
-							<ShoppingCart className="h-4 w-4 text-muted-foreground" />
-						</CardHeader>
-						<CardContent>
-							<div className="text-xl md:text-2xl font-bold">{stats?.totalPurchases || 0}</div>
-						</CardContent>
-					</Card>
-				)
-
-			case "total-spent":
-				return (
-					<Card key={cardId} className="shadow-sm hover:shadow-lg transition-shadow">
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<CardTitle className="text-xs md:text-sm font-medium">Total Gasto</CardTitle>
-							<DollarSign className="h-4 w-4 text-muted-foreground" />
-						</CardHeader>
-						<CardContent>
-							<div className="text-xl md:text-2xl font-bold">R$ {(stats?.totalSpent || 0).toFixed(2)}</div>
-						</CardContent>
-					</Card>
-				)
-
-			case "total-products":
-				return (
-					<Card key={cardId} className="shadow-sm hover:shadow-lg transition-shadow">
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<CardTitle className="text-xs md:text-sm font-medium">Produtos Cadastrados</CardTitle>
-							<Package className="h-4 w-4 text-muted-foreground" />
-						</CardHeader>
-						<CardContent>
-							<div className="text-xl md:text-2xl font-bold">{stats?.totalProducts || 0}</div>
-						</CardContent>
-					</Card>
-				)
-
-			case "total-markets":
-				return (
-					<Card key={cardId} className="shadow-sm hover:shadow-lg transition-shadow">
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<CardTitle className="text-xs md:text-sm font-medium">Mercados Cadastrados</CardTitle>
-							<Store className="h-4 w-4 text-muted-foreground" />
-						</CardHeader>
-						<CardContent>
-							<div className="text-xl md:text-2xl font-bold">{stats?.totalMarkets || 0}</div>
-						</CardContent>
-					</Card>
-				)
-
-			case "price-records":
+			if (cardId === "price-records") {
 				return (
 					<Link key={cardId} href="/precos">
-						<Card className="shadow-sm hover:shadow-lg transition-shadow cursor-pointer hover:bg-muted/50">
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-xs md:text-sm font-medium">Preços Registrados</CardTitle>
-								<Receipt className="h-4 w-4 text-muted-foreground" />
-							</CardHeader>
-							<CardContent>
-								<div className="text-xl md:text-2xl font-bold">{stats?.priceRecords?.totalRecords || 0}</div>
-								{stats?.priceRecords?.averagePrice > 0 && (
-									<div className="text-xs text-muted-foreground mt-1">
-										Média: R$ {stats.priceRecords.averagePrice.toFixed(2)}
-									</div>
-								)}
-							</CardContent>
-						</Card>
+						<DashboardCardMemo cardId={cardId} stats={stats} />
 					</Link>
 				)
+			}
 
-			default:
-				return null
-		}
-	}
+			return <DashboardCardMemo key={cardId} cardId={cardId} stats={stats} />
+		},
+		[currentPrefs.hiddenCards, stats],
+	)
 
-	// Determinar classe CSS baseada no layout
-	const getLayoutClassName = () => {
+	// Determinar classe CSS baseada no layout (memoizado)
+	const layoutClassName = useMemo(() => {
 		switch (currentPrefs.layoutStyle) {
 			case "list":
 				return "grid grid-cols-1 gap-4 md:gap-6"
@@ -171,7 +110,7 @@ export function DashboardClient() {
 			default:
 				return `grid grid-cols-2 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 5)} gap-4 md:gap-6`
 		}
-	}
+	}, [currentPrefs.layoutStyle, currentPrefs.cardsPerRow])
 
 	if (statsError) {
 		return (
@@ -185,31 +124,49 @@ export function DashboardClient() {
 	// Loading skeleton for dashboard stats
 	if (isLoading) {
 		return (
-			<div className="space-y-4 md:space-y-6">
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 md:space-y-6">
 				<div>
 					<Skeleton className="h-8 w-64" />
 					<Skeleton className="h-4 w-96 mt-2" />
 				</div>
-				<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-					{Array.from({ length: 5 }).map((_, i) => (
-						<Card key={i} className="shadow-sm">
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<Skeleton className="h-4 w-20" />
-								<Skeleton className="h-4 w-4" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-8 w-16" />
-							</CardContent>
-						</Card>
-					))}
-				</div>
-			</div>
+				<OptimizedLoading isLoading={true} skeletonType="product" skeletonCount={5}>
+					<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<motion.div
+								key={`dashboard-skeleton-${i}-${Math.random().toString(36).substr(2, 9)}`}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: i * 0.1 }}
+							>
+								<Card className="shadow-sm">
+									<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+										<Skeleton className="h-4 w-20" />
+										<Skeleton className="h-4 w-4" />
+									</CardHeader>
+									<CardContent>
+										<Skeleton className="h-8 w-16" />
+									</CardContent>
+								</Card>
+							</motion.div>
+						))}
+					</div>
+				</OptimizedLoading>
+			</motion.div>
 		)
 	}
 
 	return (
-		<div className="space-y-4 md:space-y-6">
-			<div className="flex items-center justify-between">
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ delay: 0.1 }}
+			className="space-y-4 md:space-y-6"
+		>
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center justify-between"
+			>
 				<div>
 					<h1 className="text-2xl md:text-3xl font-bold">{currentPrefs.customTitle || "Bem-vindo ao Mercado304"}</h1>
 					<p className="text-gray-600 mt-2 text-sm md:text-base">
@@ -217,14 +174,34 @@ export function DashboardClient() {
 					</p>
 				</div>
 				<DashboardCustomizer />
-			</div>
+			</motion.div>
 
-			{currentPrefs.showSummaryCard && <AiDashboardSummary />}
+			{currentPrefs.showSummaryCard && (
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+					<AiDashboardSummary />
+				</motion.div>
+			)}
 
 			{/* Cards principais ordenados conforme preferências */}
-			<div className={getLayoutClassName()}>
-				{currentPrefs.cardOrder.map((cardId) => renderMainCard(cardId)).filter(Boolean)}
-			</div>
+			<motion.div
+				className={layoutClassName}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ delay: 0.3 }}
+			>
+				{currentPrefs.cardOrder
+					.map((cardId, index) => (
+						<motion.div
+							key={cardId}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.4 + index * 0.05 }}
+						>
+							{renderMainCard(cardId)}
+						</motion.div>
+					))
+					.filter(Boolean)}
+			</motion.div>
 
 			{currentPrefs.showMonthlyChart && stats?.monthlySpending && stats.monthlySpending.length > 0 && (
 				<Suspense
@@ -262,15 +239,17 @@ export function DashboardClient() {
 				)}
 
 			{currentPrefs.showTemporalComp && stats?.monthlyComparison && (
-				<Card className="md:col-span-2 shadow-sm hover:shadow-lg transition-shadow">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<TrendingUp className="h-5 w-5" />
-							Comparação Mensal
-						</CardTitle>
-						<CardDescription>Comparação entre este mês e o anterior</CardDescription>
-					</CardHeader>
-					<CardContent>
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.5 }}
+					className="md:col-span-2"
+				>
+					<DashboardStatsCardMemo
+						title="Comparação Mensal"
+						description="Comparação entre este mês e o anterior"
+						icon={<TrendingUp className="h-5 w-5" />}
+					>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div className="text-center p-4 border rounded-lg">
 								<div className="text-2xl font-bold text-blue-600">R$ {temporalData?.currentMonth.spent.toFixed(2)}</div>
@@ -317,8 +296,8 @@ export function DashboardClient() {
 								)}
 							</div>
 						</div>
-					</CardContent>
-				</Card>
+					</DashboardStatsCardMemo>
+				</motion.div>
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -333,21 +312,24 @@ export function DashboardClient() {
 			{currentPrefs.showPaymentStats && <PaymentMethodStats />}
 
 			{currentPrefs.showCategoryStats && stats?.categoryStats && stats.categoryStats.length > 0 && (
-				<Card className="shadow-sm hover:shadow-lg transition-shadow">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5" />
-							Gastos por Categoria
-						</CardTitle>
-						<CardDescription>Distribuição de gastos por categoria de produtos</CardDescription>
-					</CardHeader>
-					<CardContent>
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+					<DashboardStatsCardMemo
+						title="Gastos por Categoria"
+						description="Distribuição de gastos por categoria de produtos"
+						icon={<Package className="h-5 w-5" />}
+					>
 						<div className="space-y-3">
 							{stats?.categoryStats.slice(0, 8).map((category: any, index: number) => {
 								const percentage =
 									(stats?.totalSpent || 0) > 0 ? (category.totalSpent / (stats?.totalSpent || 1)) * 100 : 0
 								return (
-									<div key={category.categoryId} className="flex items-center justify-between">
+									<motion.div
+										key={category.categoryId}
+										className="flex items-center justify-between"
+										initial={{ opacity: 0, x: -20 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.7 + index * 0.05 }}
+									>
 										<div className="flex items-center gap-3">
 											<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
 												{index + 1}
@@ -363,12 +345,12 @@ export function DashboardClient() {
 											<div className="font-medium">R$ {category.totalSpent.toFixed(2)}</div>
 											<div className="text-sm text-gray-500">{percentage.toFixed(1)}%</div>
 										</div>
-									</div>
+									</motion.div>
 								)
 							})}
 						</div>
-					</CardContent>
-				</Card>
+					</DashboardStatsCardMemo>
+				</motion.div>
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -534,6 +516,6 @@ export function DashboardClient() {
 					</CardContent>
 				</Card>
 			)}
-		</div>
+		</motion.div>
 	)
 }
