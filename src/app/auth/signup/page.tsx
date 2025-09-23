@@ -2,7 +2,6 @@
 
 import { Check, Eye, EyeOff, Loader2, Lock, Mail, ShoppingCart, User } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -11,11 +10,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { signIn, signUp, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignUpPage() {
-	const { data: session, isPending: sessionLoading } = useSession()
+	const { isPending: sessionLoading } = useSession()
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
@@ -25,19 +25,12 @@ export default function SignUpPage() {
 	const [acceptTerms, setAcceptTerms] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-	const router = useRouter()
 
-	useEffect(() => {
-		if (!sessionLoading && session?.user) {
-			// Se usuário está logado mas email não verificado, redireciona para verificação
-			if (!session.user.emailVerified) {
-				router.push("/auth/verify-request")
-				return
-			}
-			// Se usuário está logado e email verificado, redireciona para dashboard
-			router.push("/")
-		}
-	}, [session, sessionLoading, router])
+	// Hook para gerenciar redirecionamento após autenticação
+	useAuthRedirect({
+		redirectTo: "/",
+		requireEmailVerification: true,
+	})
 
 	const passwordRequirements = [
 		{ regex: /.{8,}/, text: "Pelo menos 8 caracteres" },
@@ -84,14 +77,9 @@ export default function SignUpPage() {
 			}
 
 			showAuthSuccess("signup")
-			// Verificar se email está verificado antes de redirecionar
-			if (result.data?.user && !result.data.user.emailVerified) {
-				router.push("/auth/verify-request")
-			} else {
-				router.push("/")
-			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao criar conta" }, "signup")
+			// O redirecionamento será gerenciado pelo hook useAuthRedirect
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao criar conta" }, "signup")
 		} finally {
 			setIsLoading(false)
 		}
@@ -107,9 +95,14 @@ export default function SignUpPage() {
 
 			if (result?.error) {
 				handleAuthError(result.error, "signup")
+			} else {
+				// Salva o método de login usado
+				localStorage.setItem("lastLoginMethod", "google")
+				showAuthSuccess("signup")
+				// O redirecionamento será gerenciado pelo hook useAuthRedirect
 			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao criar conta com Google" }, "signup")
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao criar conta com Google" }, "signup")
 		} finally {
 			setIsGoogleLoading(false)
 		}
@@ -244,9 +237,8 @@ export default function SignUpPage() {
 									{passwordRequirements.map((req, index) => (
 										<div key={index} className="flex items-center space-x-2">
 											<div
-												className={`w-4 h-4 rounded-full flex items-center justify-center ${
-													req.regex.test(password) ? "bg-green-500" : "bg-gray-300"
-												}`}
+												className={`w-4 h-4 rounded-full flex items-center justify-center ${req.regex.test(password) ? "bg-green-500" : "bg-gray-300"
+													}`}
 											>
 												{req.regex.test(password) && <Check className="w-2 h-2 text-white" />}
 											</div>

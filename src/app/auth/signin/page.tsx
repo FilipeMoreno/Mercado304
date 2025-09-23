@@ -9,11 +9,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { oneTap, signIn, twoFactor, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignInPage() {
-	const { data: session, isPending: sessionLoading } = useSession()
+	const { isPending: sessionLoading } = useSession()
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [showPassword, setShowPassword] = useState(false)
@@ -26,17 +27,11 @@ export default function SignInPage() {
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const router = useRouter()
 
-	useEffect(() => {
-		if (!sessionLoading && session?.user) {
-			// Se usuário está logado mas email não verificado, redireciona para verificação
-			if (!session.user.emailVerified) {
-				router.push("/auth/verify-request")
-				return
-			}
-			// Se usuário está logado e email verificado, redireciona para dashboard
-			router.push("/")
-		}
-	}, [session, sessionLoading, router])
+	// Hook para gerenciar redirecionamento após autenticação
+	useAuthRedirect({
+		redirectTo: "/",
+		requireEmailVerification: true,
+	})
 
 	// Recupera o último método de login do localStorage
 	useEffect(() => {
@@ -52,11 +47,13 @@ export default function SignInPage() {
 
 	oneTap({
 		fetchOptions: {
-			onSuccess: () => {
+			onSuccess: async () => {
 				showAuthSuccess("signin")
-				router.push("/")
+				// Salva o método de login usado
+				localStorage.setItem("lastLoginMethod", "google")
+				setLastLoginMethod("google")
 			},
-			onError: (_error: any) => {
+			onError: (_error: unknown) => {
 				handleAuthError({ message: "Erro no login com Google One Tap" }, "signin")
 			},
 		},
@@ -88,14 +85,9 @@ export default function SignInPage() {
 			setLastLoginMethod("email")
 
 			showAuthSuccess("signin")
-			// Verificar se email está verificado antes de redirecionar
-			if (result.data?.user && !result.data.user.emailVerified) {
-				router.push("/auth/verify-request")
-			} else {
-				router.push("/")
-			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao fazer login" }, "signin")
+			// O redirecionamento será gerenciado pelo hook useAuthRedirect
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao fazer login" }, "signin")
 		} finally {
 			setIsLoading(false)
 		}
@@ -115,9 +107,11 @@ export default function SignInPage() {
 				// Salva o método de login usado
 				localStorage.setItem("lastLoginMethod", "google")
 				setLastLoginMethod("google")
+				showAuthSuccess("signin")
+				// O redirecionamento será gerenciado pelo hook useAuthRedirect
 			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao fazer login com Google" }, "signin")
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao fazer login com Google" }, "signin")
 		} finally {
 			setIsGoogleLoading(false)
 		}
@@ -150,14 +144,9 @@ export default function SignInPage() {
 			setLastLoginMethod("passkey")
 
 			showAuthSuccess("signin")
-			// Verificar se email está verificado antes de redirecionar
-			if (result.data?.user && !result.data.user.emailVerified) {
-				router.push("/auth/verify-request")
-			} else {
-				router.push("/")
-			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao fazer login com passkey" }, "signin")
+			// O redirecionamento será gerenciado pelo hook useAuthRedirect
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao fazer login com passkey" }, "signin")
 		} finally {
 			setIsPasskeyLoading(false)
 		}
@@ -187,8 +176,8 @@ export default function SignInPage() {
 			} else {
 				router.push("/")
 			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao verificar código 2FA" }, "signin")
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao verificar código 2FA" }, "signin")
 		} finally {
 			setIsLoading(false)
 		}

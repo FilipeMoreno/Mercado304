@@ -47,6 +47,9 @@ export default function EditarCompraPage() {
 	const updatePurchaseMutation = useUpdatePurchaseMutation()
 
 	const products = productsData?.products || []
+
+	console.log(purchaseData)
+	console.log(productsData)
 	const _markets = marketsData?.markets || []
 
 	const [formData, setFormData] = useState({
