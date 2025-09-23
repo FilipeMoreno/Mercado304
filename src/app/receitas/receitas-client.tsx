@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
-import { Eye, Search, Sparkles, Trash2 } from "lucide-react"
+import { ChefHat, Eye, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"

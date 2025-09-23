@@ -31,7 +31,7 @@ export default function NovoMercadoPage() {
 		try {
 			await createMarketMutation.mutateAsync({
 				name: formData.name.trim(),
-				location: formData.location.trim() || null,
+				location: formData.location.trim() || undefined,
 			})
 
 			toast.success("Mercado criado com sucesso!")

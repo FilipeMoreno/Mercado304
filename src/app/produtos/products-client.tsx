@@ -170,36 +170,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		openDeleteConfirm(product)
 	}
 
-	// FAB actions for mobile
-	const fabActions = [
-		{
-			icon: <Plus className="h-5 w-5" />,
-			label: "Novo Produto",
-			onClick: () => router.push("/produtos/novo"),
-			bgColor: "bg-green-500",
-		},
-		{
-			icon: <QrCode className="h-5 w-5" />,
-			label: "Escanear",
-			onClick: handleOpenScanner,
-			bgColor: "bg-orange-500",
-		},
-		{
-			icon: <Search className="h-5 w-5" />,
-			label: "Buscar",
-			onClick: () => {
-				const searchInput = document.querySelector('input[placeholder*="Nome"]') as HTMLInputElement
-				searchInput?.focus()
-			},
-			bgColor: "bg-blue-500",
-		},
-		{
-			icon: <Filter className="h-5 w-5" />,
-			label: "Filtros",
-			onClick: () => toast.info("Abrindo filtros"),
-			bgColor: "bg-purple-500",
-		},
-	]
 
 	// Extract data from React Query
 	const products = productsData?.products || []
@@ -378,17 +348,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 					Todas as informações relacionadas ao produto serão perdidas permanentemente.
 				</p>
 			</ResponsiveConfirmDialog>
-
-			{/* FAB for mobile users */}
-			{mobile.isTouchDevice && (
-				<FloatingActionButton
-					actions={fabActions}
-					position="bottom-right"
-					size="md"
-					expandDirection="up"
-					showLabels={true}
-				/>
-			)}
 
 			{/* Scanner de código de barras */}
 			<BarcodeScanner isOpen={showScanner} onScan={handleScanResult} onClose={handleCloseScanner} />

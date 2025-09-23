@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useDeleteCategoryMutation } from "@/hooks"
 
 interface CategoryDetails {
 	id: string
@@ -31,16 +32,11 @@ export default function CategoriaDetalhesPage() {
 	const params = useParams()
 	const router = useRouter()
 	const categoryId = params.id as string
+	const deleteCategoryMutation = useDeleteCategoryMutation()
 
 	const [category, setCategory] = useState<CategoryDetails | null>(null)
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		if (categoryId) {
-			fetchCategoryDetails()
-		}
-	}, [categoryId])
-, fetchCategoryDetails
 	const fetchCategoryDetails = async () => {
 		try {
 			const response = await fetch(`/api/categories/${categoryId}`)
@@ -61,6 +57,12 @@ export default function CategoriaDetalhesPage() {
 			setLoading(false)
 		}
 	}
+
+	useEffect(() => {
+		if (categoryId) {
+			fetchCategoryDetails()
+		}
+	}, [categoryId, fetchCategoryDetails])
 
 	const deleteCategory = async () => {
 		if (!categoryId) return

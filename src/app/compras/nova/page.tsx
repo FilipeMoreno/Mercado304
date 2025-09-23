@@ -47,7 +47,7 @@ export default function NovaCompraPage() {
 	const [dataLoading, setDataLoading] = useState(true)
 	const restoredRef = React.useRef(false)
 	const [showScanner, setShowScanner] = useState(false)
-	const [_showScannerIndex, setScanningForIndex] = useState<number | null>(null)
+	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 
 	const [stockDialogState, setStockDialogState] = useState<{
 		isOpen: boolean
@@ -74,10 +74,23 @@ export default function NovaCompraPage() {
 	])
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
+	const fetchData = async () => {
+		try {
+			const productsRes = await fetch("/api/products")
+			if (productsRes.ok) {
+				const productsData = await productsRes.json()
+				setProducts(productsData.products)
+			}
+		} catch (error) {
+			console.error("Erro ao carregar dados:", error)
+		} finally {
+			setDataLoading(false)
+		}
+	}
+
 	useEffect(() => {
 		fetchData()
 	}, [])
-fetchData
 	// Restaurar itens do storageKey quando a página carregar
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -115,20 +128,6 @@ fetchData
 			}
 		}
 	}, [searchParams])
-
-	const fetchData = async () => {
-		try {
-			const productsRes = await fetch("/api/products")
-			if (productsRes.ok) {
-				const productsData = await productsRes.json()
-				setProducts(productsData.products)
-			}
-		} catch (error) {
-			console.error("Erro ao carregar dados:", error)
-		} finally {
-			setDataLoading(false)
-		}
-	}
 
 	const addItem = () => {
 		setItems([
@@ -295,7 +294,7 @@ fetchData
 	}
 
 	const handleBarcodeScanned = async (barcode: string) => {
-		try {_handleBarcodeScanned
+		try {
 			const response = await fetch(`/api/products/barcode/${barcode}`)
 			if (response.ok) {
 				const product = await response.json()

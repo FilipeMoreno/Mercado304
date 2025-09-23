@@ -278,7 +278,7 @@ export default function EditarCompraPage() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{items.map((item, index) => {
-							const selectedProduct = products.find((p) => p.id === item.productId)
+							const selectedProduct = products.find((p: any) => p.id === item.productId)
 							return (
 								<div key={index} className="space-y-4 p-4 border rounded-lg">
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -327,7 +327,7 @@ export default function EditarCompraPage() {
 									</div>
 									{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
 										<BestPriceAlert
-											productName={products.find((p) => p.id === item.productId)?.name || "Produto"}
+											productName={products.find((p: any) => p.id === item.productId)?.name || "Produto"}
 											currentPrice={item.unitPrice}
 											previousBestPrice={item.bestPriceAlert.previousBestPrice}
 											totalRecords={item.bestPriceAlert.totalRecords}

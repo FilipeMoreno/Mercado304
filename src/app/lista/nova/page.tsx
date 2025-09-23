@@ -31,14 +31,14 @@ export default function NovaListaPage() {
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const [products, setProducts] = useState<any[]>([])
 	const [brands, setBrands] = useState<any[]>([])
-	const [_brandsading, setDataLoading] = useState(true)
+	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 	const { showInsight } = useProactiveAiStore()
 
 	const [selectedProductIdForSuggestions, setSelectedProductIdForSuggestions] = useState<string | null>(null)
-	const [_selectedProductIdForSuggestionses] = useState<boolean[]>([false])
+	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
 	const [listName, setListName] = useState("")
 
@@ -93,10 +93,6 @@ export default function NovaListaPage() {
 		}
 	}, [searchParams, updateItem])
 
-	useEffect(() => {
-		fetchData()
-	}, [])
-fetchData
 	const fetchData = async () => {
 		try {
 			const [productsRes, brandsRes] = await Promise.all([fetch("/api/products"), fetch("/api/brands")])
@@ -115,6 +111,10 @@ fetchData
 			setDataLoading(false)
 		}
 	}
+
+	useEffect(() => {
+		fetchData()
+	}, [])
 
 	const addItem = () => {
 		setItems([...items, { productId: "", quantity: 1, estimatedPrice: "", priceAlert: null }])
@@ -234,7 +234,7 @@ fetchData
 		try {
 			await createShoppingListMutation.mutateAsync({
 				name: listName,
-				items: validItems,
+				items: validItems as any,
 			})
 
 			toast.success("Lista criada com sucesso!")

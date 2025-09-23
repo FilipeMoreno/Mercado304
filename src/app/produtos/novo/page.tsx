@@ -68,7 +68,7 @@ export default function NovoProdutoPage() {
 
 	const showNutritionalFields = useMemo(() => {
 		if (!formData.categoryId || categories.length === 0) return false
-		const selectedCategory = categories.find((cat) => cat.id === formData.categoryId)
+		const selectedCategory = categories.find((cat: any) => cat.id === formData.categoryId)
 		return selectedCategory?.isFood === true
 	}, [formData.categoryId, categories])
 

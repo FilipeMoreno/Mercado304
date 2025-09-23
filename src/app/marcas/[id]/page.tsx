@@ -134,7 +134,7 @@ export default function MarcaDetalhesPage() {
 						variant="destructive"
 						size="sm"
 						onClick={deleteBrand}
-						disabled={(brand._count?.products || 0) > 0 || deleting}
+						disabled={(brand._count?.products || 0) > 0 || deleteBrandMutation.isPending}
 					>
 						<Trash2 className="h-4 w-4 mr-2" />
 						Excluir
@@ -175,7 +175,7 @@ export default function MarcaDetalhesPage() {
 						</div>
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{brand.products.map((product) => (
+							{brand.products.map((product: any) => (
 								<Card key={product.id} className="hover:shadow-md transition-shadow">
 									<CardHeader className="pb-3">
 										<CardTitle className="text-lg flex items-center gap-2">

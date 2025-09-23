@@ -40,7 +40,7 @@ export function MarketSelect({
 
 	return (
 		<Combobox
-			options={markets.map((market) => ({
+			options={markets.map((market: any) => ({
 				value: market.id,
 				label: `${market.name}${market.location ? ` - ${market.location}` : ""}`,
 			}))}

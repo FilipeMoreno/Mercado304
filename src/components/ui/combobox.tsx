@@ -93,7 +93,7 @@ export function Combobox({
 											size="sm"
 											className="mt-2 text-blue-600 hover:text-blue-700"
 											onClick={() => {
-												onCreateNew(searchTerm)
+												onCreateNew?.(searchTerm)
 												setOpen(false)
 												setSearchTerm("")
 											}}
@@ -126,7 +126,7 @@ export function Combobox({
 										<CommandItem
 											value="create-new"
 											onSelect={() => {
-												onCreateNew(searchTerm)
+												onCreateNew?.(searchTerm)
 												setOpen(false)
 												setSearchTerm("")
 											}}
