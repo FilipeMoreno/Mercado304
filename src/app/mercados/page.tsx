@@ -1,4 +1,3 @@
-
 import { MercadosClient } from "./mercados-client"
 
 interface MercadosPageProps {

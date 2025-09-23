@@ -1,4 +1,3 @@
-
 import { CategoriasClient } from "./categorias-client"
 
 interface CategoriasPageProps {

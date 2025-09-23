@@ -5,12 +5,6 @@ import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-
 import { toast } from "sonner"
 import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
@@ -19,9 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
 import type { ShoppingList } from "@/types"
 
 interface ListaClientProps {
@@ -238,7 +236,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 							</span>
 						</div>
 
-						<motion.div 
+						<motion.div
 							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
@@ -252,42 +250,42 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 									transition={{ delay: index * 0.05 }}
 								>
 									<Card>
-									<CardHeader>
-										<div className="flex justify-between items-start">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													<List className="h-5 w-5" />
-													{list.name}
-												</CardTitle>
-												<CardDescription className="mt-2">
-													{list.items?.length || 0} itens • Criada em{" "}
-													{new Date(list.createdAt).toLocaleDateString("pt-BR")}
-												</CardDescription>
+										<CardHeader>
+											<div className="flex justify-between items-start">
+												<div>
+													<CardTitle className="flex items-center gap-2">
+														<List className="h-5 w-5" />
+														{list.name}
+													</CardTitle>
+													<CardDescription className="mt-2">
+														{list.items?.length || 0} itens • Criada em{" "}
+														{new Date(list.createdAt).toLocaleDateString("pt-BR")}
+													</CardDescription>
+												</div>
+												<div className="text-right">
+													<div className="text-sm text-gray-500">{list.items?.length || 0} itens</div>
+												</div>
 											</div>
-											<div className="text-right">
-												<div className="text-sm text-gray-500">{list.items?.length || 0} itens</div>
+										</CardHeader>
+										<CardContent>
+											<div className="flex gap-2">
+												<Link href={`/lista/${list.id}`}>
+													<Button variant="outline" size="sm">
+														<Eye className="h-4 w-4 mr-1" />
+														Ver Lista
+													</Button>
+												</Link>
+												<Link href={`/lista/${list.id}/editar`}>
+													<Button variant="outline" size="sm">
+														<Edit className="h-4 w-4" />
+													</Button>
+												</Link>
+												<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(list)}>
+													<Trash2 className="h-4 w-4" />
+												</Button>
 											</div>
-										</div>
-									</CardHeader>
-									<CardContent>
-										<div className="flex gap-2">
-											<Link href={`/lista/${list.id}`}>
-												<Button variant="outline" size="sm">
-													<Eye className="h-4 w-4 mr-1" />
-													Ver Lista
-												</Button>
-											</Link>
-											<Link href={`/lista/${list.id}/editar`}>
-												<Button variant="outline" size="sm">
-													<Edit className="h-4 w-4" />
-												</Button>
-											</Link>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(list)}>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-								</CardContent>
-							</Card>
+										</CardContent>
+									</Card>
 								</motion.div>
 							))}
 						</motion.div>

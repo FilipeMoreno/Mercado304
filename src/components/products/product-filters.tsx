@@ -1,9 +1,9 @@
 "use client"
 
-import { Search } from "lucide-react"
 import { motion } from "framer-motion"
-import { Input } from "@/components/ui/input"
+import { Search } from "lucide-react"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { Input } from "@/components/ui/input"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
 
 interface ProductFiltersProps {
@@ -35,7 +35,7 @@ export function ProductFilters({
 	categoryOptions,
 	brandOptions,
 	hasActiveFilters,
-	onClearFilters
+	onClearFilters,
 }: ProductFiltersProps) {
 	const additionalFilters = (
 		<>
@@ -62,7 +62,7 @@ export function ProductFilters({
 	)
 
 	return (
-		<motion.div 
+		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
 			className="flex items-center gap-2 mb-6"

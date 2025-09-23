@@ -1,15 +1,15 @@
 "use client"
 
+import { Calendar, Edit, MapPin, Receipt, Save, ShoppingCart, Trash2, X } from "lucide-react"
 import { useState } from "react"
-import { Receipt, ShoppingCart, Calendar, MapPin, Trash2, Edit, Save, X } from "lucide-react"
+import { toast } from "sonner"
 import { OCRScanner } from "@/components/ocr-scanner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
 
 interface ParsedReceipt {
 	market: string
@@ -40,10 +40,13 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 	const [isEditing, setIsEditing] = useState(false)
 
 	const parseReceiptText = (text: string): ParsedReceipt => {
-		console.log('🧾 Parsing receipt text:', text)
-		
-		const lines = text.split('\n').map(line => line.trim()).filter(line => line)
-		
+		console.log("🧾 Parsing receipt text:", text)
+
+		const lines = text
+			.split("\n")
+			.map((line) => line.trim())
+			.filter((line) => line)
+
 		const receipt: ParsedReceipt = {
 			market: "",
 			date: "",
@@ -52,7 +55,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			tax: 0,
 			total: 0,
 			paymentMethod: "",
-			address: ""
+			address: "",
 		}
 
 		// Patterns para extração
@@ -65,12 +68,9 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		const taxPattern = /(?:imposto|taxa|tax)[\s:]*R?\$?\s*(\d+[,.]\d{2})/i
 
 		// Encontrar mercado (normalmente primeiras linhas)
-		const marketCandidates = lines.slice(0, 5).filter(line => 
-			line.length > 3 && 
-			!datePattern.test(line) && 
-			!pricePattern.test(line) &&
-			!/^\d/.test(line)
-		)
+		const marketCandidates = lines
+			.slice(0, 5)
+			.filter((line) => line.length > 3 && !datePattern.test(line) && !pricePattern.test(line) && !/^\d/.test(line))
 		receipt.market = marketCandidates[0] || "Mercado não identificado"
 
 		// Encontrar data
@@ -84,16 +84,16 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 
 		// Encontrar endereço (linhas que contêm CEP, rua, avenida, etc.)
 		const addressPattern = /(?:rua|av|avenida|alameda|praça|r\.|av\.|cep|cidade)/i
-		const addressCandidates = lines.filter(line => addressPattern.test(line))
+		const addressCandidates = lines.filter((line) => addressPattern.test(line))
 		if (addressCandidates.length > 0) {
-			receipt.address = addressCandidates.join(', ')
+			receipt.address = addressCandidates.join(", ")
 		}
 
 		// Encontrar total
 		for (const line of lines) {
 			const totalMatch = line.match(totalPattern)
 			if (totalMatch) {
-				receipt.total = parseFloat(totalMatch[1].replace(',', '.'))
+				receipt.total = parseFloat(totalMatch[1].replace(",", "."))
 				break
 			}
 		}
@@ -102,7 +102,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		for (const line of lines) {
 			const subtotalMatch = line.match(subtotalPattern)
 			if (subtotalMatch) {
-				receipt.subtotal = parseFloat(subtotalMatch[1].replace(',', '.'))
+				receipt.subtotal = parseFloat(subtotalMatch[1].replace(",", "."))
 				break
 			}
 		}
@@ -111,13 +111,13 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		for (const line of lines) {
 			const taxMatch = line.match(taxPattern)
 			if (taxMatch) {
-				receipt.tax = parseFloat(taxMatch[1].replace(',', '.'))
+				receipt.tax = parseFloat(taxMatch[1].replace(",", "."))
 				break
 			}
 		}
 
 		// Identificar método de pagamento
-		const paymentMethods = ['dinheiro', 'cartão', 'card', 'débito', 'crédito', 'pix', 'vale']
+		const paymentMethods = ["dinheiro", "cartão", "card", "débito", "crédito", "pix", "vale"]
 		for (const line of lines) {
 			for (const method of paymentMethods) {
 				if (line.toLowerCase().includes(method)) {
@@ -129,12 +129,13 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		}
 
 		// Extrair itens (linhas com padrão: produto + preço)
-		const itemLines = lines.filter(line => {
+		const itemLines = lines.filter((line) => {
 			// Filtrar linhas que não são headers, totais, etc.
-			const isHeader = /^(?:cupom|nota|mercado|supermercado|data|hora|total|subtotal|troco|operador|caixa|cnpj|cpf)/i.test(line)
+			const isHeader =
+				/^(?:cupom|nota|mercado|supermercado|data|hora|total|subtotal|troco|operador|caixa|cnpj|cpf)/i.test(line)
 			const isFooter = /^(?:obrigado|volte|sempre|www|tel|telefone)/i.test(line)
 			const hasPrice = pricePattern.test(line)
-			
+
 			return !isHeader && !isFooter && hasPrice && line.length > 5
 		})
 
@@ -152,33 +153,39 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			for (const pattern of patterns) {
 				const match = line.match(pattern)
 				if (match) {
-					let name = "", quantity = 1, unitPrice = 0, totalPrice = 0
+					let name = "",
+						quantity = 1,
+						unitPrice = 0,
+						totalPrice = 0
 
-					if (pattern === patterns[0]) { // Padrão completo
+					if (pattern === patterns[0]) {
+						// Padrão completo
 						name = match[1].trim()
-						quantity = parseFloat(match[2].replace(',', '.'))
-						unitPrice = parseFloat(match[3].replace(',', '.'))
-						totalPrice = parseFloat(match[4].replace(',', '.'))
-					} else if (pattern === patterns[1]) { // Produto + preço
+						quantity = parseFloat(match[2].replace(",", "."))
+						unitPrice = parseFloat(match[3].replace(",", "."))
+						totalPrice = parseFloat(match[4].replace(",", "."))
+					} else if (pattern === patterns[1]) {
+						// Produto + preço
 						name = match[1].trim()
-						totalPrice = parseFloat(match[2].replace(',', '.'))
+						totalPrice = parseFloat(match[2].replace(",", "."))
 						unitPrice = totalPrice
-					} else if (pattern === patterns[2]) { // Quantidade + produto + preço
+					} else if (pattern === patterns[2]) {
+						// Quantidade + produto + preço
 						quantity = parseFloat(match[1])
 						name = match[2].trim()
-						totalPrice = parseFloat(match[3].replace(',', '.'))
+						totalPrice = parseFloat(match[3].replace(",", "."))
 						unitPrice = totalPrice / quantity
 					}
 
 					// Limpar nome do produto
-					name = name.replace(/^[\d\s\-\*]+/, '').trim()
-					
+					name = name.replace(/^[\d\s\-*]+/, "").trim()
+
 					if (name && totalPrice > 0) {
 						receipt.items.push({
 							name,
 							quantity,
 							unitPrice,
-							totalPrice
+							totalPrice,
 						})
 					}
 					break
@@ -196,7 +203,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			receipt.total = receipt.subtotal + receipt.tax
 		}
 
-		console.log('📊 Parsed receipt:', receipt)
+		console.log("📊 Parsed receipt:", receipt)
 		return receipt
 	}
 
@@ -211,7 +218,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 	const handleSave = () => {
 		if (parsedReceipt) {
 			onReceiptParsed(parsedReceipt)
-			toast.success('Nota fiscal salva com sucesso!')
+			toast.success("Nota fiscal salva com sucesso!")
 			onClose()
 		}
 	}
@@ -220,7 +227,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		if (parsedReceipt) {
 			setParsedReceipt({
 				...parsedReceipt,
-				[field]: value
+				[field]: value,
 			})
 		}
 	}
@@ -230,15 +237,15 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			const newItems = [...parsedReceipt.items]
 			newItems[index] = {
 				...newItems[index],
-				[field]: value
+				[field]: value,
 			}
 			// Recalcular preço total do item se necessário
-			if (field === 'quantity' || field === 'unitPrice') {
+			if (field === "quantity" || field === "unitPrice") {
 				newItems[index].totalPrice = newItems[index].quantity * newItems[index].unitPrice
 			}
 			setParsedReceipt({
 				...parsedReceipt,
-				items: newItems
+				items: newItems,
 			})
 		}
 	}
@@ -248,7 +255,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			const newItems = parsedReceipt.items.filter((_, i) => i !== index)
 			setParsedReceipt({
 				...parsedReceipt,
-				items: newItems
+				items: newItems,
 			})
 		}
 	}
@@ -257,12 +264,15 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		if (parsedReceipt) {
 			setParsedReceipt({
 				...parsedReceipt,
-				items: [...parsedReceipt.items, {
-					name: "",
-					quantity: 1,
-					unitPrice: 0,
-					totalPrice: 0
-				}]
+				items: [
+					...parsedReceipt.items,
+					{
+						name: "",
+						quantity: 1,
+						unitPrice: 0,
+						totalPrice: 0,
+					},
+				],
 			})
 		}
 	}
@@ -271,12 +281,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 
 	if (showOCR) {
 		return (
-			<OCRScanner
-				mode="receipt"
-				onTextDetected={handleOCRResult}
-				onClose={() => setShowOCR(false)}
-				isOpen={true}
-			/>
+			<OCRScanner mode="receipt" onTextDetected={handleOCRResult} onClose={() => setShowOCR(false)} isOpen={true} />
 		)
 	}
 
@@ -291,13 +296,9 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 						</div>
 						<div className="flex items-center gap-2">
 							{parsedReceipt && (
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => setIsEditing(!isEditing)}
-								>
+								<Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
 									{isEditing ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-									{isEditing ? 'Cancelar' : 'Editar'}
+									{isEditing ? "Cancelar" : "Editar"}
 								</Button>
 							)}
 							<Button variant="outline" size="sm" onClick={onClose}>
@@ -311,9 +312,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 						<div className="text-center py-8">
 							<Receipt className="h-16 w-16 mx-auto mb-4 text-gray-400" />
 							<h3 className="text-lg font-semibold mb-2">Digitalizar Nota Fiscal</h3>
-							<p className="text-gray-600 mb-4">
-								Use a câmera ou faça upload de uma imagem da nota fiscal
-							</p>
+							<p className="text-gray-600 mb-4">Use a câmera ou faça upload de uma imagem da nota fiscal</p>
 							<Button onClick={() => setShowOCR(true)} size="lg">
 								<Receipt className="h-4 w-4 mr-2" />
 								Iniciar Scanner OCR
@@ -328,7 +327,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 									{isEditing ? (
 										<Input
 											value={parsedReceipt.market}
-											onChange={(e) => updateReceiptField('market', e.target.value)}
+											onChange={(e) => updateReceiptField("market", e.target.value)}
 										/>
 									) : (
 										<p className="font-medium">{parsedReceipt.market}</p>
@@ -337,12 +336,9 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 								<div>
 									<Label>Data</Label>
 									{isEditing ? (
-										<Input
-											value={parsedReceipt.date}
-											onChange={(e) => updateReceiptField('date', e.target.value)}
-										/>
+										<Input value={parsedReceipt.date} onChange={(e) => updateReceiptField("date", e.target.value)} />
 									) : (
-										<p className="font-medium">{parsedReceipt.date || 'Não identificada'}</p>
+										<p className="font-medium">{parsedReceipt.date || "Não identificada"}</p>
 									)}
 								</div>
 								{parsedReceipt.address && (
@@ -351,7 +347,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 										{isEditing ? (
 											<Input
 												value={parsedReceipt.address}
-												onChange={(e) => updateReceiptField('address', e.target.value)}
+												onChange={(e) => updateReceiptField("address", e.target.value)}
 											/>
 										) : (
 											<p className="text-sm text-gray-600">{parsedReceipt.address}</p>
@@ -370,7 +366,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 										</Button>
 									)}
 								</div>
-								
+
 								<div className="space-y-2">
 									{parsedReceipt.items.map((item, index) => (
 										<Card key={index} className="p-3">
@@ -379,7 +375,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 													<div className="col-span-5">
 														<Input
 															value={item.name}
-															onChange={(e) => updateItem(index, 'name', e.target.value)}
+															onChange={(e) => updateItem(index, "name", e.target.value)}
 															placeholder="Nome do produto"
 															className="text-sm"
 														/>
@@ -388,7 +384,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 														<Input
 															type="number"
 															value={item.quantity}
-															onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+															onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 0)}
 															placeholder="Qtd"
 															className="text-sm"
 														/>
@@ -398,23 +394,16 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 															type="number"
 															step="0.01"
 															value={item.unitPrice}
-															onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+															onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
 															placeholder="Preço unit."
 															className="text-sm"
 														/>
 													</div>
 													<div className="col-span-2">
-														<Badge variant="secondary">
-															R$ {item.totalPrice.toFixed(2)}
-														</Badge>
+														<Badge variant="secondary">R$ {item.totalPrice.toFixed(2)}</Badge>
 													</div>
 													<div className="col-span-1">
-														<Button
-															variant="ghost"
-															size="sm"
-															onClick={() => removeItem(index)}
-															className="h-8 w-8 p-0"
-														>
+														<Button variant="ghost" size="sm" onClick={() => removeItem(index)} className="h-8 w-8 p-0">
 															<Trash2 className="h-3 w-3" />
 														</Button>
 													</div>
@@ -466,9 +455,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 							{/* Raw text for debugging */}
 							{rawText && (
 								<details>
-									<summary className="cursor-pointer text-sm text-gray-600">
-										Ver texto original extraído
-									</summary>
+									<summary className="cursor-pointer text-sm text-gray-600">Ver texto original extraído</summary>
 									<Textarea
 										value={rawText}
 										readOnly

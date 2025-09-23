@@ -43,58 +43,62 @@ export const analyticsFunctions = {
 		return { success: true, bestPrice: data }
 	},
 
-	analyzeCostBenefit: async ({ products }: { products: Array<{ name: string, price: number, quantity: number, unit: string, market?: string }> }) => {
+	analyzeCostBenefit: async ({
+		products,
+	}: {
+		products: Array<{ name: string; price: number; quantity: number; unit: string; market?: string }>
+	}) => {
 		try {
 			// Normalizar todas as unidades para a mesma base
 			const normalizeToStandardUnit = (quantity: number, unit: string) => {
 				const unitLower = unit.toLowerCase()
-				
+
 				// Normalizar para mililitros (líquidos)
-				if (unitLower.includes('l') || unitLower.includes('litro')) {
-					return { value: quantity * 1000, standardUnit: 'ml' }
+				if (unitLower.includes("l") || unitLower.includes("litro")) {
+					return { value: quantity * 1000, standardUnit: "ml" }
 				}
-				if (unitLower.includes('ml') || unitLower.includes('mililitro')) {
-					return { value: quantity, standardUnit: 'ml' }
+				if (unitLower.includes("ml") || unitLower.includes("mililitro")) {
+					return { value: quantity, standardUnit: "ml" }
 				}
-				
+
 				// Normalizar para gramas (sólidos)
-				if (unitLower.includes('kg') || unitLower.includes('kilo')) {
-					return { value: quantity * 1000, standardUnit: 'g' }
+				if (unitLower.includes("kg") || unitLower.includes("kilo")) {
+					return { value: quantity * 1000, standardUnit: "g" }
 				}
-				if (unitLower.includes('g') || unitLower.includes('grama')) {
-					return { value: quantity, standardUnit: 'g' }
+				if (unitLower.includes("g") || unitLower.includes("grama")) {
+					return { value: quantity, standardUnit: "g" }
 				}
-				
+
 				// Unidades
-				if (unitLower.includes('unidade') || unitLower.includes('un') || unitLower.includes('pç')) {
-					return { value: quantity, standardUnit: 'unidade' }
+				if (unitLower.includes("unidade") || unitLower.includes("un") || unitLower.includes("pç")) {
+					return { value: quantity, standardUnit: "unidade" }
 				}
-				
+
 				// Pacotes/caixas
-				if (unitLower.includes('pacote') || unitLower.includes('caixa')) {
-					return { value: quantity, standardUnit: 'pacote' }
+				if (unitLower.includes("pacote") || unitLower.includes("caixa")) {
+					return { value: quantity, standardUnit: "pacote" }
 				}
-				
+
 				// Fallback - assumir como unidade
 				return { value: quantity, standardUnit: unit }
 			}
 
 			// Calcular custo-benefício para cada produto
-			const analysis = products.map(product => {
+			const analysis = products.map((product) => {
 				const normalized = normalizeToStandardUnit(product.quantity, product.unit)
 				const pricePerUnit = product.price / normalized.value
-				
+
 				return {
 					...product,
 					normalizedQuantity: normalized.value,
 					standardUnit: normalized.standardUnit,
 					pricePerUnit: pricePerUnit,
-					costBenefitScore: 1 / pricePerUnit // Quanto maior, melhor o custo-benefício
+					costBenefitScore: 1 / pricePerUnit, // Quanto maior, melhor o custo-benefício
 				}
 			})
 
 			// Verificar se todos os produtos têm a mesma unidade padrão
-			const standardUnits = Array.from(new Set(analysis.map(p => p.standardUnit)))
+			const standardUnits = Array.from(new Set(analysis.map((p) => p.standardUnit)))
 			const canCompare = standardUnits.length === 1
 
 			if (!canCompare) {
@@ -102,14 +106,14 @@ export const analyticsFunctions = {
 					success: true,
 					canCompare: false,
 					message: "⚠️ **Não é possível comparar diretamente** - produtos têm unidades de medida incompatíveis.",
-					products: analysis.map(p => ({
+					products: analysis.map((p) => ({
 						name: p.name,
 						price: p.price,
 						quantity: p.quantity,
 						unit: p.unit,
 						market: p.market,
-						priceInfo: `R$ ${p.pricePerUnit.toFixed(4)} por ${p.standardUnit}`
-					}))
+						priceInfo: `R$ ${p.pricePerUnit.toFixed(4)} por ${p.standardUnit}`,
+					})),
 				}
 			}
 
@@ -133,8 +137,11 @@ export const analyticsFunctions = {
 			recommendation += `📊 **COMPARAÇÃO COMPLETA:**\n`
 			sortedByBenefit.forEach((product, index) => {
 				const position = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}º`
-				const savings = index > 0 ? ` (+${(((product.pricePerUnit - bestOption.pricePerUnit) / bestOption.pricePerUnit) * 100).toFixed(1)}%)` : ""
-				
+				const savings =
+					index > 0
+						? ` (+${(((product.pricePerUnit - bestOption.pricePerUnit) / bestOption.pricePerUnit) * 100).toFixed(1)}%)`
+						: ""
+
 				recommendation += `${position} **${product.name}**\n`
 				recommendation += `   • R$ ${product.pricePerUnit.toFixed(4)} por ${standardUnit}${savings}\n`
 				recommendation += `   • Preço: R$ ${product.price.toFixed(2)} (${product.quantity}${product.unit})\n`
@@ -154,14 +161,13 @@ export const analyticsFunctions = {
 				bestOption: bestOption.name,
 				recommendation,
 				analysis: sortedByBenefit,
-				savings: savingsPercentage
+				savings: savingsPercentage,
 			}
-
 		} catch (error) {
 			console.error("Erro na análise de custo-benefício:", error)
 			return {
 				success: false,
-				message: "Erro ao calcular custo-benefício. Verifique os dados fornecidos."
+				message: "Erro ao calcular custo-benefício. Verifique os dados fornecidos.",
 			}
 		}
 	},

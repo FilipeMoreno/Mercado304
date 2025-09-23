@@ -96,13 +96,16 @@ export async function POST(request: Request) {
 		if (barcode) {
 			const existingProduct = await prisma.product.findUnique({
 				where: { barcode },
-				select: { id: true, name: true }
+				select: { id: true, name: true },
 			})
 
 			if (existingProduct) {
-				return NextResponse.json({ 
-					error: `Código de barras já cadastrado para o produto: ${existingProduct.name}` 
-				}, { status: 409 })
+				return NextResponse.json(
+					{
+						error: `Código de barras já cadastrado para o produto: ${existingProduct.name}`,
+					},
+					{ status: 409 },
+				)
 			}
 		}
 

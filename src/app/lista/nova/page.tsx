@@ -1,9 +1,10 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { ArrowLeft, Camera, List, Plus, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { PriceAlert } from "@/components/price-alert"
@@ -22,28 +23,45 @@ interface ShoppingListItem {
 	productId: string
 	quantity: number
 	estimatedPrice?: number | string
-	priceAlert?: any
+	priceAlert?: {
+		hasAlert: boolean
+		alertType?: "price_warning" | "high_price"
+		message: string
+		details?: {
+			currentPrice: number
+			suggestedPrice?: number
+			averagePrice?: number
+			savings?: number
+			savingsPercent?: number
+			suggestedMarket?: {
+				name: string
+			}
+			difference?: number
+			percentDifference?: number
+			totalComparisons: number
+			historicalPurchases?: number
+		}
+	}
 }
 
 export default function NovaListaPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const createShoppingListMutation = useCreateShoppingListMutation()
-	const [products, setProducts] = useState<any[]>([])
-	const [brands, setBrands] = useState<any[]>([])
+	const id = useId()
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 	const { showInsight } = useProactiveAiStore()
 
-	const [selectedProductIdForSuggestions, setSelectedProductIdForSuggestions] = useState<string | null>(null)
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
 	const [listName, setListName] = useState("")
 
 	const [items, setItems] = useState<ShoppingListItem[]>([
-		{ productId: "", quantity: 1, estimatedPrice: "", priceAlert: null },
+		{ productId: "", quantity: 1, estimatedPrice: "", priceAlert: undefined },
 	])
 
 	const [relatedProductsVisibility, setRelatedProductsVisibility] = useState<boolean[]>(
@@ -55,10 +73,6 @@ export default function NovaListaPage() {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
 			newItems[index] = { ...newItems[index], [field]: value }
-
-			if (field === "productId") {
-				setSelectedProductIdForSuggestions(value as string)
-			}
 			return newItems
 		})
 	}, [])
@@ -93,31 +107,27 @@ export default function NovaListaPage() {
 		}
 	}, [searchParams, updateItem])
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
-			const [productsRes, brandsRes] = await Promise.all([fetch("/api/products"), fetch("/api/brands")])
+			const productsRes = await fetch("/api/products")
 
 			if (productsRes.ok) {
 				const productsData = await productsRes.json()
 				setProducts(productsData.products || [])
-			}
-			if (brandsRes.ok) {
-				const brandsData = await brandsRes.json()
-				setBrands(brandsData.brands || [])
 			}
 		} catch (error) {
 			console.error("Erro ao carregar dados:", error)
 		} finally {
 			setDataLoading(false)
 		}
-	}
+	}, [])
 
 	useEffect(() => {
 		fetchData()
-	}, [])
+	}, [fetchData])
 
 	const addItem = () => {
-		setItems([...items, { productId: "", quantity: 1, estimatedPrice: "", priceAlert: null }])
+		setItems([...items, { productId: "", quantity: 1, estimatedPrice: "", priceAlert: undefined }])
 		setCheckingPrices([...checkingPrices, false])
 		setRelatedProductsVisibility([...relatedProductsVisibility, true])
 		setPriceAlertVisibility([...priceAlertVisibility, true])
@@ -167,7 +177,7 @@ export default function NovaListaPage() {
 			return
 		}
 
-		setItems([...items, { productId, quantity: 1, estimatedPrice: "", priceAlert: null }])
+		setItems([...items, { productId, quantity: 1, estimatedPrice: "", priceAlert: undefined }])
 		toast.success("Produto adicionado à lista!")
 	}
 
@@ -234,7 +244,11 @@ export default function NovaListaPage() {
 		try {
 			await createShoppingListMutation.mutateAsync({
 				name: listName,
-				items: validItems as any,
+				items: validItems.map((item) => ({
+					productId: item.productId,
+					quantity: item.quantity,
+					estimatedPrice: item.estimatedPrice || 0,
+				})) as any,
 			})
 
 			toast.success("Lista criada com sucesso!")
@@ -287,173 +301,238 @@ export default function NovaListaPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center gap-4">
-				<Link href="/lista">
-					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
-						Voltar
-					</Button>
-				</Link>
-				<div>
-					<h1 className="text-3xl font-bold">Nova Lista de Compras</h1>
-					<p className="text-gray-600 mt-2">Crie uma nova lista para organizar suas compras</p>
-				</div>
-			</div>
-
-			<form onSubmit={handleSubmit} className="space-y-6">
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<List className="h-5 w-5" />
-							Informações da Lista
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="listName">Nome da Lista *</Label>
-							<Input
-								id="listName"
-								name="listName"
-								value={listName}
-								onChange={(e) => setListName(e.target.value)}
-								placeholder="Ex: Compras da Semana"
-								required
-							/>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Plus className="h-5 w-5" />
-							Itens da Lista
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-4">
-							{items.map((item, index) => (
-								<div key={index} className="space-y-4 p-4 border rounded-lg">
-									<div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4">
-										<div className="space-y-2">
-											<Label>Produto *</Label>
-											<ProductSelect
-												value={item.productId}
-												products={products}
-												onValueChange={(value) => updateItem(index, "productId", value)}
-												preserveFormData={{
-													listName,
-													items,
-													targetItemIndex: index,
-												}}
-											/>
-										</div>
-
-										<div className="space-y-2">
-											<Label>Quantidade *</Label>
-											<Input
-												type="number"
-												step="0.01"
-												min="0.01"
-												value={item.quantity}
-												onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
-												placeholder="1.00"
-											/>
-										</div>
-
-										<div className="space-y-2">
-											<Label>Preço Estimado</Label>
-											<Input
-												type="number"
-												step="0.01"
-												min="0"
-												value={item.estimatedPrice}
-												onChange={(e) => updateItem(index, "estimatedPrice", e.target.value)}
-												onBlur={() => handlePriceBlur(index)}
-												placeholder="0.00"
-											/>
-										</div>
-
-										<div className="space-y-2">
-											<Label>Total</Label>
-											<Input
-												value={`R$ ${(item.quantity * (parseFloat(String(item.estimatedPrice)) || 0)).toFixed(2)}`}
-												disabled
-												className="bg-gray-50"
-											/>
-										</div>
-									</div>
-
-									{priceAlertVisibility[index] && item.priceAlert && (
-										<div className="pt-2">
-											<PriceAlert
-												alertData={item.priceAlert}
-												loading={checkingPrices[index]}
-												onClose={() => handleClosePriceAlert(index)}
-											/>
-										</div>
-									)}
-
-									{relatedProductsVisibility[index] && item.productId && (
-										<div className="pt-2">
-											<RelatedProductsCard
-												productId={item.productId}
-												onAddProduct={addRelatedItem}
-												onClose={() => handleCloseRelatedProducts(index)}
-											/>
-										</div>
-									)}
-
-									<div className="flex justify-between items-center">
-										<div className="flex gap-2">
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												onClick={() => openScanner(index)}
-												title="Escanear código de barras"
-											>
-												<Camera className="h-4 w-4 mr-1" />
-												Scanner
-											</Button>
-										</div>
-
-										{items.length > 1 && (
-											<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
-												<Trash2 className="h-4 w-4 mr-1" />
-												Remover
-											</Button>
-										)}
-									</div>
-								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* Barra de Ações Fixa */}
-				<div className="sticky bottom-0 z-10 bg-background/95 backdrop-blur-sm border-t p-4 rounded-b-lg">
-					<div className="flex justify-between items-center max-w-4xl mx-auto">
-						<div className="text-lg font-bold">Total Estimado: R$ {calculateTotal().toFixed(2)}</div>
-						<div className="flex gap-3">
-							<Button type="button" onClick={addItem} variant="outline" className="hidden sm:inline-flex">
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar Item
+		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
+			{/* Header fixo para mobile */}
+			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+				<div className="px-4 py-4 md:px-0">
+					<div className="flex items-center gap-4">
+						<Link href="/lista">
+							<Button variant="outline" size="sm">
+								<ArrowLeft className="h-4 w-4 mr-2" />
+								<span className="hidden sm:inline">Voltar</span>
 							</Button>
-							<Link href="/lista">
-								<Button type="button" variant="outline">
-									Cancelar
-								</Button>
-							</Link>
-							<Button type="submit" disabled={loading}>
-								<Save className="h-4 w-4 mr-2" />
-								{loading ? "Salvando..." : "Salvar Lista"}
-							</Button>
+						</Link>
+						<div className="flex-1">
+							<h1 className="text-xl md:text-3xl font-bold">Nova Lista de Compras</h1>
+							<p className="text-gray-600 text-sm md:text-base mt-1 md:mt-2">
+								Crie uma nova lista para organizar suas compras
+							</p>
 						</div>
 					</div>
 				</div>
-			</form>
+			</div>
+
+			<div className="px-4 md:px-0 space-y-6">
+				<form onSubmit={handleSubmit} className="space-y-6">
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+						<Card>
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2">
+									<List className="h-5 w-5" />
+									Informações da Lista
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor={`listName-${id}`}>Nome da Lista *</Label>
+									<Input
+										id={`listName-${id}`}
+										name="listName"
+										value={listName}
+										onChange={(e) => setListName(e.target.value)}
+										placeholder="Ex: Compras da Semana"
+										required
+									/>
+								</div>
+							</CardContent>
+						</Card>
+					</motion.div>
+
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+						<Card>
+							<CardHeader>
+								<div className="flex justify-between items-center">
+									<CardTitle className="flex items-center gap-2">
+										<Plus className="h-5 w-5" />
+										Itens da Lista
+									</CardTitle>
+									{/* Botão de adicionar item - apenas visível no desktop */}
+									<Button type="button" onClick={addItem} variant="outline" className="hidden md:flex">
+										<Plus className="h-4 w-4 mr-2" />
+										Adicionar Item
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-4">
+									{items.map((item, index) => (
+										<motion.div
+											key={`item-${index}-${item.productId || "empty"}`}
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{ delay: 0.3 + index * 0.05 }}
+											className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
+										>
+											{/* Layout responsivo para campos do item */}
+											<div className="space-y-4 md:space-y-0 md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-4 md:items-end">
+												<div className="space-y-2">
+													<Label>Produto *</Label>
+													<ProductSelect
+														value={item.productId}
+														products={products as any}
+														onValueChange={(value) => updateItem(index, "productId", value)}
+														preserveFormData={{
+															listName,
+															items,
+															targetItemIndex: index,
+														}}
+													/>
+												</div>
+
+												<div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-0">
+													<div className="space-y-2">
+														<Label>Quantidade *</Label>
+														<Input
+															type="number"
+															step="0.01"
+															min="0.01"
+															value={item.quantity}
+															onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
+															placeholder="1.00"
+															className="text-center"
+														/>
+													</div>
+
+													<div className="space-y-2">
+														<Label>Preço Estimado</Label>
+														<Input
+															type="number"
+															step="0.01"
+															min="0"
+															value={item.estimatedPrice}
+															onChange={(e) => updateItem(index, "estimatedPrice", e.target.value)}
+															onBlur={() => handlePriceBlur(index)}
+															placeholder="0.00"
+															className="text-center"
+														/>
+													</div>
+												</div>
+
+												<div className="space-y-2 md:block">
+													<Label>Total</Label>
+													<Input
+														value={`R$ ${(item.quantity * (parseFloat(String(item.estimatedPrice)) || 0)).toFixed(2)}`}
+														disabled
+														className="bg-gray-50 text-center font-semibold"
+													/>
+												</div>
+											</div>
+
+											{/* Alertas e produtos relacionados */}
+											<div className="space-y-3">
+												{priceAlertVisibility[index] && item.priceAlert && (
+													<div className="pt-2">
+														<PriceAlert
+															alertData={item.priceAlert}
+															loading={checkingPrices[index]}
+															onClose={() => handleClosePriceAlert(index)}
+														/>
+													</div>
+												)}
+
+												{relatedProductsVisibility[index] && item.productId && (
+													<div className="pt-2">
+														<RelatedProductsCard
+															productId={item.productId}
+															onAddProduct={addRelatedItem}
+															onClose={() => handleCloseRelatedProducts(index)}
+														/>
+													</div>
+												)}
+											</div>
+
+											{/* Botões de ação */}
+											<div className="flex justify-between items-center pt-2">
+												<div className="flex gap-2">
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														onClick={() => openScanner(index)}
+														title="Escanear código de barras"
+													>
+														<Camera className="h-4 w-4 mr-1" />
+														<span className="hidden sm:inline">Scanner</span>
+													</Button>
+												</div>
+
+												{items.length > 1 && (
+													<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
+														<Trash2 className="h-4 w-4 mr-1" />
+														Remover
+													</Button>
+												)}
+											</div>
+										</motion.div>
+									))}
+								</div>
+
+								{/* Total e botões de ação - apenas no desktop */}
+								<div className="hidden md:flex justify-between items-center pt-4 border-t">
+									<div className="text-lg font-bold">Total Estimado: R$ {calculateTotal().toFixed(2)}</div>
+									<div className="flex gap-3">
+										<Button type="button" onClick={addItem} variant="outline">
+											<Plus className="h-4 w-4 mr-2" />
+											Adicionar Item
+										</Button>
+										<Link href="/lista">
+											<Button type="button" variant="outline">
+												Cancelar
+											</Button>
+										</Link>
+										<Button type="submit" disabled={loading}>
+											<Save className="h-4 w-4 mr-2" />
+											{loading ? "Salvando..." : "Salvar Lista"}
+										</Button>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</motion.div>
+				</form>
+			</div>
+
+			{/* Barra fixa na parte inferior para mobile */}
+			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t shadow-lg md:hidden">
+				<div className="px-4 py-3">
+					<div className="flex items-center justify-between gap-3">
+						{/* Botão de adicionar item */}
+						<Button type="button" onClick={addItem} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
+							<Plus className="h-5 w-5 mr-2" />
+							Adicionar Item
+						</Button>
+
+						{/* Total da lista */}
+						<div className="text-center min-w-[120px]">
+							<div className="text-sm text-gray-600">Total</div>
+							<div className="text-lg font-bold text-primary">R$ {calculateTotal().toFixed(2)}</div>
+						</div>
+					</div>
+
+					{/* Botões de ação */}
+					<div className="flex gap-2 mt-3">
+						<Button type="submit" disabled={loading} onClick={handleSubmit} className="flex-1" size="lg">
+							<Save className="h-4 w-4 mr-2" />
+							{loading ? "Salvando..." : "Salvar Lista"}
+						</Button>
+						<Link href="/lista" className="flex-1">
+							<Button type="button" variant="outline" className="w-full" size="lg">
+								Cancelar
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</div>
 
 			<BarcodeScanner
 				isOpen={showScanner}

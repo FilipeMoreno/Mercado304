@@ -16,13 +16,13 @@ interface ProductsPageProps {
 export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 	return (
 		<div className="space-y-6">
-			<motion.div 
+			<motion.div
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
 				className="flex justify-between items-center"
 			>
 				<div>
-					<motion.h1 
+					<motion.h1
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={{ delay: 0.1 }}
@@ -30,7 +30,7 @@ export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 					>
 						Produtos
 					</motion.h1>
-					<motion.p 
+					<motion.p
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={{ delay: 0.2 }}

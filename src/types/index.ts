@@ -58,6 +58,22 @@ export interface Purchase {
 	items?: PurchaseItem[]
 }
 
+export interface RecentPurchase {
+	id: string
+	marketId: string
+	totalAmount: number
+	purchaseDate: Date
+	paymentMethod: PaymentMethod
+	createdAt: Date
+	updatedAt: Date
+	market?: {
+		id: string
+		name: string
+		location?: string
+	}
+	items?: PurchaseItem[]
+}
+
 export enum PaymentMethod {
 	MONEY = "MONEY", // Dinheiro
 	DEBIT = "DEBIT", // Cartão de Débito
@@ -117,6 +133,33 @@ export interface ProductStats {
 	totalQuantity: number
 	averagePrice: number
 	lastPurchaseDate: Date
+}
+
+export interface CategoryStats {
+	categoryId: string
+	categoryName: string
+	icon: string
+	color: string
+	totalSpent: number
+	totalPurchases: number
+	totalQuantity: number
+	averagePrice: number
+}
+
+export interface TopProduct {
+	productId: string
+	productName: string
+	unit: string
+	totalPurchases: number
+	totalQuantity: number
+	averagePrice: number
+}
+
+export interface MarketComparison {
+	marketId: string
+	marketName: string
+	totalPurchases: number
+	averagePrice: number
 }
 
 export interface NutritionalInfo {

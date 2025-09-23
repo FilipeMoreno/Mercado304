@@ -1,8 +1,8 @@
 "use client"
 
-import { ResponsiveDialog } from "./responsive-dialog"
+import type { ReactNode } from "react"
 import { Button } from "./button"
-import { ReactNode } from "react"
+import { ResponsiveDialog } from "./responsive-dialog"
 
 interface ResponsiveConfirmDialogProps {
 	open: boolean
@@ -34,7 +34,7 @@ export function ResponsiveConfirmDialog({
 	cancelText = "Cancelar",
 	confirmVariant = "default",
 	isLoading = false,
-	icon
+	icon,
 }: ResponsiveConfirmDialogProps) {
 	const handleCancel = () => {
 		onCancel?.()
@@ -60,13 +60,9 @@ export function ResponsiveConfirmDialog({
 						{icon}
 					</div>
 				)}
-				
+
 				{/* Conteúdo personalizado */}
-				{children && (
-					<div className="text-center sm:text-left">
-						{children}
-					</div>
-				)}
+				{children && <div className="text-center sm:text-left">{children}</div>}
 
 				{/* Botões de ação */}
 				<div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
@@ -78,8 +74,8 @@ export function ResponsiveConfirmDialog({
 					>
 						{isLoading ? "Carregando..." : confirmText}
 					</Button>
-					<Button 
-						variant="outline" 
+					<Button
+						variant="outline"
 						onClick={handleCancel}
 						disabled={isLoading}
 						className="w-full sm:w-auto order-1 sm:order-2"

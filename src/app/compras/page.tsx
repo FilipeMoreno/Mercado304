@@ -13,7 +13,6 @@ interface ComprasPageProps {
 }
 
 export default async function ComprasPage({ searchParams }: ComprasPageProps) {
-
 	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">

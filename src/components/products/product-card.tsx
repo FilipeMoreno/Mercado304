@@ -14,10 +14,7 @@ interface ProductCardProps {
 	onDelete?: (product: any) => void
 }
 
-export const ProductCard = React.memo(function ProductCard({ 
-	product, 
-	onDelete 
-}: ProductCardProps) {
+export const ProductCard = React.memo(function ProductCard({ product, onDelete }: ProductCardProps) {
 	return (
 		<Card className="group hover:shadow-lg transition-all duration-200 h-full flex flex-col">
 			<CardHeader className="pb-3">
@@ -82,10 +79,7 @@ export const ProductCard = React.memo(function ProductCard({
 									Editar
 								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => onDelete?.(product)}
-								className="text-red-600 focus:text-red-600"
-							>
+							<DropdownMenuItem onClick={() => onDelete?.(product)} className="text-red-600 focus:text-red-600">
 								<Trash2 className="h-4 w-4 mr-2" />
 								Excluir
 							</DropdownMenuItem>

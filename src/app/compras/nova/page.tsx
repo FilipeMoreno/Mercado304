@@ -1,11 +1,12 @@
 "use client"
 
 import { addDays, format } from "date-fns"
+import { motion } from "framer-motion"
 import { ArrowLeft, Box, Package, Plus, Save, Settings2, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { PriceAiInsight } from "@/components/price-ai-insight"
@@ -30,8 +31,31 @@ interface PurchaseItem {
 	productId: string
 	quantity: number
 	unitPrice: number
-	priceAlert?: any
-	bestPriceAlert?: any
+	priceAlert?: {
+		hasAlert: boolean
+		alertType?: "price_warning" | "high_price"
+		message: string
+		details?: {
+			currentPrice: number
+			suggestedPrice?: number
+			averagePrice?: number
+			savings?: number
+			savingsPercent?: number
+			suggestedMarket?: {
+				name: string
+			}
+			difference?: number
+			percentDifference?: number
+			totalComparisons: number
+			historicalPurchases?: number
+		}
+	}
+	bestPriceAlert?: {
+		isBestPrice: boolean
+		previousBestPrice?: number
+		totalRecords?: number
+		isFirstRecord?: boolean
+	}
 	addToStock: boolean
 	stockEntries: StockEntry[]
 	aiInsight: string | null
@@ -42,12 +66,11 @@ export default function NovaCompraPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const createPurchaseMutation = useCreatePurchaseMutation()
+	const id = useId()
 	const [products, setProducts] = useState<Product[]>([])
 	const [loading, setLoading] = useState(false)
 	const [dataLoading, setDataLoading] = useState(true)
 	const restoredRef = React.useRef(false)
-	const [showScanner, setShowScanner] = useState(false)
-	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
 
 	const [stockDialogState, setStockDialogState] = useState<{
 		isOpen: boolean
@@ -74,7 +97,7 @@ export default function NovaCompraPage() {
 	])
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
-	const fetchData = async () => {
+	const fetchData = React.useCallback(async () => {
 		try {
 			const productsRes = await fetch("/api/products")
 			if (productsRes.ok) {
@@ -86,11 +109,11 @@ export default function NovaCompraPage() {
 		} finally {
 			setDataLoading(false)
 		}
-	}
+	}, [])
 
 	useEffect(() => {
 		fetchData()
-	}, [])
+	}, [fetchData])
 	// Restaurar itens do storageKey quando a página carregar
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -102,12 +125,14 @@ export default function NovaCompraPage() {
 				console.log("Restaurando itens do storageKey:", storedData.items)
 
 				// Transformar os itens da lista em itens de compra
-				const purchaseItems = storedData.items.map((item: any) => ({
-					id: Math.random().toString(),
-					productId: item.productId || "",
-					quantity: item.quantity || 1,
-					unitPrice: item.unitPrice || 0,
-				}))
+				const purchaseItems = storedData.items.map(
+					(item: { productId?: string; quantity?: number; unitPrice?: number }) => ({
+						id: Math.random().toString(),
+						productId: item.productId || "",
+						quantity: item.quantity || 1,
+						unitPrice: item.unitPrice || 0,
+					}),
+				)
 
 				// Adicionar um item vazio no final se não houver
 				if (purchaseItems.length > 0) {
@@ -293,26 +318,6 @@ export default function NovaCompraPage() {
 		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 	}
 
-	const handleBarcodeScanned = async (barcode: string) => {
-		try {
-			const response = await fetch(`/api/products/barcode/${barcode}`)
-			if (response.ok) {
-				const product = await response.json()
-				if (scanningForIndex !== null) {
-					updateItem(scanningForIndex, "productId", product.id)
-				}
-			} else {
-				toast.error("Produto não encontrado para este código de barras")
-			}
-		} catch (error) {
-			console.error("Erro ao buscar produto:", error)
-			toast.error("Erro ao buscar produto")
-		} finally {
-			setShowScanner(false)
-			setScanningForIndex(null)
-		}
-	}
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 
@@ -362,242 +367,304 @@ export default function NovaCompraPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center gap-4">
-				<Link href="/compras">
-					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
-						Voltar
-					</Button>
-				</Link>
-				<div>
-					<h1 className="text-3xl font-bold">Nova Compra</h1>
-					<p className="text-gray-600 mt-2">Registre uma nova compra</p>
+		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
+			{/* Header fixo para mobile */}
+			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+				<div className="px-4 py-4 md:px-0">
+					<div className="flex items-center gap-4">
+						<Link href="/compras">
+							<Button variant="outline" size="sm">
+								<ArrowLeft className="h-4 w-4 mr-2" />
+								<span className="hidden sm:inline">Voltar</span>
+							</Button>
+						</Link>
+						<div className="flex-1">
+							<h1 className="text-xl md:text-3xl font-bold">Nova Compra</h1>
+							<p className="text-gray-600 text-sm md:text-base mt-1 md:mt-2">Registre uma nova compra</p>
+						</div>
+					</div>
 				</div>
 			</div>
 
-			<form onSubmit={handleSubmit} className="space-y-6">
-				<Card>
-					<CardHeader>
-						<CardTitle>Informações da Compra</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div className="space-y-2">
-								<Label htmlFor="marketId">Mercado *</Label>
-								<MarketSelect
-									value={formData.marketId}
-									onValueChange={(value) => {
-										setFormData((prev) => ({ ...prev, marketId: value }))
-									}}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="purchaseDate">Data da Compra</Label>
-								<Input
-									id="purchaseDate"
-									name="purchaseDate"
-									type="date"
-									value={toDateInputValue(formData.purchaseDate)}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											purchaseDate: e.target.value,
-										}))
-									}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="paymentMethod">Método de Pagamento *</Label>
-								<Select
-									value={formData.paymentMethod}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											paymentMethod: value as PaymentMethod,
-										}))
-									}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Selecione..." />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
-										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
-										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
-										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
-										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
-										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<div className="flex justify-between items-center">
-							<CardTitle className="flex items-center gap-2">
-								<Package className="h-5 w-5" />
-								Itens da Compra
-							</CardTitle>
-							<Button type="button" onClick={addItem} variant="outline">
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar Item
-							</Button>
-						</div>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-4">
-							{items.map((item, index) => {
-								const selectedProduct = products.find((p) => p.id === item.productId)
-								return (
-									<div key={item.id || index} className="space-y-4 p-4 border rounded-lg">
-										<div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-4 items-end">
-											<div className="space-y-2">
-												<Label>Produto *</Label>
-												<div className="flex gap-2 w-full">
-													<ProductSelect
-														value={item.productId || ""}
-														className="w-full"
-														onValueChange={(value) => updateItem(index, "productId", value)}
-														products={products}
-														preserveFormData={{
-															formData,
-															items,
-															targetItemIndex: index,
-														}}
-													/>
-												</div>
-											</div>
-											<div className="space-y-2">
-												<Label>Quantidade *</Label>
-												<Input
-													type="number"
-													step="0.01"
-													min="0.01"
-													value={item.quantity}
-													onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
-													placeholder="1.00"
-												/>
-											</div>
-											<div className="space-y-2">
-												<Label>Preço Unitário *</Label>
-												<Input
-													type="number"
-													step="0.01"
-													min="0.01"
-													value={item.unitPrice}
-													onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
-													placeholder="0.00"
-												/>
-											</div>
-											<div className="space-y-2">
-												<Label>Total</Label>
-												<Input
-													value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
-													disabled
-													className="bg-secondary text-secondary-foreground dark:opacity-70"
-												/>
-											</div>
-										</div>
-
-										<PriceAlert
-											alertData={item.priceAlert}
-											loading={checkingPrices[index]}
-											onClose={() => updateItem(index, "priceAlert", null)}
+			<div className="px-4 md:px-0 space-y-6">
+				<form onSubmit={handleSubmit} className="space-y-6">
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+						<Card>
+							<CardHeader>
+								<CardTitle>Informações da Compra</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="marketId">Mercado *</Label>
+										<MarketSelect
+											value={formData.marketId}
+											onValueChange={(value) => {
+												setFormData((prev) => ({ ...prev, marketId: value }))
+											}}
 										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor={`purchaseDate-${id}`}>Data da Compra</Label>
+										<Input
+											id={`purchaseDate-${id}`}
+											name="purchaseDate"
+											type="date"
+											value={toDateInputValue(formData.purchaseDate)}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													purchaseDate: e.target.value,
+												}))
+											}
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="paymentMethod">Método de Pagamento *</Label>
+										<Select
+											value={formData.paymentMethod}
+											onValueChange={(value) =>
+												setFormData((prev) => ({
+													...prev,
+													paymentMethod: value as PaymentMethod,
+												}))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Selecione..." />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+												<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+												<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+												<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
+												<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+												<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+												<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</motion.div>
 
-										{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
-											<BestPriceAlert
-												productName={selectedProduct?.name || "Produto"}
-												currentPrice={item.unitPrice}
-												previousBestPrice={item.bestPriceAlert.previousBestPrice}
-												totalRecords={item.bestPriceAlert.totalRecords}
-												onClose={() => updateItem(index, "bestPriceAlert", null)}
-											/>
-										)}
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+						<Card>
+							<CardHeader>
+								<div className="flex justify-between items-center">
+									<CardTitle className="flex items-center gap-2">
+										<Package className="h-5 w-5" />
+										Itens da Compra
+									</CardTitle>
+									{/* Botão de adicionar item - apenas visível no desktop */}
+									<Button type="button" onClick={addItem} variant="outline" className="hidden md:flex">
+										<Plus className="h-4 w-4 mr-2" />
+										Adicionar Item
+									</Button>
+								</div>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-4">
+									{items.map((item, index) => {
+										const selectedProduct = products.find((p) => p.id === item.productId)
+										return (
+											<motion.div
+												key={item.id || index}
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{ delay: 0.3 + index * 0.05 }}
+												className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
+											>
+												{/* Layout responsivo para campos do item */}
+												<div className="space-y-4 md:space-y-0 md:grid md:grid-cols-[2fr_1fr_1fr_auto] md:gap-4 md:items-end">
+													<div className="space-y-2">
+														<Label>Produto *</Label>
+														<ProductSelect
+															value={item.productId || ""}
+															className="w-full"
+															onValueChange={(value) => updateItem(index, "productId", value)}
+															products={products}
+															preserveFormData={{
+																formData,
+																items,
+																targetItemIndex: index,
+															}}
+														/>
+													</div>
 
-										<PriceAiInsight analysis={item.aiInsight} loading={item.isAiLoading} />
+													<div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-0">
+														<div className="space-y-2">
+															<Label>Quantidade *</Label>
+															<Input
+																type="number"
+																step="0.01"
+																min="0.01"
+																value={item.quantity}
+																onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
+																placeholder="1.00"
+																className="text-center"
+															/>
+														</div>
+														<div className="space-y-2">
+															<Label>Preço Unitário *</Label>
+															<Input
+																type="number"
+																step="0.01"
+																min="0.01"
+																value={item.unitPrice}
+																onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
+																placeholder="0.00"
+																className="text-center"
+															/>
+														</div>
+													</div>
 
-										{selectedProduct && (selectedProduct.hasStock || selectedProduct.hasExpiration) && (
-											<div className="pt-4 border-t space-y-4">
-												<div className="flex justify-between items-center">
-													<Label className="flex items-center gap-2 font-medium">
-														<Box className="h-4 w-4" />
-														Gestão de Estoque
-													</Label>
-													{item.addToStock && (
-														<Button
-															type="button"
-															variant="outline"
-															size="sm"
-															onClick={() =>
-																setStockDialogState({
-																	isOpen: true,
-																	itemIndex: index,
-																})
-															}
-														>
-															<Settings2 className="h-4 w-4 mr-2" />
-															Detalhar Estoque
+													<div className="space-y-2 md:block">
+														<Label>Total</Label>
+														<Input
+															value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
+															disabled
+															className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
+														/>
+													</div>
+												</div>
+
+												{/* Alertas e insights */}
+												<div className="space-y-3">
+													<PriceAlert
+														alertData={item.priceAlert || null}
+														loading={checkingPrices[index]}
+														onClose={() => updateItem(index, "priceAlert", null)}
+													/>
+
+													{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+														<BestPriceAlert
+															productName={selectedProduct?.name || "Produto"}
+															currentPrice={item.unitPrice}
+															previousBestPrice={item.bestPriceAlert.previousBestPrice || 0}
+															totalRecords={item.bestPriceAlert.totalRecords || 0}
+															onClose={() => updateItem(index, "bestPriceAlert", null)}
+														/>
+													)}
+
+													<PriceAiInsight analysis={item.aiInsight} loading={item.isAiLoading} />
+												</div>
+
+												{/* Gestão de estoque */}
+												{selectedProduct && (selectedProduct.hasStock || selectedProduct.hasExpiration) && (
+													<div className="pt-4 border-t space-y-4">
+														<div className="flex justify-between items-center">
+															<Label className="flex items-center gap-2 font-medium">
+																<Box className="h-4 w-4" />
+																Gestão de Estoque
+															</Label>
+															{item.addToStock && (
+																<Button
+																	type="button"
+																	variant="outline"
+																	size="sm"
+																	onClick={() =>
+																		setStockDialogState({
+																			isOpen: true,
+																			itemIndex: index,
+																		})
+																	}
+																>
+																	<Settings2 className="h-4 w-4 mr-2" />
+																	<span className="hidden sm:inline">Detalhar Estoque</span>
+																	<span className="sm:hidden">Detalhar</span>
+																</Button>
+															)}
+														</div>
+														<div className="flex items-center space-x-2">
+															<Checkbox
+																id={`addToStock-${index}`}
+																checked={item.addToStock}
+																onCheckedChange={(checked) => updateItem(index, "addToStock", !!checked)}
+															/>
+															<Label htmlFor={`addToStock-${index}`} className="cursor-pointer">
+																Adicionar ao estoque
+															</Label>
+														</div>
+													</div>
+												)}
+
+												{/* Botão de remover */}
+												<div className="flex justify-end pt-2">
+													{items.length > 1 && (
+														<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
+															<Trash2 className="h-4 w-4 mr-1" />
+															Remover
 														</Button>
 													)}
 												</div>
-												<div className="flex items-center space-x-2">
-													<Checkbox
-														id={`addToStock-${index}`}
-														checked={item.addToStock}
-														onCheckedChange={(checked) => updateItem(index, "addToStock", !!checked)}
-													/>
-													<Label htmlFor={`addToStock-${index}`} className="cursor-pointer">
-														Adicionar ao estoque
-													</Label>
-												</div>
-											</div>
-										)}
+											</motion.div>
+										)
+									})}
+								</div>
 
-										<div className="flex justify-end">
-											{items.length > 1 && (
-												<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
-													<Trash2 className="h-4 w-4 mr-1" />
-													Remover
-												</Button>
-											)}
-										</div>
+								{/* Total e botões de ação - apenas no desktop */}
+								<div className="hidden md:flex justify-between items-center pt-4 border-t">
+									<div className="text-lg font-bold">Total da Compra: R$ {calculateTotal().toFixed(2)}</div>
+									<div className="flex gap-3">
+										<Button type="submit" disabled={loading}>
+											<Save className="h-4 w-4 mr-2" />
+											{loading ? "Salvando..." : "Salvar Compra"}
+										</Button>
+										<Link href="/compras">
+											<Button type="button" variant="outline">
+												Cancelar
+											</Button>
+										</Link>
 									</div>
-								)
-							})}
-						</div>
+								</div>
+							</CardContent>
+						</Card>
+					</motion.div>
+				</form>
+			</div>
 
-						<div className="flex justify-between items-center pt-4 border-t">
-							<div className="text-lg font-bold">Total da Compra: R$ {calculateTotal().toFixed(2)}</div>
-							<div className="flex gap-3">
-								<Button type="submit" disabled={loading}>
-									<Save className="h-4 w-4 mr-2" />
-									{loading ? "Salvando..." : "Salvar Compra"}
-								</Button>
-								<Link href="/compras">
-									<Button type="button" variant="outline">
-										Cancelar
-									</Button>
-								</Link>
-							</div>
+			{/* Barra fixa na parte inferior para mobile */}
+			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t shadow-lg md:hidden">
+				<div className="px-4 py-3">
+					<div className="flex items-center justify-between gap-3">
+						{/* Botão de adicionar item */}
+						<Button type="button" onClick={addItem} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
+							<Plus className="h-5 w-5 mr-2" />
+							Adicionar Item
+						</Button>
+
+						{/* Total da compra */}
+						<div className="text-center min-w-[120px]">
+							<div className="text-sm text-gray-600">Total</div>
+							<div className="text-lg font-bold text-primary">R$ {calculateTotal().toFixed(2)}</div>
 						</div>
-					</CardContent>
-				</Card>
-			</form>
+					</div>
+
+					{/* Botões de ação */}
+					<div className="flex gap-2 mt-3">
+						<Button type="submit" disabled={loading} onClick={handleSubmit} className="flex-1" size="lg">
+							<Save className="h-4 w-4 mr-2" />
+							{loading ? "Salvando..." : "Salvar Compra"}
+						</Button>
+						<Link href="/compras" className="flex-1">
+							<Button type="button" variant="outline" className="w-full" size="lg">
+								Cancelar
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</div>
 
 			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (
 				<StockEntryDialog
 					isOpen={stockDialogState.isOpen}
 					onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
 					onSave={handleSaveStockDetails}
-					product={products.find((p) => p.id === items[stockDialogState.itemIndex!].productId)}
-					quantity={items[stockDialogState.itemIndex!].quantity}
-					initialEntries={items[stockDialogState.itemIndex!].stockEntries}
+					product={products.find((p) => p.id === items[stockDialogState.itemIndex ?? 0].productId)}
+					quantity={items[stockDialogState.itemIndex ?? 0].quantity}
+					initialEntries={items[stockDialogState.itemIndex ?? 0].stockEntries}
 				/>
 			)}
 		</div>

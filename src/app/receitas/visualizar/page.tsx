@@ -6,10 +6,10 @@ import { ArrowLeft, ChefHat, Clock, Save, Star, ThumbsUp, Utensils } from "lucid
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { RecipeTimer } from "@/components/recipe-timer"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { RecipeTimer } from "@/components/recipe-timer"
 import { VoiceAssistant } from "@/components/voice-assistant"
 import { useDataMutation } from "@/hooks/use-data-mutation" // <-- Importar o hook
 import { TempStorage } from "@/lib/temp-storage"
@@ -23,7 +23,7 @@ interface Recipe {
 	ingredientes?: string[]
 	modo_preparo?: string
 	dica_chef?: string
-	
+
 	// Saved recipe fields
 	name?: string
 	description?: string
@@ -79,28 +79,28 @@ export default function VisualizarReceitaPage() {
 	}
 
 	// Funções para controle do cronômetro via voz
-	const handleTimerCommand = (command: 'start' | 'pause' | 'reset' | 'set', value?: number) => {
+	const handleTimerCommand = (command: "start" | "pause" | "reset" | "set", value?: number) => {
 		// Estas funções serão chamadas pelo assistente de voz
 		// O RecipeTimer precisa ser refatorado para aceitar refs ou callbacks
-		console.log('🔊 Comando do timer:', command, value)
+		console.log("🔊 Comando do timer:", command, value)
 	}
 
 	const handleReadRecipe = () => {
 		if (!recipe) return
-		
+
 		const recipeText = `
 			${recipe.prato || recipe.name}. 
 			${recipe.descricao || recipe.description}
 			
-			Ingredientes: ${(recipe.ingredientes || recipe.ingredients || []).join(', ')}
+			Ingredientes: ${(recipe.ingredientes || recipe.ingredients || []).join(", ")}
 			
-			Modo de preparo: ${recipe.modo_preparo || recipe.instructions || ''}
+			Modo de preparo: ${recipe.modo_preparo || recipe.instructions || ""}
 			
-			Tempo de preparo: ${recipe.tempo_preparo || recipe.cookingTime || 'não especificado'}
+			Tempo de preparo: ${recipe.tempo_preparo || recipe.cookingTime || "não especificado"}
 			
-			${recipe.dica_chef || recipe.chefTip ? `Dica do chef: ${recipe.dica_chef || recipe.chefTip}` : ''}
+			${recipe.dica_chef || recipe.chefTip ? `Dica do chef: ${recipe.dica_chef || recipe.chefTip}` : ""}
 		`
-		
+
 		// O VoiceAssistant já fará a leitura
 		return recipeText
 	}
@@ -120,17 +120,13 @@ export default function VisualizarReceitaPage() {
 					</Button>
 					<Badge className="hidden sm:block">{recipe.refeicao || recipe.mealType}</Badge>
 				</div>
-				
+
 				<div className="space-y-3">
 					<div className="flex items-center gap-2 sm:hidden">
 						<Badge>{recipe.refeicao || recipe.mealType}</Badge>
 					</div>
-					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-						{recipe.prato || recipe.name}
-					</h1>
-					<p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-						{recipe.descricao || recipe.description}
-					</p>
+					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">{recipe.prato || recipe.name}</h1>
+					<p className="text-gray-600 text-sm sm:text-base leading-relaxed">{recipe.descricao || recipe.description}</p>
 				</div>
 			</div>
 
@@ -163,7 +159,7 @@ export default function VisualizarReceitaPage() {
 							<div className="space-y-4">
 								{(() => {
 									const instructions = recipe.modo_preparo || recipe.instructions || ""
-									
+
 									if (!instructions.trim()) {
 										return <p className="text-gray-500 italic">Modo de preparo não disponível</p>
 									}
@@ -171,22 +167,22 @@ export default function VisualizarReceitaPage() {
 									console.log("🔍 Texto original do modo de preparo:", instructions)
 
 									let steps: string[] = []
-									
+
 									// Método mais direto: dividir por padrões de numeração
 									// Exemplo: "1. texto 2. texto 3. texto" ou "Passo 1: texto Passo 2: texto"
-									
+
 									if (instructions.includes("Passo")) {
 										// Dividir por "Passo X:"
-										steps = instructions.split(/(?=Passo \d+:)/).filter(step => step.trim())
+										steps = instructions.split(/(?=Passo \d+:)/).filter((step) => step.trim())
 									} else if (/\d+\.\s/.test(instructions)) {
 										// Dividir por "1. " "2. " etc.
-										steps = instructions.split(/(?=\d+\.\s)/).filter(step => step.trim())
+										steps = instructions.split(/(?=\d+\.\s)/).filter((step) => step.trim())
 									} else if (/\d+\)\s/.test(instructions)) {
 										// Dividir por "1) " "2) " etc.
-										steps = instructions.split(/(?=\d+\)\s)/).filter(step => step.trim())
+										steps = instructions.split(/(?=\d+\)\s)/).filter((step) => step.trim())
 									} else {
 										// Tentar dividir por quebras de linha
-										steps = instructions.split(/\n/).filter(step => step.trim())
+										steps = instructions.split(/\n/).filter((step) => step.trim())
 									}
 
 									// Se ainda tem apenas 1 item muito longo, forçar divisão por números
@@ -199,8 +195,8 @@ export default function VisualizarReceitaPage() {
 											// Última tentativa: dividir manualmente por pontos + espaços + maiúsculas
 											steps = instructions
 												.split(/\.\s+(?=[A-Z])/)
-												.map(step => step.trim())
-												.filter(step => step)
+												.map((step) => step.trim())
+												.filter((step) => step)
 										}
 									}
 
@@ -211,14 +207,14 @@ export default function VisualizarReceitaPage() {
 											{steps.map((step, index) => {
 												const cleanStep = step.trim()
 												const isNumberedStep = /^(\d+\.|Passo \d+:|\d+\))/.test(cleanStep)
-												
+
 												return (
-													<div 
-														key={index} 
+													<div
+														key={index}
 														className={`flex gap-3 p-3 rounded-lg ${
-															isNumberedStep 
-																? 'bg-orange-50 border-l-4 border-orange-200' 
-																: 'bg-gray-50 border-l-4 border-gray-200'
+															isNumberedStep
+																? "bg-orange-50 border-l-4 border-orange-200"
+																: "bg-gray-50 border-l-4 border-gray-200"
 														}`}
 													>
 														{isNumberedStep ? (
@@ -228,7 +224,7 @@ export default function VisualizarReceitaPage() {
 																</div>
 																<div className="flex-1">
 																	<p className="text-gray-800 leading-relaxed">
-																		{cleanStep.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, '').trim()}
+																		{cleanStep.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, "").trim()}
 																	</p>
 																</div>
 															</>
@@ -277,17 +273,13 @@ export default function VisualizarReceitaPage() {
 							)}
 						</CardContent>
 					</Card>
-					
+
 					{/* Cronômetro */}
 					<RecipeTimer suggestedTime={recipe.tempo_preparo || recipe.cookingTime} />
-					
+
 					{/* Assistente de Voz */}
-					<VoiceAssistant 
-						onTimerCommand={handleTimerCommand}
-						onReadRecipe={handleReadRecipe}
-						recipe={recipe}
-					/>
-					
+					<VoiceAssistant onTimerCommand={handleTimerCommand} onReadRecipe={handleReadRecipe} recipe={recipe} />
+
 					<Card>
 						<CardHeader>
 							<CardTitle>Gostou da Receita?</CardTitle>

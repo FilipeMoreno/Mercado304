@@ -1,9 +1,9 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import type { ReactNode } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MobileModal } from "@/components/ui/mobile-modal"
 import { useMobile } from "@/hooks/use-mobile"
-import { ReactNode } from "react"
 
 interface ResponsiveDialogProps {
 	open: boolean
@@ -13,7 +13,7 @@ interface ResponsiveDialogProps {
 	children: ReactNode
 	// Props específicas para desktop
 	maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl"
-	// Props específicas para mobile  
+	// Props específicas para mobile
 	dragToClose?: boolean
 	swipeToClose?: boolean
 	subtitle?: string
@@ -28,7 +28,7 @@ export function ResponsiveDialog({
 	maxWidth = "md",
 	dragToClose = true,
 	swipeToClose = true,
-	subtitle
+	subtitle,
 }: ResponsiveDialogProps) {
 	const mobile = useMobile()
 
@@ -51,10 +51,10 @@ export function ResponsiveDialog({
 
 	const maxWidthClasses = {
 		sm: "max-w-sm",
-		md: "max-w-md", 
+		md: "max-w-md",
 		lg: "max-w-lg",
 		xl: "max-w-xl",
-		"2xl": "max-w-2xl"
+		"2xl": "max-w-2xl",
 	}
 
 	return (

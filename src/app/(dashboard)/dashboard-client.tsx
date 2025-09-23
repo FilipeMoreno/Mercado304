@@ -29,6 +29,7 @@ import {
 } from "@/hooks"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
+import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -319,7 +320,7 @@ export function DashboardClient() {
 						icon={<Package className="h-5 w-5" />}
 					>
 						<div className="space-y-3">
-							{stats?.categoryStats.slice(0, 8).map((category: any, index: number) => {
+							{stats?.categoryStats.slice(0, 8).map((category: CategoryStats, index: number) => {
 								const percentage =
 									(stats?.totalSpent || 0) > 0 ? (category.totalSpent / (stats?.totalSpent || 1)) * 100 : 0
 								return (
@@ -373,7 +374,7 @@ export function DashboardClient() {
 								</div>
 							) : (
 								<div className="space-y-3">
-									{(stats?.topProducts || []).slice(0, 5).map((product: any, index: number) => (
+									{(stats?.topProducts || []).slice(0, 5).map((product: TopProduct, index: number) => (
 										<div key={product.productId || index} className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
 												<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
@@ -417,10 +418,10 @@ export function DashboardClient() {
 								</div>
 							) : (
 								<div className="space-y-3">
-									{(stats?.marketComparison || []).map((market: any, index: number) => {
+									{(stats?.marketComparison || []).map((market: MarketComparison, index: number) => {
 										const cheapest =
 											(stats?.marketComparison?.length || 0) > 1
-												? stats?.marketComparison?.reduce((min: any, curr: any) =>
+												? stats?.marketComparison?.reduce((min: MarketComparison, curr: MarketComparison) =>
 														curr.averagePrice < min.averagePrice ? curr : min,
 													)
 												: null
@@ -481,7 +482,7 @@ export function DashboardClient() {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{(stats.recentPurchases || []).slice(0, 5).map((purchase: any) => (
+								{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
 									<div
 										key={purchase.id}
 										className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"

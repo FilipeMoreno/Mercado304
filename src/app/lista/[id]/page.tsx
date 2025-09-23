@@ -1,8 +1,8 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { Package, Plus, ShoppingCart } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import type * as React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route"
@@ -31,7 +31,12 @@ interface ShoppingListItem {
 	quantity: number
 	estimatedPrice?: number
 	isChecked: boolean
-	bestPriceAlert?: any
+	bestPriceAlert?: {
+		isBestPrice: boolean
+		previousBestPrice?: number
+		totalRecords?: number
+		isFirstRecord?: boolean
+	}
 	productName?: string
 	productUnit?: string
 	// Campos para itens temporários
@@ -69,7 +74,7 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<any[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const listId = params.id as string
 
 	const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -234,21 +239,24 @@ export default function ListaDetalhesPage() {
 		}
 	}, [searchParams, listId])
 
-	const updateItemInServer = async (itemId: string, updatedData: any) => {
-		try {
-			const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(updatedData),
-			})
-			if (!response.ok) {
-				throw new Error("Falha ao atualizar item no servidor")
+	const updateItemInServer = useCallback(
+		async (itemId: string, updatedData: { isChecked?: boolean; quantity?: number; estimatedPrice?: number }) => {
+			try {
+				const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(updatedData),
+				})
+				if (!response.ok) {
+					throw new Error("Falha ao atualizar item no servidor")
+				}
+			} catch (error) {
+				console.error("Erro ao atualizar item:", error)
+				toast.error("Erro ao salvar a alteração. Tente novamente.")
 			}
-		} catch (error) {
-			console.error("Erro ao atualizar item:", error)
-			toast.error("Erro ao salvar a alteração. Tente novamente.")
-		}
-	}
+		},
+		[listId],
+	)
 
 	const toggleItem = useCallback(
 		async (itemId: string, currentStatus: boolean) => {
@@ -265,50 +273,10 @@ export default function ListaDetalhesPage() {
 
 			await updateItemInServer(itemId, { isChecked: !currentStatus })
 		},
-		[list],
+		[list, updateItemInServer],
 	)
 
-	const handleUpdateQuantity = useCallback(
-		(itemId: string, newQuantity: number) => {
-			if (!list) return
-			setList((prev) =>
-				prev
-					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-						}
-					: null,
-			)
-			updateItemInServer(itemId, { quantity: newQuantity })
-		},
-		[list],
-	)
-
-	const handleUpdateEstimatedPrice = useCallback(
-		(itemId: string, newPrice: number) => {
-			if (!list) return
-
-			const item = list.items.find((item) => item.id === itemId)
-			if (item?.product?.id && newPrice > 0) {
-				setTimeout(() => {
-					checkBestPrice(itemId, item.product!.id, newPrice)
-				}, 1000)
-			}
-
-			setList((prev) =>
-				prev
-					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-						}
-					: null,
-			)
-			updateItemInServer(itemId, { estimatedPrice: newPrice })
-		},
-		[list],
-	)
-
-	const checkBestPrice = async (itemId: string, productId: string, unitPrice: number) => {
+	const checkBestPrice = useCallback(async (itemId: string, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
 
 		try {
@@ -334,7 +302,49 @@ export default function ListaDetalhesPage() {
 		} catch (error) {
 			console.error("Erro ao verificar melhor preço:", error)
 		}
-	}
+	}, [])
+
+	const handleUpdateQuantity = useCallback(
+		(itemId: string, newQuantity: number) => {
+			if (!list) return
+			setList((prev) =>
+				prev
+					? {
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+						}
+					: null,
+			)
+			updateItemInServer(itemId, { quantity: newQuantity })
+		},
+		[list, updateItemInServer],
+	)
+
+	const handleUpdateEstimatedPrice = useCallback(
+		(itemId: string, newPrice: number) => {
+			if (!list) return
+
+			const item = list.items.find((item) => item.id === itemId)
+			if (item?.product?.id && newPrice > 0) {
+				setTimeout(() => {
+					if (item.product?.id) {
+						checkBestPrice(itemId, item.product.id, newPrice)
+					}
+				}, 1000)
+			}
+
+			setList((prev) =>
+				prev
+					? {
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
+						}
+					: null,
+			)
+			updateItemInServer(itemId, { estimatedPrice: newPrice })
+		},
+		[list, checkBestPrice, updateItemInServer],
+	)
 
 	const handleSaveList = async (newName: string) => {
 		if (!list) return
@@ -423,7 +433,7 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
-	const handleAddTemporaryItem = async (itemData: any) => {
+	const handleAddTemporaryItem = async (itemData: { name: string; quantity: number; estimatedPrice?: number }) => {
 		try {
 			const response = await fetch(`/api/shopping-lists/${listId}/items`, {
 				method: "POST",
@@ -445,7 +455,7 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
-	const handleUpdateTemporaryItem = async (itemId: string, updates: any) => {
+	const handleUpdateTemporaryItem = async (itemId: string, updates: { quantity?: number; estimatedPrice?: number }) => {
 		try {
 			const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
 				method: "PUT",
@@ -466,7 +476,10 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
-	const handleConvertTemporaryItem = async (itemId: string, productData: any) => {
+	const handleConvertTemporaryItem = async (
+		itemId: string,
+		productData: { name: string; categoryId?: string; brandId?: string },
+	) => {
 		try {
 			const response = await fetch(`/api/shopping-lists/convert-temporary`, {
 				method: "POST",
@@ -645,7 +658,7 @@ export default function ListaDetalhesPage() {
 							? {
 									...prev,
 									items: prev.items.map((listItem) =>
-										listItem.id === itemId ? { ...listItem, bestPriceAlert: null } : listItem,
+										listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
 									),
 								}
 							: null,
@@ -657,97 +670,146 @@ export default function ListaDetalhesPage() {
 
 	// --- VISUALIZAÇÃO PADRÃO ---
 	return (
-		<div className="space-y-6">
-			<ShoppingListHeader
-				listName={list.name}
-				totalItems={totalItems}
-				completedItems={completedItems}
-				progress={progress}
-				listId={listId}
-				onStartShopping={() => setIsShoppingMode(true)}
-				onOpenOptimizedRoute={() => setShowOptimizedRoute(true)}
-				onEditList={() => setEditingList(true)}
-				onDeleteList={() => setDeleteConfirm(true)}
-			/>
+		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
+			{/* Header fixo para mobile */}
+			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+				<div className="px-4 py-4 md:px-0">
+					<ShoppingListHeader
+						listName={list.name}
+						totalItems={totalItems}
+						completedItems={completedItems}
+						progress={progress}
+						listId={listId}
+						onStartShopping={() => setIsShoppingMode(true)}
+						onOpenOptimizedRoute={() => setShowOptimizedRoute(true)}
+						onEditList={() => setEditingList(true)}
+						onDeleteList={() => setDeleteConfirm(true)}
+					/>
+				</div>
+			</div>
 
-			<ProgressBar completedItems={completedItems} totalItems={totalItems} progress={progress} />
+			<div className="px-4 md:px-0 space-y-6">
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+					<ProgressBar completedItems={completedItems} totalItems={totalItems} progress={progress} />
+				</motion.div>
 
-			{/* Lista de Itens */}
-			<Card>
-				<CardHeader>
-					<div className="flex justify-between items-center">
-						<CardTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5" />
-							Itens da Lista
-						</CardTitle>
-						<div className="flex gap-2">
-							<Button onClick={() => setShowTemporaryForm(true)} variant="outline" size="sm">
-								<ShoppingCart className="h-4 w-4 mr-2" />
-								Item Temporário
-							</Button>
-							<Button onClick={() => setShowAddItem(true)} size="sm">
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar Item
-							</Button>
-						</div>
-					</div>
-				</CardHeader>
-				<CardContent>
-					{/* Formulário para itens temporários */}
-					{showTemporaryForm && (
-						<div className="mb-4">
-							<TemporaryItemForm onAddItem={handleAddTemporaryItem} onCancel={() => setShowTemporaryForm(false)} />
-						</div>
-					)}
-
-					{list.items.length === 0 ? (
-						<div className="text-center py-12 text-gray-500">
-							<Package className="h-12 w-12 mx-auto mb-4" />
-							<p className="text-lg font-medium mb-2">Lista vazia</p>
-							<p className="text-gray-600">Adicione itens para começar suas compras</p>
-						</div>
-					) : (
-						<div className="space-y-3">
-							{list.items.map((item) =>
-								item.isTemporary ? (
-									<TemporaryItemCard
-										key={item.id}
-										item={item}
-										onUpdateItem={handleUpdateTemporaryItem}
-										onDeleteItem={async (itemId) => {
-											// Usar a mesma lógica de delete existente
-											const itemToDelete = list.items.find((i) => i.id === itemId)
-											if (itemToDelete) {
-												setDeleteItemConfirm(itemToDelete)
-											}
-										}}
-										onConvertToProduct={handleConvertTemporaryItem}
-									/>
-								) : (
-									<ShoppingListItemComponent
-										key={item.id}
-										item={item}
-										onToggle={toggleItem}
-										onEdit={(item) => {
-											setEditingItem(item)
-											setEditItemData({
-												quantity: item.quantity,
-												estimatedPrice: item.estimatedPrice || 0,
-											})
-										}}
-										onDelete={(item) => setDeleteItemConfirm(item)}
-									/>
-								),
+				{/* Lista de Itens */}
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+					<Card>
+						<CardHeader>
+							<div className="flex justify-between items-center">
+								<CardTitle className="flex items-center gap-2">
+									<Package className="h-5 w-5" />
+									Itens da Lista
+								</CardTitle>
+								<div className="flex gap-2">
+									<Button
+										onClick={() => setShowTemporaryForm(true)}
+										variant="outline"
+										size="sm"
+										className="hidden sm:flex"
+									>
+										<ShoppingCart className="h-4 w-4 mr-2" />
+										Item Temporário
+									</Button>
+									<Button onClick={() => setShowAddItem(true)} size="sm" className="hidden md:flex">
+										<Plus className="h-4 w-4 mr-2" />
+										Adicionar Item
+									</Button>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent>
+							{/* Formulário para itens temporários */}
+							{showTemporaryForm && (
+								<div className="mb-4">
+									<TemporaryItemForm onAddItem={handleAddTemporaryItem} onCancel={() => setShowTemporaryForm(false)} />
+								</div>
 							)}
-						</div>
-					)}
-				</CardContent>
-			</Card>
 
-			{/* Resumo */}
-			{list.items.length > 0 && (
-				<ShoppingSummary items={list.items} totalItems={totalItems} completedItems={completedItems} />
-			)}
+							{list.items.length === 0 ? (
+								<div className="text-center py-12 text-gray-500">
+									<Package className="h-12 w-12 mx-auto mb-4" />
+									<p className="text-lg font-medium mb-2">Lista vazia</p>
+									<p className="text-gray-600">Adicione itens para começar suas compras</p>
+								</div>
+							) : (
+								<div className="space-y-3">
+									{list.items.map((item, index) =>
+										item.isTemporary ? (
+											<motion.div
+												key={item.id}
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{ delay: 0.3 + index * 0.05 }}
+											>
+												<TemporaryItemCard
+													item={item}
+													onUpdateItem={handleUpdateTemporaryItem}
+													onDeleteItem={async (itemId) => {
+														// Usar a mesma lógica de delete existente
+														const itemToDelete = list.items.find((i) => i.id === itemId)
+														if (itemToDelete) {
+															setDeleteItemConfirm(itemToDelete)
+														}
+													}}
+													onConvertToProduct={handleConvertTemporaryItem}
+												/>
+											</motion.div>
+										) : (
+											<motion.div
+												key={item.id}
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{ delay: 0.3 + index * 0.05 }}
+											>
+												<ShoppingListItemComponent
+													item={item}
+													onToggle={toggleItem}
+													onEdit={(item) => {
+														setEditingItem(item)
+														setEditItemData({
+															quantity: item.quantity,
+															estimatedPrice: item.estimatedPrice || 0,
+														})
+													}}
+													onDelete={(item) => setDeleteItemConfirm(item)}
+												/>
+											</motion.div>
+										),
+									)}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				</motion.div>
+
+				{/* Resumo */}
+				{list.items.length > 0 && (
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+						<ShoppingSummary items={list.items} totalItems={totalItems} completedItems={completedItems} />
+					</motion.div>
+				)}
+			</div>
+
+			{/* Barra fixa na parte inferior para mobile */}
+			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t shadow-lg md:hidden">
+				<div className="px-4 py-3">
+					<div className="flex items-center justify-between gap-3">
+						{/* Botão de item temporário */}
+						<Button onClick={() => setShowTemporaryForm(true)} variant="outline" className="flex-1" size="lg">
+							<ShoppingCart className="h-5 w-5 mr-2" />
+							Item Temporário
+						</Button>
+
+						{/* Botão de adicionar item */}
+						<Button onClick={() => setShowAddItem(true)} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
+							<Plus className="h-5 w-5 mr-2" />
+							Adicionar Item
+						</Button>
+					</div>
+				</div>
+			</div>
 
 			{/* Dialogs */}
 			<EditListDialog
@@ -805,12 +867,12 @@ export default function ListaDetalhesPage() {
 								? {
 										...prev,
 										items: prev.items.map((item) =>
-											item.id === editingItem.id ? { ...item, bestPriceAlert: null } : item,
+											item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
 										),
 									}
 								: null,
 						)
-						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: null } : null))
+						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
 					}
 				}}
 				onCheckBestPrice={checkBestPrice}

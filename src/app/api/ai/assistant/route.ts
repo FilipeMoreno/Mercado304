@@ -7,6 +7,11 @@ import { tools } from "@/lib/ai-assistant/tool-definitions"
 import { toolFunctions } from "@/lib/ai-assistant/tool-functions/index"
 import { getErrorMessage, retryWithBackoff } from "@/lib/ai-assistant/utils"
 
+interface HistoryMessage {
+	role: "user" | "model"
+	parts: string | { text: string }[]
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
 export async function POST(request: Request): Promise<Response> {
@@ -79,7 +84,7 @@ async function processRequest(request: Request): Promise<Response> {
 		// Valida e limpa histórico
 		const validHistory =
 			history && Array.isArray(history)
-				? history.filter((msg: any) => {
+				? history.filter((msg: HistoryMessage) => {
 						return msg.role && msg.parts && (msg.role === "user" || msg.role === "model")
 					})
 				: []

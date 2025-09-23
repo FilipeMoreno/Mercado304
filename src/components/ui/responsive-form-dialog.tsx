@@ -1,8 +1,8 @@
 "use client"
 
-import { ResponsiveDialog } from "./responsive-dialog"
+import type { ReactNode } from "react"
 import { Button } from "./button"
-import { ReactNode } from "react"
+import { ResponsiveDialog } from "./responsive-dialog"
 
 interface ResponsiveFormDialogProps {
 	open: boolean
@@ -36,7 +36,7 @@ export function ResponsiveFormDialog({
 	submitVariant = "default",
 	isLoading = false,
 	isSubmitDisabled = false,
-	maxWidth = "md"
+	maxWidth = "md",
 }: ResponsiveFormDialogProps) {
 	const handleCancel = () => {
 		onCancel?.()
@@ -58,9 +58,7 @@ export function ResponsiveFormDialog({
 		>
 			<div className="space-y-4">
 				{/* Conteúdo do formulário */}
-				<div className="space-y-4">
-					{children}
-				</div>
+				<div className="space-y-4">{children}</div>
 
 				{/* Botões de ação (apenas se onSubmit for fornecido) */}
 				{onSubmit && (
@@ -73,8 +71,8 @@ export function ResponsiveFormDialog({
 						>
 							{isLoading ? "Salvando..." : submitText}
 						</Button>
-						<Button 
-							variant="outline" 
+						<Button
+							variant="outline"
 							onClick={handleCancel}
 							disabled={isLoading}
 							className="w-full sm:w-auto order-1 sm:order-2"

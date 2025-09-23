@@ -272,13 +272,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 		if (barcode) {
 			const existingProduct = await prisma.product.findUnique({
 				where: { barcode },
-				select: { id: true, name: true }
+				select: { id: true, name: true },
 			})
 
 			if (existingProduct && existingProduct.id !== params.id) {
-				return NextResponse.json({ 
-					error: `Código de barras já cadastrado para o produto: ${existingProduct.name}` 
-				}, { status: 409 })
+				return NextResponse.json(
+					{
+						error: `Código de barras já cadastrado para o produto: ${existingProduct.name}`,
+					},
+					{ status: 409 },
+				)
 			}
 		}
 		let cleanNutritionalInfoData = null

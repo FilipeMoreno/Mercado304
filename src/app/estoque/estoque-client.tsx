@@ -18,19 +18,11 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
-
 import { RecipeSuggester } from "@/components/recipe-suggester"
 import { ProductSelect } from "@/components/selects/product-select"
 import { StockHistory } from "@/components/stock-history"
-import { WasteDialog } from "@/components/waste-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -38,9 +30,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { WasteDialog } from "@/components/waste-dialog"
 import {
 	useCreateStockMutation,
 	useDeleteConfirmation,
@@ -50,6 +45,8 @@ import {
 	useUpdateStockMutation,
 	useUrlState,
 } from "@/hooks"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
 import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 

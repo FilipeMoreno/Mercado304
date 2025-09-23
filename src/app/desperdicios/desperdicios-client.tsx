@@ -18,22 +18,20 @@ import {
 	TrendingUp,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { useCreateWasteMutation, useDeleteWasteMutation, useUpdateWasteMutation, useWasteQuery } from "@/hooks"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
 
 interface WasteRecord {
 	id: string

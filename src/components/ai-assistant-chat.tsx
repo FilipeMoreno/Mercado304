@@ -67,13 +67,13 @@ export function AiAssistantChat() {
 			recognition.onerror = (event: any) => {
 				setIsListening(false)
 				console.error("Erro no reconhecimento de voz:", event.error)
-				
+
 				// Não mostrar toast para erros comuns que não são críticos
 				if (event.error === "no-speech") {
 					// Silencioso - usuário pode não ter falado
 					return
 				}
-				
+
 				switch (event.error) {
 					case "audio-capture":
 						addMessage({
@@ -128,7 +128,7 @@ export function AiAssistantChat() {
 					const cleanTranscript = finalTranscript.trim()
 					if (cleanTranscript) {
 						setInput(cleanTranscript)
-						
+
 						// Auto-enviar mensagem quando terminar de falar
 						setTimeout(() => {
 							sendMessage(cleanTranscript)
@@ -198,13 +198,13 @@ export function AiAssistantChat() {
 
 	const startListening = () => {
 		if (!recognitionRef.current || isListening || !isVoiceInitialized) return
-		
+
 		try {
 			// Parar qualquer reconhecimento anterior
 			if (recognitionRef.current) {
 				recognitionRef.current.stop()
 			}
-			
+
 			// Pequeno delay para garantir que o stop anterior foi processado
 			setTimeout(() => {
 				try {

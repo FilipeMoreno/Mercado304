@@ -17,7 +17,7 @@ export function DeleteProductModal({
 	onClose,
 	onConfirm,
 	productName,
-	isDeleting = false
+	isDeleting = false,
 }: DeleteProductModalProps) {
 	return (
 		<MobileModal
@@ -32,7 +32,7 @@ export function DeleteProductModal({
 				<div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
 					<Trash2 className="h-8 w-8 text-red-500" />
 				</div>
-				
+
 				<div className="text-center space-y-2">
 					<p className="text-lg font-medium">
 						Tem certeza que deseja excluir o produto <strong>{productName}</strong>?
@@ -43,21 +43,11 @@ export function DeleteProductModal({
 				</div>
 
 				<div className="flex flex-col gap-3 pt-4">
-					<Button
-						variant="destructive"
-						onClick={onConfirm}
-						disabled={isDeleting}
-						className="w-full"
-					>
+					<Button variant="destructive" onClick={onConfirm} disabled={isDeleting} className="w-full">
 						<Trash2 className="h-4 w-4 mr-2" />
 						{isDeleting ? "Excluindo..." : "Sim, Excluir"}
 					</Button>
-					<Button 
-						variant="outline" 
-						onClick={onClose}
-						disabled={isDeleting}
-						className="w-full"
-					>
+					<Button variant="outline" onClick={onClose} disabled={isDeleting} className="w-full">
 						Cancelar
 					</Button>
 				</div>

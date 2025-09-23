@@ -1,12 +1,12 @@
 "use client"
 
+import { Camera, CameraOff, Copy, Download, Eye, FileText, Loader2, RotateCcw, Upload } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { Camera, CameraOff, Eye, Loader2, FileText, Upload, RotateCcw, Copy, Download } from "lucide-react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
 
 interface OCRResult {
 	text: string
@@ -36,7 +36,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
 	const workerRef = useRef<any>(null)
-	
+
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasCamera, setHasCamera] = useState(false)
 	const [isProcessing, setIsProcessing] = useState(false)
@@ -53,8 +53,9 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			icon: "🧾",
 			tesseractOptions: {
 				tessedit_pageseg_mode: "6", // Uniform block of text
-				tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüý.,:-/$%()[]",
-			}
+				tessedit_char_whitelist:
+					"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüý.,:-/$%()[]",
+			},
 		},
 		label: {
 			title: "Scanner de Etiquetas",
@@ -62,8 +63,9 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			icon: "🏷️",
 			tesseractOptions: {
 				tessedit_pageseg_mode: "8", // Single word
-				tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüý.,:-/$%()[]",
-			}
+				tessedit_char_whitelist:
+					"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïñòóôõöùúûüý.,:-/$%()[]",
+			},
 		},
 		general: {
 			title: "Scanner OCR Geral",
@@ -71,8 +73,8 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			icon: "📄",
 			tesseractOptions: {
 				tessedit_pageseg_mode: "3", // Fully automatic page segmentation
-			}
-		}
+			},
+		},
 	}
 
 	const config = modeConfig[mode]
@@ -81,32 +83,31 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 	useEffect(() => {
 		const initTesseract = async () => {
 			if (!isOpen) return
-			
+
 			try {
 				setIsLoading(true)
-				
+
 				// Carregar Tesseract dinamicamente
-				const Tesseract = (await import('tesseract.js')).default
-				
-				const worker = await Tesseract.createWorker('por', 1, {
+				const Tesseract = (await import("tesseract.js")).default
+
+				const worker = await Tesseract.createWorker("por", 1, {
 					logger: (m) => {
-						if (m.status === 'recognizing text') {
+						if (m.status === "recognizing text") {
 							setProgress(Math.round(m.progress * 100))
 						}
-					}
+					},
 				})
-				
+
 				// Configurar opções específicas do modo
 				await worker.setParameters(config.tesseractOptions as any)
-				
+
 				workerRef.current = worker
 				setOcrReady(true)
-				console.log('🔤 Tesseract OCR inicializado')
-				toast.success('🤖 OCR carregado e pronto!')
-				
+				console.log("🔤 Tesseract OCR inicializado")
+				toast.success("🤖 OCR carregado e pronto!")
 			} catch (error) {
-				console.error('Erro ao inicializar Tesseract:', error)
-				toast.error('Erro ao carregar OCR. Algumas funcionalidades podem não funcionar.')
+				console.error("Erro ao inicializar Tesseract:", error)
+				toast.error("Erro ao carregar OCR. Algumas funcionalidades podem não funcionar.")
 			} finally {
 				setIsLoading(false)
 			}
@@ -126,23 +127,24 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 	useEffect(() => {
 		const getDevices = async () => {
 			if (!isOpen) return
-			
+
 			try {
 				await navigator.mediaDevices.getUserMedia({ video: true })
 				const devices = await navigator.mediaDevices.enumerateDevices()
-				const videoDevices = devices.filter(device => device.kind === 'videoinput')
+				const videoDevices = devices.filter((device) => device.kind === "videoinput")
 				setDevices(videoDevices)
 				setHasCamera(videoDevices.length > 0)
-				
+
 				// Preferir câmera traseira
-				const backCamera = videoDevices.find(device => 
-					device.label.toLowerCase().includes('back') || 
-					device.label.toLowerCase().includes('rear') ||
-					device.label.toLowerCase().includes('environment')
+				const backCamera = videoDevices.find(
+					(device) =>
+						device.label.toLowerCase().includes("back") ||
+						device.label.toLowerCase().includes("rear") ||
+						device.label.toLowerCase().includes("environment"),
 				)
 				setSelectedDevice(backCamera?.deviceId || videoDevices[0]?.deviceId || "")
 			} catch (error) {
-				console.error('Erro ao acessar câmera:', error)
+				console.error("Erro ao acessar câmera:", error)
 				setHasCamera(false)
 			}
 		}
@@ -159,10 +161,10 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 				const constraints = {
 					video: {
 						deviceId: selectedDevice ? { exact: selectedDevice } : undefined,
-						facingMode: selectedDevice ? undefined : 'environment',
+						facingMode: selectedDevice ? undefined : "environment",
 						width: { ideal: 1920, min: 1280 },
 						height: { ideal: 1080, min: 720 },
-					}
+					},
 				}
 
 				const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -173,8 +175,8 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 					videoRef.current.play()
 				}
 			} catch (error) {
-				console.error('Erro ao iniciar câmera:', error)
-				toast.error('Erro ao iniciar câmera')
+				console.error("Erro ao iniciar câmera:", error)
+				toast.error("Erro ao iniciar câmera")
 			}
 		}
 
@@ -187,10 +189,10 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 	const stopCamera = () => {
 		if (streamRef.current) {
-			streamRef.current.getTracks().forEach(track => track.stop())
+			streamRef.current.getTracks().forEach((track) => track.stop())
 			streamRef.current = null
 		}
-		
+
 		if (videoRef.current) {
 			videoRef.current.srcObject = null
 		}
@@ -198,43 +200,44 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 	const performOCR = async (imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement) => {
 		if (!workerRef.current || !ocrReady) {
-			toast.error('OCR não está pronto')
+			toast.error("OCR não está pronto")
 			return
 		}
 
 		try {
 			setIsProcessing(true)
 			setProgress(0)
-			
-			console.log('🔤 Iniciando OCR...')
-			
+
+			console.log("🔤 Iniciando OCR...")
+
 			// Realizar OCR
 			const { data } = await workerRef.current.recognize(imageElement)
-			
+
 			// Processar resultado
 			const result: OCRResult = {
 				text: data.text.trim(),
 				confidence: Math.round(data.confidence),
-				words: data.words.map((word: any) => ({
-					text: word.text,
-					confidence: Math.round(word.confidence),
-					bbox: word.bbox
-				})).filter((word: any) => word.confidence > 30) // Filtrar palavras com baixa confiança
+				words: data.words
+					.map((word: any) => ({
+						text: word.text,
+						confidence: Math.round(word.confidence),
+						bbox: word.bbox,
+					}))
+					.filter((word: any) => word.confidence > 30), // Filtrar palavras com baixa confiança
 			}
 
-			console.log('📄 Texto extraído:', result)
+			console.log("📄 Texto extraído:", result)
 			setExtractedText(result.text)
-			
+
 			if (result.text.trim()) {
 				onTextDetected(result)
 				toast.success(`📝 ${result.words.length} palavras extraídas!`)
 			} else {
-				toast.warning('Nenhum texto foi detectado na imagem')
+				toast.warning("Nenhum texto foi detectado na imagem")
 			}
-
 		} catch (error) {
-			console.error('Erro no OCR:', error)
-			toast.error('Erro ao extrair texto da imagem')
+			console.error("Erro no OCR:", error)
+			toast.error("Erro ao extrair texto da imagem")
 		} finally {
 			setIsProcessing(false)
 			setProgress(0)
@@ -246,7 +249,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 		const canvas = canvasRef.current
 		const video = videoRef.current
-		const context = canvas.getContext('2d')
+		const context = canvas.getContext("2d")
 
 		if (!context) return
 
@@ -275,8 +278,8 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 	const switchCamera = () => {
 		if (devices.length <= 1) return
-		
-		const currentIndex = devices.findIndex(device => device.deviceId === selectedDevice)
+
+		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDevice)
 		const nextIndex = (currentIndex + 1) % devices.length
 		setSelectedDevice(devices[nextIndex].deviceId)
 	}
@@ -284,22 +287,22 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 	const copyToClipboard = async () => {
 		if (extractedText) {
 			await navigator.clipboard.writeText(extractedText)
-			toast.success('Texto copiado para a área de transferência!')
+			toast.success("Texto copiado para a área de transferência!")
 		}
 	}
 
 	const downloadText = () => {
 		if (extractedText) {
-			const blob = new Blob([extractedText], { type: 'text/plain' })
+			const blob = new Blob([extractedText], { type: "text/plain" })
 			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
+			const a = document.createElement("a")
 			a.href = url
 			a.download = `ocr-extract-${Date.now()}.txt`
 			document.body.appendChild(a)
 			a.click()
 			document.body.removeChild(a)
 			URL.revokeObjectURL(url)
-			toast.success('Arquivo de texto baixado!')
+			toast.success("Arquivo de texto baixado!")
 		}
 	}
 
@@ -330,7 +333,11 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 				<div className="flex items-center gap-2">
 					<FileText className="h-5 w-5" />
 					<span className="font-medium">{config.title}</span>
-					{ocrReady && <Badge variant="secondary" className="bg-green-500/20 text-green-300">OCR Ativo</Badge>}
+					{ocrReady && (
+						<Badge variant="secondary" className="bg-green-500/20 text-green-300">
+							OCR Ativo
+						</Badge>
+					)}
 				</div>
 				<Button variant="ghost" size="icon" onClick={onClose} className="text-white">
 					<CameraOff className="h-5 w-5" />
@@ -341,15 +348,9 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			<div className="relative w-full max-w-md aspect-video bg-black rounded-lg overflow-hidden mb-4">
 				{hasCamera ? (
 					<>
-						<video
-							ref={videoRef}
-							className="w-full h-full object-cover"
-							playsInline
-							muted
-							autoPlay
-						/>
-						<canvas ref={canvasRef} style={{ display: 'none' }} />
-						
+						<video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
+						<canvas ref={canvasRef} style={{ display: "none" }} />
+
 						{/* Overlay de scanning */}
 						<div className="absolute inset-0 flex items-center justify-center">
 							<div className="w-72 h-56 border-2 border-blue-400/50 rounded-lg relative">
@@ -357,7 +358,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 								<div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-400"></div>
 								<div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-400"></div>
 								<div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-400"></div>
-								
+
 								{/* Indicador de OCR */}
 								<div className="absolute top-2 left-2">
 									<Badge variant="secondary" className="bg-blue-500/20 text-blue-300 text-xs">
@@ -399,14 +400,10 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 								disabled={isProcessing || !ocrReady}
 								className="bg-blue-600 hover:bg-blue-700"
 							>
-								{isProcessing ? (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								) : (
-									<Eye className="h-4 w-4 mr-2" />
-								)}
+								{isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
 								Extrair Texto
 							</Button>
-							
+
 							{devices.length > 1 && (
 								<Button
 									variant="outline"
@@ -431,11 +428,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 					</Button>
 
 					{extractedText && (
-						<Button
-							variant="outline"
-							onClick={clearText}
-							className="bg-black/50 border-white/30 text-white"
-						>
+						<Button variant="outline" onClick={clearText} className="bg-black/50 border-white/30 text-white">
 							Limpar
 						</Button>
 					)}
@@ -447,7 +440,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 					type="file"
 					accept="image/*"
 					onChange={handleFileUpload}
-					style={{ display: 'none' }}
+					style={{ display: "none" }}
 				/>
 
 				{/* Resultados */}
@@ -493,7 +486,9 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 			{/* Instruções */}
 			<div className="absolute bottom-4 left-4 right-4 text-center text-white text-sm opacity-80">
-				<p>{config.icon} {config.description}</p>
+				<p>
+					{config.icon} {config.description}
+				</p>
 				<p className="text-xs mt-1">Funciona melhor com texto bem iluminado e nítido</p>
 			</div>
 		</div>

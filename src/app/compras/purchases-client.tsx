@@ -19,12 +19,6 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-
 import { useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
@@ -32,6 +26,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LazyWrapper } from "@/components/ui/lazy-wrapper"
+import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -43,6 +39,8 @@ import {
 	usePurchasesQuery,
 	useUrlState,
 } from "@/hooks"
+import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
+import { usePerformanceMonitor } from "@/hooks/use-performance"
 import { formatLocalDate } from "@/lib/date-utils"
 import type { Purchase } from "@/types"
 
@@ -280,12 +278,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				</div>
 			</motion.div>
 
-			<motion.div 
-				initial={{ opacity: 0 }} 
-				animate={{ opacity: 1 }} 
-				transition={{ delay: 0.1 }} 
-				className="space-y-4"
-			>
+			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
 				{purchases.length === 0 ? (
 					<Card>
 						<CardContent className="text-center py-12">
@@ -329,49 +322,49 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 								transition={{ delay: index * 0.05 }}
 							>
 								<Card>
-								<CardHeader>
-									<div className="flex justify-between items-start">
-										<div>
-											<CardTitle className="flex items-center gap-2">
-												<ShoppingCart className="h-5 w-5" />
-												Compra em {purchase.market?.name}
-											</CardTitle>
-											<CardDescription className="space-y-1 mt-2">
-												<div className="flex items-center gap-1">
-													<Store className="h-3 w-3" />
-													{purchase.market?.location}
-												</div>
-												<div className="flex items-center gap-1">
-													<Calendar className="h-3 w-3" />
-													{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-												</div>
-											</CardDescription>
-										</div>
-										<div className="text-right">
-											<div className="flex items-center gap-1 text-lg font-bold">
-												R$ {purchase.totalAmount.toFixed(2)}
+									<CardHeader>
+										<div className="flex justify-between items-start">
+											<div>
+												<CardTitle className="flex items-center gap-2">
+													<ShoppingCart className="h-5 w-5" />
+													Compra em {purchase.market?.name}
+												</CardTitle>
+												<CardDescription className="space-y-1 mt-2">
+													<div className="flex items-center gap-1">
+														<Store className="h-3 w-3" />
+														{purchase.market?.location}
+													</div>
+													<div className="flex items-center gap-1">
+														<Calendar className="h-3 w-3" />
+														{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+													</div>
+												</CardDescription>
 											</div>
-											<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
+											<div className="text-right">
+												<div className="flex items-center gap-1 text-lg font-bold">
+													R$ {purchase.totalAmount.toFixed(2)}
+												</div>
+												<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
+											</div>
 										</div>
-									</div>
-								</CardHeader>
-								<CardContent>
-									<div className="flex gap-2">
-										<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
-											<Eye className="h-4 w-4 mr-1" />
-											Detalhes
-										</Button>
-										<Link href={`/compras/editar/${purchase.id}`}>
-											<Button variant="outline" size="sm">
-												<Edit className="h-4 w-4" />
+									</CardHeader>
+									<CardContent>
+										<div className="flex gap-2">
+											<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
+												<Eye className="h-4 w-4 mr-1" />
+												Detalhes
 											</Button>
-										</Link>
-										<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</div>
-								</CardContent>
-							</Card>
+											<Link href={`/compras/editar/${purchase.id}`}>
+												<Button variant="outline" size="sm">
+													<Edit className="h-4 w-4" />
+												</Button>
+											</Link>
+											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</div>
+									</CardContent>
+								</Card>
 							</motion.div>
 						))}
 

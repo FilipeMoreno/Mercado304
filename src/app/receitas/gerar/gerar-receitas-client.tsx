@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
-import { ChefHat, Eye, Save, Search, ShoppingCart, } from "lucide-react"
+import { ChefHat, Eye, Save, Search, ShoppingCart } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -313,7 +313,10 @@ export function GerarReceitasClient() {
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 							{filteredRecipes.map((recipe) => (
-								<Card key={recipe.id} className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 group">
+								<Card
+									key={recipe.id}
+									className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 group"
+								>
 									<CardHeader className="pb-4">
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
@@ -429,18 +432,18 @@ export function GerarReceitasClient() {
 										</div>
 
 										<div className="flex gap-2 pt-4 border-t border-gray-100">
-											<Button 
-												variant="outline" 
-												size="sm" 
-												onClick={() => viewRecipe(recipe)} 
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => viewRecipe(recipe)}
 												className="flex-1 h-10 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
 											>
 												<Eye className="h-4 w-4 mr-2" />
 												Ver Receita
 											</Button>
-											<Button 
-												variant="default" 
-												size="sm" 
+											<Button
+												variant="default"
+												size="sm"
 												onClick={() => saveRecipe(recipe)}
 												className="h-10 bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
 											>

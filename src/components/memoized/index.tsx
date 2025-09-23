@@ -1,6 +1,16 @@
 "use client"
 
-import { BarChart3, DollarSign, Edit, MoreHorizontal, Package, Receipt, ShoppingCart, Store, Trash2 } from "lucide-react"
+import {
+	BarChart3,
+	DollarSign,
+	Edit,
+	MoreHorizontal,
+	Package,
+	Receipt,
+	ShoppingCart,
+	Store,
+	Trash2,
+} from "lucide-react"
 import { memo, useCallback, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,7 +83,9 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 
 							{brandName && (
 								<div className="mb-2 flex items-center gap-2">
-									<Badge variant="secondary" className="text-xs">{brandName}</Badge>
+									<Badge variant="secondary" className="text-xs">
+										{brandName}
+									</Badge>
 									<Badge variant="secondary" className="text-xs">
 										{productUnit}
 									</Badge>
@@ -387,13 +399,11 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="text-lg font-medium line-clamp-2">
-								{purchase.market?.name || "Mercado"}
-							</CardTitle>
+							<CardTitle className="text-lg font-medium line-clamp-2">{purchase.market?.name || "Mercado"}</CardTitle>
 							<p className="text-sm text-gray-600 mt-1">{purchaseDate}</p>
 							<p className="text-sm text-gray-500">{itemCount} itens</p>
 						</div>
-						
+
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -413,7 +423,7 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 						</DropdownMenu>
 					</div>
 				</CardHeader>
-				
+
 				<CardContent className="pt-0">
 					<div className="text-right mb-3">
 						<p className="font-bold text-lg">R$ {totalAmount}</p>
@@ -460,28 +470,28 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 						title: "Total de Compras",
 						value: stats?.totalPurchases || 0,
 						icon: "ShoppingCart",
-						format: "number"
+						format: "number",
 					}
 				case "total-spent":
 					return {
 						title: "Total Gasto",
 						value: stats?.totalSpent || 0,
 						icon: "DollarSign",
-						format: "currency"
+						format: "currency",
 					}
 				case "total-products":
 					return {
 						title: "Produtos Cadastrados",
 						value: stats?.totalProducts || 0,
 						icon: "Package",
-						format: "number"
+						format: "number",
 					}
 				case "total-markets":
 					return {
 						title: "Mercados Cadastrados",
 						value: stats?.totalMarkets || 0,
 						icon: "Store",
-						format: "number"
+						format: "number",
 					}
 				case "price-records":
 					return {
@@ -489,7 +499,10 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 						value: stats?.priceRecords?.totalRecords || 0,
 						icon: "Receipt",
 						format: "number",
-						subtitle: stats?.priceRecords?.averagePrice > 0 ? `Média: R$ ${stats.priceRecords.averagePrice.toFixed(2)}` : undefined
+						subtitle:
+							stats?.priceRecords?.averagePrice > 0
+								? `Média: R$ ${stats.priceRecords.averagePrice.toFixed(2)}`
+								: undefined,
 					}
 				default:
 					return null
@@ -513,7 +526,7 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 		return (
 			<CardComponent
 				{...cardProps}
-				className={`shadow-sm hover:shadow-lg transition-shadow ${onClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+				className={`shadow-sm hover:shadow-lg transition-shadow ${onClick ? "cursor-pointer hover:bg-muted/50" : ""}`}
 			>
 				<Card className="h-full">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -526,9 +539,7 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">{formatValue(cardContent.value, cardContent.format)}</div>
-						{cardContent.subtitle && (
-							<div className="text-xs text-muted-foreground mt-1">{cardContent.subtitle}</div>
-						)}
+						{cardContent.subtitle && <div className="text-xs text-muted-foreground mt-1">{cardContent.subtitle}</div>}
 					</CardContent>
 				</Card>
 			</CardComponent>
@@ -568,17 +579,12 @@ export const DashboardStatsCardMemo = memo<DashboardStatsCardMemoProps>(
 					</CardTitle>
 					<CardDescription>{description}</CardDescription>
 				</CardHeader>
-				<CardContent>
-					{children}
-				</CardContent>
+				<CardContent>{children}</CardContent>
 			</Card>
 		)
 	},
 	(prevProps, nextProps) => {
-		return (
-			prevProps.title === nextProps.title &&
-			prevProps.description === nextProps.description
-		)
+		return prevProps.title === nextProps.title && prevProps.description === nextProps.description
 	},
 )
 
@@ -618,13 +624,11 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="text-lg font-medium line-clamp-2">
-								{listName}
-							</CardTitle>
+							<CardTitle className="text-lg font-medium line-clamp-2">{listName}</CardTitle>
 							<p className="text-sm text-gray-600 mt-1">{createdAt}</p>
 							<p className="text-sm text-gray-500">{itemCount} itens</p>
 						</div>
-						
+
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -644,7 +648,7 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 						</DropdownMenu>
 					</div>
 				</CardHeader>
-				
+
 				<CardContent className="pt-0">
 					<Button
 						variant="outline"
@@ -706,13 +710,11 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="text-lg font-medium line-clamp-2">
-								{recipeName}
-							</CardTitle>
+							<CardTitle className="text-lg font-medium line-clamp-2">{recipeName}</CardTitle>
 							<p className="text-sm text-gray-600 mt-1">{ingredientCount} ingredientes</p>
 							<p className="text-sm text-gray-500">Tempo: {prepTime}min</p>
 						</div>
-						
+
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -732,7 +734,7 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 						</DropdownMenu>
 					</div>
 				</CardHeader>
-				
+
 				<CardContent className="pt-0">
 					<Button
 						variant="outline"

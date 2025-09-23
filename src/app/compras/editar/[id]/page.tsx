@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAllProductsQuery, useMarketsQuery, usePurchaseQuery, useUpdatePurchaseMutation } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
-import { PaymentMethod, } from "@/types"
+import { PaymentMethod } from "@/types"
 
 interface PurchaseItem {
 	productId: string
@@ -66,7 +66,7 @@ export default function EditarCompraPage() {
 				body: JSON.stringify({ productId, currentPrice: unitPrice }),
 			})
 			const bestPriceData = await response.json()
-			setItems(prevItems => {
+			setItems((prevItems) => {
 				const newItems = [...prevItems]
 				newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData }
 				return newItems
@@ -76,20 +76,23 @@ export default function EditarCompraPage() {
 		}
 	}, [])
 
-	const updateItem = useCallback((index: number, field: keyof PurchaseItem, value: string | number) => {
-		const newItems = [...items]
-		newItems[index] = { ...newItems[index], [field]: value }
-		setItems(newItems)
+	const updateItem = useCallback(
+		(index: number, field: keyof PurchaseItem, value: string | number) => {
+			const newItems = [...items]
+			newItems[index] = { ...newItems[index], [field]: value }
+			setItems(newItems)
 
-		if (field === "unitPrice" || field === "productId") {
-			const item = newItems[index]
-			if (item.productId && item.unitPrice > 0) {
-				setTimeout(() => {
-					checkBestPrice(index, item.productId, item.unitPrice)
-				}, 1000)
+			if (field === "unitPrice" || field === "productId") {
+				const item = newItems[index]
+				if (item.productId && item.unitPrice > 0) {
+					setTimeout(() => {
+						checkBestPrice(index, item.productId, item.unitPrice)
+					}, 1000)
+				}
 			}
-		}
-	}, [items, checkBestPrice])
+		},
+		[items, checkBestPrice],
+	)
 
 	// Carregar dados da compra quando os dados estiverem disponíveis
 	useEffect(() => {

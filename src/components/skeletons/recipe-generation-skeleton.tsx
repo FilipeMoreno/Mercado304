@@ -79,16 +79,15 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 					</div>
 				</div>
 				<div className="space-y-2">
-					<p className="text-lg font-medium text-gray-700 animate-pulse">
-						🧠 IA está criando receitas incríveis...
-					</p>
-					<p className="text-sm text-gray-500 animate-pulse">
-						Analisando ingredientes e combinações especiais
-					</p>
+					<p className="text-lg font-medium text-gray-700 animate-pulse">🧠 IA está criando receitas incríveis...</p>
+					<p className="text-sm text-gray-500 animate-pulse">Analisando ingredientes e combinações especiais</p>
 					<div className="flex justify-center gap-1 mt-3">
-						<div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-						<div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-						<div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+						<div className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+						<div
+							className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"
+							style={{ animationDelay: "150ms" }}
+						></div>
+						<div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
 					</div>
 				</div>
 			</div>
@@ -103,7 +102,7 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 						</CardHeader>
 						<CardContent>
 							<Skeleton className="h-10 w-full mb-3" />
-							
+
 							{/* Ingredientes */}
 							<div className="mb-3">
 								<Skeleton className="h-3 w-20 mb-1" />
@@ -114,7 +113,7 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 									<Skeleton className="h-6 w-12 rounded" />
 								</div>
 							</div>
-							
+
 							<div className="flex gap-2">
 								<Skeleton className="h-8 flex-1" />
 								<Skeleton className="h-8 w-20" />

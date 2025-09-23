@@ -121,7 +121,9 @@ export function RecipeSearch({
 					{/* Header */}
 					<div className="text-center space-y-2">
 						<h2 className="text-2xl font-bold text-gray-900">Criar Receitas com IA</h2>
-						<p className="text-gray-600">Descreva o que você quer cozinhar ou adicione ingredientes para receitas personalizadas</p>
+						<p className="text-gray-600">
+							Descreva o que você quer cozinhar ou adicione ingredientes para receitas personalizadas
+						</p>
 					</div>
 
 					{/* Switch para alternar entre busca local e IA */}
@@ -137,7 +139,12 @@ export function RecipeSearch({
 							{/* Botão Me Surpreenda */}
 							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
 								<DialogTrigger asChild>
-									<Button variant="outline" size="sm" disabled={!useAI} className="border-blue-300 text-blue-700 hover:bg-blue-100">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!useAI}
+										className="border-blue-300 text-blue-700 hover:bg-blue-100"
+									>
 										<Sparkles className="h-4 w-4 mr-2" />
 										Me Surpreenda
 									</Button>
@@ -184,9 +191,9 @@ export function RecipeSearch({
 						<div className="flex justify-center p-6 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl border border-yellow-200 shadow-sm">
 							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
 								<DialogTrigger asChild>
-									<Button 
-										variant="outline" 
-										size="lg" 
+									<Button
+										variant="outline"
+										size="lg"
 										className="border-yellow-300 text-yellow-700 hover:bg-yellow-100 hover:border-yellow-400 px-8 py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
 									>
 										<Sparkles className="h-5 w-5 mr-3" />
@@ -284,9 +291,9 @@ export function RecipeSearch({
 								<Label className="text-sm font-medium text-gray-600">Ingredientes selecionados:</Label>
 								<div className="flex flex-wrap gap-2">
 									{selectedIngredients.map((ingredient) => (
-										<Badge 
-											key={ingredient} 
-											variant="secondary" 
+										<Badge
+											key={ingredient}
+											variant="secondary"
 											className="pr-1 bg-green-100 text-green-800 border border-green-200 hover:bg-green-200 transition-colors duration-150"
 										>
 											{ingredient}
@@ -306,16 +313,16 @@ export function RecipeSearch({
 
 					{/* Botões de ação */}
 					<div className="flex gap-3 pt-2">
-						<Button 
-							onClick={handleSearch} 
+						<Button
+							onClick={handleSearch}
 							className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
 						>
 							{!useAI && <Search className="h-5 w-5 mr-2" />}
 							{useAI ? "✨ Gerar com IA" : "🔍 Buscar Receitas"}
 						</Button>
 						{(searchTerm || selectedIngredients.length > 0) && (
-							<Button 
-								variant="outline" 
+							<Button
+								variant="outline"
 								onClick={handleClearSearch}
 								className="h-12 px-6 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
 							>

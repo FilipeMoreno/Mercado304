@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma" // Importe seu prisma client
+import { prisma } from "@/lib/prisma"
 
 // Adapte sua função de adicionar item para aceitar um userId
 async function addItemToListForUser(listName: string, itemName: string) {
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 			// Chama a função adaptada com seu ID de usuário
 			const result = await addItemToListForUser(listName, itemName)
 			responseText = result.message
-		} catch (e: any) {
+		} catch (e: unknown) {
 			console.error(e)
 			responseText = `Não consegui adicionar ${itemName}. Verifique se o produto está cadastrado.`
 		}

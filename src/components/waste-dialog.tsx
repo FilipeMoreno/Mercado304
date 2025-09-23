@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, DollarSign, Package, } from "lucide-react"
+import { AlertTriangle, DollarSign, Package } from "lucide-react"
 import * as React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -137,7 +137,9 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 						<Package className="h-4 w-4 text-gray-500" />
 						<span className="font-medium">{stockItem.product.name}</span>
 					</div>
-					{stockItem.product.brand && <div className="text-sm text-gray-600">Marca: {stockItem.product.brand.name}</div>}
+					{stockItem.product.brand && (
+						<div className="text-sm text-gray-600">Marca: {stockItem.product.brand.name}</div>
+					)}
 					<div className="flex items-center justify-between">
 						<span className="text-sm text-gray-600">Disponível em estoque:</span>
 						<Badge variant="secondary">

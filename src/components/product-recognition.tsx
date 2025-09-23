@@ -1,11 +1,11 @@
 "use client"
 
+import { Brain, Camera, CameraOff, Eye, Loader2, RotateCcw, Upload } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { Camera, CameraOff, Eye, Loader2, Brain, Upload, RotateCcw } from "lucide-react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
 
 interface ProductPrediction {
 	label: string
@@ -25,7 +25,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
 	const modelRef = useRef<any>(null)
-	
+
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasCamera, setHasCamera] = useState(false)
 	const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -38,19 +38,19 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 	useEffect(() => {
 		const loadModel = async () => {
 			if (!isOpen) return
-			
+
 			try {
 				setIsLoading(true)
 				// Simular carregamento do modelo por enquanto
-				await new Promise(resolve => setTimeout(resolve, 2000))
-				
+				await new Promise((resolve) => setTimeout(resolve, 2000))
+
 				// TODO: Implementar carregamento real do TensorFlow quando necessário
 				setModelLoaded(true)
-				console.log('🤖 Modelo simulado carregado')
-				toast.success('🧠 Modelo de IA carregado!')
+				console.log("🤖 Modelo simulado carregado")
+				toast.success("🧠 Modelo de IA carregado!")
 			} catch (error) {
-				console.error('Erro ao carregar modelo:', error)
-				toast.error('Erro ao carregar modelo de IA.')
+				console.error("Erro ao carregar modelo:", error)
+				toast.error("Erro ao carregar modelo de IA.")
 			} finally {
 				setIsLoading(false)
 			}
@@ -63,22 +63,23 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 	useEffect(() => {
 		const getDevices = async () => {
 			if (!isOpen) return
-			
+
 			try {
 				await navigator.mediaDevices.getUserMedia({ video: true })
 				const devices = await navigator.mediaDevices.enumerateDevices()
-				const videoDevices = devices.filter(device => device.kind === 'videoinput')
+				const videoDevices = devices.filter((device) => device.kind === "videoinput")
 				setDevices(videoDevices)
 				setHasCamera(videoDevices.length > 0)
-				
-				const backCamera = videoDevices.find(device => 
-					device.label.toLowerCase().includes('back') || 
-					device.label.toLowerCase().includes('rear') ||
-					device.label.toLowerCase().includes('environment')
+
+				const backCamera = videoDevices.find(
+					(device) =>
+						device.label.toLowerCase().includes("back") ||
+						device.label.toLowerCase().includes("rear") ||
+						device.label.toLowerCase().includes("environment"),
 				)
 				setSelectedDevice(backCamera?.deviceId || videoDevices[0]?.deviceId || "")
 			} catch (error) {
-				console.error('Erro ao acessar câmera:', error)
+				console.error("Erro ao acessar câmera:", error)
 				setHasCamera(false)
 			}
 		}
@@ -95,10 +96,10 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 				const constraints = {
 					video: {
 						deviceId: selectedDevice ? { exact: selectedDevice } : undefined,
-						facingMode: selectedDevice ? undefined : 'environment',
+						facingMode: selectedDevice ? undefined : "environment",
 						width: { ideal: 640 },
 						height: { ideal: 480 },
-					}
+					},
 				}
 
 				const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -109,8 +110,8 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 					videoRef.current.play()
 				}
 			} catch (error) {
-				console.error('Erro ao iniciar câmera:', error)
-				toast.error('Erro ao iniciar câmera')
+				console.error("Erro ao iniciar câmera:", error)
+				toast.error("Erro ao iniciar câmera")
 			}
 		}
 
@@ -123,10 +124,10 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 	const stopCamera = () => {
 		if (streamRef.current) {
-			streamRef.current.getTracks().forEach(track => track.stop())
+			streamRef.current.getTracks().forEach((track) => track.stop())
 			streamRef.current = null
 		}
-		
+
 		if (videoRef.current) {
 			videoRef.current.srcObject = null
 		}
@@ -134,48 +135,47 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 	const analyzeImage = async (imageElement: HTMLImageElement | HTMLVideoElement) => {
 		if (!modelLoaded) {
-			toast.error('Modelo de IA não carregado')
+			toast.error("Modelo de IA não carregado")
 			return
 		}
 
 		try {
 			setIsAnalyzing(true)
-			
+
 			// Simular análise de IA
-			await new Promise(resolve => setTimeout(resolve, 1500))
-			
+			await new Promise((resolve) => setTimeout(resolve, 1500))
+
 			// Predições simuladas
 			const mockPredictions: ProductPrediction[] = [
 				{
 					label: "Banana",
 					confidence: 85,
-					category: categorizeProduct("Banana")
+					category: categorizeProduct("Banana"),
 				},
 				{
 					label: "Apple",
 					confidence: 78,
-					category: categorizeProduct("Apple")
+					category: categorizeProduct("Apple"),
 				},
 				{
 					label: "Orange",
 					confidence: 65,
-					category: categorizeProduct("Orange")
-				}
+					category: categorizeProduct("Orange"),
+				},
 			]
 
-			console.log('🔍 Predições simuladas:', mockPredictions)
+			console.log("🔍 Predições simuladas:", mockPredictions)
 			setPredictions(mockPredictions)
-			
+
 			if (mockPredictions.length > 0) {
 				onProductDetected(mockPredictions)
 				toast.success(`📸 ${mockPredictions.length} produto(s) identificado(s)!`)
 			} else {
-				toast.warning('Nenhum produto reconhecido')
+				toast.warning("Nenhum produto reconhecido")
 			}
-
 		} catch (error) {
-			console.error('Erro na análise:', error)
-			toast.error('Erro ao analisar imagem')
+			console.error("Erro na análise:", error)
+			toast.error("Erro ao analisar imagem")
 		} finally {
 			setIsAnalyzing(false)
 		}
@@ -183,21 +183,21 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 	const categorizeProduct = (label: string): string => {
 		const categories: { [key: string]: string[] } = {
-			'Frutas': ['banana', 'apple', 'orange', 'strawberry', 'lemon', 'pineapple', 'grape'],
-			'Vegetais': ['broccoli', 'carrot', 'corn', 'cucumber', 'bell pepper', 'mushroom'],
-			'Bebidas': ['wine bottle', 'beer bottle', 'coffee mug', 'cup', 'pop bottle'],
-			'Pães': ['bagel', 'pretzel', 'croissant', 'pizza'],
-			'Proteínas': ['hot dog', 'hamburger', 'taco'],
-			'Doces': ['ice cream', 'chocolate', 'cake', 'cookie']
+			Frutas: ["banana", "apple", "orange", "strawberry", "lemon", "pineapple", "grape"],
+			Vegetais: ["broccoli", "carrot", "corn", "cucumber", "bell pepper", "mushroom"],
+			Bebidas: ["wine bottle", "beer bottle", "coffee mug", "cup", "pop bottle"],
+			Pães: ["bagel", "pretzel", "croissant", "pizza"],
+			Proteínas: ["hot dog", "hamburger", "taco"],
+			Doces: ["ice cream", "chocolate", "cake", "cookie"],
 		}
 
 		const lowerLabel = label.toLowerCase()
 		for (const [category, items] of Object.entries(categories)) {
-			if (items.some(item => lowerLabel.includes(item))) {
+			if (items.some((item) => lowerLabel.includes(item))) {
 				return category
 			}
 		}
-		return 'Outros'
+		return "Outros"
 	}
 
 	const capturePhoto = async () => {
@@ -205,7 +205,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 		const canvas = canvasRef.current
 		const video = videoRef.current
-		const context = canvas.getContext('2d')
+		const context = canvas.getContext("2d")
 
 		if (!context) return
 
@@ -229,8 +229,8 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 	const switchCamera = () => {
 		if (devices.length <= 1) return
-		
-		const currentIndex = devices.findIndex(device => device.deviceId === selectedDevice)
+
+		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDevice)
 		const nextIndex = (currentIndex + 1) % devices.length
 		setSelectedDevice(devices[nextIndex].deviceId)
 	}
@@ -262,7 +262,11 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 				<div className="flex items-center gap-2">
 					<Brain className="h-5 w-5" />
 					<span className="font-medium">Reconhecimento de Produtos IA</span>
-					{modelLoaded && <Badge variant="secondary" className="bg-green-500/20 text-green-300">IA Ativa</Badge>}
+					{modelLoaded && (
+						<Badge variant="secondary" className="bg-green-500/20 text-green-300">
+							IA Ativa
+						</Badge>
+					)}
 				</div>
 				<Button variant="ghost" size="icon" onClick={onClose} className="text-white">
 					<CameraOff className="h-5 w-5" />
@@ -273,15 +277,9 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 			<div className="relative w-full max-w-md aspect-video bg-black rounded-lg overflow-hidden mb-4">
 				{hasCamera ? (
 					<>
-						<video
-							ref={videoRef}
-							className="w-full h-full object-cover"
-							playsInline
-							muted
-							autoPlay
-						/>
-						<canvas ref={canvasRef} style={{ display: 'none' }} />
-						
+						<video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
+						<canvas ref={canvasRef} style={{ display: "none" }} />
+
 						{/* Overlay de análise */}
 						<div className="absolute inset-0 flex items-center justify-center">
 							<div className="w-64 h-48 border-2 border-blue-400/50 rounded-lg relative">
@@ -289,7 +287,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 								<div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-400"></div>
 								<div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-400"></div>
 								<div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-400"></div>
-								
+
 								<div className="absolute top-2 left-2">
 									<Badge variant="secondary" className="bg-blue-500/20 text-blue-300 text-xs">
 										<Brain className="h-3 w-3 mr-1" />
@@ -330,14 +328,10 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 								disabled={isAnalyzing || !modelLoaded}
 								className="bg-blue-600 hover:bg-blue-700"
 							>
-								{isAnalyzing ? (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								) : (
-									<Eye className="h-4 w-4 mr-2" />
-								)}
+								{isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
 								Analisar
 							</Button>
-							
+
 							{devices.length > 1 && (
 								<Button
 									variant="outline"
@@ -362,11 +356,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 					</Button>
 
 					{predictions.length > 0 && (
-						<Button
-							variant="outline"
-							onClick={clearPredictions}
-							className="bg-black/50 border-white/30 text-white"
-						>
+						<Button variant="outline" onClick={clearPredictions} className="bg-black/50 border-white/30 text-white">
 							Limpar
 						</Button>
 					)}
@@ -378,7 +368,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 					type="file"
 					accept="image/*"
 					onChange={handleFileUpload}
-					style={{ display: 'none' }}
+					style={{ display: "none" }}
 				/>
 
 				{/* Resultados */}
@@ -395,16 +385,16 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 								<div key={index} className="flex justify-between items-center">
 									<div className="text-white">
 										<p className="text-sm font-medium">{prediction.label}</p>
-										{prediction.category && (
-											<p className="text-xs text-gray-400">{prediction.category}</p>
-										)}
+										{prediction.category && <p className="text-xs text-gray-400">{prediction.category}</p>}
 									</div>
-									<Badge 
-										variant="secondary" 
+									<Badge
+										variant="secondary"
 										className={`${
-											prediction.confidence > 70 ? 'bg-green-500/20 text-green-300' :
-											prediction.confidence > 40 ? 'bg-yellow-500/20 text-yellow-300' :
-											'bg-red-500/20 text-red-300'
+											prediction.confidence > 70
+												? "bg-green-500/20 text-green-300"
+												: prediction.confidence > 40
+													? "bg-yellow-500/20 text-yellow-300"
+													: "bg-red-500/20 text-red-300"
 										}`}
 									>
 										{prediction.confidence}%

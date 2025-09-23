@@ -16,7 +16,7 @@ export function ProductEmptyState({
 	totalCount,
 	hasActiveFilters,
 	onClearFilters,
-	onResetSearch
+	onResetSearch,
 }: ProductEmptyStateProps) {
 	if (totalCount === 0) {
 		return (

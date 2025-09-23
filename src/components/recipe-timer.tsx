@@ -1,11 +1,11 @@
 "use client"
 
+import { Pause, Play, RotateCcw, Timer, Volume2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Play, Pause, RotateCcw, Timer, Volume2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
 
 interface RecipeTimerProps {
 	suggestedTime?: string // Ex: "30 minutos", "1 hora", "45 min"
@@ -85,20 +85,20 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 	const playAlarm = () => {
 		// Criar áudio programaticamente
 		const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-		
+
 		// Tocar 3 bips
 		for (let i = 0; i < 3; i++) {
 			setTimeout(() => {
 				const oscillator = audioContext.createOscillator()
 				const gainNode = audioContext.createGain()
-				
+
 				oscillator.connect(gainNode)
 				gainNode.connect(audioContext.destination)
-				
+
 				oscillator.frequency.setValueAtTime(800, audioContext.currentTime)
 				gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
 				gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5)
-				
+
 				oscillator.start(audioContext.currentTime)
 				oscillator.stop(audioContext.currentTime + 0.5)
 			}, i * 600)
@@ -126,7 +126,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 	const formatTime = (totalSeconds: number): string => {
 		const mins = Math.floor(totalSeconds / 60)
 		const secs = totalSeconds % 60
-		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
 	}
 
 	const progress = totalSeconds > 0 ? ((totalSeconds - timeLeft) / totalSeconds) * 100 : 0
@@ -138,21 +138,15 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 					<Timer className="h-5 w-5 text-blue-500" />
 					Cronômetro de Cozinha
 				</CardTitle>
-				{suggestedTime && (
-					<p className="text-sm text-gray-500">
-						Tempo sugerido: {suggestedTime}
-					</p>
-				)}
+				{suggestedTime && <p className="text-sm text-gray-500">Tempo sugerido: {suggestedTime}</p>}
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{/* Timer Display */}
 				<div className="text-center">
-					<div className="text-4xl font-mono font-bold text-gray-800 mb-2">
-						{formatTime(timeLeft)}
-					</div>
+					<div className="text-4xl font-mono font-bold text-gray-800 mb-2">{formatTime(timeLeft)}</div>
 					{totalSeconds > 0 && (
 						<div className="w-full bg-gray-200 rounded-full h-2">
-							<div 
+							<div
 								className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
 								style={{ width: `${progress}%` }}
 							></div>
@@ -201,7 +195,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 							Pausar
 						</Button>
 					)}
-					
+
 					<Button onClick={resetTimer} variant="outline" disabled={timeLeft === 0 && !isRunning}>
 						<RotateCcw className="h-4 w-4 mr-2" />
 						Reset
@@ -211,45 +205,63 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 				{/* Quick Set Buttons */}
 				{!isRunning && timeLeft === 0 && (
 					<div className="grid grid-cols-3 gap-2">
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(5); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(5)
+								setSeconds(0)
+							}}
 						>
 							5min
 						</Button>
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(10); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(10)
+								setSeconds(0)
+							}}
 						>
 							10min
 						</Button>
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(15); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(15)
+								setSeconds(0)
+							}}
 						>
 							15min
 						</Button>
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(30); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(30)
+								setSeconds(0)
+							}}
 						>
 							30min
 						</Button>
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(45); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(45)
+								setSeconds(0)
+							}}
 						>
 							45min
 						</Button>
-						<Button 
-							variant="outline" 
-							size="sm" 
-							onClick={() => { setMinutes(60); setSeconds(0) }}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setMinutes(60)
+								setSeconds(0)
+							}}
 						>
 							1h
 						</Button>
@@ -257,12 +269,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 				)}
 
 				{/* Alarm Test */}
-				<Button 
-					variant="ghost" 
-					size="sm" 
-					onClick={playAlarm}
-					className="w-full text-xs text-gray-500"
-				>
+				<Button variant="ghost" size="sm" onClick={playAlarm} className="w-full text-xs text-gray-500">
 					<Volume2 className="h-3 w-3 mr-1" />
 					Testar alarme
 				</Button>
