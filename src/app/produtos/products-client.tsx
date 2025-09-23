@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Filter, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
@@ -14,7 +14,6 @@ import { ProductStats } from "@/components/products/product-stats"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
-import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
@@ -46,7 +45,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
-	const mobile = useMobile()
 	const [showScanner, setShowScanner] = useState(false)
 
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -169,7 +167,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 	const handleProductDelete = (product: any) => {
 		openDeleteConfirm(product)
 	}
-
 
 	// Extract data from React Query
 	const products = productsData?.products || []

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ProductCard } from "./product-card"
+import { ProductCardMemo } from "@/components/memoized"
 
 interface ProductListProps {
 	products: any[]
@@ -10,7 +10,7 @@ interface ProductListProps {
 
 export function ProductList({ products, onDelete }: ProductListProps) {
 	return (
-		<motion.div 
+		<motion.div
 			className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
@@ -23,7 +23,7 @@ export function ProductList({ products, onDelete }: ProductListProps) {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: index * 0.05 }}
 				>
-					<ProductCard product={product} onDelete={onDelete} />
+					<ProductCardMemo product={product} onDelete={onDelete} />
 				</motion.div>
 			))}
 		</motion.div>
