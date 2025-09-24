@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
 	try {
-		const { listId, marketIds } = await request.json()
+		const { listId, marketIds, itemIds } = await request.json()
 
 		if (!listId || !marketIds || !Array.isArray(marketIds) || marketIds.length < 2) {
 			return NextResponse.json({ error: "ID da lista e pelo menos 2 mercados são obrigatórios" }, { status: 400 })
@@ -33,9 +33,15 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Um ou mais mercados não foram encontrados" }, { status: 404 })
 		}
 
+		// Filtrar itens se itemIds for fornecido
+		let itemsToProcess = shoppingList.items
+		if (itemIds && Array.isArray(itemIds) && itemIds.length > 0) {
+			itemsToProcess = shoppingList.items.filter(item => itemIds.includes(item.id))
+		}
+
 		// --- CORREÇÃO APLICADA AQUI ---
 		// Mapeia e depois filtra para garantir que não há IDs nulos
-		const productIds = shoppingList.items.map((item) => item.productId).filter((id): id is string => !!id)
+		const productIds = itemsToProcess.map((item) => item.productId).filter((id): id is string => !!id)
 
 		const productsWithPrices = await Promise.all(
 			productIds.map(async (productId) => {
@@ -98,7 +104,7 @@ export async function POST(request: Request) {
 		// Garantir que os mercados estão na mesma ordem dos marketIds enviados
 		const orderedMarkets = marketIds.map((id) => {
 			const market = markets.find((m) => m.id === id)
-			return { id: market!.id, name: market!.name, location: market!.location }
+			return { id: market?.id, name: market?.name, location: market?.location }
 		})
 
 		return NextResponse.json({

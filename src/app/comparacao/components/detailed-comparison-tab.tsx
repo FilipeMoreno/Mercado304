@@ -1,7 +1,7 @@
 "use client"
 
 import { Loader2, Search, ShoppingCart } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ShoppingListSelect } from "@/components/selects/shopping-list-select"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { DetailedComparisonTable } from "./detailed-comparison-table"
+import { ListItemsSelector } from "./list-items-selector"
 
 interface DetailedComparison {
 	listId: string
@@ -35,6 +36,15 @@ interface DetailedComparison {
 	}[]
 }
 
+interface ListItem {
+	id: string
+	productId: string
+	productName: string
+	quantity: number
+	unit: string
+	notes?: string
+}
+
 interface DetailedComparisonTabProps {
 	markets: Array<{
 		id: string
@@ -56,6 +66,44 @@ export function DetailedComparisonTab({
 }: DetailedComparisonTabProps) {
 	const [detailedComparison, setDetailedComparison] = useState<DetailedComparison | null>(null)
 	const [loadingDetailed, setLoadingDetailed] = useState(false)
+	const [listItems, setListItems] = useState<ListItem[]>([])
+	const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
+	const [loadingItems, setLoadingItems] = useState(false)
+
+	// Buscar itens da lista quando a lista for selecionada
+	useEffect(() => {
+		const fetchListItems = async () => {
+			if (!detailedListId) {
+				setListItems([])
+				setSelectedItemIds([])
+				return
+			}
+
+			setLoadingItems(true)
+			try {
+				const response = await fetch(`/api/shopping-lists/${detailedListId}/items`)
+				if (response.ok) {
+					const data = await response.json()
+					setListItems(data.items)
+					// Selecionar todos os itens por padrão
+					setSelectedItemIds(data.items.map((item: ListItem) => item.id))
+				} else {
+					toast.error("Erro ao buscar itens da lista")
+					setListItems([])
+					setSelectedItemIds([])
+				}
+			} catch (error) {
+				console.error("Erro:", error)
+				toast.error("Erro ao buscar itens da lista")
+				setListItems([])
+				setSelectedItemIds([])
+			} finally {
+				setLoadingItems(false)
+			}
+		}
+
+		fetchListItems()
+	}, [detailedListId])
 
 	const compareDetailedList = async () => {
 		if (!detailedListId) {
@@ -64,6 +112,10 @@ export function DetailedComparisonTab({
 		}
 		if (selectedMarketIds.length < 2) {
 			toast.error("Selecione pelo menos 2 mercados para a comparação detalhada")
+			return
+		}
+		if (selectedItemIds.length === 0) {
+			toast.error("Selecione pelo menos um item da lista para comparar")
 			return
 		}
 
@@ -77,6 +129,7 @@ export function DetailedComparisonTab({
 				body: JSON.stringify({
 					listId: detailedListId,
 					marketIds: selectedMarketIds,
+					itemIds: selectedItemIds,
 				}),
 			})
 			if (response.ok) {
@@ -129,7 +182,7 @@ export function DetailedComparisonTab({
 					<div className="flex justify-end">
 						<Button
 							onClick={compareDetailedList}
-							disabled={loadingDetailed || selectedMarketIds.length < 2 || !detailedListId}
+							disabled={loadingDetailed || selectedMarketIds.length < 2 || !detailedListId || selectedItemIds.length === 0}
 							className="w-full sm:w-auto"
 						>
 							{loadingDetailed ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comparar Detalhadamente"}
@@ -137,6 +190,16 @@ export function DetailedComparisonTab({
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Seletor de Itens Específicos */}
+			{detailedListId && listItems.length > 0 && (
+				<ListItemsSelector
+					listItems={listItems}
+					selectedItemIds={selectedItemIds}
+					onSelectedItemsChange={setSelectedItemIds}
+					isLoading={loadingItems}
+				/>
+			)}
 
 			{detailedComparison && (
 				<Card>
