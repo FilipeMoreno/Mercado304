@@ -5,6 +5,7 @@ import { haveIBeenPwned, lastLoginMethod, oneTap, twoFactor } from "better-auth/
 import { passkey } from "better-auth/plugins/passkey"
 import { emailHarmony } from "better-auth-harmony"
 import { localization } from "better-auth-localization"
+import { sendPasswordResetEmail, sendVerificationEmail } from "./email"
 
 const prisma = new PrismaClient()
 
@@ -23,11 +24,21 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false,
-		sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
-			console.log(`Reset password URL for ${user.email}: ${url}`)
+		sendResetPassword: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
+			try {
+				await sendPasswordResetEmail({ user, url })
+				console.log(`Email de reset de senha enviado para ${user.email}`)
+			} catch (error) {
+				console.error(`Erro ao enviar email de reset para ${user.email}:`, error)
+			}
 		},
-		sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
-			console.log(`Verification URL for ${user.email}: ${url}`)
+		sendVerificationEmail: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
+			try {
+				await sendVerificationEmail({ user, url })
+				console.log(`Email de verificação enviado para ${user.email}`)
+			} catch (error) {
+				console.error(`Erro ao enviar email de verificação para ${user.email}:`, error)
+			}
 		},
 	},
 	socialProviders: {
@@ -59,8 +70,16 @@ export const auth = betterAuth({
 		}),
 		passkey({
 			rpName: "Mercado304",
-			rpID: process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL).hostname : "localhost",
-			origin: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+			rpID:
+				process.env.NODE_ENV === "production"
+					? process.env.BETTER_AUTH_URL
+						? new URL(process.env.BETTER_AUTH_URL).hostname
+						: "mercado.filipemoreno.com.br"
+					: "localhost",
+			origin:
+				process.env.NODE_ENV === "production"
+					? process.env.BETTER_AUTH_URL || "https://mercado.filipemoreno.com.br"
+					: "http://localhost:3000",
 		}),
 		lastLoginMethod({
 			storeInDatabase: true,

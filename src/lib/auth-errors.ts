@@ -83,7 +83,11 @@ export type AuthErrorCode = keyof typeof AUTH_ERRORS
 interface AuthError {
 	code?: string
 	message?: string
-	details?: any
+	details?: {
+		meta?: {
+			target?: string[]
+		}
+	}
 }
 
 /**
@@ -95,7 +99,7 @@ export function handleAuthError(error: AuthError, context: "signin" | "signup" |
 	// Handle specific Prisma errors first
 	if (error.code === "P2002") {
 		// Unique constraint failed
-		const target = (error as any)?.meta?.target
+		const target = error.details?.meta?.target
 		if (Array.isArray(target) && target.includes("normalizedEmail")) {
 			toast.error(AUTH_ERRORS.NORMALIZED_EMAIL_EXISTS)
 			return
@@ -119,6 +123,26 @@ export function handleAuthError(error: AuthError, context: "signin" | "signup" |
 		// Handle other specific errors
 		toast.error(AUTH_ERRORS[errorCode])
 		return
+	}
+
+	// Handle specific Better Auth error codes for Passkey
+	if (errorCode) {
+		if (errorCode.includes("PASSKEY") || errorCode.includes("WEBAUTHN") || errorCode.includes("CREDENTIAL")) {
+			if (errorCode.includes("NOT_SUPPORTED")) {
+				toast.error(AUTH_ERRORS.PASSKEY_NOT_SUPPORTED)
+			} else if (errorCode.includes("CANCELLED") || errorCode.includes("CANCELED")) {
+				toast.error(AUTH_ERRORS.PASSKEY_CANCELLED)
+			} else if (errorCode.includes("FAILED") || errorCode.includes("INVALID")) {
+				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED)
+			} else if (errorCode.includes("NOT_ALLOWED") || errorCode.includes("NOT_PERMITTED")) {
+				toast.error(AUTH_ERRORS.PASSKEY_NOT_ALLOWED)
+			} else if (errorCode.includes("CHALLENGE")) {
+				toast.error(AUTH_ERRORS.INVALID_PASSKEY_CHALLENGE)
+			} else {
+				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED)
+			}
+			return
+		}
 	}
 
 	// Handle errors by context and message content
@@ -234,15 +258,17 @@ export function handleAuthError(error: AuthError, context: "signin" | "signup" |
 		}
 
 		// Passkey errors
-		if (message.includes("passkey") || message.includes("webauthn")) {
+		if (message.includes("passkey") || message.includes("webauthn") || message.includes("credential")) {
 			if (message.includes("not supported")) {
 				toast.error(AUTH_ERRORS.PASSKEY_NOT_SUPPORTED)
-			} else if (message.includes("cancelled")) {
+			} else if (message.includes("cancelled") || message.includes("canceled")) {
 				toast.error(AUTH_ERRORS.PASSKEY_CANCELLED)
-			} else if (message.includes("failed")) {
+			} else if (message.includes("failed") || message.includes("invalid") || message.includes("error")) {
 				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED)
-			} else if (message.includes("not allowed")) {
+			} else if (message.includes("not allowed") || message.includes("not permitted")) {
 				toast.error(AUTH_ERRORS.PASSKEY_NOT_ALLOWED)
+			} else if (message.includes("challenge")) {
+				toast.error(AUTH_ERRORS.INVALID_PASSKEY_CHALLENGE)
 			} else {
 				toast.error(AUTH_ERRORS.PASSKEY_AUTHENTICATION_FAILED)
 			}

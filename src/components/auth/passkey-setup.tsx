@@ -1,9 +1,8 @@
 "use client"
 
 import { Eye, EyeOff, Fingerprint, Loader2, Shield, Smartphone, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,27 +32,32 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 	const isSocialAccount = !!session?.user?.image
 
 	// Função para buscar os passkeys existentes
-	const fetchExistingPasskeys = async () => {
+	const fetchExistingPasskeys = useCallback(async () => {
 		setIsLoading(true)
 		try {
 			const result = await passkey.listUserPasskeys()
 			if (result.data) {
 				// Converte a string de data para um objeto Date
-				setCredentials(result.data.map((p: any) => ({ ...p, createdAt: new Date(p.createdAt) })))
+				setCredentials(
+					result.data.map((p: { createdAt: string; [key: string]: any }) => ({
+						...p,
+						createdAt: new Date(p.createdAt),
+					})),
+				)
 			}
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao buscar passkeys existentes" }, "general")
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao buscar passkeys existentes" }, "general")
 		} finally {
 			setIsLoading(false)
 		}
-	}
+	}, [])
 
 	// Carrega os passkeys existentes ao entrar na tela de gerenciamento
 	useEffect(() => {
 		if (step === "manage") {
 			fetchExistingPasskeys()
 		}
-	}, [step])
+	}, [step, fetchExistingPasskeys])
 
 	const handleInitialSetup = () => {
 		if (isSocialAccount) {
@@ -78,6 +82,17 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 
 			// CORREÇÃO: Verifica se existe um objeto de resultado e se ele contém um erro.
 			if (result?.error) {
+				// Verifica se é um erro de cancelamento
+				if (
+					result.error.message?.toLowerCase().includes("cancelled") ||
+					result.error.message?.toLowerCase().includes("canceled") ||
+					result.error.message?.toLowerCase().includes("abort")
+				) {
+					// Não mostra erro para cancelamento pelo usuário
+					setIsLoading(false)
+					return
+				}
+
 				handleAuthError(result.error, "general")
 				return
 			}
@@ -88,8 +103,21 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 			await fetchExistingPasskeys()
 			setCredentialName("")
 			setStep("manage")
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao registrar passkey" }, "general")
+		} catch (error: unknown) {
+			const errorMessage = (error as Error).message || "Erro ao registrar passkey"
+
+			// Verifica se é um erro de cancelamento
+			if (
+				errorMessage.toLowerCase().includes("cancelled") ||
+				errorMessage.toLowerCase().includes("canceled") ||
+				errorMessage.toLowerCase().includes("abort")
+			) {
+				// Não mostra erro para cancelamento pelo usuário
+				setIsLoading(false)
+				return
+			}
+
+			handleAuthError({ message: errorMessage }, "general")
 		} finally {
 			setIsLoading(false)
 		}
@@ -109,8 +137,8 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 
 			toast.success("Passkey removido com sucesso!")
 			setCredentials((prev) => prev.filter((cred) => cred.id !== credentialId))
-		} catch (error: any) {
-			handleAuthError({ message: error.message || "Erro ao remover passkey" }, "general")
+		} catch (error: unknown) {
+			handleAuthError({ message: (error as Error).message || "Erro ao remover passkey" }, "general")
 		} finally {
 			setIsLoading(false)
 		}

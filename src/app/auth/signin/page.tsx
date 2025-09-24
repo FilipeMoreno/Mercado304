@@ -126,15 +126,31 @@ export default function SignInPage() {
 			})
 
 			if (result?.error) {
+				// Verifica se é um erro de cancelamento
+				if (result.error.message?.toLowerCase().includes("cancelled") || 
+					result.error.message?.toLowerCase().includes("canceled") ||
+					result.error.message?.toLowerCase().includes("abort")) {
+					// Não mostra erro para cancelamento pelo usuário
+					setIsPasskeyLoading(false)
+					return
+				}
+
 				// Se falhar sem email, pode tentar com fallback para email se necessário
 				if (result.error.message?.includes("email") && email) {
 					const fallbackResult = await signIn.passkey({ email })
 					if (fallbackResult?.error) {
-						handleAuthError(fallbackResult.error, "signin")
+						// Verifica se o fallback também foi cancelado
+						if (fallbackResult.error.message?.toLowerCase().includes("cancelled") || 
+							fallbackResult.error.message?.toLowerCase().includes("canceled") ||
+							fallbackResult.error.message?.toLowerCase().includes("abort")) {
+							setIsPasskeyLoading(false)
+							return
+						}
+						handleAuthError(fallbackResult.error, "general")
 						return
 					}
 				} else {
-					handleAuthError(result.error, "signin")
+					handleAuthError(result.error, "general")
 					return
 				}
 			}
@@ -146,7 +162,18 @@ export default function SignInPage() {
 			showAuthSuccess("signin")
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect
 		} catch (error: unknown) {
-			handleAuthError({ message: (error as Error).message || "Erro ao fazer login com passkey" }, "signin")
+			const errorMessage = (error as Error).message || "Erro ao fazer login com passkey"
+			
+			// Verifica se é um erro de cancelamento
+			if (errorMessage.toLowerCase().includes("cancelled") || 
+				errorMessage.toLowerCase().includes("canceled") ||
+				errorMessage.toLowerCase().includes("abort")) {
+				// Não mostra erro para cancelamento pelo usuário
+				setIsPasskeyLoading(false)
+				return
+			}
+			
+			handleAuthError({ message: errorMessage }, "general")
 		} finally {
 			setIsPasskeyLoading(false)
 		}
