@@ -177,12 +177,7 @@ export default function DesperdiciosClient() {
 
 	return (
 		<div className="">
-			<div className="flex justify-between items-center mb-6">
-				<div>
-					<h1 className="text-3xl font-bold text-gray-900">Controle de Desperdícios</h1>
-					<p className="text-gray-600 mt-1">Gerencie e monitore os desperdícios de alimentos</p>
-				</div>
-				<div>
+			<div className="flex justify-end items-center mb-6">
 					<Button onClick={() => setShowCreateDialog(true)}>
 						<Plus className="mr-2 h-4 w-4" />
 						Registrar Desperdício
@@ -195,7 +190,6 @@ export default function DesperdiciosClient() {
 					>
 						<WasteForm onSubmit={handleCreateRecord} onCancel={() => setShowCreateDialog(false)} />
 					</ResponsiveDialog>
-				</div>
 			</div>
 
 			{/* Estatísticas Principais */}

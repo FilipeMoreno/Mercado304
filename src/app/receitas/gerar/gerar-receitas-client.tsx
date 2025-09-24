@@ -1,7 +1,6 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { motion } from "framer-motion"
 import { ChefHat, Eye, Save, Search, ShoppingCart } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -80,7 +79,13 @@ export function GerarReceitasClient() {
 				const data = await response.json()
 				console.log("🧑‍🍳 Dados da API:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: any, index: number) => {
+					data.sugestoes?.map((recipe: {
+						prato: string
+						refeicao: string
+						descricao: string
+						ingredientes: string[]
+						[key: string]: unknown
+					}, index: number) => {
 						console.log(`🍽️ Receita ${index + 1}:`, recipe)
 						return {
 							id: `ai-${Date.now()}-${index}`,
@@ -120,7 +125,13 @@ export function GerarReceitasClient() {
 				const data = await response.json()
 				console.log("🎉 Dados da API Surprise:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: any, index: number) => {
+					data.sugestoes?.map((recipe: {
+						prato: string
+						refeicao: string
+						descricao: string
+						ingredientes: string[]
+						[key: string]: unknown
+					}, index: number) => {
 						console.log(`🌟 Receita surpresa ${index + 1}:`, recipe)
 						return {
 							id: `surprise-${Date.now()}-${index}`,
@@ -145,12 +156,12 @@ export function GerarReceitasClient() {
 		}
 	}
 
-	const viewRecipe = (recipe: any) => {
+	const viewRecipe = (recipe: Recipe) => {
 		const storageKey = TempStorage.save({ recipe })
 		router.push(`/receitas/visualizar?storageKey=${storageKey}`)
 	}
 
-	const saveRecipe = async (recipe: any) => {
+	const saveRecipe = async (recipe: Recipe) => {
 		try {
 			const response = await fetch("/api/recipes", {
 				method: "POST",
@@ -184,7 +195,7 @@ export function GerarReceitasClient() {
 			if (!listsResponse.ok) throw new Error("Erro ao buscar listas")
 
 			const lists = await listsResponse.json()
-			let targetList = lists.find((list: any) => list.name === "Lista de Receitas") || lists[0]
+			let targetList = lists.find((list: { id: string; name: string }) => list.name === "Lista de Receitas") || lists[0]
 
 			if (!targetList) {
 				// Criar uma nova lista se não existir nenhuma
@@ -242,25 +253,21 @@ export function GerarReceitasClient() {
 
 	return (
 		<div className="space-y-6">
-			{/* Header with search and back button */}
-			<motion.div
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="flex items-center gap-2 mb-6"
-			>
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+			{/* Controles */}
+			<div className="flex flex-col sm:flex-row gap-3">
+				<div className="flex-1 w-full">
 					<input
 						placeholder="Buscar receitas geradas..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+						className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md  focus:border-transparent"
 					/>
 				</div>
-				<Button variant="outline" onClick={() => router.push("/receitas")}>
-					← Ver Receitas Salvas
+				<Button variant="outline" onClick={() => router.push("/receitas")} className="w-full sm:w-auto">
+					<span className="hidden sm:inline">← Ver Receitas Salvas</span>
+					<span className="sm:hidden">← Receitas</span>
 				</Button>
-			</motion.div>
+			</div>
 
 			{/* Componente de pesquisa */}
 			<RecipeSearch

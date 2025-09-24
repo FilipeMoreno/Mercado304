@@ -1,6 +1,5 @@
 "use client"
 
-import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
 	AlertCircle,
@@ -26,13 +25,11 @@ import { StockHistory } from "@/components/stock-history"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -46,8 +43,6 @@ import {
 	useUpdateStockMutation,
 	useUrlState,
 } from "@/hooks"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
 import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 
@@ -151,21 +146,8 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const isLoading = stockLoading || productsLoading
 
 	const stockIngredients = React.useMemo(() => {
-		return stockItems.map((item: any) => item.product.name)
+		return stockItems.map((item: StockItem) => item.product.name)
 	}, [stockItems])
-
-	// Handle error states
-	if (stockError) {
-		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar estoque</h3>
-					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
-				</CardContent>
-			</Card>
-		)
-	}
 
 	React.useEffect(() => {
 		const storageKey = new URLSearchParams(window.location.search).get("storageKey")
@@ -194,6 +176,19 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 			}
 		}
 	}, [])
+
+	// Handle error states
+	if (stockError) {
+		return (
+			<Card>
+				<CardContent className="text-center py-12">
+					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar estoque</h3>
+					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
+				</CardContent>
+			</Card>
+		)
+	}
 
 	const handleAddStock = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -350,18 +345,14 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold">Controle de Estoque</h1>
-					<p className="text-gray-600 mt-2">Gerencie seu estoque doméstico e validades</p>
-				</div>
-				<div className="flex items-center gap-3">
-					<RecipeSuggester ingredientList={stockIngredients} buttonText="O que cozinhar?" />
-					<Button onClick={() => setShowAddDialog(true)}>
-						<Plus className="mr-2 h-4 w-4" />
-						Adicionar ao Estoque
-					</Button>
-				</div>
+			{/* Botões de ação responsivos */}
+			<div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+				<RecipeSuggester ingredientList={stockIngredients} buttonText="O que cozinhar?" />
+				<Button onClick={() => setShowAddDialog(true)} className="w-full sm:w-auto">
+					<Plus className="mr-2 h-4 w-4" />
+					<span className="hidden sm:inline">Adicionar ao Estoque</span>
+					<span className="sm:hidden">Adicionar</span>
+				</Button>
 			</div>
 
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -379,82 +370,140 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				<TabsContent value="stock" className="space-y-6">
 					{isLoading ? (
 						<>
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-								{Array.from({ length: 4 }).map((_, i) => (
-									<Card key={i}>
-										<CardHeader className="pb-3">
-											<Skeleton className="h-4 w-20" />
-										</CardHeader>
-										<CardContent>
-											<Skeleton className="h-8 w-16" />
-										</CardContent>
-									</Card>
-								))}
+							<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+								<Card key="skeleton-stats-1">
+									<CardHeader className="pb-2 sm:pb-3">
+										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+									</CardHeader>
+									<CardContent>
+										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+									</CardContent>
+								</Card>
+								<Card key="skeleton-stats-2">
+									<CardHeader className="pb-2 sm:pb-3">
+										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+									</CardHeader>
+									<CardContent>
+										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+									</CardContent>
+								</Card>
+								<Card key="skeleton-stats-3">
+									<CardHeader className="pb-2 sm:pb-3">
+										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+									</CardHeader>
+									<CardContent>
+										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+									</CardContent>
+								</Card>
+								<Card key="skeleton-stats-4">
+									<CardHeader className="pb-2 sm:pb-3">
+										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
+									</CardHeader>
+									<CardContent>
+										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
+									</CardContent>
+								</Card>
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								{Array.from({ length: 6 }).map((_, i) => (
-									<Card key={i}>
-										<CardHeader className="pb-3">
-											<div className="flex justify-between items-start">
-												<div className="flex-1">
-													<Skeleton className="h-6 w-32" />
-													<Skeleton className="h-4 w-24 mt-2" />
-												</div>
-												<div className="flex gap-1">
-													<Skeleton className="h-8 w-8" />
-													<Skeleton className="h-8 w-8" />
-												</div>
+								<Card key="skeleton-item-1">
+									<CardHeader className="pb-3">
+										<div className="flex justify-between items-start">
+											<div className="flex-1">
+												<Skeleton className="h-6 w-32" />
+												<Skeleton className="h-4 w-24 mt-2" />
 											</div>
-										</CardHeader>
-										<CardContent className="space-y-3">
-											<Skeleton className="h-4 w-full" />
-											<Skeleton className="h-4 w-3/4" />
-											<Skeleton className="h-4 w-1/2" />
-										</CardContent>
-									</Card>
-								))}
+											<div className="flex gap-1">
+												<Skeleton className="h-8 w-8" />
+												<Skeleton className="h-8 w-8" />
+											</div>
+										</div>
+									</CardHeader>
+									<CardContent className="space-y-3">
+										<Skeleton className="h-4 w-full" />
+										<Skeleton className="h-4 w-3/4" />
+										<Skeleton className="h-4 w-1/2" />
+									</CardContent>
+								</Card>
+								<Card key="skeleton-item-2">
+									<CardHeader className="pb-3">
+										<div className="flex justify-between items-start">
+											<div className="flex-1">
+												<Skeleton className="h-6 w-32" />
+												<Skeleton className="h-4 w-24 mt-2" />
+											</div>
+											<div className="flex gap-1">
+												<Skeleton className="h-8 w-8" />
+												<Skeleton className="h-8 w-8" />
+											</div>
+										</div>
+									</CardHeader>
+									<CardContent className="space-y-3">
+										<Skeleton className="h-4 w-full" />
+										<Skeleton className="h-4 w-3/4" />
+										<Skeleton className="h-4 w-1/2" />
+									</CardContent>
+								</Card>
+								<Card key="skeleton-item-3">
+									<CardHeader className="pb-3">
+										<div className="flex justify-between items-start">
+											<div className="flex-1">
+												<Skeleton className="h-6 w-32" />
+												<Skeleton className="h-4 w-24 mt-2" />
+											</div>
+											<div className="flex gap-1">
+												<Skeleton className="h-8 w-8" />
+												<Skeleton className="h-8 w-8" />
+											</div>
+										</div>
+									</CardHeader>
+									<CardContent className="space-y-3">
+										<Skeleton className="h-4 w-full" />
+										<Skeleton className="h-4 w-3/4" />
+										<Skeleton className="h-4 w-1/2" />
+									</CardContent>
+								</Card>
 							</div>
 						</>
 					) : (
 						<>
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+							<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-sm text-gray-600">Total de Itens</CardTitle>
+									<CardHeader className="pb-2 sm:pb-3">
+										<CardTitle className="text-xs sm:text-sm text-gray-600">Total de Itens</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">{stats?.totalItems || 0}</div>
+										<div className="text-lg sm:text-2xl font-bold">{stats?.totalItems || 0}</div>
 									</CardContent>
 								</Card>
 								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-sm text-gray-600">Valor do Estoque</CardTitle>
+									<CardHeader className="pb-2 sm:pb-3">
+										<CardTitle className="text-xs sm:text-sm text-gray-600">Valor do Estoque</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">R$ {(stats?.totalValue || 0).toFixed(2)}</div>
+										<div className="text-lg sm:text-2xl font-bold">R$ {(stats?.totalValue || 0).toFixed(2)}</div>
 									</CardContent>
 								</Card>
 								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-sm text-gray-600">Vencendo</CardTitle>
+									<CardHeader className="pb-2 sm:pb-3">
+										<CardTitle className="text-xs sm:text-sm text-gray-600">Vencendo</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-orange-600">
+										<div className="text-lg sm:text-2xl font-bold text-orange-600">
 											{(stats?.expiringSoon || 0) + (stats?.expiringToday || 0)}
 										</div>
 									</CardContent>
 								</Card>
 								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-sm text-gray-600">Estoque Baixo</CardTitle>
+									<CardHeader className="pb-2 sm:pb-3">
+										<CardTitle className="text-xs sm:text-sm text-gray-600">Estoque Baixo</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-red-600">{stats?.lowStockItems || 0}</div>
+										<div className="text-lg sm:text-2xl font-bold text-red-600">{stats?.lowStockItems || 0}</div>
 									</CardContent>
 								</Card>
 							</div>
 
-							<div className="flex items-center gap-2 mb-6">
+							<div className="flex items-stretch sm:items-center gap-2 mb-6">
 								<div className="relative flex-1">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 									<Input
@@ -464,11 +513,11 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 										className="pl-10"
 									/>
 								</div>
-								<FilterPopover
-									additionalFilters={additionalFilters}
-									hasActiveFilters={hasActiveFilters}
-									onClearFilters={clearFilters}
-								/>
+									<FilterPopover
+										additionalFilters={additionalFilters}
+										hasActiveFilters={hasActiveFilters}
+										onClearFilters={clearFilters}
+									/>
 							</div>
 
 							{stockItems.length === 0 ? (
@@ -492,8 +541,8 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 									</CardContent>
 								</Card>
 							) : (
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{stockItems.map((item: any) => (
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+									{stockItems.map((item: StockItem) => (
 										<Card key={item.id} className="relative">
 											<CardHeader className="pb-3">
 												<div className="flex justify-between items-start">
@@ -574,8 +623,9 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 														onClick={() => handleOpenWasteDialog(item)}
 														className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
 													>
-														<AlertTriangle className="h-4 w-4 mr-1" />
-														Desperdício
+														<AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+														<span className="hidden sm:inline">Desperdício</span>
+														<span className="sm:hidden">Desperdício</span>
 													</Button>
 												</div>
 											</CardContent>
@@ -592,12 +642,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				</TabsContent>
 			</Tabs>
 
-			<ResponsiveDialog
-				open={showAddDialog}
-				onOpenChange={setShowAddDialog}
-				title="Adicionar ao Estoque"
-				maxWidth="md"
-			>
+			<ResponsiveDialog open={showAddDialog} onOpenChange={setShowAddDialog} title="Adicionar ao Estoque" maxWidth="md">
 				<form onSubmit={handleAddStock} className="space-y-4">
 					<div className="space-y-2">
 						<Label>Produto *</Label>

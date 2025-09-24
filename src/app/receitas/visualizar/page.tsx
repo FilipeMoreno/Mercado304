@@ -1,17 +1,15 @@
-// src/app/receitas/visualizar/page.tsx
-
 "use client"
 
-import { ArrowLeft, ChefHat, Clock, Save, Star, ThumbsUp, Utensils } from "lucide-react"
+import { motion } from "framer-motion"
+import { ArrowLeft, ChefHat, Clock, Save, ThumbsUp, Utensils } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import { RecipeTimer } from "@/components/recipe-timer"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { VoiceAssistant } from "@/components/voice-assistant"
-import { useDataMutation } from "@/hooks/use-data-mutation" // <-- Importar o hook
+import { useDataMutation } from "@/hooks/use-data-mutation"
 import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
@@ -38,8 +36,7 @@ export default function VisualizarReceitaPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [recipe, setRecipe] = useState<Recipe | null>(null)
-	const [timerRef, setTimerRef] = useState<any>(null)
-	const { create, loading } = useDataMutation() // <-- Usar o hook
+	const { create, loading } = useDataMutation()
 
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -112,11 +109,16 @@ export default function VisualizarReceitaPage() {
 	return (
 		<div className="space-y-6">
 			{/* Header Responsivo */}
-			<div className="space-y-4">
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="space-y-4"
+			>
 				<div className="flex items-center justify-between">
 					<Button variant="outline" size="sm" onClick={() => router.back()} className="flex-shrink-0">
 						<ArrowLeft className="h-4 w-4 mr-2" />
-						Voltar
+						<span className="hidden sm:inline">Voltar</span>
+						<span className="sm:hidden">Voltar</span>
 					</Button>
 					<Badge className="hidden sm:block">{recipe.refeicao || recipe.mealType}</Badge>
 				</div>
@@ -125,10 +127,24 @@ export default function VisualizarReceitaPage() {
 					<div className="flex items-center gap-2 sm:hidden">
 						<Badge>{recipe.refeicao || recipe.mealType}</Badge>
 					</div>
-					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">{recipe.prato || recipe.name}</h1>
-					<p className="text-gray-600 text-sm sm:text-base leading-relaxed">{recipe.descricao || recipe.description}</p>
+					<motion.h1
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ delay: 0.1 }}
+						className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight"
+					>
+						{recipe.prato || recipe.name}
+					</motion.h1>
+					<motion.p
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ delay: 0.2 }}
+						className="text-gray-600 text-sm sm:text-base leading-relaxed"
+					>
+						{recipe.descricao || recipe.description}
+					</motion.p>
 				</div>
-			</div>
+			</motion.div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{/* Coluna Principal */}
@@ -142,8 +158,8 @@ export default function VisualizarReceitaPage() {
 						</CardHeader>
 						<CardContent>
 							<ul className="list-disc list-inside space-y-2">
-								{(recipe.ingredientes || recipe.ingredients || []).map((ing, index) => (
-									<li key={index}>{ing}</li>
+								{(recipe.ingredientes || recipe.ingredients || []).map((ing) => (
+									<li key={`ingredient-${ing}`}>{ing}</li>
 								))}
 							</ul>
 						</CardContent>
@@ -210,7 +226,7 @@ export default function VisualizarReceitaPage() {
 
 												return (
 													<div
-														key={index}
+														key={`step-${cleanStep}`}
 														className={`flex gap-3 p-3 rounded-lg ${
 															isNumberedStep
 																? "bg-orange-50 border-l-4 border-orange-200"

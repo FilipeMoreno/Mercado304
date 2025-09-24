@@ -1,7 +1,6 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { motion } from "framer-motion"
 import { ChefHat, Eye, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -10,11 +9,7 @@ import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
 import { TempStorage } from "@/lib/temp-storage"
 
 interface Recipe {
@@ -54,7 +49,7 @@ export function ReceitasClient() {
 		setSearchTerm(value)
 	}
 
-	const viewRecipe = (recipe: any) => {
+	const viewRecipe = (recipe: Recipe) => {
 		const storageKey = TempStorage.save({ recipe })
 		router.push(`/receitas/visualizar?storageKey=${storageKey}`)
 	}
@@ -90,13 +85,9 @@ export function ReceitasClient() {
 	if (loadingRecipes) {
 		return (
 			<div className="space-y-6">
-				{/* Header with search and generate button */}
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="flex items-center gap-2 mb-6"
-				>
-					<div className="relative flex-1">
+				{/* Controles */}
+				<div className="flex w-full gap-3">
+					<div className="relative flex-1 sm:flex-none sm:w-80">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						<Input
 							placeholder="Buscar receitas..."
@@ -107,13 +98,13 @@ export function ReceitasClient() {
 					</div>
 					<Button
 						onClick={() => router.push("/receitas/gerar")}
-						className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+						className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 w-full sm:w-auto"
 					>
 						<Sparkles className="h-4 w-4 mr-2" />
 						<span className="hidden sm:inline">Gerar Receitas</span>
 						<span className="sm:hidden">Gerar</span>
 					</Button>
-				</motion.div>
+				</div>
 				<RecipesSkeleton />
 			</div>
 		)
@@ -125,14 +116,9 @@ export function ReceitasClient() {
 
 	return (
 		<div className="space-y-6">
-			{/* Header with search and generate button */}
-			<motion.div
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="flex items-center gap-2 mb-6"
-			>
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+			{/* Controles */}
+			<div className="flex flex-col sm:flex-row gap-3">
+				<div className="flex-1 w-full">
 					<Input
 						placeholder="Buscar receitas..."
 						value={searchTerm}
@@ -142,13 +128,13 @@ export function ReceitasClient() {
 				</div>
 				<Button
 					onClick={() => router.push("/receitas/gerar")}
-					className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+					className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 w-full sm:w-auto"
 				>
 					<Sparkles className="h-4 w-4 mr-2" />
 					<span className="hidden sm:inline">Gerar Receitas</span>
 					<span className="sm:hidden">Gerar</span>
 				</Button>
-			</motion.div>
+			</div>
 
 			<Card>
 				<CardHeader>

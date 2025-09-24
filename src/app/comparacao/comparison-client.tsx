@@ -1,20 +1,15 @@
 "use client"
 
-import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover"
-import { CommandGroup, CommandItem, CommandList } from "cmdk"
 import {
-	Check,
 	ChevronDown,
-	ChevronUp,
-	Command,
-	Loader2,
+	ChevronUp, Loader2,
 	MapPin,
 	Search,
 	ShoppingCart,
 	Target,
 	TrendingDown,
 	TrendingUp,
-	X,
+	X
 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -25,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { MultiSelect } from "@/components/ui/multi-select" // Assumindo um multi-select
+import { MultiSelect } from "@/components/ui/multi-select"; // Assumindo um multi-select
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TempStorage } from "@/lib/temp-storage"
 import { cn } from "@/lib/utils"
@@ -278,10 +273,6 @@ export function ComparisonClient({
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h1 className="text-3xl font-bold">Comparação de Preços</h1>
-				<p className="text-gray-600 mt-2">Compare preços entre mercados para economizar nas suas compras</p>
-			</div>
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
 				<TabsList className="grid w-full grid-cols-3">
 					<TabsTrigger value="produto">Por Produto</TabsTrigger>

@@ -221,14 +221,6 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	return (
 		<div className="space-y-6">
-			{/* Header */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">Registro de Preços</h1>
-					<p className="text-muted-foreground">Registre preços que você viu mas não comprou para futuras comparações</p>
-				</div>
-			</div>
-
 			{/* Estatísticas */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 				<Card>
