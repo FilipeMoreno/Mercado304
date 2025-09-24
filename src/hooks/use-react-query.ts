@@ -568,7 +568,7 @@ export const useCreateWasteMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.waste() })
+			queryClient.invalidateQueries({ queryKey: ["waste"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício registrado com sucesso!")
 		},
@@ -588,7 +588,7 @@ export const useUpdateWasteMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.waste() })
+			queryClient.invalidateQueries({ queryKey: ["waste"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.wasteItem(id) })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício atualizado com sucesso!")
@@ -607,7 +607,7 @@ export const useDeleteWasteMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.waste() })
+			queryClient.invalidateQueries({ queryKey: ["waste"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício excluído com sucesso!")
 		},

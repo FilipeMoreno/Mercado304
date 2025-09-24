@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Eye, Save, Search, ShoppingCart } from "lucide-react"
+import { ChefHat, Eye, Save, ShoppingCart } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -167,13 +167,13 @@ export function GerarReceitasClient() {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					name: recipe.name || recipe.prato,
-					mealType: recipe.mealType || recipe.refeicao,
-					description: recipe.description || recipe.descricao,
-					ingredients: recipe.ingredients || recipe.ingredientes || [],
-					instructions: recipe.modo_preparo || "",
-					cookingTime: recipe.tempo_preparo || "",
-					chefTip: recipe.dica_chef || "",
+					name: recipe.name || (recipe as any).prato,
+					mealType: recipe.mealType || (recipe as any).refeicao,
+					description: recipe.description || (recipe as any).descricao,
+					ingredients: recipe.ingredients || (recipe as any).ingredientes || [],
+					instructions: (recipe as any).modo_preparo || "",
+					cookingTime: (recipe as any).tempo_preparo || "",
+					chefTip: (recipe as any).dica_chef || "",
 				}),
 			})
 
