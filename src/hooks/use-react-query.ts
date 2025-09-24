@@ -20,6 +20,7 @@ export const queryKeys = {
 	shoppingList: (id: string) => ["shopping-lists", id],
 	stock: (params?: URLSearchParams) => ["stock", params?.toString()],
 	stockItem: (id: string) => ["stock", id],
+	stockHistory: (params?: URLSearchParams) => ["stock-history", params?.toString()],
 	waste: (params?: URLSearchParams) => ["waste", params?.toString()],
 	wasteItem: (id: string) => ["waste", id],
 	recipes: () => ["recipes"],
@@ -474,6 +475,14 @@ export const useStockItemQuery = (id: string) => {
 	})
 }
 
+export const useStockHistoryQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.stockHistory(params),
+		queryFn: () => fetchWithErrorHandling(`/api/stock/history?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+	})
+}
+
 export const useCreateStockMutation = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -485,10 +494,14 @@ export const useCreateStockMutation = () => {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.expiration.alerts(),
 			})
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			// Invalidate all stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
 			toast.success("Item adicionado ao estoque!")
 		},
 		onError: (error) => {
@@ -509,9 +522,13 @@ export const useUpdateStockMutation = () => {
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
 			queryClient.invalidateQueries({ queryKey: queryKeys.stockItem(id) })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.expiration.alerts(),
 			})
+			// Invalidate all stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
 			toast.success("Estoque atualizado com sucesso!")
 		},
 		onError: (error) => {
@@ -529,9 +546,13 @@ export const useDeleteStockMutation = () => {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.expiration.alerts(),
 			})
+			// Invalidate all stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
 			toast.success("Item removido do estoque!")
 		},
 		onError: (error) => {
@@ -568,8 +589,14 @@ export const useCreateWasteMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["waste"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.waste() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			// Invalidate all waste and stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["waste"] })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
 			toast.success("Desperdício registrado com sucesso!")
 		},
 		onError: (error) => {
@@ -607,8 +634,14 @@ export const useDeleteWasteMutation = () => {
 				method: "DELETE",
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["waste"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.waste() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			// Invalidate all waste and stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["waste"] })
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
 			toast.success("Desperdício excluído com sucesso!")
 		},
 		onError: (error) => {

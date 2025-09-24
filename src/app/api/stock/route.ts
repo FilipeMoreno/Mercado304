@@ -128,11 +128,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const data = await request.json()
-		const { productId, quantity, expirationDate, batchNumber, location = "Despensa", unitCost, notes } = data
-
-		if (!productId || !quantity || quantity <= 0) {
-			return NextResponse.json({ error: "Produto e quantidade são obrigatórios" }, { status: 400 })
-		}
+		console.log(data)
+		const { productId, quantity, expirationDate, location = "Despensa", unitCost, notes } = data.data
+		
+		console.log(quantity)
 
 		const product = await prisma.product.findUnique({
 			where: { id: productId },
@@ -140,6 +139,10 @@ export async function POST(request: Request) {
 
 		if (!product) {
 			return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 })
+		}
+
+		if (!quantity || quantity <= 0) {
+			return NextResponse.json({ error: "Quantidade são obrigatórios" }, { status: 400 })
 		}
 
 		const stockItem = await prisma.stockItem.create({

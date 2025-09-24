@@ -13,25 +13,19 @@ export async function GET(request: NextRequest) {
 
 		const { searchParams } = new URL(request.url)
 		const search = searchParams.get("search") || ""
-		const type = searchParams.get("type") as any
+		const type = searchParams.get("type") as string
 		const location = searchParams.get("location") || ""
 		const startDate = searchParams.get("startDate")
 		const endDate = searchParams.get("endDate")
-		const page = parseInt(searchParams.get("page") || "1")
-		const limit = parseInt(searchParams.get("limit") || "50")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const limit = parseInt(searchParams.get("limit") || "50", 10)
 		const skip = (page - 1) * limit
 
-		// Construir filtros para histórico geral
-		const whereConditions: any = {}
+		// Construir filtros para movimentações do estoque
+		const whereConditions: Record<string, any> = {}
 
 		if (search) {
 			whereConditions.OR = [
-				{
-					productName: {
-						contains: search,
-						mode: "insensitive",
-					},
-				},
 				{
 					reason: {
 						contains: search,
@@ -44,6 +38,16 @@ export async function GET(request: NextRequest) {
 						mode: "insensitive",
 					},
 				},
+				{
+					stockItem: {
+						product: {
+							name: {
+								contains: search,
+								mode: "insensitive",
+							},
+						},
+					},
+				},
 			]
 		}
 
@@ -52,7 +56,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		if (location && location !== "all") {
-			whereConditions.location = location
+			whereConditions.stockItem = {
+				location: location,
+			}
 		}
 
 		if (startDate) {
@@ -69,22 +75,104 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		// Buscar histórico geral
+		// Buscar histórico de movimentações do estoque
 		const [historyRecords, total] = await Promise.all([
-			prisma.stockHistory.findMany({
+			prisma.stockMovement.findMany({
 				where: whereConditions,
+				include: {
+					stockItem: {
+						include: {
+							product: {
+								include: {
+									brand: true,
+									category: true,
+								},
+							},
+						},
+					},
+				},
 				orderBy: { date: "desc" },
 				skip,
 				take: limit,
 			}),
-			prisma.stockHistory.count({ where: whereConditions }),
+			prisma.stockMovement.count({ where: whereConditions }),
 		])
 
+		// Se o filtro inclui VENCIMENTO ou DESPERDICIO, buscar também registros de desperdício
+		let wasteRecords: any[] = []
+		let wasteTotal = 0
+		
+		if (type === "VENCIMENTO" || type === "DESPERDICIO" || type === "all") {
+			const wasteWhereConditions: Record<string, any> = {}
+			
+			if (search) {
+				wasteWhereConditions.OR = [
+					{
+						productName: {
+							contains: search,
+							mode: "insensitive",
+						},
+					},
+					{
+						wasteReason: {
+							contains: search,
+							mode: "insensitive",
+						},
+					},
+					{
+						notes: {
+							contains: search,
+							mode: "insensitive",
+						},
+					},
+				]
+			}
+
+			if (location && location !== "all") {
+				wasteWhereConditions.location = location
+			}
+
+			if (startDate) {
+				wasteWhereConditions.wasteDate = {
+					...wasteWhereConditions.wasteDate,
+					gte: new Date(startDate),
+				}
+			}
+
+			if (endDate) {
+				wasteWhereConditions.wasteDate = {
+					...wasteWhereConditions.wasteDate,
+					lte: new Date(endDate),
+				}
+			}
+
+			// Filtrar por tipo de desperdício se necessário
+			if (type === "VENCIMENTO") {
+				wasteWhereConditions.wasteReason = "EXPIRED"
+			} else if (type === "DESPERDICIO") {
+				wasteWhereConditions.wasteReason = {
+					not: "EXPIRED"
+				}
+			}
+
+			const [wasteData, wasteCount] = await Promise.all([
+				prisma.wasteRecord.findMany({
+					where: wasteWhereConditions,
+					orderBy: { wasteDate: "desc" },
+					skip,
+					take: limit,
+				}),
+				prisma.wasteRecord.count({ where: wasteWhereConditions }),
+			])
+
+			wasteRecords = wasteData
+			wasteTotal = wasteCount
+		}
+
 		// Calcular estatísticas
-		const stats = await prisma.stockHistory.aggregate({
+		const stats = await prisma.stockMovement.aggregate({
 			where: whereConditions,
 			_sum: {
-				totalValue: true,
 				quantity: true,
 			},
 			_count: {
@@ -93,12 +181,11 @@ export async function GET(request: NextRequest) {
 		})
 
 		// Estatísticas por tipo
-		const typeStats = await prisma.stockHistory.groupBy({
+		const typeStats = await prisma.stockMovement.groupBy({
 			by: ["type"],
 			where: whereConditions,
 			_sum: {
 				quantity: true,
-				totalValue: true,
 			},
 			_count: {
 				id: true,
@@ -111,20 +198,14 @@ export async function GET(request: NextRequest) {
 		})
 
 		// Produtos mais movimentados
-		const topProducts = await prisma.stockHistory.groupBy({
-			by: ["productName"],
-			where: {
-				...whereConditions,
-				productName: {
-					not: null,
-				},
-			},
+		const topProducts = await prisma.stockMovement.groupBy({
+			by: ["stockItemId"],
+			where: whereConditions,
 			_count: {
 				id: true,
 			},
 			_sum: {
 				quantity: true,
-				totalValue: true,
 			},
 			orderBy: {
 				_count: {
@@ -134,41 +215,104 @@ export async function GET(request: NextRequest) {
 			take: 10,
 		})
 
+		// Buscar informações dos produtos
+		const topProductsWithInfo = await Promise.all(
+			topProducts.map(async (item) => {
+				const stockItem = await prisma.stockItem.findUnique({
+					where: { id: item.stockItemId },
+					include: {
+						product: {
+							include: {
+								brand: true,
+								category: true,
+							},
+						},
+					},
+				})
+				return {
+					productName: stockItem?.product.name || "Produto não encontrado",
+					brand: stockItem?.product.brand?.name,
+					category: stockItem?.product.category?.name,
+					movementCount: item._count.id,
+					totalQuantity: item._sum.quantity,
+				}
+			})
+		)
+
 		// Localizações mais utilizadas
-		const topLocations = await prisma.stockHistory.groupBy({
-			by: ["location"],
-			where: {
-				...whereConditions,
-				location: {
-					not: null,
-				},
-			},
+		const topLocations = await prisma.stockMovement.groupBy({
+			by: ["stockItemId"],
+			where: whereConditions,
 			_count: {
-				location: true,
+				id: true,
 			},
 			orderBy: {
 				_count: {
-					location: "desc",
+					id: "desc",
 				},
 			},
 			take: 5,
 		})
 
+		// Buscar informações das localizações
+		const topLocationsWithInfo = await Promise.all(
+			topLocations.map(async (item) => {
+				const stockItem = await prisma.stockItem.findUnique({
+					where: { id: item.stockItemId },
+					select: { location: true },
+				})
+				return {
+					location: stockItem?.location || "Localização não encontrada",
+					movementCount: item._count.id,
+				}
+			})
+		)
+
+		// Combinar e ordenar registros de movimento e desperdício
+		const combinedRecords = [
+			...historyRecords.map(record => ({
+				...record,
+				isWaste: false,
+				recordType: 'movement'
+			})),
+			...wasteRecords.map(record => ({
+				id: record.id,
+				type: record.wasteReason === 'EXPIRED' ? 'VENCIMENTO' : 'DESPERDICIO',
+				quantity: record.quantity,
+				reason: record.wasteReason,
+				notes: record.notes,
+				date: record.wasteDate,
+				stockItem: {
+					id: record.stockItemId || 'unknown',
+					location: record.location,
+					product: {
+						id: record.productId || 'unknown',
+						name: record.productName,
+						unit: record.unit,
+						brand: record.brand ? { name: record.brand } : undefined,
+						category: record.category ? { name: record.category } : undefined,
+					}
+				},
+				isWaste: true,
+				recordType: 'waste'
+			}))
+		].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
 		return NextResponse.json({
-			historyRecords,
+			historyRecords: combinedRecords,
 			pagination: {
 				page,
 				limit,
-				total,
-				totalPages: Math.ceil(total / limit),
+				total: total + wasteTotal,
+				totalPages: Math.ceil((total + wasteTotal) / limit),
 			},
 			stats: {
 				totalMovements: stats._count.id || 0,
 				totalQuantity: stats._sum.quantity || 0,
-				totalValue: stats._sum.totalValue || 0,
+				totalValue: 0, // StockMovement não tem totalValue
 				byType: typeStats,
-				topProducts,
-				topLocations,
+				topProducts: topProductsWithInfo,
+				topLocations: topLocationsWithInfo,
 			},
 		})
 	} catch (error) {

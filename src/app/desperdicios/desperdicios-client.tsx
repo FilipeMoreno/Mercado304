@@ -1,13 +1,19 @@
 "use client"
 
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCreateWasteMutation, useDeleteWasteMutation, useUpdateWasteMutation, useWasteQuery } from "@/hooks"
+import {
+	useCreateWasteMutation,
+	useDeleteConfirmation,
+	useDeleteWasteMutation,
+	useUpdateWasteMutation,
+	useWasteQuery,
+} from "@/hooks"
 import { WasteDetails } from "./components/waste-details"
 import { WasteForm } from "./components/waste-form"
 import { WasteGrid } from "./components/waste-grid"
@@ -38,10 +44,10 @@ export default function DesperdiciosClient() {
 	const [showCreateDialog, setShowCreateDialog] = useState(false)
 	const [showDetailsDialog, setShowDetailsDialog] = useState(false)
 	const [showEditDialog, setShowEditDialog] = useState(false)
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-	const [recordToDelete, setRecordToDelete] = useState<WasteRecord | null>(null)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [pageSize] = useState(12) // Para grid de 3x4
+
+	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<WasteRecord>()
 
 	// Build URLSearchParams for the waste query
 	const wasteParams = useMemo(() => {
@@ -64,19 +70,15 @@ export default function DesperdiciosClient() {
 	const wasteRecords = wasteData?.wasteRecords || []
 	const stats = wasteData?.stats || null
 
-	const handleDeleteRecord = async (id: string) => {
+	const handleDeleteRecord = async () => {
+		if (!deleteState.item) return
+
 		try {
-			await deleteWasteMutation.mutateAsync(id)
-			setShowDeleteConfirm(false)
-			setRecordToDelete(null)
+			await deleteWasteMutation.mutateAsync(deleteState.item.id)
+			closeDeleteConfirm()
 		} catch (error) {
 			console.error("Erro ao remover registro:", error)
 		}
-	}
-
-	const openDeleteConfirm = (record: WasteRecord) => {
-		setRecordToDelete(record)
-		setShowDeleteConfirm(true)
 	}
 
 	const handleCreateRecord = async (newRecordData: Omit<WasteRecord, "id">) => {
@@ -144,7 +146,7 @@ export default function DesperdiciosClient() {
 			</div>
 
 			{/* Filtros */}
-			<div className="flex flex-col sm:flex-row gap-4">
+			<div className="flex flex-row gap-4">
 				<div className="flex-1">
 					<div className="relative">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -156,7 +158,7 @@ export default function DesperdiciosClient() {
 						/>
 					</div>
 				</div>
-				<div className="w-full sm:w-48">
+				<div className="w-auto">
 					<Select value={filterReason} onValueChange={setFilterReason}>
 						<SelectTrigger>
 							<SelectValue placeholder="Filtrar por motivo" />
@@ -238,14 +240,24 @@ export default function DesperdiciosClient() {
 
 			{/* Diálogo de confirmação de exclusão */}
 			<ResponsiveConfirmDialog
-				open={showDeleteConfirm}
-				onOpenChange={setShowDeleteConfirm}
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
 				title="Confirmar Exclusão"
-				description={`Tem certeza que deseja excluir o registro de desperdício "${recordToDelete?.productName}"? Esta ação não pode ser desfeita.`}
-				onConfirm={() => recordToDelete && handleDeleteRecord(recordToDelete.id)}
-				confirmText="Excluir"
+				onConfirm={handleDeleteRecord}
+				onCancel={closeDeleteConfirm}
+				confirmText="Sim, Excluir"
 				cancelText="Cancelar"
-			/>
+				confirmVariant="destructive"
+				isLoading={deleteWasteMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<div className="space-y-2">
+					<p className="text-sm text-gray-700">
+						Tem certeza que deseja excluir o registro de desperdício <strong>{deleteState.item?.productName}</strong>?
+					</p>
+					<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
+				</div>
+			</ResponsiveConfirmDialog>
 		</div>
 	)
 }

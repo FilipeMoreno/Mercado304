@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // GET - Buscar item específico do estoque
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
 	try {
 		const { id } = params
 
@@ -34,11 +34,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	try {
 		const { id } = params
 		const data = await request.json()
+		
+		console.log("PUT /api/stock/[id] - Received data:", { id, data })
 
 		const {
 			quantity,
 			expirationDate,
-			batchNumber,
 			location,
 			unitCost,
 			notes,
@@ -100,7 +101,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				...(expirationDate !== undefined && {
 					expirationDate: expirationDate ? new Date(expirationDate) : null,
 				}),
-				...(batchNumber !== undefined && { batchNumber }),
 				...(location !== undefined && { location }),
 				...(unitCost !== undefined && { unitCost }),
 				...(notes !== undefined && { notes }),
@@ -141,7 +141,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // DELETE - Remover item do estoque
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
 	try {
 		const { id } = params
 

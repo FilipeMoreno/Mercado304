@@ -1,37 +1,15 @@
 "use client"
 
-import { ptBR } from "date-fns/locale"
-import {
-	AlertCircle,
-	AlertTriangle,
-	DollarSign,
-	Edit,
-	Filter,
-	History,
-	MapPin,
-	Package,
-	Plus,
-	Search,
-	Trash2,
-	TrendingDown,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
+import { AlertTriangle, Plus, Search, Trash2 } from "lucide-react"
 import * as React from "react"
 import { useMemo, useState } from "react"
-import { toast } from "sonner"
 import { RecipeSuggester } from "@/components/recipe-suggester"
-import { ProductSelect } from "@/components/selects/product-select"
-import { StockHistory } from "@/components/stock-history"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WasteDialog } from "@/components/waste-dialog"
 import {
@@ -43,34 +21,27 @@ import {
 	useUpdateStockMutation,
 	useUrlState,
 } from "@/hooks"
-import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
-import { TempStorage } from "@/lib/temp-storage"
+import { StockDetails } from "./components/stock-details"
+import { StockForm } from "./components/stock-form"
+import { StockGrid } from "./components/stock-grid"
+import { StockHistory } from "./components/stock-history"
+import { StockPagination } from "./components/stock-pagination"
+import { StockStats } from "./components/stock-stats"
 
 interface StockItem {
 	id: string
 	productId: string
 	quantity: number
+	location: string
 	expirationDate?: string
 	batchNumber?: string
-	location?: string
 	unitCost?: number
-	notes?: string
-	addedDate: string
-	isExpired: boolean
-	isLowStock: boolean
-	expirationStatus: "ok" | "expiring_soon" | "expired"
-	expirationWarning?: string
-	stockStatus: "ok" | "low"
-	stockWarning?: string
 	totalValue?: number
+	notes?: string
 	product: {
 		id: string
 		name: string
 		unit: string
-		hasStock: boolean
-		minStock?: number
-		maxStock?: number
-		hasExpiration: boolean
 		brand?: { name: string }
 		category?: { name: string }
 	}
@@ -78,31 +49,27 @@ interface StockItem {
 
 interface EstoqueClientProps {
 	searchParams: {
-		location?: string
 		search?: string
+		location?: string
+		filter?: string
+		includeExpired?: string
 	}
 }
 
 export function EstoqueClient({ searchParams }: EstoqueClientProps) {
-	const router = useRouter()
 	const [showAddDialog, setShowAddDialog] = useState(false)
+	const [showEditDialog, setShowEditDialog] = useState(false)
+	const [showDetailsDialog, setShowDetailsDialog] = useState(false)
 	const [showUseDialog, setShowUseDialog] = useState(false)
-	const [useItem, setUseItem] = useState<StockItem | null>(null)
-	const [consumedQuantity, setConsumedQuantity] = useState("")
-	const [saving, setSaving] = useState(false)
-	const [activeTab, setActiveTab] = useState("stock")
 	const [showWasteDialog, setShowWasteDialog] = useState(false)
+	const [selectedItem, setSelectedItem] = useState<StockItem | null>(null)
 	const [wasteItem, setWasteItem] = useState<StockItem | null>(null)
-
-	const [formData, setFormData] = useState({
-		productId: "",
-		quantity: 1,
-		expirationDate: "",
-		batchNumber: "",
-		location: "Despensa",
-		unitCost: 0,
-		notes: "",
-	})
+	const [consumedQuantity, setConsumedQuantity] = useState("")
+	const [isQuantityExceeding, setIsQuantityExceeding] = useState(false)
+	const [showNegativeStockConfirm, setShowNegativeStockConfirm] = useState(false)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [historyPage, setHistoryPage] = useState(1)
+	const [pageSize] = useState(12) // Para grid de 3x4
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<StockItem>()
 
@@ -123,15 +90,16 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 			search: String(state.search),
 			filter: String(state.filter),
 			includeExpired: String(state.includeExpired),
+			page: currentPage.toString(),
+			limit: pageSize.toString(),
 		}
 		return new URLSearchParams(params)
-	}, [state.location, state.search, state.filter, state.includeExpired])
+	}, [state.location, state.search, state.filter, state.includeExpired, currentPage, pageSize])
 
 	// React Query hooks
 	const {
 		data: stockData,
 		isLoading: stockLoading,
-		error: stockError,
 		refetch: refetchStock,
 	} = useStockQuery(stockParams)
 	const { data: productsData, isLoading: productsLoading } = useProductsQuery()
@@ -149,108 +117,6 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 		return stockItems.map((item: StockItem) => item.product.name)
 	}, [stockItems])
 
-	React.useEffect(() => {
-		const storageKey = new URLSearchParams(window.location.search).get("storageKey")
-		if (storageKey) {
-			const preservedData = TempStorage.get(storageKey)
-			if (preservedData) {
-				try {
-					if (preservedData.formData) {
-						setFormData(preservedData.formData)
-					}
-					if (preservedData.newProductId) {
-						setTimeout(() => {
-							setFormData((prev) => ({
-								...prev,
-								productId: preservedData.newProductId,
-							}))
-							setShowAddDialog(true)
-						}, 1000)
-					}
-					TempStorage.remove(storageKey)
-					window.history.replaceState({}, "", "/estoque")
-				} catch (error) {
-					console.error("Erro ao restaurar dados:", error)
-					TempStorage.remove(storageKey)
-				}
-			}
-		}
-	}, [])
-
-	// Handle error states
-	if (stockError) {
-		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar estoque</h3>
-					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
-				</CardContent>
-			</Card>
-		)
-	}
-
-	const handleAddStock = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setSaving(true)
-		try {
-			await createStockMutation.mutateAsync(formData)
-			setShowAddDialog(false)
-			setFormData({
-				productId: "",
-				quantity: 1,
-				expirationDate: "",
-				batchNumber: "",
-				location: "Despensa",
-				unitCost: 0,
-				notes: "",
-			})
-		} catch (error) {
-			console.error("Error adding stock:", error)
-		} finally {
-			setSaving(false)
-		}
-	}
-
-	const handleUseItem = (item: StockItem) => {
-		setUseItem(item)
-		setConsumedQuantity("")
-		setShowUseDialog(true)
-	}
-
-	const handleOpenWasteDialog = (item: StockItem) => {
-		setWasteItem(item)
-		setShowWasteDialog(true)
-	}
-
-	const handleConsumeItem = async () => {
-		if (!useItem || !consumedQuantity || parseFloat(consumedQuantity) <= 0) {
-			toast.error("Quantidade inválida")
-			return
-		}
-
-		const quantity = parseFloat(consumedQuantity)
-		if (quantity > useItem.quantity) {
-			toast.error(`Quantidade não pode ser maior que ${useItem.quantity} ${useItem.product.unit}`)
-			return
-		}
-
-		setSaving(true)
-		try {
-			await updateStockMutation.mutateAsync({
-				id: useItem.id,
-				data: { consumed: quantity },
-			})
-			setShowUseDialog(false)
-			setUseItem(null)
-			setConsumedQuantity("")
-		} catch (error) {
-			console.error("Erro ao registrar consumo:", error)
-		} finally {
-			setSaving(false)
-		}
-	}
-
 	const deleteStockItem = async () => {
 		if (!deleteState.item) return
 
@@ -262,545 +128,309 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 		}
 	}
 
-	const getExpirationColor = (status: string) => {
-		switch (status) {
-			case "expired":
-				return "bg-red-100 text-red-800 border-red-200"
-			case "expiring_soon":
-				return "bg-orange-100 text-orange-800 border-orange-200"
-			default:
-				return "bg-green-100 text-green-800 border-green-200"
+	const handleViewItem = (item: StockItem) => {
+		setSelectedItem(item)
+		setShowDetailsDialog(true)
+	}
+
+	const handleEditItem = (item: StockItem) => {
+		setSelectedItem(item)
+		setShowEditDialog(true)
+	}
+
+	const handleDeleteItem = (item: StockItem) => {
+		openDeleteConfirm(item)
+	}
+
+	const handleUseItem = (item: StockItem) => {
+		setSelectedItem(item)
+		setShowUseDialog(true)
+	}
+
+	const executeProductUse = async () => {
+		if (consumedQuantity && parseFloat(consumedQuantity) > 0 && selectedItem) {
+			const quantityToUse = parseFloat(consumedQuantity)
+			
+			try {
+				await updateStockMutation.mutateAsync({
+					id: selectedItem.id,
+					data: {
+						...selectedItem,
+						quantity: selectedItem.quantity - quantityToUse,
+					},
+				})
+				setShowUseDialog(false)
+				setShowNegativeStockConfirm(false)
+				setConsumedQuantity("")
+				setIsQuantityExceeding(false)
+				setSelectedItem(null)
+			} catch (error) {
+				console.error("Error using product:", error)
+			}
 		}
 	}
 
-	const additionalFilters = (
-		<>
-			<div className="space-y-2">
-				<Label>Status dos Produtos</Label>
-				<Select value={state.filter as string} onValueChange={(value) => updateSingleValue("filter", value)}>
-					<SelectTrigger>
-						<SelectValue placeholder="Todos os produtos" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">Todos os produtos</SelectItem>
-						<SelectItem value="expired">Vencidos</SelectItem>
-						<SelectItem value="expiring">Vencendo em breve</SelectItem>
-						<SelectItem value="low_stock">Estoque baixo</SelectItem>
-					</SelectContent>
-				</Select>
-			</div>
-			<div className="space-y-2">
-				<Label>Localização</Label>
-				<Select value={state.location as string} onValueChange={(value) => updateSingleValue("location", value)}>
-					<SelectTrigger>
-						<SelectValue placeholder="Todas as localizações" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">Todas as localizações</SelectItem>
-						{stats?.locations?.map((loc: string) => (
-							<SelectItem key={loc} value={loc}>
-								{loc}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
-			<div className="space-y-2">
-				<Label>Filtros Rápidos</Label>
-				<div className="grid grid-cols-2 gap-2">
-					<Button
-						variant={state.location === "Geladeira" ? "default" : "outline"}
-						size="sm"
-						onClick={() => updateSingleValue("location", "Geladeira")}
-					>
-						Geladeira
-					</Button>
-					<Button
-						variant={state.location === "Despensa" ? "default" : "outline"}
-						size="sm"
-						onClick={() => updateSingleValue("location", "Despensa")}
-					>
-						Despensa
-					</Button>
-					<Button
-						variant={state.filter === "expired" ? "destructive" : "outline"}
-						size="sm"
-						onClick={() => updateSingleValue("filter", "expired")}
-					>
-						<AlertCircle className="h-3 w-3 mr-1" />
-						Vencidos
-					</Button>
-					<Button
-						variant={state.filter === "low_stock" ? "destructive" : "outline"}
-						size="sm"
-						onClick={() => updateSingleValue("filter", "low_stock")}
-					>
-						<TrendingDown className="h-3 w-3 mr-1" />
-						Baixo
-					</Button>
-				</div>
-			</div>
-		</>
-	)
+	const handleWasteItem = (item: StockItem) => {
+		setWasteItem(item)
+		setShowWasteDialog(true)
+	}
+
+	const handleCreateStock = async (newStockData: Omit<StockItem, "id">) => {
+		try {
+			await createStockMutation.mutateAsync({ data: newStockData })
+			setShowAddDialog(false)
+			setCurrentPage(1) // Reset to first page
+		} catch (error) {
+			console.error("Error creating stock item:", error)
+		}
+	}
+
+	const handleUpdateStock = async (updatedStockData: Omit<StockItem, "id">) => {
+		if (!selectedItem) return
+
+		try {
+			console.log("Updating stock with data:", { id: selectedItem.id, data: updatedStockData })
+			await updateStockMutation.mutateAsync({ id: selectedItem.id, data: updatedStockData })
+			setShowEditDialog(false)
+			setSelectedItem(null)
+		} catch (error) {
+			console.error("Error updating stock item:", error)
+		}
+	}
 
 	return (
 		<div className="space-y-6">
-			{/* Botões de ação responsivos */}
-			<div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-				<RecipeSuggester ingredientList={stockIngredients} buttonText="O que cozinhar?" />
-				<Button onClick={() => setShowAddDialog(true)} className="w-full sm:w-auto">
-					<Plus className="mr-2 h-4 w-4" />
-					<span className="hidden sm:inline">Adicionar ao Estoque</span>
-					<span className="sm:hidden">Adicionar</span>
-				</Button>
+			{/* Barra de Pesquisa e Filtros */}
+			<div className="flex flex-row gap-4">
+				<div className="flex-1">
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+						<Input
+							placeholder="Buscar produtos..."
+							value={state.search}
+							onChange={(e) => updateSingleValue("search", e.target.value)}
+							className="pl-10"
+						/>
+					</div>
+				</div>
+				<div className="flex gap-2">
+					<FilterPopover
+						onClearFilters={clearFilters}
+						hasActiveFilters={hasActiveFilters}
+						additionalFilters={
+							<div className="space-y-4">
+								<div>
+									<label className="text-sm font-medium">Localização</label>
+									<Select value={String(state.location)} onValueChange={(value) => updateSingleValue("location", value)}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">Todas</SelectItem>
+											<SelectItem value="Despensa">Despensa</SelectItem>
+											<SelectItem value="Geladeira">Geladeira</SelectItem>
+											<SelectItem value="Freezer">Freezer</SelectItem>
+											<SelectItem value="Armário">Armário</SelectItem>
+											<SelectItem value="Garagem">Garagem</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<label className="text-sm font-medium">Filtro</label>
+									<Select value={String(state.filter)} onValueChange={(value) => updateSingleValue("filter", value)}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">Todos</SelectItem>
+											<SelectItem value="expiring_soon">Vencendo em Breve</SelectItem>
+											<SelectItem value="expired">Vencidos</SelectItem>
+											<SelectItem value="low_stock">Estoque Baixo</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex items-center space-x-2">
+									<input
+										type="checkbox"
+										id="includeExpired"
+										checked={state.includeExpired === "true"}
+										onChange={(e) => updateSingleValue("includeExpired", e.target.checked.toString())}
+										className="rounded"
+									/>
+									<label htmlFor="includeExpired" className="text-sm">
+										Incluir vencidos
+									</label>
+								</div>
+							</div>
+						}
+					/>
+					<Button onClick={() => setShowAddDialog(true)}>
+						<Plus className="mr-2 h-4 w-4" />
+						Adicionar
+					</Button>
+				</div>
 			</div>
 
-			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-				<TabsList className="grid w-full grid-cols-2">
-					<TabsTrigger value="stock" className="flex items-center gap-2">
-						<Package className="h-4 w-4" />
-						Estoque
-					</TabsTrigger>
-					<TabsTrigger value="history" className="flex items-center gap-2">
-						<History className="h-4 w-4" />
-						Histórico
-					</TabsTrigger>
+			{/* Tabs */}
+			<Tabs defaultValue="stock" className="space-y-6">
+				<TabsList>
+					<TabsTrigger value="stock">Estoque</TabsTrigger>
+					<TabsTrigger value="history">Histórico</TabsTrigger>
+					<TabsTrigger value="recipes">Receitas</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="stock" className="space-y-6">
-					{isLoading ? (
-						<>
-							<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-								<Card key="skeleton-stats-1">
-									<CardHeader className="pb-2 sm:pb-3">
-										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-									</CardContent>
-								</Card>
-								<Card key="skeleton-stats-2">
-									<CardHeader className="pb-2 sm:pb-3">
-										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-									</CardContent>
-								</Card>
-								<Card key="skeleton-stats-3">
-									<CardHeader className="pb-2 sm:pb-3">
-										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-									</CardContent>
-								</Card>
-								<Card key="skeleton-stats-4">
-									<CardHeader className="pb-2 sm:pb-3">
-										<Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
-									</CardContent>
-								</Card>
-							</div>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								<Card key="skeleton-item-1">
-									<CardHeader className="pb-3">
-										<div className="flex justify-between items-start">
-											<div className="flex-1">
-												<Skeleton className="h-6 w-32" />
-												<Skeleton className="h-4 w-24 mt-2" />
-											</div>
-											<div className="flex gap-1">
-												<Skeleton className="h-8 w-8" />
-												<Skeleton className="h-8 w-8" />
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<Skeleton className="h-4 w-full" />
-										<Skeleton className="h-4 w-3/4" />
-										<Skeleton className="h-4 w-1/2" />
-									</CardContent>
-								</Card>
-								<Card key="skeleton-item-2">
-									<CardHeader className="pb-3">
-										<div className="flex justify-between items-start">
-											<div className="flex-1">
-												<Skeleton className="h-6 w-32" />
-												<Skeleton className="h-4 w-24 mt-2" />
-											</div>
-											<div className="flex gap-1">
-												<Skeleton className="h-8 w-8" />
-												<Skeleton className="h-8 w-8" />
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<Skeleton className="h-4 w-full" />
-										<Skeleton className="h-4 w-3/4" />
-										<Skeleton className="h-4 w-1/2" />
-									</CardContent>
-								</Card>
-								<Card key="skeleton-item-3">
-									<CardHeader className="pb-3">
-										<div className="flex justify-between items-start">
-											<div className="flex-1">
-												<Skeleton className="h-6 w-32" />
-												<Skeleton className="h-4 w-24 mt-2" />
-											</div>
-											<div className="flex gap-1">
-												<Skeleton className="h-8 w-8" />
-												<Skeleton className="h-8 w-8" />
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<Skeleton className="h-4 w-full" />
-										<Skeleton className="h-4 w-3/4" />
-										<Skeleton className="h-4 w-1/2" />
-									</CardContent>
-								</Card>
-							</div>
-						</>
-					) : (
-						<>
-							<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-								<Card>
-									<CardHeader className="pb-2 sm:pb-3">
-										<CardTitle className="text-xs sm:text-sm text-gray-600">Total de Itens</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<div className="text-lg sm:text-2xl font-bold">{stats?.totalItems || 0}</div>
-									</CardContent>
-								</Card>
-								<Card>
-									<CardHeader className="pb-2 sm:pb-3">
-										<CardTitle className="text-xs sm:text-sm text-gray-600">Valor do Estoque</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<div className="text-lg sm:text-2xl font-bold">R$ {(stats?.totalValue || 0).toFixed(2)}</div>
-									</CardContent>
-								</Card>
-								<Card>
-									<CardHeader className="pb-2 sm:pb-3">
-										<CardTitle className="text-xs sm:text-sm text-gray-600">Vencendo</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<div className="text-lg sm:text-2xl font-bold text-orange-600">
-											{(stats?.expiringSoon || 0) + (stats?.expiringToday || 0)}
-										</div>
-									</CardContent>
-								</Card>
-								<Card>
-									<CardHeader className="pb-2 sm:pb-3">
-										<CardTitle className="text-xs sm:text-sm text-gray-600">Estoque Baixo</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<div className="text-lg sm:text-2xl font-bold text-red-600">{stats?.lowStockItems || 0}</div>
-									</CardContent>
-								</Card>
-							</div>
+					{/* Estatísticas */}
+					<StockStats stats={stats} isLoading={isLoading} />
 
-							<div className="flex items-stretch sm:items-center gap-2 mb-6">
-								<div className="relative flex-1">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-									<Input
-										placeholder="Buscar produtos..."
-										value={state.search as string}
-										onChange={(e) => updateSingleValue("search", e.target.value)}
-										className="pl-10"
-									/>
-								</div>
-									<FilterPopover
-										additionalFilters={additionalFilters}
-										hasActiveFilters={hasActiveFilters}
-										onClearFilters={clearFilters}
-									/>
-							</div>
+					{/* Grid de Produtos */}
+					<StockGrid
+						items={stockItems}
+						isLoading={isLoading}
+						onView={handleViewItem}
+						onEdit={handleEditItem}
+						onDelete={handleDeleteItem}
+						onUse={handleUseItem}
+						onWaste={handleWasteItem}
+					/>
 
-							{stockItems.length === 0 ? (
-								<Card className="w-full">
-									<CardContent className="text-center py-12">
-										<Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-										<h3 className="text-lg font-medium mb-2">
-											{hasActiveFilters ? "Nenhum item encontrado" : "Estoque vazio"}
-										</h3>
-										<p className="text-gray-600 mb-4">
-											{hasActiveFilters
-												? "Tente ajustar os filtros"
-												: "Adicione produtos ao seu estoque para começar o controle"}
-										</p>
-										{hasActiveFilters && (
-											<Button variant="outline" onClick={clearFilters}>
-												<Filter className="h-4 w-4 mr-2" />
-												Limpar Filtros
-											</Button>
-										)}
-									</CardContent>
-								</Card>
-							) : (
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-									{stockItems.map((item: StockItem) => (
-										<Card key={item.id} className="relative">
-											<CardHeader className="pb-3">
-												<div className="flex justify-between items-start">
-													<div className="flex-1">
-														<CardTitle className="text-base">{item.product.name}</CardTitle>
-														{item.product.brand && <CardDescription>{item.product.brand.name}</CardDescription>}
-													</div>
-													<div className="flex gap-1">
-														<Button variant="outline" size="sm" onClick={() => router.push(`/estoque/${item.id}`)}>
-															<Edit className="h-3 w-3" />
-														</Button>
-														<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(item)}>
-															<Trash2 className="h-3 w-3" />
-														</Button>
-													</div>
-												</div>
-											</CardHeader>
-											<CardContent className="space-y-3">
-												<div className="flex items-center justify-between">
-													<span className="text-sm text-gray-600">Quantidade:</span>
-													<div className="flex items-center gap-2">
-														<Badge variant={item.stockStatus === "low" ? "destructive" : "secondary"}>
-															{item.quantity} {item.product.unit}
-														</Badge>
-													</div>
-												</div>
-												{item.location && (
-													<div className="flex items-center justify-between">
-														<span className="text-sm text-gray-600">Local:</span>
-														<div className="flex items-center gap-1">
-															<MapPin className="h-3 w-3 text-gray-400" />
-															<span className="text-sm">{item.location}</span>
-														</div>
-													</div>
-												)}
-												{item.expirationDate && (
-													<div className="flex items-center justify-between">
-														<span className="text-sm text-gray-600">Validade:</span>
-														<Badge className={getExpirationColor(item.expirationStatus)}>
-															{formatLocalDate(item.expirationDate, "dd/MM/yyyy", {
-																locale: ptBR,
-															})}
-														</Badge>
-													</div>
-												)}
-												{(item.expirationWarning || item.stockWarning) && (
-													<div className="space-y-1">
-														{item.expirationWarning && (
-															<div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
-																<AlertTriangle className="h-3 w-3" />
-																{item.expirationWarning}
-															</div>
-														)}
-														{item.stockWarning && (
-															<div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-																<TrendingDown className="h-3 w-3" />
-																{item.stockWarning}
-															</div>
-														)}
-													</div>
-												)}
-												{item.totalValue && (
-													<div className="flex items-center justify-between pt-2 border-t">
-														<span className="text-sm text-gray-600">Valor:</span>
-														<div className="flex items-center gap-1">
-															<DollarSign className="h-3 w-3 text-gray-400" />
-															<span className="text-sm font-medium">R$ {item.totalValue.toFixed(2)}</span>
-														</div>
-													</div>
-												)}
-												<div className="flex gap-2 pt-2">
-													<Button variant="outline" size="sm" onClick={() => handleUseItem(item)} className="flex-1">
-														Usar
-													</Button>
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => handleOpenWasteDialog(item)}
-														className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-													>
-														<AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-														<span className="hidden sm:inline">Desperdício</span>
-														<span className="sm:hidden">Desperdício</span>
-													</Button>
-												</div>
-											</CardContent>
-										</Card>
-									))}
-								</div>
-							)}
-						</>
+					{/* Paginação */}
+					{stockData?.pagination && (
+						<StockPagination
+							totalPages={stockData.pagination.totalPages}
+							currentPage={currentPage}
+							onPageChange={setCurrentPage}
+						/>
 					)}
 				</TabsContent>
 
 				<TabsContent value="history" className="space-y-6">
-					<StockHistory />
+					<StockHistory 
+						currentPage={historyPage}
+						onPageChange={setHistoryPage}
+					/>
+				</TabsContent>
+
+				<TabsContent value="recipes" className="space-y-6">
+					<RecipeSuggester ingredientList={stockIngredients} />
 				</TabsContent>
 			</Tabs>
 
+			{/* Diálogo de Adicionar */}
 			<ResponsiveDialog open={showAddDialog} onOpenChange={setShowAddDialog} title="Adicionar ao Estoque" maxWidth="md">
-				<form onSubmit={handleAddStock} className="space-y-4">
-					<div className="space-y-2">
-						<Label>Produto *</Label>
-						<ProductSelect
-							value={formData.productId}
-							products={products}
-							onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
-							preserveFormData={{
-								formData,
-								stockItems,
-								returnContext: "estoque",
-							}}
-						/>
-					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label>Quantidade *</Label>
-							<Input
-								type="number"
-								step="0.01"
-								min="0.01"
-								value={formData.quantity}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										quantity: parseFloat(e.target.value) || 1,
-									}))
-								}
-								required
-							/>
+				<StockForm
+					products={products}
+					onSubmit={handleCreateStock}
+					onCancel={() => setShowAddDialog(false)}
+				/>
+			</ResponsiveDialog>
+
+			{/* Diálogo de Editar */}
+			<ResponsiveDialog open={showEditDialog} onOpenChange={setShowEditDialog} title="Editar Item do Estoque" maxWidth="md">
+				{selectedItem && (
+					<StockForm
+						initialData={selectedItem}
+						products={products}
+						onSubmit={handleUpdateStock}
+						onCancel={() => {
+							setShowEditDialog(false)
+							setSelectedItem(null)
+						}}
+					/>
+				)}
+			</ResponsiveDialog>
+
+			{/* Diálogo de Detalhes */}
+			<ResponsiveDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog} title="Detalhes do Item" maxWidth="lg">
+				{selectedItem && <StockDetails item={selectedItem} />}
+			</ResponsiveDialog>
+
+			{/* Diálogo de Usar Produto */}
+			<ResponsiveDialog open={showUseDialog} onOpenChange={setShowUseDialog} title="Usar Produto" maxWidth="sm">
+				{selectedItem && (
+					<div className="space-y-4">
+						<div className="text-center">
+							<h3 className="text-lg font-semibold">{selectedItem.product.name}</h3>
+							<p className="text-sm text-gray-600">
+								Quantidade disponível: {selectedItem.quantity} {selectedItem.product.unit}
+							</p>
 						</div>
-						<div className="space-y-2">
-							<Label>Preço Unitário</Label>
-							<Input
+						<div>
+							<label className="text-sm font-medium">Quantidade a usar</label>
+							<input
 								type="number"
 								step="0.01"
 								min="0"
-								value={formData.unitCost}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										unitCost: parseFloat(e.target.value) || 0,
-									}))
-								}
-								placeholder="0.00"
+								value={consumedQuantity}
+								onChange={(e) => {
+									const value = e.target.value
+									setConsumedQuantity(value)
+									
+									// Verificar se a quantidade excede o estoque disponível
+									if (value && selectedItem) {
+										const quantityToUse = parseFloat(value)
+										const availableQuantity = selectedItem.quantity
+										setIsQuantityExceeding(quantityToUse > availableQuantity)
+									} else {
+										setIsQuantityExceeding(false)
+									}
+								}}
+								className={`w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+									isQuantityExceeding 
+										? "border-red-500 focus:ring-red-500 bg-red-50" 
+										: "border-gray-300 focus:ring-blue-500"
+								}`}
+								placeholder="Digite a quantidade"
 							/>
-						</div>
-					</div>
-					<div className="space-y-2">
-						<Label>Data de Validade</Label>
-						<Input
-							type="date"
-							value={toDateInputValue(formData.expirationDate)}
-							onChange={(e) =>
-								setFormData((prev) => ({
-									...prev,
-									expirationDate: e.target.value,
-								}))
-							}
-						/>
-					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label>Localização</Label>
-							<Select
-								value={formData.location}
-								onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="Despensa">Despensa</SelectItem>
-									<SelectItem value="Geladeira">Geladeira</SelectItem>
-									<SelectItem value="Freezer">Freezer</SelectItem>
-									<SelectItem value="Área de Serviço">Área de Serviço</SelectItem>
-									<SelectItem value="Outro">Outro</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="space-y-2">
-							<Label>Lote/Batch</Label>
-							<Input
-								value={formData.batchNumber}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										batchNumber: e.target.value,
-									}))
-								}
-								placeholder="Ex: L2024001"
-							/>
-						</div>
-					</div>
-					<div className="space-y-2">
-						<Label>Observações</Label>
-						<Input
-							value={formData.notes}
-							onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-							placeholder="Observações sobre o produto..."
-						/>
-					</div>
-					<div className="flex gap-2 pt-4">
-						<Button type="submit" disabled={saving} className="flex-1">
-							{saving ? "Adicionando..." : "Adicionar"}
-						</Button>
-						<Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
-							Cancelar
-						</Button>
-					</div>
-				</form>
-			</ResponsiveDialog>
-
-			<ResponsiveDialog
-				open={showUseDialog}
-				onOpenChange={setShowUseDialog}
-				title="Usar Produto do Estoque"
-				maxWidth="md"
-			>
-				<div className="space-y-4">
-					{useItem && (
-						<>
-							<div className="space-y-2">
-								<p className="font-medium">{useItem.product.name}</p>
-								<p className="text-sm text-gray-600">
-									Disponível: {useItem.quantity} {useItem.product.unit}
+							{isQuantityExceeding && (
+								<p className="text-sm text-red-600 mt-1">
+									⚠️ Quantidade excede o estoque disponível ({selectedItem?.quantity} {selectedItem?.product.unit})
 								</p>
-							</div>
-							<div className="space-y-2">
-								<Label>Quantidade consumida</Label>
-								<Input
-									type="number"
-									step="0.01"
-									min="0.01"
-									max={useItem.quantity}
-									value={consumedQuantity}
-									onChange={(e) => setConsumedQuantity(e.target.value)}
-									placeholder={`Máx: ${useItem.quantity} ${useItem.product.unit}`}
-									disabled={saving}
-								/>
-							</div>
-							<div className="flex gap-2 pt-4">
-								<Button
-									onClick={handleConsumeItem}
-									disabled={saving || !consumedQuantity || parseFloat(consumedQuantity) <= 0}
-									className="flex-1"
-								>
-									{saving ? "Registrando..." : "Registrar Consumo"}
-								</Button>
-								<Button variant="outline" onClick={() => setShowUseDialog(false)} disabled={saving}>
-									Cancelar
-								</Button>
-							</div>
-						</>
-					)}
-				</div>
+							)}
+						</div>
+						<div className="flex justify-end gap-3">
+							<Button variant="outline" onClick={() => setShowUseDialog(false)}>
+								Cancelar
+							</Button>
+							<Button
+								onClick={async () => {
+									if (consumedQuantity && parseFloat(consumedQuantity) > 0) {
+										const quantityToUse = parseFloat(consumedQuantity)
+										const availableQuantity = selectedItem.quantity
+										
+										// Verificar se a quantidade a ser usada é maior que a disponível
+										if (quantityToUse > availableQuantity) {
+											setShowNegativeStockConfirm(true)
+										} else {
+											await executeProductUse()
+										}
+									}
+								}}
+								disabled={!consumedQuantity || parseFloat(consumedQuantity) <= 0}
+								className={isQuantityExceeding ? "bg-orange-600 hover:bg-orange-700" : ""}
+							>
+								{isQuantityExceeding ? "⚠️ Usar (Estoque Negativo)" : "Confirmar Uso"}
+							</Button>
+						</div>
+					</div>
+				)}
 			</ResponsiveDialog>
 
+			{/* Diálogo de Desperdício */}
+			{wasteItem && (
+				<WasteDialog
+					stockItem={wasteItem}
+					open={showWasteDialog}
+					onOpenChange={setShowWasteDialog}
+					onSuccess={() => {
+						setShowWasteDialog(false)
+						setWasteItem(null)
+						refetchStock()
+					}}
+				/>
+			)}
+
+			{/* Diálogo de Confirmação de Exclusão */}
 			<ResponsiveConfirmDialog
 				open={deleteState.show}
 				onOpenChange={(open) => !open && closeDeleteConfirm()}
@@ -813,25 +443,49 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				isLoading={deleteStockMutation.isPending}
 				icon={<Trash2 className="h-8 w-8 text-red-500" />}
 			>
-				<div className="space-y-4">
-					<p>
+				<div className="space-y-2">
+					<p className="text-sm text-gray-700">
 						Tem certeza que deseja remover <strong>{deleteState.item?.product?.name}</strong> do estoque?
 					</p>
 					<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
 				</div>
 			</ResponsiveConfirmDialog>
 
-			{wasteItem && (
-				<WasteDialog
-					stockItem={wasteItem}
-					open={showWasteDialog}
-					onOpenChange={setShowWasteDialog}
-					onSuccess={() => {
-						refetchStock()
-						setWasteItem(null)
-					}}
-				/>
-			)}
+			{/* Dialog de confirmação para estoque negativo */}
+			<ResponsiveConfirmDialog
+				open={showNegativeStockConfirm}
+				onOpenChange={(open) => !open && setShowNegativeStockConfirm(false)}
+				title="⚠️ Atenção - Estoque Negativo"
+				description="A quantidade a ser usada excede o estoque disponível"
+				onConfirm={executeProductUse}
+				onCancel={() => setShowNegativeStockConfirm(false)}
+				confirmText="Sim, Usar Mesmo Assim"
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				icon={<AlertTriangle className="h-8 w-8 text-orange-500" />}
+			>
+				<div className="space-y-3">
+					<div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+						<div className="flex items-start gap-3">
+							<AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+							<div className="space-y-2">
+								<p className="text-sm font-medium text-orange-800">
+									Quantidade a ser usada: <strong>{consumedQuantity && parseFloat(consumedQuantity)} {selectedItem?.product.unit}</strong>
+								</p>
+								<p className="text-sm text-orange-700">
+									Estoque disponível: <strong>{selectedItem?.quantity} {selectedItem?.product.unit}</strong>
+								</p>
+								<p className="text-sm text-orange-600">
+									Resultado: <strong>Estoque negativo de {consumedQuantity && parseFloat(consumedQuantity) - (selectedItem?.quantity || 0)} {selectedItem?.product.unit}</strong>
+								</p>
+							</div>
+						</div>
+					</div>
+					<p className="text-sm text-gray-600">
+						Esta ação resultará em um estoque negativo. Tem certeza que deseja continuar?
+					</p>
+				</div>
+			</ResponsiveConfirmDialog>
 		</div>
 	)
 }
