@@ -19,6 +19,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { MarketSelect } from "@/components/selects/market-select"
 import { ProductSelect } from "@/components/selects/product-select"
+import { PriceRecordSkeleton } from "@/components/skeletons/price-record-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -98,6 +99,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([])
 	const [loading, setLoading] = useState(false)
+	const [initialLoading, setInitialLoading] = useState(true)
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedMarket, setSelectedMarket] = useState("")
 	const [selectedProduct, setSelectedProduct] = useState("")
@@ -133,6 +135,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			toast.error("Erro ao conectar com o servidor")
 		} finally {
 			setLoading(false)
+			setInitialLoading(false)
 		}
 	}
 
@@ -218,6 +221,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	useEffect(() => {
 		loadPriceRecords()
 	}, [loadPriceRecords])
+
+	if (initialLoading) {
+		return <PriceRecordSkeleton />
+	}
 
 	return (
 		<div className="space-y-6">
