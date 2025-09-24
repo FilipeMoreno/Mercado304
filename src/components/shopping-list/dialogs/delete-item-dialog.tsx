@@ -1,8 +1,7 @@
 "use client"
 
 import { Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 
 interface ShoppingListItem {
 	id: string
@@ -36,34 +35,28 @@ interface DeleteItemDialogProps {
 }
 
 export function DeleteItemDialog({ isOpen, onClose, deleteItemConfirm, onDelete, deleting }: DeleteItemDialogProps) {
+	if (!deleteItemConfirm) return null
+
 	return (
-		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-md">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<Trash2 className="h-5 w-5 text-red-500" />
-						Remover Item
-					</DialogTitle>
-				</DialogHeader>
-				{deleteItemConfirm && (
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja remover{" "}
-							<strong>{deleteItemConfirm.product?.name || deleteItemConfirm.productName}</strong> da lista?
-						</p>
-						<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
-						<div className="flex gap-2 pt-4">
-							<Button variant="destructive" onClick={onDelete} disabled={deleting} className="flex-1">
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleting ? "Removendo..." : "Sim, Remover"}
-							</Button>
-							<Button variant="outline" onClick={onClose}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				)}
-			</DialogContent>
-		</Dialog>
+		<ResponsiveConfirmDialog
+			open={isOpen}
+			onOpenChange={(open) => !open && onClose()}
+			title="Remover Item"
+			onConfirm={onDelete}
+			onCancel={onClose}
+			confirmText="Sim, Remover"
+			cancelText="Cancelar"
+			confirmVariant="destructive"
+			isLoading={deleting}
+			icon={<Trash2 className="h-8 w-8 text-red-500" />}
+		>
+			<div className="space-y-4">
+				<p>
+					Tem certeza que deseja remover{" "}
+					<strong>{deleteItemConfirm.product?.name || deleteItemConfirm.productName}</strong> da lista?
+				</p>
+				<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
+			</div>
+		</ResponsiveConfirmDialog>
 	)
 }

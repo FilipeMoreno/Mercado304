@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MobileModal } from "@/components/ui/mobile-modal"
 import { useMobile } from "@/hooks/use-mobile"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 interface ResponsiveDialogProps {
 	open: boolean
@@ -60,12 +61,16 @@ export function ResponsiveDialog({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className={maxWidthClasses[maxWidth]}>
-				{(title || description) && (
-					<DialogHeader>
-						{title && <DialogTitle>{title}</DialogTitle>}
-						{description && <DialogDescription>{description}</DialogDescription>}
-					</DialogHeader>
-				)}
+				<DialogHeader>
+					{title ? (
+						<DialogTitle>{title}</DialogTitle>
+					) : (
+						<VisuallyHidden asChild>
+							<DialogTitle>Dialog</DialogTitle>
+						</VisuallyHidden>
+					)}
+					{description && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
 				{children}
 			</DialogContent>
 		</Dialog>

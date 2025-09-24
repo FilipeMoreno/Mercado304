@@ -21,7 +21,7 @@ import { useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { LazyWrapper } from "@/components/ui/lazy-wrapper"
@@ -182,20 +182,20 @@ export default function DesperdiciosClient() {
 					<h1 className="text-3xl font-bold text-gray-900">Controle de Desperdícios</h1>
 					<p className="text-gray-600 mt-1">Gerencie e monitore os desperdícios de alimentos</p>
 				</div>
-				<Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-					<DialogTrigger asChild>
-						<Button>
-							<Plus className="mr-2 h-4 w-4" />
-							Registrar Desperdício
-						</Button>
-					</DialogTrigger>
-					<DialogContent className="max-w-2xl">
-						<DialogHeader>
-							<DialogTitle>Registrar Novo Desperdício</DialogTitle>
-						</DialogHeader>
+				<div>
+					<Button onClick={() => setShowCreateDialog(true)}>
+						<Plus className="mr-2 h-4 w-4" />
+						Registrar Desperdício
+					</Button>
+					<ResponsiveDialog
+						open={showCreateDialog}
+						onOpenChange={setShowCreateDialog}
+						title="Registrar Novo Desperdício"
+						maxWidth="2xl"
+					>
 						<WasteForm onSubmit={handleCreateRecord} onCancel={() => setShowCreateDialog(false)} />
-					</DialogContent>
-				</Dialog>
+					</ResponsiveDialog>
+				</div>
 			</div>
 
 			{/* Estatísticas Principais */}
@@ -497,33 +497,33 @@ export default function DesperdiciosClient() {
 			</div>
 
 			{/* Dialog de detalhes */}
-			<Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-				<DialogContent className="max-w-2xl">
-					<DialogHeader>
-						<DialogTitle>Detalhes do Desperdício</DialogTitle>
-					</DialogHeader>
-					{selectedRecord && <WasteDetails record={selectedRecord} />}
-				</DialogContent>
-			</Dialog>
+			<ResponsiveDialog
+				open={showDetailsDialog}
+				onOpenChange={setShowDetailsDialog}
+				title="Detalhes do Desperdício"
+				maxWidth="2xl"
+			>
+				{selectedRecord && <WasteDetails record={selectedRecord} />}
+			</ResponsiveDialog>
 
 			{/* Dialog de edição */}
-			<Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-				<DialogContent className="max-w-2xl">
-					<DialogHeader>
-						<DialogTitle>Editar Desperdício</DialogTitle>
-					</DialogHeader>
-					{selectedRecord && (
-						<WasteForm
-							initialData={selectedRecord}
-							onSubmit={handleUpdateRecord}
-							onCancel={() => {
-								setShowEditDialog(false)
-								setSelectedRecord(null)
-							}}
-						/>
-					)}
-				</DialogContent>
-			</Dialog>
+			<ResponsiveDialog
+				open={showEditDialog}
+				onOpenChange={setShowEditDialog}
+				title="Editar Desperdício"
+				maxWidth="2xl"
+			>
+				{selectedRecord && (
+					<WasteForm
+						initialData={selectedRecord}
+						onSubmit={handleUpdateRecord}
+						onCancel={() => {
+							setShowEditDialog(false)
+							setSelectedRecord(null)
+						}}
+					/>
+				)}
+			</ResponsiveDialog>
 		</div>
 	)
 }

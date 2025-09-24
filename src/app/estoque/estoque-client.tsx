@@ -26,7 +26,8 @@ import { StockHistory } from "@/components/stock-history"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -591,206 +592,189 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				</TabsContent>
 			</Tabs>
 
-			<Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Plus className="h-5 w-5" />
-							Adicionar ao Estoque
-						</DialogTitle>
-					</DialogHeader>
-					<form onSubmit={handleAddStock} className="space-y-4">
+			<ResponsiveDialog
+				open={showAddDialog}
+				onOpenChange={setShowAddDialog}
+				title="Adicionar ao Estoque"
+				maxWidth="md"
+			>
+				<form onSubmit={handleAddStock} className="space-y-4">
+					<div className="space-y-2">
+						<Label>Produto *</Label>
+						<ProductSelect
+							value={formData.productId}
+							products={products}
+							onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
+							preserveFormData={{
+								formData,
+								stockItems,
+								returnContext: "estoque",
+							}}
+						/>
+					</div>
+					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-2">
-							<Label>Produto *</Label>
-							<ProductSelect
-								value={formData.productId}
-								products={products}
-								onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
-								preserveFormData={{
-									formData,
-									stockItems,
-									returnContext: "estoque",
-								}}
+							<Label>Quantidade *</Label>
+							<Input
+								type="number"
+								step="0.01"
+								min="0.01"
+								value={formData.quantity}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										quantity: parseFloat(e.target.value) || 1,
+									}))
+								}
+								required
 							/>
 						</div>
-						<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label>Preço Unitário</Label>
+							<Input
+								type="number"
+								step="0.01"
+								min="0"
+								value={formData.unitCost}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										unitCost: parseFloat(e.target.value) || 0,
+									}))
+								}
+								placeholder="0.00"
+							/>
+						</div>
+					</div>
+					<div className="space-y-2">
+						<Label>Data de Validade</Label>
+						<Input
+							type="date"
+							value={toDateInputValue(formData.expirationDate)}
+							onChange={(e) =>
+								setFormData((prev) => ({
+									...prev,
+									expirationDate: e.target.value,
+								}))
+							}
+						/>
+					</div>
+					<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label>Localização</Label>
+							<Select
+								value={formData.location}
+								onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
+							>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="Despensa">Despensa</SelectItem>
+									<SelectItem value="Geladeira">Geladeira</SelectItem>
+									<SelectItem value="Freezer">Freezer</SelectItem>
+									<SelectItem value="Área de Serviço">Área de Serviço</SelectItem>
+									<SelectItem value="Outro">Outro</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="space-y-2">
+							<Label>Lote/Batch</Label>
+							<Input
+								value={formData.batchNumber}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										batchNumber: e.target.value,
+									}))
+								}
+								placeholder="Ex: L2024001"
+							/>
+						</div>
+					</div>
+					<div className="space-y-2">
+						<Label>Observações</Label>
+						<Input
+							value={formData.notes}
+							onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+							placeholder="Observações sobre o produto..."
+						/>
+					</div>
+					<div className="flex gap-2 pt-4">
+						<Button type="submit" disabled={saving} className="flex-1">
+							{saving ? "Adicionando..." : "Adicionar"}
+						</Button>
+						<Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+							Cancelar
+						</Button>
+					</div>
+				</form>
+			</ResponsiveDialog>
+
+			<ResponsiveDialog
+				open={showUseDialog}
+				onOpenChange={setShowUseDialog}
+				title="Usar Produto do Estoque"
+				maxWidth="md"
+			>
+				<div className="space-y-4">
+					{useItem && (
+						<>
 							<div className="space-y-2">
-								<Label>Quantidade *</Label>
+								<p className="font-medium">{useItem.product.name}</p>
+								<p className="text-sm text-gray-600">
+									Disponível: {useItem.quantity} {useItem.product.unit}
+								</p>
+							</div>
+							<div className="space-y-2">
+								<Label>Quantidade consumida</Label>
 								<Input
 									type="number"
 									step="0.01"
 									min="0.01"
-									value={formData.quantity}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											quantity: parseFloat(e.target.value) || 1,
-										}))
-									}
-									required
+									max={useItem.quantity}
+									value={consumedQuantity}
+									onChange={(e) => setConsumedQuantity(e.target.value)}
+									placeholder={`Máx: ${useItem.quantity} ${useItem.product.unit}`}
+									disabled={saving}
 								/>
 							</div>
-							<div className="space-y-2">
-								<Label>Preço Unitário</Label>
-								<Input
-									type="number"
-									step="0.01"
-									min="0"
-									value={formData.unitCost}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											unitCost: parseFloat(e.target.value) || 0,
-										}))
-									}
-									placeholder="0.00"
-								/>
-							</div>
-						</div>
-						<div className="space-y-2">
-							<Label>Data de Validade</Label>
-							<Input
-								type="date"
-								value={toDateInputValue(formData.expirationDate)}
-								onChange={(e) =>
-									setFormData((prev) => ({
-										...prev,
-										expirationDate: e.target.value,
-									}))
-								}
-							/>
-						</div>
-						<div className="grid grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<Label>Localização</Label>
-								<Select
-									value={formData.location}
-									onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
+							<div className="flex gap-2 pt-4">
+								<Button
+									onClick={handleConsumeItem}
+									disabled={saving || !consumedQuantity || parseFloat(consumedQuantity) <= 0}
+									className="flex-1"
 								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="Despensa">Despensa</SelectItem>
-										<SelectItem value="Geladeira">Geladeira</SelectItem>
-										<SelectItem value="Freezer">Freezer</SelectItem>
-										<SelectItem value="Área de Serviço">Área de Serviço</SelectItem>
-										<SelectItem value="Outro">Outro</SelectItem>
-									</SelectContent>
-								</Select>
+									{saving ? "Registrando..." : "Registrar Consumo"}
+								</Button>
+								<Button variant="outline" onClick={() => setShowUseDialog(false)} disabled={saving}>
+									Cancelar
+								</Button>
 							</div>
-							<div className="space-y-2">
-								<Label>Lote/Batch</Label>
-								<Input
-									value={formData.batchNumber}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											batchNumber: e.target.value,
-										}))
-									}
-									placeholder="Ex: L2024001"
-								/>
-							</div>
-						</div>
-						<div className="space-y-2">
-							<Label>Observações</Label>
-							<Input
-								value={formData.notes}
-								onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-								placeholder="Observações sobre o produto..."
-							/>
-						</div>
-						<div className="flex gap-2 pt-4">
-							<Button type="submit" disabled={saving} className="flex-1">
-								{saving ? "Adicionando..." : "Adicionar"}
-							</Button>
-							<Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
-								Cancelar
-							</Button>
-						</div>
-					</form>
-				</DialogContent>
-			</Dialog>
+						</>
+					)}
+				</div>
+			</ResponsiveDialog>
 
-			<Dialog open={showUseDialog} onOpenChange={setShowUseDialog}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5 text-blue-500" />
-							Usar Produto do Estoque
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						{useItem && (
-							<>
-								<div className="space-y-2">
-									<p className="font-medium">{useItem.product.name}</p>
-									<p className="text-sm text-gray-600">
-										Disponível: {useItem.quantity} {useItem.product.unit}
-									</p>
-								</div>
-								<div className="space-y-2">
-									<Label>Quantidade consumida</Label>
-									<Input
-										type="number"
-										step="0.01"
-										min="0.01"
-										max={useItem.quantity}
-										value={consumedQuantity}
-										onChange={(e) => setConsumedQuantity(e.target.value)}
-										placeholder={`Máx: ${useItem.quantity} ${useItem.product.unit}`}
-										disabled={saving}
-									/>
-								</div>
-								<div className="flex gap-2 pt-4">
-									<Button
-										onClick={handleConsumeItem}
-										disabled={saving || !consumedQuantity || parseFloat(consumedQuantity) <= 0}
-										className="flex-1"
-									>
-										{saving ? "Registrando..." : "Registrar Consumo"}
-									</Button>
-									<Button variant="outline" onClick={() => setShowUseDialog(false)} disabled={saving}>
-										Cancelar
-									</Button>
-								</div>
-							</>
-						)}
-					</div>
-				</DialogContent>
-			</Dialog>
-
-			<Dialog open={deleteState.show} onOpenChange={(open) => !open && closeDeleteConfirm()}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-500" />
-							Confirmar Exclusão
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-4">
-						<p>
-							Tem certeza que deseja remover <strong>{deleteState.item?.product?.name}</strong> do estoque?
-						</p>
-						<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
-						<div className="flex gap-2 pt-4">
-							<Button
-								variant="destructive"
-								onClick={deleteStockItem}
-								disabled={deleteStockMutation.isPending}
-								className="flex-1"
-							>
-								<Trash2 className="h-4 w-4 mr-2" />
-								{deleteStockMutation.isPending ? "Removendo..." : "Sim, Remover"}
-							</Button>
-							<Button variant="outline" onClick={closeDeleteConfirm}>
-								Cancelar
-							</Button>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<ResponsiveConfirmDialog
+				open={deleteState.show}
+				onOpenChange={(open) => !open && closeDeleteConfirm()}
+				title="Confirmar Exclusão"
+				onConfirm={deleteStockItem}
+				onCancel={closeDeleteConfirm}
+				confirmText="Sim, Remover"
+				cancelText="Cancelar"
+				confirmVariant="destructive"
+				isLoading={deleteStockMutation.isPending}
+				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			>
+				<div className="space-y-4">
+					<p>
+						Tem certeza que deseja remover <strong>{deleteState.item?.product?.name}</strong> do estoque?
+					</p>
+					<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
+				</div>
+			</ResponsiveConfirmDialog>
 
 			{wasteItem && (
 				<WasteDialog

@@ -3,16 +3,9 @@
 import { Copy, Save } from "lucide-react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Product } from "@/types"
 
@@ -88,75 +81,75 @@ export function StockEntryDialog({
 	if (!product) return null
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="max-w-3xl">
-				<DialogHeader>
-					<DialogTitle>Detalhes do Estoque: {product.name}</DialogTitle>
-					<DialogDescription>Insira as informações para cada unidade do produto.</DialogDescription>
-				</DialogHeader>
-				<div className="max-h-[60vh] overflow-y-auto pr-4 space-y-4">
-					{entries.map((entry, index) => (
-						<div key={entry.id} className="p-4 border rounded-lg space-y-4">
-							<h4 className="font-semibold">Unidade {index + 1}</h4>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{product.hasExpiration && (
-									<div className="space-y-2">
-										<Label htmlFor={`expirationDate-${index}`}>Data de Validade</Label>
-										<Input
-											id={`expirationDate-${index}`}
-											type="date"
-											value={entry.expirationDate || ""}
-											onChange={(e) => handleEntryChange(index, "expirationDate", e.target.value)}
-										/>
-									</div>
-								)}
+		<ResponsiveDialog
+			open={isOpen}
+			onOpenChange={onClose}
+			title={`Detalhes do Estoque: ${product.name}`}
+			description="Insira as informações para cada unidade do produto."
+			maxWidth="2xl"
+		>
+			<div className="max-h-[60vh] overflow-y-auto pr-4 space-y-4">
+				{entries.map((entry, index) => (
+					<div key={entry.id} className="p-4 border rounded-lg space-y-4">
+						<h4 className="font-semibold">Unidade {index + 1}</h4>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{product.hasExpiration && (
 								<div className="space-y-2">
-									<Label htmlFor={`batchNumber-${index}`}>Lote/Batch</Label>
+									<Label htmlFor={`expirationDate-${index}`}>Data de Validade</Label>
 									<Input
-										id={`batchNumber-${index}`}
-										value={entry.batchNumber || ""}
-										onChange={(e) => handleEntryChange(index, "batchNumber", e.target.value)}
-										placeholder="Ex: L2025A"
+										id={`expirationDate-${index}`}
+										type="date"
+										value={entry.expirationDate || ""}
+										onChange={(e) => handleEntryChange(index, "expirationDate", e.target.value)}
 									/>
 								</div>
-								<div className="space-y-2">
-									<Label htmlFor={`location-${index}`}>Localização</Label>
-									<Select value={entry.location} onValueChange={(value) => handleEntryChange(index, "location", value)}>
-										<SelectTrigger id={`location-${index}`}>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="Despensa">Despensa</SelectItem>
-											<SelectItem value="Geladeira">Geladeira</SelectItem>
-											<SelectItem value="Freezer">Freezer</SelectItem>
-											<SelectItem value="Outro">Outro</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor={`notes-${index}`}>Observações</Label>
-									<Input
-										id={`notes-${index}`}
-										value={entry.notes || ""}
-										onChange={(e) => handleEntryChange(index, "notes", e.target.value)}
-										placeholder="Notas adicionais"
-									/>
-								</div>
+							)}
+							<div className="space-y-2">
+								<Label htmlFor={`batchNumber-${index}`}>Lote/Batch</Label>
+								<Input
+									id={`batchNumber-${index}`}
+									value={entry.batchNumber || ""}
+									onChange={(e) => handleEntryChange(index, "batchNumber", e.target.value)}
+									placeholder="Ex: L2025A"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor={`location-${index}`}>Localização</Label>
+								<Select value={entry.location} onValueChange={(value) => handleEntryChange(index, "location", value)}>
+									<SelectTrigger id={`location-${index}`}>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="Despensa">Despensa</SelectItem>
+										<SelectItem value="Geladeira">Geladeira</SelectItem>
+										<SelectItem value="Freezer">Freezer</SelectItem>
+										<SelectItem value="Outro">Outro</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor={`notes-${index}`}>Observações</Label>
+								<Input
+									id={`notes-${index}`}
+									value={entry.notes || ""}
+									onChange={(e) => handleEntryChange(index, "notes", e.target.value)}
+									placeholder="Notas adicionais"
+								/>
 							</div>
 						</div>
-					))}
-				</div>
-				<DialogFooter className="mt-4">
-					<Button variant="outline" onClick={applyToAll} disabled={entries.length <= 1}>
-						<Copy className="mr-2 h-4 w-4" />
-						Aplicar a Todos
-					</Button>
-					<Button onClick={handleSave}>
-						<Save className="mr-2 h-4 w-4" />
-						Salvar Detalhes
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+					</div>
+				))}
+			</div>
+			<div className="flex gap-2 pt-4 mt-4">
+				<Button variant="outline" onClick={applyToAll} disabled={entries.length <= 1}>
+					<Copy className="mr-2 h-4 w-4" />
+					Aplicar a Todos
+				</Button>
+				<Button onClick={handleSave}>
+					<Save className="mr-2 h-4 w-4" />
+					Salvar Detalhes
+				</Button>
+			</div>
+		</ResponsiveDialog>
 	)
 }

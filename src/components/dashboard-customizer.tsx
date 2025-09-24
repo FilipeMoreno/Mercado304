@@ -4,7 +4,7 @@ import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-p
 import { Cog, Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -240,15 +240,13 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 	}
 
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen}>
+		<>
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<DialogTrigger asChild>
-							<Button variant="outline" size="icon">
-								<Settings className="h-4 w-4" />
-							</Button>
-						</DialogTrigger>
+						<Button variant="outline" size="icon" onClick={() => setIsOpen(true)}>
+							<Settings className="h-4 w-4" />
+						</Button>
 					</TooltipTrigger>
 					<TooltipContent>
 						<p>Personalizar Dashboard</p>
@@ -256,15 +254,13 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				</Tooltip>
 			</TooltipProvider>
 
-			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<Cog className="h-5 w-5" />
-						Personalizar Dashboard
-					</DialogTitle>
-				</DialogHeader>
-
-				<div className="space-y-6">
+			<ResponsiveDialog
+				open={isOpen}
+				onOpenChange={setIsOpen}
+				title="Personalizar Dashboard"
+				maxWidth="2xl"
+			>
+				<div className="max-h-[70vh] overflow-y-auto space-y-6">
 					{/* Configurações Gerais */}
 					<div className="space-y-4">
 						<h3 className="text-lg font-medium">Configurações Gerais</h3>
@@ -474,7 +470,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 						</div>
 					</div>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</ResponsiveDialog>
+		</>
 	)
 }

@@ -24,7 +24,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { cn } from "@/lib/utils"
 import { UserNav } from "./user-nav"
 
@@ -216,6 +217,11 @@ export function Sidebar() {
 					</Button>
 				</SheetTrigger>
 				<SheetContent side="left" className="p-0 w-64">
+					<VisuallyHidden>
+						<SheetHeader>
+							<SheetTitle>Menu de Navegação</SheetTitle>
+						</SheetHeader>
+					</VisuallyHidden>
 					<SidebarContent />
 				</SheetContent>
 			</Sheet>
