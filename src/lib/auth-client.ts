@@ -19,10 +19,7 @@ export const authClient = createAuthClient({
 				maxAttempts: 5,
 			},
 		}),
-		passkeyClient({
-			// Configurações específicas para melhor compatibilidade
-			timeout: 60000, // 60 segundos de timeout
-		}),
+		passkeyClient(),
 	],
 })
 

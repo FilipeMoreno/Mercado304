@@ -7,6 +7,15 @@ interface EmailTemplateProps {
 	expiresIn?: string
 }
 
+interface TwoFactorTemplateProps {
+	userName?: string
+	code: string
+}
+
+interface WelcomeTemplateProps {
+	userName?: string
+}
+
 export function getEmailVerificationTemplate({ userName, url }: EmailTemplateProps) {
 	return `
 <!DOCTYPE html>
@@ -239,7 +248,7 @@ export function getPasswordResetTemplate({ userName, url }: EmailTemplateProps) 
 	`
 }
 
-export function getTwoFactorEmailTemplate({ userName, code }: EmailTemplateProps) {
+export function getTwoFactorEmailTemplate({ userName, code }: TwoFactorTemplateProps) {
 	return `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -359,7 +368,7 @@ export function getTwoFactorEmailTemplate({ userName, code }: EmailTemplateProps
 	`
 }
 
-export function getWelcomeEmailTemplate({ userName }: EmailTemplateProps) {
+export function getWelcomeEmailTemplate({ userName }: WelcomeTemplateProps) {
 	return `
 <!DOCTYPE html>
 <html lang="pt-BR">

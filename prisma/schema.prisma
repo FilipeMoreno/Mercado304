@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  url       = env("PRISMA_DATABASE_URL")
+  directUrl = env("PRISMA_DATABASE_URL")
 }
 
 model Market {
@@ -141,14 +141,14 @@ model ShoppingListItem {
   isChecked      Boolean @default(false)
   productName    String?
   productUnit    String?
-  
+
   // Campos para itens temporários
-  isTemporary     Boolean  @default(false)
-  tempDescription String?  // Descrição adicional do item temporário
-  tempBarcode     String?  // Código de barras se escaneado
-  tempBrand       String?  // Marca temporária
-  tempCategory    String?  // Categoria temporária
-  tempNotes       String?  // Observações sobre o item temporário
+  isTemporary     Boolean @default(false)
+  tempDescription String? // Descrição adicional do item temporário
+  tempBarcode     String? // Código de barras se escaneado
+  tempBrand       String? // Marca temporária
+  tempCategory    String? // Categoria temporária
+  tempNotes       String? // Observações sobre o item temporário
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -280,22 +280,22 @@ enum ExpirationAlertType {
 }
 
 model NutritionalInfo {
-  id            String  @id @default(cuid())
-  productId     String  @unique
-  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id                 String  @id @default(cuid())
+  productId          String  @unique
+  product            Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   // Informações da Tabela Nutricional Obrigatórias
-  servingSize   String? // Ex: "200 ml" ou "30 g"
+  servingSize        String? // Ex: "200 ml" ou "30 g"
   servingsPerPackage Float? // Quantas porções o produto tem
-  calories      Float? // Valor energético em kcal
-  proteins      Float? // Proteínas em g
-  totalFat      Float? // Gorduras totais em g
-  saturatedFat  Float? // Gorduras saturadas em g
-  transFat      Float? // Gorduras trans em g
-  carbohydrates Float? // Carboidratos totais em g
-  totalSugars   Float? // Açúcares totais em g
-  addedSugars   Float? // Açúcares adicionados em g
-  fiber         Float? // Fibra alimentar em g
-  sodium        Float? // Sódio em mg
+  calories           Float? // Valor energético em kcal
+  proteins           Float? // Proteínas em g
+  totalFat           Float? // Gorduras totais em g
+  saturatedFat       Float? // Gorduras saturadas em g
+  transFat           Float? // Gorduras trans em g
+  carbohydrates      Float? // Carboidratos totais em g
+  totalSugars        Float? // Açúcares totais em g
+  addedSugars        Float? // Açúcares adicionados em g
+  fiber              Float? // Fibra alimentar em g
+  sodium             Float? // Sódio em mg
 
   // Vitaminas (valores opcionais)
   vitaminA        Float? // Vitamina A em mcg
@@ -313,21 +313,21 @@ model NutritionalInfo {
   pantothenicAcid Float? // Ácido Pantotênico (Vitamina B5) em mg
 
   // Outros nutrientes (valores opcionais)
-  taurine   Float? // Taurina em mg
-  caffeine  Float? // Cafeína em mg
-  lactose      Float? // Lactose em g
-  galactose    Float? // Galactose em g
+  taurine        Float? // Taurina em mg
+  caffeine       Float? // Cafeína em mg
+  lactose        Float? // Lactose em g
+  galactose      Float? // Galactose em g
   alcoholContent Float? // Teor alcoólico em % (para bebidas alcoólicas)
-  
+
   // Ácidos graxos e gorduras especiais (valores opcionais)
-  omega3                Float? // Ômega 3 em mg
-  omega6                Float? // Ômega 6 em g
-  monounsaturatedFat    Float? // Gordura monoinsaturada em g
-  polyunsaturatedFat    Float? // Gordura poli-insaturada em g
-  cholesterol           Float? // Colesterol em mg
-  epa                   Float? // EPA em mg
-  dha                   Float? // DHA em mg
-  linolenicAcid         Float? // Ácido linolênico em mg
+  omega3             Float? // Ômega 3 em mg
+  omega6             Float? // Ômega 6 em g
+  monounsaturatedFat Float? // Gordura monoinsaturada em g
+  polyunsaturatedFat Float? // Gordura poli-insaturada em g
+  cholesterol        Float? // Colesterol em mg
+  epa                Float? // EPA em mg
+  dha                Float? // DHA em mg
+  linolenicAcid      Float? // Ácido linolênico em mg
 
   // Minerais (valores opcionais)
   calcium    Float? // Cálcio em mg

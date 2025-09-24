@@ -39,9 +39,10 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 			if (result.data) {
 				// Converte a string de data para um objeto Date
 				setCredentials(
-					result.data.map((p: { createdAt: string; [key: string]: any }) => ({
-						...p,
-						createdAt: new Date(p.createdAt),
+					result.data.map((p: any) => ({
+						id: p.id || '',
+						name: p.name || 'Passkey',
+						createdAt: new Date(p.createdAt || Date.now()),
 					})),
 				)
 			}
