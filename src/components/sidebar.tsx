@@ -35,7 +35,16 @@ const navigation = [
 	{ name: "Produtos", href: "/produtos", icon: Package },
 	{ name: "Categorias", href: "/categorias", icon: Grid3X3 },
 	{ name: "Marcas", href: "/marcas", icon: Tag },
-	{ name: "Compras", href: "/compras", icon: ShoppingCart },
+	// { name: "Compras", href: "/compras", icon: ShoppingCart },
+	{
+		name: "Compras",
+		href: "/compras",
+		icon: ShoppingCart,
+		subItems: [
+			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
+			{ name: "Importar NFc-E", href: "/compras/importar", icon: Receipt },
+		],
+	},
 	{ name: "Lista de Compras", href: "/lista", icon: List },
 	{
 		name: "Receitas",
