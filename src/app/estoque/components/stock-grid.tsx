@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface StockItem {
@@ -61,28 +62,16 @@ export function StockGrid({ items, isLoading, onView, onEdit, onDelete, onUse, o
 
 	if (items.length === 0) {
 		return (
-			<Card>
-				<CardContent className="p-12 text-center">
-					<div className="text-gray-400 mb-4">
-						<svg
-							className="mx-auto h-12 w-12"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-label="Ícone de estoque vazio"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-							/>
-						</svg>
-					</div>
-					<h3 className="text-lg font-medium mb-2 text-gray-600">Nenhum item em estoque</h3>
-					<p className="text-gray-500">Comece adicionando produtos ao seu estoque.</p>
-				</CardContent>
-			</Card>
+			<Empty className="border border-dashed py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Package className="h-6 w-6" />
+					</EmptyMedia>
+					<EmptyTitle>Nenhum item em estoque</EmptyTitle>
+					<EmptyDescription>Comece adicionando produtos ao seu estoque.</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent />
+			</Empty>
 		)
 	}
 

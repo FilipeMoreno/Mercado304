@@ -16,6 +16,7 @@ import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -363,15 +364,20 @@ export function DashboardClient() {
 						</CardHeader>
 						<CardContent>
 							{(stats?.topProducts || []).length === 0 ? (
-								<div className="text-center py-8 text-gray-500">
-									<Package className="h-12 w-12 mx-auto mb-4" />
-									<p>Nenhuma compra registrada ainda</p>
-									<p className="text-sm mt-2">
-										<Link href="/compras/nova" className="text-blue-600 hover:text-blue-800">
-											Registre sua primeira compra
+								<Empty className="border border-dashed py-8">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<Package className="h-6 w-6" />
+										</EmptyMedia>
+										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
+										<EmptyDescription>Registre sua primeira compra para ver os produtos mais comprados.</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<Link href="/compras/nova" className="inline-flex">
+											<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
 										</Link>
-									</p>
-								</div>
+									</EmptyContent>
+								</Empty>
 							) : (
 								<div className="space-y-3">
 									{(stats?.topProducts || []).slice(0, 5).map((product: TopProduct, index: number) => (
@@ -407,15 +413,20 @@ export function DashboardClient() {
 						</CardHeader>
 						<CardContent>
 							{(stats?.marketComparison || []).length === 0 ? (
-								<div className="text-center py-8 text-gray-500">
-									<Store className="h-12 w-12 mx-auto mb-4" />
-									<p>Nenhuma compra registrada ainda</p>
-									<p className="text-sm mt-2">
-										<Link href="/mercados/novo" className="text-blue-600 hover:text-blue-800">
-											Cadastre seu primeiro mercado
+								<Empty className="border border-dashed py-8">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<Store className="h-6 w-6" />
+										</EmptyMedia>
+										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
+										<EmptyDescription>Cadastre um mercado para começar a comparar preços.</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<Link href="/mercados/novo" className="inline-flex">
+											<span className="text-blue-600 hover:text-blue-800">Cadastre seu primeiro mercado</span>
 										</Link>
-									</p>
-								</div>
+									</EmptyContent>
+								</Empty>
 							) : (
 								<div className="space-y-3">
 									{(stats?.marketComparison || []).map((market: MarketComparison, index: number) => {
@@ -471,15 +482,20 @@ export function DashboardClient() {
 					</CardHeader>
 					<CardContent>
 						{(stats.recentPurchases || []).length === 0 ? (
-							<div className="text-center py-8 text-gray-500">
-								<ShoppingCart className="h-12 w-12 mx-auto mb-4" />
-								<p>Nenhuma compra registrada ainda</p>
-								<p className="text-sm mt-2">
-									<Link href="/compras/nova" className="text-blue-600 hover:text-blue-800">
-										Registre sua primeira compra
+							<Empty className="border border-dashed py-8">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<ShoppingCart className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
+									<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
+									<Link href="/compras/nova" className="inline-flex">
+										<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
 									</Link>
-								</p>
-							</div>
+								</EmptyContent>
+							</Empty>
 						) : (
 							<div className="space-y-3">
 								{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (

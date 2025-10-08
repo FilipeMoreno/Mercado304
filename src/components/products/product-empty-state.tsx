@@ -3,7 +3,7 @@
 import { Filter, Package, Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 interface ProductEmptyStateProps {
 	totalCount: number
@@ -20,29 +20,37 @@ export function ProductEmptyState({
 }: ProductEmptyStateProps) {
 	if (totalCount === 0) {
 		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2">Nenhum produto cadastrado</h3>
-					<p className="text-gray-600 mb-4">Comece adicionando seu primeiro produto</p>
+			<Empty className="border border-dashed py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Package className="h-6 w-6" />
+					</EmptyMedia>
+					<EmptyTitle>Nenhum produto cadastrado</EmptyTitle>
+					<EmptyDescription>Comece adicionando seu primeiro produto</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
 					<Link href="/produtos/novo">
 						<Button>
 							<Plus className="mr-2 h-4 w-4" />
 							Cadastrar Primeiro Produto
 						</Button>
 					</Link>
-				</CardContent>
-			</Card>
+				</EmptyContent>
+			</Empty>
 		)
 	}
 
 	if (hasActiveFilters) {
 		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
-					<p className="text-gray-600 mb-4">Tente ajustar os filtros de busca</p>
+			<Empty className="border border-dashed py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Package className="h-6 w-6" />
+					</EmptyMedia>
+					<EmptyTitle>Nenhum produto encontrado</EmptyTitle>
+					<EmptyDescription>Tente ajustar os filtros de busca</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
 					<Button
 						variant="outline"
 						onClick={() => {
@@ -53,8 +61,8 @@ export function ProductEmptyState({
 						<Filter className="h-4 w-4 mr-2" />
 						Limpar Filtros
 					</Button>
-				</CardContent>
-			</Card>
+				</EmptyContent>
+			</Empty>
 		)
 	}
 

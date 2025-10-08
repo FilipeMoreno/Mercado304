@@ -9,6 +9,7 @@ import { useCallback, useMemo, useState } from "react"
 import { MarketCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
@@ -162,37 +163,45 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				<OptimizedLoading isLoading={isLoading} skeletonType="market" skeletonCount={6}>
 					{markets.length === 0 ? (
 						state.search || state.sort !== "name-asc" ? (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Store className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhum mercado encontrado</h3>
-									<p className="text-gray-600 mb-4">Nenhum mercado corresponde aos filtros aplicados</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Store className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhum mercado encontrado</EmptyTitle>
+									<EmptyDescription>Nenhum mercado corresponde aos filtros aplicados</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Button
 										variant="outline"
 										onClick={() => {
-											setSearchValue("") // Reset o input local
+											setSearchValue("")
 											clearFilters()
 											updateSingleValue("page", 1)
 										}}
 									>
 										Limpar Filtros
 									</Button>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						) : (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Store className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhum mercado cadastrado</h3>
-									<p className="text-gray-600 mb-4">Comece adicionando seu primeiro mercado</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Store className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhum mercado cadastrado</EmptyTitle>
+									<EmptyDescription>Comece adicionando seu primeiro mercado</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Link href="/mercados/novo">
 										<Button>
 											<Plus className="mr-2 h-4 w-4" />
 											Cadastrar Primeiro Mercado
 										</Button>
 									</Link>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						)
 					) : (
 						<>
