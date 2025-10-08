@@ -20,6 +20,7 @@ interface ProductSelectProps {
 	itemIndex?: number
 	products?: Product[]
 	loading?: boolean
+	showScanButton?: boolean
 }
 
 export function ProductSelect({
@@ -30,6 +31,7 @@ export function ProductSelect({
 	disabled = false,
 	preserveFormData,
 	itemIndex,
+	showScanButton = true,
 }: ProductSelectProps) {
 	const [search, setSearch] = useState("")
 	const [isScannerOpen, setIsScannerOpen] = useState(false)
@@ -141,19 +143,23 @@ export function ProductSelect({
 					onSearchChange={handleSearchChange}
 					selectedProduct={selectedProduct}
 				/>
-				<Button
-					variant="outline"
-					size="icon"
-					onClick={() => setIsScannerOpen(true)}
-					disabled={disabled}
-					className="shrink-0"
-					title="Escanear código de barras"
-				>
-					<Camera className="h-4 w-4" />
-				</Button>
+				{showScanButton && (
+					<Button
+						variant="outline"
+						size="icon"
+						onClick={() => setIsScannerOpen(true)}
+						disabled={disabled}
+						className="shrink-0"
+						title="Escanear código de barras"
+					>
+						<Camera className="h-4 w-4" />
+					</Button>
+				)}
 			</div>
 
-			<BarcodeScanner isOpen={isScannerOpen} onScan={handleBarcodeScanned} onClose={() => setIsScannerOpen(false)} />
+			{showScanButton && (
+				<BarcodeScanner isOpen={isScannerOpen} onScan={handleBarcodeScanned} onClose={() => setIsScannerOpen(false)} />
+			)}
 		</>
 	)
 }
