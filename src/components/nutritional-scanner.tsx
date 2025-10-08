@@ -11,6 +11,25 @@ interface NutritionalScannerProps {
 	onClose: () => void
 }
 
+type ProcessingStep = 
+	| 'capturing' 
+	| 'reading_image' 
+	| 'extracting_text' 
+	| 'identifying_nutrition' 
+	| 'analyzing_ingredients' 
+	| 'calculating_values' 
+	| 'finalizing'
+
+const processingSteps: Record<ProcessingStep, string> = {
+	capturing: "🔍 Capturando imagem...",
+	reading_image: "📱 Processando imagem nutricional...",
+	extracting_text: "📄 Extraindo informações nutricionais...",
+	identifying_nutrition: "🥗 Identificando nutrientes...",
+	analyzing_ingredients: "🧪 Analisando ingredientes...",
+	calculating_values: "📊 Calculando valores nutricionais...",
+	finalizing: "✅ Finalizando análise nutricional..."
+}
+
 export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScannerProps) {
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,6 +38,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
+	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
 
 	const stopCamera = useCallback(() => {
 		if (stream) {
@@ -62,6 +82,26 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 		stopCamera()
 
 		try {
+			// Etapa 1: Processando imagem
+			setCurrentStep('reading_image')
+			await new Promise(resolve => setTimeout(resolve, 800))
+
+			// Etapa 2: Extraindo texto
+			setCurrentStep('extracting_text')
+			await new Promise(resolve => setTimeout(resolve, 1000))
+
+			// Etapa 3: Identificando nutrição
+			setCurrentStep('identifying_nutrition')
+			await new Promise(resolve => setTimeout(resolve, 1200))
+
+			// Etapa 4: Analisando ingredientes
+			setCurrentStep('analyzing_ingredients')
+			await new Promise(resolve => setTimeout(resolve, 900))
+
+			// Etapa 5: Calculando valores
+			setCurrentStep('calculating_values')
+			await new Promise(resolve => setTimeout(resolve, 700))
+
 			const response = await fetch("/api/ocr/scan", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -73,13 +113,18 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				throw new Error(error.error || "Falha na API de OCR")
 			}
 
+			// Etapa 6: Finalizando
+			setCurrentStep('finalizing')
+			await new Promise(resolve => setTimeout(resolve, 500))
+
 			const result = await response.json()
 			onScanComplete(result)
 		} catch (error) {
 			console.error("Erro ao chamar a API de OCR:", error)
 		} finally {
-			// A transição é mais suave se não fecharmos o modal imediatamente
-			// O componente pai tratará de fechar o modal em onScanComplete
+			// Reset do estado quando terminar
+			setIsProcessing(false)
+			setCurrentStep('capturing')
 		}
 	}
 
@@ -93,6 +138,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
 			const dataUrl = canvas.toDataURL("image/png")
+			setCurrentStep('capturing')
 			await processImage(dataUrl)
 		}
 	}
@@ -140,7 +186,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 								}}
 							/>
 							<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-							<p className="text-white font-semibold">Analisando com IA...</p>
+							<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
 						</div>
 					</div>
 				) : (

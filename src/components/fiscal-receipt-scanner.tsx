@@ -12,14 +12,35 @@ interface FiscalReceiptScannerProps {
 	onClose: () => void
 }
 
+// Estados de progresso da análise
+type ProcessingStep = 
+	| 'capturing' 
+	| 'reading_image' 
+	| 'extracting_text' 
+	| 'identifying_products' 
+	| 'analyzing_prices' 
+	| 'organizing_data' 
+	| 'finalizing'
+
+const processingSteps: Record<ProcessingStep, string> = {
+	capturing: "Capturando imagem...",
+	reading_image: "Lendo cupom fiscal com IA...",
+	extracting_text: "Extraindo informações do texto...",
+	identifying_products: "Identificando produtos...",
+	analyzing_prices: "Analisando preços e quantidades...",
+	organizing_data: "Organizando dados da compra...",
+	finalizing: "Finalizando análise..."
+}
+
 export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: FiscalReceiptScannerProps) {
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [stream, setStream] = useState<MediaStream | null>(null)
-	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [isProcessing, setIsProcessing] = useState(false)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
+	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
 
 	const stopCamera = useCallback(() => {
 		if (stream) {
@@ -67,6 +88,26 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 		stopCamera()
 
 		try {
+			// Etapa 1: Lendo imagem
+			setCurrentStep('reading_image')
+			await new Promise(resolve => setTimeout(resolve, 800))
+
+			// Etapa 2: Extraindo texto
+			setCurrentStep('extracting_text')
+			await new Promise(resolve => setTimeout(resolve, 1000))
+
+			// Etapa 3: Identificando produtos
+			setCurrentStep('identifying_products')
+			await new Promise(resolve => setTimeout(resolve, 1200))
+
+			// Etapa 4: Analisando preços
+			setCurrentStep('analyzing_prices')
+			await new Promise(resolve => setTimeout(resolve, 800))
+
+			// Etapa 5: Organizando dados
+			setCurrentStep('organizing_data')
+			await new Promise(resolve => setTimeout(resolve, 600))
+
 			const response = await fetch("/api/ocr/fiscal-receipt", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -78,13 +119,18 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 				throw new Error(error.error || "Falha na API de OCR")
 			}
 
+			// Etapa 6: Finalizando
+			setCurrentStep('finalizing')
+			await new Promise(resolve => setTimeout(resolve, 500))
+
 			const result = await response.json()
 			onScanComplete(result)
 		} catch (error) {
 			console.error("Erro ao chamar a API de OCR para cupom fiscal:", error)
 		} finally {
-			// A transição é mais suave se não fecharmos o modal imediatamente
-			// O componente pai tratará de fechar o modal em onScanComplete
+			// Reset do estado quando terminar
+			setIsProcessing(false)
+			setCurrentStep('capturing')
 		}
 	}
 
@@ -98,6 +144,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
 			const dataUrl = canvas.toDataURL("image/png")
+			setCurrentStep('capturing')
 			await processImage(dataUrl)
 		}
 	}
@@ -146,7 +193,15 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 									}}
 								/>
 								<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
-								<p className="text-white font-semibold">Analisando cupom fiscal com IA...</p>
+								<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
+								<div className="mt-2 text-white/80 text-sm">
+									{currentStep === 'reading_image' && "🔍 Processando imagem..."}
+									{currentStep === 'extracting_text' && "📄 Extraindo texto do cupom..."}
+									{currentStep === 'identifying_products' && "🛒 Identificando produtos..."}
+									{currentStep === 'analyzing_prices' && "💰 Analisando preços..."}
+									{currentStep === 'organizing_data' && "📊 Organizando informações..."}
+									{currentStep === 'finalizing' && "✅ Quase pronto..."}
+								</div>
 							</div>
 						</div>
 					) : (
