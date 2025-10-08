@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
-import { PlusCircle } from "lucide-react"
+import React, { useState, useEffect } from "react"
+import { PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { Dialog } from "@/components/ui/dialog"
 import { QuickProductForm } from "@/components/quick-product-form"
 import { QuickBrandForm } from "@/components/quick-brand-form"
+import { normalizeBarcode } from "@/lib/barcode-utils"
 
 // Interfaces para os dados da nota e itens mapeados
 export interface NfceItem {
@@ -21,6 +22,7 @@ export interface NfceItem {
   unit: string
   unitPrice: number
   totalPrice: number // Adicionei de volta para consistência
+  code?: string // Código de barras do produto (opcional)
 }
 
 export interface MappedPurchaseItem {
@@ -54,11 +56,77 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
       isAssociated: false,
     })),
   )
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Estados para controlar os dialogs
   const [isCreateProductDialogOpen, setIsCreateProductDialogOpen] = useState(false)
   const [isCreateBrandDialogOpen, setIsCreateBrandDialogOpen] = useState(false)
   const [currentItemIndexForCreation, setCurrentItemIndexForCreation] = useState<number | null>(null)
+
+  // Função para buscar produto por código de barras
+  const fetchProductByBarcode = async (barcode: string): Promise<Product | null> => {
+    try {
+      // Primeiro tenta com o código original
+      let response = await fetch(`/api/products/barcode/${barcode}`)
+      
+      if (!response.ok && response.status === 404) {
+        // Se não encontrou, tenta com o código normalizado
+        const normalizedCode = normalizeBarcode(barcode)
+        if (normalizedCode !== barcode) {
+          response = await fetch(`/api/products/barcode/${normalizedCode}`)
+        }
+      }
+
+      if (response.ok) {
+        return await response.json()
+      }
+      return null
+    } catch (error) {
+      console.error('Erro ao buscar produto por código de barras:', error)
+      return null
+    }
+  }
+
+  // Inicialização automática dos produtos baseada nos códigos de barras
+  useEffect(() => {
+    const initializeProducts = async () => {
+      if (isInitialized) return
+
+      const updatedItems = [...mappedItems]
+      let hasChanges = false
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.code) {
+          const product = await fetchProductByBarcode(item.code)
+          if (product) {
+            updatedItems[i] = {
+              ...updatedItems[i],
+              productId: product.id,
+              productName: product.name,
+              isAssociated: true,
+            }
+            hasChanges = true
+            toast.success(`Produto "${product.name}" associado automaticamente pelo código ${item.code}.`)
+          }
+        }
+      }
+
+      if (hasChanges) {
+        setMappedItems(updatedItems)
+      }
+      setIsInitialized(true)
+    }
+
+    initializeProducts()
+  }, [items, mappedItems, isInitialized])
+
+  // Função para remover um item da lista
+  const handleRemoveItem = (index: number) => {
+    const newItems = mappedItems.filter((_, i) => i !== index)
+    setMappedItems(newItems)
+    toast.success("Item removido da revisão.")
+  }
 
   const handleProductChange = (index: number, product: Product | null) => {
     const newItems = [...mappedItems]
@@ -103,7 +171,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
   const handleSubmit = () => {
     const confirmedItems = mappedItems
-      .filter((item) => item.isAssociated && item.productId > 0)
+      .filter((item) => item.isAssociated && item.productId && item.productId > 0)
       .map(({ originalName, isAssociated, ...rest }) => rest)
 
     if (confirmedItems.length === 0) {
@@ -192,7 +260,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                       }}
                     />
                   </div>
-                  <div className="sm:self-end">
+                  <div className="sm:self-end flex gap-2">
                     <Button
                       variant="outline"
                       className="w-full sm:w-auto"
@@ -200,6 +268,14 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Novo
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveItem(index)}
+                      title="Remover item"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

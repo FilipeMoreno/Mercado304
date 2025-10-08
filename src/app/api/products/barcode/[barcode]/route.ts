@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { normalizeBarcode } from "@/lib/barcode-utils"
 
 export async function GET(request: Request, { params }: { params: { barcode: string } }) {
 	try {
-		const product = await prisma.product.findUnique({
-			where: { barcode: params.barcode },
+		const originalBarcode = params.barcode
+		const normalizedBarcode = normalizeBarcode(originalBarcode)
+		
+		// Primeiro tenta encontrar com o código original
+		let product = await prisma.product.findUnique({
+			where: { barcode: originalBarcode },
 			include: { brand: true },
 		})
+		
+		// Se não encontrou e o código normalizado é diferente, tenta com o normalizado
+		if (!product && normalizedBarcode !== originalBarcode) {
+			product = await prisma.product.findUnique({
+				where: { barcode: normalizedBarcode },
+				include: { brand: true },
+			})
+		}
 
 		if (!product) {
 			return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 })

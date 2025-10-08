@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, QrCode, TestTube2 } from 'lucide-react';
+import { Camera, Loader2, QrCode, TestTube2 } from 'lucide-react';
 import { NfceBarcodeScanner } from '@/components/nfce-barcode-scanner';
+import { FiscalReceiptScanner } from '@/components/fiscal-receipt-scanner';
 import NfceItemReview, { MappedPurchaseItem, NfceItem } from '@/components/nfce-item-review';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -35,6 +36,7 @@ export default function ImportarCompraPage() {
   const router = useRouter();
   const [viewState, setViewState] = useState<ViewState>('idle');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isFiscalReceiptScannerOpen, setIsFiscalReceiptScannerOpen] = useState(false);
   const [nfceItems, setNfceItems] = useState<NfceItem[]>([]);
   const [manualUrl, setManualUrl] = useState(
     'http://www.fazenda.pr.gov.br/nfce/qrcode?p=41251076430438008237650080001712061008864722|2|1|1|C3B54BA4A5961DD79E730056392FBD377B092121'
@@ -47,6 +49,79 @@ export default function ImportarCompraPage() {
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
 
   const mutation = useCreatePurchaseMutation();
+
+  const handleFiscalReceiptScanComplete = async (data: any) => {
+    setIsFiscalReceiptScannerOpen(false);
+    setViewState('processing');
+    setSuggestedMarket(null);
+    setMarketId(null);
+
+    try {
+      // Mapear os dados do cupom fiscal para o formato esperado
+      const items: NfceItem[] = data.itens.map((item: any, index: number) => ({
+        id: index + 1,
+        name: item.descricao,
+        quantity: item.quantidade || 1,
+        unitPrice: item.valorUnitario || 0,
+        totalPrice: item.valorTotal || (item.valorUnitario * (item.quantidade || 1)),
+        code: item.codigo,
+        unit: item.unidade || 'UN'
+      }));
+
+      const marketInfo = {
+        name: data.estabelecimento?.nome || '',
+        address: data.estabelecimento?.endereco || '',
+        date: data.compra?.dataHoraAutorizacao ? 
+          new Date(data.compra.dataHoraAutorizacao).toLocaleDateString('pt-BR') : undefined,
+        paymentMethod: data.compra?.formaPagamento || undefined
+      };
+
+      setNfceItems(items);
+      setViewState('reviewing');
+
+      // Se a nota tiver data, atualiza o estado
+      if (marketInfo?.date) {
+        const [day, month, year] = marketInfo.date.split('/');
+        if (day && month && year) {
+          const formattedDate = `${year}-${month}-${day}`;
+          setPurchaseDate(formattedDate);
+        }
+      }
+
+      // Se a nota tiver forma de pagamento, atualiza o estado
+      if (marketInfo?.paymentMethod) {
+        const paymentMethodMap: { [key: string]: string } = {
+          'Cartão de Crédito': 'CREDIT_CARD',
+          'Cartão de Débito': 'DEBIT_CARD',
+          'Dinheiro': 'CASH',
+          'Pix': 'PIX'
+        };
+        setPaymentMethod(paymentMethodMap[marketInfo.paymentMethod] || 'OTHER');
+      }
+
+      // Tentar encontrar o mercado
+      if (marketInfo?.name) {
+        const marketResponse = await fetch('/api/markets/find-by-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(marketInfo),
+        });
+        const foundMarket = await marketResponse.json();
+        if (foundMarket) {
+          setSuggestedMarket(foundMarket);
+          setMarketId(foundMarket.id);
+          toast.info(`Mercado sugerido: ${foundMarket.name}`, {
+            description: "Verificamos o endereço da nota e encontramos um mercado correspondente.",
+          });
+        }
+      }
+
+      toast.success('Cupom fiscal processado com sucesso!');
+    } catch (error: any) {
+      toast.error("Erro ao processar cupom fiscal", { description: error.message });
+      setViewState('idle');
+    }
+  };
 
   const handleScanSuccess = async (url: string) => {
     setIsScannerOpen(false);
@@ -257,9 +332,19 @@ export default function ImportarCompraPage() {
             <CardContent className="p-6 space-y-6">
               <div className="text-center">
                 <QrCode className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">Importar Compra via QR Code</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Use a câmera para escanear o código do seu cupom fiscal.</p>
-                <Button className="mt-6" onClick={() => setIsScannerOpen(true)}>Escanear com a Câmera</Button></div>
+                <h3 className="mt-4 text-lg font-medium">Importar Compra via QR Code ou Cupom Fiscal</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Use a câmera para escanear o código do seu cupom fiscal ou tire uma foto do cupom.</p>
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                  <Button onClick={() => setIsScannerOpen(true)}>
+                    <QrCode className="h-4 w-4 mr-2" />
+                    Escanear QR Code
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsFiscalReceiptScannerOpen(true)}>
+                    <Camera className="h-4 w-4 mr-2" />
+                    Fotografar Cupom
+                  </Button>
+                </div>
+              </div>
               {process.env.NODE_ENV === 'development' && (
                 <>
                   <Separator />
@@ -285,6 +370,19 @@ export default function ImportarCompraPage() {
   }
 
   return (
-    <div className="container mx-auto p-4"><h1 className="text-3xl font-bold mb-6">Importar Compra por Nota Fiscal</h1>{renderContent()}<NfceBarcodeScanner isOpen={isScannerOpen} onScan={handleScanSuccess} onClose={() => setIsScannerOpen(false)} /></div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">Importar Compra por Nota Fiscal</h1>
+      {renderContent()}
+      <NfceBarcodeScanner 
+        isOpen={isScannerOpen} 
+        onScan={handleScanSuccess} 
+        onClose={() => setIsScannerOpen(false)} 
+      />
+      <FiscalReceiptScanner
+        isOpen={isFiscalReceiptScannerOpen}
+        onScanComplete={handleFiscalReceiptScanComplete}
+        onClose={() => setIsFiscalReceiptScannerOpen(false)}
+      />
+    </div>
   );
 }

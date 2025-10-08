@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 		// Inicializa o cliente da IA com a sua chave
 		const genAI = new GoogleGenerativeAI(apiKey)
 		const model = genAI.getGenerativeModel({
-			model: "gemini-1.5-flash", // Modelo rápido e com boa capacidade multimodal
+			model: "gemini-2.5-flash", // Modelo rápido e com boa capacidade multimodal
 		})
 
 		// Este é o "coração" da nossa lógica: o prompt.
