@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
+import type { ShoppingList } from "@/types"
 
 interface ListaClientProps {
 	searchParams: {
