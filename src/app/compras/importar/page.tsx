@@ -21,13 +21,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 type ViewState = 'idle' | 'processing' | 'reviewing';
 
 // Nova interface para a resposta da API de parse
-interface NfceParseResponse {
-  items: NfceItem[];
-  marketInfo: {
-    name: string;
-    address: string;
-  };
-}
+  interface NfceParseResponse {
+    items: NfceItem[];
+    marketInfo: {
+      name: string;
+      address: string;
+      date?: string; // Data da compra
+      paymentMethod?: string; // Forma de pagamento
+    };
+  }
 
 export default function ImportarCompraPage() {
   const router = useRouter();
@@ -66,8 +68,37 @@ export default function ImportarCompraPage() {
 
       const { items, marketInfo }: NfceParseResponse = await response.json();
 
-      setNfceItems(items);
+      // Agrupar itens com o mesmo nome
+      const groupedItems = items.reduce((acc: NfceItem[], item) => {
+        const existingItem = acc.find(i => i.name.toLowerCase() === item.name.toLowerCase());
+        if (existingItem) {
+          // Somar quantidade e atualizar preço total
+          existingItem.quantity += item.quantity;
+          existingItem.totalPrice += item.totalPrice;
+        } else {
+          // Adicionar novo item
+          acc.push({...item});
+        }
+        return acc;
+      }, []);
+
+      setNfceItems(groupedItems);
       setViewState('reviewing');
+
+      // Se a nota tiver data, atualiza o estado
+      if (marketInfo?.date) {
+        // Converte a data do formato DD/MM/YYYY para YYYY-MM-DD
+        const [day, month, year] = marketInfo.date.split('/');
+        if (day && month && year) {
+          const formattedDate = `${year}-${month}-${day}`;
+          setPurchaseDate(formattedDate);
+        }
+      }
+
+      // Se a nota tiver forma de pagamento, atualiza o estado
+      if (marketInfo?.paymentMethod) {
+        setPaymentMethod(marketInfo.paymentMethod);
+      }
 
       // Após o sucesso, tenta encontrar o mercado
       if (marketInfo?.name) {
@@ -190,22 +221,20 @@ export default function ImportarCompraPage() {
                   <Label htmlFor="market">Mercado *</Label>
                   <MarketSelect
                     key={suggestedMarket?.id} // Força a remontagem quando a sugestão muda
-                    initialMarket={suggestedMarket}
-                    onSelect={setMarketId}
+                    value={marketId?.toString()}
+                    onValueChange={(value) => setMarketId(parseInt(value))}
                   />
                 </div>
                 <div>
                   <Label htmlFor="payment-method">Forma de Pagamento</Label>
-
-                  <Select>
-                    <SelectTrigger>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger id="payment-method">
                       <SelectValue placeholder="Selecione a forma de pagamento" />
                     </SelectTrigger>
-                    <SelectContent
-                      id="payment-method" className="w-full rounded-md" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                    <SelectContent>
                       <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
                       <SelectItem value="DEBIT_CARD">Cartão de Débito</SelectItem>
-                      <SelectItem value="CASH">Dinheiro</SelectItem >
+                      <SelectItem value="CASH">Dinheiro</SelectItem>
                       <SelectItem value="PIX">Pix</SelectItem>
                       <SelectItem value="OTHER">Outro</SelectItem>
                     </SelectContent>

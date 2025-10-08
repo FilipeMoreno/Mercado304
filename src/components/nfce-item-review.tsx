@@ -174,15 +174,22 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                   <div className="flex-grow">
                     <Label>Associar ao Produto</Label>
                     <ProductSelect
-                      initialProduct={
-                        item.productId
-                          ? ({
-                            id: item.productId,
-                            name: item.productName,
-                          } as Product) // Casting para o tipo esperado
-                          : null
-                      }
-                      onProductSelect={(product) => handleProductChange(index, product)}
+                      value={item.productId ? item.productId.toString() : undefined}
+                      onValueChange={(value) => {
+                        if (value) {
+                          // Buscar o produto pelo ID para obter o nome
+                          fetch(`/api/products/${value}`)
+                            .then(res => res.json())
+                            .then(product => {
+                              handleProductChange(index, product);
+                            })
+                            .catch(err => {
+                              console.error("Erro ao buscar produto:", err);
+                            });
+                        } else {
+                          handleProductChange(index, null);
+                        }
+                      }}
                     />
                   </div>
                   <div className="sm:self-end">
