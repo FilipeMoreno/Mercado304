@@ -305,7 +305,11 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							totalPages={pagination.totalPages}
 						/>
 
-						<ProductList products={products} onDelete={handleProductDelete} />
+						<ProductList 
+				products={products} 
+				onDelete={handleProductDelete}
+				onEdit={(product) => router.push(`/produtos/${product.id}/editar`)}
+			/>
 
 						<ProductPagination
 							currentPage={pagination.currentPage}

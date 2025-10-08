@@ -268,7 +268,11 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: index * 0.05 }}
 									>
-										<CategoryCardMemo category={category} onDelete={openDeleteConfirm} />
+										<CategoryCardMemo 
+											category={category} 
+											onDelete={openDeleteConfirm}
+											onEdit={(category) => router.push(`/categorias/${category.id}/editar`)}
+										/>
 									</motion.div>
 								))}
 							</motion.div>

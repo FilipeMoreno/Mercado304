@@ -249,7 +249,11 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: index * 0.05 }}
 									>
-										<BrandCardMemo brand={brand} onDelete={openDeleteConfirm} />
+										<BrandCardMemo 
+											brand={brand} 
+											onDelete={openDeleteConfirm}
+											onEdit={(brand) => router.push(`/marcas/${brand.id}/editar`)}
+										/>
 									</motion.div>
 								))}
 							</motion.div>
