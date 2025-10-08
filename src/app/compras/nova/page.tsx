@@ -97,6 +97,10 @@ export default function NovaCompraPage() {
 	])
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
+// Inputs control arrays to support empty values (qty with 3 decimals, price with 2)
+const [quantityInputs, setQuantityInputs] = useState<string[]>(["1.000"])
+const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
+
 	const fetchData = React.useCallback(async () => {
 		try {
 			const productsRes = await fetch("/api/products")
@@ -169,6 +173,8 @@ export default function NovaCompraPage() {
 			},
 		])
 		setCheckingPrices([...checkingPrices, false])
+    setQuantityInputs((prev) => [...prev, "1.000"])
+    setUnitPriceInputs((prev) => [...prev, "0.00"])
 	}
 
 	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
@@ -199,6 +205,8 @@ export default function NovaCompraPage() {
 		if (items.length > 1) {
 			setItems(items.filter((_, i) => i !== index))
 			setCheckingPrices(checkingPrices.filter((_, i) => i !== index))
+			setQuantityInputs((prev) => prev.filter((_, i) => i !== index))
+			setUnitPriceInputs((prev) => prev.filter((_, i) => i !== index))
 		}
 	}
 
@@ -313,6 +321,18 @@ export default function NovaCompraPage() {
 			return newItems
 		})
 	}
+
+	// Keep input strings in sync when items array changes in size (e.g., after restoring or loading)
+	useEffect(() => {
+		setQuantityInputs((prev) => {
+			if (prev.length === items.length) return prev
+			return items.map((it, i) => prev[i] ?? (it.quantity ? String(it.quantity) : ""))
+		})
+		setUnitPriceInputs((prev) => {
+			if (prev.length === items.length) return prev
+			return items.map((it, i) => prev[i] ?? (it.unitPrice ? String(it.unitPrice) : ""))
+		})
+	}, [items])
 
 	const calculateTotal = () => {
 		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
@@ -452,17 +472,12 @@ export default function NovaCompraPage() {
 					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
 						<Card>
 							<CardHeader>
-								<div className="flex justify-between items-center">
-									<CardTitle className="flex items-center gap-2">
-										<Package className="h-5 w-5" />
-										Itens da Compra
-									</CardTitle>
-									{/* Botão de adicionar item - apenas visível no desktop */}
-									<Button type="button" onClick={addItem} variant="outline" className="hidden md:flex">
-										<Plus className="h-4 w-4 mr-2" />
-										Adicionar Item
-									</Button>
-								</div>
+							<div className="flex justify-between items-center">
+								<CardTitle className="flex items-center gap-2">
+									<Package className="h-5 w-5" />
+									Itens da Compra
+								</CardTitle>
+							</div>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-4">
@@ -476,59 +491,90 @@ export default function NovaCompraPage() {
 												transition={{ delay: 0.3 + index * 0.05 }}
 												className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
 											>
-												{/* Layout responsivo para campos do item */}
-												<div className="space-y-4 md:space-y-0 md:grid md:grid-cols-[2fr_1fr_1fr_auto] md:gap-4 md:items-end">
-													<div className="space-y-2">
-														<Label>Produto *</Label>
-														<ProductSelect
-															value={item.productId || ""}
-															className="w-full"
-															onValueChange={(value) => updateItem(index, "productId", value)}
-															products={products}
-															preserveFormData={{
-																formData,
-																items,
-																targetItemIndex: index,
-															}}
-														/>
-													</div>
+                                            {/* Número do item */}
+                                            <div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
 
-													<div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-0">
-														<div className="space-y-2">
-															<Label>Quantidade *</Label>
-															<Input
-																type="number"
-																step="0.01"
-																min="0.01"
-																value={item.quantity}
-																onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
-																placeholder="1.00"
-																className="text-center"
-															/>
-														</div>
-														<div className="space-y-2">
-															<Label>Preço Unitário *</Label>
-															<Input
-																type="number"
-																step="0.01"
-																min="0.01"
-																value={item.unitPrice}
-																onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
-																placeholder="0.00"
-																className="text-center"
-															/>
-														</div>
-													</div>
+                                            {/* Produto em largura total */}
+                                            <div className="space-y-2">
+                                                <Label>Produto *</Label>
+                                                <ProductSelect
+                                                    value={item.productId || ""}
+                                                    className="w-full"
+                                                    onValueChange={(value) => updateItem(index, "productId", value)}
+                                                    products={products}
+                                                    preserveFormData={{
+                                                        formData,
+                                                        items,
+                                                        targetItemIndex: index,
+                                                    }}
+                                                />
+                                            </div>
 
-													<div className="space-y-2 md:block">
-														<Label>Total</Label>
-														<Input
-															value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
-															disabled
-															className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
-														/>
-													</div>
-												</div>
+                                            {/* Quantidade, Preço e Total em 3 colunas */}
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Quantidade *</Label>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        step="0.001"
+                                                        min="0"
+                                                        value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value
+                                                            setQuantityInputs((prev) => {
+                                                                const next = [...prev]
+                                                                next[index] = raw
+                                                                return next
+                                                            })
+                                                            const normalized = raw.replace(',', '.')
+                                                            const parsed = parseFloat(normalized)
+                                                            if (!Number.isNaN(parsed)) {
+                                                                updateItem(index, "quantity", parsed)
+                                                            } else if (raw === "") {
+                                                                updateItem(index, "quantity", 0)
+                                                            }
+                                                        }}
+                                                        placeholder="0,000"
+                                                        className="text-center"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Preço Unitário *</Label>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        step="0.01"
+                                                        min="0"
+                                                        value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value
+                                                            setUnitPriceInputs((prev) => {
+                                                                const next = [...prev]
+                                                                next[index] = raw
+                                                                return next
+                                                            })
+                                                            const normalized = raw.replace(',', '.')
+                                                            const parsed = parseFloat(normalized)
+                                                            if (!Number.isNaN(parsed)) {
+                                                                updateItem(index, "unitPrice", parsed)
+                                                            } else if (raw === "") {
+                                                                updateItem(index, "unitPrice", 0)
+                                                            }
+                                                        }}
+                                                        placeholder="0,00"
+                                                        className="text-center"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2 md:block">
+                                                    <Label>Total</Label>
+                                                    <Input
+                                                        value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
+                                                        disabled
+                                                        className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
+                                                    />
+                                                </div>
+                                            </div>
 
 												{/* Alertas e insights */}
 												<div className="space-y-3">
@@ -605,9 +651,13 @@ export default function NovaCompraPage() {
 								</div>
 
 								{/* Total e botões de ação - apenas no desktop */}
-								<div className="hidden md:flex justify-between items-center pt-4 border-t">
-									<div className="text-lg font-bold">Total da Compra: R$ {calculateTotal().toFixed(2)}</div>
+									<div className="hidden md:flex justify-between items-center pt-4 border-t">
+										<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
 									<div className="flex gap-3">
+										<Button type="button" onClick={addItem} variant="outline">
+											<Plus className="h-4 w-4 mr-2" />
+											Adicionar Item
+										</Button>
 										<Button type="submit" disabled={loading}>
 											<Save className="h-4 w-4 mr-2" />
 											{loading ? "Salvando..." : "Salvar Compra"}

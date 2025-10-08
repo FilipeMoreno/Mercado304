@@ -64,6 +64,10 @@ export default function NovaListaPage() {
 		{ productId: "", quantity: 1, estimatedPrice: "", priceAlert: undefined },
 	])
 
+	// Inputs control arrays to allow empty typing and specific decimals
+	const [quantityInputs, setQuantityInputs] = useState<string[]>(["1.000"])
+	const [priceInputs, setPriceInputs] = useState<string[]>(["0.00"])
+
 	const [relatedProductsVisibility, setRelatedProductsVisibility] = useState<boolean[]>(
 		new Array(items.length).fill(true),
 	)
@@ -131,6 +135,8 @@ export default function NovaListaPage() {
 		setCheckingPrices([...checkingPrices, false])
 		setRelatedProductsVisibility([...relatedProductsVisibility, true])
 		setPriceAlertVisibility([...priceAlertVisibility, true])
+		setQuantityInputs((prev) => [...prev, "1.000"])
+		setPriceInputs((prev) => [...prev, "0.00"])
 	}
 
 	const removeItem = (index: number) => {
@@ -139,6 +145,8 @@ export default function NovaListaPage() {
 			setCheckingPrices(checkingPrices.filter((_, i) => i !== index))
 			setRelatedProductsVisibility(relatedProductsVisibility.filter((_, i) => i !== index))
 			setPriceAlertVisibility(priceAlertVisibility.filter((_, i) => i !== index))
+			setQuantityInputs((prev) => prev.filter((_, i) => i !== index))
+			setPriceInputs((prev) => prev.filter((_, i) => i !== index))
 		}
 	}
 
@@ -373,60 +381,91 @@ export default function NovaListaPage() {
 											transition={{ delay: 0.3 + index * 0.05 }}
 											className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
 										>
-											{/* Layout responsivo para campos do item */}
-											<div className="space-y-4 md:space-y-0 md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-4 md:items-end">
-												<div className="space-y-2">
-													<Label>Produto *</Label>
-													<ProductSelect
-														value={item.productId}
-														products={products as any}
-														onValueChange={(value) => updateItem(index, "productId", value)}
-														preserveFormData={{
-															listName,
-															items,
-															targetItemIndex: index,
-														}}
-													/>
-												</div>
+									{/* Número do item */}
+									<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
 
-												<div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-0">
-													<div className="space-y-2">
-														<Label>Quantidade *</Label>
-														<Input
-															type="number"
-															step="0.01"
-															min="0.01"
-															value={item.quantity}
-															onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 1)}
-															placeholder="1.00"
-															className="text-center"
-														/>
-													</div>
+									{/* Produto full width */}
+									<div className="space-y-2">
+										<Label>Produto *</Label>
+										<ProductSelect
+											value={item.productId}
+											products={products as any}
+											onValueChange={(value) => updateItem(index, "productId", value)}
+											preserveFormData={{
+												listName,
+												items,
+												targetItemIndex: index,
+											}}
+										/>
+									</div>
 
-													<div className="space-y-2">
-														<Label>Preço Estimado</Label>
-														<Input
-															type="number"
-															step="0.01"
-															min="0"
-															value={item.estimatedPrice}
-															onChange={(e) => updateItem(index, "estimatedPrice", e.target.value)}
-															onBlur={() => handlePriceBlur(index)}
-															placeholder="0.00"
-															className="text-center"
-														/>
-													</div>
-												</div>
-
-												<div className="space-y-2 md:block">
-													<Label>Total</Label>
-													<Input
-														value={`R$ ${(item.quantity * (parseFloat(String(item.estimatedPrice)) || 0)).toFixed(2)}`}
-														disabled
-														className="bg-gray-50 text-center font-semibold"
-													/>
-												</div>
-											</div>
+									{/* Quantidade, Preço, Total */}
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<div className="space-y-2">
+											<Label>Quantidade *</Label>
+											<Input
+												type="text"
+												inputMode="decimal"
+												step="0.001"
+												min="0"
+												value={quantityInputs[index] ?? (items[index]?.quantity ? String(items[index].quantity) : "")}
+												onChange={(e) => {
+													const raw = e.target.value
+													setQuantityInputs((prev) => {
+														const next = [...prev]
+														next[index] = raw
+														return next
+													})
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														updateItem(index, "quantity", parsed)
+													} else if (raw === "") {
+														updateItem(index, "quantity", 0)
+													}
+												}}
+												placeholder="0,000"
+												className="text-center"
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label>Preço Estimado</Label>
+											<Input
+												type="text"
+												inputMode="decimal"
+												step="0.01"
+												min="0"
+												value={priceInputs[index] ?? (items[index]?.estimatedPrice ? String(items[index].estimatedPrice) : "")}
+												onChange={(e) => {
+													const raw = e.target.value
+													setPriceInputs((prev) => {
+														const next = [...prev]
+														next[index] = raw
+														return next
+													})
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														updateItem(index, "estimatedPrice", parsed)
+														// trigger best price check on blur in original; here we can still call on blur
+													} else if (raw === "") {
+														updateItem(index, "estimatedPrice", "")
+													}
+												}}
+												onBlur={() => handlePriceBlur(index)}
+												placeholder="0,00"
+												className="text-center"
+											/>
+										</div>
+										<div className="space-y-2 md:block">
+											<Label>Total</Label>
+											<Input
+												value={`R$ ${(items[index].quantity * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
+												disabled
+												className="bg-gray-50 text-center font-semibold"
+											/>
+										</div>
+									</div>
 
 											{/* Alertas e produtos relacionados */}
 											<div className="space-y-3">
@@ -478,8 +517,8 @@ export default function NovaListaPage() {
 								</div>
 
 								{/* Total e botões de ação - apenas no desktop */}
-								<div className="hidden md:flex justify-between items-center pt-4 border-t">
-									<div className="text-lg font-bold">Total Estimado: R$ {calculateTotal().toFixed(2)}</div>
+									<div className="hidden md:flex justify-between items-center pt-4 border-t">
+										<div className="text-lg font-bold">Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="h-4 w-4 mr-2" />

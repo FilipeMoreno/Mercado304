@@ -3,7 +3,7 @@
 import { ArrowLeft, Edit, Plus, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -31,6 +31,7 @@ export default function EditarCompraPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const purchaseId = params.id as string
+	const id = useId()
 
 	const [loading, setLoading] = useState(false)
 
@@ -57,6 +58,10 @@ export default function EditarCompraPage() {
 	})
 
 	const [items, setItems] = useState<PurchaseItem[]>([])
+
+// Control separate string inputs (qty 3 decimals, price 2) and empty typing
+const [quantityInputs, setQuantityInputs] = useState<string[]>([])
+const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 
 	const checkBestPrice = useCallback(async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
@@ -104,14 +109,15 @@ export default function EditarCompraPage() {
 				paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY,
 			})
 
-			setItems(
-				purchaseData.items.map((item: any) => ({
-					productId: item.productId || "",
-					quantity: item.quantity,
-					unitPrice: item.unitPrice,
-					bestPriceAlert: null,
-				})),
-			)
+			const mappedItems = purchaseData.items.map((item: any) => ({
+				productId: item.productId || "",
+				quantity: item.quantity,
+				unitPrice: item.unitPrice,
+				bestPriceAlert: null,
+			}))
+			setItems(mappedItems)
+			setQuantityInputs(mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toString() : "")))
+			setUnitPriceInputs(mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toString() : "")))
 		}
 	}, [purchaseData, purchaseLoading])
 
@@ -121,7 +127,13 @@ export default function EditarCompraPage() {
 			const preservedData = TempStorage.get(storageKey)
 			if (preservedData) {
 				try {
-					if (preservedData.formData) setFormData(preservedData.formData)
+					if (preservedData.formData) {
+						setFormData((prev) => ({
+							marketId: preservedData.formData.marketId || prev.marketId,
+							purchaseDate: preservedData.formData.purchaseDate || prev.purchaseDate,
+							paymentMethod: preservedData.formData.paymentMethod || prev.paymentMethod,
+						}))
+					}
 					if (preservedData.items) setItems(preservedData.items)
 					if (preservedData.newProductId && preservedData.targetItemIndex !== undefined) {
 						setTimeout(() => {
@@ -148,11 +160,15 @@ export default function EditarCompraPage() {
 
 	const addItem = () => {
 		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, bestPriceAlert: null }])
+    setQuantityInputs((prev) => [...prev, "1.000"])
+    setUnitPriceInputs((prev) => [...prev, "0.00"])
 	}
 
 	const removeItem = (index: number) => {
 		if (items.length > 1) {
 			setItems(items.filter((_, i) => i !== index))
+			setQuantityInputs((prev) => prev.filter((_, i) => i !== index))
+			setUnitPriceInputs((prev) => prev.filter((_, i) => i !== index))
 		}
 	}
 
@@ -231,9 +247,9 @@ export default function EditarCompraPage() {
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="date">Data da Compra</Label>
+								<Label htmlFor={`purchaseDate-${id}`}>Data da Compra</Label>
 								<Input
-									id="date"
+									id={`purchaseDate-${id}`}
 									type="date"
 									value={toDateInputValue(formData.purchaseDate)}
 									onChange={(e) =>
@@ -273,52 +289,82 @@ export default function EditarCompraPage() {
 					</CardContent>
 				</Card>
 				<Card>
-					<CardHeader className="flex flex-row items-center justify-between">
-						<CardTitle>Itens da Compra</CardTitle>
-						<Button type="button" onClick={addItem} variant="outline">
-							<Plus className="h-4 w-4 mr-2" />
-							Adicionar Item
-						</Button>
-					</CardHeader>
+						<CardHeader className="flex flex-row items-center justify-between">
+							<CardTitle>Itens da Compra</CardTitle>
+						</CardHeader>
 					<CardContent className="space-y-4">
 						{items.map((item, index) => {
 							const selectedProduct = products.find((p: any) => p.id === item.productId)
 							return (
 								<div key={`item-${item.productId}-${index}`} className="space-y-4 p-4 border rounded-lg">
-									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-										<div className="space-y-2">
-											<Label>Produto *</Label>
-											<ProductSelect
-												value={item.productId}
-												products={products}
-												onValueChange={(value) => updateItem(index, "productId", value)}
-												preserveFormData={{
-													formData,
-													items,
-													targetItemIndex: index,
-												}}
-											/>
-										</div>
+									{/* Número do item */}
+									<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
+									{/* Produto full width */}
+									<div className="space-y-2">
+										<Label>Produto *</Label>
+										<ProductSelect
+											value={item.productId}
+											products={products}
+											onValueChange={(value) => updateItem(index, "productId", value)}
+											preserveFormData={{
+												formData,
+												items,
+												targetItemIndex: index,
+											}}
+										/>
+									</div>
+									{/* Quantidade, Preço, Total em 3 colunas */}
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 										<div className="space-y-2">
 											<Label>Quantidade *</Label>
 											<Input
-												type="number"
-												step="0.01"
+												type="text"
+												inputMode="decimal"
+												step="0.001"
 												min="0"
-												value={item.quantity}
-												onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 0)}
-												placeholder="0.00"
+												value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
+												onChange={(e) => {
+													const raw = e.target.value
+													setQuantityInputs((prev) => {
+														const next = [...prev]
+														next[index] = raw
+														return next
+													})
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														updateItem(index, "quantity", parsed)
+													} else if (raw === "") {
+														updateItem(index, "quantity", 0)
+													}
+												}}
+												placeholder="0,000"
 											/>
 										</div>
 										<div className="space-y-2">
 											<Label>Preço Unitário (R$) *</Label>
 											<Input
-												type="number"
+												type="text"
+												inputMode="decimal"
 												step="0.01"
 												min="0"
-												value={item.unitPrice}
-												onChange={(e) => updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
-												placeholder="0.00"
+												value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
+												onChange={(e) => {
+													const raw = e.target.value
+													setUnitPriceInputs((prev) => {
+														const next = [...prev]
+														next[index] = raw
+														return next
+													})
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														updateItem(index, "unitPrice", parsed)
+													} else if (raw === "") {
+														updateItem(index, "unitPrice", 0)
+													}
+												}}
+												placeholder="0,00"
 											/>
 										</div>
 										<div className="space-y-2">
@@ -373,10 +419,14 @@ export default function EditarCompraPage() {
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex justify-between items-center text-xl font-bold">
-							<span>Total da Compra:</span>
+							<span>Total da Compra ({items.length} itens):</span>
 							<span>R$ {calculateTotal().toFixed(2)}</span>
 						</div>
 						<div className="flex gap-4 mt-6">
+							<Button type="button" onClick={addItem} variant="outline">
+								<Plus className="h-4 w-4 mr-2" />
+								Adicionar Item
+							</Button>
 							<Button type="submit" disabled={loading} className="flex-1">
 								<Save className="h-4 w-4 mr-2" />
 								{loading ? "Salvando..." : "Salvar Alterações"}
