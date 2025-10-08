@@ -8,13 +8,15 @@ import { Loader2, QrCode, TestTube2 } from 'lucide-react';
 import { NfceBarcodeScanner } from '@/components/nfce-barcode-scanner';
 import NfceItemReview, { MappedPurchaseItem, NfceItem } from '@/components/nfce-item-review';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MarketSelect } from '@/components/selects/market-select';
 import { Separator } from '@/components/ui/separator';
 import { Market } from '@prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCreatePurchaseMutation } from '@/hooks/use-react-query';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ViewState = 'idle' | 'processing' | 'reviewing';
 
@@ -42,14 +44,7 @@ export default function ImportarCompraPage() {
   const [paymentMethod, setPaymentMethod] = useState('CREDIT_CARD');
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const mutation = useMutation({
-    // mutationFn: createPurchase,
-    onSuccess: () => {
-      toast.success('Compra importada com sucesso!');
-      router.push('/compras');
-    },
-    onError: (error) => toast.error('Erro ao salvar a compra', { description: error.message }),
-  });
+  const mutation = useCreatePurchaseMutation();
 
   const handleScanSuccess = async (url: string) => {
     setIsScannerOpen(false);
@@ -103,7 +98,27 @@ export default function ImportarCompraPage() {
       return;
     }
     const total = mappedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    // mutation.mutate({ marketId, paymentMethod, date: new Date(purchaseDate), total, items: mappedItems });
+    
+    // Preparar os itens para a API
+    const purchaseItems = mappedItems.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      unitPrice: item.price,
+      productName: item.productName,
+      addToStock: true, // Adicionar ao estoque por padrão
+      stockEntries: [{
+        quantity: item.quantity,
+        location: 'Despensa',
+      }]
+    }));
+    
+    mutation.mutate({ 
+      marketId, 
+      paymentMethod, 
+      purchaseDate: new Date(purchaseDate), 
+      totalAmount: total, 
+      items: purchaseItems 
+    });
   };
 
   const handleManualSubmit = () => {
@@ -117,7 +132,54 @@ export default function ImportarCompraPage() {
   const renderContent = () => {
     switch (viewState) {
       case 'processing':
-        return <div className="flex flex-col items-center justify-center p-8 h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /><p className="mt-4 text-lg text-muted-foreground">Analisando nota fiscal...</p></div>;
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="p-6 grid md:grid-cols-3 gap-4">
+                <div>
+                  <Skeleton className="h-4 w-16 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Skeleton className="h-12 w-12" />
+                        <div>
+                          <Skeleton className="h-5 w-40 mb-2" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
+                      <div>
+                        <Skeleton className="h-6 w-20" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Skeleton className="h-10 w-24" />
+                  <Skeleton className="h-10 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+            <p className="text-center text-lg text-muted-foreground">Analisando nota fiscal...</p>
+          </div>
+        );
 
       case 'reviewing':
         return (

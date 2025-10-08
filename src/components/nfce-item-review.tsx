@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Brand, Category, Product } from "@prisma/client"
 import { cn } from "@/lib/utils"
+import { Dialog } from "@/components/ui/dialog"
+import { QuickProductForm } from "@/components/quick-product-form"
+import { QuickBrandForm } from "@/components/quick-brand-form"
 
 // Interfaces para os dados da nota e itens mapeados
 export interface NfceItem {
@@ -52,8 +55,9 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
     })),
   )
 
-  // Estados para controlar o dialog de criação de produto
+  // Estados para controlar os dialogs
   const [isCreateProductDialogOpen, setIsCreateProductDialogOpen] = useState(false)
+  const [isCreateBrandDialogOpen, setIsCreateBrandDialogOpen] = useState(false)
   const [currentItemIndexForCreation, setCurrentItemIndexForCreation] = useState<number | null>(null)
 
   const handleProductChange = (index: number, product: Product | null) => {
@@ -81,6 +85,10 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
   const openCreateProductDialog = (index: number) => {
     setCurrentItemIndexForCreation(index)
     setIsCreateProductDialogOpen(true)
+  }
+  
+  const openCreateBrandDialog = () => {
+    setIsCreateBrandDialogOpen(true)
   }
 
   // Função chamada quando um novo produto é criado com sucesso pelo dialog
@@ -112,8 +120,33 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
   const currentItemToCreate =
     currentItemIndexForCreation !== null ? mappedItems[currentItemIndexForCreation] : null
 
+  // Função para lidar com a criação de uma nova marca
+  const handleBrandCreated = (newBrand: Brand) => {
+    setIsCreateBrandDialogOpen(false)
+    toast.success(`Marca ${newBrand.name} criada com sucesso!`)
+  }
+
   return (
     <>
+      <Dialog open={isCreateProductDialogOpen} onOpenChange={setIsCreateProductDialogOpen}>
+        {isCreateProductDialogOpen && currentItemIndexForCreation !== null && (
+          <QuickProductForm
+            onClose={() => setIsCreateProductDialogOpen(false)}
+            onProductCreated={handleProductCreated}
+            onOpenBrandForm={openCreateBrandDialog}
+          />
+        )}
+      </Dialog>
+
+      <Dialog open={isCreateBrandDialogOpen} onOpenChange={setIsCreateBrandDialogOpen}>
+        {isCreateBrandDialogOpen && (
+          <QuickBrandForm
+            onClose={() => setIsCreateBrandDialogOpen(false)}
+            onBrandCreated={handleBrandCreated}
+          />
+        )}
+      </Dialog>
+      
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Revise e Associe os Itens</CardTitle>
