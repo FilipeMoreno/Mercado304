@@ -10,17 +10,13 @@ import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
-import type { ShoppingList } from "@/types"
 
 interface ListaClientProps {
 	searchParams: {
@@ -202,29 +198,37 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 				</motion.div>
 
 				{shoppingLists.length === 0 ? (
-					<Card>
-						<CardContent className="text-center py-12">
-							<List className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-							<h3 className="text-lg font-medium mb-2">
-								{hasActiveFilters ? "Nenhuma lista encontrada" : "Nenhuma lista criada"}
-							</h3>
-							<p className="text-gray-600 mb-4">
+					<Empty className="border border-dashed py-12">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<List className="h-6 w-6" />
+							</EmptyMedia>
+							<EmptyTitle>{hasActiveFilters ? "Nenhuma lista encontrada" : "Nenhuma lista criada"}</EmptyTitle>
+							<EmptyDescription>
 								{hasActiveFilters ? "Tente ajustar os filtros" : "Comece criando sua primeira lista de compras"}
-							</p>
-							{hasActiveFilters && (
-								<Button
-									variant="outline"
-									onClick={() => {
-										clearFilters()
-										updateSingleValue("page", 1)
-									}}
-								>
-									<Filter className="h-4 w-4 mr-2" />
-									Limpar Filtros
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<div className="flex items-center justify-center gap-2">
+								{hasActiveFilters && (
+									<Button
+										variant="outline"
+										onClick={() => {
+											clearFilters()
+											updateSingleValue("page", 1)
+										}}
+									>
+										<Filter className="h-4 w-4 mr-2" />
+										Limpar Filtros
+									</Button>
+								)}
+								<Button onClick={() => router.push("/lista/nova")} className="bg-green-600 hover:bg-green-700 text-white">
+									<Plus className="h-4 w-4 mr-2" />
+									Nova Lista
 								</Button>
-							)}
-						</CardContent>
-					</Card>
+							</div>
+						</EmptyContent>
+					</Empty>
 				) : (
 					<>
 						<div className="flex justify-between items-center text-sm text-gray-600">

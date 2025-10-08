@@ -23,6 +23,7 @@ import { TemporaryItemCard } from "@/components/temporary-item-card"
 import { TemporaryItemForm } from "@/components/temporary-item-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
@@ -728,11 +729,27 @@ export default function ListaDetalhesPage() {
 							)}
 
 							{list.items.length === 0 ? (
-								<div className="text-center py-12 text-gray-500">
-									<Package className="h-12 w-12 mx-auto mb-4" />
-									<p className="text-lg font-medium mb-2">Lista vazia</p>
-									<p className="text-gray-600">Adicione itens para começar suas compras</p>
-								</div>
+								<Empty className="border border-dashed py-10">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<Package className="h-6 w-6" />
+										</EmptyMedia>
+										<EmptyTitle>Lista vazia</EmptyTitle>
+										<EmptyDescription>Adicione itens para começar suas compras</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<div className="flex gap-2 justify-center">
+											<Button onClick={() => setShowTemporaryForm(true)} variant="outline" size="sm">
+												<ShoppingCart className="h-4 w-4 mr-1" />
+												Item Temporário
+											</Button>
+											<Button onClick={() => setShowAddItem(true)} size="sm">
+												<Plus className="h-4 w-4 mr-1" />
+												Adicionar Item
+											</Button>
+										</div>
+									</EmptyContent>
+								</Empty>
 							) : (
 								<div className="space-y-3">
 									{list.items.map((item, index) =>

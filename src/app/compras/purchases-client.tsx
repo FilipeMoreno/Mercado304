@@ -19,15 +19,15 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useId, useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LazyWrapper } from "@/components/ui/lazy-wrapper"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
+// removed unused imports
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -39,8 +39,7 @@ import {
 	usePurchasesQuery,
 	useUrlState,
 } from "@/hooks"
-import { useOptimizedQuery } from "@/hooks/use-optimized-queries"
-import { usePerformanceMonitor } from "@/hooks/use-performance"
+// removed unused imports
 import { formatLocalDate } from "@/lib/date-utils"
 import type { Purchase } from "@/types"
 
@@ -58,6 +57,7 @@ interface PurchasesClientProps {
 
 export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const router = useRouter()
+	const id = useId()
 	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null)
 	const itemsPerPage = 12
 
@@ -219,19 +219,19 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 			{(state.period === "custom" || (state.dateFrom && state.dateTo)) && (
 				<div className="grid grid-cols-2 gap-2">
 					<div className="space-y-2">
-						<Label htmlFor="dateFrom">De</Label>
+						<Label htmlFor={`dateFrom-${id}`}>De</Label>
 						<Input
 							type="date"
-							id="dateFrom"
+							id={`dateFrom-${id}`}
 							value={state.dateFrom as string}
 							onChange={(e) => updateSingleValue("dateFrom", e.target.value)}
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="dateTo">Até</Label>
+						<Label htmlFor={`dateTo-${id}`}>Até</Label>
 						<Input
 							type="date"
-							id="dateTo"
+							id={`dateTo-${id}`}
 							value={state.dateTo as string}
 							onChange={(e) => updateSingleValue("dateTo", e.target.value)}
 						/>
@@ -280,29 +280,40 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 
 			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
 				{purchases.length === 0 ? (
-					<Card>
-						<CardContent className="text-center py-12">
-							<ShoppingCart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-							<h3 className="text-lg font-medium mb-2">
-								{hasActiveFilters ? "Nenhuma compra encontrada" : "Nenhuma compra cadastrada"}
-							</h3>
-							<p className="text-gray-600 mb-4">
+					<Empty className="border border-dashed py-12">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<ShoppingCart className="h-6 w-6" />
+							</EmptyMedia>
+							<EmptyTitle>{hasActiveFilters ? "Nenhuma compra encontrada" : "Nenhuma compra cadastrada"}</EmptyTitle>
+							<EmptyDescription>
 								{hasActiveFilters ? "Tente ajustar os filtros de busca" : "Comece adicionando sua primeira compra"}
-							</p>
-							{hasActiveFilters && (
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<div className="flex items-center justify-center gap-2">
+								{hasActiveFilters && (
+									<Button
+										variant="outline"
+										onClick={() => {
+											clearFilters()
+											updateSingleValue("page", 1)
+										}}
+									>
+										<Filter className="h-4 w-4 mr-2" />
+										Limpar Filtros
+									</Button>
+								)}
 								<Button
-									variant="outline"
-									onClick={() => {
-										clearFilters()
-										updateSingleValue("page", 1)
-									}}
+									onClick={() => router.push("/compras/nova")}
+									className="bg-green-600 hover:bg-green-700 text-white"
 								>
-									<Filter className="h-4 w-4 mr-2" />
-									Limpar Filtros
+									<Plus className="h-4 w-4 mr-2" />
+									Nova Compra
 								</Button>
-							)}
-						</CardContent>
-					</Card>
+							</div>
+						</EmptyContent>
+					</Empty>
 				) : (
 					<>
 						<div className="flex justify-between items-center text-sm text-gray-600">
@@ -445,7 +456,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							<h4 className="font-medium mb-3">Itens da Compra</h4>
 							<div className="space-y-2 max-h-60 overflow-y-auto">
 								{purchaseDetails.items?.map((item: any, index: number) => (
-									<div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+									<div key={item.id ?? `${index}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
 										<div>
 											<p className="font-medium">
 												{item.product?.name || item.productName}
