@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 		const minPrice = Math.min(...allPrices)
 
 		const genAI = new GoogleGenerativeAI(apiKey)
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
 		const prompt = `
       Você é um assistente de finanças para compras de supermercado. Analise os seguintes dados sobre o preço de um produto e gere uma análise curta (uma frase) e objetiva para o utilizador. Seja direto e use termos como "bom preço", "preço alto", "na média".

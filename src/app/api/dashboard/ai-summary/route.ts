@@ -46,7 +46,7 @@ export async function GET() {
 		const topCategory = Object.entries(categoryCounts).sort(([, a], [, b]) => b - a)[0][0]
 
 		const genAI = new GoogleGenerativeAI(apiKey)
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
 		const prompt = `
       Você é um assistente de compras inteligente. Analise os seguintes dados de compras recentes de um utilizador e gere um insight curto e amigável (2-3 frases) para aparecer no dashboard dele. O tom deve ser positivo e dar uma dica útil.

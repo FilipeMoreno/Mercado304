@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
 		// 2. CHAMAR A API DO GEMINI COM OS DADOS COMO CONTEXTO
 		const genAI = new GoogleGenerativeAI(apiKey)
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
 		const prompt = `
       Você é um assistente de compras pessoal e inteligente. Sua tarefa é analisar os padrões de consumo de um utilizador e gerar uma lista de compras ${type === "weekly" ? "semanal" : "mensal"} inteligente e útil.
