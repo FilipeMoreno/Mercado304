@@ -41,7 +41,7 @@ export async function POST(_request: Request, { params }: { params: { id: string
 		}
 
 		const genAI = new GoogleGenerativeAI(apiKey)
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
 		const filteredInfo = Object.entries(nutritionalInfo)
 			.filter(([_, value]) => typeof value === "number" && value !== null)
