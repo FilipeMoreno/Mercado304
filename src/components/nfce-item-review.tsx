@@ -26,7 +26,7 @@ export interface NfceItem {
 }
 
 export interface MappedPurchaseItem {
-  productId: number
+  productId: string
   productName: string
   quantity: number
   price: number
@@ -48,7 +48,7 @@ type MappedItemState = MappedPurchaseItem & {
 const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCancel, isSubmitting }) => {
   const [mappedItems, setMappedItems] = useState<MappedItemState[]>(() =>
     items.map((item) => ({
-      productId: 0,
+      productId: "",
       productName: "",
       quantity: item.quantity,
       price: item.unitPrice,
@@ -136,7 +136,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
       newItems[index].isAssociated = true
       toast.success(`"${newItems[index].originalName}" associado a "${product.name}".`)
     } else {
-      newItems[index].productId = 0
+      newItems[index].productId = ""
       newItems[index].productName = ""
       newItems[index].isAssociated = false
     }
@@ -171,7 +171,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
   const handleSubmit = () => {
     const confirmedItems = mappedItems
-      .filter((item) => item.isAssociated && item.productId && item.productId > 0)
+      .filter((item) => item.isAssociated && item.productId && item.productId !== "")
       .map(({ originalName, isAssociated, ...rest }) => rest)
 
     if (confirmedItems.length === 0) {
