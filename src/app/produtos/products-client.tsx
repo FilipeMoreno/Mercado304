@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Apple, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
@@ -253,6 +253,15 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							hasActiveFilters={hasActiveFilters}
 							onClearFilters={clearFilters}
 						/>
+						<Button
+							onClick={() => router.push("/produtos/nutricao")}
+							variant="outline"
+							className="border-orange-200 text-orange-700 hover:bg-orange-50"
+						>
+							<Apple className="h-4 w-4 mr-2" />
+							<span className="hidden sm:inline">Info Nutricional</span>
+							<span className="sm:hidden">Nutrição</span>
+						</Button>
 						<Button
 							onClick={() => router.push("/produtos/novo")}
 							className="bg-green-600 hover:bg-green-700 text-white"

@@ -44,6 +44,7 @@ export interface Product {
 	updatedAt: Date
 	category?: Category
 	brand?: Brand
+	nutritionalInfo?: NutritionalInfo
 }
 
 export interface Purchase {

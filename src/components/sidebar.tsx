@@ -57,7 +57,15 @@ const navigation = [
 	},
 	{ name: "Registro de Preços", href: "/precos", icon: Receipt },
 	{ name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
-	{ name: "Análise Nutricional", href: "/nutricao", icon: Apple },
+	{
+		name: "Análise Nutricional",
+		href: "/nutricao",
+		icon: Apple,
+		subItems: [
+			{ name: "Análise Geral", href: "/nutricao", icon: Apple },
+			{ name: "Produtos sem Info", href: "/produtos/nutricao", icon: Package },
+		],
+	},
 	{ name: "Estoque", href: "/estoque", icon: Box },
 	{ name: "Desperdícios", href: "/desperdicios", icon: Trash2 },
 	{ name: "Churrascômetro", href: "/churrasco", icon: Utensils },
@@ -75,6 +83,10 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		if (pathname.startsWith("/receitas")) {
 			return ["Receitas"]
 		}
+		// Auto-expand análise nutricional se estiver em páginas relacionadas
+		if (pathname.startsWith("/nutricao") || pathname.startsWith("/produtos/nutricao")) {
+			return ["Análise Nutricional"]
+		}
 		return []
 	})
 
@@ -84,10 +96,13 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		)
 	}
 
-	// Auto-expand ao navegar para páginas de receitas
+	// Auto-expand ao navegar para páginas específicas
 	useEffect(() => {
 		if (pathname.startsWith("/receitas") && !expandedItems.includes("Receitas")) {
 			setExpandedItems((prev) => [...prev, "Receitas"])
+		}
+		if ((pathname.startsWith("/nutricao") || pathname.startsWith("/produtos/nutricao")) && !expandedItems.includes("Análise Nutricional")) {
+			setExpandedItems((prev) => [...prev, "Análise Nutricional"])
 		}
 	}, [pathname, expandedItems])
 

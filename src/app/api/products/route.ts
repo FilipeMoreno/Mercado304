@@ -11,6 +11,7 @@ export async function GET(request: Request) {
 		const sort = searchParams.get("sort") || "name-asc"
 		const page = parseInt(searchParams.get("page") || "1")
 		const limit = parseInt(searchParams.get("limit") || "12")
+		const include = searchParams.get("include") || ""
 
 		const skip = (page - 1) * limit
 
@@ -41,13 +42,20 @@ export async function GET(request: Request) {
 				break
 		}
 
+		// Configurar includes baseado no parâmetro
+		const includeConfig: any = {
+			brand: true,
+			category: true,
+		}
+
+		if (include.includes("nutritionalInfo")) {
+			includeConfig.nutritionalInfo = true
+		}
+
 		const [products, totalCount] = await Promise.all([
 			prisma.product.findMany({
 				where,
-				include: {
-					brand: true,
-					category: true,
-				},
+				include: includeConfig,
 				orderBy,
 				skip,
 				take: limit,
