@@ -28,7 +28,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
-interface ShoppingListItem {
+interface ExtendedShoppingListItem {
 	id: string
 	quantity: number
 	estimatedPrice?: number
@@ -68,7 +68,7 @@ interface ShoppingListDetails {
 	name: string
 	isActive: boolean
 	createdAt: string
-	items: ShoppingListItem[]
+	items: ExtendedShoppingListItem[]
 }
 
 export default function ListaDetalhesPage() {
@@ -100,7 +100,7 @@ export default function ListaDetalhesPage() {
 	const [addingItem, setAddingItem] = useState(false)
 
 	// Estados para editar item
-	const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
+	const [editingItem, setEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [editItemData, setEditItemData] = useState({
 		quantity: 1,
 		estimatedPrice: 0,
@@ -108,7 +108,7 @@ export default function ListaDetalhesPage() {
 	const [updatingItem, setUpdatingItem] = useState(false)
 
 	// Estados para excluir item
-	const [deleteItemConfirm, setDeleteItemConfirm] = useState<ShoppingListItem | null>(null)
+	const [deleteItemConfirm, setDeleteItemConfirm] = useState<ExtendedShoppingListItem | null>(null)
 	const [deletingItem, setDeletingItem] = useState(false)
 
 	// Estados para produto rápido
@@ -128,7 +128,7 @@ export default function ListaDetalhesPage() {
 	const [showTemporaryForm, setShowTemporaryForm] = useState(false)
 
 	// Estados para edição rápida e toggle de itens marcados
-	const [quickEditingItem, setQuickEditingItem] = useState<ShoppingListItem | null>(null)
+	const [quickEditingItem, setQuickEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [showCompletedItems, setShowCompletedItems] = useState(true)
 
 	const fetchListDetails = useCallback(async () => {

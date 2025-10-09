@@ -10,7 +10,7 @@ import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 
 interface ShoppingListItem {
 	id: string
-	quantity: number | string
+	quantity: number
 	estimatedPrice?: number
 	isChecked: boolean
 	productName?: string

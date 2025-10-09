@@ -481,14 +481,14 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 					}
 				case "total-products":
 					return {
-						title: "Total de Produtos",
+						title: "Produtos Cadastrados",
 						value: stats?.totalProducts || 0,
 						icon: "Package",
 						format: "number",
 					}
 				case "total-markets":
 					return {
-						title: "Total de Mercados",
+						title: "Mercados Cadastrados",
 						value: stats?.totalMarkets || 0,
 						icon: "Store",
 						format: "number",
