@@ -21,7 +21,7 @@ import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation } fr
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { TempStorage } from "@/lib/temp-storage"
 import { AppToasts } from "@/lib/toasts"
-import type { NutritionalInfo } from "@/types"
+import type { NutritionalInfo, Product } from "@/types"
 
 // REMOVIDO: OcrDebugDialog não é mais necessário aqui
 
@@ -151,12 +151,18 @@ export default function NovoProdutoPage() {
 			const hasNutritionalData = Object.values(nutritionalData).some(
 				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			)
-			const dataToSubmit = {
-				...formData,
+			const dataToSubmit: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
+				name: formData.name,
+				barcode: formData.barcode || undefined,
+				categoryId: formData.categoryId || undefined,
+				brandId: formData.brandId || undefined,
+				unit: formData.unit,
+				hasStock: formData.hasStock,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : undefined,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
+				hasExpiration: formData.hasExpiration,
 				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : undefined,
-				nutritionalInfo: hasNutritionalData ? nutritionalData : undefined,
+				nutritionalInfo: hasNutritionalData ? nutritionalData as NutritionalInfo : undefined,
 			}
 			const newProduct = await createProductMutation.mutateAsync(dataToSubmit)
 			AppToasts.success("Produto criado com sucesso!")

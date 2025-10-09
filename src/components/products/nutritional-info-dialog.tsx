@@ -5,6 +5,7 @@ import { QrCode, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import type { NutritionalInfo } from "@/types"
@@ -13,9 +14,10 @@ interface NutritionalInfoDialogProps {
 	productId: string
 	onSuccess?: () => void
 	onCancel?: () => void
+	onShowScanner?: () => void
 }
 
-export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: NutritionalInfoDialogProps) {
+export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowScanner }: NutritionalInfoDialogProps) {
 	const [formData, setFormData] = useState<Partial<NutritionalInfo>>({})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
@@ -25,7 +27,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 		try {
 			setIsAnalyzing(true)
 			setShowScanner(false)
-			
+
 			// Chamar API para analisar a imagem com IA
 			const response = await fetch('/api/ai/analyze-nutritional-label', {
 				method: 'POST',
@@ -43,7 +45,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 			}
 
 			const result = await response.json()
-			
+
 			// Preencher formulário com dados extraídos
 			if (result.nutritionalInfo) {
 				setFormData(prev => ({
@@ -65,11 +67,11 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 	const handleSubmit = async () => {
 		try {
 			setIsSubmitting(true)
-			
+
 			// Validar campos obrigatórios
 			const requiredFields = ['calories', 'carbohydrates', 'proteins', 'totalFat', 'saturatedFat', 'transFat', 'fiber', 'sodium']
 			const missingFields = requiredFields.filter(field => !formData[field as keyof NutritionalInfo])
-			
+
 			if (missingFields.length > 0) {
 				toast.error(`Campos obrigatórios não preenchidos: ${missingFields.join(', ')}`)
 				return
@@ -101,41 +103,14 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 		}
 	}
 
-	if (showScanner) {
-		return (
-			<div className="space-y-4">
-				<div className="text-center">
-					<h3 className="text-lg font-semibold mb-2">Scanner de Rótulo Nutricional</h3>
-					<p className="text-sm text-muted-foreground mb-4">
-						Posicione a câmera sobre o rótulo nutricional do produto
-					</p>
-				</div>
-				
-				<BarcodeScanner
-					onScan={handleScanResult}
-					onClose={() => setShowScanner(false)}
-					isOpen={showScanner}
-				/>
-				
-				<div className="flex justify-center">
-					<Button
-						variant="outline"
-						onClick={() => setShowScanner(false)}
-					>
-						Cancelar Scanner
-					</Button>
-				</div>
-			</div>
-		)
-	}
 
 	return (
-		<div className="space-y-6">
-			{/* Botões de ação no topo */}
-			<div className="flex flex-col sm:flex-row gap-3">
+		<>
+			{/* Botões de ação no topo - fora do scroll */}
+			<div className="flex flex-col sm:flex-row gap-3 mb-6">
 				<Button
 					variant="outline"
-					onClick={() => setShowScanner(true)}
+					onClick={onShowScanner}
 					disabled={isSubmitting || isAnalyzing}
 					className="flex-1"
 				>
@@ -154,7 +129,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 			</div>
 
 			{isAnalyzing && (
-				<div className="text-center py-4">
+				<div className="text-center py-4 mb-6">
 					<div className="inline-flex items-center gap-2 text-blue-600">
 						<Sparkles className="h-4 w-4 animate-spin" />
 						<span>Analisando rótulo nutricional...</span>
@@ -162,14 +137,18 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 				</div>
 			)}
 
-			<Separator />
-			
-			<NutritionalInfoForm
-				initialData={formData}
-				onDataChange={setFormData}
-			/>
-			
-			<div className="flex justify-end gap-3 pt-6 mt-6 border-t sticky bottom-0 bg-background">
+			<Separator className="mb-6" />
+
+			{/* Área de scroll */}
+			<div className="space-y-6 mb-6">
+				<NutritionalInfoForm
+					initialData={formData}
+					onDataChange={setFormData}
+				/>
+			</div>
+
+			{/* Botões de ação na base - fora do scroll */}
+			<div className="flex justify-end gap-3 pt-6 border-t bg-background">
 				<Button
 					variant="outline"
 					onClick={onCancel}
@@ -184,6 +163,6 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel }: Nutrit
 					{isSubmitting ? 'Salvando...' : 'Salvar Informações'}
 				</Button>
 			</div>
-		</div>
+		</>
 	)
 }

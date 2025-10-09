@@ -1,12 +1,14 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Apple, Plus, AlertTriangle, Utensils } from "lucide-react"
+import { Apple, Plus, AlertTriangle, Utensils, QrCode } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Product } from "@/types"
 import { NutritionalInfoDialog } from "@/components/products/nutritional-info-dialog"
 
@@ -17,17 +19,21 @@ interface MissingNutritionalInfoProps {
 }
 
 // Componente para card de produto sem info nutricional
-function ProductNutritionalCard({ product, onAddNutritionalInfo }: { 
-	product: Product
-	onAddNutritionalInfo?: (productId: string) => void 
-}) {
+function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAddNutritionalInfo?: (productId: string) => void }) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false)
+	const [showScanner, setShowScanner] = useState(false)
 
 	const handleAddNutritionalInfo = () => {
 		onAddNutritionalInfo?.(product.id)
 		setIsDialogOpen(false)
 	}
 
+	const handleScanResult = async (imageData: string) => {
+		// Aqui você pode processar o resultado do scanner
+		console.log('Scanner result:', imageData)
+		setShowScanner(false)
+		// TODO: Implementar análise da imagem
+	}
 	return (
 		<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
 			<CardContent className="flex-1 flex flex-col p-4">
@@ -56,36 +62,67 @@ function ProductNutritionalCard({ product, onAddNutritionalInfo }: {
 				</div>
 
 				<div className="mt-auto">
-					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-						<DialogTrigger asChild>
-							<Button
-								variant="outline"
-								size="sm"
-								className="w-full"
-							>
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar Info Nutricional
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+					<Button
+						variant="outline"
+						size="sm"
+						className="w-full"
+						onClick={() => setIsDialogOpen(true)}
+					>
+						<Plus className="h-4 w-4 mr-2" />
+						Adicionar Info Nutricional
+					</Button>
+
+					{/* Dialog do Scanner - Independente */}
+					<Dialog open={showScanner} onOpenChange={setShowScanner}>
+						<DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
 							<DialogHeader className="flex-shrink-0">
 								<DialogTitle className="flex items-center gap-2">
-									<Utensils className="h-5 w-5" />
-									Informações Nutricionais - {product.name}
+									<QrCode className="h-5 w-5" />
+									Scanner de Rótulo Nutricional
 								</DialogTitle>
 								<DialogDescription>
-									Adicione as informações nutricionais para este produto alimentício.
+									Posicione a câmera sobre o rótulo nutricional do produto
 								</DialogDescription>
 							</DialogHeader>
-							<div className="flex-1 overflow-y-auto min-h-0">
-								<NutritionalInfoDialog
-									productId={product.id}
-									onSuccess={handleAddNutritionalInfo}
-									onCancel={() => setIsDialogOpen(false)}
-								/>
+							
+							<div className="flex-1 flex flex-col space-y-4 min-h-0">
+								<div className="flex-1 min-h-0">
+									<BarcodeScanner
+										onScan={handleScanResult}
+										onClose={() => setShowScanner(false)}
+										isOpen={showScanner}
+									/>
+								</div>
+
+								<div className="flex justify-center pt-4 flex-shrink-0">
+									<Button
+										variant="outline"
+										onClick={() => setShowScanner(false)}
+										className="w-full sm:w-auto"
+									>
+										Cancelar Scanner
+									</Button>
+								</div>
 							</div>
 						</DialogContent>
 					</Dialog>
+
+					{/* Dialog do Formulário Nutricional */}
+					<ResponsiveDialog
+						open={isDialogOpen}
+						onOpenChange={setIsDialogOpen}
+						title={`Informações Nutricionais - ${product.name}`}
+						description="Adicione as informações nutricionais para este produto alimentício."
+						maxWidth="2xl"
+						maxHeight={true}
+					>
+						<NutritionalInfoDialog
+							productId={product.id}
+							onSuccess={handleAddNutritionalInfo}
+							onCancel={() => setIsDialogOpen(false)}
+							onShowScanner={() => setShowScanner(true)}
+						/>
+					</ResponsiveDialog>
 				</div>
 			</CardContent>
 		</Card>
@@ -198,7 +235,7 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 						variants={itemVariants}
 						role="gridcell"
 					>
-						<ProductNutritionalCard 
+						<ProductCard 
 							product={product}
 							onAddNutritionalInfo={onNutritionalInfoAdded}
 						/>

@@ -14,6 +14,7 @@ interface ResponsiveDialogProps {
 	children: ReactNode
 	// Props específicas para desktop
 	maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl"
+	maxHeight?: boolean // Se deve controlar altura máxima
 	// Props específicas para mobile
 	dragToClose?: boolean
 	swipeToClose?: boolean
@@ -27,6 +28,7 @@ export function ResponsiveDialog({
 	description,
 	children,
 	maxWidth = "md",
+	maxHeight = true,
 	dragToClose = true,
 	swipeToClose = true,
 	subtitle,
@@ -58,10 +60,14 @@ export function ResponsiveDialog({
 		"2xl": "max-w-2xl",
 	}
 
+	const heightClasses = maxHeight 
+		? "max-h-[90vh] overflow-hidden flex flex-col" 
+		: ""
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className={maxWidthClasses[maxWidth]}>
-				<DialogHeader>
+			<DialogContent className={`${maxWidthClasses[maxWidth]} ${heightClasses}`}>
+				<DialogHeader className={maxHeight ? "flex-shrink-0" : ""}>
 					{title ? (
 						<DialogTitle>{title}</DialogTitle>
 					) : (
@@ -71,7 +77,9 @@ export function ResponsiveDialog({
 					)}
 					{description && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
-				{children}
+				<div className={maxHeight ? "flex-1 overflow-y-auto min-h-0" : ""}>
+					{children}
+				</div>
 			</DialogContent>
 		</Dialog>
 	)
