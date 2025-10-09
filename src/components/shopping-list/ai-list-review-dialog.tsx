@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Check, PlusCircle, Trash2, X } from "lucide-react"
+import { Check, Lightbulb, PlusCircle, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -14,6 +14,7 @@ import { QuickBrandForm } from "@/components/quick-brand-form"
 import { Dialog } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { Brand, Category, Product } from "@prisma/client"
+import { ProductSuggestionsDialog, type ProductSuggestion } from "./product-suggestions-dialog"
 
 // Interface para itens identificados pela IA
 export interface AIIdentifiedItem {
@@ -65,6 +66,7 @@ export function AIListReviewDialog({
 	const [isCreateProductDialogOpen, setIsCreateProductDialogOpen] = useState(false)
 	const [isCreateBrandDialogOpen, setIsCreateBrandDialogOpen] = useState(false)
 	const [currentItemIndexForCreation, setCurrentItemIndexForCreation] = useState<number | null>(null)
+	const [isSuggestionsDialogOpen, setIsSuggestionsDialogOpen] = useState(false)
 
 	// Inicializar itens processados quando o dialog abrir
 	useEffect(() => {
@@ -168,6 +170,21 @@ export function AIListReviewDialog({
 		}
 	}
 
+	const handleAddSuggestions = (suggestions: ProductSuggestion[]) => {
+		const newItems = suggestions.map((suggestion): ProcessedAIItem => ({
+			id: crypto.randomUUID(),
+			originalName: suggestion.matchedProductName || suggestion.name,
+			quantity: 1,
+			productId: suggestion.matchedProductId || "",
+			productName: suggestion.matchedProductName || "",
+			isAssociated: suggestion.isMatched,
+			isTemporary: !suggestion.isMatched
+		}))
+
+		setProcessedItems([...processedItems, ...newItems])
+		setIsSuggestionsDialogOpen(false)
+	}
+
 	const handleSubmit = () => {
 		const finalItems: FinalListItem[] = processedItems
 			.filter(item => item.isAssociated && item.quantity > 0)
@@ -226,30 +243,56 @@ export function AIListReviewDialog({
 				description="A IA identificou os seguintes itens. Associe-os aos produtos cadastrados ou marque como temporários."
 				maxWidth="2xl"
 			>
-				{/* Botão de ação rápida */}
-				{processedItems.some(item => !item.isAssociated && !item.isTemporary) && (
-					<div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+				{/* Botões de ação rápida */}
+				<div className="space-y-3 mb-4">
+					{/* Sugestões de IA */}
+					<div className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium text-blue-900">
-									Ação Rápida
+								<p className="text-sm font-medium text-purple-900">
+									Sugestões Inteligentes
 								</p>
-								<p className="text-xs text-blue-700">
-									{processedItems.filter(item => !item.isAssociated && !item.isTemporary).length} itens ainda não processados
+								<p className="text-xs text-purple-700">
+									A IA pode sugerir produtos complementares
 								</p>
 							</div>
 							<Button
-								onClick={handleMarkAllAsTemporary}
+								onClick={() => setIsSuggestionsDialogOpen(true)}
 								variant="outline"
 								size="sm"
-								className="border-blue-300 text-blue-700 hover:bg-blue-100"
+								className="border-purple-300 text-purple-700 hover:bg-purple-100"
 							>
-								<PlusCircle className="h-4 w-4 mr-1" />
-								Marcar Todos como Temporários
+								<Lightbulb className="h-4 w-4 mr-1" />
+								Sugerir Produtos
 							</Button>
 						</div>
 					</div>
-				)}
+
+					{/* Marcar todos como temporários */}
+					{processedItems.some(item => !item.isAssociated && !item.isTemporary) && (
+						<div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+							<div className="flex items-center justify-between">
+								<div>
+									<p className="text-sm font-medium text-blue-900">
+										Ação Rápida
+									</p>
+									<p className="text-xs text-blue-700">
+										{processedItems.filter(item => !item.isAssociated && !item.isTemporary).length} itens ainda não processados
+									</p>
+								</div>
+								<Button
+									onClick={handleMarkAllAsTemporary}
+									variant="outline"
+									size="sm"
+									className="border-blue-300 text-blue-700 hover:bg-blue-100"
+								>
+									<PlusCircle className="h-4 w-4 mr-1" />
+									Marcar Todos como Temporários
+								</Button>
+							</div>
+						</div>
+					)}
+				</div>
 
 				<div className="space-y-6 max-h-[46vh] overflow-y-auto">
 					{processedItems.map((item, index) => (
@@ -392,6 +435,14 @@ export function AIListReviewDialog({
 					</div>
 				</div>
 			</ResponsiveFormDialog>
+
+			{/* Dialog de Sugestões de Produtos */}
+			<ProductSuggestionsDialog
+				isOpen={isSuggestionsDialogOpen}
+				onClose={() => setIsSuggestionsDialogOpen(false)}
+				currentItems={processedItems}
+				onAddSuggestions={handleAddSuggestions}
+			/>
 		</>
 	)
 }
