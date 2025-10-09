@@ -23,6 +23,7 @@ import { PriceRecordSkeleton } from "@/components/skeletons/price-record-skeleto
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -446,13 +447,29 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<p className="text-muted-foreground mt-2">Carregando...</p>
 								</div>
 							) : filteredRecords.length === 0 ? (
-								<div className="text-center py-8">
-									<Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-									<p className="text-muted-foreground">Nenhum registro encontrado</p>
-									{priceRecords.length > 0 && (
-										<p className="text-sm text-muted-foreground mt-1">Tente ajustar os filtros</p>
-									)}
-								</div>
+								priceRecords.length > 0 ? (
+									<Empty className="border border-dashed py-12">
+										<EmptyHeader>
+											<EmptyMedia variant="icon">
+												<Receipt className="h-6 w-6" />
+											</EmptyMedia>
+											<EmptyTitle>Nenhum registro encontrado</EmptyTitle>
+											<EmptyDescription>Tente ajustar os filtros para encontrar registros.</EmptyDescription>
+										</EmptyHeader>
+									</Empty>
+								) : (
+									<Empty className="border border-dashed py-12">
+										<EmptyHeader>
+											<EmptyMedia variant="icon">
+												<Receipt className="h-6 w-6" />
+											</EmptyMedia>
+											<EmptyTitle>Nenhum preço registrado</EmptyTitle>
+											<EmptyDescription>
+												Comece registrando preços de produtos para acompanhar variações e encontrar as melhores ofertas.
+											</EmptyDescription>
+										</EmptyHeader>
+									</Empty>
+								)
 							) : (
 								<div className="space-y-4">
 									{filteredRecords.map((record) => (

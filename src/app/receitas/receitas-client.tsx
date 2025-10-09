@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { TempStorage } from "@/lib/temp-storage"
@@ -151,19 +152,28 @@ export function ReceitasClient() {
 				</CardHeader>
 				<CardContent>
 					{recipes?.length === 0 ? (
-						<div className="text-center py-12 text-gray-500">
-							<ChefHat className="h-12 w-12 mx-auto mb-4" />
-							{searchTerm ? (
-								<>
-									<p className="text-lg font-medium mb-2">Nenhuma receita encontrada</p>
-									<p className="text-gray-600">Tente ajustar os termos de pesquisa.</p>
-								</>
-							) : (
-								<>
-									<p className="text-lg font-medium mb-2">Nenhuma receita salva</p>
-									<p className="text-gray-600 mb-4">
+						searchTerm ? (
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<ChefHat className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma receita encontrada</EmptyTitle>
+									<EmptyDescription>Tente ajustar os termos de pesquisa.</EmptyDescription>
+								</EmptyHeader>
+							</Empty>
+						) : (
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<ChefHat className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma receita salva</EmptyTitle>
+									<EmptyDescription>
 										Você ainda não tem receitas salvas. Use a IA para criar suas primeiras receitas!
-									</p>
+									</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Button
 										onClick={() => router.push("/receitas/gerar")}
 										className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
@@ -171,9 +181,9 @@ export function ReceitasClient() {
 										<Sparkles className="h-4 w-4 mr-2" />
 										Gerar Primeira Receita
 									</Button>
-								</>
-							)}
-						</div>
+								</EmptyContent>
+							</Empty>
+						)
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{recipes?.map((recipe) => (

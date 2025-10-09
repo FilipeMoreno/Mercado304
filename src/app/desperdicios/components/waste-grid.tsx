@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface WasteRecord {
@@ -80,28 +81,18 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 
 	if (records.length === 0) {
 		return (
-			<Card>
-				<CardContent className="p-12 text-center">
-					<div className="text-gray-400 mb-4">
-						<svg
-							className="mx-auto h-12 w-12"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-label="Ícone de lixeira vazia"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-							/>
-						</svg>
-					</div>
-					<h3 className="text-lg font-medium mb-2 text-gray-600">Nenhum desperdício registrado</h3>
-					<p className="text-gray-500">Comece registrando seus primeiros desperdícios para acompanhar as perdas.</p>
-				</CardContent>
-			</Card>
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia>
+						<Trash2 className="h-12 w-12 text-gray-400" />
+					</EmptyMedia>
+					<EmptyTitle>Nenhum desperdício registrado</EmptyTitle>
+					<EmptyDescription>
+						Comece registrando seus primeiros desperdícios para acompanhar as perdas.
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent />
+			</Empty>
 		)
 	}
 

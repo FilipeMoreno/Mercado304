@@ -8,6 +8,7 @@ import React, { useCallback, useMemo, useState } from "react"
 import { CategoryCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -214,11 +215,15 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				<OptimizedLoading isLoading={isLoading} skeletonType="category" skeletonCount={6}>
 					{categories.length === 0 ? (
 						state.search || state.sort !== "name-asc" ? (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhuma categoria encontrada</h3>
-									<p className="text-gray-600 mb-4">Nenhuma categoria corresponde aos filtros aplicados</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Tag className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma categoria encontrada</EmptyTitle>
+									<EmptyDescription>Nenhuma categoria corresponde aos filtros aplicados</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Button
 										variant="outline"
 										onClick={() => {
@@ -228,22 +233,26 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 									>
 										Limpar Filtros
 									</Button>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						) : (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhuma categoria cadastrada</h3>
-									<p className="text-gray-600 mb-4">Comece adicionando sua primeira categoria</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Tag className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma categoria cadastrada</EmptyTitle>
+									<EmptyDescription>Comece adicionando sua primeira categoria</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Link href="/categorias/nova">
 										<Button>
 											<Plus className="mr-2 h-4 w-4" />
 											Cadastrar Primeira Categoria
 										</Button>
 									</Link>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						)
 					) : (
 						<>

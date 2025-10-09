@@ -21,6 +21,7 @@ import { ChurrascometroSkeleton } from "@/components/skeletons/churrascometro-sk
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -273,13 +274,15 @@ export default function ChurrascoClient() {
 
 				<TabsContent value="history" className="space-y-6">
 					{history.length === 0 ? (
-						<Card>
-							<CardContent className="p-12 text-center">
-								<History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-								<p className="text-muted-foreground">Nenhum cálculo realizado ainda</p>
-								<p className="text-sm text-muted-foreground mt-1">Seus últimos cálculos aparecerão aqui</p>
-							</CardContent>
-						</Card>
+						<Empty className="border border-dashed py-12">
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<History className="h-6 w-6" />
+								</EmptyMedia>
+								<EmptyTitle>Nenhum cálculo realizado ainda</EmptyTitle>
+								<EmptyDescription>Seus últimos cálculos aparecerão aqui após realizar o primeiro churrasco.</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
 					) : (
 						<Card>
 							<CardHeader>

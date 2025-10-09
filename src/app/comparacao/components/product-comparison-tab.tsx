@@ -7,6 +7,7 @@ import { ProductSelect } from "@/components/selects/product-select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Label } from "@/components/ui/label"
 import type { Product } from "@/types"
 
@@ -123,10 +124,18 @@ export function ProductComparisonTab({
 					</CardHeader>
 					<CardContent>
 						{productComparison.markets.length === 0 ? (
-							<div className="text-center py-8 text-gray-500">
-								<Target className="h-12 w-12 mx-auto mb-4" />
-								<p>Nenhum preço encontrado para este produto</p>
-							</div>
+							<Empty>
+								<EmptyHeader>
+									<EmptyMedia>
+										<Target className="h-12 w-12 text-gray-400" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhum preço encontrado</EmptyTitle>
+									<EmptyDescription>
+										Este produto ainda não possui preços registrados em nenhum mercado.
+									</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent />
+							</Empty>
 						) : (
 							<div className="space-y-4">
 								{productComparison.markets

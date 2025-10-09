@@ -9,6 +9,7 @@ import { useCallback, useId, useMemo, useState } from "react"
 import { BrandCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -195,11 +196,15 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 				<OptimizedLoading isLoading={isLoading} skeletonType="brand" skeletonCount={6}>
 					{brands.length === 0 ? (
 						state.search || state.sort !== "name-asc" ? (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Factory className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhuma marca encontrada</h3>
-									<p className="text-gray-600 mb-4">Nenhuma marca corresponde aos filtros aplicados</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Factory className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma marca encontrada</EmptyTitle>
+									<EmptyDescription>Nenhuma marca corresponde aos filtros aplicados</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Button
 										variant="outline"
 										onClick={() => {
@@ -209,22 +214,26 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 									>
 										Limpar Filtros
 									</Button>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						) : (
-							<Card>
-								<CardContent className="text-center py-12">
-									<Factory className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-									<h3 className="text-lg font-medium mb-2">Nenhuma marca cadastrada</h3>
-									<p className="text-gray-600 mb-4">Comece adicionando sua primeira marca</p>
+							<Empty className="border border-dashed py-12">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<Factory className="h-6 w-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma marca cadastrada</EmptyTitle>
+									<EmptyDescription>Comece adicionando sua primeira marca</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
 									<Link href="/marcas/nova">
 										<Button>
 											<Plus className="mr-2 h-4 w-4" />
 											Cadastrar Primeira Marca
 										</Button>
 									</Link>
-								</CardContent>
-							</Card>
+								</EmptyContent>
+							</Empty>
 						)
 					) : (
 						<>

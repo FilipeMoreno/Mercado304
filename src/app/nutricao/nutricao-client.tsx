@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -156,13 +157,17 @@ export default function NutricaoClient() {
 
 	if (!analysis) {
 		return (
-			<div className="text-center py-12">
-				<Apple className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-				<h2 className="text-2xl font-semibold mb-2">Nenhum dado nutricional encontrado</h2>
-				<p className="text-gray-600 dark:text-gray-400 mb-6">
-					Adicione produtos com informações nutricionais para ver a análise
-				</p>
-			</div>
+			<Empty className="border border-dashed py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Apple className="h-6 w-6" />
+					</EmptyMedia>
+					<EmptyTitle>Nenhum dado nutricional encontrado</EmptyTitle>
+					<EmptyDescription>
+						Adicione produtos com informações nutricionais para ver a análise completa.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
