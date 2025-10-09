@@ -13,6 +13,7 @@ import {
 	StickyNote,
 	Store,
 	Target,
+	Zap,
 } from "lucide-react"
 import type React from "react"
 import { useEffect, useState } from "react"
@@ -28,6 +29,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PriceTagScanner } from "@/components/price-tag-scanner"
 
 function PriceAnalysisCard({ className }: { className?: string }) {
 	return (
@@ -109,6 +111,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const [price, setPrice] = useState("")
 	const [notes, setNotes] = useState("")
 	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	// Estados para o scanner
+	const [isScannerOpen, setIsScannerOpen] = useState(false)
+	const [scannerMarketId, setScannerMarketId] = useState("")
 
 	const [formData, setFormData] = useState({
 		productId: "",
@@ -225,6 +231,69 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	if (initialLoading) {
 		return <PriceRecordSkeleton />
+	}
+
+	// Função para lidar com resultado do scanner
+	const handleScanResult = async (result: { barcode: string; price: number; confidence: number }) => {
+		try {
+			// Buscar produto pelo código de barras
+			const productResponse = await fetch(`/api/products/search?barcode=${result.barcode}`)
+			const productData = await productResponse.json()
+
+			if (productData.success && productData.product) {
+				// Produto encontrado - preencher formulário
+				const product = productData.product
+				setFormData({
+					productId: product.id,
+					marketId: scannerMarketId,
+				})
+				setPrice(result.price.toString())
+				setNotes(`Registrado via scanner (confiança: ${Math.round(result.confidence * 100)}%)`)
+				
+				toast.success(`Produto encontrado: ${product.name}`)
+			} else {
+				// Produto não encontrado - criar novo produto
+				const createProductResponse = await fetch("/api/products", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						name: `Produto ${result.barcode}`,
+						barcode: result.barcode,
+						description: "Produto criado automaticamente via scanner",
+					}),
+				})
+
+				const createProductData = await createProductResponse.json()
+
+				if (createProductData.success) {
+					setFormData({
+						productId: createProductData.product.id,
+						marketId: scannerMarketId,
+					})
+					setPrice(result.price.toString())
+					setNotes(`Produto criado via scanner (confiança: ${Math.round(result.confidence * 100)}%)`)
+					
+					toast.success("Novo produto criado e preço preenchido!")
+				} else {
+					toast.error("Erro ao criar produto automaticamente")
+				}
+			}
+
+			setIsScannerOpen(false)
+		} catch (error) {
+			console.error("Erro ao processar resultado do scanner:", error)
+			toast.error("Erro ao processar resultado do scanner")
+		}
+	}
+
+	// Função para abrir scanner com validação de mercado
+	const openScanner = () => {
+		if (!formData.marketId) {
+			toast.error("Selecione um mercado antes de usar o scanner")
+			return
+		}
+		setScannerMarketId(formData.marketId)
+		setIsScannerOpen(true)
 	}
 
 	return (
@@ -360,9 +429,43 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									</div>
 								</div>
 
-								<Button type="submit" disabled={isSubmitting} className="w-full">
-									{isSubmitting ? "Registrando..." : "Registrar Preço"}
-								</Button>
+								{/* Scanner Button */}
+								<div className="flex flex-col sm:flex-row gap-2">
+									<Button type="submit" disabled={isSubmitting} className="flex-1">
+										{isSubmitting ? "Registrando..." : "Registrar Preço"}
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={openScanner}
+										disabled={isSubmitting}
+										className="flex items-center gap-2"
+									>
+										<Zap className="h-4 w-4" />
+										Scanner IA
+									</Button>
+								</div>
+
+								{/* Instruções do Scanner */}
+								<div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+									<div className="flex items-start gap-3">
+										<Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+										<div>
+											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+												Scanner de Etiquetas com IA
+											</h4>
+											<p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+												Use o scanner para registrar preços automaticamente através de fotos de etiquetas.
+											</p>
+											<ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+												<li>• Selecione o mercado antes de usar o scanner</li>
+												<li>• Posicione a etiqueta dentro da área destacada</li>
+												<li>• Certifique-se de que código de barras e preço estejam visíveis</li>
+												<li>• O produto será criado automaticamente se não existir</li>
+											</ul>
+										</div>
+									</div>
+								</div>
 							</form>
 						</CardContent>
 					</Card>
@@ -516,6 +619,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					<BestDayCard className="w-full" />
 				</TabsContent>
 			</Tabs>
+
+			{/* Price Tag Scanner */}
+			<PriceTagScanner
+				isOpen={isScannerOpen}
+				onClose={() => setIsScannerOpen(false)}
+				onScan={handleScanResult}
+				marketId={scannerMarketId}
+			/>
 		</div>
 	)
 }
