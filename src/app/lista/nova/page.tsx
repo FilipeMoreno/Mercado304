@@ -5,8 +5,8 @@ import { ArrowLeft, Camera, List, Plus, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useId, useState } from "react"
-import dynamic from "next/dynamic"
 import { toast } from "sonner"
+import { BarcodeScanner } from "@/components/barcode-scanner"
 import { PriceAlert } from "@/components/price-alert"
 import { RelatedProductsCard } from "@/components/related-products-card"
 import { ProductSelect } from "@/components/selects/product-select"
@@ -43,11 +43,6 @@ interface ShoppingListItem {
 		}
 	}
 }
-
-// Lazy-load scanner to reduce initial bundle and avoid SSR of media APIs
-const BarcodeScanner = dynamic(() => import("@/components/barcode-scanner").then(m => m.BarcodeScanner), {
-	ssr: false,
-})
 
 export default function NovaListaPage() {
 	const router = useRouter()

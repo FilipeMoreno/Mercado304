@@ -5,8 +5,8 @@ import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import dynamic from "next/dynamic"
 import { toast } from "sonner"
+import { BarcodeScanner } from "@/components/barcode-scanner"
 import { ProductEmptyState } from "@/components/products/product-empty-state"
 import { ProductList } from "@/components/products/product-list"
 import { ProductPagination } from "@/components/products/product-pagination"
@@ -28,11 +28,6 @@ import {
 } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Product } from "@/types"
-
-// Lazy-load scanner to avoid SSR and reduce initial bundle
-const BarcodeScanner = dynamic(() => import("@/components/barcode-scanner").then(m => m.BarcodeScanner), {
-	ssr: false,
-})
 
 interface ProductsClientProps {
 	searchParams: {
