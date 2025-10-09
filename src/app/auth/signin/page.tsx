@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
-import { oneTap, signIn, twoFactor, useSession } from "@/lib/auth-client"
+import { oneTap, passkey, signIn, twoFactor, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignInPage() {
@@ -120,10 +120,8 @@ export default function SignInPage() {
 	const handlePasskeySignIn = async () => {
 		setIsPasskeyLoading(true)
 		try {
-			// Tenta login com passkey usando autoFill para detecção automática
-			const result = await signIn.passkey({
-				autoFill: true,
-			})
+			// Tenta login com passkey
+			const result = await signIn.passkey()
 
 			if (result?.error) {
 				// Verifica se é um erro de cancelamento
@@ -135,24 +133,18 @@ export default function SignInPage() {
 					return
 				}
 
-				// Se falhar sem email, pode tentar com fallback para email se necessário
-				if (result.error.message?.includes("email") && email) {
-					const fallbackResult = await signIn.passkey({ email })
-					if (fallbackResult?.error) {
-						// Verifica se o fallback também foi cancelado
-						if (fallbackResult.error.message?.toLowerCase().includes("cancelled") || 
-							fallbackResult.error.message?.toLowerCase().includes("canceled") ||
-							fallbackResult.error.message?.toLowerCase().includes("abort")) {
-							setIsPasskeyLoading(false)
-							return
-						}
-						handleAuthError(fallbackResult.error, "general")
-						return
-					}
-				} else {
-					handleAuthError(result.error, "general")
+				// Verifica se é erro de passkey não encontrado
+				if ((result.error as any)?.code === "PASSKEY_NOT_FOUND" || 
+					result.error.message?.toLowerCase().includes("passkey not found")) {
+					toast.error("Nenhum passkey encontrado. Faça login com email/senha e configure um passkey nas configurações de segurança.", {
+						duration: 5000
+					})
+					setIsPasskeyLoading(false)
 					return
 				}
+
+				handleAuthError(result.error as any, "general")
+				return
 			}
 
 			// Salva o método de login usado
@@ -491,6 +483,7 @@ export default function SignInPage() {
 					Criar conta
 				</Link>
 			</p>
+
 		</div>
 	)
 }

@@ -10,6 +10,7 @@ import { sendPasswordResetEmail, sendVerificationEmail } from "./email"
 const prisma = new PrismaClient()
 
 export const auth = betterAuth({
+	secret: process.env.BETTER_AUTH_SECRET || "fallback-secret-for-development-only",
 	rateLimit: {
 		window: 10,
 		max: 100,
@@ -51,7 +52,7 @@ export const auth = betterAuth({
 		expiresIn: 60 * 60 * 24 * 7, // 1 week
 		updateAge: 60 * 60 * 24, // 1 day
 	},
-	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3000"],
+	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3001"],
 	plugins: [
 		oneTap({
 			clientId: process.env.AUTH_GOOGLE_ID as string,
@@ -79,7 +80,7 @@ export const auth = betterAuth({
 			origin:
 				process.env.NODE_ENV === "production"
 					? process.env.BETTER_AUTH_URL || "https://mercado.filipemoreno.com.br"
-					: "http://localhost:3000",
+					: "http://localhost:3001",
 		}),
 		lastLoginMethod({
 			storeInDatabase: true,

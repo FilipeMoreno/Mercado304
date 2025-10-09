@@ -734,7 +734,13 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							</CardContent>
 							<CardFooter>
 								<Button
-									onClick={() => setShowPasskeySetup(true)}
+									onClick={() => {
+										if (passkeyCount > 0) {
+											setActiveTab("passkeys")
+										} else {
+											setShowPasskeySetup(true)
+										}
+									}}
 									variant={passkeyCount > 0 ? "outline" : "default"}
 									className="w-full"
 								>
