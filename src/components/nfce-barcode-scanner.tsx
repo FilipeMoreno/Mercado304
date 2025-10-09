@@ -1,7 +1,12 @@
 'use client';
 
 import React from 'react';
-import { BarcodeScanner } from '@/components/barcode-scanner'; // Importando seu scanner
+import dynamic from 'next/dynamic';
+
+// Import dinâmico para evitar SSR e reduzir bundle inicial
+const BarcodeScanner = dynamic(() => import('@/components/barcode-scanner').then(m => m.BarcodeScanner), {
+  ssr: false,
+});
 
 interface NfceBarcodeScannerProps {
   isOpen: boolean;

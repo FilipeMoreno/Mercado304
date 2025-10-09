@@ -70,6 +70,9 @@ model Product {
   priceRecords    PriceRecord[]
 
   @@map("products")
+  @@index([name])
+  @@index([categoryId])
+  @@index([brandId])
 }
 
 model Purchase {
@@ -117,6 +120,8 @@ model PurchaseItem {
   product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@map("purchase_items")
+  @@index([purchaseId])
+  @@index([productId])
 }
 
 model ShoppingList {
@@ -157,6 +162,8 @@ model ShoppingListItem {
   product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@map("shopping_list_items")
+  @@index([listId])
+  @@index([productId])
 }
 
 model StockItem {
@@ -176,6 +183,9 @@ model StockItem {
   movements StockMovement[]
 
   @@map("stock_items")
+  @@index([productId])
+  @@index([isExpired])
+  @@index([isLowStock])
 }
 
 model StockHistory {
@@ -245,6 +255,8 @@ model WasteRecord {
   updatedAt      DateTime    @updatedAt
 
   @@map("waste_records")
+  @@index([productId])
+  @@index([wasteDate])
 }
 
 enum WasteReason {

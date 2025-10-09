@@ -4,8 +4,8 @@ import { ArrowLeft, Camera, Loader2, Package, Save, ScanLine } from "lucide-reac
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
+import dynamic from "next/dynamic"
 import { toast } from "sonner"
-import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
 import { BrandSelect } from "@/components/selects/brand-select"
@@ -26,6 +26,19 @@ import type { NutritionalInfo } from "@/types"
 // REMOVIDO: OcrDebugDialog não é mais necessário aqui
 
 const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"]
+
+// Dynamic import to avoid bundling heavy camera/scanner logic on initial load
+const BarcodeScanner = dynamic(() => import("@/components/barcode-scanner").then((m) => m.BarcodeScanner), {
+	ssr: false,
+	loading: () => (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 text-white">
+			<div className="flex items-center gap-2">
+				<Camera className="h-4 w-4 animate-pulse" />
+				<span>Carregando scanner…</span>
+			</div>
+		</div>
+ 	),
+})
 
 export default function NovoProdutoPage() {
 	const router = useRouter()
