@@ -1,24 +1,22 @@
 "use client"
 
 import {
-	Apple,
-	BarChart3,
-	Box,
-	ChefHat,
+	Apple, Beef, ChefHat,
 	ChevronLeft,
 	ChevronRight,
 	DollarSign,
 	Grid3X3,
+	LayoutDashboard,
 	List,
 	Menu,
 	Package,
 	Receipt,
+	ShoppingBag,
 	ShoppingCart,
 	Sparkles,
 	Store,
 	Tag,
-	Trash2,
-	Utensils,
+	Trash2, Warehouse
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -30,7 +28,7 @@ import { cn } from "@/lib/utils"
 import { UserNav } from "./user-nav"
 
 const navigation = [
-	{ name: "Dashboard", href: "/", icon: BarChart3 },
+	{ name: "Dashboard", href: "/", icon: LayoutDashboard },
 	{ name: "Mercados", href: "/mercados", icon: Store },
 	{ name: "Produtos", href: "/produtos", icon: Package },
 	{ name: "Categorias", href: "/categorias", icon: Grid3X3 },
@@ -39,7 +37,7 @@ const navigation = [
 	{
 		name: "Compras",
 		href: "/compras",
-		icon: ShoppingCart,
+		icon: ShoppingBag,
 		subItems: [
 			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
 			{ name: "Importar NFc-E", href: "/compras/importar", icon: Receipt },
@@ -66,9 +64,9 @@ const navigation = [
 			{ name: "Produtos sem Info", href: "/produtos/nutricao", icon: Package },
 		],
 	},
-	{ name: "Estoque", href: "/estoque", icon: Box },
+	{ name: "Estoque", href: "/estoque", icon: Warehouse },
 	{ name: "Desperdícios", href: "/desperdicios", icon: Trash2 },
-	{ name: "Churrascômetro", href: "/churrasco", icon: Utensils },
+	{ name: "Churrascômetro", href: "/churrasco", icon: Beef },
 ]
 
 interface SidebarProps {

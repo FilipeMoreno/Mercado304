@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, Plus, Search, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, MoreVertical, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
@@ -18,6 +18,7 @@ import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dial
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
 import type { ShoppingList } from "@/types"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface ListaClientProps {
 	searchParams: {
@@ -272,23 +273,28 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 												</div>
 											</div>
 										</CardHeader>
-										<CardContent>
-											<div className="flex gap-2">
-												<Link href={`/lista/${list.id}`}>
-													<Button variant="outline" size="sm">
-														<Eye className="h-4 w-4 mr-1" />
-														Ver Lista
-													</Button>
-												</Link>
-												<Link href={`/lista/${list.id}/editar`}>
-													<Button variant="outline" size="sm">
-														<Edit className="h-4 w-4" />
-													</Button>
-												</Link>
-												<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(list)}>
-													<Trash2 className="h-4 w-4" />
+										<CardContent className="flex justify-between">
+
+											<Link href={`/lista/${list.id}`}>
+												<Button variant="outline" size="sm" className="w-full">
+													<Eye className="h-4 w-4 mr-1" />
+													Ver Lista
 												</Button>
-											</div>
+											</Link>
+
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+														<MoreVertical className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem onClick={() => openDeleteConfirm(list)} className="text-red-600">
+														<Trash2 className="h-4 w-4 mr-2" />
+														Excluir
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
 										</CardContent>
 									</Card>
 								</motion.div>
