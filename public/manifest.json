@@ -1,10 +1,10 @@
 {
   "name": "Mercado304 - Gestão de Compras",
-  "short_name": "Mercado304",
+  "short_name": "mercado304",
   "description": "Sistema completo de gerenciamento de compras de mercado",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#3b82f6",
   "theme_color": "#1f2937",
   "orientation": "portrait-primary",
   "icons": [
