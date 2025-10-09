@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowLeft, Camera, List, Plus, Save, Trash2 } from "lucide-react"
+import { ArrowLeft, Camera, List, Plus, Save, Sparkles, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useId, useState } from "react"
@@ -10,6 +10,7 @@ import { BarcodeScanner } from "@/components/barcode-scanner"
 import { PriceAlert } from "@/components/price-alert"
 import { RelatedProductsCard } from "@/components/related-products-card"
 import { ProductSelect } from "@/components/selects/product-select"
+import { PhotoListCreator } from "@/components/shopping-list/photo-list-creator"
 import { NovaListaSkeleton } from "@/components/skeletons/nova-lista-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +22,7 @@ import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 interface ShoppingListItem {
 	productId: string
-	quantity: number
+	quantity: number | string
 	estimatedPrice?: number | string
 	priceAlert?: {
 		hasAlert: boolean
@@ -54,6 +55,7 @@ export default function NovaListaPage() {
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
 	const [scanningForIndex, setScanningForIndex] = useState<number | null>(null)
+	const [showPhotoCreator, setShowPhotoCreator] = useState(false)
 	const { showInsight } = useProactiveAiStore()
 
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
@@ -236,9 +238,13 @@ export default function NovaListaPage() {
 		}
 
 		const validItems = items
-			.filter((item) => item.productId && item.quantity > 0)
+			.filter((item) => {
+				const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity
+				return item.productId && qty > 0 && !isNaN(qty)
+			})
 			.map((item) => ({
 				...item,
+				quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
 				estimatedPrice: parseFloat(String(item.estimatedPrice)) || null,
 			}))
 
@@ -300,8 +306,55 @@ export default function NovaListaPage() {
 	const calculateTotal = () => {
 		return items.reduce((sum, item) => {
 			const price = parseFloat(String(item.estimatedPrice)) || 0
-			return sum + item.quantity * price
+			const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity
+			return sum + quantity * price
 		}, 0)
+	}
+
+	const handlePhotoListCreation = async (finalItems: any[]) => {
+		try {
+			// Converter itens finais para o formato da lista
+			const convertedItems = finalItems.map((finalItem) => {
+				if (finalItem.isTemporary) {
+					// Item temporário
+					return {
+						productId: "", // Será criado como temporário
+						quantity: finalItem.quantity,
+						estimatedPrice: "",
+						priceAlert: undefined,
+						tempName: finalItem.tempName, // Nome temporário
+					}
+				} else {
+					// Item com produto associado
+					return {
+						productId: finalItem.productId,
+						quantity: finalItem.quantity,
+						estimatedPrice: "",
+						priceAlert: undefined,
+					}
+				}
+			})
+
+			// Substituir itens atuais pelos da foto
+			setItems(convertedItems)
+			
+			// Ajustar arrays de controle
+			setCheckingPrices(new Array(convertedItems.length).fill(false))
+			setRelatedProductsVisibility(new Array(convertedItems.length).fill(true))
+			setPriceAlertVisibility(new Array(convertedItems.length).fill(true))
+			setQuantityInputs(convertedItems.map(item => String(item.quantity)))
+			setPriceInputs(new Array(convertedItems.length).fill("0.00"))
+
+			// Sugerir nome da lista se não tiver
+			if (!listName.trim()) {
+				setListName(`Lista IA - ${new Date().toLocaleDateString()}`)
+			}
+
+			toast.success(`${finalItems.length} itens adicionados da foto!`)
+		} catch (error) {
+			console.error("Erro ao processar itens da foto:", error)
+			toast.error("Erro ao processar itens da foto")
+		}
 	}
 
 	if (dataLoading) {
@@ -335,10 +388,21 @@ export default function NovaListaPage() {
 					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
 						<Card>
 							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<List className="h-5 w-5" />
-									Informações da Lista
-								</CardTitle>
+								<div className="flex justify-between items-center">
+									<CardTitle className="flex items-center gap-2">
+										<List className="h-5 w-5" />
+										Informações da Lista
+									</CardTitle>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => setShowPhotoCreator(true)}
+										className="flex items-center gap-2"
+									>
+										<Sparkles className="h-4 w-4" />
+										<span className="hidden sm:inline">Criar com IA</span>
+									</Button>
+								</div>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
@@ -364,11 +428,6 @@ export default function NovaListaPage() {
 										<Plus className="h-5 w-5" />
 										Itens da Lista
 									</CardTitle>
-									{/* Botão de adicionar item - apenas visível no desktop */}
-									<Button type="button" onClick={addItem} variant="outline" className="hidden md:flex">
-										<Plus className="h-4 w-4 mr-2" />
-										Adicionar Item
-									</Button>
 								</div>
 							</CardHeader>
 							<CardContent>
@@ -416,12 +475,25 @@ export default function NovaListaPage() {
 														next[index] = raw
 														return next
 													})
+													
+													// Permitir campo vazio
+													if (raw === "") {
+														updateItem(index, "quantity", "")
+														return
+													}
+													
+													// Normalizar vírgula para ponto
 													const normalized = raw.replace(',', '.')
-													const parsed = parseFloat(normalized)
-													if (!Number.isNaN(parsed)) {
-														updateItem(index, "quantity", parsed)
-													} else if (raw === "") {
-														updateItem(index, "quantity", 0)
+													
+													// Validar se é um número válido (incluindo decimais)
+													const numberRegex = /^\d*\.?\d*$/
+													if (numberRegex.test(normalized)) {
+														const parsed = parseFloat(normalized)
+														if (!Number.isNaN(parsed) && parsed >= 0) {
+															updateItem(index, "quantity", parsed)
+														} else if (normalized === "" || normalized === ".") {
+															updateItem(index, "quantity", "")
+														}
 													}
 												}}
 												placeholder="0,000"
@@ -460,7 +532,7 @@ export default function NovaListaPage() {
 										<div className="space-y-2 md:block">
 											<Label>Total</Label>
 											<Input
-												value={`R$ ${(items[index].quantity * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
+												value={`R$ ${((typeof items[index].quantity === 'string' ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
 												disabled
 												className="bg-gray-50 text-center font-semibold"
 											/>
@@ -580,6 +652,12 @@ export default function NovaListaPage() {
 					setShowScanner(false)
 					setScanningForIndex(null)
 				}}
+			/>
+
+			<PhotoListCreator
+				isOpen={showPhotoCreator}
+				onClose={() => setShowPhotoCreator(false)}
+				onCreateList={handlePhotoListCreation}
 			/>
 		</div>
 	)

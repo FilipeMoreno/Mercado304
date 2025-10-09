@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Package, Plus, ShoppingCart } from "lucide-react"
+import { Eye, EyeOff, Package, Plus, ShoppingCart } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -13,6 +13,7 @@ import {
 	EditItemDialog,
 	EditListDialog,
 	ProgressBar,
+	QuickEditDialog,
 	QuickProductDialog,
 	ShoppingListHeader,
 	ShoppingListItemComponent,
@@ -125,6 +126,10 @@ export default function ListaDetalhesPage() {
 
 	// Estados para itens temporários
 	const [showTemporaryForm, setShowTemporaryForm] = useState(false)
+
+	// Estados para edição rápida e toggle de itens marcados
+	const [quickEditingItem, setQuickEditingItem] = useState<ShoppingListItem | null>(null)
+	const [showCompletedItems, setShowCompletedItems] = useState(true)
 
 	const fetchListDetails = useCallback(async () => {
 		try {
@@ -665,6 +670,7 @@ export default function ListaDetalhesPage() {
 							: null,
 					)
 				}}
+				onDeleteItem={(item) => setDeleteItemConfirm(item)}
 			/>
 		)
 	}
@@ -704,6 +710,30 @@ export default function ListaDetalhesPage() {
 									Itens da Lista
 								</CardTitle>
 								<div className="flex gap-2">
+									{/* Toggle para mostrar itens concluídos */}
+									{list.items.filter(item => item.isChecked).length > 0 && (
+										<Button
+											onClick={() => setShowCompletedItems(!showCompletedItems)}
+											variant="outline"
+											size="sm"
+											className="flex items-center gap-2"
+										>
+											{showCompletedItems ? (
+												<>
+													<EyeOff className="h-4 w-4" />
+													<span className="hidden sm:inline">Ocultar Concluídos</span>
+												</>
+											) : (
+												<>
+													<Eye className="h-4 w-4" />
+													<span className="hidden sm:inline">Mostrar Concluídos</span>
+												</>
+											)}
+											<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+												{list.items.filter(item => item.isChecked).length}
+											</span>
+										</Button>
+									)}
 									<Button
 										onClick={() => setShowTemporaryForm(true)}
 										variant="outline"
@@ -752,7 +782,9 @@ export default function ListaDetalhesPage() {
 								</Empty>
 							) : (
 								<div className="space-y-3">
-									{list.items.map((item, index) =>
+									{list.items
+										.filter(item => showCompletedItems || !item.isChecked)
+										.map((item, index) =>
 										item.isTemporary ? (
 											<motion.div
 												key={item.id}
@@ -783,13 +815,7 @@ export default function ListaDetalhesPage() {
 												<ShoppingListItemComponent
 													item={item}
 													onToggle={toggleItem}
-													onEdit={(item) => {
-														setEditingItem(item)
-														setEditItemData({
-															quantity: item.quantity,
-															estimatedPrice: item.estimatedPrice || 0,
-														})
-													}}
+													onEdit={(item) => setQuickEditingItem(item)}
 													onDelete={(item) => setDeleteItemConfirm(item)}
 												/>
 											</motion.div>
@@ -910,6 +936,25 @@ export default function ListaDetalhesPage() {
 				onQuickProductChange={setQuickProduct}
 				onCreateProduct={handleCreateQuickProduct}
 				saving={savingQuickProduct}
+			/>
+
+			{/* Dialog de Edição Rápida */}
+			<QuickEditDialog
+				item={quickEditingItem}
+				isOpen={!!quickEditingItem}
+				onClose={() => setQuickEditingItem(null)}
+				onUpdate={(itemId, updates) => {
+					if (updates.quantity !== undefined) {
+						handleUpdateQuantity(itemId, updates.quantity)
+					}
+					if (updates.estimatedPrice !== undefined) {
+						handleUpdateEstimatedPrice(itemId, updates.estimatedPrice)
+					}
+				}}
+				onDelete={(item) => {
+					setDeleteItemConfirm(item)
+					setQuickEditingItem(null)
+				}}
 			/>
 
 			{/* Componente de Roteiro Otimizado */}

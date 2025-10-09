@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, ChevronLeft, LayoutList, Minus, Plus, Save, Settings2, SortAsc } from "lucide-react"
+import { Check, ChevronDown, ChevronLeft, Eye, EyeOff, LayoutList, Save, Settings2, SortAsc } from "lucide-react"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,8 +12,7 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { QuickEditDialog } from "./quick-edit-dialog"
 
 interface ShoppingListItem {
 	id: string
@@ -53,6 +53,7 @@ interface ShoppingModeProps {
 	onUpdateQuantity: (itemId: string, newQuantity: number) => void
 	onUpdateEstimatedPrice: (itemId: string, newPrice: number) => void
 	onCloseBestPriceAlert: (itemId: string) => void
+	onDeleteItem?: (item: ShoppingListItem) => void
 }
 
 export function ShoppingMode({
@@ -66,7 +67,10 @@ export function ShoppingMode({
 	onUpdateQuantity,
 	onUpdateEstimatedPrice,
 	onCloseBestPriceAlert,
+	onDeleteItem,
 }: ShoppingModeProps) {
+	const [showCompleted, setShowCompleted] = useState(false)
+	const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
 	// Separar itens por status
 	const getSortedItems = () => {
 		if (sortOrder === "default") {
@@ -123,28 +127,48 @@ export function ShoppingMode({
 					<ChevronLeft className="h-5 w-5" />
 				</Button>
 				<div className="text-lg font-bold flex-1 text-center">{listName}</div>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" size="icon">
-							<Settings2 className="h-5 w-5" />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuRadioGroup
-							value={sortOrder}
-							onValueChange={(value) => onSortChange(value as "default" | "category")}
-						>
-							<DropdownMenuRadioItem value="default">
-								<SortAsc className="h-4 w-4 mr-2" />
-								Padrão
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="category">
-								<LayoutList className="h-4 w-4 mr-2" />
-								Por Categoria
-							</DropdownMenuRadioItem>
-						</DropdownMenuRadioGroup>
-					</DropdownMenuContent>
-				</DropdownMenu>
+				<div className="flex items-center gap-2">
+					{/* Toggle para mostrar itens concluídos */}
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => setShowCompleted(!showCompleted)}
+						className="flex items-center gap-2"
+					>
+						{showCompleted ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+						<span className="hidden sm:inline">
+							{showCompleted ? "Ocultar" : "Mostrar"} Concluídos
+						</span>
+						{checkedItems.length > 0 && (
+							<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+								{checkedItems.length}
+							</span>
+						)}
+					</Button>
+					
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon">
+								<Settings2 className="h-5 w-5" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuRadioGroup
+								value={sortOrder}
+								onValueChange={(value) => onSortChange(value as "default" | "category")}
+							>
+								<DropdownMenuRadioItem value="default">
+									<SortAsc className="h-4 w-4 mr-2" />
+									Padrão
+								</DropdownMenuRadioItem>
+								<DropdownMenuRadioItem value="category">
+									<LayoutList className="h-4 w-4 mr-2" />
+									Por Categoria
+								</DropdownMenuRadioItem>
+							</DropdownMenuRadioGroup>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			</div>
 
 			<div className="px-4 md:px-6 space-y-4">
@@ -185,10 +209,14 @@ export function ShoppingMode({
 											ease: "easeInOut",
 										}}
 										className="p-4 rounded-lg cursor-pointer bg-card shadow-sm"
+										onClick={() => setEditingItem(item)}
 									>
 										<div className="flex items-center gap-4">
 											<motion.button
-												onClick={() => onToggleItem(item.id, item.isChecked)}
+												onClick={(e) => {
+													e.stopPropagation()
+													onToggleItem(item.id, item.isChecked)
+												}}
 												whileHover={{ scale: 1.1 }}
 												whileTap={{ scale: 0.95 }}
 												className="w-8 h-8 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 border-gray-300 hover:border-green-400"
@@ -201,60 +229,32 @@ export function ShoppingMode({
 													className={`font-medium text-lg ${item.isChecked ? "line-through text-gray-500" : "text-gray-900"}`}
 												>
 													{item.product?.name || item.productName}
+													{item.product?.brand && <span className="text-gray-500 font-normal ml-2">- {item.product.brand.name}</span>}
 												</p>
-												<p className="text-sm text-gray-600">
-													{item.product?.brand?.name && `(${item.product.brand.name}) `}
-													{item.product?.category?.name && `• ${item.product.category.name}`}
-												</p>
-											</div>
-										</div>
-
-										<div className="grid grid-cols-2 gap-4 mt-4">
-											{/* Campo de Quantidade */}
-											<div className="space-y-1">
-												<Label>Quantidade</Label>
-												<div className="flex items-center gap-2">
-													<Button
-														type="button"
-														variant="outline"
-														size="icon"
-														onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-														className="h-8 w-8"
-													>
-														<Minus className="h-4 w-4" />
-													</Button>
-													<Input
-														type="number"
-														step="0.01"
-														min="0.01"
-														value={item.quantity}
-														onChange={(e) => onUpdateQuantity(item.id, parseFloat(e.target.value) || 1)}
-														className="text-center"
-													/>
-													<Button
-														type="button"
-														variant="outline"
-														size="icon"
-														onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-														className="h-8 w-8"
-													>
-														<Plus className="h-4 w-4" />
-													</Button>
+												<div className="text-sm text-gray-600">
+													{item.quantity} {item.product?.unit || item.productUnit || "unidades"}
+													{item.estimatedPrice && (
+														<span className="ml-2">
+															• R$ {item.estimatedPrice.toFixed(2)}
+															{item.quantity > 1 && ` (Total: R$ ${(item.quantity * item.estimatedPrice).toFixed(2)})`}
+														</span>
+													)}
 												</div>
 											</div>
 
-											{/* Campo de Preço Unitário */}
-											<div className="space-y-1">
-												<Label>Preço Estimado</Label>
-												<Input
-													type="number"
-													step="0.01"
-													min="0"
-													value={item.estimatedPrice || ""}
-													onChange={(e) => onUpdateEstimatedPrice(item.id, parseFloat(e.target.value) || 0)}
-													placeholder="0.00"
-												/>
-											</div>
+											{/* Valor total no lado direito */}
+											{item.estimatedPrice && item.quantity > 0 && (
+												<div className="text-right">
+													<div className="text-lg font-bold text-gray-900">
+														R$ {(item.quantity * item.estimatedPrice).toFixed(2)}
+													</div>
+													{item.quantity > 1 && (
+														<div className="text-xs text-gray-500">
+															{item.quantity}x R$ {item.estimatedPrice.toFixed(2)}
+														</div>
+													)}
+												</div>
+											)}
 										</div>
 
 										{/* Alert de Menor Preço */}
@@ -275,13 +275,23 @@ export function ShoppingMode({
 				))}
 			</div>
 
-			{checkedItems.length > 0 && (
+			{checkedItems.length > 0 && showCompleted && (
 				<div className="px-4 md:px-6 space-y-4">
-					<div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
-						<Check className="h-5 w-5 text-green-600" />
-						<h2 className="font-semibold text-green-700 dark:text-green-300">
-							Itens Coletados ({checkedItems.length})
-						</h2>
+					<div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
+						<div className="flex items-center gap-2">
+							<Check className="h-5 w-5 text-green-600" />
+							<h2 className="font-semibold text-green-700 dark:text-green-300">
+								Itens Coletados ({checkedItems.length})
+							</h2>
+						</div>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setShowCompleted(false)}
+							className="text-green-600 hover:text-green-700"
+						>
+							<ChevronDown className="h-4 w-4" />
+						</Button>
 					</div>
 
 					{Object.entries(checkedItemsByCategory).map(([category, data]: any) => (
@@ -337,6 +347,25 @@ export function ShoppingMode({
 					))}
 				</div>
 			)}
+
+			{/* Dialog de Edição Rápida */}
+			<QuickEditDialog
+				item={editingItem}
+				isOpen={!!editingItem}
+				onClose={() => setEditingItem(null)}
+				onUpdate={(itemId, updates) => {
+					if (updates.quantity !== undefined) {
+						onUpdateQuantity(itemId, updates.quantity)
+					}
+					if (updates.estimatedPrice !== undefined) {
+						onUpdateEstimatedPrice(itemId, updates.estimatedPrice)
+					}
+				}}
+				onDelete={(item) => {
+					onDeleteItem?.(item)
+					setEditingItem(null)
+				}}
+			/>
 		</div>
 	)
 }
