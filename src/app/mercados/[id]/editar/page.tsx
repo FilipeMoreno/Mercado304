@@ -22,14 +22,14 @@ export default function EditarMercadoPage() {
 
 	const [formData, setFormData] = useState({
 		name: "",
-		address: "",
+		location: "",
 	})
 
 	useEffect(() => {
 		if (market) {
 			setFormData({
 				name: market.name || "",
-				address: market.address || "",
+				location: market.location || "",
 			})
 		}
 	}, [market])
@@ -47,7 +47,7 @@ export default function EditarMercadoPage() {
 				id: marketId,
 				data: {
 					name: formData.name.trim(),
-					address: formData.address.trim() || null,
+					location: formData.location.trim() || undefined,
 				},
 			})
 
@@ -147,15 +147,15 @@ export default function EditarMercadoPage() {
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="address">Endereço</Label>
+							<Label htmlFor="location">Localização</Label>
 							<Textarea
-								id="address"
-								value={formData.address}
-								onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
+								id="location"
+								value={formData.location}
+								onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
 								placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo/SP"
 								rows={3}
 							/>
-							<p className="text-xs text-gray-500">Endereço completo do mercado (opcional)</p>
+							<p className="text-xs text-gray-500">Localização do mercado (opcional)</p>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">

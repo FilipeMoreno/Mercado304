@@ -24,7 +24,7 @@ export function ProductList({ products, onDelete, onEdit }: ProductListProps) {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: index * 0.05 }}
 				>
-					<ProductCardMemo product={product} onDelete={onDelete} onEdit={onEdit} />onEdit={onEdit} />
+					<ProductCardMemo product={product} onDelete={onDelete} onEdit={onEdit} />
 				</motion.div>
 			))}
 		</motion.div>

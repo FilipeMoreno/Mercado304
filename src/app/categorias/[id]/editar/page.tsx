@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { useCategoryQuery, useUpdateCategoryMutation } from "@/hooks"
 
 export default function EditarCategoriaPage() {
@@ -22,14 +21,12 @@ export default function EditarCategoriaPage() {
 
 	const [formData, setFormData] = useState({
 		name: "",
-		description: "",
 	})
 
 	useEffect(() => {
 		if (category) {
 			setFormData({
 				name: category.name || "",
-				description: category.description || "",
 			})
 		}
 	}, [category])
@@ -47,7 +44,6 @@ export default function EditarCategoriaPage() {
 				id: categoryId,
 				data: {
 					name: formData.name.trim(),
-					description: formData.description.trim() || null,
 				},
 			})
 
@@ -144,18 +140,6 @@ export default function EditarCategoriaPage() {
 								required
 							/>
 							<p className="text-xs text-gray-500">Digite o nome da categoria de produtos</p>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="description">Descrição</Label>
-							<Textarea
-								id="description"
-								value={formData.description}
-								onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-								placeholder="Descreva brevemente esta categoria de produtos..."
-								rows={3}
-							/>
-							<p className="text-xs text-gray-500">Descrição opcional da categoria</p>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">

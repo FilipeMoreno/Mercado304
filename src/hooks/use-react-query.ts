@@ -58,6 +58,15 @@ export const useCategoriesQuery = (params?: URLSearchParams) => {
 	})
 }
 
+export const useCategoryQuery = (id: string) => {
+	return useQuery({
+		queryKey: ["categories", id],
+		queryFn: () => fetchWithErrorHandling(`/api/categories/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: !!id,
+	})
+}
+
 export const useAllCategoriesQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.allCategories(),
@@ -221,6 +230,15 @@ export const useMarketsQuery = (params?: URLSearchParams) => {
 		queryKey: queryKeys.markets(params),
 		queryFn: () => fetchWithErrorHandling(`/api/markets?${params?.toString() || ""}`),
 		staleTime: 0, // Sempre refetch quando invalidado
+	})
+}
+
+export const useMarketQuery = (id: string) => {
+	return useQuery({
+		queryKey: ["markets", id],
+		queryFn: () => fetchWithErrorHandling(`/api/markets/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: !!id,
 	})
 }
 
