@@ -727,7 +727,8 @@ export const useDashboardStatsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.dashboard.stats(),
 		queryFn: () => fetchWithErrorHandling("/api/dashboard/stats"),
-		staleTime: 30 * 1000,
+		staleTime: 5 * 60 * 1000, // 5 minutos - dados não mudam com frequência
+		gcTime: 10 * 60 * 1000, // 10 minutos - mantém em cache
 	})
 }
 
@@ -743,7 +744,8 @@ export const usePaymentStatsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.dashboard.paymentStats(),
 		queryFn: () => fetchWithErrorHandling("/api/dashboard/payment-stats"),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 5 * 60 * 1000, // 5 minutos
+		gcTime: 10 * 60 * 1000, // 10 minutos
 	})
 }
 
@@ -752,7 +754,8 @@ export const useExpirationAlertsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.expiration.alerts(),
 		queryFn: () => fetchWithErrorHandling("/api/stock/expiration-alerts"),
-		staleTime: 30 * 1000,
+		staleTime: 5 * 60 * 1000, // 5 minutos
+		gcTime: 10 * 60 * 1000, // 10 minutos
 	})
 }
 
@@ -770,7 +773,8 @@ export const useSavingsQuery = () => {
 	return useQuery({
 		queryKey: ["savings"],
 		queryFn: () => fetchWithErrorHandling("/api/savings"),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 5 * 60 * 1000, // 5 minutos
+		gcTime: 10 * 60 * 1000, // 10 minutos
 	})
 }
 
@@ -778,7 +782,8 @@ export const useTemporalComparisonQuery = () => {
 	return useQuery({
 		queryKey: ["temporal-comparison"],
 		queryFn: () => fetchWithErrorHandling("/api/temporal-comparison"),
-		staleTime: 2 * 60 * 1000,
+		staleTime: 5 * 60 * 1000, // 5 minutos
+		gcTime: 10 * 60 * 1000, // 10 minutos
 	})
 }
 
@@ -890,7 +895,8 @@ export const useDashboardPreferencesQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.dashboard.preferences(),
 		queryFn: () => fetchWithErrorHandling("/api/dashboard/preferences"),
-		staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+		staleTime: 10 * 60 * 1000, // 10 minutos - preferências mudam raramente
+		gcTime: 30 * 60 * 1000, // 30 minutos - mantém em cache por mais tempo
 	})
 }
 

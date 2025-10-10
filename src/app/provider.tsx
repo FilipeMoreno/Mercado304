@@ -10,13 +10,21 @@ export default function Provider({ children }: { children: React.ReactNode }) {
 			new QueryClient({
 				defaultOptions: {
 					queries: {
-						staleTime: 1 * 60 * 1000, // 1 minute
-						gcTime: 5 * 60 * 1000, // 5 minutes
+						staleTime: 5 * 60 * 1000, // 5 minutos - dados considerados frescos
+						gcTime: 30 * 60 * 1000, // 30 minutos - mantém em cache na memória
 						retry: 1,
-						refetchOnWindowFocus: false,
+						refetchOnWindowFocus: false, // Não refetch ao focar janela
+						refetchOnMount: false, // 🔥 NÃO refetch ao montar se dados estão frescos
+						refetchOnReconnect: false, // Não refetch ao reconectar
 					},
 				},
 			}),
 	)
-	return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+
+	return (
+		<QueryClientProvider client={queryClient}>
+			{children}
+			<ReactQueryDevtools initialIsOpen={false} />
+		</QueryClientProvider>
+	)
 }

@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		const userId = sessionResult.user.id
+		const currentSessionId = sessionResult.session?.id
 		const currentSessionToken = request.cookies.get("better-auth.session_token")?.value
 
 		// Buscar sessões do usuário diretamente do banco
@@ -68,7 +69,8 @@ export async function GET(request: NextRequest) {
 			device: getUserAgentInfo(session.userAgent || "Dispositivo desconhecido"),
 			location: "Localização não disponível", // Better Auth não fornece localização por padrão
 			lastAccess: new Date(session.updatedAt || session.createdAt),
-			isCurrent: session.token === currentSessionToken,
+			// Comparar tanto por ID quanto por token para garantir identificação correta
+			isCurrent: session.id === currentSessionId || session.token === currentSessionToken,
 			ip: session.ipAddress || "IP não disponível",
 			userAgent: session.userAgent,
 			createdAt: new Date(session.createdAt),

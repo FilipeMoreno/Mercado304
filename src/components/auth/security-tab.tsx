@@ -2,10 +2,7 @@
 
 import {
 	AlertTriangle,
-	Calendar,
 	CheckCircle,
-	Copy,
-	Download,
 	Eye,
 	EyeOff,
 	Fingerprint,
@@ -24,12 +21,35 @@ import {
 	Smartphone,
 	Trash2,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { lazy, Suspense, useState } from "react"
 import { toast } from "sonner"
-import { BackupCodesDisplay } from "@/components/auth/backup-codes-display"
-import { PasskeySetup } from "@/components/auth/passkey-setup"
-import { TwoFactorSetup } from "@/components/auth/two-factor-setup"
-import { PasskeysSkeleton } from "@/components/skeletons/passkeys-skeleton"
+import {
+	usePasskeys,
+	useSessions,
+	useLoginHistory,
+	useDeletePasskey,
+	useTerminateSession,
+	useTerminateAllSessions,
+	useDisableTwoFactor,
+	useGenerateBackupCodes,
+} from "@/hooks/use-security-data"
+import {
+	SecurityOverviewSkeleton,
+	SessionsSkeleton,
+	PasskeysListSkeleton,
+	TwoFactorSkeleton,
+} from "@/components/skeletons/security-skeleton"
+
+// Lazy load heavy components
+const BackupCodesDisplay = lazy(() =>
+	import("@/components/auth/backup-codes-display").then((mod) => ({ default: mod.BackupCodesDisplay }))
+)
+const PasskeySetup = lazy(() =>
+	import("@/components/auth/passkey-setup").then((mod) => ({ default: mod.PasskeySetup }))
+)
+const TwoFactorSetup = lazy(() =>
+	import("@/components/auth/two-factor-setup").then((mod) => ({ default: mod.TwoFactorSetup }))
+)
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -78,85 +98,39 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	const [showPasskeySetup, setShowPasskeySetup] = useState(false)
 
 	// 2FA Estados
-	const [twoFactorTotpEnabled, setTwoFactorTotpEnabled] = useState(false)
+	const [twoFactorTotpEnabled, setTwoFactorTotpEnabled] = useState(session?.user?.twoFactorEnabled || false)
 	const [twoFactorEmailEnabled, setTwoFactorEmailEnabled] = useState(false)
-	const [isManaging2FA, setIsManaging2FA] = useState(false)
 
-	// Modal states for 2FA operations
+	// Modal states
 	const [showDisableModal, setShowDisableModal] = useState(false)
 	const [showEnableModal, setShowEnableModal] = useState(false)
 	const [showBackupCodesModal, setShowBackupCodesModal] = useState(false)
 	const [operationPassword, setOperationPassword] = useState("")
-	const [isProcessingOperation, setIsProcessingOperation] = useState(false)
 	const [currentOperation, setCurrentOperation] = useState<"enable" | "disable" | "backup-codes" | null>(null)
 
-	// Backup codes state
+	// Backup codes
 	const [generatedBackupCodes, setGeneratedBackupCodes] = useState<string[]>([])
 	const [showBackupCodesDisplay, setShowBackupCodesDisplay] = useState(false)
 
-	// Passkey Estados
-	const [passkeyCount, setPasskeyCount] = useState(0)
-	const [passkeys, setPasskeys] = useState<any[]>([])
-	const [isLoadingPasskeys, setIsLoadingPasskeys] = useState(false)
-	const [isDeletingPasskey, setIsDeletingPasskey] = useState<string | null>(null)
+	// React Query hooks - lazy load data only when needed
+	const { data: passkeys = [], isLoading: isLoadingPasskeys, refetch: refetchPasskeys } = usePasskeys()
+	const {
+		data: activeSessions = [],
+		isLoading: isLoadingSessions,
+	} = useSessions(activeTab === "sessions")
+	const {
+		data: loginHistory = [],
+		isLoading: isLoadingHistory,
+	} = useLoginHistory(activeTab === "sessions")
 
-	// Sessões e Histórico
-	const [activeSessions, setActiveSessions] = useState<LoginSession[]>([])
-	const [loginHistory, setLoginHistory] = useState<LoginHistory[]>([])
-	const [isLoadingSessions, setIsLoadingSessions] = useState(false)
-	const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+	// Mutations with optimistic updates
+	const deletePasskeyMutation = useDeletePasskey()
+	const terminateSessionMutation = useTerminateSession()
+	const terminateAllSessionsMutation = useTerminateAllSessions()
+	const disableTwoFactorMutation = useDisableTwoFactor()
+	const generateBackupCodesMutation = useGenerateBackupCodes()
 
-	useEffect(() => {
-		// Update 2FA status from session
-		setTwoFactorTotpEnabled(session?.user?.twoFactorEnabled || false)
-		setTwoFactorEmailEnabled(false) // This would come from user preferences
-
-		// Update passkey count
-		fetchPasskeyCount()
-
-		// Load sessions and history if on those tabs
-		if (activeTab === "sessions") {
-			fetchActiveSessions()
-			fetchLoginHistory()
-		}
-	}, [session, activeTab])
-
-	const fetchPasskeyCount = async () => {
-		setIsLoadingPasskeys(true)
-		try {
-			const result = await passkey.listUserPasskeys()
-			if (result.data) {
-				setPasskeyCount(result.data.length)
-				setPasskeys(result.data)
-			}
-		} catch (error) {
-			console.error("Error fetching passkeys:", error)
-		} finally {
-			setIsLoadingPasskeys(false)
-		}
-	}
-
-	const deletePasskey = async (passkeyId: string) => {
-		setIsDeletingPasskey(passkeyId)
-		try {
-			const result = await passkey.deletePasskey({ id: passkeyId })
-			if (result.error) {
-				toast.error("Erro ao excluir passkey")
-				return
-			}
-
-			// Atualizar lista local
-			setPasskeys((prev) => prev.filter((p: any) => p.id !== passkeyId))
-			setPasskeyCount((prev) => prev - 1)
-			toast.success("Passkey excluído com sucesso")
-
-			// Session will be updated automatically by Better Auth
-		} catch (error) {
-			toast.error("Erro ao excluir passkey")
-		} finally {
-			setIsDeletingPasskey(null)
-		}
-	}
+	const passkeyCount = passkeys.length
 
 	const getDeviceIcon = (deviceType: string) => {
 		const type = deviceType?.toLowerCase() || ""
@@ -178,40 +152,6 @@ export function SecurityTab({ session }: SecurityTabProps) {
 			hour: "2-digit",
 			minute: "2-digit",
 		})
-	}
-
-	const fetchActiveSessions = async () => {
-		setIsLoadingSessions(true)
-		try {
-			const response = await fetch("/api/auth/sessions")
-			if (!response.ok) {
-				throw new Error("Erro ao buscar sessões")
-			}
-			const sessions = await response.json()
-			setActiveSessions(sessions)
-		} catch (error) {
-			console.error("Erro ao carregar sessões:", error)
-			toast.error("Erro ao carregar sessões ativas")
-		} finally {
-			setIsLoadingSessions(false)
-		}
-	}
-
-	const fetchLoginHistory = async () => {
-		setIsLoadingHistory(true)
-		try {
-			const response = await fetch("/api/auth/login-history")
-			if (!response.ok) {
-				throw new Error("Erro ao buscar histórico")
-			}
-			const history = await response.json()
-			setLoginHistory(history)
-		} catch (error) {
-			console.error("Erro ao carregar histórico:", error)
-			toast.error("Erro ao carregar histórico de login")
-		} finally {
-			setIsLoadingHistory(false)
-		}
 	}
 
 	const handleToggleTotpEnabled = async (enabled: boolean) => {
@@ -242,48 +182,30 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	const handleConfirmOperation = async () => {
 		const isSocialAccount = !!session?.user?.image
 
-		// Validar senha se necessário
 		if (!isSocialAccount && !operationPassword.trim() && currentOperation !== "disable") {
 			toast.error("Digite sua senha para continuar")
 			return
 		}
 
-		setIsProcessingOperation(true)
-
 		try {
 			if (currentOperation === "enable") {
-				// Fechar modal e abrir setup
 				setShowEnableModal(false)
 				setOperationPassword("")
 				setShowTwoFactorSetup(true)
 			} else if (currentOperation === "disable") {
-				const result = await twoFactor.disable({ password: operationPassword || "" })
-				if (result.error) {
-					toast.error("Erro ao desativar 2FA. Verifique sua senha.")
-					return
-				}
+				await disableTwoFactorMutation.mutateAsync(operationPassword || "")
 				setTwoFactorTotpEnabled(false)
-				toast.success("2FA via aplicativo desativado com sucesso")
 				setShowDisableModal(false)
 				setOperationPassword("")
 			} else if (currentOperation === "backup-codes") {
-				const result = await twoFactor.generateBackupCodes({ password: operationPassword || "" })
-				if (result.error) {
-					toast.error("Erro ao gerar códigos de backup. Verifique sua senha.")
-					return
-				}
-
-				const codes = result.data?.backupCodes || []
+				const codes = await generateBackupCodesMutation.mutateAsync(operationPassword || "")
 				setGeneratedBackupCodes(codes)
 				setShowBackupCodesModal(false)
 				setShowBackupCodesDisplay(true)
 				setOperationPassword("")
-				toast.success("Novos códigos de backup gerados!")
 			}
 		} catch (error) {
-			toast.error("Erro na operação. Tente novamente.")
-		} finally {
-			setIsProcessingOperation(false)
+			// Errors handled by mutations
 		}
 	}
 
@@ -293,7 +215,6 @@ export function SecurityTab({ session }: SecurityTabProps) {
 		setShowBackupCodesModal(false)
 		setOperationPassword("")
 		setCurrentOperation(null)
-		setIsProcessingOperation(false)
 	}
 
 	const handleToggleEmailEnabled = async (enabled: boolean) => {
@@ -318,74 +239,17 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	const generateNewBackupCodes = async () => {
 		const isSocialAccount = !!session?.user?.image
 
-		// Para contas locais, pedir confirmação de senha
 		if (!isSocialAccount) {
 			setCurrentOperation("backup-codes")
 			setShowBackupCodesModal(true)
 		} else {
-			// Para contas sociais, gerar diretamente
 			try {
-				const result = await twoFactor.generateBackupCodes({ password: "" })
-				if (result.error) {
-					toast.error("Erro ao gerar novos códigos de backup")
-					return
-				}
-
-				const codes = result.data?.backupCodes || []
+				const codes = await generateBackupCodesMutation.mutateAsync("")
 				setGeneratedBackupCodes(codes)
 				setShowBackupCodesDisplay(true)
-				toast.success("Novos códigos de backup gerados!")
 			} catch (error) {
-				toast.error("Erro ao gerar novos códigos de backup")
+				// Error handled by mutation
 			}
-		}
-	}
-
-	const terminateSession = async (sessionId: string) => {
-		try {
-			const response = await fetch("/api/auth/sessions", {
-				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ sessionId }),
-			})
-
-			if (!response.ok) {
-				const data = await response.json()
-				throw new Error(data.error || "Erro ao encerrar sessão")
-			}
-
-			// Atualizar lista local removendo a sessão
-			setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId))
-			toast.success("Sessão encerrada com sucesso")
-		} catch (error: any) {
-			console.error("Erro ao encerrar sessão:", error)
-			toast.error(error.message || "Erro ao encerrar sessão")
-		}
-	}
-
-	const terminateAllSessions = async () => {
-		try {
-			const response = await fetch("/api/auth/sessions", {
-				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ terminateAll: true }),
-			})
-
-			if (!response.ok) {
-				const data = await response.json()
-				throw new Error(data.error || "Erro ao encerrar sessões")
-			}
-
-			// Atualizar lista local mantendo apenas a sessão atual
-			setActiveSessions((prev) => prev.filter((s) => s.isCurrent))
-			toast.success("Todas as outras sessões foram encerradas")
-		} catch (error: any) {
-			console.error("Erro ao encerrar todas as sessões:", error)
-			toast.error(error.message || "Erro ao encerrar todas as sessões")
 		}
 	}
 
@@ -455,12 +319,14 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showTwoFactorSetup) {
 		return (
 			<div className="flex items-center justify-center p-4">
-				<TwoFactorSetup
-					onComplete={() => {
-						setShowTwoFactorSetup(false)
-						setTwoFactorTotpEnabled(true)
-					}}
-				/>
+				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+					<TwoFactorSetup
+						onComplete={() => {
+							setShowTwoFactorSetup(false)
+							setTwoFactorTotpEnabled(true)
+						}}
+					/>
+				</Suspense>
 			</div>
 		)
 	}
@@ -468,12 +334,14 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showPasskeySetup) {
 		return (
 			<div className="min-h-screen flex items-center justify-center p-4">
-				<PasskeySetup
-					onComplete={() => {
-						setShowPasskeySetup(false)
-						fetchPasskeyCount()
-					}}
-				/>
+				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+					<PasskeySetup
+						onComplete={() => {
+							setShowPasskeySetup(false)
+							refetchPasskeys()
+						}}
+					/>
+				</Suspense>
 			</div>
 		)
 	}
@@ -481,40 +349,47 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showBackupCodesDisplay) {
 		return (
 			<div className="flex items-center justify-center p-4">
-				<BackupCodesDisplay
-					codes={generatedBackupCodes}
-					onComplete={() => {
-						setShowBackupCodesDisplay(false)
-						setGeneratedBackupCodes([])
-					}}
-					title="Novos Códigos de Backup"
-					description="Seus códigos de backup foram atualizados. Os códigos anteriores não funcionam mais."
-				/>
+				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+					<BackupCodesDisplay
+						codes={generatedBackupCodes}
+						onComplete={() => {
+							setShowBackupCodesDisplay(false)
+							setGeneratedBackupCodes([])
+						}}
+						title="Novos Códigos de Backup"
+						description="Seus códigos de backup foram atualizados. Os códigos anteriores não funcionam mais."
+					/>
+				</Suspense>
 			</div>
 		)
 	}
 
 	return (
 		<div className="space-y-6">
-			<Alert>
-				<Shield className="h-4 w-4" />
-				<AlertDescription>
-					Para maior segurança da sua conta, recomendamos habilitar tanto a autenticação de dois fatores quanto os
-					passkeys. Essas medidas protegem sua conta contra acessos não autorizados.
-				</AlertDescription>
-			</Alert>
+			{/* Alert Minimalista */}
+			<div className="rounded-lg border-0 bg-primary/5 p-4">
+				<div className="flex gap-3">
+					<div className="flex-shrink-0">
+						<Shield className="h-5 w-5 text-primary" />
+					</div>
+					<p className="text-sm text-muted-foreground">
+						Para maior segurança da sua conta, recomendamos habilitar tanto a autenticação de dois fatores quanto os
+						passkeys. Essas medidas protegem sua conta contra acessos não autorizados.
+					</p>
+				</div>
+			</div>
 
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-				<TabsList className="grid w-full grid-cols-5">
-					<TabsTrigger value="password">Senha</TabsTrigger>
-					<TabsTrigger value="overview">Visão Geral</TabsTrigger>
-					<TabsTrigger value="two-factor">2FA</TabsTrigger>
-					<TabsTrigger value="passkeys">Passkeys</TabsTrigger>
-					<TabsTrigger value="sessions">Sessões</TabsTrigger>
+				<TabsList className="inline-flex h-11 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground w-auto">
+					<TabsTrigger value="password" className="rounded-md px-4">Senha</TabsTrigger>
+					<TabsTrigger value="overview" className="rounded-md px-4">Visão Geral</TabsTrigger>
+					<TabsTrigger value="two-factor" className="rounded-md px-4">2FA</TabsTrigger>
+					<TabsTrigger value="passkeys" className="rounded-md px-4">Passkeys</TabsTrigger>
+					<TabsTrigger value="sessions" className="rounded-md px-4">Sessões</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="password">
-					<Card>
+					<Card className="shadow-sm">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Shield className="h-5 w-5" />
@@ -524,15 +399,18 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</CardHeader>
 						<CardContent className="space-y-6">
 							{session.user?.image ? (
-								<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-									<div className="flex items-center gap-2 text-blue-800 mb-2">
-										<Mail className="h-4 w-4" />
-										Conta Google
+								<div className="p-6 bg-primary/5 rounded-lg">
+									<div className="flex items-center gap-3">
+										<div className="p-2 rounded-full bg-primary/10">
+											<Mail className="h-5 w-5 text-primary" />
+										</div>
+										<div>
+											<h3 className="font-semibold">Conta Google</h3>
+											<p className="text-sm text-muted-foreground mt-1">
+												Esta conta está conectada com o Google. Para alterar a senha, acesse as configurações da sua conta Google.
+											</p>
+										</div>
 									</div>
-									<p className="text-sm text-blue-700">
-										Esta conta está conectada com o Google. Para alterar a senha, acesse as configurações da sua conta
-										Google.
-									</p>
 								</div>
 							) : (
 								<form onSubmit={handleChangePassword} className="space-y-4">
@@ -595,7 +473,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 														>
 															{req.regex.test(newPassword) && <CheckCircle className="w-2 h-2 text-white" />}
 														</div>
-														<span className={req.regex.test(newPassword) ? "text-green-600" : "text-gray-500"}>
+														<span className={req.regex.test(newPassword) ? "text-green-600 dark:text-green-400" : "text-gray-500"}>
 															{req.text}
 														</span>
 													</div>
@@ -654,14 +532,14 @@ export function SecurityTab({ session }: SecurityTabProps) {
 				<TabsContent value="overview">
 					<div className="grid gap-6 md:grid-cols-2">
 						{/* Two-Factor Authentication Card */}
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<div className="flex items-center space-x-3">
 									<div
-										className={`p-2 rounded-full ${twoFactorTotpEnabled || twoFactorEmailEnabled ? "bg-green-100" : "bg-orange-100"}`}
+										className={`p-2 rounded-full ${twoFactorTotpEnabled || twoFactorEmailEnabled ? "bg-green-500/10" : "bg-orange-100"}`}
 									>
 										{twoFactorTotpEnabled || twoFactorEmailEnabled ? (
-											<ShieldCheck className="h-5 w-5 text-green-600" />
+											<ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
 										) : (
 											<Shield className="h-5 w-5 text-orange-600" />
 										)}
@@ -703,11 +581,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</Card>
 
 						{/* Passkeys Card */}
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<div className="flex items-center space-x-3">
-									<div className={`p-2 rounded-full ${passkeyCount > 0 ? "bg-blue-100" : "bg-gray-100"}`}>
-										<Fingerprint className={`h-5 w-5 ${passkeyCount > 0 ? "text-blue-600" : "text-gray-600"}`} />
+									<div className={`p-2 rounded-full ${passkeyCount > 0 ? "bg-primary/10" : "bg-gray-100"}`}>
+										<Fingerprint className={`h-5 w-5 ${passkeyCount > 0 ? "text-primary" : "text-gray-600"}`} />
 									</div>
 									<div className="flex-1">
 										<CardTitle className="text-lg">Passkeys</CardTitle>
@@ -817,17 +695,17 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 				<TabsContent value="two-factor">
 					<div className="space-y-6">
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<CardTitle>Autenticação de Dois Fatores (2FA)</CardTitle>
 								<CardDescription>Configure e gerencie os métodos de autenticação de dois fatores</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
 								{/* TOTP/App Authenticator */}
-								<div className="flex items-center justify-between p-4 border rounded-lg">
+								<div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
 									<div className="flex items-center space-x-3">
-										<div className={`p-2 rounded-full ${twoFactorTotpEnabled ? "bg-green-100" : "bg-gray-100"}`}>
-											<Smartphone className={`h-5 w-5 ${twoFactorTotpEnabled ? "text-green-600" : "text-gray-600"}`} />
+										<div className={`p-2 rounded-full ${twoFactorTotpEnabled ? "bg-green-500/10" : "bg-gray-100"}`}>
+											<Smartphone className={`h-5 w-5 ${twoFactorTotpEnabled ? "text-green-600 dark:text-green-400" : "text-gray-600"}`} />
 										</div>
 										<div className="flex-1">
 											<h4 className="font-medium">Aplicativo Authenticator</h4>
@@ -843,10 +721,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								</div>
 
 								{/* Email 2FA */}
-								<div className="flex items-center justify-between p-4 border rounded-lg">
+								<div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
 									<div className="flex items-center space-x-3">
-										<div className={`p-2 rounded-full ${twoFactorEmailEnabled ? "bg-blue-100" : "bg-gray-100"}`}>
-											<Mail className={`h-5 w-5 ${twoFactorEmailEnabled ? "text-blue-600" : "text-gray-600"}`} />
+										<div className={`p-2 rounded-full ${twoFactorEmailEnabled ? "bg-primary/10" : "bg-gray-100"}`}>
+											<Mail className={`h-5 w-5 ${twoFactorEmailEnabled ? "text-primary" : "text-gray-600"}`} />
 										</div>
 										<div className="flex-1">
 											<h4 className="font-medium">Email</h4>
@@ -863,7 +741,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 								{/* Backup Codes - Only show if any 2FA is enabled */}
 								{(twoFactorTotpEnabled || twoFactorEmailEnabled) && (
-									<Card>
+									<Card className="shadow-sm">
 										<CardHeader>
 											<CardTitle className="text-base">Códigos de Backup</CardTitle>
 											<CardDescription>10 códigos de uso único para emergências</CardDescription>
@@ -901,9 +779,9 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 				<TabsContent value="passkeys">
 					{isLoadingPasskeys ? (
-						<PasskeysSkeleton />
+						<PasskeysListSkeleton />
 					) : (
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<div className="flex items-center justify-between">
 									<div>
@@ -931,20 +809,27 @@ export function SecurityTab({ session }: SecurityTabProps) {
 									</div>
 								) : (
 									<div className="space-y-4">
-										<Alert>
-											<Fingerprint className="h-4 w-4" />
-											<AlertDescription>
-												Você tem {passkeyCount} {passkeyCount === 1 ? "passkey" : "passkeys"} configurado
-												{passkeyCount === 1 ? "" : "s"}. Você pode usar biometria ou chaves de segurança para fazer
-												login.
-											</AlertDescription>
-										</Alert>
+										<div className="p-4 bg-primary/5 rounded-lg">
+											<div className="flex items-center gap-3">
+												<div className="p-2 rounded-full bg-primary/10">
+													<Fingerprint className="h-5 w-5 text-primary" />
+												</div>
+												<div>
+													<h4 className="font-semibold text-sm">
+														Você tem {passkeyCount} {passkeyCount === 1 ? "passkey" : "passkeys"} configurado{passkeyCount === 1 ? "" : "s"}
+													</h4>
+													<p className="text-xs text-muted-foreground mt-1">
+														Você pode usar biometria ou chaves de segurança para fazer login.
+													</p>
+												</div>
+											</div>
+										</div>
 
 										<div className="space-y-3">
 											{passkeys.map((passkey: any, index: number) => (
-												<div key={passkey.id} className="flex items-center justify-between p-4 border rounded-lg">
+												<div key={passkey.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
 													<div className="flex items-center space-x-3">
-														<div className="p-2 rounded-full bg-blue-100">{getDeviceIcon(passkey.deviceType)}</div>
+														<div className="p-2 rounded-full bg-primary/10">{getDeviceIcon(passkey.deviceType)}</div>
 														<div className="flex-1">
 															<div className="flex items-center space-x-2">
 																<span className="font-medium">{passkey.name || `Passkey ${index + 1}`}</span>
@@ -970,11 +855,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 														<Button
 															variant="outline"
 															size="sm"
-															onClick={() => deletePasskey(passkey.id)}
-															disabled={isDeletingPasskey === passkey.id}
-															className="text-red-600 hover:text-red-700 hover:bg-red-50"
+															onClick={() => deletePasskeyMutation.mutate(passkey.id)}
+															disabled={deletePasskeyMutation.isPending}
+															className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
 														>
-															{isDeletingPasskey === passkey.id ? (
+															{deletePasskeyMutation.isPending ? (
 																<>
 																	<Loader2 className="h-4 w-4 animate-spin mr-1" />
 																	Excluindo...
@@ -992,15 +877,18 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										</div>
 
 										{passkeyCount > 1 && (
-											<div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-												<div className="flex items-center space-x-2 text-blue-800">
-													<CheckCircle className="h-4 w-4" />
-													<span className="text-sm font-medium">Múltiplos passkeys configurados</span>
+											<div className="mt-4 p-4 bg-green-500/5 rounded-lg">
+												<div className="flex items-center gap-3">
+													<div className="p-2 rounded-full bg-green-500/10">
+														<CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+													</div>
+													<div>
+														<h4 className="font-semibold text-sm">Múltiplos passkeys configurados</h4>
+														<p className="text-xs text-muted-foreground mt-1">
+															Você pode usar qualquer um desses passkeys para fazer login. Recomendamos manter pelo menos um passkey ativo.
+														</p>
+													</div>
 												</div>
-												<p className="text-xs text-blue-700 mt-1">
-													Você pode usar qualquer um desses passkeys para fazer login. Recomendamos manter pelo menos um
-													passkey ativo.
-												</p>
 											</div>
 										)}
 									</div>
@@ -1013,7 +901,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 				<TabsContent value="sessions">
 					<div className="space-y-6">
 						{/* Active Sessions */}
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									<Shield className="h-5 w-5" />
@@ -1023,16 +911,14 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							</CardHeader>
 							<CardContent>
 								{isLoadingSessions ? (
-									<div className="flex items-center justify-center py-8">
-										<Loader2 className="h-8 w-8 animate-spin" />
-									</div>
+									<SessionsSkeleton />
 								) : (
 									<div className="space-y-3">
 										{activeSessions.map((session) => (
-											<div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+											<div key={session.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
 												<div className="flex items-center space-x-3">
-													<div className="p-2 rounded-full bg-blue-100">
-														<Smartphone className="h-4 w-4 text-blue-600" />
+													<div className="p-2 rounded-full bg-primary/10">
+														<Smartphone className="h-4 w-4 text-primary" />
 													</div>
 													<div className="flex-1">
 														<div className="flex items-center space-x-2">
@@ -1052,7 +938,12 @@ export function SecurityTab({ session }: SecurityTabProps) {
 													</div>
 												</div>
 												{!session.isCurrent && (
-													<Button variant="outline" size="sm" onClick={() => terminateSession(session.id)}>
+													<Button 
+														variant="outline" 
+														size="sm" 
+														onClick={() => terminateSessionMutation.mutate(session.id)}
+														disabled={terminateSessionMutation.isPending}
+													>
 														<LogOut className="h-4 w-4 mr-1" />
 														Encerrar
 													</Button>
@@ -1069,9 +960,23 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										<p className="text-sm text-muted-foreground">
 											{activeSessions.filter((s) => !s.isCurrent).length} outras sessões ativas
 										</p>
-										<Button variant="destructive" size="sm" onClick={terminateAllSessions}>
-											<LogOut className="h-4 w-4 mr-2" />
-											Encerrar Todas as Outras
+										<Button 
+											variant="destructive" 
+											size="sm" 
+											onClick={() => terminateAllSessionsMutation.mutate()}
+											disabled={terminateAllSessionsMutation.isPending}
+										>
+											{terminateAllSessionsMutation.isPending ? (
+												<>
+													<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+													Encerrando...
+												</>
+											) : (
+												<>
+													<LogOut className="h-4 w-4 mr-2" />
+													Encerrar Todas as Outras
+												</>
+											)}
 										</Button>
 									</div>
 								)}
@@ -1079,7 +984,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</Card>
 
 						{/* Login History */}
-						<Card>
+						<Card className="shadow-sm">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									<History className="h-5 w-5" />
@@ -1089,18 +994,27 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							</CardHeader>
 							<CardContent>
 								{isLoadingHistory ? (
-									<div className="flex items-center justify-center py-8">
-										<Loader2 className="h-8 w-8 animate-spin" />
+									<div className="space-y-3">
+										{[1, 2, 3].map((i) => (
+											<div key={i} className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+												<div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+												<div className="flex-1 space-y-2">
+													<div className="h-4 bg-muted rounded animate-pulse w-32" />
+													<div className="h-3 bg-muted rounded animate-pulse w-48" />
+													<div className="h-3 bg-muted rounded animate-pulse w-24" />
+												</div>
+											</div>
+										))}
 									</div>
 								) : (
 									<div className="space-y-3">
 										{loginHistory.map((entry) => (
-											<div key={entry.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-												<div className={`p-2 rounded-full ${entry.success ? "bg-green-100" : "bg-red-100"}`}>
+											<div key={entry.id} className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 border-0">
+												<div className={`p-2 rounded-full ${entry.success ? "bg-green-500/10" : "bg-red-500/10"}`}>
 													{entry.success ? (
-														<CheckCircle className="h-4 w-4 text-green-600" />
+														<CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
 													) : (
-														<AlertTriangle className="h-4 w-4 text-red-600" />
+														<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
 													)}
 												</div>
 												<div className="flex-1">
@@ -1147,18 +1061,18 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								placeholder="Sua senha atual"
 								value={operationPassword}
 								onChange={(e) => setOperationPassword(e.target.value)}
-								disabled={isProcessingOperation}
+								disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}
 								onKeyPress={(e) => e.key === "Enter" && handleConfirmOperation()}
 							/>
 						</div>
 					)}
 
 					<DialogFooter className="flex space-x-2">
-						<Button variant="outline" onClick={handleCancelOperation} disabled={isProcessingOperation}>
+						<Button variant="outline" onClick={handleCancelOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
 							Cancelar
 						</Button>
-						<Button onClick={handleConfirmOperation} disabled={isProcessingOperation}>
-							{isProcessingOperation ? (
+						<Button onClick={handleConfirmOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
+							{(disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending) ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Validando...
@@ -1180,8 +1094,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							Desativar 2FA via Aplicativo
 						</DialogTitle>
 						<DialogDescription>
-							Tem certeza que deseja desativar a autenticação de dois fatores via aplicativo? Isso tornará sua conta
-							menos segura.
+							Tem certeza que deseja desativar a autenticação de dois fatores via aplicativo? Isso tornará sua conta menos segura.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -1194,18 +1107,18 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								placeholder="Sua senha atual"
 								value={operationPassword}
 								onChange={(e) => setOperationPassword(e.target.value)}
-								disabled={isProcessingOperation}
+								disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}
 								onKeyPress={(e) => e.key === "Enter" && handleConfirmOperation()}
 							/>
 						</div>
 					)}
 
 					<DialogFooter className="flex space-x-2">
-						<Button variant="outline" onClick={handleCancelOperation} disabled={isProcessingOperation}>
+						<Button variant="outline" onClick={handleCancelOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
 							Cancelar
 						</Button>
-						<Button variant="destructive" onClick={handleConfirmOperation} disabled={isProcessingOperation}>
-							{isProcessingOperation ? (
+						<Button variant="destructive" onClick={handleConfirmOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
+							{(disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending) ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Desativando...
@@ -1239,17 +1152,17 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							placeholder="Sua senha atual"
 							value={operationPassword}
 							onChange={(e) => setOperationPassword(e.target.value)}
-							disabled={isProcessingOperation}
+							disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}
 							onKeyPress={(e) => e.key === "Enter" && handleConfirmOperation()}
 						/>
 					</div>
 
 					<DialogFooter className="flex space-x-2">
-						<Button variant="outline" onClick={handleCancelOperation} disabled={isProcessingOperation}>
+						<Button variant="outline" onClick={handleCancelOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
 							Cancelar
 						</Button>
-						<Button onClick={handleConfirmOperation} disabled={isProcessingOperation}>
-							{isProcessingOperation ? (
+						<Button onClick={handleConfirmOperation} disabled={disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending}>
+							{(disableTwoFactorMutation.isPending || generateBackupCodesMutation.isPending) ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Gerando...
