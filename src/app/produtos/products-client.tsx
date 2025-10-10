@@ -254,15 +254,6 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							onClearFilters={clearFilters}
 						/>
 						<Button
-							onClick={() => router.push("/produtos/nutricao")}
-							variant="outline"
-							className="border-orange-200 text-orange-700 hover:bg-orange-50"
-						>
-							<Apple className="h-4 w-4 mr-2" />
-							<span className="hidden sm:inline">Info Nutricional</span>
-							<span className="sm:hidden">Nutrição</span>
-						</Button>
-						<Button
 							onClick={() => router.push("/produtos/novo")}
 							className="bg-green-600 hover:bg-green-700 text-white"
 						>
@@ -314,11 +305,11 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							totalPages={pagination.totalPages}
 						/>
 
-						<ProductList 
-				products={products} 
-				onDelete={handleProductDelete}
-				onEdit={(product) => router.push(`/produtos/${product.id}/editar`)}
-			/>
+						<ProductList
+							products={products}
+							onDelete={handleProductDelete}
+							onEdit={(product) => router.push(`/produtos/${product.id}/editar`)}
+						/>
 
 						<ProductPagination
 							currentPage={pagination.currentPage}

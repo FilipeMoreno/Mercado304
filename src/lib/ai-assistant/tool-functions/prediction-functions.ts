@@ -14,7 +14,7 @@ export const predictionFunctions = {
 				'carne bovina', 'frango', 'banana', 'tomate', 'cebola', 'batata'
 			]
 
-			const marketComparison = []
+			const marketComparison: any[] = []
 
 			for (const marketName of marketNames) {
 				const market = await prisma.market.findFirst({
@@ -27,7 +27,7 @@ export const predictionFunctions = {
 
 				const marketData = {
 					market: market.name,
-					products: [],
+					products: [] as any[],
 					totalBasket: 0,
 					foundProducts: 0,
 				}
@@ -95,7 +95,7 @@ export const predictionFunctions = {
 			const productAnalysis = basicProducts.map(productName => {
 				const productPrices = marketComparison
 					.map(market => {
-						const product = market.products.find(p => 
+						const product = market.products.find((p: any) => 
 							p.product.toLowerCase().includes(productName.toLowerCase())
 						)
 						return product && product.found ? {
@@ -527,7 +527,7 @@ export const predictionFunctions = {
 				...Object.keys(secondPeriodConsumption)
 			])
 
-			for (const productName of allProducts) {
+			for (const productName of Array.from(allProducts)) {
 				const first = firstPeriodConsumption[productName] || { quantity: 0, spending: 0, category: 'Sem categoria' }
 				const second = secondPeriodConsumption[productName] || { quantity: 0, spending: 0, category: 'Sem categoria' }
 

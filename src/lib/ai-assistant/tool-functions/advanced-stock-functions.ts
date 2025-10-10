@@ -12,7 +12,7 @@ export const advancedStockFunctions = {
 
 			// Busca movimentações de saída para cada item
 			const stockMovements = await prisma.stockMovement.findMany({
-				where: { 
+				where: {
 					type: "SAIDA",
 					stockItemId: { in: stockItems.map(item => item.id) }
 				},
@@ -25,23 +25,23 @@ export const advancedStockFunctions = {
 			for (const item of stockItems) {
 				// Filtra movimentações para este item
 				const itemMovements = stockMovements.filter(mov => mov.stockItemId === item.id)
-				
+
 				if (itemMovements.length >= 2) {
 					// Calcula consumo médio diário
 					const movements = itemMovements.sort((a, b) => a.date.getTime() - b.date.getTime())
 					const firstMovement = movements[0]
 					const lastMovement = movements[movements.length - 1]
-					
-					const daysDiff = Math.max(1, 
+
+					const daysDiff = Math.max(1,
 						(lastMovement.date.getTime() - firstMovement.date.getTime()) / (1000 * 60 * 60 * 24)
 					)
-					
+
 					const totalConsumed = movements.reduce((sum: number, mov: any) => sum + mov.quantity, 0)
 					const dailyConsumption = totalConsumed / daysDiff
-					
+
 					// Estima quando o produto vai acabar
 					const daysUntilEmpty = item.quantity / dailyConsumption
-					
+
 					if (daysUntilEmpty <= daysAhead) {
 						// Busca preço médio recente
 						const recentPurchase = await prisma.purchase.findFirst({
@@ -49,7 +49,7 @@ export const advancedStockFunctions = {
 								items: { some: { productId: item.productId } }
 							},
 							include: {
-								items: { 
+								items: {
 									where: { productId: item.productId },
 									include: { product: true }
 								},
@@ -104,7 +104,7 @@ export const advancedStockFunctions = {
 					product: { include: { category: true } },
 					movements: {
 						where: { type: "SAIDA" },
-						orderBy: { createdAt: "desc" },
+						orderBy: { date: "desc" },
 						take: 5,
 					},
 				},
@@ -132,7 +132,7 @@ export const advancedStockFunctions = {
 					const daysToExpire = Math.ceil(
 						(item.expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
 					)
-					
+
 					if (daysToExpire <= 0) {
 						alertType = 'Produto vencido'
 						severity = 'critical'
@@ -151,18 +151,18 @@ export const advancedStockFunctions = {
 				// Calcula consumo se houver histórico
 				let dailyConsumption = 0
 				let daysUntilEmpty = null
-				
+
 				if (item.movements.length >= 2) {
 					const movements = item.movements
 					const daysDiff = Math.max(1,
-						(movements[0].createdAt.getTime() - movements[movements.length - 1].createdAt.getTime()) / (1000 * 60 * 60 * 24)
+						(movements[0].date.getTime() - movements[movements.length - 1].date.getTime()) / (1000 * 60 * 60 * 24)
 					)
 					const totalConsumed = movements.reduce((sum, mov) => sum + mov.quantity, 0)
 					dailyConsumption = totalConsumed / daysDiff
-					
+
 					if (dailyConsumption > 0) {
 						daysUntilEmpty = Math.round((item.quantity / dailyConsumption) * 10) / 10
-						
+
 						if (daysUntilEmpty <= daysThreshold && !alertType) {
 							alertType = 'Acabará em breve'
 							severity = daysUntilEmpty <= 3 ? 'critical' : 'warning'
@@ -182,7 +182,7 @@ export const advancedStockFunctions = {
 						daysToExpire: daysLeft,
 						dailyConsumption: Math.round(dailyConsumption * 100) / 100,
 						daysUntilEmpty,
-						recommendation: severity === 'critical' 
+						recommendation: severity === 'critical'
 							? 'Ação imediata necessária'
 							: 'Planejar reposição',
 					})
@@ -194,15 +194,15 @@ export const advancedStockFunctions = {
 			alerts.sort((a, b) => {
 				const severityDiff = severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder]
 				if (severityDiff !== 0) return severityDiff
-				
+
 				if (a.daysToExpire !== null && b.daysToExpire !== null) {
 					return a.daysToExpire - b.daysToExpire
 				}
-				
+
 				if (a.daysUntilEmpty !== null && b.daysUntilEmpty !== null) {
 					return a.daysUntilEmpty - b.daysUntilEmpty
 				}
-				
+
 				return a.currentStock - b.currentStock
 			})
 
@@ -237,7 +237,7 @@ export const advancedStockFunctions = {
 				where: { productId: product.id },
 				include: {
 					movements: {
-						orderBy: { createdAt: "desc" },
+						orderBy: { date: "desc" },
 						take: 30, // Últimas 30 movimentações
 					},
 				},
@@ -259,9 +259,9 @@ export const advancedStockFunctions = {
 			}
 
 			// Calcula estatísticas de consumo
-			const sortedMovements = consumptionMovements.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-			const firstDate = sortedMovements[0].createdAt
-			const lastDate = sortedMovements[sortedMovements.length - 1].createdAt
+			const sortedMovements = consumptionMovements.sort((a, b) => a.date.getTime() - b.date.getTime())
+			const firstDate = sortedMovements[0].date
+			const lastDate = sortedMovements[sortedMovements.length - 1].date
 			const daysDiff = Math.max(1, (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24))
 
 			const totalConsumed = consumptionMovements.reduce((sum, mov) => sum + mov.quantity, 0)
@@ -328,10 +328,10 @@ export const advancedStockFunctions = {
 		}
 	},
 
-	generateWasteReport: async ({ 
+	generateWasteReport: async ({
 		period = 30,
-		includeRecommendations = true 
-	}: { 
+		includeRecommendations = true
+	}: {
 		period?: number;
 		includeRecommendations?: boolean;
 	}) => {
@@ -341,17 +341,16 @@ export const advancedStockFunctions = {
 			const wasteMovements = await prisma.stockMovement.findMany({
 				where: {
 					type: { in: ['VENCIMENTO', 'PERDA', 'DESPERDICIO'] },
-					createdAt: { gte: startDate },
+					date: { gte: startDate },
 				},
 				include: {
 					stockItem: { include: { product: { include: { category: true } } } },
 				},
-				orderBy: { createdAt: "desc" },
+				orderBy: { date: "desc" },
 			})
 
 			const wasteRecords = await prisma.wasteRecord.findMany({
 				where: { createdAt: { gte: startDate } },
-				include: { product: { include: { category: true } } },
 			})
 
 			// Combina dados de movimentações e registros de desperdício
@@ -361,16 +360,16 @@ export const advancedStockFunctions = {
 					category: mov.stockItem?.product?.category?.name || 'Sem categoria',
 					quantity: mov.quantity,
 					reason: mov.reason || mov.type,
-					date: mov.createdAt,
+					date: mov.date,
 					location: mov.stockItem?.location,
 					estimatedValue: 0, // Será calculado
 				})),
 				...wasteRecords.map(record => ({
-					product: record.product?.name || record.productName,
-					category: record.product?.category?.name || record.category || 'Sem categoria',
+					product: record.productName,
+					category: record.category || 'Sem categoria',
 					quantity: record.quantity,
 					reason: record.wasteReason,
-					date: record.createdAt,
+					date: record.wasteDate,
 					location: record.location,
 					estimatedValue: record.totalValue || 0,
 				}))
@@ -416,7 +415,7 @@ export const advancedStockFunctions = {
 
 			for (const waste of wasteData) {
 				const category = waste.category
-				
+
 				if (!categoryWaste[category]) {
 					categoryWaste[category] = { quantity: 0, value: 0, items: 0, reasons: {} }
 				}
@@ -424,7 +423,7 @@ export const advancedStockFunctions = {
 				categoryWaste[category].quantity += waste.quantity
 				categoryWaste[category].value += waste.estimatedValue
 				categoryWaste[category].items++
-				
+
 				const reason = waste.reason || 'Não especificado'
 				categoryWaste[category].reasons[reason] = (categoryWaste[category].reasons[reason] || 0) + 1
 
@@ -438,12 +437,12 @@ export const advancedStockFunctions = {
 				value: data.value,
 				items: data.items,
 				percentage: (data.value / totalValue) * 100,
-				topReason: Object.entries(data.reasons).sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A',
+				topReason: Object.entries(data.reasons).sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A',
 			})).sort((a, b) => b.value - a.value)
 
 			// Recomendações
 			const recommendations = []
-			
+
 			if (includeRecommendations) {
 				// Categoria com mais desperdício
 				if (categoryAnalysis.length > 0) {
@@ -458,7 +457,7 @@ export const advancedStockFunctions = {
 					reasonCounts[reason] = (reasonCounts[reason] || 0) + 1
 				})
 
-				const topReason = Object.entries(reasonCounts).sort(([,a], [,b]) => b - a)[0]
+				const topReason = Object.entries(reasonCounts).sort(([, a], [, b]) => b - a)[0]
 				if (topReason) {
 					recommendations.push(`Principal causa: "${topReason[0]}" (${topReason[1]} ocorrências). Considere melhorar o controle de validade.`)
 				}
