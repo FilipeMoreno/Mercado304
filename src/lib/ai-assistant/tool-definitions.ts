@@ -756,28 +756,120 @@ export const tools: any = [
 			},
 			{
 				name: "calculateChurrasco",
-				description: "Calcula as quantidades de comida e bebida para um churrasco com base no número de pessoas.",
+				description: "Calcula a quantidade de carne e acompanhamentos necessários para um churrasco.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						adults: {
+						numberOfPeople: {
 							type: SchemaType.NUMBER,
-							description: "Número de adultos.",
+							description: "Número de pessoas no churrasco.",
 						},
-						children: {
+						duration: {
 							type: SchemaType.NUMBER,
-							description: "Número de crianças.",
+							description: "Duração do churrasco em horas (opcional, padrão 4).",
 						},
-						drinkers: {
-							type: SchemaType.NUMBER,
-							description: "Número de adultos que consomem bebidas alcoólicas.",
+						includeVegetarians: {
+							type: SchemaType.BOOLEAN,
+							description: "Se há vegetarianos no grupo (opcional).",
 						},
-						preferences: {
-							type: SchemaType.STRING,
-							description: 'Preferências ou observações (ex: "mais picanha", "vegetariano").',
+						includeDrinks: {
+							type: SchemaType.BOOLEAN,
+							description: "Se deve incluir bebidas no cálculo (opcional).",
 						},
 					},
-					required: ["adults", "children", "drinkers"],
+					required: ["numberOfPeople"],
+				},
+			},
+
+			// Product Recognition
+			{
+				name: "recognizeProductFromPhoto",
+				description: "Analisa uma foto de produto e retorna informações detalhadas, histórico de preços e ações sugeridas.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						imageData: {
+							type: SchemaType.STRING,
+							description: "Dados da imagem em base64 ou URL da imagem.",
+						},
+					},
+					required: ["imageData"],
+				},
+			},
+
+			// Ações Rápidas para Produtos Reconhecidos
+			{
+				name: "quickRecordPrice",
+				description: "Registra rapidamente o preço de um produto identificado por reconhecimento de foto.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto.",
+						},
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado.",
+						},
+						price: {
+							type: SchemaType.NUMBER,
+							description: "Preço do produto.",
+						},
+						notes: {
+							type: SchemaType.STRING,
+							description: "Observações sobre o preço (opcional).",
+						},
+					},
+					required: ["productName", "marketName", "price"],
+				},
+			},
+			{
+				name: "quickAddToShoppingList",
+				description: "Adiciona rapidamente um produto identificado a uma lista de compras.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						listName: {
+							type: SchemaType.STRING,
+							description: "Nome da lista de compras.",
+						},
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto.",
+						},
+						quantity: {
+							type: SchemaType.NUMBER,
+							description: "Quantidade do produto (padrão: 1).",
+						},
+					},
+					required: ["listName", "productName"],
+				},
+			},
+			{
+				name: "quickRecordPurchase",
+				description: "Registra rapidamente a compra de um produto identificado.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado onde foi feita a compra.",
+						},
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto comprado.",
+						},
+						quantity: {
+							type: SchemaType.NUMBER,
+							description: "Quantidade comprada.",
+						},
+						unitPrice: {
+							type: SchemaType.NUMBER,
+							description: "Preço unitário do produto.",
+						},
+					},
+					required: ["marketName", "productName", "quantity", "unitPrice"],
 				},
 			},
 		],

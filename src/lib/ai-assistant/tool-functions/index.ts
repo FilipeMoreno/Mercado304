@@ -7,6 +7,7 @@ import { dashboardFunctions } from "./dashboard-functions"
 import { marketFunctions } from "./market-functions"
 import { priceFunctions } from "./price-functions"
 import { productFunctions } from "./product-functions"
+import { productRecognitionFunctions } from "./product-recognition-functions"
 import { purchaseFunctions } from "./purchase-functions"
 import { recipeFunctions } from "./recipe-functions"
 import { selectionFunctions } from "./selection-functions"
@@ -17,6 +18,7 @@ import { stockFunctions } from "./stock-functions"
 export const toolFunctions = {
 	...dashboardFunctions,
 	...productFunctions,
+	...productRecognitionFunctions,
 	...marketFunctions,
 	...categoryBrandFunctions,
 	...shoppingListFunctions,
