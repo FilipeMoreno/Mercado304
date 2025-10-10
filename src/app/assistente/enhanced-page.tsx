@@ -1,0 +1,432 @@
+"use client"
+
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+	ArrowLeft, 
+	Bot, 
+	Camera, 
+	Send, 
+	X, 
+	Menu,
+	Maximize2,
+	Minimize2,
+	History,
+	Plus
+} from "lucide-react"
+import Link from "next/link"
+import { ChatMessage } from "@/components/ai-chat/chat-message"
+import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
+import { ChatHistorySidebar } from "@/components/ai-chat/chat-history-sidebar"
+import { ProductPhotoCapture } from "@/components/product-photo-capture"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAiChat, useChatHistory } from "@/hooks"
+
+export default function EnhancedAssistentePage() {
+	const [input, setInput] = useState("")
+	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
+	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
+	const [isExpanded, setIsExpanded] = useState(false)
+	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+	
+	const {
+		sessions,
+		currentSessionId,
+		createNewSession,
+		loadSession,
+		deleteSession,
+		renameSession,
+		clearAllHistory,
+	} = useChatHistory()
+
+	const {
+		messages,
+		isLoading,
+		lastUserMessage,
+		sendMessage,
+		retryLastMessage,
+		handleSelection,
+		handleChurrascoCalculate,
+		addMessage,
+		startNewChat,
+		loadChat,
+		currentSession,
+	} = useAiChat(currentSessionId)
+
+	const handleSendMessage = async (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!input.trim()) return
+
+		await sendMessage(input)
+		setInput("")
+	}
+
+	const handleSuggestionClick = async (suggestion: string) => {
+		await sendMessage(suggestion)
+	}
+
+	const handleNewChat = () => {
+		const newSession = startNewChat()
+		setShowHistorySidebar(false)
+	}
+
+	const handleSessionSelect = (sessionId: string) => {
+		loadChat(sessionId)
+		setShowHistorySidebar(false)
+	}
+
+	const handlePhotoCapture = async (file: File) => {
+		setIsProcessingPhoto(true)
+		setShowPhotoCapture(false)
+
+		try {
+			const reader = new FileReader()
+			reader.onload = async (e) => {
+				const imageData = e.target?.result as string
+
+				addMessage({
+					role: "user",
+					content: "📸 Foto enviada para análise",
+					imagePreview: imageData
+				})
+
+				try {
+					const response = await fetch('/api/ai/product-recognition', {
+						method: 'POST',
+						body: (() => {
+							const formData = new FormData()
+							formData.append('image', file)
+							return formData
+						})()
+					})
+
+					if (!response.ok) {
+						throw new Error('Erro ao processar imagem')
+					}
+
+					const result = await response.json()
+					
+					if (result.product) {
+						addMessage({
+							role: "assistant",
+							content: "product-recognition-card",
+							productData: {
+								...result.product,
+								imagePreview: imageData
+							}
+						})
+					} else {
+						addMessage({
+							role: "assistant",
+							content: "❌ Não consegui identificar nenhum produto na imagem. Tente tirar uma foto mais clara do produto."
+						})
+					}
+				} catch (error) {
+					console.error('Erro ao processar foto:', error)
+					addMessage({
+						role: "assistant",
+						content: "❌ Erro ao processar a foto. Tente novamente."
+					})
+				}
+			}
+			reader.readAsDataURL(file)
+		} catch (error) {
+			console.error('Erro ao capturar foto:', error)
+			addMessage({
+				role: "assistant",
+				content: "❌ Erro ao processar a foto. Tente novamente."
+			})
+		} finally {
+			setIsProcessingPhoto(false)
+		}
+	}
+
+	return (
+		<div className="flex h-screen bg-gray-50">
+			{/* Sidebar de Histórico */}
+			<ChatHistorySidebar
+				sessions={sessions}
+				currentSessionId={currentSessionId}
+				onSessionSelect={handleSessionSelect}
+				onNewChat={handleNewChat}
+				onDeleteSession={deleteSession}
+				onRenameSession={renameSession}
+				onClearAll={clearAllHistory}
+				isOpen={showHistorySidebar}
+				onClose={() => setShowHistorySidebar(false)}
+			/>
+
+			{/* Conteúdo Principal */}
+			<div className={`flex-1 flex flex-col transition-all duration-300 ${
+				isExpanded ? 'max-w-none' : 'max-w-6xl mx-auto'
+			}`}>
+				{/* Header */}
+				<div className="bg-white border-b border-gray-200 p-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-4">
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setShowHistorySidebar(true)}
+								className="lg:hidden"
+							>
+								<Menu className="h-5 w-5" />
+							</Button>
+							
+							<Link href="/" className="hidden lg:block">
+								<Button variant="outline" size="sm" className="gap-2">
+									<ArrowLeft className="h-4 w-4" />
+									Voltar
+								</Button>
+							</Link>
+							
+							<div className="flex items-center gap-3">
+								<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+									<Bot className="h-6 w-6 text-white" />
+								</div>
+								<div>
+									<h1 className="text-2xl font-bold text-gray-900">Zé, o Assistente</h1>
+									<p className="text-sm text-gray-600">
+										{currentSession ? currentSession.title : "Seu assistente inteligente para compras"}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-2">
+							{/* Botão de Histórico (Desktop) */}
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setShowHistorySidebar(true)}
+								className="hidden lg:flex gap-2"
+							>
+								<History className="h-4 w-4" />
+								Histórico
+							</Button>
+
+							{/* Novo Chat */}
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleNewChat}
+								className="gap-2"
+							>
+								<Plus className="h-4 w-4" />
+								Novo Chat
+							</Button>
+
+							{/* Toggle Expandido */}
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setIsExpanded(!isExpanded)}
+								className="gap-2"
+							>
+								{isExpanded ? (
+									<>
+										<Minimize2 className="h-4 w-4" />
+										<span className="hidden sm:inline">Compacto</span>
+									</>
+								) : (
+									<>
+										<Maximize2 className="h-4 w-4" />
+										<span className="hidden sm:inline">Expandir</span>
+									</>
+								)}
+							</Button>
+						</div>
+					</div>
+				</div>
+
+				{/* Chat Container */}
+				<div className="flex-1 flex flex-col">
+					<Card className="flex-1 m-4 shadow-xl border-0 bg-white/80 backdrop-blur-sm flex flex-col">
+						<CardHeader className="border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg flex-shrink-0">
+							<CardTitle className="flex items-center gap-2">
+								<Bot className="h-5 w-5" />
+								Conversa com o Zé
+								{sessions.length > 0 && (
+									<span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+										{sessions.length} conversas salvas
+									</span>
+								)}
+							</CardTitle>
+						</CardHeader>
+						
+						<CardContent className="flex-1 flex flex-col p-0 min-h-0">
+							{/* Chat Messages */}
+							<ScrollArea className="flex-1 p-6">
+								<div className="space-y-6">
+									{/* Sugestões Inteligentes */}
+									<SmartSuggestions
+										onSuggestionClick={handleSuggestionClick}
+										messages={messages}
+										isLoading={isLoading}
+									/>
+
+									{messages.map((msg, index) => (
+										<div key={index}>
+											<ChatMessage
+												role={msg.role}
+												content={msg.content}
+												isError={msg.isError}
+												isStreaming={msg.isStreaming}
+												onRetry={retryLastMessage}
+												canRetry={msg.isError && !!lastUserMessage && !isLoading}
+												imagePreview={msg.imagePreview}
+												productData={msg.productData}
+											/>
+											{msg.selectionCard && (
+												<div className="mt-4 ml-12">
+													{msg.selectionCard.type === "churrascometro" ? (
+														<ChurrascoCard onCalculate={handleChurrascoCalculate} />
+													) : (
+														<SelectionCard
+															type={msg.selectionCard.type}
+															options={msg.selectionCard.options}
+															searchTerm={msg.selectionCard.searchTerm}
+															context={msg.selectionCard.context}
+															onSelect={handleSelection}
+														/>
+													)}
+												</div>
+											)}
+										</div>
+									))}
+									
+									{/* Indicador de Digitação Melhorado */}
+									{isLoading && (
+										<EnhancedTypingIndicator 
+											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' : 
+													lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
+													undefined}
+										/>
+									)}
+								</div>
+							</ScrollArea>
+
+							{/* Input Form */}
+							<div className="p-6 border-t bg-gray-50/50 flex-shrink-0">
+								<form onSubmit={handleSendMessage} className="flex gap-4">
+									<Input
+										value={input}
+										onChange={(e) => setInput(e.target.value)}
+										placeholder="Digite sua mensagem aqui..."
+										disabled={isLoading}
+										className="flex-1 h-12 text-base bg-white border-2 border-gray-200 focus:border-blue-500 transition-all duration-200"
+									/>
+									<Button
+										type="button"
+										onClick={() => setShowPhotoCapture(true)}
+										disabled={isLoading || isProcessingPhoto}
+										className="h-12 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+										title="Tirar foto ou enviar da galeria"
+									>
+										<Camera className="h-4 w-4" />
+									</Button>
+									<Button
+										type="submit"
+										disabled={isLoading || !input.trim()}
+										className="h-12 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+									>
+										<Send className="h-4 w-4 mr-2" />
+										Enviar
+									</Button>
+								</form>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Tips */}
+				{!isExpanded && (
+					<div className="mx-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.1 }}
+						>
+							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+								<CardContent className="p-4 text-center">
+									<Bot className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+									<p className="text-sm text-gray-700 font-medium">Peça para criar listas de compras</p>
+								</CardContent>
+							</Card>
+						</motion.div>
+						
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.2 }}
+						>
+							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+								<CardContent className="p-4 text-center">
+									<Bot className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+									<p className="text-sm text-gray-700 font-medium">Compare preços entre mercados</p>
+								</CardContent>
+							</Card>
+						</motion.div>
+						
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3 }}
+						>
+							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+								<CardContent className="p-4 text-center">
+									<Bot className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+									<p className="text-sm text-gray-700 font-medium">Calcule seu churrasco perfeito</p>
+								</CardContent>
+							</Card>
+						</motion.div>
+					</div>
+				)}
+			</div>
+
+			{/* Modal de Captura de Fotos */}
+			<AnimatePresence>
+				{showPhotoCapture && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+					>
+						<motion.div
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
+							className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden"
+						>
+							<div className="p-4 border-b flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Capturar Produto</h3>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setShowPhotoCapture(false)}
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							</div>
+							<div className="p-4">
+								<ProductPhotoCapture
+									onPhotoCapture={handlePhotoCapture}
+									onClose={() => setShowPhotoCapture(false)}
+									isProcessing={isProcessingPhoto}
+								/>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
+	)
+}

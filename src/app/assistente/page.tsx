@@ -1,24 +1,45 @@
 "use client"
 
-import { ArrowLeft, Bot, Camera, Send, X } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useTheme } from "@/lib/theme"
+import {
+	Bot, Camera, Menu,
+	Plus, Settings, X
+} from "lucide-react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
-import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
+import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
+import { ChatGPTSidebar } from "@/components/ai-chat/chatgpt-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
-import { ProductRecognitionCard } from "@/components/ai-chat/product-recognition-card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAiChat } from "@/hooks/use-ai-chat"
+import { useAiChat, useChatHistory } from "@/hooks"
+import { SimpleSuggestions } from "@/components/ai-chat/simple-suggestions"
 
-export default function AssistentePage() {
+export default function CleanAssistentePage() {
+	const { theme } = useTheme()
 	const [input, setInput] = useState("")
 	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
+	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+	const {
+		sessions,
+		currentSessionId,
+		createNewSession,
+		loadSession,
+		deleteSession,
+		renameSession,
+		clearAllHistory,
+	} = useChatHistory()
+
 	const {
 		messages,
 		isLoading,
@@ -28,14 +49,57 @@ export default function AssistentePage() {
 		handleSelection,
 		handleChurrascoCalculate,
 		addMessage,
-	} = useAiChat()
+		startNewChat,
+		loadChat,
+		currentSession,
+	} = useAiChat(currentSessionId)
+
+	// Auto-resize textarea
+	useEffect(() => {
+		if (textareaRef.current) {
+			textareaRef.current.style.height = 'auto'
+			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+		}
+	}, [input])
+
+	// Auto-scroll to bottom
+	useEffect(() => {
+		if (scrollAreaRef.current) {
+			const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+			if (scrollElement) {
+				scrollElement.scrollTop = scrollElement.scrollHeight
+			}
+		}
+	}, [messages, isLoading])
 
 	const handleSendMessage = async (e: React.FormEvent) => {
 		e.preventDefault()
-		if (!input.trim()) return
+		if (!input.trim() || isLoading) return
 
-		await sendMessage(input)
+		const message = input.trim()
 		setInput("")
+		await sendMessage(message)
+	}
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault()
+			handleSendMessage(e)
+		}
+	}
+
+	const handleSuggestionClick = async (suggestion: string) => {
+		await sendMessage(suggestion)
+	}
+
+	const handleNewChat = () => {
+		const newSession = startNewChat()
+		setShowHistorySidebar(false)
+	}
+
+	const handleSessionSelect = (sessionId: string) => {
+		loadChat(sessionId)
+		setShowHistorySidebar(false)
 	}
 
 	const handlePhotoCapture = async (file: File) => {
@@ -43,19 +107,16 @@ export default function AssistentePage() {
 		setShowPhotoCapture(false)
 
 		try {
-			// Converter arquivo para base64
 			const reader = new FileReader()
 			reader.onload = async (e) => {
 				const imageData = e.target?.result as string
 
-				// Adicionar mensagem do usuário com preview da imagem
 				addMessage({
 					role: "user",
 					content: "📸 Foto enviada para análise",
 					imagePreview: imageData
 				})
 
-				// Chamar a função de reconhecimento de produtos
 				try {
 					const response = await fetch('/api/ai/product-recognition', {
 						method: 'POST',
@@ -71,9 +132,8 @@ export default function AssistentePage() {
 					}
 
 					const result = await response.json()
-					
+
 					if (result.product) {
-						// Adicionar mensagem do assistente com o card do produto
 						addMessage({
 							role: "assistant",
 							content: "product-recognition-card",
@@ -108,154 +168,267 @@ export default function AssistentePage() {
 		}
 	}
 
+	const hasMessages = messages.length > 1 // Mais que a mensagem inicial
+
 	return (
-		<div className="max-w-4xl mx-auto">
-			{/* Header */}
-			<div className="mb-6">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<Link href="/">
-							<Button variant="outline" size="sm" className="gap-2">
-								<ArrowLeft className="h-4 w-4" />
-								Voltar
-							</Button>
-						</Link>
-						<div className="flex items-center gap-3">
-							<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-								<Bot className="h-6 w-6 text-white" />
+		<div className="flex h-screen bg-background">
+			{/* Sidebar do Chat Estilo ChatGPT */}
+			<div className="hidden md:block">
+				<ChatGPTSidebar
+					sessions={sessions}
+					currentSessionId={currentSessionId || undefined}
+					onSessionSelect={handleSessionSelect}
+					onNewChat={handleNewChat}
+					onDeleteSession={deleteSession}
+					onRenameSession={renameSession}
+					onClearAll={clearAllHistory}
+					isCollapsed={isSidebarCollapsed}
+					onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+				/>
+			</div>
+
+			{/* Conteúdo Principal */}
+			<div className="flex-1 flex flex-col">
+				{/* Header - Só aparece quando há mensagens */}
+				{hasMessages && (
+					<motion.div
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10"
+					>
+						<div className="w-full mx-auto px-4 py-3 flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setShowHistorySidebar(true)}
+									className="md:hidden"
+								>
+									<Menu className="h-5 w-5" />
+								</Button>
+
+								<div className="flex items-center gap-3">
+									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+										<Bot className="h-4 w-4 text-white" />
+									</div>
+									<div>
+										<h1 className="font-semibold text-gray-900">Zé</h1>
+										{currentSession && (
+											<p className="text-sm text-gray-500 truncate max-w-48">
+												{currentSession.title}
+											</p>
+										)}
+									</div>
+								</div>
 							</div>
-							<div>
-								<h1 className="text-2xl font-bold text-gray-900">Zé, o Assistente</h1>
-								<p className="text-sm text-gray-600">Seu assistente inteligente para compras</p>
+
+							<div className="flex items-center gap-2">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={handleNewChat}
+									className="gap-2"
+								>
+									<Plus className="h-4 w-4" />
+									Novo
+								</Button>
 							</div>
+						</div>
+					</motion.div>
+				)}
+
+				{/* Chat Area */}
+				<div className="flex-1 flex flex-col">
+					{!hasMessages ? (
+						/* Tela Inicial - Estilo ChatGPT */
+						<div className="flex-1 flex flex-col items-center justify-center p-6">
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								className="text-center w-full mx-auto"
+							>
+								{/* Logo e Título */}
+								<div className="mb-8">
+									<div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+										<Bot className="h-8 w-8 text-white" />
+									</div>
+									<h1 className="text-4xl font-bold text-foreground mb-2">
+										Olá, eu sou o Zé!
+									</h1>
+									<p className="text-xl text-muted-foreground">
+										Seu assistente inteligente para compras e economia
+									</p>
+								</div>
+
+								{/* Sugestões Iniciais */}
+								<div className="mb-8">
+									{/* <SmartSuggestions
+										onSuggestionClick={handleSuggestionClick}
+										messages={messages}
+										isLoading={isLoading}
+									/> */}
+									<SimpleSuggestions
+										onSuggestionClick={handleSuggestionClick}
+										messages={messages}
+										isLoading={isLoading}
+									/>
+								</div>
+
+								{/* Recursos */}
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+									<motion.div
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.1 }}
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+									>
+										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Bot className="h-4 w-4 text-primary" />
+										</div>
+										<h3 className="font-semibold text-foreground mb-1">Listas Inteligentes</h3>
+										<p className="text-sm text-muted-foreground">Crio listas de compras personalizadas para você</p>
+									</motion.div>
+
+									<motion.div
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.2 }}
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+									>
+										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Camera className="h-4 w-4 text-primary" />
+										</div>
+										<h3 className="font-semibold text-foreground mb-1">Reconhecimento</h3>
+										<p className="text-sm text-muted-foreground">Analiso produtos por foto e código de barras</p>
+									</motion.div>
+
+									<motion.div
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.3 }}
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+									>
+										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Settings className="h-4 w-4 text-primary" />
+										</div>
+										<h3 className="font-semibold text-foreground mb-1">Comparação</h3>
+										<p className="text-sm text-muted-foreground">Comparo preços e encontro as melhores ofertas</p>
+									</motion.div>
+								</div>
+							</motion.div>
+						</div>
+					) : (
+						/* Chat Messages */
+						<ScrollArea ref={scrollAreaRef} className="flex-1">
+							<div className="w-full px-8 px-4 py-6 space-y-6">
+								{messages.map((msg, index) => (
+									<motion.div
+										key={index}
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: index * 0.1 }}
+									>
+										<ChatMessage
+											role={msg.role}
+											content={msg.content}
+											isError={msg.isError}
+											isStreaming={msg.isStreaming}
+											onRetry={retryLastMessage}
+											canRetry={msg.isError && !!lastUserMessage && !isLoading}
+											imagePreview={msg.imagePreview}
+											productData={msg.productData}
+										/>
+										{msg.selectionCard && (
+											<div className="mt-4">
+												{msg.selectionCard.type === "churrascometro" ? (
+													<ChurrascoCard onCalculate={handleChurrascoCalculate} />
+												) : (
+													<SelectionCard
+														type={msg.selectionCard.type}
+														options={msg.selectionCard.options}
+														searchTerm={msg.selectionCard.searchTerm}
+														context={msg.selectionCard.context}
+														onSelect={handleSelection}
+													/>
+												)}
+											</div>
+										)}
+									</motion.div>
+								))}
+
+								{isLoading && (
+									<motion.div
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+									>
+										<EnhancedTypingIndicator
+											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
+												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
+														undefined}
+										/>
+									</motion.div>
+								)}
+							</div>
+						</ScrollArea>
+					)}
+
+					{/* Input Area - Sempre visível */}
+					<div className="border-t bg-background">
+						<div className="max-w-3xl mx-auto px-4 py-4">
+							<EnhancedInput
+								value={input}
+								onChange={setInput}
+								onSubmit={handleSendMessage}
+								onPhotoCapture={() => setShowPhotoCapture(true)}
+								onSuggestionClick={handleSuggestionClick}
+								placeholder="Mensagem para o Zé..."
+								disabled={isLoading}
+								isLoading={isLoading}
+								isListening={false}
+								isVoiceSupported={false}
+							/>
 						</div>
 					</div>
 				</div>
-			</div>
-
-			{/* Chat Container */}
-			<Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-				<CardHeader className="border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-					<CardTitle className="flex items-center gap-2">
-						<Bot className="h-5 w-5" />
-						Conversa com o Zé
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="p-0">
-					{/* Chat Messages */}
-					<ScrollArea className="h-[calc(100vh-300px)] p-6">
-						<div className="space-y-6">
-							{messages.map((msg, index) => (
-								<div key={index}>
-									<ChatMessage
-										role={msg.role}
-										content={msg.content}
-										isError={msg.isError}
-										isStreaming={msg.isStreaming}
-										onRetry={retryLastMessage}
-										canRetry={msg.isError && !!lastUserMessage && !isLoading}
-										imagePreview={msg.imagePreview}
-										productData={msg.productData}
-									/>
-									{msg.selectionCard && (
-										<div className="mt-4 ml-12">
-											{msg.selectionCard.type === "churrascometro" ? (
-												<ChurrascoCard onCalculate={handleChurrascoCalculate} />
-											) : (
-												<SelectionCard
-													type={msg.selectionCard.type}
-													options={msg.selectionCard.options}
-													searchTerm={msg.selectionCard.searchTerm}
-													context={msg.selectionCard.context}
-													onSelect={handleSelection}
-												/>
-											)}
-										</div>
-									)}
-								</div>
-							))}
-							{isLoading && <TypingIndicator />}
-						</div>
-					</ScrollArea>
-
-					{/* Input Form */}
-					<div className="p-6 border-t bg-gray-50/50">
-						<form onSubmit={handleSendMessage} className="flex gap-4">
-							<Input
-								value={input}
-								onChange={(e) => setInput(e.target.value)}
-								placeholder="Digite sua mensagem aqui..."
-								disabled={isLoading}
-								className="flex-1 h-12 text-base bg-white border-2 border-gray-200 focus:border-blue-500 transition-all duration-200"
-							/>
-							<Button
-								type="button"
-								onClick={() => setShowPhotoCapture(true)}
-								disabled={isLoading || isProcessingPhoto}
-								className="h-12 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-								title="Tirar foto ou enviar da galeria"
-							>
-								<Camera className="h-4 w-4" />
-							</Button>
-							<Button
-								type="submit"
-								disabled={isLoading || !input.trim()}
-								className="h-12 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-							>
-								<Send className="h-4 w-4 mr-2" />
-								Enviar
-							</Button>
-						</form>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Tips */}
-			<div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
-					<CardContent className="p-4 text-center">
-						<Bot className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">Peça para criar listas de compras</p>
-					</CardContent>
-				</Card>
-				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
-					<CardContent className="p-4 text-center">
-						<Bot className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">Compare preços entre mercados</p>
-					</CardContent>
-				</Card>
-				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
-					<CardContent className="p-4 text-center">
-						<Bot className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-						<p className="text-sm text-gray-700 font-medium">Calcule seu churrasco perfeito</p>
-					</CardContent>
-				</Card>
 			</div>
 
 			{/* Modal de Captura de Fotos */}
-			{showPhotoCapture && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-					<div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
-						<div className="p-4 border-b flex items-center justify-between">
-							<h3 className="text-lg font-semibold">Capturar Produto</h3>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setShowPhotoCapture(false)}
-							>
-								<X className="h-4 w-4" />
-							</Button>
-						</div>
-						<div className="p-4">
-							<ProductPhotoCapture
-								onPhotoCapture={handlePhotoCapture}
-								onClose={() => setShowPhotoCapture(false)}
-								isProcessing={isProcessingPhoto}
-							/>
-						</div>
-					</div>
-				</div>
-			)}
+			<AnimatePresence>
+				{showPhotoCapture && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+					>
+						<motion.div
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
+							className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden"
+						>
+							<div className="p-4 border-b flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Capturar Produto</h3>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setShowPhotoCapture(false)}
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							</div>
+							<div className="p-4">
+								<ProductPhotoCapture
+									onPhotoCapture={handlePhotoCapture}
+									onClose={() => setShowPhotoCapture(false)}
+									isProcessing={isProcessingPhoto}
+								/>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	)
 }

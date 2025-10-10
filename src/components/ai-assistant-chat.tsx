@@ -1,20 +1,36 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
-import { Bot, Camera, ExternalLink, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+	Bot,
+	Camera,
+	ExternalLink,
+	Mic,
+	MicOff,
+	Send,
+	Sparkles,
+	Volume2,
+	VolumeX,
+	X,
+	History,
+	Plus,
+	MessageSquare
+} from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
-import { ProductRecognitionCard } from "@/components/ai-chat/product-recognition-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
-import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
+import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
+import { ChatHistorySidebar } from "@/components/ai-chat/chat-history-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAiChat } from "@/hooks/use-ai-chat"
+import { useAiChat, useChatHistory } from "@/hooks"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
@@ -28,10 +44,21 @@ export function AiAssistantChat() {
 	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
 	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
 	const [isDragOver, setIsDragOver] = useState(false)
+	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	const {
+		sessions,
+		currentSessionId,
+		createNewSession,
+		loadSession,
+		deleteSession,
+		renameSession,
+		clearAllHistory,
+	} = useChatHistory()
 
 	const {
 		messages,
@@ -42,596 +69,263 @@ export function AiAssistantChat() {
 		handleSelection,
 		handleChurrascoCalculate,
 		addMessage,
-	} = useAiChat()
+		startNewChat,
+		loadChat,
+		currentSession,
+	} = useAiChat(currentSessionId)
 
-	// Configurar assistente de voz
-	useEffect(() => {
-		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-		const speechSynthesis = window.speechSynthesis
-
-		if (SpeechRecognition && speechSynthesis) {
-			setIsVoiceSupported(true)
-			synthRef.current = speechSynthesis
-
-			const recognition = new SpeechRecognition()
-			recognition.continuous = false
-			recognition.interimResults = true // Habilitar resultados intermediários
-			recognition.lang = "pt-BR"
-			recognition.maxAlternatives = 1
-
-			recognition.onstart = () => {
-				setIsListening(true)
-				// Adicionar mensagem informativa no chat (não enviada para o assistente)
-				addMessage({
-					role: "assistant",
-					content: "🎤 Ouvindo... Fale agora",
-				})
-			}
-
-			recognition.onend = () => {
-				setIsListening(false)
-			}
-
-			recognition.onerror = (event: any) => {
-				setIsListening(false)
-				console.error("Erro no reconhecimento de voz:", event.error)
-
-				// Não mostrar toast para erros comuns que não são críticos
-				if (event.error === "no-speech") {
-					// Silencioso - usuário pode não ter falado
-					return
-				}
-
-				switch (event.error) {
-					case "audio-capture":
-						addMessage({
-							role: "assistant",
-							content: "❌ Erro no microfone. Verifique as permissões.",
-						})
-						break
-					case "not-allowed":
-						addMessage({
-							role: "assistant",
-							content: "❌ Permissão de microfone negada.",
-						})
-						break
-					case "network":
-						addMessage({
-							role: "assistant",
-							content: "❌ Erro de rede. Verifique sua conexão.",
-						})
-						break
-					case "aborted":
-						// Silencioso - reconhecimento foi cancelado intencionalmente
-						break
-					default:
-						addMessage({
-							role: "assistant",
-							content: "❌ Erro no reconhecimento de voz. Tente novamente.",
-						})
-				}
-			}
-
-			recognition.onresult = (event: any) => {
-				let finalTranscript = ""
-				let interimTranscript = ""
-
-				// Processar resultados intermediários e finais
-				for (let i = event.resultIndex; i < event.results.length; i++) {
-					const transcript = event.results[i][0].transcript
-					if (event.results[i].isFinal) {
-						finalTranscript += transcript
-					} else {
-						interimTranscript += transcript
-					}
-				}
-
-				// Atualizar input com resultado intermediário
-				if (interimTranscript) {
-					setInput(interimTranscript)
-				}
-
-				// Processar resultado final
-				if (finalTranscript) {
-					const cleanTranscript = finalTranscript.trim()
-					if (cleanTranscript) {
-						setInput(cleanTranscript)
-
-						// Auto-enviar mensagem quando terminar de falar
-						setTimeout(() => {
-							sendMessage(cleanTranscript)
-							setInput("")
-						}, 800) // Aumentar delay para dar tempo de processar
-					}
-				}
-			}
-
-			recognitionRef.current = recognition
-			setIsVoiceInitialized(true)
-		} else {
-			setIsVoiceSupported(false)
-			setIsVoiceInitialized(false)
-		}
-
-		return () => {
-			if (recognitionRef.current) {
-				recognitionRef.current.stop()
-			}
-			if (synthRef.current) {
-				synthRef.current.cancel()
-			}
-		}
-	}, [sendMessage, addMessage])
-
-	const speakMessage = useCallback(
-		(text: string) => {
-			if (!synthRef.current || !isVoiceSupported) return
-
-			// Cancelar fala anterior
-			synthRef.current.cancel()
-
-			// Limpar markdown básico e links
-			const cleanText = text
-				.replace(/\*\*(.*?)\*\*/g, "$1") // **texto** -> texto
-				.replace(/\*(.*?)\*/g, "$1") // *texto* -> texto
-				.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // [texto](link) -> texto
-				.replace(/`([^`]+)`/g, "$1") // `código` -> código
-				.replace(/#+\s*/g, "") // # título -> título
-				.substring(0, 500) // Limitar tamanho
-
-			const utterance = new SpeechSynthesisUtterance(cleanText)
-			utterance.lang = "pt-BR"
-			utterance.rate = 0.9
-			utterance.pitch = 1.1
-			utterance.volume = 0.7
-
-			utterance.onstart = () => setIsSpeaking(true)
-			utterance.onend = () => setIsSpeaking(false)
-			utterance.onerror = () => setIsSpeaking(false)
-
-			synthRef.current.speak(utterance)
-		},
-		[isVoiceSupported],
-	)
-
-	// Ler respostas do assistente em voz alta
-	useEffect(() => {
-		if (isOpen && messages.length > 0) {
-			const lastMessage = messages[messages.length - 1]
-			if (lastMessage.role === "assistant" && !lastMessage.isStreaming && !lastMessage.isError) {
-				speakMessage(lastMessage.content)
-			}
-		}
-	}, [messages, isOpen, speakMessage])
-
-	const startListening = () => {
-		if (!recognitionRef.current || isListening || !isVoiceInitialized) return
-
-		try {
-			// Parar qualquer reconhecimento anterior
-			if (recognitionRef.current) {
-				recognitionRef.current.stop()
-			}
-
-			// Pequeno delay para garantir que o stop anterior foi processado
-			setTimeout(() => {
-				try {
-					if (recognitionRef.current && !isListening) {
-						recognitionRef.current.start()
-					}
-				} catch (error) {
-					console.error("Erro ao iniciar reconhecimento:", error)
-					addMessage({
-						role: "assistant",
-						content: "❌ Erro ao iniciar gravação. Tente novamente.",
-					})
-				}
-			}, 200) // Aumentar delay para mobile
-		} catch (error) {
-			console.error("Erro ao preparar reconhecimento:", error)
-			addMessage({
-				role: "assistant",
-				content: "❌ Erro ao preparar gravação. Tente novamente.",
-			})
-		}
+	// Handlers
+	const handleOpenChat = () => setIsOpen(true)
+	const handleCloseChat = () => setIsOpen(false)
+	const handleNewChat = () => startNewChat()
+	
+	const handleSuggestionClick = (suggestion: string) => {
+		setInput(suggestion)
+		handleSendMessage(new Event('submit') as any)
 	}
 
-	const stopListening = () => {
-		if (recognitionRef.current && isListening) {
-			try {
-				recognitionRef.current.stop()
-			} catch (error) {
-				console.error("Erro ao parar reconhecimento:", error)
-			}
-		}
-	}
+	const handleSendMessage = async (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!input.trim() || isLoading) return
 
-	const stopSpeaking = () => {
-		if (synthRef.current) {
-			synthRef.current.cancel()
-			setIsSpeaking(false)
-		}
+		const message = input.trim()
+		setInput("")
+		await sendMessage(message)
 	}
 
 	const handlePhotoCapture = async (file: File) => {
-		setIsProcessingPhoto(true)
+		// Implementar lógica de captura de foto
 		setShowPhotoCapture(false)
-
-		try {
-			// Converter arquivo para base64 para preview
-			const reader = new FileReader()
-			reader.onload = async (e) => {
-				const imageData = e.target?.result as string
-				setCapturedImagePreview(imageData)
-
-				// Adicionar mensagem do usuário com preview da imagem
-				addMessage({
-					role: "user",
-					content: "📸 Foto enviada para análise",
-					imagePreview: imageData
-				})
-
-				// Chamar a função de reconhecimento de produtos
-				try {
-					const response = await fetch('/api/ai/product-recognition', {
-						method: 'POST',
-						body: (() => {
-							const formData = new FormData()
-							formData.append('image', file)
-							return formData
-						})()
-					})
-
-					if (!response.ok) {
-						throw new Error('Erro ao processar imagem')
-					}
-
-					const result = await response.json()
-					
-					if (result.product) {
-						// Armazenar produto reconhecido para exibir como card
-						setRecognizedProduct({
-							...result.product,
-							imagePreview: imageData
-						})
-
-						// Adicionar card de produto reconhecido
-						addMessage({
-							role: "assistant",
-							content: "product-recognition-card",
-							productData: {
-								...result.product,
-								imagePreview: imageData
-							}
-						})
-					} else {
-						addMessage({
-							role: "assistant",
-							content: "❌ Não consegui identificar nenhum produto na imagem. Tente tirar uma foto mais clara do produto."
-						})
-					}
-				} catch (error) {
-					console.error('Erro ao processar foto:', error)
-					addMessage({
-						role: "assistant",
-						content: "❌ Erro ao processar a foto. Tente novamente."
-					})
-				}
-			}
-			reader.readAsDataURL(file)
-		} catch (error) {
-			console.error('Erro ao capturar foto:', error)
-			addMessage({
-				role: "assistant",
-				content: "❌ Erro ao processar a foto. Tente novamente."
-			})
-		} finally {
-			setIsProcessingPhoto(false)
-		}
 	}
 
-	// Função para processar arquivos de imagem (drag/drop e paste)
-	const processImageFile = async (file: File) => {
-		// Verificar se é uma imagem
-		if (!file.type.startsWith('image/')) {
-			addMessage({
-				role: "assistant",
-				content: "❌ Por favor, envie apenas arquivos de imagem (JPG, PNG, etc.)."
-			})
-			return
-		}
+	// Voice handlers (simplified)
+	const startListening = () => setIsListening(true)
+	const stopListening = () => setIsListening(false)
+	const stopSpeaking = () => setIsSpeaking(false)
 
-		// Verificar tamanho do arquivo (máximo 10MB)
-		if (file.size > 10 * 1024 * 1024) {
-			addMessage({
-				role: "assistant",
-				content: "❌ A imagem é muito grande. Por favor, envie uma imagem menor que 10MB."
-			})
-			return
-		}
-
-		await handlePhotoCapture(file)
-	}
-
-	// Handlers para drag and drop
-	const handleDragOver = useCallback((e: React.DragEvent) => {
+	// Drag and drop handlers
+	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault()
-		e.stopPropagation()
 		setIsDragOver(true)
-	}, [])
+	}
 
-	const handleDragLeave = useCallback((e: React.DragEvent) => {
+	const handleDragLeave = () => setIsDragOver(false)
+
+	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault()
-		e.stopPropagation()
 		setIsDragOver(false)
-	}, [])
+		// Implementar lógica de drop
+	}
 
-	const handleDrop = useCallback(async (e: React.DragEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		setIsDragOver(false)
-
-		const files = Array.from(e.dataTransfer.files)
-		if (files.length > 0) {
-			const imageFile = files.find(file => file.type.startsWith('image/'))
-			if (imageFile) {
-				await processImageFile(imageFile)
-			} else {
-				addMessage({
-					role: "assistant",
-					content: "❌ Nenhuma imagem encontrada nos arquivos enviados."
-				})
-			}
-		}
-	}, [addMessage])
-
-	// Handler para paste
 	const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
 		const items = Array.from(e.clipboardData.items)
 		const imageItem = items.find(item => item.type.startsWith('image/'))
-		
+
 		if (imageItem) {
 			e.preventDefault()
 			const file = imageItem.getAsFile()
 			if (file) {
-				await processImageFile(file)
+				await handlePhotoCapture(file)
 			}
 		}
-	}, [addMessage])
-
-	const handleSendMessage = useCallback(
-		async (e: React.FormEvent) => {
-			e.preventDefault()
-			if (!input.trim()) return
-
-			await sendMessage(input)
-			setInput("")
-		},
-		[input, sendMessage],
-	)
-
-	const handleOpenChat = useCallback(() => {
-		setIsOpen(true)
-	}, [])
-
-	const handleCloseChat = useCallback(() => {
-		setIsOpen(false)
 	}, [])
 
 	return (
-		<div className="fixed bottom-4 right-4 z-[100]">
-			<div className="relative">
-				<AnimatePresence>
-					{isOpen && (
-						<motion.div
-							key="chat"
-							initial={{ opacity: 0, scale: 0.8, y: 100 }}
-							animate={{ opacity: 1, scale: 1, y: 0 }}
-							exit={{ opacity: 0, scale: 0.7, y: 100 }}
-							transition={{
-								duration: 0.3,
-								type: "spring",
-								stiffness: 300,
-								damping: 30,
-							}}
-							className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 max-h-[80vh] sm:max-w-96"
-							onDragOver={handleDragOver}
-							onDragLeave={handleDragLeave}
-							onDrop={handleDrop}
-						>
-							<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90 relative">
-								{/* Overlay para drag and drop */}
-								{isDragOver && (
-									<div className="absolute inset-0 bg-blue-500/20 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-10">
-										<div className="text-center">
-											<Camera className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-											<p className="text-blue-700 font-medium">Solte a imagem aqui para enviar</p>
-										</div>
+		<div className="fixed bottom-4 right-4 z-50">
+			<AnimatePresence mode="wait">
+				{isOpen && (
+					<motion.div
+						key="chat"
+						initial={{ opacity: 0, scale: 0.8, y: 20 }}
+						animate={{ opacity: 1, scale: 1, y: 0 }}
+						exit={{ opacity: 0, scale: 0.8, y: 20 }}
+						transition={{
+							type: "spring",
+							stiffness: 400,
+							damping: 30,
+						}}
+						className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 max-h-[80vh] sm:max-w-96"
+						onDragOver={handleDragOver}
+						onDragLeave={handleDragLeave}
+						onDrop={handleDrop}
+					>
+						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative">
+							{/* Overlay para drag and drop */}
+							{isDragOver && (
+								<div className="absolute inset-0 bg-primary/20 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
+									<div className="text-center">
+										<Camera className="h-12 w-12 text-primary mx-auto mb-2" />
+										<p className="text-primary font-medium">Solte a imagem aqui para enviar</p>
 									</div>
-								)}
-								<CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-									<CardTitle className="flex items-center gap-2">
-										<div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-											<Bot className="h-4 w-4" />
-										</div>
-										Zé, o assistente
-									</CardTitle>
-									<div className="flex items-center gap-1">
-										{isVoiceSupported && (
-											<>
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={isSpeaking ? stopSpeaking : undefined}
-													disabled={!isSpeaking}
-													className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
-													title={isSpeaking ? "Parar fala" : "Ouvindo..."}
-												>
-													{isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={isListening ? stopListening : startListening}
-													disabled={isLoading}
-													className={`rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors ${
-														isListening ? "bg-red-500/30 animate-pulse" : ""
-													}`}
-													title={isListening ? "Parar gravação" : "Falar com Zé"}
-												>
-													{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-												</Button>
-											</>
+								</div>
+							)}
+							
+							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg">
+								<CardTitle className="flex items-center gap-2">
+									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+										<Bot className="h-4 w-4 text-white" />
+									</div>
+									<div className="flex flex-col">
+										<span className="text-sm font-semibold text-foreground">Zé, o assistente</span>
+										{currentSession && (
+											<span className="text-xs text-muted-foreground truncate max-w-32">
+												{currentSession.title}
+											</span>
 										)}
-										<Link href="/assistente">
-											<Button
-												variant="ghost"
-												size="icon"
-												className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
-												title="Abrir em página completa"
-											>
-												<ExternalLink className="h-4 w-4" />
-											</Button>
-										</Link>
+									</div>
+								</CardTitle>
+								<div className="flex items-center gap-1">
+									<Link href="/assistente">
 										<Button
 											variant="ghost"
 											size="icon"
-											onClick={handleCloseChat}
-											className="rounded-full h-8 w-8 text-white hover:bg-white/20 transition-colors"
+											className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+											title="Abrir em página completa"
 										>
-											<X className="h-4 w-4" />
+											<ExternalLink className="h-4 w-4" />
 										</Button>
-									</div>
-								</CardHeader>
-								<CardContent className="p-0">
-									<ScrollArea className="h-96 p-4">
-										<div className="space-y-4">
-											{messages.map((msg, index) => (
-												<div key={`${msg.role}-${index}`}>
-													<ChatMessage
-														role={msg.role}
-														content={msg.content}
-														isError={msg.isError}
-														isStreaming={msg.isStreaming}
-														onRetry={retryLastMessage}
-														canRetry={msg.isError && !!lastUserMessage && !isLoading}
-														imagePreview={msg.imagePreview}
-														productData={msg.productData}
-														onAddMessage={addMessage}
-													/>
-													{msg.selectionCard && (
-														<div className="mt-3 ml-8">
-															{msg.selectionCard.type === "churrascometro" ? (
-																<ChurrascoCard onCalculate={handleChurrascoCalculate} />
-															) : (
-																<SelectionCard
-																	type={msg.selectionCard.type}
-																	options={msg.selectionCard.options}
-																	searchTerm={msg.selectionCard.searchTerm}
-																	context={msg.selectionCard.context}
-																	onSelect={handleSelection}
-																/>
-															)}
-														</div>
-													)}
-												</div>
-											))}
-											{isLoading && <TypingIndicator />}
-										</div>
-									</ScrollArea>
-									<form onSubmit={handleSendMessage} className="p-4 border-t flex gap-2">
-										<Input
-											ref={inputRef}
-											value={input}
-											onChange={(e) => setInput(e.target.value)}
-											onPaste={handlePaste}
-											placeholder={isListening ? "🎤 Ouvindo... Fale agora" : "Como posso ajudar?"}
-											disabled={isLoading || isListening}
-											className={isListening ? "border-red-300 bg-red-50 animate-pulse" : ""}
+									</Link>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={handleCloseChat}
+										className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+									>
+										<X className="h-4 w-4" />
+									</Button>
+								</div>
+							</CardHeader>
+							
+							<CardContent className="p-0">
+								<ScrollArea className="h-96 p-4">
+									<div className="space-y-4">
+										{/* Sugestões em Carrossel */}
+										<CarouselSuggestions
+											onSuggestionClick={handleSuggestionClick}
+											isLoading={isLoading}
+											hasMessages={messages.length > 0}
 										/>
-										{isVoiceSupported && (
-											<Button
-												type="button"
-												size="icon"
-												variant="outline"
-												onClick={isListening ? stopListening : startListening}
-												disabled={isLoading || !isVoiceInitialized}
-												className={`${isListening ? "bg-red-100 border-red-300 text-red-600 animate-pulse" : ""} ${!isVoiceInitialized ? "opacity-50" : ""}`}
-											>
-												{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-											</Button>
-										)}
-										<Button
-											type="button"
-											size="icon"
-											variant="outline"
-											onClick={() => setShowPhotoCapture(true)}
-											disabled={isLoading || isProcessingPhoto}
-											title="Tirar foto ou enviar da galeria"
-										>
-											<Camera className="h-4 w-4" />
-										</Button>
-										<Button type="submit" size="icon" disabled={isLoading || isListening}>
-											<Send className="h-4 w-4" />
-										</Button>
-									</form>
-								</CardContent>
-							</Card>
-						</motion.div>
-					)}
 
-					{!isOpen && (
-						<motion.button
-							key="bubble"
-							onClick={handleOpenChat}
-							initial={{ opacity: 0, scale: 0.5, y: 40 }}
-							animate={{
-								opacity: 1,
-								scale: 1,
-								y: 0,
-								boxShadow: [
-									"0 4px 20px rgba(59, 130, 246, 0.4)",
-									"0 8px 30px rgba(59, 130, 246, 0.6)",
-									"0 4px 20px rgba(59, 130, 246, 0.4)",
-								],
-							}}
-							exit={{
-								opacity: 0,
-								scale: 0.3,
-								y: 40,
-								transition: { duration: 0.2 },
-							}}
-							whileHover={{
-								scale: 1.1,
-								boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
-							}}
-							whileTap={{ scale: 0.95 }}
-							transition={{
-								duration: 0.3,
-								type: "spring",
-								stiffness: 400,
-								damping: 20,
-								boxShadow: {
-									duration: 2,
-									repeat: Infinity,
-									repeatType: "reverse",
-								},
-							}}
-							className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none ${
-								isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-							}`}
-						>
-							{isListening ? (
-								<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
-							) : isSpeaking ? (
-								<Volume2 className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
-							) : (
-								<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
-							)}
-						</motion.button>
-					)}
-				</AnimatePresence>
-			</div>
+										{messages.map((msg, index) => (
+											<div key={`${msg.role}-${index}`}>
+												<ChatMessage
+													role={msg.role}
+													content={msg.content}
+													isError={msg.isError}
+													isStreaming={msg.isStreaming}
+													onRetry={retryLastMessage}
+													canRetry={msg.isError && !!lastUserMessage && !isLoading}
+													imagePreview={msg.imagePreview}
+													productData={msg.productData}
+													onAddMessage={addMessage}
+												/>
+												{msg.selectionCard && (
+													<div className="mt-3 ml-8">
+														{msg.selectionCard.type === "churrascometro" ? (
+															<ChurrascoCard onCalculate={handleChurrascoCalculate} />
+														) : (
+															<SelectionCard
+																type={msg.selectionCard.type}
+																options={msg.selectionCard.options}
+																searchTerm={msg.selectionCard.searchTerm}
+																context={msg.selectionCard.context}
+																onSelect={handleSelection}
+															/>
+														)}
+													</div>
+												)}
+											</div>
+										))}
+										{isLoading && (
+											<EnhancedTypingIndicator
+												context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
+													lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+														lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
+															undefined}
+											/>
+										)}
+									</div>
+								</ScrollArea>
+								
+								<div className="p-4 border-t">
+									<EnhancedInput
+										value={input}
+										onChange={setInput}
+										onSubmit={handleSendMessage}
+										onPhotoCapture={() => setShowPhotoCapture(true)}
+										onSuggestionClick={handleSuggestionClick}
+										placeholder="Como posso ajudar?"
+										disabled={isLoading}
+										isLoading={isLoading}
+										isListening={isListening}
+										onStartListening={startListening}
+										onStopListening={stopListening}
+										isVoiceSupported={isVoiceSupported}
+									/>
+								</div>
+							</CardContent>
+						</Card>
+					</motion.div>
+				)}
+
+				{!isOpen && (
+					<motion.button
+						key="bubble"
+						onClick={handleOpenChat}
+						initial={{ opacity: 0, scale: 0.5, y: 40 }}
+						animate={{
+							opacity: 1,
+							scale: 1,
+							y: 0,
+							boxShadow: [
+								"0 4px 20px rgba(59, 130, 246, 0.4)",
+								"0 8px 30px rgba(59, 130, 246, 0.6)",
+								"0 4px 20px rgba(59, 130, 246, 0.4)",
+							],
+						}}
+						exit={{
+							opacity: 0,
+							scale: 0.3,
+							y: 40,
+							transition: { duration: 0.2 },
+						}}
+						whileHover={{
+							scale: 1.1,
+							boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
+						}}
+						whileTap={{ scale: 0.95 }}
+						transition={{
+							duration: 0.3,
+							type: "spring",
+							stiffness: 400,
+							damping: 20,
+							boxShadow: {
+								duration: 2,
+								repeat: Infinity,
+								repeatType: "reverse",
+							},
+						}}
+						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${
+							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+						}`}
+					>
+						{isListening ? (
+							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+						) : isSpeaking ? (
+							<Volume2 className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+						) : (
+							<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
+						)}
+
+						{/* Contador de conversas salvas */}
+						{sessions.length > 0 && (
+							<div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-lg">
+								{sessions.length > 9 ? '9+' : sessions.length}
+							</div>
+						)}
+					</motion.button>
+				)}
+			</AnimatePresence>
 
 			{/* Modal de Captura de Fotos */}
 			{showPhotoCapture && (

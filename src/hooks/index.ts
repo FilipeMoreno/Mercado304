@@ -1,5 +1,6 @@
 export * from "./use-ai-chat"
 export * from "./use-auth-redirect"
+export * from "./use-chat-history"
 export * from "./use-data-fetch"
 export * from "./use-data-mutation"
 export * from "./use-debounce"

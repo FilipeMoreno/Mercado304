@@ -1,8 +1,9 @@
 "use client"
 
 import { useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { queryKeys } from "./use-react-query"
+import { useChatHistory } from "./use-chat-history"
 
 export interface Message {
 	role: "user" | "assistant"
@@ -19,8 +20,15 @@ export interface Message {
 	}
 }
 
-export function useAiChat() {
+export function useAiChat(sessionId?: string | null) {
 	const queryClient = useQueryClient()
+	const {
+		currentSession,
+		updateSession,
+		loadSession,
+		createNewSession
+	} = useChatHistory()
+	
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			role: "assistant",
@@ -31,10 +39,26 @@ export function useAiChat() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [lastUserMessage, setLastUserMessage] = useState<string>("")
 
+	// Carregar sessão quando sessionId mudar
+	useEffect(() => {
+		if (sessionId) {
+			const session = loadSession(sessionId)
+			if (session) {
+				setMessages(session.messages)
+			}
+		}
+	}, [sessionId, loadSession])
+
+	// Salvar mensagens na sessão atual sempre que mudarem
+	useEffect(() => {
+		if (currentSession && messages.length > 1) {
+			updateSession(currentSession.id, messages)
+		}
+	}, [messages, currentSession, updateSession])
+
 	// Detecta mudança de contexto baseada na mensagem atual
 	const detectContextChange = (currentMessage: string, previousMessages: Message[]) => {
 		const current = currentMessage.toLowerCase()
-
 		// Palavras que indicam nova tarefa
 		const _newTaskIndicators = [
 			"adicione",
@@ -410,6 +434,23 @@ export function useAiChat() {
 		}
 	}
 
+	// Função para iniciar nova conversa
+	const startNewChat = () => {
+		const newSession = createNewSession()
+		setMessages(newSession.messages)
+		return newSession
+	}
+
+	// Função para carregar conversa específica
+	const loadChat = (sessionId: string) => {
+		const session = loadSession(sessionId)
+		if (session) {
+			setMessages(session.messages)
+			return session
+		}
+		return null
+	}
+
 	return {
 		messages,
 		isLoading,
@@ -419,5 +460,8 @@ export function useAiChat() {
 		handleSelection,
 		handleChurrascoCalculate,
 		addMessage,
+		startNewChat,
+		loadChat,
+		currentSession,
 	}
 }
