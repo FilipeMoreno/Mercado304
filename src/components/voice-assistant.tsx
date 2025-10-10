@@ -26,11 +26,20 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 	const [isSupported, setIsSupported] = useState(false)
 	const [messages, setMessages] = useState<Message[]>([])
 	const [showChat, setShowChat] = useState(false)
+	const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null)
+	const [isMobile, setIsMobile] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 
 	useEffect(() => {
+		// Detectar se é mobile
+		const checkMobile = () => {
+			const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
+			setIsMobile(/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent))
+		}
+		checkMobile()
+
 		// Verificar suporte do navegador
 		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 		const speechSynthesis = window.speechSynthesis
@@ -45,23 +54,43 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 			recognition.interimResults = false
 			recognition.lang = "pt-BR"
 
+			// Para mobile, configurações específicas
+			if (isMobile) {
+				recognition.maxAlternatives = 1
+			}
+
 			recognition.onstart = () => {
+				console.log("🎤 Reconhecimento iniciado")
 				setIsListening(true)
 			}
 
 			recognition.onend = () => {
+				console.log("🎤 Reconhecimento finalizado")
 				setIsListening(false)
 			}
 
 			recognition.onresult = (event: any) => {
 				const transcript = event.results[0][0].transcript.toLowerCase()
+				console.log("🎤 Resultado:", transcript)
 				handleVoiceCommand(transcript)
 			}
 
 			recognition.onerror = (event: any) => {
 				console.error("Erro no reconhecimento de voz:", event.error)
 				setIsListening(false)
-				toast.error("Erro no reconhecimento de voz. Tente novamente.")
+				
+				// Tratamento específico de erros para mobile
+				if (event.error === 'not-allowed') {
+					setPermissionGranted(false)
+					toast.error("Permissão de microfone negada. Verifique as configurações do navegador.")
+				} else if (event.error === 'no-speech') {
+					toast.error("Nenhuma fala detectada. Tente novamente.")
+				} else if (event.error === 'aborted') {
+					// Erro comum no mobile quando o reconhecimento é interrompido rapidamente
+					console.log("Reconhecimento abortado - comum no mobile")
+				} else {
+					toast.error("Erro no reconhecimento de voz. Tente novamente.")
+				}
 			}
 
 			recognitionRef.current = recognition
@@ -78,7 +107,7 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 				synthRef.current.cancel()
 			}
 		}
-	}, [])
+	}, [isMobile])
 
 	const addMessage = (type: "user" | "assistant", text: string) => {
 		const message: Message = {
@@ -207,17 +236,60 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 		speak(response)
 	}
 
-	const startListening = () => {
+	const startListening = async () => {
 		if (!isSupported || !recognitionRef.current) {
 			toast.error("Reconhecimento de voz não suportado neste navegador.")
 			return
 		}
 
+		// Para mobile, verificar permissões primeiro
+		if (isMobile && 'permissions' in navigator) {
+			try {
+				const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName })
+				if (permission.state === 'denied') {
+					setPermissionGranted(false)
+					toast.error("Permissão de microfone negada. Ative nas configurações do navegador.")
+					return
+				}
+			} catch (error) {
+				console.log("Não foi possível verificar permissões:", error)
+			}
+		}
+
+		// Verificar se já está ouvindo
+		if (isListening) {
+			console.log("Já está ouvindo, ignorando...")
+			return
+		}
+
 		try {
+			console.log("🎤 Tentando iniciar reconhecimento...")
+			
+			// Para mobile, adicionar um pequeno delay para evitar problemas de user gesture
+			if (isMobile) {
+				await new Promise(resolve => setTimeout(resolve, 100))
+			}
+			
 			recognitionRef.current.start()
-		} catch (error) {
+			setPermissionGranted(true)
+		} catch (error: any) {
 			console.error("Erro ao iniciar reconhecimento:", error)
-			toast.error("Erro ao iniciar reconhecimento de voz.")
+			
+			if (error.name === 'InvalidStateError') {
+				// Reconhecimento já está ativo, parar e tentar novamente
+				console.log("Reconhecimento já ativo, reiniciando...")
+				recognitionRef.current.stop()
+				setTimeout(() => {
+					if (!isListening) {
+						recognitionRef.current.start()
+					}
+				}, 500)
+			} else if (error.name === 'NotAllowedError') {
+				setPermissionGranted(false)
+				toast.error("Permissão de microfone negada. Ative nas configurações do navegador.")
+			} else {
+				toast.error("Erro ao iniciar reconhecimento de voz.")
+			}
 		}
 	}
 
