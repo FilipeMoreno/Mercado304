@@ -28,7 +28,7 @@ export function ProductRecognitionCard({
 	onViewDetails 
 }: ProductRecognitionCardProps) {
 	return (
-		<Card className="w-full max-w-md mx-auto">
+		<Card className="w-full">
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center gap-2 text-lg">
 					<Package className="h-5 w-5 text-blue-600" />
@@ -38,7 +38,7 @@ export function ProductRecognitionCard({
 			<CardContent className="space-y-4">
 				{/* Preview da imagem */}
 				{imagePreview && (
-					<div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+					<div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
 						<img 
 							src={imagePreview} 
 							alt="Produto capturado"
@@ -49,25 +49,25 @@ export function ProductRecognitionCard({
 
 				{/* Informações do produto */}
 				<div className="space-y-2">
-					<h3 className="font-semibold text-lg">{product.name}</h3>
+					<h3 className="font-semibold text-lg break-words">{product.name}</h3>
 					
 					<div className="space-y-1 text-sm text-muted-foreground">
 						{product.brand && (
-							<div className="flex items-center gap-1">
-								<span className="font-medium">Marca:</span>
-								<span>{product.brand}</span>
+							<div className="flex items-start gap-1">
+								<span className="font-medium shrink-0">Marca:</span>
+								<span className="break-words">{product.brand}</span>
 							</div>
 						)}
 						{product.category && (
-							<div className="flex items-center gap-1">
-								<span className="font-medium">Categoria:</span>
-								<span>{product.category}</span>
+							<div className="flex items-start gap-1">
+								<span className="font-medium shrink-0">Categoria:</span>
+								<span className="break-words">{product.category}</span>
 							</div>
 						)}
 						{product.barcode && (
-							<div className="flex items-center gap-1">
-								<span className="font-medium">Código:</span>
-								<span className="font-mono text-xs">{product.barcode}</span>
+							<div className="flex items-start gap-1">
+								<span className="font-medium shrink-0">Código de barras:</span>
+								<span className="font-mono text-xs break-all">{product.barcode}</span>
 							</div>
 						)}
 					</div>

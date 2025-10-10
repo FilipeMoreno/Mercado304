@@ -14,9 +14,10 @@ interface ChatMessageProps {
 	canRetry?: boolean
 	imagePreview?: string
 	productData?: any
+	onAddMessage?: (message: { role: "user" | "assistant"; content: string }) => void
 }
 
-export function ChatMessage({ role, content, isError, isStreaming, onRetry, canRetry, imagePreview, productData }: ChatMessageProps) {
+export function ChatMessage({ role, content, isError, isStreaming, onRetry, canRetry, imagePreview, productData, onAddMessage }: ChatMessageProps) {
 	// Se é um card de produto reconhecido
 	if (content === "product-recognition-card" && productData) {
 		const handleAddToList = async () => {
@@ -54,30 +55,155 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 				if (!addResponse.ok) throw new Error("Erro ao adicionar produto")
 
-				// Mostrar sucesso
-				const toast = (await import("sonner")).toast
-				toast.success(`${productData.name} adicionado à lista "${targetList.name}"!`)
+				// Adicionar mensagem de confirmação no chat
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: `✅ **${productData.name}** foi adicionado à lista "${targetList.name}" com sucesso!`
+					})
+				}
 			} catch (error) {
 				console.error("Erro ao adicionar à lista:", error)
-				const toast = (await import("sonner")).toast
-				toast.error("Erro ao adicionar produto à lista")
+				// Adicionar mensagem de erro no chat
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: `❌ Erro ao adicionar **${productData.name}** à lista. Tente novamente.`
+					})
+				}
 			}
 		}
 
-		const handleSearchProduct = () => {
-			// Redirecionar para página de busca de preços
-			const searchQuery = encodeURIComponent(productData.name)
-			window.open(`/precos?search=${searchQuery}`, '_blank')
+		const handleSearchProduct = async () => {
+			try {
+				// Buscar preços do produto
+				const response = await fetch(`/api/price-comparison/product?productName=${encodeURIComponent(productData.name)}`)
+				
+				if (!response.ok) {
+					throw new Error("Produto não encontrado")
+				}
+
+				const data = await response.json()
+				
+				// Pegar os últimos 5 preços
+				const recentPrices = data.markets
+					.filter((market: any) => market.currentPrice > 0)
+					.sort((a: any, b: any) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime())
+					.slice(0, 5)
+
+				if (recentPrices.length === 0) {
+					if (onAddMessage) {
+						onAddMessage({
+							role: "assistant",
+							content: `📊 Não encontrei preços registrados para **${productData.name}**. Que tal registrar o primeiro preço?`
+						})
+					}
+					return
+				}
+
+				// Formatar mensagem com os preços
+				let priceMessage = `📊 **Últimos preços de ${productData.name}:**\n\n`
+				
+				recentPrices.forEach((market: any, index: number) => {
+					const date = new Date(market.lastUpdate).toLocaleDateString('pt-BR')
+					const emoji = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "📍"
+					priceMessage += `${emoji} **${market.marketName}** - R$ ${market.currentPrice.toFixed(2)}\n`
+					priceMessage += `   📅 ${date} • ${market.location || 'Localização não informada'}\n\n`
+				})
+
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: priceMessage
+					})
+				}
+
+			} catch (error) {
+				console.error("Erro ao buscar preços:", error)
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: `❌ Não consegui encontrar preços para **${productData.name}**. O produto pode não estar registrado no sistema.`
+					})
+				}
+			}
 		}
 
-		const handleViewDetails = () => {
-			// Se tem código de barras, buscar produto específico
-			if (productData.barcode) {
-				window.open(`/produtos?barcode=${productData.barcode}`, '_blank')
-			} else {
-				// Senão, buscar por nome
-				const searchQuery = encodeURIComponent(productData.name)
-				window.open(`/produtos?search=${searchQuery}`, '_blank')
+		const handleViewDetails = async () => {
+			try {
+				// Primeiro, tentar buscar o produto por código de barras ou nome
+				let productResponse
+				
+				if (productData.barcode) {
+					productResponse = await fetch(`/api/products?barcode=${productData.barcode}`)
+				} else {
+					productResponse = await fetch(`/api/products?search=${encodeURIComponent(productData.name)}`)
+				}
+
+				if (!productResponse.ok) {
+					throw new Error("Produto não encontrado")
+				}
+
+				const products = await productResponse.json()
+				const product = products.products?.[0] || products[0]
+
+				if (!product) {
+					// Produto não encontrado - oferecer opção de cadastro
+					if (onAddMessage) {
+						onAddMessage({
+							role: "assistant",
+							content: `🔍 **${productData.name}** não está registrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
+						})
+					}
+					return
+				}
+
+				// Buscar detalhes completos do produto
+				const detailsResponse = await fetch(`/api/products/${product.id}?includeStats=true`)
+				const productDetails = await detailsResponse.json()
+
+				// Formatar mensagem com detalhes do produto
+				let detailsMessage = `📦 **Detalhes de ${productDetails.name}**\n\n`
+				
+				if (productDetails.brand?.name) {
+					detailsMessage += `🏷️ **Marca:** ${productDetails.brand.name}\n`
+				}
+				
+				if (productDetails.category?.name) {
+					detailsMessage += `📂 **Categoria:** ${productDetails.category.name}\n`
+				}
+				
+				detailsMessage += `📏 **Unidade:** ${productDetails.unit}\n`
+				
+				if (productDetails.barcode) {
+					detailsMessage += `🔢 **Código de Barras:** ${productDetails.barcode}\n`
+				}
+
+				// Adicionar estatísticas se disponíveis
+				if (productDetails.stats) {
+					detailsMessage += `\n📊 **Estatísticas:**\n`
+					detailsMessage += `• Preço médio: R$ ${productDetails.stats.averagePrice?.toFixed(2) || 'N/A'}\n`
+					detailsMessage += `• Menor preço: R$ ${productDetails.stats.lowestPrice?.toFixed(2) || 'N/A'}\n`
+					detailsMessage += `• Maior preço: R$ ${productDetails.stats.highestPrice?.toFixed(2) || 'N/A'}\n`
+					detailsMessage += `• Total de compras: ${productDetails.stats.totalPurchases || 0}\n`
+				}
+
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: detailsMessage
+					})
+				}
+
+			} catch (error) {
+				console.error("Erro ao buscar detalhes:", error)
+				// Produto não encontrado - oferecer opção de cadastro
+				if (onAddMessage) {
+					onAddMessage({
+						role: "assistant",
+						content: `🔍 **${productData.name}** não foi encontrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
+					})
+				}
 			}
 		}
 

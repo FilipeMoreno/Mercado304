@@ -434,6 +434,7 @@ export function AiAssistantChat() {
 														canRetry={msg.isError && !!lastUserMessage && !isLoading}
 														imagePreview={msg.imagePreview}
 														productData={msg.productData}
+														onAddMessage={addMessage}
 													/>
 													{msg.selectionCard && (
 														<div className="mt-3 ml-8">
