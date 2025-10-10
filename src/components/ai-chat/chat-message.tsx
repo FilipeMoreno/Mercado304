@@ -19,6 +19,68 @@ interface ChatMessageProps {
 export function ChatMessage({ role, content, isError, isStreaming, onRetry, canRetry, imagePreview, productData }: ChatMessageProps) {
 	// Se é um card de produto reconhecido
 	if (content === "product-recognition-card" && productData) {
+		const handleAddToList = async () => {
+			try {
+				// Buscar listas existentes
+				const listsResponse = await fetch("/api/shopping-lists")
+				if (!listsResponse.ok) throw new Error("Erro ao buscar listas")
+
+				const { lists } = await listsResponse.json()
+				let targetList = lists.find((list: any) => list.name === "Lista Principal") || lists[0]
+
+				// Se não existe lista, criar uma
+				if (!targetList) {
+					const createResponse = await fetch("/api/shopping-lists", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							name: "Lista Principal",
+						}),
+					})
+					if (!createResponse.ok) throw new Error("Erro ao criar lista")
+					targetList = await createResponse.json()
+				}
+
+				// Adicionar produto à lista
+				const addResponse = await fetch(`/api/shopping-lists/${targetList.id}/items`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						productName: productData.name,
+						quantity: 1,
+						productUnit: "un",
+					}),
+				})
+
+				if (!addResponse.ok) throw new Error("Erro ao adicionar produto")
+
+				// Mostrar sucesso
+				const toast = (await import("sonner")).toast
+				toast.success(`${productData.name} adicionado à lista "${targetList.name}"!`)
+			} catch (error) {
+				console.error("Erro ao adicionar à lista:", error)
+				const toast = (await import("sonner")).toast
+				toast.error("Erro ao adicionar produto à lista")
+			}
+		}
+
+		const handleSearchProduct = () => {
+			// Redirecionar para página de busca de preços
+			const searchQuery = encodeURIComponent(productData.name)
+			window.open(`/precos?search=${searchQuery}`, '_blank')
+		}
+
+		const handleViewDetails = () => {
+			// Se tem código de barras, buscar produto específico
+			if (productData.barcode) {
+				window.open(`/produtos?barcode=${productData.barcode}`, '_blank')
+			} else {
+				// Senão, buscar por nome
+				const searchQuery = encodeURIComponent(productData.name)
+				window.open(`/produtos?search=${searchQuery}`, '_blank')
+			}
+		}
+
 		return (
 			<div className="flex gap-2">
 				<Bot className="h-6 w-6 flex-shrink-0 text-blue-700" />
@@ -26,18 +88,9 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					<ProductRecognitionCard
 						product={productData}
 						imagePreview={productData.imagePreview}
-						onAddToList={() => {
-							// TODO: Implementar adicionar à lista
-							console.log("Adicionar à lista:", productData)
-						}}
-						onSearchProduct={() => {
-							// TODO: Implementar busca de preços
-							console.log("Buscar preços:", productData)
-						}}
-						onViewDetails={() => {
-							// TODO: Implementar ver detalhes
-							console.log("Ver detalhes:", productData)
-						}}
+						onAddToList={handleAddToList}
+						onSearchProduct={handleSearchProduct}
+						onViewDetails={handleViewDetails}
 					/>
 				</div>
 			</div>
