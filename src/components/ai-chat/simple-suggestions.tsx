@@ -60,7 +60,7 @@ const suggestions = [
 ]
 
 export function SimpleSuggestions({ onSuggestionClick, messages, isLoading, hasMessages }: SimpleSuggestionsProps) {
-	if (isLoading || (hasMessages !== undefined ? hasMessages : messages.length > 0)) return null
+	if (isLoading || (hasMessages !== undefined ? hasMessages : messages.length > 1)) return null
 
 	return (
 		<div className="mb-4">

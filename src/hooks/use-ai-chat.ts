@@ -169,7 +169,7 @@ export function useAiChat(sessionId?: string | null) {
 		setMessages((prev) => prev.slice(0, -1))
 	}
 
-	const sendMessage = async (content: string, useStreaming: boolean = false) => {
+	const sendMessage = async (content: string, useStreaming: boolean = true) => {
 		const userMessage: Message = { role: "user", content }
 
 		// Detecta mudança de contexto

@@ -5,16 +5,8 @@ import {
 	Bot,
 	Camera,
 	ExternalLink,
-	Mic,
-	MicOff,
-	Send,
-	Sparkles,
-	Volume2,
-	VolumeX,
-	X,
-	History,
-	Plus,
-	MessageSquare
+	Mic, Sparkles,
+	Volume2, X
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -24,27 +16,25 @@ import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
 import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
 import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
-import { ChatHistorySidebar } from "@/components/ai-chat/chat-history-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistory } from "@/hooks"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
-	const [isListening, setIsListening] = useState(false)
-	const [isSpeaking, setIsSpeaking] = useState(false)
-	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
-	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
 	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
 	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
 	const [isDragOver, setIsDragOver] = useState(false)
 	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+	const [isListening, setIsListening] = useState(false)
+	const [isSpeaking, setIsSpeaking] = useState(false)
+	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
+	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
@@ -78,7 +68,7 @@ export function AiAssistantChat() {
 	const handleOpenChat = () => setIsOpen(true)
 	const handleCloseChat = () => setIsOpen(false)
 	const handleNewChat = () => startNewChat()
-	
+
 	const handleSuggestionClick = (suggestion: string) => {
 		setInput(suggestion)
 		handleSendMessage(new Event('submit') as any)
@@ -98,10 +88,67 @@ export function AiAssistantChat() {
 		setShowPhotoCapture(false)
 	}
 
-	// Voice handlers (simplified)
-	const startListening = () => setIsListening(true)
-	const stopListening = () => setIsListening(false)
-	const stopSpeaking = () => setIsSpeaking(false)
+	// Configurar assistente de voz
+	useEffect(() => {
+		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+		const speechSynthesis = window.speechSynthesis
+
+		if (SpeechRecognition && speechSynthesis) {
+			setIsVoiceSupported(true)
+			synthRef.current = speechSynthesis
+
+			const recognition = new SpeechRecognition()
+			recognition.continuous = false
+			recognition.interimResults = true
+			recognition.lang = "pt-BR"
+			recognition.maxAlternatives = 1
+
+			recognition.onstart = () => {
+				setIsListening(true)
+			}
+
+			recognition.onend = () => {
+				setIsListening(false)
+			}
+
+			recognition.onresult = (event: any) => {
+				const transcript = event.results[event.results.length - 1][0].transcript
+				if (event.results[event.results.length - 1].isFinal) {
+					setInput(transcript)
+					setIsListening(false)
+				}
+			}
+
+			recognition.onerror = (event: any) => {
+				console.error('Erro no reconhecimento de voz:', event.error)
+				setIsListening(false)
+			}
+
+			recognitionRef.current = recognition
+			setIsVoiceInitialized(true)
+		}
+	}, [])
+
+	// Voice handlers
+	const startListening = () => {
+		if (recognitionRef.current && !isListening) {
+			recognitionRef.current.start()
+		}
+	}
+
+	const stopListening = () => {
+		if (recognitionRef.current && isListening) {
+			recognitionRef.current.stop()
+		}
+	}
+
+	const stopSpeaking = () => {
+		if (synthRef.current) {
+			synthRef.current.cancel()
+			setIsSpeaking(false)
+		}
+	}
+
 
 	// Drag and drop handlers
 	const handleDragOver = (e: React.DragEvent) => {
@@ -149,7 +196,7 @@ export function AiAssistantChat() {
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
 					>
-						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative">
+						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative flex flex-col">
 							{/* Overlay para drag and drop */}
 							{isDragOver && (
 								<div className="absolute inset-0 bg-primary/20 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
@@ -159,7 +206,7 @@ export function AiAssistantChat() {
 									</div>
 								</div>
 							)}
-							
+
 							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg">
 								<CardTitle className="flex items-center gap-2">
 									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
@@ -195,15 +242,15 @@ export function AiAssistantChat() {
 									</Button>
 								</div>
 							</CardHeader>
-							
-							<CardContent className="p-0">
-								<ScrollArea className="h-96 p-4">
+
+							<CardContent className="p-0 flex-1 flex flex-col">
+								<ScrollArea className="flex-1 p-4">
 									<div className="space-y-4">
 										{/* Sugestões em Carrossel */}
 										<CarouselSuggestions
 											onSuggestionClick={handleSuggestionClick}
 											isLoading={isLoading}
-											hasMessages={messages.length > 0}
+											hasMessages={messages.length > 1}
 										/>
 
 										{messages.map((msg, index) => (
@@ -246,7 +293,7 @@ export function AiAssistantChat() {
 										)}
 									</div>
 								</ScrollArea>
-								
+
 								<div className="p-4 border-t">
 									<EnhancedInput
 										value={input}
@@ -305,9 +352,8 @@ export function AiAssistantChat() {
 								repeatType: "reverse",
 							},
 						}}
-						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${
-							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-						}`}
+						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+							}`}
 					>
 						{isListening ? (
 							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
@@ -315,13 +361,6 @@ export function AiAssistantChat() {
 							<Volume2 className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
 						) : (
 							<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
-						)}
-
-						{/* Contador de conversas salvas */}
-						{sessions.length > 0 && (
-							<div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-lg">
-								{sessions.length > 9 ? '9+' : sessions.length}
-							</div>
 						)}
 					</motion.button>
 				)}

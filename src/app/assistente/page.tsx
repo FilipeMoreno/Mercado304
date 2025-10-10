@@ -27,8 +27,15 @@ export default function CleanAssistentePage() {
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
 	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+	const [isListening, setIsListening] = useState(false)
+	const [isSpeaking, setIsSpeaking] = useState(false)
+	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
+	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
+	const recognitionRef = useRef<any>(null)
+	const synthRef = useRef<SpeechSynthesis | null>(null)
 
 	const {
 		sessions,
@@ -165,6 +172,67 @@ export default function CleanAssistentePage() {
 			})
 		} finally {
 			setIsProcessingPhoto(false)
+		}
+	}
+
+	// Configurar assistente de voz
+	useEffect(() => {
+		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+		const speechSynthesis = window.speechSynthesis
+
+		if (SpeechRecognition && speechSynthesis) {
+			setIsVoiceSupported(true)
+			synthRef.current = speechSynthesis
+
+			const recognition = new SpeechRecognition()
+			recognition.continuous = false
+			recognition.interimResults = true
+			recognition.lang = "pt-BR"
+			recognition.maxAlternatives = 1
+
+			recognition.onstart = () => {
+				setIsListening(true)
+			}
+
+			recognition.onend = () => {
+				setIsListening(false)
+			}
+
+			recognition.onresult = (event: any) => {
+				const transcript = event.results[event.results.length - 1][0].transcript
+				if (event.results[event.results.length - 1].isFinal) {
+					setInput(transcript)
+					setIsListening(false)
+				}
+			}
+
+			recognition.onerror = (event: any) => {
+				console.error('Erro no reconhecimento de voz:', event.error)
+				setIsListening(false)
+			}
+
+			recognitionRef.current = recognition
+			setIsVoiceInitialized(true)
+		}
+	}, [])
+
+	// Voice handlers
+	const startListening = () => {
+		if (recognitionRef.current && !isListening) {
+			recognitionRef.current.start()
+		}
+	}
+
+	const stopListening = () => {
+		if (recognitionRef.current && isListening) {
+			recognitionRef.current.stop()
+		}
+	}
+
+	const stopSpeaking = () => {
+		if (synthRef.current) {
+			synthRef.current.cancel()
+			setIsSpeaking(false)
 		}
 	}
 
@@ -385,8 +453,10 @@ export default function CleanAssistentePage() {
 								placeholder="Mensagem para o Zé..."
 								disabled={isLoading}
 								isLoading={isLoading}
-								isListening={false}
-								isVoiceSupported={false}
+								isListening={isListening}
+								onStartListening={startListening}
+								onStopListening={stopListening}
+								isVoiceSupported={isVoiceSupported}
 							/>
 						</div>
 					</div>
