@@ -1,13 +1,14 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { Bot, ExternalLink, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react"
+import { Bot, Camera, ExternalLink, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
+import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,6 +22,8 @@ export function AiAssistantChat() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
+	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
@@ -245,6 +248,68 @@ export function AiAssistantChat() {
 		}
 	}
 
+	const handlePhotoCapture = async (file: File) => {
+		setIsProcessingPhoto(true)
+		setShowPhotoCapture(false)
+
+		try {
+			// Converter arquivo para base64
+			const reader = new FileReader()
+			reader.onload = async (e) => {
+				const imageData = e.target?.result as string
+
+				// Adicionar mensagem do usuário
+				addMessage({
+					role: "user",
+					content: "📸 Foto enviada para análise"
+				})
+
+				// Chamar a função de reconhecimento de produtos
+				try {
+					const response = await fetch('/api/ai/product-recognition', {
+						method: 'POST',
+						body: (() => {
+							const formData = new FormData()
+							formData.append('image', file)
+							return formData
+						})()
+					})
+
+					if (!response.ok) {
+						throw new Error('Erro ao processar imagem')
+					}
+
+					const result = await response.json()
+					
+					if (result.product) {
+						// Enviar resultado para o assistente processar
+						await sendMessage(`Analisei esta foto e identifiquei: ${JSON.stringify(result.product)}. Por favor, me ajude com informações sobre este produto e sugira ações que posso fazer.`)
+					} else {
+						addMessage({
+							role: "assistant",
+							content: "❌ Não consegui identificar nenhum produto na imagem. Tente tirar uma foto mais clara do produto."
+						})
+					}
+				} catch (error) {
+					console.error('Erro ao processar foto:', error)
+					addMessage({
+						role: "assistant",
+						content: "❌ Erro ao processar a foto. Tente novamente."
+					})
+				}
+			}
+			reader.readAsDataURL(file)
+		} catch (error) {
+			console.error('Erro ao capturar foto:', error)
+			addMessage({
+				role: "assistant",
+				content: "❌ Erro ao processar a foto. Tente novamente."
+			})
+		} finally {
+			setIsProcessingPhoto(false)
+		}
+	}
+
 	const handleSendMessage = useCallback(
 		async (e: React.FormEvent) => {
 			e.preventDefault()
@@ -390,6 +455,16 @@ export function AiAssistantChat() {
 												{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
 											</Button>
 										)}
+										<Button
+											type="button"
+											size="icon"
+											variant="outline"
+											onClick={() => setShowPhotoCapture(true)}
+											disabled={isLoading || isProcessingPhoto}
+											title="Tirar foto ou enviar da galeria"
+										>
+											<Camera className="h-4 w-4" />
+										</Button>
 										<Button type="submit" size="icon" disabled={isLoading || isListening}>
 											<Send className="h-4 w-4" />
 										</Button>
@@ -451,6 +526,31 @@ export function AiAssistantChat() {
 					)}
 				</AnimatePresence>
 			</div>
+
+			{/* Modal de Captura de Fotos */}
+			{showPhotoCapture && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+					<div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
+						<div className="p-4 border-b flex items-center justify-between">
+							<h3 className="text-lg font-semibold">Capturar Produto</h3>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setShowPhotoCapture(false)}
+							>
+								<X className="h-4 w-4" />
+							</Button>
+						</div>
+						<div className="p-4">
+							<ProductPhotoCapture
+								onPhotoCapture={handlePhotoCapture}
+								onClose={() => setShowPhotoCapture(false)}
+								isProcessing={isProcessingPhoto}
+							/>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
