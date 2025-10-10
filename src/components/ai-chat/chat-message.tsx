@@ -1,8 +1,14 @@
 "use client"
 
-import { Bot, RefreshCw } from "lucide-react"
+import { Bot, RefreshCw, Copy, ThumbsUp, ThumbsDown, MoreHorizontal } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { ProductRecognitionCard } from "./product-recognition-card"
 
 interface ChatMessageProps {
@@ -18,6 +24,25 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ role, content, isError, isStreaming, onRetry, canRetry, imagePreview, productData, onAddMessage }: ChatMessageProps) {
+	const handleCopyMessage = async () => {
+		try {
+			await navigator.clipboard.writeText(content)
+			// TODO: Mostrar toast de sucesso
+			console.log('Mensagem copiada para clipboard')
+		} catch (error) {
+			console.error('Erro ao copiar mensagem:', error)
+		}
+	}
+
+	const handleThumbsUp = () => {
+		// TODO: Implementar avaliação positiva
+		console.log('Avaliação positiva para mensagem:', content.substring(0, 50))
+	}
+
+	const handleThumbsDown = () => {
+		// TODO: Implementar avaliação negativa
+		console.log('Avaliação negativa para mensagem:', content.substring(0, 50))
+	}
 	// Se é um card de produto reconhecido
 	if (content === "product-recognition-card" && productData) {
 		const handleAddToList = async () => {
@@ -257,7 +282,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 	}
 
 	return (
-		<div className={`flex gap-2 ${role === "user" ? "justify-end" : ""}`}>
+		<div className={`group flex gap-2 ${role === "user" ? "justify-end" : ""}`}>
 			{role === "assistant" && (
 				<Bot className={`h-6 w-6 flex-shrink-0 ${isError ? "text-red-500" : "text-blue-700"}`} />
 			)}
@@ -289,19 +314,28 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 									product={productData}
 									imagePreview={productData.imagePreview}
 								/>
+							) : isStreaming && !content ? (
+								<div className="flex items-center gap-2">
+									<div className="flex gap-1">
+										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+									</div>
+									<span className="text-xs text-muted-foreground">gerando resposta...</span>
+								</div>
 							) : (
-								<div className="prose prose-sm max-w-none">
+								<div className="prose prose-sm max-w-none break-words">
 									<ReactMarkdown
 										components={{
-											p: ({ children }) => <p className="my-1 last:mb-0">{children}</p>,
+											p: ({ children }) => <p className="my-1 last:mb-0 break-words">{children}</p>,
 											ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
 											ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
-											li: ({ children }) => <li className="my-0">{children}</li>,
+											li: ({ children }) => <li className="my-0 break-words">{children}</li>,
 											strong: ({ children }) => <strong className="font-bold">{children}</strong>,
 											em: ({ children }) => <em className="italic">{children}</em>,
 										}}
 									>
-										{content}
+										{content || ""}
 									</ReactMarkdown>
 								</div>
 							)
@@ -320,16 +354,41 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 							Tentar novamente
 						</Button>
 					)}
+					
+					{/* Menu de opções - só para mensagens do assistente */}
+					{role === "assistant" && !isStreaming && content !== "product-recognition-card" && (
+						<div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 mt-1">
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleCopyMessage}
+								className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+								title="Copiar mensagem"
+							>
+								<Copy className="h-3 w-3" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleThumbsUp}
+								className="h-7 px-2 text-xs text-muted-foreground hover:text-green-600"
+								title="Gostei"
+							>
+								<ThumbsUp className="h-3 w-3" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleThumbsDown}
+								className="h-7 px-2 text-xs text-muted-foreground hover:text-red-600"
+								title="Não gostei"
+							>
+								<ThumbsDown className="h-3 w-3" />
+							</Button>
+						</div>
+					)}
 				</div>
 			</div>
-			{isStreaming && (
-				<div className="mt-2 ml-8">
-					<div className="flex items-center gap-1">
-						<div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-						<span className="text-xs text-muted-foreground animate-pulse">gerando resposta...</span>
-					</div>
-				</div>
-			)}
 		</div>
 	)
 }

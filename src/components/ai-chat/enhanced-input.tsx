@@ -2,16 +2,12 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-	Plus, 
-	Mic, 
-	MicOff, 
-	ArrowUp, 
-	Paperclip,
-	Camera,
-	Image as ImageIcon,
-	FileText,
-	List,
+import {
+	Plus,
+	Mic,
+	MicOff,
+	ArrowUp,
+	Paperclip, List,
 	Calculator,
 	Search,
 	BarChart3,

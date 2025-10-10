@@ -14,6 +14,52 @@ interface HistoryMessage {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
+// Função para criar resposta em streaming
+function createStreamResponse(text: string): Response {
+	const encoder = new TextEncoder()
+	
+	const stream = new ReadableStream({
+		start(controller) {
+			// Divide o texto em chunks maiores para preservar formatação
+			const sentences = text.split(/(?<=[.!?:])\s+/)
+			let currentIndex = 0
+			
+			const sendChunk = () => {
+				if (currentIndex < sentences.length) {
+					let chunk = sentences[currentIndex]
+					
+					// Adiciona espaço se não for a última sentença
+					if (currentIndex < sentences.length - 1) {
+						chunk += ' '
+					}
+					
+					const data = JSON.stringify({ content: chunk })
+					controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+					currentIndex++
+					
+					// Delay maior para chunks maiores
+					setTimeout(sendChunk, 200)
+				} else {
+					// Envia sinal de finalização
+					const finalData = JSON.stringify({ final: true })
+					controller.enqueue(encoder.encode(`data: ${finalData}\n\n`))
+					controller.close()
+				}
+			}
+			
+			sendChunk()
+		}
+	})
+	
+	return new Response(stream, {
+		headers: {
+			'Content-Type': 'text/plain; charset=utf-8',
+			'Cache-Control': 'no-cache',
+			'Connection': 'keep-alive',
+		}
+	})
+}
+
 export async function POST(request: Request): Promise<Response> {
 	// Timeout de 30 segundos para toda a requisição
 	const timeoutPromise = new Promise<Response>((_, reject) => {
@@ -40,7 +86,7 @@ export async function POST(request: Request): Promise<Response> {
 
 async function processRequest(request: Request): Promise<Response> {
 	try {
-		const { message, history } = await request.json()
+		const { message, history, stream } = await request.json()
 
 		console.log("Mensagem recebida:", { message: message?.substring?.(0, 100), historyLength: history?.length })
 
@@ -174,9 +220,18 @@ async function processRequest(request: Request): Promise<Response> {
 
 			// Valida se a resposta não está vazia
 			if (!reply || reply.trim() === "") {
+				const defaultReply = "Operação realizada com sucesso!"
+				if (stream) {
+					return createStreamResponse(defaultReply)
+				}
 				return NextResponse.json({
-					reply: "Operação realizada com sucesso!",
+					reply: defaultReply,
 				})
+			}
+
+			// Se streaming foi solicitado, retorna como stream
+			if (stream) {
+				return createStreamResponse(reply)
 			}
 
 			return NextResponse.json({ reply })
@@ -190,6 +245,11 @@ async function processRequest(request: Request): Promise<Response> {
 			return NextResponse.json({
 				reply: "Desculpe, não consegui processar sua solicitação. Pode repetir de outra forma?",
 			})
+		}
+
+		// Se streaming foi solicitado, retorna como stream
+		if (stream) {
+			return createStreamResponse(reply)
 		}
 
 		return NextResponse.json({ reply })

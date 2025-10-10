@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useState, useEffect } from "react"
 import { queryKeys } from "./use-react-query"
 import { useChatHistory } from "./use-chat-history"
+import { useAiCache } from "./use-ai-cache"
 
 export interface Message {
 	role: "user" | "assistant"
@@ -28,6 +29,7 @@ export function useAiChat(sessionId?: string | null) {
 		loadSession,
 		createNewSession
 	} = useChatHistory()
+	const { getCachedResponse, setCachedResponse, shouldCache } = useAiCache()
 	
 	const [messages, setMessages] = useState<Message[]>([
 		{
@@ -172,6 +174,24 @@ export function useAiChat(sessionId?: string | null) {
 	const sendMessage = async (content: string, useStreaming: boolean = true) => {
 		const userMessage: Message = { role: "user", content }
 
+		// Verificar cache primeiro
+		const cachedResponse = getCachedResponse(content)
+		if (cachedResponse) {
+			console.log("🚀 Resposta encontrada no cache!")
+			addMessage(userMessage)
+			
+			// Simular pequeno delay para parecer natural
+			setTimeout(() => {
+				const assistantMessage: Message = {
+					role: "assistant",
+					content: cachedResponse,
+				}
+				addMessage(assistantMessage)
+			}, 300)
+			
+			return
+		}
+
 		// Detecta mudança de contexto
 		const contextChanged = detectContextChange(content, messages)
 
@@ -238,6 +258,12 @@ export function useAiChat(sessionId?: string | null) {
 			}
 		}
 
+		// Cachear resposta se apropriado
+		if (shouldCache(messageContent) && !data.error && !data.selectionData?.showCards) {
+			setCachedResponse(messageContent, data.reply)
+			console.log("💾 Resposta cacheada:", messageContent.substring(0, 50) + "...")
+		}
+
 		addMessage(assistantMessage)
 	}
 
@@ -277,6 +303,8 @@ export function useAiChat(sessionId?: string | null) {
 
 		const decoder = new TextDecoder()
 		let buffer = ""
+		let fullResponse = ""
+		let hasSelectionData = false
 
 		try {
 			while (true) {
@@ -303,16 +331,24 @@ export function useAiChat(sessionId?: string | null) {
 
 							if (data.final) {
 								updateLastMessage({ isStreaming: false })
+								
+								// Cachear resposta completa se apropriado
+								if (shouldCache(messageContent) && !hasSelectionData && fullResponse) {
+									setCachedResponse(messageContent, fullResponse)
+									console.log("💾 Resposta streaming cacheada:", messageContent.substring(0, 50) + "...")
+								}
 								break
 							}
 
 							if (data.content) {
+								fullResponse += data.content
 								updateLastMessage((prev) => ({
 									content: (prev.content || "") + data.content,
 								}))
 							}
 
 							if (data.selectionData) {
+								hasSelectionData = true
 								updateLastMessage({
 									selectionCard: {
 										type: data.selectionData.cardType,
@@ -331,6 +367,7 @@ export function useAiChat(sessionId?: string | null) {
 			}
 		} finally {
 			reader.releaseLock()
+			setIsLoading(false)
 		}
 	}
 

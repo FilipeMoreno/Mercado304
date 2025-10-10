@@ -13,6 +13,9 @@ import { recipeFunctions } from "./recipe-functions"
 import { selectionFunctions } from "./selection-functions"
 import { shoppingListFunctions } from "./shopping-list-functions"
 import { stockFunctions } from "./stock-functions"
+import { advancedAnalyticsFunctions } from "./advanced-analytics-functions"
+import { advancedStockFunctions } from "./advanced-stock-functions"
+import { predictionFunctions } from "./prediction-functions"
 
 // Exporta todas as funções das ferramentas em um único objeto
 export const toolFunctions = {
@@ -29,4 +32,7 @@ export const toolFunctions = {
 	...selectionFunctions,
 	...priceFunctions,
 	...churrascoFunctions,
+	...advancedAnalyticsFunctions,
+	...advancedStockFunctions,
+	...predictionFunctions,
 }

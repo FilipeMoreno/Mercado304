@@ -31,7 +31,7 @@ export default function CleanAssistentePage() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
-	
+
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
 	const recognitionRef = useRef<any>(null)
@@ -107,6 +107,65 @@ export default function CleanAssistentePage() {
 	const handleSessionSelect = (sessionId: string) => {
 		loadChat(sessionId)
 		setShowHistorySidebar(false)
+	}
+
+	const handlePinSession = (sessionId: string) => {
+		// TODO: Implementar lógica para fixar/desafixar sessão
+		const session = sessions.find(s => s.id === sessionId)
+		const isPinned = session?.isPinned || false
+		
+		console.log(`${isPinned ? 'Desafixando' : 'Fixando'} sessão:`, sessionId)
+		
+		// Aqui você implementaria a lógica para:
+		// 1. Atualizar o estado da sessão no banco de dados
+		// 2. Atualizar o estado local das sessões
+		// 3. Reordenar a lista para mostrar sessões fixadas no topo
+		
+		// Exemplo de como seria:
+		// await updateSession(sessionId, { isPinned: !isPinned })
+		// await refreshSessions()
+		
+		alert(`Sessão ${isPinned ? 'desafixada' : 'fixada'} com sucesso!\n(Funcionalidade em desenvolvimento)`)
+	}
+
+	const handleShareSession = (sessionId: string) => {
+		const session = sessions.find(s => s.id === sessionId)
+		console.log('Compartilhando sessão:', session?.title || sessionId)
+		
+		// Aqui você implementaria:
+		// 1. Gerar um link público para a conversa
+		// 2. Abrir modal de compartilhamento
+		// 3. Copiar link para clipboard
+		// 4. Ou integrar com APIs de compartilhamento social
+		
+		// Exemplo básico - copiar ID para clipboard
+		const shareUrl = `${window.location.origin}/assistente?session=${sessionId}`
+		navigator.clipboard.writeText(shareUrl)
+			.then(() => {
+				alert('Link da conversa copiado para clipboard!\n(Funcionalidade em desenvolvimento)')
+				console.log('Link copiado:', shareUrl)
+			})
+			.catch(err => {
+				console.error('Erro ao copiar link:', err)
+				alert('Erro ao copiar link para clipboard')
+			})
+	}
+
+	const handleArchiveSession = (sessionId: string) => {
+		const session = sessions.find(s => s.id === sessionId)
+		console.log('Arquivando sessão:', session?.title || sessionId)
+		
+		// Aqui você implementaria:
+		// 1. Marcar sessão como arquivada no banco
+		// 2. Remover da lista principal
+		// 3. Manter dados para possível restauração
+		// 4. Opcional: criar seção "Arquivadas" separada
+		
+		// Exemplo de como seria:
+		// await updateSession(sessionId, { isArchived: true })
+		// await refreshSessions()
+		
+		alert(`Sessão "${session?.title || 'Sem título'}" arquivada!\n(Funcionalidade em desenvolvimento)`)
 	}
 
 	const handlePhotoCapture = async (file: File) => {
@@ -249,6 +308,9 @@ export default function CleanAssistentePage() {
 					onNewChat={handleNewChat}
 					onDeleteSession={deleteSession}
 					onRenameSession={renameSession}
+					onPinSession={handlePinSession}
+					onShareSession={handleShareSession}
+					onArchiveSession={handleArchiveSession}
 					onClearAll={clearAllHistory}
 					isCollapsed={isSidebarCollapsed}
 					onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -306,7 +368,7 @@ export default function CleanAssistentePage() {
 				)}
 
 				{/* Chat Area */}
-				<div className="flex-1 flex flex-col">
+				<div className="flex-1 flex flex-col min-h-0">
 					{!hasMessages ? (
 						/* Tela Inicial - Estilo ChatGPT */
 						<div className="flex-1 flex flex-col items-center justify-center p-6">
@@ -387,8 +449,8 @@ export default function CleanAssistentePage() {
 						</div>
 					) : (
 						/* Chat Messages */
-						<ScrollArea ref={scrollAreaRef} className="flex-1">
-							<div className="w-full px-8 px-4 py-6 space-y-6">
+						<ScrollArea ref={scrollAreaRef} className="flex-1 min-h-0">
+							<div className="w-full max-w-4xl mx-auto px-4 py-6 space-y-6">
 								{messages.map((msg, index) => (
 									<motion.div
 										key={index}
@@ -442,8 +504,8 @@ export default function CleanAssistentePage() {
 					)}
 
 					{/* Input Area - Sempre visível */}
-					<div className="border-t bg-background">
-						<div className="max-w-3xl mx-auto px-4 py-4">
+					<div className="border-t bg-background flex-shrink-0">
+						<div className="w-full max-w-4xl mx-auto px-4 py-4">
 							<EnhancedInput
 								value={input}
 								onChange={setInput}

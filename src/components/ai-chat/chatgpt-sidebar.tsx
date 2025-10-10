@@ -14,7 +14,10 @@ import {
 	X,
 	ChevronLeft,
 	ChevronRight,
-	Bot
+	Bot,
+	Pin,
+	Share,
+	Archive
 } from "lucide-react"
 import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns"
 import { Button } from "@/components/ui/button"
@@ -34,6 +37,8 @@ interface ChatSession {
 	updatedAt: Date
 	messageCount?: number
 	lastMessage?: string
+	isPinned?: boolean
+	isArchived?: boolean
 }
 
 interface ChatGPTSidebarProps {
@@ -43,6 +48,9 @@ interface ChatGPTSidebarProps {
 	onNewChat: () => void
 	onDeleteSession: (sessionId: string) => void
 	onRenameSession: (sessionId: string, newTitle: string) => void
+	onPinSession?: (sessionId: string) => void
+	onShareSession?: (sessionId: string) => void
+	onArchiveSession?: (sessionId: string) => void
 	onClearAll: () => void
 	isCollapsed?: boolean
 	onToggleCollapse?: () => void
@@ -55,6 +63,9 @@ export function ChatGPTSidebar({
 	onNewChat,
 	onDeleteSession,
 	onRenameSession,
+	onPinSession,
+	onShareSession,
+	onArchiveSession,
 	onClearAll,
 	isCollapsed = false,
 	onToggleCollapse
@@ -79,8 +90,12 @@ export function ChatGPTSidebar({
 		(session.lastMessage && session.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
 	)
 
-	// Agrupar sessões por data
-	const groupedSessions = filteredSessions.reduce((groups, session) => {
+	// Separar sessões fixadas e normais
+	const pinnedSessions = filteredSessions.filter(session => session.isPinned && !session.isArchived)
+	const normalSessions = filteredSessions.filter(session => !session.isPinned && !session.isArchived)
+
+	// Agrupar sessões normais por data
+	const groupedSessions = normalSessions.reduce((groups, session) => {
 		let groupName = "Mais antigo"
 
 		if (isToday(session.updatedAt)) {
@@ -233,6 +248,155 @@ export function ChatGPTSidebar({
 			{/* Lista de Conversas */}
 			<ScrollArea className="flex-1">
 				<div className="p-2">
+					{/* Sessões Fixadas */}
+					{pinnedSessions.length > 0 && (
+						<div className="mb-4">
+							<div className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+								<Pin className="h-3 w-3" />
+								Fixadas
+							</div>
+							<div className="space-y-1">
+								{pinnedSessions.map((session) => (
+									<div
+										key={session.id}
+										className={`group relative rounded-xl transition-colors ${currentSessionId === session.id
+											? 'bg-primary/10 text-primary'
+											: 'hover:bg-muted'
+											}`}
+									>
+										{editingId === session.id ? (
+											/* Modo de Edição */
+											<div className="flex items-center gap-2 p-2">
+												<Pin className="h-4 w-4 text-primary flex-shrink-0" />
+												<Input
+													ref={editInputRef}
+													value={editingTitle}
+													onChange={(e) => setEditingTitle(e.target.value)}
+													onKeyDown={handleKeyDown}
+													className="flex-1 bg-background border-input text-foreground text-sm h-6 px-2 rounded-lg"
+												/>
+												<div className="flex items-center gap-1">
+													<Button
+														onClick={handleSaveEdit}
+														variant="ghost"
+														size="icon"
+														className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-muted"
+													>
+														<Check className="h-3 w-3" />
+													</Button>
+													<Button
+														onClick={handleCancelEdit}
+														variant="ghost"
+														size="icon"
+														className="h-6 w-6 text-muted-foreground hover:bg-muted"
+													>
+														<X className="h-3 w-3" />
+													</Button>
+												</div>
+											</div>
+										) : (
+											/* Modo Normal */
+											<div
+												onClick={() => onSessionSelect(session.id)}
+												className="flex items-center gap-2 p-2 cursor-pointer"
+											>
+												<Pin className="h-4 w-4 text-primary flex-shrink-0" />
+												<div className="flex-1 min-w-0">
+													<div className="text-sm truncate">
+														{session.title}
+													</div>
+													{session.lastMessage && (
+														<div className="text-xs text-muted-foreground truncate">
+															{session.lastMessage}
+														</div>
+													)}
+												</div>
+
+												{/* Menu de Ações */}
+												<div className="opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-200">
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-6 w-6 text-muted-foreground hover:bg-muted"
+																onClick={(e) => e.stopPropagation()}
+															>
+																<MoreHorizontal className="h-3 w-3" />
+															</Button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent
+															align="end"
+															className="bg-popover border-border"
+														>
+															{onShareSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onShareSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Share className="h-4 w-4 mr-2" />
+																	Compartilhar
+																</DropdownMenuItem>
+															)}
+															<DropdownMenuItem
+																onClick={(e) => {
+																	e.stopPropagation()
+																	handleStartEdit(session)
+																}}
+																className="text-popover-foreground hover:bg-accent"
+															>
+																<Edit3 className="h-4 w-4 mr-2" />
+																Renomear
+															</DropdownMenuItem>
+															{onPinSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onPinSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Pin className="h-4 w-4 mr-2" />
+																	Desafixar
+																</DropdownMenuItem>
+															)}
+															{onArchiveSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onArchiveSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Archive className="h-4 w-4 mr-2" />
+																	Arquivar
+																</DropdownMenuItem>
+															)}
+															<DropdownMenuItem
+																onClick={(e) => {
+																	e.stopPropagation()
+																	onDeleteSession(session.id)
+																}}
+																className="text-destructive hover:bg-destructive/10"
+															>
+																<Trash2 className="h-4 w-4 mr-2" />
+																Excluir
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</div>
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Sessões Normais Agrupadas */}
 					{Object.entries(groupedSessions).map(([groupName, groupSessions]) => (
 						<div key={groupName} className="mb-4">
 							{/* Título do Grupo */}
@@ -299,7 +463,7 @@ export function ChatGPTSidebar({
 												</div>
 
 												{/* Menu de Ações */}
-												<div className="opacity-0 group-hover:opacity-100 transition-opacity">
+												<div className="opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-200">
 													<DropdownMenu>
 														<DropdownMenuTrigger asChild>
 															<Button
@@ -315,6 +479,18 @@ export function ChatGPTSidebar({
 															align="end"
 															className="bg-popover border-border"
 														>
+															{onShareSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onShareSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Share className="h-4 w-4 mr-2" />
+																	Compartilhar
+																</DropdownMenuItem>
+															)}
 															<DropdownMenuItem
 																onClick={(e) => {
 																	e.stopPropagation()
@@ -325,6 +501,30 @@ export function ChatGPTSidebar({
 																<Edit3 className="h-4 w-4 mr-2" />
 																Renomear
 															</DropdownMenuItem>
+															{onPinSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onPinSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Pin className="h-4 w-4 mr-2" />
+																	{session.isPinned ? 'Desafixar' : 'Fixar'}
+																</DropdownMenuItem>
+															)}
+															{onArchiveSession && (
+																<DropdownMenuItem
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		onArchiveSession(session.id)
+																	}}
+																	className="text-popover-foreground hover:bg-accent"
+																>
+																	<Archive className="h-4 w-4 mr-2" />
+																	Arquivar
+																</DropdownMenuItem>
+															)}
 															<DropdownMenuItem
 																onClick={(e) => {
 																	e.stopPropagation()
@@ -346,7 +546,7 @@ export function ChatGPTSidebar({
 						</div>
 					))}
 
-					{filteredSessions.length === 0 && (
+					{pinnedSessions.length === 0 && Object.keys(groupedSessions).length === 0 && (
 						<div className="text-center py-8">
 							<MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
 							<p className="text-muted-foreground text-sm">

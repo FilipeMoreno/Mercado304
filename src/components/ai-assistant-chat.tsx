@@ -191,12 +191,12 @@ export function AiAssistantChat() {
 							stiffness: 400,
 							damping: 30,
 						}}
-						className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 max-h-[80vh] sm:max-w-96"
+						className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 h-[600px] sm:max-w-96"
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
 					>
-						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative flex flex-col">
+						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative flex flex-col h-full">
 							{/* Overlay para drag and drop */}
 							{isDragOver && (
 								<div className="absolute inset-0 bg-primary/20 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
@@ -207,7 +207,7 @@ export function AiAssistantChat() {
 								</div>
 							)}
 
-							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg">
+							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg flex-shrink-0">
 								<CardTitle className="flex items-center gap-2">
 									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
 										<Bot className="h-4 w-4 text-white" />
@@ -243,9 +243,9 @@ export function AiAssistantChat() {
 								</div>
 							</CardHeader>
 
-							<CardContent className="p-0 flex-1 flex flex-col">
-								<ScrollArea className="flex-1 p-4">
-									<div className="space-y-4">
+							<CardContent className="p-0 flex-1 flex flex-col min-h-0">
+								<ScrollArea className="flex-1 min-h-0">
+									<div className="p-4 space-y-4">
 										{/* Sugestões em Carrossel */}
 										<CarouselSuggestions
 											onSuggestionClick={handleSuggestionClick}
@@ -294,7 +294,7 @@ export function AiAssistantChat() {
 									</div>
 								</ScrollArea>
 
-								<div className="p-4 border-t">
+								<div className="p-4 border-t flex-shrink-0">
 									<EnhancedInput
 										value={input}
 										onChange={setInput}

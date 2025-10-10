@@ -45,25 +45,6 @@ export const tools: any = [
 				},
 			},
 			{
-				name: "searchProducts",
-				description: "Busca produtos no sistema por nome ou outros filtros.",
-				parameters: {
-					type: SchemaType.OBJECT,
-					properties: {
-						search: { type: SchemaType.STRING, description: "Termo de busca." },
-						categoryId: {
-							type: SchemaType.STRING,
-							description: "Filtrar por categoria (opcional).",
-						},
-						brandId: {
-							type: SchemaType.STRING,
-							description: "Filtrar por marca (opcional).",
-						},
-					},
-					required: ["search"],
-				},
-			},
-			{
 				name: "getProductPriceComparison",
 				description: "Busca e compara o preço de um produto específico em diferentes mercados.",
 				parameters: {
@@ -158,17 +139,38 @@ export const tools: any = [
 				parameters: { type: SchemaType.OBJECT, properties: {} },
 			},
 			{
-				name: "getMarketStats",
-				description: "Obtém estatísticas de um mercado específico.",
+				name: "searchProducts",
+				description: "Busca produtos por nome, marca ou categoria.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						marketName: {
+						query: {
 							type: SchemaType.STRING,
-							description: "Nome do mercado.",
+							description: "Termo de busca para produtos.",
+						},
+						categoryName: {
+							type: SchemaType.STRING,
+							description: "Nome da categoria para filtrar (opcional).",
+						},
+						brandName: {
+							type: SchemaType.STRING,
+							description: "Nome da marca para filtrar (opcional).",
 						},
 					},
-					required: ["marketName"],
+					required: ["query"],
+				},
+			},
+			{
+				name: "getMostExpensiveProducts",
+				description: "Busca os produtos mais caros registrados no sistema baseado nos preços das compras.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						limit: {
+							type: SchemaType.NUMBER,
+							description: "Número máximo de produtos a retornar (padrão 10).",
+						},
+					},
 				},
 			},
 
@@ -295,6 +297,251 @@ export const tools: any = [
 				name: "generateAutoShoppingList",
 				description: "Gera automaticamente uma lista de compras baseada em padrões de consumo.",
 				parameters: { type: SchemaType.OBJECT, properties: {} },
+			},
+			{
+				name: "createListFromLastPurchase",
+				description: "Cria uma nova lista de compras baseada nos itens da última compra realizada.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						listName: {
+							type: SchemaType.STRING,
+							description: "Nome da nova lista de compras a ser criada.",
+						},
+					},
+					required: ["listName"],
+				},
+			},
+			{
+				name: "mergeDuplicateShoppingLists",
+				description: "Mescla duas listas de compras, combinando itens e somando quantidades de produtos duplicados.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						sourceListName: {
+							type: SchemaType.STRING,
+							description: "Nome da lista de origem que será mesclada e removida.",
+						},
+						targetListName: {
+							type: SchemaType.STRING,
+							description: "Nome da lista de destino que receberá os itens.",
+						},
+					},
+					required: ["sourceListName", "targetListName"],
+				},
+			},
+			{
+				name: "calculateListEstimatedCost",
+				description: "Calcula o custo estimado de uma lista de compras baseado nos preços mais recentes dos produtos.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						listName: {
+							type: SchemaType.STRING,
+							description: "Nome da lista de compras para calcular o custo.",
+						},
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado específico para filtrar preços (opcional).",
+						},
+					},
+					required: ["listName"],
+				},
+			},
+
+			// Advanced Analytics
+			{
+				name: "analyzeSpendingByCategory",
+				description: "Analisa gastos por categoria de produtos em um período específico.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						startDate: {
+							type: SchemaType.STRING,
+							description: "Data inicial no formato YYYY-MM-DD (opcional).",
+						},
+						endDate: {
+							type: SchemaType.STRING,
+							description: "Data final no formato YYYY-MM-DD (opcional).",
+						},
+						categoryName: {
+							type: SchemaType.STRING,
+							description: "Nome da categoria específica para filtrar (opcional).",
+						},
+					},
+				},
+			},
+			{
+				name: "getBestTimeToBuy",
+				description: "Analisa o melhor dia da semana e mês para comprar um produto baseado no histórico de preços.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto para analisar.",
+						},
+					},
+					required: ["productName"],
+				},
+			},
+			{
+				name: "predictPriceChanges",
+				description: "Prevê mudanças de preço de um produto nos próximos dias baseado em tendências históricas.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto para prever preços.",
+						},
+						days: {
+							type: SchemaType.NUMBER,
+							description: "Número de dias para previsão (padrão 30).",
+						},
+					},
+					required: ["productName"],
+				},
+			},
+			{
+				name: "getPromotionHistory",
+				description: "Busca histórico de promoções e descontos detectados automaticamente.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto específico (opcional).",
+						},
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado específico (opcional).",
+						},
+						days: {
+							type: SchemaType.NUMBER,
+							description: "Número de dias para análise (padrão 90).",
+						},
+					},
+				},
+			},
+
+			// Advanced Stock Management
+			{
+				name: "suggestPurchasesByStock",
+				description: "Sugere produtos para comprar baseado no estoque atual e padrão de consumo.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						daysAhead: {
+							type: SchemaType.NUMBER,
+							description: "Número de dias para projeção (padrão 7).",
+						},
+					},
+				},
+			},
+			{
+				name: "getRunningOutAlerts",
+				description: "Verifica alertas de produtos que estão acabando ou próximos ao vencimento.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						daysThreshold: {
+							type: SchemaType.NUMBER,
+							description: "Limite de dias para alertas (padrão 7).",
+						},
+					},
+				},
+			},
+			{
+				name: "optimizeStockByConsumption",
+				description: "Analisa e otimiza o estoque de um produto baseado no padrão de consumo.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						productName: {
+							type: SchemaType.STRING,
+							description: "Nome do produto para otimizar estoque.",
+						},
+					},
+					required: ["productName"],
+				},
+			},
+			{
+				name: "generateWasteReport",
+				description: "Gera relatório detalhado de desperdício com análises e recomendações.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						period: {
+							type: SchemaType.NUMBER,
+							description: "Período em dias para análise (padrão 30).",
+						},
+						includeRecommendations: {
+							type: SchemaType.BOOLEAN,
+							description: "Se deve incluir recomendações (padrão true).",
+						},
+					},
+				},
+			},
+
+			// Prediction & Comparison
+			{
+				name: "compareBasicBasket",
+				description: "Compara preços de cesta básica entre diferentes mercados.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						marketNames: {
+							type: SchemaType.ARRAY,
+							items: { type: SchemaType.STRING },
+							description: "Lista de nomes dos mercados para comparar.",
+						},
+					},
+					required: ["marketNames"],
+				},
+			},
+			{
+				name: "predictNextPurchases",
+				description: "Prevê próximas compras baseado em padrões históricos de consumo.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						daysAhead: {
+							type: SchemaType.NUMBER,
+							description: "Número de dias para previsão (padrão 7).",
+						},
+						confidence: {
+							type: SchemaType.NUMBER,
+							description: "Nível mínimo de confiança da previsão (padrão 70).",
+						},
+					},
+				},
+			},
+			{
+				name: "suggestForgottenItems",
+				description: "Sugere produtos que você costumava comprar mas esqueceu nas compras recentes.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						basedOnHistory: {
+							type: SchemaType.NUMBER,
+							description: "Período em dias para considerar como 'recente' (padrão 30).",
+						},
+					},
+				},
+			},
+			{
+				name: "detectConsumptionChanges",
+				description: "Detecta mudanças significativas nos padrões de consumo comparando dois períodos.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						period: {
+							type: SchemaType.NUMBER,
+							description: "Período total em dias para análise (padrão 60).",
+						},
+					},
+				},
 			},
 
 			// Purchases Management

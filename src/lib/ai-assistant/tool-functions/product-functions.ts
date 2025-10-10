@@ -151,13 +151,66 @@ export const productFunctions = {
 				include: { brand: true, category: true },
 			})
 
-			let message = `Produto "${productName}" criado com sucesso.`
-			if (brandName) message += ` Marca: ${brandName}.`
-			if (categoryName) message += ` Categoria: ${categoryName}.`
+			let finalMessage = `Produto "${productName}" criado com sucesso.`
+			if (brandName) finalMessage += ` Marca: ${brandName}.`
+			if (categoryName) finalMessage += ` Categoria: ${categoryName}.`
 
-			return { success: true, message, product }
+			return { success: true, message: finalMessage, product }
 		} catch (error) {
 			return { success: false, message: `Erro ao criar produto: ${error}` }
+		}
+	},
+
+	getMostExpensiveProducts: async ({ limit = 10 }: { limit?: number } = {}) => {
+		try {
+			// Busca os produtos com os preços mais altos baseado nas compras mais recentes
+			const expensiveProducts = await prisma.purchaseItem.findMany({
+				include: {
+					product: {
+						include: {
+							brand: true,
+							category: true,
+						},
+					},
+					purchase: {
+						include: {
+							market: true,
+						},
+					},
+				},
+				orderBy: {
+					unitPrice: 'desc',
+				},
+				take: limit,
+				distinct: ['productId'], // Evita produtos duplicados
+			})
+
+			if (expensiveProducts.length === 0) {
+				return {
+					success: false,
+					message: "Nenhum produto com preço registrado foi encontrado.",
+				}
+			}
+
+			const formattedProducts = expensiveProducts.map((item) => ({
+				product: item.product?.name || 'Produto não encontrado',
+				brand: item.product?.brand?.name || 'Sem marca',
+				category: item.product?.category?.name || 'Sem categoria',
+				price: item.unitPrice,
+				market: item.purchase.market.name,
+				purchaseDate: item.purchase.purchaseDate.toLocaleDateString('pt-BR'),
+			}))
+
+			const mostExpensive = formattedProducts[0]
+
+			return {
+				success: true,
+				message: `O produto mais caro registrado é "${mostExpensive.product}" (${mostExpensive.brand}) por R$ ${mostExpensive.price.toFixed(2)} no ${mostExpensive.market}.`,
+				mostExpensive,
+				topProducts: formattedProducts,
+			}
+		} catch (error) {
+			return { success: false, message: `Erro ao buscar produtos mais caros: ${error}` }
 		}
 	},
 }

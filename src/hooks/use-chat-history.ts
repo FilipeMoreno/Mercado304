@@ -9,6 +9,10 @@ export interface ChatSession {
 	messages: Message[]
 	createdAt: Date
 	updatedAt: Date
+	isPinned?: boolean
+	isArchived?: boolean
+	lastMessage?: string
+	messageCount?: number
 }
 
 const STORAGE_KEY = "mercado304_chat_history"
