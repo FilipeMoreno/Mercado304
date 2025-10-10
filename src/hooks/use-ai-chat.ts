@@ -9,6 +9,8 @@ export interface Message {
 	content: string
 	isError?: boolean
 	isStreaming?: boolean
+	imagePreview?: string
+	productData?: any
 	selectionCard?: {
 		type: "products" | "markets" | "categories" | "brands" | "shopping-lists" | "churrascometro"
 		options: any[]

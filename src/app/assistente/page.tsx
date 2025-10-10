@@ -8,6 +8,7 @@ import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
+import { ProductRecognitionCard } from "@/components/ai-chat/product-recognition-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -47,10 +48,11 @@ export default function AssistentePage() {
 			reader.onload = async (e) => {
 				const imageData = e.target?.result as string
 
-				// Adicionar mensagem do usuário
+				// Adicionar mensagem do usuário com preview da imagem
 				addMessage({
 					role: "user",
-					content: "📸 Foto enviada para análise"
+					content: "📸 Foto enviada para análise",
+					imagePreview: imageData
 				})
 
 				// Chamar a função de reconhecimento de produtos
@@ -71,8 +73,15 @@ export default function AssistentePage() {
 					const result = await response.json()
 					
 					if (result.product) {
-						// Enviar resultado para o assistente processar
-						await sendMessage(`Analisei esta foto e identifiquei: ${JSON.stringify(result.product)}. Por favor, me ajude com informações sobre este produto e sugira ações que posso fazer.`)
+						// Adicionar mensagem do assistente com o card do produto
+						addMessage({
+							role: "assistant",
+							content: "product-recognition-card",
+							productData: {
+								...result.product,
+								imagePreview: imageData
+							}
+						})
 					} else {
 						addMessage({
 							role: "assistant",
@@ -145,6 +154,8 @@ export default function AssistentePage() {
 										isStreaming={msg.isStreaming}
 										onRetry={retryLastMessage}
 										canRetry={msg.isError && !!lastUserMessage && !isLoading}
+										imagePreview={msg.imagePreview}
+										productData={msg.productData}
 									/>
 									{msg.selectionCard && (
 										<div className="mt-4 ml-12">

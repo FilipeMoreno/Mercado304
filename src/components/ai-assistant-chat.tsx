@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
+import { ProductRecognitionCard } from "@/components/ai-chat/product-recognition-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { TypingIndicator } from "@/components/ai-chat/typing-indicator"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
@@ -24,6 +25,8 @@ export function AiAssistantChat() {
 	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
+	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
+	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
@@ -253,15 +256,17 @@ export function AiAssistantChat() {
 		setShowPhotoCapture(false)
 
 		try {
-			// Converter arquivo para base64
+			// Converter arquivo para base64 para preview
 			const reader = new FileReader()
 			reader.onload = async (e) => {
 				const imageData = e.target?.result as string
+				setCapturedImagePreview(imageData)
 
-				// Adicionar mensagem do usuário
+				// Adicionar mensagem do usuário com preview da imagem
 				addMessage({
 					role: "user",
-					content: "📸 Foto enviada para análise"
+					content: "📸 Foto enviada para análise",
+					imagePreview: imageData
 				})
 
 				// Chamar a função de reconhecimento de produtos
@@ -282,8 +287,21 @@ export function AiAssistantChat() {
 					const result = await response.json()
 					
 					if (result.product) {
-						// Enviar resultado para o assistente processar
-						await sendMessage(`Analisei esta foto e identifiquei: ${JSON.stringify(result.product)}. Por favor, me ajude com informações sobre este produto e sugira ações que posso fazer.`)
+						// Armazenar produto reconhecido para exibir como card
+						setRecognizedProduct({
+							...result.product,
+							imagePreview: imageData
+						})
+
+						// Adicionar card de produto reconhecido
+						addMessage({
+							role: "assistant",
+							content: "product-recognition-card",
+							productData: {
+								...result.product,
+								imagePreview: imageData
+							}
+						})
 					} else {
 						addMessage({
 							role: "assistant",
@@ -414,6 +432,8 @@ export function AiAssistantChat() {
 														isStreaming={msg.isStreaming}
 														onRetry={retryLastMessage}
 														canRetry={msg.isError && !!lastUserMessage && !isLoading}
+														imagePreview={msg.imagePreview}
+														productData={msg.productData}
 													/>
 													{msg.selectionCard && (
 														<div className="mt-3 ml-8">

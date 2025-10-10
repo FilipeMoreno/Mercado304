@@ -3,6 +3,40 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
+// Função para buscar código de barras online
+async function searchBarcodeOnline(productName: string, brand: string): Promise<string | null> {
+  try {
+    // Usar o Gemini para buscar informações de código de barras
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    
+    const searchPrompt = `
+Preciso encontrar o código de barras (EAN/UPC) para o produto:
+- Nome: ${productName}
+- Marca: ${brand}
+
+Por favor, forneça APENAS o código de barras numérico (EAN-13, EAN-8 ou UPC) se você souber.
+Se não souber o código exato, responda apenas "null".
+Não invente códigos de barras.
+
+Resposta (apenas o número ou "null"):`;
+
+    const result = await model.generateContent(searchPrompt);
+    const response = await result.response;
+    const text = response.text().trim();
+    
+    // Verificar se é um código de barras válido (apenas números, 8-14 dígitos)
+    const barcodeMatch = text.match(/^\d{8,14}$/);
+    if (barcodeMatch && text !== 'null') {
+      return text;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar código de barras:', error);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -87,6 +121,20 @@ Responda APENAS com o JSON válido, sem texto adicional.`;
         { error: 'Não foi possível identificar o produto com confiança suficiente' },
         { status: 400 }
       );
+    }
+
+    // Se não encontrou código de barras, tentar buscar online
+    if (!productData.barcode && productData.productName && productData.brand) {
+      try {
+        const barcodeFromWeb = await searchBarcodeOnline(productData.productName, productData.brand);
+        if (barcodeFromWeb) {
+          productData.barcode = barcodeFromWeb;
+          productData.barcodeSource = 'web_search';
+        }
+      } catch (error) {
+        console.log('Erro ao buscar código de barras online:', error);
+        // Não falha a requisição se não conseguir buscar online
+      }
     }
 
     return NextResponse.json({
