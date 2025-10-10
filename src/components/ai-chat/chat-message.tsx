@@ -72,20 +72,27 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 						}`}
 					>
 						{role === "assistant" ? (
-							<div className="prose prose-sm max-w-none">
-								<ReactMarkdown
-									components={{
-										p: ({ children }) => <p className="my-1 last:mb-0">{children}</p>,
-										ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
-										ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
-										li: ({ children }) => <li className="my-0">{children}</li>,
-										strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-										em: ({ children }) => <em className="italic">{children}</em>,
-									}}
-								>
-									{content}
-								</ReactMarkdown>
-							</div>
+							content === "product-recognition-card" && productData ? (
+								<ProductRecognitionCard 
+									product={productData}
+									imagePreview={productData.imagePreview}
+								/>
+							) : (
+								<div className="prose prose-sm max-w-none">
+									<ReactMarkdown
+										components={{
+											p: ({ children }) => <p className="my-1 last:mb-0">{children}</p>,
+											ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
+											ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
+											li: ({ children }) => <li className="my-0">{children}</li>,
+											strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+											em: ({ children }) => <em className="italic">{children}</em>,
+										}}
+									>
+										{content}
+									</ReactMarkdown>
+								</div>
+							)
 						) : (
 							content
 						)}
