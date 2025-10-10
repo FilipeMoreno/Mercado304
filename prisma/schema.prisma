@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("PRISMA_DATABASE_URL")
-  directUrl = env("PRISMA_DATABASE_URL")
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 model Market {
@@ -40,8 +40,9 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  products Product[]
+  products  Product[]
 
+  @@index([isFood])
   @@map("categories")
 }
 
@@ -69,6 +70,11 @@ model Product {
   nutritionalInfo NutritionalInfo?
   priceRecords    PriceRecord[]
 
+  @@index([name])
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([hasStock])
+  @@index([hasExpiration])
   @@map("products")
 }
 
@@ -85,6 +91,9 @@ model Purchase {
   market Market         @relation(fields: [marketId], references: [id], onDelete: Cascade)
   items  PurchaseItem[]
 
+  @@index([purchaseDate])
+  @@index([marketId])
+  @@index([purchaseDate, marketId])
   @@map("purchases")
 }
 
@@ -116,6 +125,8 @@ model PurchaseItem {
   purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
   product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
+  @@index([purchaseId])
+  @@index([productId])
   @@map("purchase_items")
 }
 
@@ -156,6 +167,9 @@ model ShoppingListItem {
   list    ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
   product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
+  @@index([listId])
+  @@index([productId])
+  @@index([isChecked])
   @@map("shopping_list_items")
 }
 
@@ -175,6 +189,10 @@ model StockItem {
   product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   movements StockMovement[]
 
+  @@index([productId])
+  @@index([expirationDate])
+  @@index([isExpired])
+  @@index([isLowStock])
   @@map("stock_items")
 }
 
@@ -196,6 +214,9 @@ model StockHistory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([productId])
+  @@index([date])
+  @@index([type])
   @@map("stock_history")
 }
 
@@ -211,6 +232,9 @@ model StockMovement {
   purchaseItemId String?
   stockItem      StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
 
+  @@index([stockItemId])
+  @@index([date])
+  @@index([type])
   @@map("stock_movements")
 }
 
@@ -244,6 +268,9 @@ model WasteRecord {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  @@index([productId])
+  @@index([wasteDate])
+  @@index([wasteReason])
   @@map("waste_records")
 }
 
@@ -270,6 +297,10 @@ model ExpirationAlert {
   isResolved  Boolean             @default(false)
   createdAt   DateTime            @default(now())
 
+  @@index([productId])
+  @@index([stockItemId])
+  @@index([alertDate])
+  @@index([isResolved])
   @@map("expiration_alerts")
 }
 
@@ -430,6 +461,8 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
+  @@index([userId])
+  @@index([expiresAt])
   @@map("session")
 }
 
