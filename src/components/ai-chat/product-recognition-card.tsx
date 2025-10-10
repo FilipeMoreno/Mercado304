@@ -1,9 +1,11 @@
 "use client"
 
 import { Package, ShoppingCart, Plus, Search, ExternalLink } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ImageViewerModal } from "@/components/image-viewer-modal"
 
 interface ProductRecognitionCardProps {
 	product: {
@@ -27,25 +29,36 @@ export function ProductRecognitionCard({
 	onSearchProduct, 
 	onViewDetails 
 }: ProductRecognitionCardProps) {
+	const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)
+
 	return (
-		<Card className="w-full">
-			<CardHeader className="pb-3">
-				<CardTitle className="flex items-center gap-2 text-lg">
-					<Package className="h-5 w-5 text-blue-600" />
-					Produto Identificado
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				{/* Preview da imagem */}
-				{imagePreview && (
-					<div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
-						<img 
-							src={imagePreview} 
-							alt="Produto capturado"
-							className="w-full h-full object-cover"
-						/>
-					</div>
-				)}
+		<>
+			<Card className="w-full">
+				<CardHeader className="pb-3">
+					<CardTitle className="flex items-center gap-2 text-lg">
+						<Package className="h-5 w-5 text-blue-600" />
+						Produto Identificado
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{/* Preview da imagem */}
+					{imagePreview && (
+						<div 
+							className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+							onClick={() => setIsImageViewerOpen(true)}
+						>
+							<img 
+								src={imagePreview} 
+								alt="Produto capturado"
+								className="w-full h-full object-cover"
+							/>
+							<div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+								<div className="bg-white/90 rounded-full p-2">
+									<Search className="h-4 w-4 text-gray-700" />
+								</div>
+							</div>
+						</div>
+					)}
 
 				{/* Informações do produto */}
 				<div className="space-y-2">
@@ -113,5 +126,16 @@ export function ProductRecognitionCard({
 				</div>
 			</CardContent>
 		</Card>
+
+		{/* Modal do visualizador de imagem */}
+		{imagePreview && (
+			<ImageViewerModal
+				isOpen={isImageViewerOpen}
+				onClose={() => setIsImageViewerOpen(false)}
+				imageUrl={imagePreview}
+				alt="Produto identificado"
+			/>
+		)}
+	</>
 	)
 }

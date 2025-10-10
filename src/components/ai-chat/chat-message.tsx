@@ -22,6 +22,17 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 	if (content === "product-recognition-card" && productData) {
 		const handleAddToList = async () => {
 			try {
+				// Verificar se temos dados do produto
+				if (!productData?.name) {
+					if (onAddMessage) {
+						onAddMessage({
+							role: "assistant",
+							content: `❌ Não foi possível identificar o produto para adicionar à lista.`
+						})
+					}
+					return
+				}
+
 				// Buscar listas existentes
 				const listsResponse = await fetch("/api/shopping-lists")
 				if (!listsResponse.ok) throw new Error("Erro ao buscar listas")
@@ -68,7 +79,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `❌ Erro ao adicionar **${productData.name}** à lista. Tente novamente.`
+						content: `❌ Erro ao adicionar **${productData?.name || 'produto'}** à lista. Tente novamente.`
 					})
 				}
 			}
@@ -76,6 +87,17 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 		const handleSearchProduct = async () => {
 			try {
+				// Verificar se temos dados do produto
+				if (!productData?.name) {
+					if (onAddMessage) {
+						onAddMessage({
+							role: "assistant",
+							content: `❌ Não foi possível identificar o produto para buscar preços.`
+						})
+					}
+					return
+				}
+
 				// Buscar preços do produto
 				const response = await fetch(`/api/price-comparison/product?productName=${encodeURIComponent(productData.name)}`)
 				
@@ -123,7 +145,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `❌ Não consegui encontrar preços para **${productData.name}**. O produto pode não estar registrado no sistema.`
+						content: `❌ Não consegui encontrar preços para **${productData?.name || 'produto'}**. O produto pode não estar registrado no sistema.`
 					})
 				}
 			}
@@ -131,6 +153,17 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 		const handleViewDetails = async () => {
 			try {
+				// Verificar se temos dados do produto
+				if (!productData?.name) {
+					if (onAddMessage) {
+						onAddMessage({
+							role: "assistant",
+							content: `❌ Não foi possível identificar o produto para buscar detalhes.`
+						})
+					}
+					return
+				}
+
 				// Primeiro, tentar buscar o produto por código de barras ou nome
 				let productResponse
 				
@@ -201,7 +234,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `🔍 **${productData.name}** não foi encontrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
+						content: `🔍 **${productData?.name || 'Produto'}** não foi encontrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
 					})
 				}
 			}

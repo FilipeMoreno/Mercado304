@@ -27,9 +27,11 @@ export function AiAssistantChat() {
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
 	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
 	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
+	const [isDragOver, setIsDragOver] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	const {
 		messages,
@@ -328,6 +330,75 @@ export function AiAssistantChat() {
 		}
 	}
 
+	// Função para processar arquivos de imagem (drag/drop e paste)
+	const processImageFile = async (file: File) => {
+		// Verificar se é uma imagem
+		if (!file.type.startsWith('image/')) {
+			addMessage({
+				role: "assistant",
+				content: "❌ Por favor, envie apenas arquivos de imagem (JPG, PNG, etc.)."
+			})
+			return
+		}
+
+		// Verificar tamanho do arquivo (máximo 10MB)
+		if (file.size > 10 * 1024 * 1024) {
+			addMessage({
+				role: "assistant",
+				content: "❌ A imagem é muito grande. Por favor, envie uma imagem menor que 10MB."
+			})
+			return
+		}
+
+		await handlePhotoCapture(file)
+	}
+
+	// Handlers para drag and drop
+	const handleDragOver = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragOver(true)
+	}, [])
+
+	const handleDragLeave = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragOver(false)
+	}, [])
+
+	const handleDrop = useCallback(async (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		setIsDragOver(false)
+
+		const files = Array.from(e.dataTransfer.files)
+		if (files.length > 0) {
+			const imageFile = files.find(file => file.type.startsWith('image/'))
+			if (imageFile) {
+				await processImageFile(imageFile)
+			} else {
+				addMessage({
+					role: "assistant",
+					content: "❌ Nenhuma imagem encontrada nos arquivos enviados."
+				})
+			}
+		}
+	}, [addMessage])
+
+	// Handler para paste
+	const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+		const items = Array.from(e.clipboardData.items)
+		const imageItem = items.find(item => item.type.startsWith('image/'))
+		
+		if (imageItem) {
+			e.preventDefault()
+			const file = imageItem.getAsFile()
+			if (file) {
+				await processImageFile(file)
+			}
+		}
+	}, [addMessage])
+
 	const handleSendMessage = useCallback(
 		async (e: React.FormEvent) => {
 			e.preventDefault()
@@ -364,8 +435,20 @@ export function AiAssistantChat() {
 								damping: 30,
 							}}
 							className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 max-h-[80vh] sm:max-w-96"
+							onDragOver={handleDragOver}
+							onDragLeave={handleDragLeave}
+							onDrop={handleDrop}
 						>
-							<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90">
+							<Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md dark:bg-gray-900/90 relative">
+								{/* Overlay para drag and drop */}
+								{isDragOver && (
+									<div className="absolute inset-0 bg-blue-500/20 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-10">
+										<div className="text-center">
+											<Camera className="h-12 w-12 text-blue-600 mx-auto mb-2" />
+											<p className="text-blue-700 font-medium">Solte a imagem aqui para enviar</p>
+										</div>
+									</div>
+								)}
 								<CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
 									<CardTitle className="flex items-center gap-2">
 										<div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -458,8 +541,10 @@ export function AiAssistantChat() {
 									</ScrollArea>
 									<form onSubmit={handleSendMessage} className="p-4 border-t flex gap-2">
 										<Input
+											ref={inputRef}
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
+											onPaste={handlePaste}
 											placeholder={isListening ? "🎤 Ouvindo... Fale agora" : "Como posso ajudar?"}
 											disabled={isLoading || isListening}
 											className={isListening ? "border-red-300 bg-red-50 animate-pulse" : ""}
