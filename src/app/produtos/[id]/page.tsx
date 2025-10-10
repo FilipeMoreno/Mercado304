@@ -16,6 +16,7 @@ import {
 	MoreVertical,
 	Package,
 	ShoppingCart,
+	Sparkles,
 	Store,
 	Trash2,
 	TrendingDown,
@@ -227,6 +228,16 @@ export default function ProdutoDetalhesPage() {
 
 			<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
 			<AllergenIcons nutritionalInfo={nutritionalInfo} />
+
+			{/* Botão para Análise Nutricional Completa */}
+			{nutritionalInfo && (
+				<Link href={`/produtos/${productId}/analise-nutricional`}>
+					<Button size="lg" className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+						<Sparkles className="h-5 w-5 mr-2" />
+						Ver Análise Nutricional Completa com IA
+					</Button>
+				</Link>
+			)}
 
 			{/* Cards de Estatísticas Rápidas */}
 			{stats && (
