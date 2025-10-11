@@ -19,6 +19,7 @@ interface LoginHistory {
 	timestamp: Date
 	success: boolean
 	ip: string
+	loginMethod: string
 }
 
 // Query Keys

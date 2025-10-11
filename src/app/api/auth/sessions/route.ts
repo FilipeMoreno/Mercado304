@@ -2,6 +2,39 @@ import { headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
+// Função para obter localização a partir do IP
+async function getLocationFromIP(ip: string): Promise<string> {
+	if (!ip || ip === "IP não disponível") {
+		return "Localização não disponível"
+	}
+
+	try {
+		// Usar API gratuita de geolocalização (ip-api.com)
+		const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city`, {
+			next: { revalidate: 3600 }, // Cache por 1 hora
+		})
+
+		if (!response.ok) {
+			return "Localização não disponível"
+		}
+
+		const data = await response.json()
+
+		if (data.status === "success") {
+			const parts = []
+			if (data.city) parts.push(data.city)
+			if (data.regionName) parts.push(data.regionName)
+			if (data.country) parts.push(data.country)
+			return parts.join(", ") || "Localização não disponível"
+		}
+
+		return "Localização não disponível"
+	} catch (error) {
+		console.error("Erro ao buscar localização:", error)
+		return "Localização não disponível"
+	}
+}
+
 // Função para extrair informações do User Agent
 function getUserAgentInfo(userAgent: string): string {
 	if (!userAgent || userAgent === "Dispositivo desconhecido") {
@@ -37,7 +70,6 @@ export async function GET(request: NextRequest) {
 		const sessionResult = await auth.api.getSession({
 			headers: await headers(),
 		})
-
 		if (!sessionResult?.user) {
 			return NextResponse.json({ error: "Usuário não autenticado" }, { status: 401 })
 		}
@@ -53,7 +85,7 @@ export async function GET(request: NextRequest) {
 			where: {
 				userId: userId,
 				expiresAt: {
-					gt: new Date(), // Apenas sessões não expiradas
+					gt: new Date().toISOString(), // Apenas sessões não expiradas
 				},
 			},
 			orderBy: {
@@ -63,19 +95,21 @@ export async function GET(request: NextRequest) {
 
 		await prisma.$disconnect()
 
-		// Transformar dados para o formato esperado pelo frontend
-		const sessions = userSessions.map((session: any) => ({
-			id: session.id,
-			device: getUserAgentInfo(session.userAgent || "Dispositivo desconhecido"),
-			location: "Localização não disponível", // Better Auth não fornece localização por padrão
-			lastAccess: new Date(session.updatedAt || session.createdAt),
-			// Comparar tanto por ID quanto por token para garantir identificação correta
-			isCurrent: session.id === currentSessionId || session.token === currentSessionToken,
-			ip: session.ipAddress || "IP não disponível",
-			userAgent: session.userAgent,
-			createdAt: new Date(session.createdAt),
-			expiresAt: new Date(session.expiresAt),
-		}))
+		// Transformar dados para o formato esperado pelo frontend (com localização)
+		const sessions = await Promise.all(
+			userSessions.map(async (session: any) => ({
+				id: session.id,
+				device: getUserAgentInfo(session.userAgent || "Dispositivo desconhecido"),
+				location: await getLocationFromIP(session.ipAddress || ""), // Obter localização do IP
+				lastAccess: new Date(session.updatedAt || session.createdAt),
+				// Comparar tanto por ID quanto por token para garantir identificação correta
+				isCurrent: session.id === currentSessionId || session.token === currentSessionToken,
+				ip: session.ipAddress || "IP não disponível",
+				userAgent: session.userAgent,
+				createdAt: new Date(session.createdAt),
+				expiresAt: new Date(session.expiresAt),
+			}))
+		)
 
 		return NextResponse.json(sessions)
 	} catch (error: any) {
@@ -83,7 +117,6 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }
-
 export async function DELETE(request: NextRequest) {
 	try {
 		const { sessionId, terminateAll } = await request.json()
@@ -104,11 +137,25 @@ export async function DELETE(request: NextRequest) {
 			// Revogar todas as outras sessões exceto a atual
 			const currentSessionToken = request.cookies.get("better-auth.session_token")?.value
 
+			// Buscar o ID da sessão atual para não deletá-la
+			const currentSession = await prisma.session.findFirst({
+				where: {
+					userId: userId,
+					token: currentSessionToken,
+				},
+			})
+
+			if (!currentSession) {
+				await prisma.$disconnect()
+				return NextResponse.json({ error: "Sessão atual não encontrada" }, { status: 400 })
+			}
+
+			// Deletar todas as sessões EXCETO a atual
 			await prisma.session.deleteMany({
 				where: {
 					userId: userId,
-					token: {
-						not: currentSessionToken,
+					NOT: {
+						id: currentSession.id,
 					},
 				},
 			})

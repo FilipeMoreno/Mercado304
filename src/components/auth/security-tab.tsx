@@ -1018,18 +1018,21 @@ export function SecurityTab({ session }: SecurityTabProps) {
 													)}
 												</div>
 												<div className="flex-1">
-													<div className="flex items-center space-x-2">
-														<span className="font-medium">{entry.device}</span>
-														<Badge variant={entry.success ? "default" : "destructive"} className="text-xs">
-															{entry.success ? "Sucesso" : "Falha"}
-														</Badge>
-													</div>
-													<p className="text-sm text-muted-foreground">
-														{entry.location} • IP: {entry.ip}
-													</p>
-													<p className="text-xs text-muted-foreground">{entry.timestamp.toLocaleString("pt-BR")}</p>
+												<div className="flex items-center space-x-2">
+													<span className="font-medium">{entry.device}</span>
+													<Badge variant={entry.success ? "default" : "destructive"} className="text-xs">
+														{entry.success ? "Sucesso" : "Falha"}
+													</Badge>
+													<Badge variant="outline" className="text-xs">
+														{entry.loginMethod}
+													</Badge>
 												</div>
+												<p className="text-sm text-muted-foreground">
+													{entry.location} • IP: {entry.ip}
+												</p>
+												<p className="text-xs text-muted-foreground">{entry.timestamp.toLocaleString("pt-BR")}</p>
 											</div>
+										</div>
 										))}
 									</div>
 								)}
