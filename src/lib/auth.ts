@@ -12,8 +12,8 @@ const prisma = new PrismaClient()
 export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET || "fallback-secret-for-development-only",
 	rateLimit: {
-		window: 10,
-		max: 100,
+		window: 60, // 1 minuto
+		max: 10, // 10 tentativas por minuto (mais restritivo)
 		enabled: true,
 	},
 	database: prismaAdapter(prisma, {

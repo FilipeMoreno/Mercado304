@@ -1,39 +1,9 @@
 import { headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-
-// Função para obter localização a partir do IP
-async function getLocationFromIP(ip: string): Promise<string> {
-	if (!ip || ip === "IP não disponível") {
-		return "Localização não disponível"
-	}
-
-	try {
-		// Usar API gratuita de geolocalização (ip-api.com)
-		const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city`, {
-			next: { revalidate: 3600 }, // Cache por 1 hora
-		})
-
-		if (!response.ok) {
-			return "Localização não disponível"
-		}
-
-		const data = await response.json()
-
-		if (data.status === "success") {
-			const parts = []
-			if (data.city) parts.push(data.city)
-			if (data.regionName) parts.push(data.regionName)
-			if (data.country) parts.push(data.country)
-			return parts.join(", ") || "Localização não disponível"
-		}
-
-		return "Localização não disponível"
-	} catch (error) {
-		console.error("Erro ao buscar localização:", error)
-		return "Localização não disponível"
-	}
-}
+import { getLocationFromIP } from "@/lib/geolocation"
+import { getDeviceInfo } from "@/lib/auth-middleware"
+import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
 
 // Função para extrair informações do User Agent
 function getUserAgentInfo(userAgent: string): string {

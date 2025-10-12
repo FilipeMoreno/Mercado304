@@ -2,6 +2,7 @@
 
 import {
 	AlertTriangle,
+	Bell,
 	CheckCircle,
 	Eye,
 	EyeOff,
@@ -68,6 +69,7 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { passkey, twoFactor, useSession } from "@/lib/auth-client"
+import { SecurityNotifications } from "@/components/security-notifications"
 
 interface SecurityTabProps {
 	session: any
@@ -386,6 +388,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 					<TabsTrigger value="two-factor" className="rounded-md px-4">2FA</TabsTrigger>
 					<TabsTrigger value="passkeys" className="rounded-md px-4">Passkeys</TabsTrigger>
 					<TabsTrigger value="sessions" className="rounded-md px-4">Sessões</TabsTrigger>
+					<TabsTrigger value="notifications" className="rounded-md px-4">
+						<Bell className="h-4 w-4 mr-1" />
+						Notificações
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="password">
@@ -1039,6 +1045,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							</CardContent>
 						</Card>
 					</div>
+				</TabsContent>
+
+				<TabsContent value="notifications">
+					<SecurityNotifications />
 				</TabsContent>
 			</Tabs>
 
