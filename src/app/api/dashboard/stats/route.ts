@@ -20,6 +20,7 @@ export async function GET() {
 		const [
 			totalPurchases,
 			totalSpent,
+			totalDiscounts,
 			totalProducts,
 			totalMarkets,
 			recentPurchases,
@@ -31,11 +32,16 @@ export async function GET() {
 			monthlySpending,
 			priceRecordsStats,
 			combinedPriceStats,
+			discountStats,
 		] = await Promise.all([
 			prisma.purchase.count(),
 
 			prisma.purchase.aggregate({
 				_sum: { totalAmount: true },
+			}),
+
+			prisma.purchase.aggregate({
+				_sum: { totalDiscount: true },
 			}),
 
 			prisma.product.count(),
@@ -160,6 +166,71 @@ export async function GET() {
 					productNames: productsWithBothSources.slice(0, 5).map((p) => p.name),
 				}
 			})(),
+
+			// Estatísticas de descontos
+			(async () => {
+				const [
+					totalDiscounts,
+					purchasesWithDiscounts,
+					averageDiscount,
+					monthlyDiscounts,
+					topDiscountMarkets,
+				] = await Promise.all([
+					prisma.purchase.aggregate({
+						_sum: { totalDiscount: true },
+						_count: { id: true },
+					}),
+					prisma.purchase.count({
+						where: {
+							totalDiscount: { gt: 0 },
+						},
+					}),
+					prisma.purchase.aggregate({
+						where: {
+							totalDiscount: { gt: 0 },
+						},
+						_avg: { totalDiscount: true },
+					}),
+					prisma.$queryRaw`
+						SELECT 
+							TO_CHAR(date_trunc('month', "purchaseDate"), 'YYYY-MM') as month,
+							SUM("totalDiscount") as "totalDiscounts"
+						FROM "purchases"
+						WHERE "totalDiscount" > 0 AND "purchaseDate" >= ${twelveMonthsAgo}
+						GROUP BY month
+						ORDER BY month ASC
+					`,
+					prisma.purchase.groupBy({
+						by: ["marketId"],
+						where: {
+							totalDiscount: { gt: 0 },
+						},
+						_sum: { totalDiscount: true },
+						_count: { id: true },
+						orderBy: {
+							_sum: { totalDiscount: "desc" },
+						},
+						take: 5,
+					}),
+				])
+
+				return {
+					totalDiscounts: totalDiscounts._sum.totalDiscount || 0,
+					totalPurchases: totalDiscounts._count.id || 0,
+					purchasesWithDiscounts,
+					averageDiscount: averageDiscount._avg.totalDiscount || 0,
+					discountPercentage: totalDiscounts._count.id > 0 ? (purchasesWithDiscounts / totalDiscounts._count.id) * 100 : 0,
+					monthlyDiscounts: (monthlyDiscounts as any[]).map((data) => ({
+						...data,
+						totalDiscounts: parseFloat(data.totalDiscounts),
+					})),
+					topDiscountMarkets: topDiscountMarkets.map((market) => ({
+						marketId: market.marketId,
+						totalDiscounts: market._sum.totalDiscount || 0,
+						purchasesWithDiscounts: market._count.id,
+					})),
+				}
+			})(),
 		])
 
 		// OTIMIZAÇÃO: Coletar todos os IDs de produtos e mercados
@@ -243,9 +314,24 @@ export async function GET() {
 			totalSpent: parseFloat(data.totalSpent),
 		}))
 
+		// Buscar nomes dos mercados com mais descontos
+		const topDiscountMarketIds = discountStats.topDiscountMarkets.map((m) => m.marketId)
+		const topDiscountMarketsInfo = await prisma.market.findMany({
+			where: { id: { in: topDiscountMarketIds } },
+		})
+
+		const topDiscountMarketsWithNames = discountStats.topDiscountMarkets.map((market) => {
+			const marketInfo = topDiscountMarketsInfo.find((m) => m.id === market.marketId)
+			return {
+				...market,
+				marketName: marketInfo?.name || "Mercado não encontrado",
+			}
+		})
+
 		const stats = {
 			totalPurchases,
 			totalSpent: totalSpent._sum.totalAmount || 0,
+			totalDiscounts: totalDiscounts._sum.totalDiscount || 0,
 			totalProducts,
 			totalMarkets,
 			recentPurchases,
@@ -265,6 +351,10 @@ export async function GET() {
 				sampleProducts: combinedPriceStats.productNames,
 				dataIntegrationLevel:
 					totalProducts > 0 ? (combinedPriceStats.productsWithBothSources / totalProducts) * 100 : 0,
+			},
+			discountStats: {
+				...discountStats,
+				topDiscountMarkets: topDiscountMarketsWithNames,
 			},
 		}
 

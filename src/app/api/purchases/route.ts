@@ -93,13 +93,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { marketId, items, purchaseDate, paymentMethod, convertTemporaryItems } = body
+		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0, convertTemporaryItems } = body
 
 		if (!marketId || !items || items.length === 0) {
 			return NextResponse.json({ error: "Mercado e itens são obrigatórios" }, { status: 400 })
 		}
 
-		const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
+		const totalAmount = items.reduce((sum: number, item: any) => {
+			const itemTotal = item.quantity * item.unitPrice
+			const itemDiscount = item.quantity * (item.unitDiscount || 0)
+			return sum + itemTotal - itemDiscount
+		}, 0)
+		const finalAmount = totalAmount - totalDiscount
 
 		// Separar itens temporários dos permanentes
 		const permanentItems = items.filter((item: any) => !item.isTemporary)
@@ -194,17 +199,24 @@ export async function POST(request: Request) {
 				data: {
 					marketId,
 					totalAmount,
+					totalDiscount,
+					finalAmount,
 					purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
 					paymentMethod: paymentMethod || "MONEY",
 					items: {
 						create: allItemsData.map((item: any) => {
 							const product =
 								products.find((p) => p.id === item.productId) || convertedProducts.find((p) => p.id === item.productId)
+							const itemTotal = item.quantity * item.unitPrice
+							const itemDiscount = item.quantity * (item.unitDiscount || 0)
 							return {
 								productId: item.isTemporary ? null : item.productId,
 								quantity: item.quantity,
 								unitPrice: item.unitPrice,
-								totalPrice: item.quantity * item.unitPrice,
+								unitDiscount: item.unitDiscount || 0,
+								totalPrice: itemTotal,
+								totalDiscount: itemDiscount,
+								finalPrice: itemTotal - itemDiscount,
 								productName: item.productName || product?.name,
 								productUnit: item.productUnit || product?.unit,
 								productCategory: item.tempCategory || product?.category?.name,

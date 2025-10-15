@@ -23,6 +23,7 @@ interface PurchaseItem {
 	productId: string
 	quantity: number
 	unitPrice: number
+	unitDiscount?: number
 	bestPriceAlert?: any
 }
 
@@ -55,13 +56,16 @@ export default function EditarCompraPage() {
 		marketId: "",
 		purchaseDate: "",
 		paymentMethod: PaymentMethod.MONEY,
+		totalDiscount: 0,
 	})
 
 	const [items, setItems] = useState<PurchaseItem[]>([])
 
-// Control separate string inputs (qty 3 decimals, price 2) and empty typing
-const [quantityInputs, setQuantityInputs] = useState<string[]>([])
-const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
+	// Control separate string inputs (qty 3 decimals, price 2) and empty typing
+	const [quantityInputs, setQuantityInputs] = useState<string[]>([])
+	const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
+	const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>([])
+	const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 
 	const checkBestPrice = useCallback(async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
@@ -107,17 +111,21 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 				marketId: purchaseData.marketId,
 				purchaseDate: purchaseData.purchaseDate.split("T")[0],
 				paymentMethod: purchaseData.paymentMethod || PaymentMethod.MONEY,
+				totalDiscount: purchaseData.totalDiscount || 0,
 			})
 
 			const mappedItems = purchaseData.items.map((item: any) => ({
 				productId: item.productId || "",
 				quantity: item.quantity,
 				unitPrice: item.unitPrice,
+				unitDiscount: item.unitDiscount || 0,
 				bestPriceAlert: null,
 			}))
 			setItems(mappedItems)
 			setQuantityInputs(mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toString() : "")))
 			setUnitPriceInputs(mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toString() : "")))
+			setUnitDiscountInputs(mappedItems.map((it: any) => (typeof it.unitDiscount === "number" ? it.unitDiscount.toString() : "")))
+			setTotalDiscountInput(purchaseData.totalDiscount ? purchaseData.totalDiscount.toString() : "0.00")
 		}
 	}, [purchaseData, purchaseLoading])
 
@@ -132,6 +140,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 							marketId: preservedData.formData.marketId || prev.marketId,
 							purchaseDate: preservedData.formData.purchaseDate || prev.purchaseDate,
 							paymentMethod: preservedData.formData.paymentMethod || prev.paymentMethod,
+							totalDiscount: preservedData.formData.totalDiscount || prev.totalDiscount,
 						}))
 					}
 					if (preservedData.items) setItems(preservedData.items)
@@ -159,9 +168,10 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 	}, [purchaseError, router])
 
 	const addItem = () => {
-		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, bestPriceAlert: null }])
-    setQuantityInputs((prev) => [...prev, "1.000"])
-    setUnitPriceInputs((prev) => [...prev, "0.00"])
+		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, unitDiscount: 0, bestPriceAlert: null }])
+		setQuantityInputs((prev) => [...prev, "1.000"])
+		setUnitPriceInputs((prev) => [...prev, "0.00"])
+		setUnitDiscountInputs((prev) => [...prev, "0.00"])
 	}
 
 	const removeItem = (index: number) => {
@@ -169,11 +179,25 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 			setItems(items.filter((_, i) => i !== index))
 			setQuantityInputs((prev) => prev.filter((_, i) => i !== index))
 			setUnitPriceInputs((prev) => prev.filter((_, i) => i !== index))
+			setUnitDiscountInputs((prev) => prev.filter((_, i) => i !== index))
 		}
 	}
 
 	const calculateTotal = () => {
+		return items.reduce((sum, item) => {
+			const totalPrice = item.quantity * item.unitPrice
+			const totalDiscount = item.quantity * (item.unitDiscount || 0)
+			return sum + totalPrice - totalDiscount
+		}, 0)
+	}
+
+	const calculateTotalWithoutDiscounts = () => {
 		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+	}
+
+	const calculateTotalDiscounts = () => {
+		const itemDiscounts = items.reduce((sum, item) => sum + (item.quantity * (item.unitDiscount || 0)), 0)
+		return itemDiscounts + (formData.totalDiscount || 0)
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -196,6 +220,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 					items: validItems,
 					purchaseDate: formData.purchaseDate,
 					paymentMethod: formData.paymentMethod,
+					totalDiscount: formData.totalDiscount || 0,
 				},
 			})
 			toast.success("Compra atualizada com sucesso!")
@@ -289,9 +314,9 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 					</CardContent>
 				</Card>
 				<Card>
-						<CardHeader className="flex flex-row items-center justify-between">
-							<CardTitle>Itens da Compra</CardTitle>
-						</CardHeader>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle>Itens da Compra</CardTitle>
+					</CardHeader>
 					<CardContent className="space-y-4">
 						{items.map((item, index) => {
 							const selectedProduct = products.find((p: any) => p.id === item.productId)
@@ -314,7 +339,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 										/>
 									</div>
 									{/* Quantidade, Preço, Total em 3 colunas */}
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 										<div className="space-y-2">
 											<Label>Quantidade *</Label>
 											<Input
@@ -368,9 +393,35 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 											/>
 										</div>
 										<div className="space-y-2">
+											<Label>Desconto por Unidade</Label>
+											<Input
+												type="text"
+												inputMode="decimal"
+												step="0.01"
+												min="0"
+												value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
+												onChange={(e) => {
+													const raw = e.target.value
+													setUnitDiscountInputs((prev) => {
+														const next = [...prev]
+														next[index] = raw
+														return next
+													})
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														updateItem(index, "unitDiscount", parsed)
+													} else if (raw === "") {
+														updateItem(index, "unitDiscount", 0)
+													}
+												}}
+												placeholder="0,00"
+											/>
+										</div>
+										<div className="space-y-2">
 											<Label>Total</Label>
 											<Input
-												value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
+												value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
 												disabled
 												className="bg-gray-50"
 											/>
@@ -418,9 +469,55 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>([])
 				</Card>
 				<Card>
 					<CardContent className="pt-6">
+						{/* Resumo da compra com descontos */}
+						<div className="space-y-4 mb-6">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label>Desconto Total da Compra</Label>
+									<Input
+										type="text"
+										inputMode="decimal"
+										step="0.01"
+										min="0"
+										value={totalDiscountInput}
+										onChange={(e) => {
+											const raw = e.target.value
+											setTotalDiscountInput(raw)
+											const normalized = raw.replace(',', '.')
+											const parsed = parseFloat(normalized)
+											if (!Number.isNaN(parsed)) {
+												setFormData(prev => ({ ...prev, totalDiscount: parsed }))
+											} else if (raw === "") {
+												setFormData(prev => ({ ...prev, totalDiscount: 0 }))
+											}
+										}}
+										placeholder="0,00"
+										className="text-center"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label>Resumo</Label>
+									<div className="space-y-1 text-sm">
+										<div className="flex justify-between">
+											<span>Subtotal:</span>
+											<span>R$ {calculateTotalWithoutDiscounts().toFixed(2)}</span>
+										</div>
+										<div className="flex justify-between text-red-600">
+											<span>Descontos:</span>
+											<span>-R$ {calculateTotalDiscounts().toFixed(2)}</span>
+										</div>
+										<div className="flex justify-between font-bold text-lg border-t pt-1">
+											<span>Total Final:</span>
+											<span>R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
 						<div className="flex justify-between items-center text-xl font-bold">
 							<span>Total da Compra ({items.length} itens):</span>
-							<span>R$ {calculateTotal().toFixed(2)}</span>
+							<span>R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</span>
 						</div>
 						<div className="flex gap-4 mt-6">
 							<Button type="button" onClick={addItem} variant="outline">

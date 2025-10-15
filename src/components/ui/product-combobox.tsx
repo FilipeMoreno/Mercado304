@@ -118,6 +118,7 @@ export function ProductCombobox({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					type="button"
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
@@ -155,6 +156,7 @@ export function ProductCombobox({
 									)}
 									{shouldShowCreateNew && (
 										<Button
+											type="button"
 											variant="ghost"
 											size="sm"
 											className="mt-2 text-blue-600 hover:text-blue-700"

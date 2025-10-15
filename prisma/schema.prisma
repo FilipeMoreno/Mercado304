@@ -40,7 +40,7 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  products  Product[]
+  products Product[]
 
   @@index([isFood])
   @@map("categories")
@@ -82,6 +82,8 @@ model Purchase {
   id            String        @id @default(cuid())
   marketId      String
   totalAmount   Float
+  totalDiscount Float?        @default(0) // Desconto total da compra
+  finalAmount   Float? // Valor final após desconto (totalAmount - totalDiscount)
   purchaseDate  DateTime      @default(now())
   paymentMethod PaymentMethod @default(MONEY)
 
@@ -113,7 +115,10 @@ model PurchaseItem {
   productId       String?
   quantity        Float
   unitPrice       Float
-  totalPrice      Float
+  unitDiscount    Float?  @default(0) // Desconto por unidade
+  totalPrice      Float // Preço total antes do desconto (quantity * unitPrice)
+  totalDiscount   Float?  @default(0) // Desconto total do item (quantity * unitDiscount)
+  finalPrice      Float // Preço final após desconto (totalPrice - totalDiscount)
   productName     String?
   productUnit     String?
   productCategory String?
@@ -445,11 +450,11 @@ model User {
   dashboardPreference DashboardPreference?
 
   // Bloqueio automático por tentativas falhadas
-  failedLoginAttempts Int      @default(0)
+  failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   lastFailedLogin     DateTime?
 
-  securityAudits       SecurityAudit[]
+  securityAudits        SecurityAudit[]
   securityNotifications SecurityNotification[]
 
   @@unique([email])
@@ -459,23 +464,23 @@ model User {
 }
 
 model Session {
-  id            String   @id
-  expiresAt     DateTime
-  token         String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  ipAddress     String?
-  userAgent     String?
-  userId        String
-  
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+
   // Campos adicionais para rastreamento
-  loginMethod   String?  // "password", "passkey", "google", "2fa"
-  location      String?  // Cache da localização
-  deviceName    String?  // Nome amigável do dispositivo
-  isRevoked     Boolean  @default(false)
+  loginMethod   String? // "password", "passkey", "google", "2fa"
+  location      String? // Cache da localização
+  deviceName    String? // Nome amigável do dispositivo
+  isRevoked     Boolean   @default(false)
   revokedAt     DateTime?
-  revokedReason String?  // "user_action", "suspicious_activity", "admin"
-  
+  revokedReason String? // "user_action", "suspicious_activity", "admin"
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
@@ -574,15 +579,15 @@ model DashboardPreference {
 model SecurityAudit {
   id        String   @id @default(cuid())
   userId    String?
-  eventType String   // "login_success", "login_failed", "password_reset", "2fa_enabled", "account_locked", etc
+  eventType String // "login_success", "login_failed", "password_reset", "2fa_enabled", "account_locked", etc
   ipAddress String?
   userAgent String?
   location  String?
-  metadata  Json?    // Dados adicionais flexíveis
+  metadata  Json? // Dados adicionais flexíveis
   createdAt DateTime @default(now())
-  
+
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId, eventType])
   @@index([createdAt])
   @@index([ipAddress])
@@ -592,15 +597,15 @@ model SecurityAudit {
 model SecurityNotification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // "new_device", "password_changed", "2fa_disabled", "suspicious_login", "account_locked"
+  type      String // "new_device", "password_changed", "2fa_disabled", "suspicious_login", "account_locked"
   title     String
   message   String
   isRead    Boolean  @default(false)
   metadata  Json?
   createdAt DateTime @default(now())
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("security_notifications")
@@ -611,10 +616,10 @@ model IpLocation {
   city      String?
   region    String?
   country   String?
-  location  String   // Formatado: "Cidade, Estado, País"
+  location  String // Formatado: "Cidade, Estado, País"
   createdAt DateTime @default(now())
   expiresAt DateTime // Cache por 30 dias
-  
+
   @@index([expiresAt])
   @@map("ip_locations")
 }

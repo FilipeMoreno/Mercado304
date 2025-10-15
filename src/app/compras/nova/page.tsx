@@ -31,6 +31,7 @@ interface PurchaseItem {
 	productId: string
 	quantity: number
 	unitPrice: number
+	unitDiscount?: number
 	priceAlert?: {
 		hasAlert: boolean
 		alertType?: "price_warning" | "high_price"
@@ -81,6 +82,7 @@ export default function NovaCompraPage() {
 		marketId: "",
 		purchaseDate: new Date().toISOString().split("T")[0],
 		paymentMethod: PaymentMethod.MONEY,
+		totalDiscount: 0,
 	})
 
 	const [items, setItems] = useState<PurchaseItem[]>([
@@ -89,6 +91,7 @@ export default function NovaCompraPage() {
 			productId: "",
 			quantity: 1,
 			unitPrice: 0,
+			unitDiscount: 0,
 			addToStock: false,
 			stockEntries: [],
 			aiInsight: null,
@@ -100,6 +103,8 @@ export default function NovaCompraPage() {
 // Inputs control arrays to support empty values (qty with 3 decimals, price with 2)
 const [quantityInputs, setQuantityInputs] = useState<string[]>(["1.000"])
 const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
+const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>(["0.00"])
+const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 
 	const fetchData = React.useCallback(async () => {
 		try {
@@ -166,6 +171,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 				productId: "",
 				quantity: 1,
 				unitPrice: 0,
+				unitDiscount: 0,
 				addToStock: false,
 				stockEntries: [],
 				aiInsight: null,
@@ -175,6 +181,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 		setCheckingPrices([...checkingPrices, false])
     setQuantityInputs((prev) => [...prev, "1.000"])
     setUnitPriceInputs((prev) => [...prev, "0.00"])
+    setUnitDiscountInputs((prev) => [...prev, "0.00"])
 	}
 
 	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
@@ -207,6 +214,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 			setCheckingPrices(checkingPrices.filter((_, i) => i !== index))
 			setQuantityInputs((prev) => prev.filter((_, i) => i !== index))
 			setUnitPriceInputs((prev) => prev.filter((_, i) => i !== index))
+			setUnitDiscountInputs((prev) => prev.filter((_, i) => i !== index))
 		}
 	}
 
@@ -332,10 +340,27 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 			if (prev.length === items.length) return prev
 			return items.map((it, i) => prev[i] ?? (it.unitPrice ? String(it.unitPrice) : ""))
 		})
+		setUnitDiscountInputs((prev) => {
+			if (prev.length === items.length) return prev
+			return items.map((it, i) => prev[i] ?? (it.unitDiscount ? String(it.unitDiscount) : ""))
+		})
 	}, [items])
 
 	const calculateTotal = () => {
+		return items.reduce((sum, item) => {
+			const totalPrice = item.quantity * item.unitPrice
+			const totalDiscount = item.quantity * (item.unitDiscount || 0)
+			return sum + totalPrice - totalDiscount
+		}, 0)
+	}
+
+	const calculateTotalWithoutDiscounts = () => {
 		return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+	}
+
+	const calculateTotalDiscounts = () => {
+		const itemDiscounts = items.reduce((sum, item) => sum + (item.quantity * (item.unitDiscount || 0)), 0)
+		return itemDiscounts + (formData.totalDiscount || 0)
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -360,6 +385,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 				marketId: formData.marketId,
 				purchaseDate: formData.purchaseDate,
 				paymentMethod: formData.paymentMethod,
+				totalDiscount: formData.totalDiscount || 0,
 				items: validItems,
 			})
 
@@ -510,8 +536,8 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
                                                 />
                                             </div>
 
-                                            {/* Quantidade, Preço e Total em 3 colunas */}
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            {/* Quantidade, Preço, Desconto e Total em 4 colunas */}
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                 <div className="space-y-2">
                                                     <Label>Quantidade *</Label>
                                                     <Input
@@ -566,10 +592,37 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
                                                         className="text-center"
                                                     />
                                                 </div>
+                                                <div className="space-y-2">
+                                                    <Label>Desconto por Unidade</Label>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        step="0.01"
+                                                        min="0"
+                                                        value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value
+                                                            setUnitDiscountInputs((prev) => {
+                                                                const next = [...prev]
+                                                                next[index] = raw
+                                                                return next
+                                                            })
+                                                            const normalized = raw.replace(',', '.')
+                                                            const parsed = parseFloat(normalized)
+                                                            if (!Number.isNaN(parsed)) {
+                                                                updateItem(index, "unitDiscount", parsed)
+                                                            } else if (raw === "") {
+                                                                updateItem(index, "unitDiscount", 0)
+                                                            }
+                                                        }}
+                                                        placeholder="0,00"
+                                                        className="text-center"
+                                                    />
+                                                </div>
                                                 <div className="space-y-2 md:block">
                                                     <Label>Total</Label>
                                                     <Input
-                                                        value={`R$ ${(item.quantity * item.unitPrice).toFixed(2)}`}
+                                                        value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
                                                         disabled
                                                         className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
                                                     />
@@ -650,9 +703,55 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 									})}
 								</div>
 
+								{/* Resumo da compra com descontos */}
+								<div className="space-y-4 pt-4 border-t">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-2">
+											<Label>Desconto Total da Compra</Label>
+											<Input
+												type="text"
+												inputMode="decimal"
+												step="0.01"
+												min="0"
+												value={totalDiscountInput}
+												onChange={(e) => {
+													const raw = e.target.value
+													setTotalDiscountInput(raw)
+													const normalized = raw.replace(',', '.')
+													const parsed = parseFloat(normalized)
+													if (!Number.isNaN(parsed)) {
+														setFormData(prev => ({ ...prev, totalDiscount: parsed }))
+													} else if (raw === "") {
+														setFormData(prev => ({ ...prev, totalDiscount: 0 }))
+													}
+												}}
+												placeholder="0,00"
+												className="text-center"
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label>Resumo</Label>
+											<div className="space-y-1 text-sm">
+												<div className="flex justify-between">
+													<span>Subtotal:</span>
+													<span>R$ {calculateTotalWithoutDiscounts().toFixed(2)}</span>
+												</div>
+												<div className="flex justify-between text-red-600">
+													<span>Descontos:</span>
+													<span>-R$ {calculateTotalDiscounts().toFixed(2)}</span>
+												</div>
+												<div className="flex justify-between font-bold text-lg border-t pt-1">
+													<span>Total Final:</span>
+													<span>R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
 								{/* Total e botões de ação - apenas no desktop */}
 									<div className="hidden md:flex justify-between items-center pt-4 border-t">
-										<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
+										<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="h-4 w-4 mr-2" />
@@ -688,7 +787,7 @@ const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
 						{/* Total da compra */}
 						<div className="text-center min-w-[120px]">
 							<div className="text-sm text-gray-600">Total</div>
-							<div className="text-lg font-bold text-primary">R$ {calculateTotal().toFixed(2)}</div>
+							<div className="text-lg font-bold text-primary">R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
 						</div>
 					</div>
 

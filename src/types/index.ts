@@ -51,6 +51,8 @@ export interface Purchase {
 	id: string
 	marketId: string
 	totalAmount: number
+	totalDiscount?: number
+	finalAmount: number
 	purchaseDate: Date
 	paymentMethod: PaymentMethod
 	createdAt: Date
@@ -63,6 +65,8 @@ export interface RecentPurchase {
 	id: string
 	marketId: string
 	totalAmount: number
+	totalDiscount?: number
+	finalAmount: number
 	purchaseDate: Date
 	paymentMethod: PaymentMethod
 	createdAt: Date
@@ -91,7 +95,10 @@ export interface PurchaseItem {
 	productId?: string
 	quantity: number
 	unitPrice: number
+	unitDiscount?: number
 	totalPrice: number
+	totalDiscount?: number
+	finalPrice: number
 	productName?: string
 	productUnit?: string
 	productCategory?: string
@@ -145,6 +152,21 @@ export interface CategoryStats {
 	totalPurchases: number
 	totalQuantity: number
 	averagePrice: number
+}
+
+export interface DiscountStats {
+	totalDiscounts: number
+	totalPurchases: number
+	purchasesWithDiscounts: number
+	averageDiscount: number
+	discountPercentage: number
+	monthlyDiscounts: Array<{ month: string; totalDiscounts: number }>
+	topDiscountMarkets: Array<{
+		marketId: string
+		marketName: string
+		totalDiscounts: number
+		purchasesWithDiscounts: number
+	}>
 }
 
 export interface TopProduct {

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { lazy, Suspense, useCallback, useMemo } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
+import { DiscountStatsCard } from "@/components/discount-stats-card"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { DashboardCardMemo, DashboardStatsCardMemo } from "@/components/memoized"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
@@ -275,13 +276,12 @@ export function DashboardClient() {
 								) : (
 									<>
 										<div
-											className={`text-2xl font-bold ${
-												temporalData?.changes.spent > 0
+											className={`text-2xl font-bold ${temporalData?.changes.spent > 0
 													? "text-red-600"
 													: temporalData?.changes.spent < 0
 														? "text-green-600"
 														: "text-gray-600"
-											}`}
+												}`}
 										>
 											{temporalData?.changes.spent > 0 ? "+" : ""}
 											{temporalData?.changes.spent.toFixed(1)}%
@@ -309,6 +309,13 @@ export function DashboardClient() {
 				)}
 				{currentPrefs.showNutritionCard && <NutritionSummaryCard />}
 			</div>
+
+			{/* Card de Estatísticas de Descontos */}
+			{stats?.discountStats && (
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+					<DiscountStatsCard discountStats={stats.discountStats} isLoading={statsLoading} />
+				</motion.div>
+			)}
 
 			{/* Estatísticas de Métodos de Pagamento */}
 			{currentPrefs.showPaymentStats && <PaymentMethodStats />}
@@ -433,8 +440,8 @@ export function DashboardClient() {
 										const cheapest =
 											(stats?.marketComparison?.length || 0) > 1
 												? stats?.marketComparison?.reduce((min: MarketComparison, curr: MarketComparison) =>
-														curr.averagePrice < min.averagePrice ? curr : min,
-													)
+													curr.averagePrice < min.averagePrice ? curr : min,
+												)
 												: null
 										const isCheapest = cheapest && market.marketId === cheapest.marketId
 
@@ -442,9 +449,8 @@ export function DashboardClient() {
 											<div key={market.marketId} className="flex items-center justify-between">
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
-															isCheapest ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
-														}`}
+														className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${isCheapest ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+															}`}
 													>
 														{index + 1}
 													</div>

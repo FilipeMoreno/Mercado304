@@ -145,6 +145,7 @@ export function ProductSelect({
 				/>
 				{showScanButton && (
 					<Button
+						type="button"
 						variant="outline"
 						size="icon"
 						onClick={() => setIsScannerOpen(true)}

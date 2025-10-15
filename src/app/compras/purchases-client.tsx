@@ -353,8 +353,13 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											</div>
 											<div className="text-right">
 												<div className="flex items-center gap-1 text-lg font-bold">
-													R$ {purchase.totalAmount.toFixed(2)}
+													R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
 												</div>
+												{purchase.totalDiscount && purchase.totalDiscount > 0 && (
+													<div className="text-sm text-red-600">
+														Desconto: -R$ {purchase.totalDiscount.toFixed(2)}
+													</div>
+												)}
 												<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
 											</div>
 										</div>
@@ -464,17 +469,43 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											</p>
 											<p className="text-sm text-gray-600">
 												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
+												{item.unitDiscount && item.unitDiscount > 0 && (
+													<span className="text-red-600 ml-1">
+														(-R$ {item.unitDiscount.toFixed(2)})
+													</span>
+												)}
 											</p>
 										</div>
-										<p className="font-medium">R$ {item.totalPrice.toFixed(2)}</p>
+										<div className="text-right">
+											<p className="font-medium">R$ {(item.finalPrice || item.totalPrice).toFixed(2)}</p>
+											{item.totalDiscount && item.totalDiscount > 0 && (
+												<p className="text-xs text-red-600">
+													Desconto: -R$ {item.totalDiscount.toFixed(2)}
+												</p>
+											)}
+										</div>
 									</div>
 								))}
 							</div>
 						</div>
 
-						<div className="flex justify-between items-center pt-4 border-t">
-							<span className="text-lg font-bold">Total:</span>
-							<span className="text-lg font-bold">R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
+						<div className="space-y-2 pt-4 border-t">
+							{purchaseDetails.totalDiscount && purchaseDetails.totalDiscount > 0 && (
+								<div className="flex justify-between items-center text-sm">
+									<span>Subtotal:</span>
+									<span>R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
+								</div>
+							)}
+							{purchaseDetails.totalDiscount && purchaseDetails.totalDiscount > 0 && (
+								<div className="flex justify-between items-center text-sm text-red-600">
+									<span>Desconto:</span>
+									<span>-R$ {purchaseDetails.totalDiscount.toFixed(2)}</span>
+								</div>
+							)}
+							<div className="flex justify-between items-center text-lg font-bold">
+								<span>Total:</span>
+								<span>R$ {(purchaseDetails.finalAmount || purchaseDetails.totalAmount).toFixed(2)}</span>
+							</div>
 						</div>
 					</div>
 				) : null}
@@ -501,3 +532,4 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		</>
 	)
 }
+

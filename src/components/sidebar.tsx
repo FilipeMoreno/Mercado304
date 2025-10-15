@@ -40,7 +40,7 @@ const navigation = [
 		icon: ShoppingBag,
 		subItems: [
 			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
-			{ name: "Importar NFc-E", href: "/compras/importar", icon: Receipt },
+			{ name: "Importar NFC-e", href: "/compras/importar", icon: Receipt },
 		],
 	},
 	{ name: "Lista de Compras", href: "/lista", icon: List },

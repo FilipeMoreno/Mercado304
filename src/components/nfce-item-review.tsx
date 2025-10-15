@@ -30,11 +30,12 @@ export interface MappedPurchaseItem {
   productName: string
   quantity: number
   price: number
+  unitDiscount?: number
 }
 
 interface NfceItemReviewProps {
   items: NfceItem[]
-  onConfirm: (mappedItems: MappedPurchaseItem[]) => void
+  onConfirm: (mappedItems: MappedPurchaseItem[], totalDiscount?: number) => void
   onCancel: () => void
   isSubmitting: boolean
 }
@@ -43,6 +44,7 @@ interface NfceItemReviewProps {
 type MappedItemState = MappedPurchaseItem & {
   originalName: string
   isAssociated: boolean
+  unitDiscount?: number
 }
 
 const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCancel, isSubmitting }) => {
@@ -52,11 +54,13 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
       productName: "",
       quantity: item.quantity,
       price: item.unitPrice,
+      unitDiscount: 0,
       originalName: item.name,
       isAssociated: false,
     })),
   )
   const [isInitialized, setIsInitialized] = useState(false)
+  const [totalDiscount, setTotalDiscount] = useState<number>(0)
 
   // Estados para controlar os dialogs
   const [isCreateProductDialogOpen, setIsCreateProductDialogOpen] = useState(false)

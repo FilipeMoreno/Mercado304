@@ -48,6 +48,7 @@ export default function ImportarCompraPage() {
   const [suggestedMarket, setSuggestedMarket] = useState<Market | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>('CREDIT_CARD');
   const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [totalDiscount, setTotalDiscount] = useState<number>(0);
 
   const mutation = useCreatePurchaseMutation();
   const handleFiscalReceiptScanComplete = async (data: any) => {
@@ -223,6 +224,7 @@ export default function ImportarCompraPage() {
       paymentMethod,
       purchaseDate: new Date(purchaseDate),
       totalAmount: total,
+      totalDiscount,
       items: purchaseItems
     });
   };
