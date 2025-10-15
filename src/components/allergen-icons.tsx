@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, Cherry, Fish, Leaf, Milk, Nut, Shell, Sprout, Wheat } from "lucide-react"
+import { AlertTriangle, Cherry, Circle, Fish, Leaf, Milk, Nut, Shell, Sprout, Wheat } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { NutritionalInfo } from "@/types"
 
@@ -120,6 +120,11 @@ const allergenIconMap: { [key: string]: { icon: React.ComponentType<any>; color:
 		icon: Nut,
 		color: "text-amber-600 dark:text-amber-400",
 		bgColor: "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800",
+	},
+	"látex": {
+		icon: Circle,
+		color: "text-gray-600 dark:text-gray-400",
+		bgColor: "bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800",
 	},
 }
 

@@ -40,6 +40,8 @@ const allergenMapping: { [key: string]: string } = {
 	peca: "Pecã",
 	pistache: "Pistache",
 	triticale: "Triticale",
+	latex: "Látex",
+	"borracha natural": "Látex",
 
 	// Variações em inglês que podem aparecer
 	milk: "Leite",
@@ -276,6 +278,7 @@ const commonAllergens = [
 	"cevada",
 	"aveia",
 	"glúten",
+	"látex",
 	"amêndoa",
 	"avelã",
 	"castanha-de-caju",

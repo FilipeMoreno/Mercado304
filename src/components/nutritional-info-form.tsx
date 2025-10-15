@@ -24,6 +24,7 @@ const commonAllergens = [
 	"Cevada",
 	"Crustáceos",
 	"Glúten",
+	"Látex",
 	"Leite",
 	"Macadâmia",
 	"Nozes",
