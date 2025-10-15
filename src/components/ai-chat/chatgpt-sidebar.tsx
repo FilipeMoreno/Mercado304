@@ -54,6 +54,7 @@ interface ChatGPTSidebarProps {
 	onClearAll: () => void
 	isCollapsed?: boolean
 	onToggleCollapse?: () => void
+	isMobile?: boolean
 }
 
 export function ChatGPTSidebar({
@@ -68,7 +69,8 @@ export function ChatGPTSidebar({
 	onArchiveSession,
 	onClearAll,
 	isCollapsed = false,
-	onToggleCollapse
+	onToggleCollapse,
+	isMobile = false,
 }: ChatGPTSidebarProps) {
 	const { theme } = useTheme()
 	const [searchTerm, setSearchTerm] = useState("")
@@ -201,7 +203,7 @@ export function ChatGPTSidebar({
 		<motion.div
 			initial={{ width: 60 }}
 			animate={{ width: 260 }}
-			className="sticky top-0 h-screen bg-accent border-r flex flex-col"
+			className={`sticky top-0 h-screen bg-accent border-r flex flex-col ${isMobile ? 'w-full' : ''}`}
 		>
 			{/* Header */}
 			<div className="p-4 border-b">

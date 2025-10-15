@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "@/lib/theme"
 import {
-	Bot, Camera, Menu,
+	Bot, Camera, Menu, Mic,
 	Plus, Settings, X
 } from "lucide-react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
@@ -15,6 +15,7 @@ import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
 import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
 import { ChatGPTSidebar } from "@/components/ai-chat/chatgpt-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
+import { AudioRecorder } from "@/components/audio-recorder/audio-recorder"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistory } from "@/hooks"
@@ -31,6 +32,7 @@ export default function CleanAssistentePage() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	const [isUsingAudioRecorder, setIsUsingAudioRecorder] = useState(false)
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -113,31 +115,31 @@ export default function CleanAssistentePage() {
 		// TODO: Implementar lógica para fixar/desafixar sessão
 		const session = sessions.find(s => s.id === sessionId)
 		const isPinned = session?.isPinned || false
-		
+
 		console.log(`${isPinned ? 'Desafixando' : 'Fixando'} sessão:`, sessionId)
-		
+
 		// Aqui você implementaria a lógica para:
 		// 1. Atualizar o estado da sessão no banco de dados
 		// 2. Atualizar o estado local das sessões
 		// 3. Reordenar a lista para mostrar sessões fixadas no topo
-		
+
 		// Exemplo de como seria:
 		// await updateSession(sessionId, { isPinned: !isPinned })
 		// await refreshSessions()
-		
+
 		alert(`Sessão ${isPinned ? 'desafixada' : 'fixada'} com sucesso!\n(Funcionalidade em desenvolvimento)`)
 	}
 
 	const handleShareSession = (sessionId: string) => {
 		const session = sessions.find(s => s.id === sessionId)
 		console.log('Compartilhando sessão:', session?.title || sessionId)
-		
+
 		// Aqui você implementaria:
 		// 1. Gerar um link público para a conversa
 		// 2. Abrir modal de compartilhamento
 		// 3. Copiar link para clipboard
 		// 4. Ou integrar com APIs de compartilhamento social
-		
+
 		// Exemplo básico - copiar ID para clipboard
 		const shareUrl = `${window.location.origin}/assistente?session=${sessionId}`
 		navigator.clipboard.writeText(shareUrl)
@@ -154,17 +156,17 @@ export default function CleanAssistentePage() {
 	const handleArchiveSession = (sessionId: string) => {
 		const session = sessions.find(s => s.id === sessionId)
 		console.log('Arquivando sessão:', session?.title || sessionId)
-		
+
 		// Aqui você implementaria:
 		// 1. Marcar sessão como arquivada no banco
 		// 2. Remover da lista principal
 		// 3. Manter dados para possível restauração
 		// 4. Opcional: criar seção "Arquivadas" separada
-		
+
 		// Exemplo de como seria:
 		// await updateSession(sessionId, { isArchived: true })
 		// await refreshSessions()
-		
+
 		alert(`Sessão "${session?.title || 'Sem título'}" arquivada!\n(Funcionalidade em desenvolvimento)`)
 	}
 
@@ -234,6 +236,31 @@ export default function CleanAssistentePage() {
 		}
 	}
 
+	const handleAudioRecording = async (audioBlob: Blob) => {
+		try {
+			addMessage({
+				role: "user",
+				content: "🎤 Áudio enviado para análise"
+			})
+
+			// Aqui você pode implementar o processamento do áudio
+			// Por exemplo, enviar para uma API de speech-to-text
+			// Por enquanto, vamos simular uma resposta
+			setTimeout(() => {
+				addMessage({
+					role: "assistant",
+					content: "Recebi sua mensagem de áudio! Em breve implementarei o processamento de áudio para conversão em texto."
+				})
+			}, 1000)
+		} catch (error) {
+			console.error('Erro ao processar áudio:', error)
+			addMessage({
+				role: "assistant",
+				content: "❌ Erro ao processar o áudio. Tente novamente."
+			})
+		}
+	}
+
 	// Configurar assistente de voz
 	useEffect(() => {
 		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -299,24 +326,6 @@ export default function CleanAssistentePage() {
 
 	return (
 		<div className="flex h-screen bg-background">
-			{/* Sidebar do Chat Estilo ChatGPT */}
-			<div className="hidden md:block">
-				<ChatGPTSidebar
-					sessions={sessions}
-					currentSessionId={currentSessionId || undefined}
-					onSessionSelect={handleSessionSelect}
-					onNewChat={handleNewChat}
-					onDeleteSession={deleteSession}
-					onRenameSession={renameSession}
-					onPinSession={handlePinSession}
-					onShareSession={handleShareSession}
-					onArchiveSession={handleArchiveSession}
-					onClearAll={clearAllHistory}
-					isCollapsed={isSidebarCollapsed}
-					onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-				/>
-			</div>
-
 			{/* Conteúdo Principal */}
 			<div className="flex-1 flex flex-col">
 				{/* Header - Só aparece quando há mensagens */}
@@ -328,15 +337,6 @@ export default function CleanAssistentePage() {
 					>
 						<div className="w-full mx-auto px-4 py-3 flex items-center justify-between">
 							<div className="flex items-center gap-3">
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => setShowHistorySidebar(true)}
-									className="md:hidden"
-								>
-									<Menu className="h-5 w-5" />
-								</Button>
-
 								<div className="flex items-center gap-3">
 									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
 										<Bot className="h-4 w-4 text-white" />
@@ -361,6 +361,16 @@ export default function CleanAssistentePage() {
 								>
 									<Plus className="h-4 w-4" />
 									Novo
+								</Button>
+
+								{/* Botão para mostrar/ocultar sidebar no mobile */}
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setShowHistorySidebar(!showHistorySidebar)}
+									className="md:hidden"
+								>
+									<Menu className="h-5 w-5" />
 								</Button>
 							</div>
 						</div>
@@ -506,24 +516,129 @@ export default function CleanAssistentePage() {
 					{/* Input Area - Sempre visível */}
 					<div className="border-t bg-background flex-shrink-0">
 						<div className="w-full max-w-4xl mx-auto px-4 py-4">
-							<EnhancedInput
-								value={input}
-								onChange={setInput}
-								onSubmit={handleSendMessage}
-								onPhotoCapture={() => setShowPhotoCapture(true)}
-								onSuggestionClick={handleSuggestionClick}
-								placeholder="Mensagem para o Zé..."
-								disabled={isLoading}
-								isLoading={isLoading}
-								isListening={isListening}
-								onStartListening={startListening}
-								onStopListening={stopListening}
-								isVoiceSupported={isVoiceSupported}
-							/>
+							{!isUsingAudioRecorder ? (
+								<div className="space-y-4">
+									<EnhancedInput
+										value={input}
+										onChange={setInput}
+										onSubmit={handleSendMessage}
+										onPhotoCapture={() => setShowPhotoCapture(true)}
+										onSuggestionClick={handleSuggestionClick}
+										placeholder="Mensagem para o Zé..."
+										disabled={isLoading}
+										isLoading={isLoading}
+										isListening={isListening}
+										onStartListening={startListening}
+										onStopListening={stopListening}
+										isVoiceSupported={isVoiceSupported}
+									/>
+									<div className="flex justify-center">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => setIsUsingAudioRecorder(true)}
+											className="gap-2"
+										>
+											<Mic className="h-4 w-4" />
+											Gravar Áudio
+										</Button>
+									</div>
+								</div>
+							) : (
+								<div className="space-y-4">
+									<AudioRecorder
+										onRecordingComplete={handleAudioRecording}
+										onError={(error) => {
+											console.error('Erro no gravador de áudio:', error)
+											addMessage({
+												role: "assistant",
+												content: "❌ Erro ao acessar o microfone. Verifique as permissões."
+											})
+										}}
+										disabled={isLoading}
+									/>
+									<div className="flex justify-center">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => setIsUsingAudioRecorder(false)}
+										>
+											Voltar ao Texto
+										</Button>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
 			</div>
+
+			{/* Sidebar do Chat Estilo ChatGPT - Lado Direito */}
+			<div className="hidden md:block">
+				<ChatGPTSidebar
+					sessions={sessions}
+					currentSessionId={currentSessionId || undefined}
+					onSessionSelect={handleSessionSelect}
+					onNewChat={handleNewChat}
+					onDeleteSession={deleteSession}
+					onRenameSession={renameSession}
+					onPinSession={handlePinSession}
+					onShareSession={handleShareSession}
+					onArchiveSession={handleArchiveSession}
+					onClearAll={clearAllHistory}
+					isCollapsed={isSidebarCollapsed}
+					onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+				/>
+			</div>
+
+			{/* Sidebar Mobile - Overlay */}
+			<AnimatePresence>
+				{showHistorySidebar && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 bg-black/50 z-50 md:hidden"
+						onClick={() => setShowHistorySidebar(false)}
+					>
+						<motion.div
+							initial={{ x: "100%" }}
+							animate={{ x: 0 }}
+							exit={{ x: "100%" }}
+							className="absolute right-0 top-0 h-full w-80 bg-background border-l shadow-xl"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="p-4 border-b flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Histórico de Conversas</h3>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setShowHistorySidebar(false)}
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							</div>
+							<div className="h-full overflow-y-auto">
+								<ChatGPTSidebar
+									sessions={sessions}
+									currentSessionId={currentSessionId || undefined}
+									onSessionSelect={handleSessionSelect}
+									onNewChat={handleNewChat}
+									onDeleteSession={deleteSession}
+									onRenameSession={renameSession}
+									onPinSession={handlePinSession}
+									onShareSession={handleShareSession}
+									onArchiveSession={handleArchiveSession}
+									onClearAll={clearAllHistory}
+									isCollapsed={false}
+									onToggleCollapse={() => { }}
+									isMobile={true}
+								/>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			{/* Modal de Captura de Fotos */}
 			<AnimatePresence>
