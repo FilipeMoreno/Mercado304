@@ -1,15 +1,17 @@
 "use client"
 
 import { AlertCircle, Check, Link as LinkIcon, Package, Plus, X } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { ProductSelect } from "@/components/selects/product-select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface ShoppingListItem {
   id: string
@@ -38,29 +40,55 @@ interface ShoppingListReviewProps {
 }
 
 export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }: ShoppingListReviewProps) {
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>(
-    items.map(item => ({
-      ...item,
-      linkedProductId: item.productId, // Já vinculado ou undefined
-      unitPrice: item.estimatedPrice || 0,
-      unitDiscount: 0,
-    }))
-  )
+	const [reviewItems, setReviewItems] = useState<ReviewItem[]>(
+		items.map(item => ({
+			...item,
+			linkedProductId: item.productId, // Já vinculado ou undefined
+			unitPrice: item.estimatedPrice || 0,
+			unitDiscount: 0,
+		}))
+	)
+	const [products, setProducts] = useState<any[]>([])
+	const [openPopover, setOpenPopover] = useState<number | null>(null)
 
-  const unlinkedCount = reviewItems.filter(item => !item.linkedProductId).length
-  const linkedCount = reviewItems.filter(item => item.linkedProductId).length
+	// Buscar produtos
+	useEffect(() => {
+		const fetchProducts = async () => {
+			try {
+				const response = await fetch('/api/products')
+				if (response.ok) {
+					const data = await response.json()
+					setProducts(data.products || [])
+				}
+			} catch (error) {
+				console.error('Erro ao buscar produtos:', error)
+			}
+		}
+		fetchProducts()
+	}, [])
 
-  const handleProductLink = (index: number, productId: string, product: any) => {
-    const newItems = [...reviewItems]
-    newItems[index].linkedProductId = productId
+	const unlinkedCount = reviewItems.filter(item => !item.linkedProductId).length
+	const linkedCount = reviewItems.filter(item => item.linkedProductId).length
 
-    // Atualiza dados do produto se selecionado
-    if (product) {
-      toast.success(`"${newItems[index].productName}" vinculado a "${product.name}"`)
-    }
+	const handleProductNameChange = (index: number, newName: string) => {
+		const newItems = [...reviewItems]
+		newItems[index].productName = newName
+		// Ao editar o nome manualmente, remove o vínculo
+		if (newItems[index].linkedProductId) {
+			newItems[index].linkedProductId = undefined
+		}
+		setReviewItems(newItems)
+	}
 
-    setReviewItems(newItems)
-  }
+	const handleProductLink = (index: number, product: any) => {
+		const newItems = [...reviewItems]
+		newItems[index].linkedProductId = product.id
+		newItems[index].productName = product.name
+		
+		toast.success(`Produto vinculado: "${product.name}"`)
+		setReviewItems(newItems)
+		setOpenPopover(null)
+	}
 
   const handleUnlink = (index: number) => {
     const newItems = [...reviewItems]
@@ -169,19 +197,58 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Vinculação de produto */}
+                {/* Nome do produto (texto livre ou vinculado) */}
                 <div className="space-y-2">
-                  <Label>Vincular a Produto (opcional)</Label>
+                  <Label>Nome do Produto</Label>
                   <div className="flex gap-2">
-                    <ProductSelect
-                      value={item.linkedProductId}
-                      onValueChange={(productId) => {
-                        const product = null // TODO: buscar produto
-                        handleProductLink(index, productId, product)
-                      }}
-                      placeholder="Buscar produto cadastrado..."
-                      className="flex-1"
-                    />
+                    <div className="flex-1 relative">
+                      <Input
+                        value={item.productName}
+                        onChange={(e) => handleProductNameChange(index, e.target.value)}
+                        placeholder="Digite o nome do produto..."
+                        className="pr-10"
+                      />
+                      <Popover open={openPopover === index} onOpenChange={(open) => setOpenPopover(open ? index : null)}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3"
+                            title="Buscar produto cadastrado"
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Buscar produto..." />
+                            <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+                            <CommandGroup className="max-h-[300px] overflow-auto">
+                              {products.map((product) => (
+                                <CommandItem
+                                  key={product.id}
+                                  value={product.name}
+                                  onSelect={() => handleProductLink(index, product)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      item.linkedProductId === product.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex-1">
+                                    <div className="font-medium">{product.name}</div>
+                                    {product.brand && (
+                                      <div className="text-xs text-muted-foreground">{product.brand.name}</div>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     {isLinked && (
                       <Button
                         variant="outline"
@@ -193,6 +260,11 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                       </Button>
                     )}
                   </div>
+                  {isLinked && (
+                    <p className="text-xs text-muted-foreground">
+                      ✓ Vinculado a produto cadastrado
+                    </p>
+                  )}
                 </div>
 
                 {/* Preços */}
