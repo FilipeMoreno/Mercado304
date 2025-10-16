@@ -16,7 +16,7 @@ import {
 	Zap,
 } from "lucide-react"
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { MarketSelect } from "@/components/selects/market-select"
 import { ProductSelect } from "@/components/selects/product-select"
@@ -122,7 +122,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	})
 
 	// Carregar registros de preços
-	const loadPriceRecords = async (filters?: { product?: string; market?: string }) => {
+	const loadPriceRecords = useCallback(async (filters?: { product?: string; market?: string }) => {
 		setLoading(true)
 		try {
 			const params = new URLSearchParams()
@@ -144,7 +144,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			setLoading(false)
 			setInitialLoading(false)
 		}
-	}
+	}, [])
 
 	// Registrar novo preço
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -249,7 +249,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				})
 				setPrice(result.price.toString())
 				setNotes(`Registrado via scanner (confiança: ${Math.round(result.confidence * 100)}%)`)
-				
+
 				toast.success(`Produto encontrado: ${product.name}`)
 			} else {
 				// Produto não encontrado - criar novo produto
@@ -272,7 +272,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					})
 					setPrice(result.price.toString())
 					setNotes(`Produto criado via scanner (confiança: ${Math.round(result.confidence * 100)}%)`)
-					
+
 					toast.success("Novo produto criado e preço preenchido!")
 				} else {
 					toast.error("Erro ao criar produto automaticamente")

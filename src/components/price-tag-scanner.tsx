@@ -25,7 +25,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
-	
+
 	const [error, setError] = useState<string>("")
 	const [isFlashOn, setIsFlashOn] = useState(false)
 	const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
@@ -159,23 +159,23 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				const constraints = {
 					video: deviceId
 						? {
-								deviceId: { exact: deviceId },
-								width: { ideal: 1920, min: 1280 },
-								height: { ideal: 1080, min: 720 },
-								frameRate: { ideal: 30, min: 20 },
-								focusMode: { ideal: "continuous" },
-								exposureMode: { ideal: "continuous" },
-								whiteBalanceMode: { ideal: "continuous" },
-							}
+							deviceId: { exact: deviceId },
+							width: { ideal: 1920, min: 1280 },
+							height: { ideal: 1080, min: 720 },
+							frameRate: { ideal: 30, min: 20 },
+							focusMode: { ideal: "continuous" },
+							exposureMode: { ideal: "continuous" },
+							whiteBalanceMode: { ideal: "continuous" },
+						}
 						: {
-								facingMode: { ideal: "environment" },
-								width: { ideal: 1920, min: 1280 },
-								height: { ideal: 1080, min: 720 },
-								frameRate: { ideal: 30, min: 20 },
-								focusMode: { ideal: "continuous" },
-								exposureMode: { ideal: "continuous" },
-								whiteBalanceMode: { ideal: "continuous" },
-							},
+							facingMode: { ideal: "environment" },
+							width: { ideal: 1920, min: 1280 },
+							height: { ideal: 1080, min: 720 },
+							frameRate: { ideal: 30, min: 20 },
+							focusMode: { ideal: "continuous" },
+							exposureMode: { ideal: "continuous" },
+							whiteBalanceMode: { ideal: "continuous" },
+						},
 				}
 
 				const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -275,9 +275,9 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 			const response = await fetch("/api/ai/price-tag-scan", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ 
+				body: JSON.stringify({
 					imageUrl: imageDataUrl,
-					marketId: marketId 
+					marketId: marketId
 				}),
 			})
 
@@ -308,29 +308,45 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 
 	// Inicializar quando abrir
 	useEffect(() => {
-		if (isOpen && devices.length === 0) {
-			getVideoDevices().then((deviceId) => {
-				if (deviceId) {
-					initializeCamera(deviceId)
-				}
-			})
+		if (!isOpen) {
+			stopStream()
+			setDevices([])
+			setSelectedDeviceId("")
+			setError("")
+			setCapturedImage("")
+			return
 		}
-	}, [isOpen, getVideoDevices, initializeCamera, devices.length])
 
-	// Trocar câmera quando selectedDeviceId mudar
+		// Inicializar câmera quando abrir
+		const init = async () => {
+			try {
+				const deviceId = await getVideoDevices()
+				if (deviceId) {
+					await initializeCamera(deviceId)
+				} else {
+					setError("Nenhuma câmera encontrada")
+					setIsLoading(false)
+				}
+			} catch (err) {
+				console.error("Erro na inicialização:", err)
+				setError("Erro ao inicializar câmera")
+				setIsLoading(false)
+			}
+		}
+
+		init()
+	}, [isOpen, getVideoDevices, initializeCamera, stopStream])
+
+	// Trocar câmera quando selectedDeviceId mudar (apenas após inicialização)
 	useEffect(() => {
 		if (!isOpen || !selectedDeviceId || devices.length === 0 || isLoading) return
 
-		console.log("Trocando para câmera:", selectedDeviceId)
-		initializeCamera(selectedDeviceId)
-	}, [selectedDeviceId, isOpen, initializeCamera, devices.length, isLoading])
-
-	// Cleanup
-	useEffect(() => {
-		return () => {
-			stopStream()
+		// Não reinicializar na primeira vez (já foi inicializado acima)
+		if (isCameraActive) {
+			console.log("Trocando para câmera:", selectedDeviceId)
+			initializeCamera(selectedDeviceId)
 		}
-	}, [stopStream])
+	}, [selectedDeviceId])
 
 	if (!isOpen) return null
 
