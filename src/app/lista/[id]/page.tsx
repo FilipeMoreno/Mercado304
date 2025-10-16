@@ -162,9 +162,11 @@ export default function ListaDetalhesPage() {
 
 	const fetchProducts = useCallback(async () => {
 		try {
-			const response = await fetch("/api/products")
+			// Buscar TODOS os produtos sem paginação
+			const response = await fetch("/api/products?limit=10000")
 			if (response.ok) {
-				setProducts(await response.json())
+				const data = await response.json()
+				setProducts(data.products || [])
 			}
 		} catch (error) {
 			console.error("Erro ao carregar produtos:", error)

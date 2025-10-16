@@ -160,7 +160,8 @@ export default function NovaListaPage() {
 
 	const fetchData = useCallback(async () => {
 		try {
-			const productsRes = await fetch("/api/products")
+			// Buscar TODOS os produtos sem paginação
+			const productsRes = await fetch("/api/products?limit=10000")
 
 			if (productsRes.ok) {
 				const productsData = await productsRes.json()

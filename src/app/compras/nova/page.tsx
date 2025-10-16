@@ -100,15 +100,16 @@ export default function NovaCompraPage() {
 	])
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 
-// Inputs control arrays to support empty values (qty with 3 decimals, price with 2)
-const [quantityInputs, setQuantityInputs] = useState<string[]>(["1.000"])
-const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
-const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>(["0.00"])
-const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
+	// Inputs control arrays to support empty values (qty with 3 decimals, price with 2)
+	const [quantityInputs, setQuantityInputs] = useState<string[]>(["1.000"])
+	const [unitPriceInputs, setUnitPriceInputs] = useState<string[]>(["0.00"])
+	const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>(["0.00"])
+	const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 
 	const fetchData = React.useCallback(async () => {
 		try {
-			const productsRes = await fetch("/api/products")
+			// Buscar TODOS os produtos sem paginação
+			const productsRes = await fetch("/api/products?limit=10000")
 			if (productsRes.ok) {
 				const productsData = await productsRes.json()
 				setProducts(productsData.products)
@@ -179,9 +180,9 @@ const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 			},
 		])
 		setCheckingPrices([...checkingPrices, false])
-    setQuantityInputs((prev) => [...prev, "1.000"])
-    setUnitPriceInputs((prev) => [...prev, "0.00"])
-    setUnitDiscountInputs((prev) => [...prev, "0.00"])
+		setQuantityInputs((prev) => [...prev, "1.000"])
+		setUnitPriceInputs((prev) => [...prev, "0.00"])
+		setUnitDiscountInputs((prev) => [...prev, "0.00"])
 	}
 
 	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
@@ -498,12 +499,12 @@ const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
 						<Card>
 							<CardHeader>
-							<div className="flex justify-between items-center">
-								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5" />
-									Itens da Compra
-								</CardTitle>
-							</div>
+								<div className="flex justify-between items-center">
+									<CardTitle className="flex items-center gap-2">
+										<Package className="h-5 w-5" />
+										Itens da Compra
+									</CardTitle>
+								</div>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-4">
@@ -517,117 +518,117 @@ const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 												transition={{ delay: 0.3 + index * 0.05 }}
 												className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
 											>
-                                            {/* Número do item */}
-                                            <div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
+												{/* Número do item */}
+												<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
 
-                                            {/* Produto em largura total */}
-                                            <div className="space-y-2">
-                                                <Label>Produto *</Label>
-                                                <ProductSelect
-                                                    value={item.productId || ""}
-                                                    className="w-full"
-                                                    onValueChange={(value) => updateItem(index, "productId", value)}
-                                                    products={products}
-                                                    preserveFormData={{
-                                                        formData,
-                                                        items,
-                                                        targetItemIndex: index,
-                                                    }}
-                                                />
-                                            </div>
+												{/* Produto em largura total */}
+												<div className="space-y-2">
+													<Label>Produto *</Label>
+													<ProductSelect
+														value={item.productId || ""}
+														className="w-full"
+														onValueChange={(value) => updateItem(index, "productId", value)}
+														products={products}
+														preserveFormData={{
+															formData,
+															items,
+															targetItemIndex: index,
+														}}
+													/>
+												</div>
 
-                                            {/* Quantidade, Preço, Desconto e Total em 4 colunas */}
-                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                <div className="space-y-2">
-                                                    <Label>Quantidade *</Label>
-                                                    <Input
-                                                        type="text"
-                                                        inputMode="decimal"
-                                                        step="0.001"
-                                                        min="0"
-                                                        value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value
-                                                            setQuantityInputs((prev) => {
-                                                                const next = [...prev]
-                                                                next[index] = raw
-                                                                return next
-                                                            })
-                                                            const normalized = raw.replace(',', '.')
-                                                            const parsed = parseFloat(normalized)
-                                                            if (!Number.isNaN(parsed)) {
-                                                                updateItem(index, "quantity", parsed)
-                                                            } else if (raw === "") {
-                                                                updateItem(index, "quantity", 0)
-                                                            }
-                                                        }}
-                                                        placeholder="0,000"
-                                                        className="text-center"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Preço Unitário *</Label>
-                                                    <Input
-                                                        type="text"
-                                                        inputMode="decimal"
-                                                        step="0.01"
-                                                        min="0"
-                                                        value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value
-                                                            setUnitPriceInputs((prev) => {
-                                                                const next = [...prev]
-                                                                next[index] = raw
-                                                                return next
-                                                            })
-                                                            const normalized = raw.replace(',', '.')
-                                                            const parsed = parseFloat(normalized)
-                                                            if (!Number.isNaN(parsed)) {
-                                                                updateItem(index, "unitPrice", parsed)
-                                                            } else if (raw === "") {
-                                                                updateItem(index, "unitPrice", 0)
-                                                            }
-                                                        }}
-                                                        placeholder="0,00"
-                                                        className="text-center"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>Desconto por Unidade</Label>
-                                                    <Input
-                                                        type="text"
-                                                        inputMode="decimal"
-                                                        step="0.01"
-                                                        min="0"
-                                                        value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value
-                                                            setUnitDiscountInputs((prev) => {
-                                                                const next = [...prev]
-                                                                next[index] = raw
-                                                                return next
-                                                            })
-                                                            const normalized = raw.replace(',', '.')
-                                                            const parsed = parseFloat(normalized)
-                                                            if (!Number.isNaN(parsed)) {
-                                                                updateItem(index, "unitDiscount", parsed)
-                                                            } else if (raw === "") {
-                                                                updateItem(index, "unitDiscount", 0)
-                                                            }
-                                                        }}
-                                                        placeholder="0,00"
-                                                        className="text-center"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2 md:block">
-                                                    <Label>Total</Label>
-                                                    <Input
-                                                        value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
-                                                        disabled
-                                                        className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
-                                                    />
-                                                </div>
-                                            </div>
+												{/* Quantidade, Preço, Desconto e Total em 4 colunas */}
+												<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+													<div className="space-y-2">
+														<Label>Quantidade *</Label>
+														<Input
+															type="text"
+															inputMode="decimal"
+															step="0.001"
+															min="0"
+															value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
+															onChange={(e) => {
+																const raw = e.target.value
+																setQuantityInputs((prev) => {
+																	const next = [...prev]
+																	next[index] = raw
+																	return next
+																})
+																const normalized = raw.replace(',', '.')
+																const parsed = parseFloat(normalized)
+																if (!Number.isNaN(parsed)) {
+																	updateItem(index, "quantity", parsed)
+																} else if (raw === "") {
+																	updateItem(index, "quantity", 0)
+																}
+															}}
+															placeholder="0,000"
+															className="text-center"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Preço Unitário *</Label>
+														<Input
+															type="text"
+															inputMode="decimal"
+															step="0.01"
+															min="0"
+															value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
+															onChange={(e) => {
+																const raw = e.target.value
+																setUnitPriceInputs((prev) => {
+																	const next = [...prev]
+																	next[index] = raw
+																	return next
+																})
+																const normalized = raw.replace(',', '.')
+																const parsed = parseFloat(normalized)
+																if (!Number.isNaN(parsed)) {
+																	updateItem(index, "unitPrice", parsed)
+																} else if (raw === "") {
+																	updateItem(index, "unitPrice", 0)
+																}
+															}}
+															placeholder="0,00"
+															className="text-center"
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Desconto por Unidade</Label>
+														<Input
+															type="text"
+															inputMode="decimal"
+															step="0.01"
+															min="0"
+															value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
+															onChange={(e) => {
+																const raw = e.target.value
+																setUnitDiscountInputs((prev) => {
+																	const next = [...prev]
+																	next[index] = raw
+																	return next
+																})
+																const normalized = raw.replace(',', '.')
+																const parsed = parseFloat(normalized)
+																if (!Number.isNaN(parsed)) {
+																	updateItem(index, "unitDiscount", parsed)
+																} else if (raw === "") {
+																	updateItem(index, "unitDiscount", 0)
+																}
+															}}
+															placeholder="0,00"
+															className="text-center"
+														/>
+													</div>
+													<div className="space-y-2 md:block">
+														<Label>Total</Label>
+														<Input
+															value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
+															disabled
+															className="bg-secondary text-secondary-foreground dark:opacity-70 text-center font-semibold"
+														/>
+													</div>
+												</div>
 
 												{/* Alertas e insights */}
 												<div className="space-y-3">
@@ -750,8 +751,8 @@ const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 								</div>
 
 								{/* Total e botões de ação - apenas no desktop */}
-									<div className="hidden md:flex justify-between items-center pt-4 border-t">
-										<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
+								<div className="hidden md:flex justify-between items-center pt-4 border-t">
+									<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="h-4 w-4 mr-2" />

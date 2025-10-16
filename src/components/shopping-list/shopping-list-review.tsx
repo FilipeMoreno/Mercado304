@@ -40,55 +40,55 @@ interface ShoppingListReviewProps {
 }
 
 export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }: ShoppingListReviewProps) {
-	const [reviewItems, setReviewItems] = useState<ReviewItem[]>(
-		items.map(item => ({
-			...item,
-			linkedProductId: item.productId, // Já vinculado ou undefined
-			unitPrice: item.estimatedPrice || 0,
-			unitDiscount: 0,
-		}))
-	)
-	const [products, setProducts] = useState<any[]>([])
-	const [openPopover, setOpenPopover] = useState<number | null>(null)
+  const [reviewItems, setReviewItems] = useState<ReviewItem[]>(
+    items.map(item => ({
+      ...item,
+      linkedProductId: item.productId, // Já vinculado ou undefined
+      unitPrice: item.estimatedPrice || 0,
+      unitDiscount: 0,
+    }))
+  )
+  const [products, setProducts] = useState<any[]>([])
+  const [openPopover, setOpenPopover] = useState<number | null>(null)
 
-	// Buscar produtos
-	useEffect(() => {
-		const fetchProducts = async () => {
-			try {
-				const response = await fetch('/api/products')
-				if (response.ok) {
-					const data = await response.json()
-					setProducts(data.products || [])
-				}
-			} catch (error) {
-				console.error('Erro ao buscar produtos:', error)
-			}
-		}
-		fetchProducts()
-	}, [])
+  // Buscar TODOS os produtos (sem paginação)
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products?limit=10000')
+        if (response.ok) {
+          const data = await response.json()
+          setProducts(data.products || [])
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produtos:', error)
+      }
+    }
+    fetchProducts()
+  }, [])
 
-	const unlinkedCount = reviewItems.filter(item => !item.linkedProductId).length
-	const linkedCount = reviewItems.filter(item => item.linkedProductId).length
+  const unlinkedCount = reviewItems.filter(item => !item.linkedProductId).length
+  const linkedCount = reviewItems.filter(item => item.linkedProductId).length
 
-	const handleProductNameChange = (index: number, newName: string) => {
-		const newItems = [...reviewItems]
-		newItems[index].productName = newName
-		// Ao editar o nome manualmente, remove o vínculo
-		if (newItems[index].linkedProductId) {
-			newItems[index].linkedProductId = undefined
-		}
-		setReviewItems(newItems)
-	}
+  const handleProductNameChange = (index: number, newName: string) => {
+    const newItems = [...reviewItems]
+    newItems[index].productName = newName
+    // Ao editar o nome manualmente, remove o vínculo
+    if (newItems[index].linkedProductId) {
+      newItems[index].linkedProductId = undefined
+    }
+    setReviewItems(newItems)
+  }
 
-	const handleProductLink = (index: number, product: any) => {
-		const newItems = [...reviewItems]
-		newItems[index].linkedProductId = product.id
-		newItems[index].productName = product.name
-		
-		toast.success(`Produto vinculado: "${product.name}"`)
-		setReviewItems(newItems)
-		setOpenPopover(null)
-	}
+  const handleProductLink = (index: number, product: any) => {
+    const newItems = [...reviewItems]
+    newItems[index].linkedProductId = product.id
+    newItems[index].productName = product.name
+
+    toast.success(`Produto vinculado: "${product.name}"`)
+    setReviewItems(newItems)
+    setOpenPopover(null)
+  }
 
   const handleUnlink = (index: number) => {
     const newItems = [...reviewItems]
