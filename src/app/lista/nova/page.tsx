@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowLeft, Camera, List, Plus, Save, Sparkles, Trash2 } from "lucide-react"
+import { ArrowLeft, Camera, Check, LinkIcon, List, Plus, Save, Sparkles, Trash2, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useId, useState } from "react"
@@ -9,19 +9,23 @@ import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { PriceAlert } from "@/components/price-alert"
 import { RelatedProductsCard } from "@/components/related-products-card"
-import { ProductSelect } from "@/components/selects/product-select"
 import { PhotoListCreator } from "@/components/shopping-list/photo-list-creator"
 import { NovaListaSkeleton } from "@/components/skeletons/nova-lista-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useCreateShoppingListMutation } from "@/hooks"
+import { cn } from "@/lib/utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 interface ShoppingListItem {
-	productId: string
+	productId?: string
+	productName: string
+	productUnit: string
 	quantity: number | string
 	estimatedPrice?: number | string
 	priceAlert?: {
@@ -50,7 +54,7 @@ export default function NovaListaPage() {
 	const searchParams = useSearchParams()
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const id = useId()
-	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
@@ -59,11 +63,12 @@ export default function NovaListaPage() {
 	const { showInsight } = useProactiveAiStore()
 
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
+	const [openPopovers, setOpenPopovers] = useState<number[]>([])
 
 	const [listName, setListName] = useState("")
 
 	const [items, setItems] = useState<ShoppingListItem[]>([
-		{ productId: "", quantity: 1, estimatedPrice: "", priceAlert: undefined },
+		{ productId: undefined, productName: "", productUnit: "unidade", quantity: 1, estimatedPrice: "", priceAlert: undefined },
 	])
 
 	// Inputs control arrays to allow empty typing and specific decimals
@@ -82,6 +87,46 @@ export default function NovaListaPage() {
 			return newItems
 		})
 	}, [])
+
+	const handleProductNameChange = (index: number, name: string) => {
+		setItems((currentItems) => {
+			const newItems = [...currentItems]
+			newItems[index] = {
+				...newItems[index],
+				productName: name,
+				// Remove vínculo se editar manualmente
+				productId: undefined,
+			}
+			return newItems
+		})
+	}
+
+	const handleProductSelected = (index: number, product: any) => {
+		setItems((currentItems) => {
+			const newItems = [...currentItems]
+			newItems[index] = {
+				...newItems[index],
+				productId: product.id,
+				productName: product.name,
+				productUnit: product.unit || "unidade",
+			}
+			return newItems
+		})
+		// Fecha o popover
+		setOpenPopovers(prev => prev.filter(i => i !== index))
+		toast.success(`Produto vinculado: "${product.name}"`)
+	}
+
+	const handleUnlinkProduct = (index: number) => {
+		setItems((currentItems) => {
+			const newItems = [...currentItems]
+			newItems[index] = {
+				...newItems[index],
+				productId: undefined,
+			}
+			return newItems
+		})
+	}
 
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
@@ -133,7 +178,7 @@ export default function NovaListaPage() {
 	}, [fetchData])
 
 	const addItem = () => {
-		setItems([...items, { productId: "", quantity: 1, estimatedPrice: "", priceAlert: undefined }])
+		setItems([...items, { productId: undefined, productName: "", productUnit: "unidade", quantity: 1, estimatedPrice: "", priceAlert: undefined }])
 		setCheckingPrices([...checkingPrices, false])
 		setRelatedProductsVisibility([...relatedProductsVisibility, true])
 		setPriceAlertVisibility([...priceAlertVisibility, true])
@@ -187,7 +232,15 @@ export default function NovaListaPage() {
 			return
 		}
 
-		setItems([...items, { productId, quantity: 1, estimatedPrice: "", priceAlert: undefined }])
+		const product = products.find(p => p.id === productId)
+		setItems([...items, {
+			productId,
+			productName: product?.name || "",
+			productUnit: (product as any)?.unit || "unidade",
+			quantity: 1,
+			estimatedPrice: "",
+			priceAlert: undefined
+		}])
 		toast.success("Produto adicionado à lista!")
 	}
 
@@ -240,7 +293,7 @@ export default function NovaListaPage() {
 		const validItems = items
 			.filter((item) => {
 				const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity
-				return item.productId && qty > 0 && !isNaN(qty)
+				return item.productName.trim() && qty > 0 && !isNaN(qty)
 			})
 			.map((item) => ({
 				...item,
@@ -259,7 +312,9 @@ export default function NovaListaPage() {
 			await createShoppingListMutation.mutateAsync({
 				name: listName,
 				items: validItems.map((item) => ({
-					productId: item.productId,
+					productId: item.productId || undefined,
+					productName: item.productName,
+					productUnit: item.productUnit,
 					quantity: item.quantity,
 					estimatedPrice: item.estimatedPrice || 0,
 				})) as any,
@@ -316,18 +371,22 @@ export default function NovaListaPage() {
 			// Converter itens finais para o formato da lista
 			const convertedItems = finalItems.map((finalItem) => {
 				if (finalItem.isTemporary) {
-					// Item temporário
+					// Item temporário - texto livre
 					return {
-						productId: "", // Será criado como temporário
+						productId: undefined,
+						productName: finalItem.tempName || "",
+						productUnit: "unidade",
 						quantity: finalItem.quantity,
 						estimatedPrice: "",
 						priceAlert: undefined,
-						tempName: finalItem.tempName, // Nome temporário
 					}
 				} else {
 					// Item com produto associado
+					const product = products.find(p => p.id === finalItem.productId)
 					return {
 						productId: finalItem.productId,
+						productName: product?.name || "",
+						productUnit: (product as any)?.unit || "unidade",
 						quantity: finalItem.quantity,
 						estimatedPrice: "",
 						priceAlert: undefined,
@@ -337,7 +396,7 @@ export default function NovaListaPage() {
 
 			// Substituir itens atuais pelos da foto
 			setItems(convertedItems)
-			
+
 			// Ajustar arrays de controle
 			setCheckingPrices(new Array(convertedItems.length).fill(false))
 			setRelatedProductsVisibility(new Array(convertedItems.length).fill(true))
@@ -440,104 +499,170 @@ export default function NovaListaPage() {
 											transition={{ delay: 0.3 + index * 0.05 }}
 											className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
 										>
-									{/* Número do item */}
-									<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
+											{/* Número do item */}
+											<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
 
-									{/* Produto full width */}
-									<div className="space-y-2">
-										<Label>Produto *</Label>
-										<ProductSelect
-											value={item.productId}
-											products={products as any}
-											onValueChange={(value) => updateItem(index, "productId", value)}
-											preserveFormData={{
-												listName,
-												items,
-												targetItemIndex: index,
-											}}
-										/>
-									</div>
+											{/* Produto full width - Input híbrido */}
+											<div className="space-y-2">
+												<Label>Nome do Produto *</Label>
+												<div className="flex gap-2">
+													<div className="flex-1 relative">
+														<Input
+															value={item.productName}
+															onChange={(e) => handleProductNameChange(index, e.target.value)}
+															placeholder="Digite o nome ou busque um produto..."
+															className="pr-10"
+														/>
+														<Popover
+															open={openPopovers.includes(index)}
+															onOpenChange={(open) => {
+																if (open) {
+																	setOpenPopovers(prev => [...prev, index])
+																} else {
+																	setOpenPopovers(prev => prev.filter(i => i !== index))
+																}
+															}}
+														>
+															<PopoverTrigger asChild>
+																<Button
+																	type="button"
+																	variant="ghost"
+																	size="sm"
+																	className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+																	title="Buscar produto cadastrado"
+																>
+																	<LinkIcon className="h-4 w-4" />
+																</Button>
+															</PopoverTrigger>
+															<PopoverContent className="w-[400px] p-0" align="start">
+																<Command>
+																	<CommandInput placeholder="Buscar produto..." />
+																	<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+																	<CommandGroup className="max-h-[300px] overflow-auto">
+																		{products.map((product) => (
+																			<CommandItem
+																				key={product.id}
+																				value={product.name}
+																				onSelect={() => handleProductSelected(index, product)}
+																			>
+																				<Check
+																					className={cn(
+																						"mr-2 h-4 w-4",
+																						item.productId === product.id ? "opacity-100" : "opacity-0"
+																					)}
+																				/>
+																				<div className="flex-1">
+																					<div className="font-medium">{product.name}</div>
+																					{(product as any).brand && (
+																						<div className="text-xs text-muted-foreground">{(product as any).brand.name}</div>
+																					)}
+																				</div>
+																			</CommandItem>
+																		))}
+																	</CommandGroup>
+																</Command>
+															</PopoverContent>
+														</Popover>
+													</div>
+													{item.productId && (
+														<Button
+															type="button"
+															variant="outline"
+															size="icon"
+															onClick={() => handleUnlinkProduct(index)}
+															title="Desvincular produto"
+														>
+															<X className="h-4 w-4" />
+														</Button>
+													)}
+												</div>
+												{item.productId && (
+													<p className="text-xs text-green-600">
+														✓ Vinculado a produto cadastrado
+													</p>
+												)}
+											</div>
 
-									{/* Quantidade, Preço, Total */}
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-										<div className="space-y-2">
-											<Label>Quantidade *</Label>
-											<Input
-												type="text"
-												inputMode="decimal"
-												step="0.001"
-												min="0"
-												value={quantityInputs[index] ?? (items[index]?.quantity ? String(items[index].quantity) : "")}
-												onChange={(e) => {
-													const raw = e.target.value
-													setQuantityInputs((prev) => {
-														const next = [...prev]
-														next[index] = raw
-														return next
-													})
-													
-													// Permitir campo vazio
-													if (raw === "") {
-														updateItem(index, "quantity", "")
-														return
-													}
-													
-													// Normalizar vírgula para ponto
-													const normalized = raw.replace(',', '.')
-													
-													// Validar se é um número válido (incluindo decimais)
-													const numberRegex = /^\d*\.?\d*$/
-													if (numberRegex.test(normalized)) {
-														const parsed = parseFloat(normalized)
-														if (!Number.isNaN(parsed) && parsed >= 0) {
-															updateItem(index, "quantity", parsed)
-														} else if (normalized === "" || normalized === ".") {
-															updateItem(index, "quantity", "")
-														}
-													}
-												}}
-												placeholder="0,000"
-												className="text-center"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label>Preço Estimado</Label>
-											<Input
-												type="text"
-												inputMode="decimal"
-												step="0.01"
-												min="0"
-												value={priceInputs[index] ?? (items[index]?.estimatedPrice ? String(items[index].estimatedPrice) : "")}
-												onChange={(e) => {
-													const raw = e.target.value
-													setPriceInputs((prev) => {
-														const next = [...prev]
-														next[index] = raw
-														return next
-													})
-													const normalized = raw.replace(',', '.')
-													const parsed = parseFloat(normalized)
-													if (!Number.isNaN(parsed)) {
-														updateItem(index, "estimatedPrice", parsed)
-														// trigger best price check on blur in original; here we can still call on blur
-													} else if (raw === "") {
-														updateItem(index, "estimatedPrice", "")
-													}
-												}}
-												onBlur={() => handlePriceBlur(index)}
-												placeholder="0,00"
-												className="text-center"
-											/>
-										</div>
-										<div className="space-y-2 md:block">
-											<Label>Total</Label>
-											<Input
-												value={`R$ ${((typeof items[index].quantity === 'string' ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
-												disabled
-												className="bg-gray-50 text-center font-semibold"
-											/>
-										</div>
-									</div>
+											{/* Quantidade, Preço, Total */}
+											<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+												<div className="space-y-2">
+													<Label>Quantidade *</Label>
+													<Input
+														type="text"
+														inputMode="decimal"
+														step="0.001"
+														min="0"
+														value={quantityInputs[index] ?? (items[index]?.quantity ? String(items[index].quantity) : "")}
+														onChange={(e) => {
+															const raw = e.target.value
+															setQuantityInputs((prev) => {
+																const next = [...prev]
+																next[index] = raw
+																return next
+															})
+
+															// Permitir campo vazio
+															if (raw === "") {
+																updateItem(index, "quantity", "")
+																return
+															}
+
+															// Normalizar vírgula para ponto
+															const normalized = raw.replace(',', '.')
+
+															// Validar se é um número válido (incluindo decimais)
+															const numberRegex = /^\d*\.?\d*$/
+															if (numberRegex.test(normalized)) {
+																const parsed = parseFloat(normalized)
+																if (!Number.isNaN(parsed) && parsed >= 0) {
+																	updateItem(index, "quantity", parsed)
+																} else if (normalized === "" || normalized === ".") {
+																	updateItem(index, "quantity", "")
+																}
+															}
+														}}
+														placeholder="0,000"
+														className="text-center"
+													/>
+												</div>
+												<div className="space-y-2">
+													<Label>Preço Estimado</Label>
+													<Input
+														type="text"
+														inputMode="decimal"
+														step="0.01"
+														min="0"
+														value={priceInputs[index] ?? (items[index]?.estimatedPrice ? String(items[index].estimatedPrice) : "")}
+														onChange={(e) => {
+															const raw = e.target.value
+															setPriceInputs((prev) => {
+																const next = [...prev]
+																next[index] = raw
+																return next
+															})
+															const normalized = raw.replace(',', '.')
+															const parsed = parseFloat(normalized)
+															if (!Number.isNaN(parsed)) {
+																updateItem(index, "estimatedPrice", parsed)
+																// trigger best price check on blur in original; here we can still call on blur
+															} else if (raw === "") {
+																updateItem(index, "estimatedPrice", "")
+															}
+														}}
+														onBlur={() => handlePriceBlur(index)}
+														placeholder="0,00"
+														className="text-center"
+													/>
+												</div>
+												<div className="space-y-2 md:block">
+													<Label>Total</Label>
+													<Input
+														value={`R$ ${((typeof items[index].quantity === 'string' ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
+														disabled
+														className="bg-gray-50 text-center font-semibold"
+													/>
+												</div>
+											</div>
 
 											{/* Alertas e produtos relacionados */}
 											<div className="space-y-3">
@@ -589,8 +714,8 @@ export default function NovaListaPage() {
 								</div>
 
 								{/* Total e botões de ação - apenas no desktop */}
-									<div className="hidden md:flex justify-between items-center pt-4 border-t">
-										<div className="text-lg font-bold">Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
+								<div className="hidden md:flex justify-between items-center pt-4 border-t">
+									<div className="text-lg font-bold">Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="h-4 w-4 mr-2" />
