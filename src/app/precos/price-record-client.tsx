@@ -31,41 +31,395 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
 
-function PriceAnalysisCard({ className }: { className?: string }) {
+function PriceAnalysisCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
+	if (priceRecords.length === 0) {
+		return (
+			<Card className={className}>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Activity className="h-5 w-5" />
+						Análise de Preços
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Empty className="border border-dashed py-12">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Activity className="h-6 w-6" />
+							</EmptyMedia>
+							<EmptyTitle>Sem dados para análise</EmptyTitle>
+							<EmptyDescription>
+								Registre preços para ver análises detalhadas e comparações entre mercados.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Agrupar por produto
+	const productPrices = priceRecords.reduce((acc, record) => {
+		if (!acc[record.product]) {
+			acc[record.product] = []
+		}
+		acc[record.product].push(record)
+		return acc
+	}, {} as Record<string, PriceRecord[]>)
+
+	// Calcular estatísticas por produto
+	const productStats = Object.entries(productPrices).map(([product, records]) => {
+		const prices = records.map(r => r.price)
+		const markets = new Set(records.map(r => r.market))
+
+		return {
+			product,
+			minPrice: Math.min(...prices),
+			maxPrice: Math.max(...prices),
+			avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+			variance: Math.max(...prices) - Math.min(...prices),
+			recordCount: records.length,
+			marketCount: markets.size,
+			lastRecord: records.sort((a, b) => new Date(b.recordDate).getTime() - new Date(a.recordDate).getTime())[0]
+		}
+	}).sort((a, b) => b.variance - a.variance)
+
+	// Top produtos com maior variação de preço
+	const topVariance = productStats.slice(0, 5)
+
+	// Comparação de preços por mercado
+	const marketPrices = priceRecords.reduce((acc, record) => {
+		if (!acc[record.market]) {
+			acc[record.market] = []
+		}
+		acc[record.market].push(record.price)
+		return acc
+	}, {} as Record<string, number[]>)
+
+	const marketStats = Object.entries(marketPrices).map(([market, prices]) => ({
+		market,
+		avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+		minPrice: Math.min(...prices),
+		maxPrice: Math.max(...prices),
+		recordCount: prices.length,
+	})).sort((a, b) => a.avgPrice - b.avgPrice)
+
 	return (
-		<Card className={className}>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<Activity className="h-5 w-5" />
-					Análise de Preços
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div className="text-center text-muted-foreground py-8">
-					<p>O componente de análise de preços será exibido aqui.</p>
-					<p className="text-sm">Esta é uma área reservada para gráficos e estatísticas detalhadas.</p>
-				</div>
-			</CardContent>
-		</Card>
+		<div className={`space-y-6 ${className}`}>
+			{/* Produtos com Maior Variação */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Activity className="h-5 w-5" />
+						Produtos com Maior Variação de Preço
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						{topVariance.map((stat) => (
+							<div key={stat.product} className="border rounded-lg p-4">
+								<div className="flex justify-between items-start mb-2">
+									<div>
+										<h4 className="font-semibold">{stat.product}</h4>
+										<p className="text-sm text-muted-foreground">
+											{stat.recordCount} registros em {stat.marketCount} mercado(s)
+										</p>
+									</div>
+									<Badge variant="destructive">
+										Variação: R$ {stat.variance.toFixed(2)}
+									</Badge>
+								</div>
+								<div className="grid grid-cols-3 gap-4 mt-3">
+									<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
+										<p className="text-xs text-muted-foreground">Menor</p>
+										<p className="text-lg font-bold text-green-600">R$ {stat.minPrice.toFixed(2)}</p>
+									</div>
+									<div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded">
+										<p className="text-xs text-muted-foreground">Média</p>
+										<p className="text-lg font-bold text-blue-600">R$ {stat.avgPrice.toFixed(2)}</p>
+									</div>
+									<div className="text-center p-2 bg-red-50 dark:bg-red-950 rounded">
+										<p className="text-xs text-muted-foreground">Maior</p>
+										<p className="text-lg font-bold text-red-600">R$ {stat.maxPrice.toFixed(2)}</p>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Comparação entre Mercados */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Store className="h-5 w-5" />
+						Ranking de Mercados (Menor → Maior Preço Médio)
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-3">
+						{marketStats.map((stat, index) => (
+							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
+								<div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+										index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
+											index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
+												'bg-muted text-muted-foreground'
+									}`}>
+									{index + 1}
+								</div>
+								<div className="flex-1">
+									<h4 className="font-semibold">{stat.market}</h4>
+									<p className="text-sm text-muted-foreground">
+										{stat.recordCount} registros
+									</p>
+								</div>
+								<div className="text-right">
+									<p className="text-lg font-bold text-green-600">R$ {stat.avgPrice.toFixed(2)}</p>
+									<p className="text-xs text-muted-foreground">preço médio</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+		</div>
 	)
 }
 
-function BestDayCard({ className }: { className?: string }) {
+function BestDayCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
+	if (priceRecords.length === 0) {
+		return (
+			<Card className={className}>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Target className="h-5 w-5" />
+						Insights de Compra
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Empty className="border border-dashed py-12">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Target className="h-6 w-6" />
+							</EmptyMedia>
+							<EmptyTitle>Sem dados para insights</EmptyTitle>
+							<EmptyDescription>
+								Registre preços regularmente para receber insights sobre os melhores momentos e lugares para comprar.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Análise por dia da semana
+	const dayOfWeekPrices: Record<number, number[]> = {}
+	const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+	priceRecords.forEach(record => {
+		const dayOfWeek = new Date(record.recordDate).getDay()
+		if (!dayOfWeekPrices[dayOfWeek]) {
+			dayOfWeekPrices[dayOfWeek] = []
+		}
+		dayOfWeekPrices[dayOfWeek].push(record.price)
+	})
+
+	const dayStats = Object.entries(dayOfWeekPrices)
+		.map(([day, prices]) => ({
+			day: parseInt(day),
+			dayName: dayNames[parseInt(day)],
+			avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+			recordCount: prices.length,
+		}))
+		.sort((a, b) => a.avgPrice - b.avgPrice)
+
+	const bestDay = dayStats[0]
+	const worstDay = dayStats[dayStats.length - 1]
+
+	// Encontrar produtos mais e menos econômicos
+	const productAvgPrices = priceRecords.reduce((acc, record) => {
+		if (!acc[record.product]) {
+			acc[record.product] = { total: 0, count: 0, market: record.market }
+		}
+		acc[record.product].total += record.price
+		acc[record.product].count += 1
+		return acc
+	}, {} as Record<string, { total: number; count: number; market: string }>)
+
+	const productRanking = Object.entries(productAvgPrices)
+		.map(([product, data]) => ({
+			product,
+			avgPrice: data.total / data.count,
+			recordCount: data.count,
+			lastMarket: data.market,
+		}))
+		.sort((a, b) => b.avgPrice - a.avgPrice)
+
+	const mostExpensive = productRanking.slice(0, 3)
+	const cheapest = productRanking.slice(-3).reverse()
+
+	// Recomendações por mercado
+	const marketBestDeals = priceRecords.reduce((acc, record) => {
+		const key = `${record.product}-${record.market}`
+		if (!acc[key]) {
+			acc[key] = record
+		} else if (record.price < acc[key].price) {
+			acc[key] = record
+		}
+		return acc
+	}, {} as Record<string, PriceRecord>)
+
+	const bestDeals = Object.values(marketBestDeals)
+		.sort((a, b) => a.price - b.price)
+		.slice(0, 5)
+
 	return (
-		<Card className={className}>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<Target className="h-5 w-5" />
-					Insights de Compra
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div className="text-center text-muted-foreground py-8">
-					<p>O componente de insights sobre os melhores dias para compra será exibido aqui.</p>
-					<p className="text-sm">Esta é uma área reservada para sugestões baseadas nos dados coletados.</p>
-				</div>
-			</CardContent>
-		</Card>
+		<div className={`space-y-6 ${className}`}>
+			{/* Melhor Dia para Comprar */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Calendar className="h-5 w-5" />
+						Melhor Dia da Semana para Comprar
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="grid md:grid-cols-2 gap-4 mb-6">
+						<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
+							<div className="flex items-center gap-2 mb-2">
+								<div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
+									👍
+								</div>
+								<h4 className="font-semibold text-green-900 dark:text-green-100">Melhor Dia</h4>
+							</div>
+							<p className="text-2xl font-bold text-green-600">{bestDay.dayName}</p>
+							<p className="text-sm text-muted-foreground">
+								Preço médio: R$ {bestDay.avgPrice.toFixed(2)} ({bestDay.recordCount} registros)
+							</p>
+						</div>
+
+						<div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
+							<div className="flex items-center gap-2 mb-2">
+								<div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center">
+									👎
+								</div>
+								<h4 className="font-semibold text-red-900 dark:text-red-100">Evitar</h4>
+							</div>
+							<p className="text-2xl font-bold text-red-600">{worstDay.dayName}</p>
+							<p className="text-sm text-muted-foreground">
+								Preço médio: R$ {worstDay.avgPrice.toFixed(2)} ({worstDay.recordCount} registros)
+							</p>
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<h5 className="font-semibold text-sm">Ranking Completo:</h5>
+						{dayStats.map((stat, index) => (
+							<div key={stat.day} className="flex items-center justify-between p-2 border rounded">
+								<div className="flex items-center gap-2">
+									<span className="text-sm font-medium w-6">{index + 1}º</span>
+									<span>{stat.dayName}</span>
+								</div>
+								<div className="text-right">
+									<span className="font-semibold">R$ {stat.avgPrice.toFixed(2)}</span>
+									<span className="text-xs text-muted-foreground ml-2">({stat.recordCount})</span>
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Melhores Ofertas por Produto */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Target className="h-5 w-5" />
+						Melhores Ofertas Encontradas
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-3">
+						{bestDeals.map((deal, index) => (
+							<div key={deal.id} className="flex items-center gap-4 p-3 border rounded-lg bg-gradient-to-r from-green-50 to-transparent dark:from-green-950">
+								<div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
+									{index + 1}
+								</div>
+								<div className="flex-1">
+									<h4 className="font-semibold">{deal.product}</h4>
+									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+										<Store className="h-3 w-3" />
+										<span>{deal.market}</span>
+										<span>•</span>
+										<Calendar className="h-3 w-3" />
+										<span>{new Date(deal.recordDate).toLocaleDateString('pt-BR')}</span>
+									</div>
+								</div>
+								<div className="text-right">
+									<p className="text-xl font-bold text-green-600">R$ {deal.price.toFixed(2)}</p>
+									<Badge variant="outline" className="text-xs">Melhor preço</Badge>
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Produtos Mais e Menos Caros */}
+			<div className="grid md:grid-cols-2 gap-6">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-base flex items-center gap-2">
+							<DollarSign className="h-4 w-4 text-red-600" />
+							Produtos Mais Caros
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-2">
+							{mostExpensive.map((product, index) => (
+								<div key={product.product} className="flex justify-between items-center p-2 border rounded">
+									<div className="flex items-center gap-2">
+										<span className="text-xs font-medium w-5">{index + 1}º</span>
+										<div>
+											<p className="font-medium text-sm">{product.product}</p>
+											<p className="text-xs text-muted-foreground">{product.recordCount} registros</p>
+										</div>
+									</div>
+									<span className="font-bold text-red-600">R$ {product.avgPrice.toFixed(2)}</span>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-base flex items-center gap-2">
+							<DollarSign className="h-4 w-4 text-green-600" />
+							Produtos Mais Baratos
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-2">
+							{cheapest.map((product, index) => (
+								<div key={product.product} className="flex justify-between items-center p-2 border rounded">
+									<div className="flex items-center gap-2">
+										<span className="text-xs font-medium w-5">{index + 1}º</span>
+										<div>
+											<p className="font-medium text-sm">{product.product}</p>
+											<p className="text-xs text-muted-foreground">{product.recordCount} registros</p>
+										</div>
+									</div>
+									<span className="font-bold text-green-600">R$ {product.avgPrice.toFixed(2)}</span>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		</div>
 	)
 }
 
@@ -612,11 +966,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				</TabsContent>
 
 				<TabsContent value="analysis" className="space-y-6">
-					<PriceAnalysisCard className="w-full" />
+					<PriceAnalysisCard className="w-full" priceRecords={priceRecords} />
 				</TabsContent>
 
 				<TabsContent value="insights" className="space-y-6">
-					<BestDayCard className="w-full" />
+					<BestDayCard className="w-full" priceRecords={priceRecords} />
 				</TabsContent>
 			</Tabs>
 
