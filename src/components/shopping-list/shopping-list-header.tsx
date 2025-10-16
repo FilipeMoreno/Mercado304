@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, DollarSign, Edit, MoreVertical, ShoppingCart, Trash2 } from "lucide-react"
+import { ArrowLeft, DollarSign, Edit, MoreVertical, Receipt, ShoppingCart, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,7 @@ interface ShoppingListHeaderProps {
 	onOpenOptimizedRoute: () => void
 	onEditList: () => void
 	onDeleteList: () => void
+	onRegisterPurchase?: () => void
 }
 
 export function ShoppingListHeader({
@@ -33,6 +34,7 @@ export function ShoppingListHeader({
 	onOpenOptimizedRoute,
 	onEditList,
 	onDeleteList,
+	onRegisterPurchase,
 }: ShoppingListHeaderProps) {
 	return (
 		<div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
@@ -56,11 +58,23 @@ export function ShoppingListHeader({
 
 			{/* Botões de Ação */}
 			<div className="flex items-center gap-2 justify-end md:justify-start flex-wrap">
-				{/* Botão Principal sempre visível */}
+				{/* Botões Principais sempre visíveis */}
 				<Button variant="default" size="sm" onClick={onStartShopping} className="flex-1 md:flex-initial">
 					<ShoppingCart className="h-4 w-4 mr-2" />
 					Iniciar Compras
 				</Button>
+
+				{onRegisterPurchase && totalItems > 0 && (
+					<Button
+						variant="secondary"
+						size="sm"
+						onClick={onRegisterPurchase}
+						className="flex-1 md:flex-initial"
+					>
+						<Receipt className="h-4 w-4 mr-2" />
+						Registrar Compra
+					</Button>
+				)}
 
 				{/* Botões para Desktop (md e acima) */}
 				<div className="hidden md:flex gap-2">
@@ -93,6 +107,15 @@ export function ShoppingListHeader({
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
+							{onRegisterPurchase && totalItems > 0 && (
+								<>
+									<DropdownMenuItem onClick={onRegisterPurchase}>
+										<Receipt className="h-4 w-4 mr-2" />
+										<span>Registrar Compra</span>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator />
+								</>
+							)}
 							<DropdownMenuItem onClick={onOpenOptimizedRoute}>
 								<DollarSign className="h-4 w-4 mr-2" />
 								<span>Otimizar Roteiro</span>

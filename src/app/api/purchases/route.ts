@@ -119,10 +119,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0, convertTemporaryItems } = body
+		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0 } = body
 
 		if (!marketId || !items || items.length === 0) {
 			return NextResponse.json({ error: "Mercado e itens são obrigatórios" }, { status: 400 })
+		}
+
+		// Validar que todos os itens tem nome do produto
+		const invalidItems = items.filter((item: any) => !item.productName || !item.productName.trim())
+		if (invalidItems.length > 0) {
+			return NextResponse.json({ error: "Todos os itens precisam ter um nome de produto" }, { status: 400 })
 		}
 
 		const totalAmount = items.reduce((sum: number, item: any) => {
@@ -132,103 +138,18 @@ export async function POST(request: Request) {
 		}, 0)
 		const finalAmount = totalAmount - totalDiscount
 
-		// Separar itens temporários dos permanentes
-		const permanentItems = items.filter((item: any) => !item.isTemporary)
-		const temporaryItems = items.filter((item: any) => item.isTemporary)
-
-		const productIds = permanentItems.map((item: any) => item.productId).filter(Boolean)
+		// Buscar produtos vinculados
+		const productIds = items.map((item: any) => item.productId).filter(Boolean)
 		const products = await prisma.product.findMany({
 			where: { id: { in: productIds } },
+			include: {
+				brand: true,
+				category: true,
+			}
 		})
 
 		const purchase = await prisma.$transaction(async (tx) => {
-			// Converter itens temporários em produtos se solicitado
-			const convertedProducts: any[] = []
-			const allItemsData = [...items]
-
-			if (convertTemporaryItems && temporaryItems.length > 0) {
-				// Coletar todas as categorias e marcas únicas primeiro
-				const uniqueCategories = Array.from(new Set(temporaryItems.filter((i: any) => i.shouldConvert && i.tempCategory).map((i: any) => i.tempCategory as string))) as string[]
-				const uniqueBrands = Array.from(new Set(temporaryItems.filter((i: any) => i.shouldConvert && i.tempBrand).map((i: any) => i.tempBrand as string))) as string[]
-
-				// Buscar categorias e marcas existentes em paralelo
-				const [existingCategories, existingBrands] = await Promise.all([
-					uniqueCategories.length > 0
-						? tx.category.findMany({ where: { name: { in: uniqueCategories, mode: "insensitive" } } })
-						: Promise.resolve([]),
-					uniqueBrands.length > 0
-						? tx.brand.findMany({ where: { name: { in: uniqueBrands, mode: "insensitive" } } })
-						: Promise.resolve([])
-				])
-
-				// Criar categorias e marcas faltantes em paralelo
-				const categoriesToCreate = uniqueCategories.filter(
-					(cat: string) => !existingCategories.find(ec => ec.name.toLowerCase() === cat.toLowerCase())
-				)
-				const brandsToCreate = uniqueBrands.filter(
-					(brand: string) => !existingBrands.find(eb => eb.name.toLowerCase() === brand.toLowerCase())
-				)
-
-				const [newCategories, newBrands] = await Promise.all([
-					categoriesToCreate.length > 0
-						? Promise.all(categoriesToCreate.map((name: string) =>
-							tx.category.create({
-								data: { name, icon: "📦", color: "#64748b", isFood: true }
-							})
-						))
-						: Promise.resolve([]),
-					brandsToCreate.length > 0
-						? Promise.all(brandsToCreate.map((name: string) =>
-							tx.brand.create({ data: { name } })
-						))
-						: Promise.resolve([])
-				])
-
-				const allCategories = [...existingCategories, ...newCategories]
-				const allBrands = [...existingBrands, ...newBrands]
-
-				// Criar todos os produtos em paralelo
-				const productCreationPromises = temporaryItems
-					.filter((tempItem: any) => tempItem.shouldConvert)
-					.map(async (tempItem: any) => {
-						const categoryId = tempItem.categoryId || allCategories.find(
-							c => c.name.toLowerCase() === tempItem.tempCategory?.toLowerCase()
-						)?.id
-						const brandId = tempItem.brandId || allBrands.find(
-							b => b.name.toLowerCase() === tempItem.tempBrand?.toLowerCase()
-						)?.id
-
-						const newProduct = await tx.product.create({
-							data: {
-								name: tempItem.productName,
-								barcode: tempItem.tempBarcode,
-								categoryId: categoryId,
-								brandId: brandId,
-								unit: tempItem.productUnit || "un",
-								hasStock: tempItem.hasStock || false,
-								minStock: tempItem.minStock || 0,
-								maxStock: tempItem.maxStock || 0,
-								hasExpiration: tempItem.hasExpiration || false,
-								defaultShelfLifeDays: tempItem.defaultShelfLifeDays || 30,
-							},
-						})
-
-						// Atualizar o item para referenciar o produto criado
-						const updatedItemIndex = allItemsData.findIndex((item) => item.tempId === tempItem.tempId)
-						if (updatedItemIndex !== -1) {
-							allItemsData[updatedItemIndex] = {
-								...tempItem,
-								productId: newProduct.id,
-								isTemporary: false,
-							}
-						}
-
-						return newProduct
-					})
-
-				convertedProducts.push(...await Promise.all(productCreationPromises))
-			}
-
+			// Criar a compra diretamente com os itens
 			const newPurchase = await tx.purchase.create({
 				data: {
 					marketId,
@@ -238,35 +159,39 @@ export async function POST(request: Request) {
 					purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
 					paymentMethod: normalizePaymentMethod(paymentMethod || "MONEY"),
 					items: {
-						create: allItemsData.map((item: any) => {
-							const product =
-								products.find((p) => p.id === item.productId) || convertedProducts.find((p) => p.id === item.productId)
+						create: items.map((item: any) => {
+							const product = products.find((p) => p.id === item.productId)
 							const itemTotal = item.quantity * item.unitPrice
 							const itemDiscount = item.quantity * (item.unitDiscount || 0)
 							return {
-								productId: item.isTemporary ? null : item.productId,
+								productId: item.productId || null,
 								quantity: item.quantity,
 								unitPrice: item.unitPrice,
 								unitDiscount: item.unitDiscount || 0,
 								totalPrice: itemTotal,
 								totalDiscount: itemDiscount,
 								finalPrice: itemTotal - itemDiscount,
-								productName: item.productName || product?.name,
-								productUnit: item.productUnit || product?.unit,
-								productCategory: item.tempCategory || product?.category?.name,
-								brandName: item.tempBrand || product?.brand?.name,
+								// Se tem produto vinculado, usa dados do produto. Senão, usa o que foi digitado
+								productName: product?.name || item.productName,
+								productUnit: product?.unit || item.productUnit || "unidade",
+								productCategory: product?.category?.name || item.category || null,
+								brandName: product?.brand?.name || item.brand || null,
 							}
 						}),
 					},
 				},
-				include: { items: true },
+				include: {
+					items: true,
+					market: true
+				},
 			})
 
-			// Criar entradas de estoque em paralelo
+			// Criar entradas de estoque apenas para itens vinculados a produtos que tem controle de estoque
 			const stockCreationPromises = items
 				.filter((item: any) => {
+					if (!item.productId || !item.addToStock) return false
 					const product = products.find((p) => p.id === item.productId)
-					return item.addToStock && product && product.hasStock
+					return product && product.hasStock
 				})
 				.flatMap((item: any) => {
 					const product = products.find((p) => p.id === item.productId)!

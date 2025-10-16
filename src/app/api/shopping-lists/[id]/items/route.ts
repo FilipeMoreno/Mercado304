@@ -25,12 +25,8 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 		}
 
 		const listItems = shoppingList.items.map((item) => ({
-			id: item.id,
-			productId: item.productId || "",
-			productName: item.product?.name || item.productName || "Produto não encontrado",
-			quantity: item.quantity,
-			unit: item.product?.unit || item.productUnit || "un",
-			notes: item.tempNotes || undefined,
+			...item,
+			product: item.product || undefined,
 		}))
 
 		return NextResponse.json({
@@ -48,13 +44,22 @@ export async function POST(request: Request, { params }: { params: { id: string 
 	try {
 		const listId = params.id
 		const body = await request.json()
-		const { productName, quantity = 1, productUnit = "un" } = body
+		const {
+			productId,
+			productName,
+			quantity = 1,
+			productUnit = "unidade",
+			estimatedPrice,
+			brand,
+			category,
+			notes,
+		} = body
 
 		if (!listId) {
 			return NextResponse.json({ error: "ID da lista é obrigatório" }, { status: 400 })
 		}
 
-		if (!productName) {
+		if (!productName || !productName.trim()) {
 			return NextResponse.json({ error: "Nome do produto é obrigatório" }, { status: 400 })
 		}
 
@@ -67,39 +72,33 @@ export async function POST(request: Request, { params }: { params: { id: string 
 			return NextResponse.json({ error: "Lista não encontrada" }, { status: 404 })
 		}
 
-		// Tentar encontrar produto existente
-		const existingProduct = await prisma.product.findFirst({
-			where: {
-				name: {
-					equals: productName,
-					mode: "insensitive",
-				},
-			},
-		})
-
 		// Criar item na lista
 		const newItem = await prisma.shoppingListItem.create({
 			data: {
 				listId: listId,
-				productId: existingProduct?.id || null,
-				productName: existingProduct ? null : productName,
-				productUnit: existingProduct ? null : productUnit,
+				productId: productId || null,
+				productName: productName.trim(),
+				productUnit: productUnit,
 				quantity: quantity,
+				estimatedPrice: estimatedPrice || null,
+				brand: brand?.trim() || null,
+				category: category?.trim() || null,
+				notes: notes?.trim() || null,
 			},
 			include: {
-				product: true,
+				product: {
+					include: {
+						brand: true,
+						category: true,
+					}
+				},
 			},
 		})
 
 		return NextResponse.json({
+			...newItem,
+			// Manter compatibilidade com código antigo
 			success: true,
-			item: {
-				id: newItem.id,
-				productId: newItem.productId || "",
-				productName: newItem.product?.name || newItem.productName || "Produto não encontrado",
-				quantity: newItem.quantity,
-				unit: newItem.product?.unit || newItem.productUnit || "un",
-			},
 		}, { status: 201 })
 	} catch (error) {
 		console.error("Erro ao adicionar item à lista:", error)

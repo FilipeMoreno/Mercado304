@@ -151,20 +151,20 @@ model ShoppingList {
 model ShoppingListItem {
   id             String  @id @default(cuid())
   listId         String
-  productId      String?
+  productId      String? // Opcional - pode ser vinculado depois no review
   quantity       Float   @default(1)
   estimatedPrice Float?
   isChecked      Boolean @default(false)
-  productName    String?
-  productUnit    String?
 
-  // Campos para itens temporários
-  isTemporary     Boolean @default(false)
-  tempDescription String? // Descrição adicional do item temporário
-  tempBarcode     String? // Código de barras se escaneado
-  tempBrand       String? // Marca temporária
-  tempCategory    String? // Categoria temporária
-  tempNotes       String? // Observações sobre o item temporário
+  // Nome do item (sempre obrigatório - texto livre ou nome do produto)
+  productName String
+  productUnit String @default("unidade")
+
+  // Campos opcionais para informações adicionais
+  barcode  String? // Código de barras se escaneado
+  brand    String? // Nome da marca (texto livre)
+  category String? // Nome da categoria (texto livre)
+  notes    String? // Observações sobre o item
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

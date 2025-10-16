@@ -20,8 +20,6 @@ import {
 	ShoppingMode,
 	ShoppingSummary,
 } from "@/components/shopping-list"
-import { TemporaryItemCard } from "@/components/temporary-item-card"
-import { TemporaryItemForm } from "@/components/temporary-item-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -33,21 +31,18 @@ interface ExtendedShoppingListItem {
 	quantity: number
 	estimatedPrice?: number
 	isChecked: boolean
+	productId?: string
+	productName?: string
+	productUnit?: string
+	brand?: string
+	category?: string
+	notes?: string
 	bestPriceAlert?: {
 		isBestPrice: boolean
 		previousBestPrice?: number
 		totalRecords?: number
 		isFirstRecord?: boolean
 	}
-	productName?: string
-	productUnit?: string
-	// Campos para itens temporários
-	isTemporary?: boolean
-	tempDescription?: string
-	tempBarcode?: string
-	tempBrand?: string
-	tempCategory?: string
-	tempNotes?: string
 	product?: {
 		id: string
 		name: string
@@ -76,7 +71,7 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const listId = params.id as string
 
 	const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -92,10 +87,24 @@ export default function ListaDetalhesPage() {
 
 	// Estados para adicionar item
 	const [showAddItem, setShowAddItem] = useState(false)
-	const [newItem, setNewItem] = useState({
-		productId: "",
+	const [newItem, setNewItem] = useState<{
+		productId?: string
+		productName: string
+		quantity: number
+		estimatedPrice?: number
+		productUnit: string
+		brand?: string
+		category?: string
+		notes?: string
+	}>({
+		productId: undefined,
+		productName: "",
 		quantity: 1,
-		estimatedPrice: 0,
+		estimatedPrice: undefined,
+		productUnit: "unidade",
+		brand: undefined,
+		category: undefined,
+		notes: undefined,
 	})
 	const [addingItem, setAddingItem] = useState(false)
 
@@ -123,9 +132,6 @@ export default function ListaDetalhesPage() {
 
 	// Estados para roteiro otimizado
 	const [showOptimizedRoute, setShowOptimizedRoute] = useState(false)
-
-	// Estados para itens temporários
-	const [showTemporaryForm, setShowTemporaryForm] = useState(false)
 
 	// Estados para edição rápida e toggle de itens marcados
 	const [quickEditingItem, setQuickEditingItem] = useState<ExtendedShoppingListItem | null>(null)
@@ -203,11 +209,11 @@ export default function ListaDetalhesPage() {
 		setList((prev) =>
 			prev
 				? {
-						...prev,
-						items: prev.items.map((item) =>
-							item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
-						),
-					}
+					...prev,
+					items: prev.items.map((item) =>
+						item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
+					),
+				}
 				: null,
 		)
 
@@ -271,9 +277,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
+					}
 					: null,
 			)
 
@@ -300,9 +306,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
+					}
 					: null,
 			)
 		} catch (error) {
@@ -316,9 +322,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+					}
 					: null,
 			)
 			updateItemInServer(itemId, { quantity: newQuantity })
@@ -342,9 +348,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
+					}
 					: null,
 			)
 			updateItemInServer(itemId, { estimatedPrice: newPrice })
@@ -404,8 +410,8 @@ export default function ListaDetalhesPage() {
 	}
 
 	const handleAddItem = async () => {
-		if (!newItem.productId || newItem.quantity <= 0) {
-			toast.error("Selecione um produto e informe a quantidade")
+		if (!newItem.productName.trim() || newItem.quantity <= 0) {
+			toast.error("Informe o nome do item e a quantidade")
 			return
 		}
 
@@ -415,18 +421,38 @@ export default function ListaDetalhesPage() {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					productId: newItem.productId,
+					productId: newItem.productId || null,
+					productName: newItem.productName.trim(),
 					quantity: newItem.quantity,
+					estimatedPrice: newItem.estimatedPrice || null,
+					productUnit: newItem.productUnit,
+					brand: newItem.brand?.trim() || null,
+					category: newItem.category?.trim() || null,
+					notes: newItem.notes?.trim() || null,
 				}),
 			})
 
 			if (response.ok) {
 				const addedItem = await response.json()
 				setShowAddItem(false)
+				// Resetar formulário
+				setNewItem({
+					productId: undefined,
+					productName: "",
+					quantity: 1,
+					estimatedPrice: undefined,
+					productUnit: "unidade",
+					brand: "",
+					category: "",
+					notes: "",
+				})
 				fetchListDetails()
 				toast.success("Item adicionado com sucesso")
 
-				checkQuantitySuggestion(addedItem.productId, addedItem.id)
+				// Só checa sugestão de quantidade se tiver produto vinculado
+				if (addedItem.productId) {
+					checkQuantitySuggestion(addedItem.productId, addedItem.id)
+				}
 			} else {
 				const error = await response.json()
 				toast.error(error.error || "Erro ao adicionar item")
@@ -439,75 +465,7 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
-	const handleAddTemporaryItem = async (itemData: { name: string; quantity: number; estimatedPrice?: number }) => {
-		try {
-			const response = await fetch(`/api/shopping-lists/${listId}/items`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(itemData),
-			})
-
-			if (response.ok) {
-				setShowTemporaryForm(false)
-				fetchListDetails()
-				toast.success("Item temporário adicionado com sucesso")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao adicionar item temporário")
-			}
-		} catch (error) {
-			console.error("Erro ao adicionar item temporário:", error)
-			toast.error("Erro ao adicionar item temporário")
-		}
-	}
-
-	const handleUpdateTemporaryItem = async (itemId: string, updates: { quantity?: number; estimatedPrice?: number }) => {
-		try {
-			const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(updates),
-			})
-
-			if (response.ok) {
-				fetchListDetails()
-				toast.success("Item atualizado com sucesso")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao atualizar item")
-			}
-		} catch (error) {
-			console.error("Erro ao atualizar item:", error)
-			toast.error("Erro ao atualizar item")
-		}
-	}
-
-	const handleConvertTemporaryItem = async (
-		itemId: string,
-		productData: { name: string; categoryId?: string; brandId?: string },
-	) => {
-		try {
-			const response = await fetch(`/api/shopping-lists/convert-temporary`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					shoppingListItemId: itemId,
-					productData: productData,
-				}),
-			})
-
-			if (response.ok) {
-				fetchListDetails()
-				toast.success("Item convertido em produto permanente com sucesso!")
-			} else {
-				const error = await response.json()
-				toast.error(error.error || "Erro ao converter item")
-			}
-		} catch (error) {
-			console.error("Erro ao converter item:", error)
-			toast.error("Erro ao converter item")
-		}
-	}
+	// Funções de itens temporários removidas - agora todos itens funcionam da mesma forma
 
 	const handleUpdateItem = async () => {
 		if (!editingItem) return
@@ -662,11 +620,11 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-									...prev,
-									items: prev.items.map((listItem) =>
-										listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
-									),
-								}
+								...prev,
+								items: prev.items.map((listItem) =>
+									listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
+								),
+							}
 							: null,
 					)
 				}}
@@ -691,6 +649,7 @@ export default function ListaDetalhesPage() {
 						onOpenOptimizedRoute={() => setShowOptimizedRoute(true)}
 						onEditList={() => setEditingList(true)}
 						onDeleteList={() => setDeleteConfirm(true)}
+						onRegisterPurchase={() => router.push(`/lista/${listId}/registrar`)}
 					/>
 				</div>
 			</div>
@@ -734,15 +693,6 @@ export default function ListaDetalhesPage() {
 											</span>
 										</Button>
 									)}
-									<Button
-										onClick={() => setShowTemporaryForm(true)}
-										variant="outline"
-										size="sm"
-										className="hidden sm:flex"
-									>
-										<ShoppingCart className="h-4 w-4 mr-2" />
-										Item Temporário
-									</Button>
 									<Button onClick={() => setShowAddItem(true)} size="sm" className="hidden md:flex">
 										<Plus className="h-4 w-4 mr-2" />
 										Adicionar Item
@@ -751,13 +701,6 @@ export default function ListaDetalhesPage() {
 							</div>
 						</CardHeader>
 						<CardContent>
-							{/* Formulário para itens temporários */}
-							{showTemporaryForm && (
-								<div className="mb-4">
-									<TemporaryItemForm onAddItem={handleAddTemporaryItem} onCancel={() => setShowTemporaryForm(false)} />
-								</div>
-							)}
-
 							{list.items.length === 0 ? (
 								<Empty className="border border-dashed py-10">
 									<EmptyHeader>
@@ -769,10 +712,6 @@ export default function ListaDetalhesPage() {
 									</EmptyHeader>
 									<EmptyContent>
 										<div className="flex gap-2 justify-center">
-											<Button onClick={() => setShowTemporaryForm(true)} variant="outline" size="sm">
-												<ShoppingCart className="h-4 w-4 mr-1" />
-												Item Temporário
-											</Button>
 											<Button onClick={() => setShowAddItem(true)} size="sm">
 												<Plus className="h-4 w-4 mr-1" />
 												Adicionar Item
@@ -784,28 +723,7 @@ export default function ListaDetalhesPage() {
 								<div className="space-y-3">
 									{list.items
 										.filter(item => showCompletedItems || !item.isChecked)
-										.map((item, index) =>
-										item.isTemporary ? (
-											<motion.div
-												key={item.id}
-												initial={{ opacity: 0, y: 20 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.3 + index * 0.05 }}
-											>
-												<TemporaryItemCard
-													item={item}
-													onUpdateItem={handleUpdateTemporaryItem}
-													onDeleteItem={async (itemId) => {
-														// Usar a mesma lógica de delete existente
-														const itemToDelete = list.items.find((i) => i.id === itemId)
-														if (itemToDelete) {
-															setDeleteItemConfirm(itemToDelete)
-														}
-													}}
-													onConvertToProduct={handleConvertTemporaryItem}
-												/>
-											</motion.div>
-										) : (
+										.map((item, index) => (
 											<motion.div
 												key={item.id}
 												initial={{ opacity: 0, y: 20 }}
@@ -819,8 +737,7 @@ export default function ListaDetalhesPage() {
 													onDelete={(item) => setDeleteItemConfirm(item)}
 												/>
 											</motion.div>
-										),
-									)}
+										))}
 								</div>
 							)}
 						</CardContent>
@@ -836,21 +753,17 @@ export default function ListaDetalhesPage() {
 			</div>
 
 			{/* Barra fixa na parte inferior para mobile */}
-			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t shadow-lg md:hidden">
+			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-gray-900 border-t shadow-lg md:hidden">
 				<div className="px-4 py-3">
-					<div className="flex items-center justify-between gap-3">
-						{/* Botão de item temporário */}
-						<Button onClick={() => setShowTemporaryForm(true)} variant="outline" className="flex-1" size="lg">
-							<ShoppingCart className="h-5 w-5 mr-2" />
-							Item Temporário
-						</Button>
-
-						{/* Botão de adicionar item */}
-						<Button onClick={() => setShowAddItem(true)} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
-							<Plus className="h-5 w-5 mr-2" />
-							Adicionar Item
-						</Button>
-					</div>
+					{/* Botão de adicionar item */}
+					<Button
+						onClick={() => setShowAddItem(true)}
+						className="w-full bg-primary hover:bg-primary/90"
+						size="lg"
+					>
+						<Plus className="h-5 w-5 mr-2" />
+						Adicionar Item
+					</Button>
 				</div>
 			</div>
 
@@ -908,11 +821,11 @@ export default function ListaDetalhesPage() {
 						setList((prev) =>
 							prev
 								? {
-										...prev,
-										items: prev.items.map((item) =>
-											item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
-										),
-									}
+									...prev,
+									items: prev.items.map((item) =>
+										item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
+									),
+								}
 								: null,
 						)
 						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
