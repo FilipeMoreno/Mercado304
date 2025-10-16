@@ -1,13 +1,15 @@
 "use client"
 
-import { ChevronDown, ChevronUp, Plus, Save } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, LinkIcon, Plus, Save, X } from "lucide-react"
 import { useState } from "react"
-import { ProductSelect } from "@/components/selects/product-select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"]
 
@@ -46,20 +48,34 @@ export function AddItemDialog({
 	preserveFormData,
 }: AddItemDialogProps) {
 	const [showAdvanced, setShowAdvanced] = useState(false)
-	const [useProductSelect, setUseProductSelect] = useState(false)
+	const [openProductPopover, setOpenProductPopover] = useState(false)
 
-	const handleProductSelected = (productId: string) => {
-		const product = products.find(p => p.id === productId)
-		if (product) {
-			onNewItemChange({
-				...newItem,
-				productId: product.id,
-				productName: product.name,
-				productUnit: product.unit || 'unidade',
-				brand: product.brand?.name || '',
-				category: product.category?.name || '',
-			})
-		}
+	const handleProductSelected = (product: any) => {
+		onNewItemChange({
+			...newItem,
+			productId: product.id,
+			productName: product.name,
+			productUnit: product.unit || 'unidade',
+			brand: product.brand?.name || '',
+			category: product.category?.name || '',
+		})
+		setOpenProductPopover(false)
+	}
+
+	const handleProductNameChange = (name: string) => {
+		onNewItemChange({
+			...newItem,
+			productName: name,
+			// Remove vínculo se editar manualmente
+			productId: undefined,
+		})
+	}
+
+	const handleUnlinkProduct = () => {
+		onNewItemChange({
+			...newItem,
+			productId: undefined,
+		})
 	}
 
 	return (
@@ -70,62 +86,84 @@ export function AddItemDialog({
 			maxWidth="xl"
 		>
 			<div className="space-y-4 max-h-[70vh] overflow-y-auto">
-				{/* Toggle entre texto livre e produto cadastrado */}
-				<div className="flex gap-2">
-					<Button
-						type="button"
-						variant={!useProductSelect ? "default" : "outline"}
-						size="sm"
-						onClick={() => setUseProductSelect(false)}
-						className="flex-1"
-					>
-						Texto Livre
-					</Button>
-					<Button
-						type="button"
-						variant={useProductSelect ? "default" : "outline"}
-						size="sm"
-						onClick={() => setUseProductSelect(true)}
-						className="flex-1"
-					>
-						Produto Cadastrado
-					</Button>
-				</div>
-
-				{useProductSelect ? (
-					<div className="space-y-2">
-						<div className="flex justify-between items-center">
-							<Label>Produto *</Label>
-							<Button type="button" variant="outline" size="sm" onClick={onCreateQuickProduct}>
-								<Plus className="h-3 w-3 mr-1" />
-								Novo Produto
-							</Button>
-						</div>
-						<div className="min-w-0">
-							<ProductSelect
-								value={newItem.productId}
-								products={products}
-								onValueChange={handleProductSelected}
-								preserveFormData={preserveFormData}
+				{/* Input híbrido: texto livre + busca de produtos */}
+				<div className="space-y-2">
+					<div className="flex justify-between items-center">
+						<Label>Nome do Produto *</Label>
+						<Button type="button" variant="outline" size="sm" onClick={onCreateQuickProduct}>
+							<Plus className="h-3 w-3 mr-1" />
+							Novo Produto
+						</Button>
+					</div>
+					<div className="flex gap-2">
+						<div className="flex-1 relative">
+							<Input
+								value={newItem.productName}
+								onChange={(e) => handleProductNameChange(e.target.value)}
+								placeholder="Digite o nome ou busque um produto..."
+								autoFocus
+								className="pr-10"
 							/>
+							<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+										title="Buscar produto cadastrado"
+									>
+										<LinkIcon className="h-4 w-4" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="w-[400px] p-0" align="start">
+									<Command>
+										<CommandInput placeholder="Buscar produto..." />
+										<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+										<CommandGroup className="max-h-[300px] overflow-auto">
+											{products.map((product) => (
+												<CommandItem
+													key={product.id}
+													value={product.name}
+													onSelect={() => handleProductSelected(product)}
+												>
+													<Check
+														className={cn(
+															"mr-2 h-4 w-4",
+															newItem.productId === product.id ? "opacity-100" : "opacity-0"
+														)}
+													/>
+													<div className="flex-1">
+														<div className="font-medium">{product.name}</div>
+														{product.brand && (
+															<div className="text-xs text-muted-foreground">{product.brand.name}</div>
+														)}
+													</div>
+												</CommandItem>
+											))}
+										</CommandGroup>
+									</Command>
+								</PopoverContent>
+							</Popover>
 						</div>
+						{newItem.productId && (
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								onClick={handleUnlinkProduct}
+								title="Desvincular produto"
+							>
+								<X className="h-4 w-4" />
+							</Button>
+						)}
 					</div>
-				) : (
-					<div className="space-y-2">
-						<Label>Nome do Item *</Label>
-						<Input
-							value={newItem.productName}
-							onChange={(e) =>
-								onNewItemChange({
-									...newItem,
-									productName: e.target.value,
-								})
-							}
-							placeholder="Ex: Arroz, Feijão, Macarrão..."
-							autoFocus
-						/>
-					</div>
-				)}
+					{newItem.productId && (
+						<p className="text-xs text-green-600">
+							✓ Vinculado a produto cadastrado
+						</p>
+					)}
+				</div>
 
 				<div className="grid grid-cols-2 gap-4">
 					<div className="space-y-2">
@@ -182,8 +220,8 @@ export function AddItemDialog({
 					/>
 				</div>
 
-				{/* Informações adicionais (colapsável) */}
-				{!useProductSelect && (
+				{/* Informações adicionais (colapsável) - Apenas para itens de texto livre */}
+				{!newItem.productId && (
 					<div className="space-y-2">
 						<Button
 							type="button"
