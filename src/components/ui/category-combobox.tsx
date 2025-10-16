@@ -102,9 +102,9 @@ export function CategoryCombobox({
 					<span className="truncate flex-1 text-left font-normal">
 						{value
 							? (() => {
-									const selectedCategory = categories.find((c) => c.id === value)
-									return selectedCategory ? `${selectedCategory.icon || "📦"} ${selectedCategory.name}` : placeholder
-								})()
+								const selectedCategory = categories.find((c) => c.id === value)
+								return selectedCategory ? `${selectedCategory.icon || "📦"} ${selectedCategory.name}` : placeholder
+							})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -150,9 +150,9 @@ export function CategoryCombobox({
 									{options.map((option) => (
 										<CommandItem
 											key={option.value}
-											value={option.value}
-											onSelect={(currentValue) => {
-												onValueChange?.(currentValue === value ? "" : currentValue)
+											value={option.label}
+											onSelect={() => {
+												onValueChange?.(option.value === value ? "" : option.value)
 												setOpen(false)
 												setSearchTerm("")
 											}}

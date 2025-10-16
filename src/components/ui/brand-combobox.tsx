@@ -102,9 +102,9 @@ export function BrandCombobox({
 					<span className="truncate flex-1 text-left font-normal">
 						{value
 							? (() => {
-									const selectedBrand = brands.find((b) => b.id === value)
-									return selectedBrand ? selectedBrand.name : placeholder
-								})()
+								const selectedBrand = brands.find((b) => b.id === value)
+								return selectedBrand ? selectedBrand.name : placeholder
+							})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -150,9 +150,9 @@ export function BrandCombobox({
 									{options.map((option) => (
 										<CommandItem
 											key={option.value}
-											value={option.value}
-											onSelect={(currentValue) => {
-												onValueChange?.(currentValue === value ? "" : currentValue)
+											value={option.label}
+											onSelect={() => {
+												onValueChange?.(option.value === value ? "" : option.value)
 												setOpen(false)
 												setSearchTerm("")
 											}}
