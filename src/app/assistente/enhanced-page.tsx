@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-	ArrowLeft, 
-	Bot, 
-	Camera, 
-	Send, 
-	X, 
+import {
+	ArrowLeft,
+	Bot,
+	X,
 	Menu,
 	Maximize2,
 	Minimize2,
@@ -20,11 +18,11 @@ import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
 import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
+import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
 import { ChatHistorySidebar } from "@/components/ai-chat/chat-history-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistory } from "@/hooks"
 
@@ -34,7 +32,7 @@ export default function EnhancedAssistentePage() {
 	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
-	
+
 	const {
 		sessions,
 		currentSessionId,
@@ -111,7 +109,7 @@ export default function EnhancedAssistentePage() {
 					}
 
 					const result = await response.json()
-					
+
 					if (result.product) {
 						addMessage({
 							role: "assistant",
@@ -147,6 +145,91 @@ export default function EnhancedAssistentePage() {
 		}
 	}
 
+	const handleAudioRecording = async (audioBlob: Blob) => {
+		try {
+			addMessage({
+				role: "user",
+				content: "🎤 Processando áudio..."
+			})
+
+			// Converter áudio para texto usando Web Speech API
+			const text = await convertAudioToText(audioBlob)
+
+			if (text && text.trim()) {
+				// Enviar o texto convertido como mensagem normal
+				await sendMessage(text)
+			} else {
+				addMessage({
+					role: "assistant",
+					content: "❌ Não consegui entender o áudio. Tente falar mais claramente ou verifique se o microfone está funcionando."
+				})
+			}
+		} catch (error) {
+			console.error('Erro ao processar áudio:', error)
+			addMessage({
+				role: "assistant",
+				content: "❌ Erro ao processar o áudio. Tente novamente."
+			})
+		}
+	}
+
+	// Função para converter áudio em texto
+	const convertAudioToText = async (audioBlob: Blob): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			// Verificar se a Web Speech API está disponível
+			if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+				reject(new Error('Speech recognition não é suportado neste navegador'))
+				return
+			}
+
+			// Criar um URL temporário para o áudio
+			const audioUrl = URL.createObjectURL(audioBlob)
+			const audio = new Audio(audioUrl)
+
+			// Configurar o reconhecimento de fala
+			const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+			const recognition = new SpeechRecognition()
+
+			recognition.continuous = false
+			recognition.interimResults = false
+			recognition.lang = 'pt-BR'
+			recognition.maxAlternatives = 1
+
+			recognition.onresult = (event: any) => {
+				const transcript = event.results[0][0].transcript
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+				resolve(transcript)
+			}
+
+			recognition.onerror = (event: any) => {
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+				reject(new Error(`Erro no reconhecimento: ${event.error}`))
+			}
+
+			recognition.onend = () => {
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+			}
+
+			// Reproduzir o áudio e iniciar reconhecimento
+			audio.oncanplaythrough = () => {
+				recognition.start()
+				audio.play()
+			}
+
+			audio.onerror = () => {
+				URL.revokeObjectURL(audioUrl)
+				reject(new Error('Erro ao reproduzir áudio'))
+			}
+
+			// Timeout de segurança
+			setTimeout(() => {
+				recognition.stop()
+				URL.revokeObjectURL(audioUrl)
+				reject(new Error('Timeout no processamento do áudio'))
+			}, 10000) // 10 segundos
+		})
+	}
+
 	return (
 		<div className="flex h-screen bg-gray-50">
 			{/* Sidebar de Histórico */}
@@ -163,9 +246,8 @@ export default function EnhancedAssistentePage() {
 			/>
 
 			{/* Conteúdo Principal */}
-			<div className={`flex-1 flex flex-col transition-all duration-300 ${
-				isExpanded ? 'max-w-none' : 'max-w-6xl mx-auto'
-			}`}>
+			<div className={`flex-1 flex flex-col transition-all duration-300 ${isExpanded ? 'max-w-none' : 'max-w-6xl mx-auto'
+				}`}>
 				{/* Header */}
 				<div className="bg-white border-b border-gray-200 p-4">
 					<div className="flex items-center justify-between">
@@ -178,14 +260,14 @@ export default function EnhancedAssistentePage() {
 							>
 								<Menu className="h-5 w-5" />
 							</Button>
-							
+
 							<Link href="/" className="hidden lg:block">
 								<Button variant="outline" size="sm" className="gap-2">
 									<ArrowLeft className="h-4 w-4" />
 									Voltar
 								</Button>
 							</Link>
-							
+
 							<div className="flex items-center gap-3">
 								<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
 									<Bot className="h-6 w-6 text-white" />
@@ -259,7 +341,7 @@ export default function EnhancedAssistentePage() {
 								)}
 							</CardTitle>
 						</CardHeader>
-						
+
 						<CardContent className="flex-1 flex flex-col p-0 min-h-0">
 							{/* Chat Messages */}
 							<ScrollArea className="flex-1 p-6">
@@ -300,14 +382,14 @@ export default function EnhancedAssistentePage() {
 											)}
 										</div>
 									))}
-									
+
 									{/* Indicador de Digitação Melhorado */}
 									{isLoading && (
-										<EnhancedTypingIndicator 
-											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' : 
-													lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+										<EnhancedTypingIndicator
+											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
+												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
 													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-													undefined}
+														undefined}
 										/>
 									)}
 								</div>
@@ -315,32 +397,17 @@ export default function EnhancedAssistentePage() {
 
 							{/* Input Form */}
 							<div className="p-6 border-t bg-gray-50/50 flex-shrink-0">
-								<form onSubmit={handleSendMessage} className="flex gap-4">
-									<Input
-										value={input}
-										onChange={(e) => setInput(e.target.value)}
-										placeholder="Digite sua mensagem aqui..."
-										disabled={isLoading}
-										className="flex-1 h-12 text-base bg-white border-2 border-gray-200 focus:border-blue-500 transition-all duration-200"
-									/>
-									<Button
-										type="button"
-										onClick={() => setShowPhotoCapture(true)}
-										disabled={isLoading || isProcessingPhoto}
-										className="h-12 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-										title="Tirar foto ou enviar da galeria"
-									>
-										<Camera className="h-4 w-4" />
-									</Button>
-									<Button
-										type="submit"
-										disabled={isLoading || !input.trim()}
-										className="h-12 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-									>
-										<Send className="h-4 w-4 mr-2" />
-										Enviar
-									</Button>
-								</form>
+								<EnhancedInput
+									value={input}
+									onChange={setInput}
+									onSubmit={handleSendMessage}
+									onPhotoCapture={() => setShowPhotoCapture(true)}
+									onSuggestionClick={handleSuggestionClick}
+									onAudioRecording={handleAudioRecording}
+									placeholder="Digite sua mensagem aqui..."
+									disabled={isLoading}
+									isLoading={isLoading}
+								/>
 							</div>
 						</CardContent>
 					</Card>
@@ -361,7 +428,7 @@ export default function EnhancedAssistentePage() {
 								</CardContent>
 							</Card>
 						</motion.div>
-						
+
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -374,7 +441,7 @@ export default function EnhancedAssistentePage() {
 								</CardContent>
 							</Card>
 						</motion.div>
-						
+
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}

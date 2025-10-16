@@ -12,10 +12,12 @@ import {
 	Search,
 	BarChart3,
 	AlertTriangle,
-	TrendingDown
+	TrendingDown,
+	Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { MicrophoneWaveform } from "@/components/ui/waveform"
 
 interface EnhancedInputProps {
 	value: string
@@ -23,6 +25,7 @@ interface EnhancedInputProps {
 	onSubmit: (e: React.FormEvent) => void
 	onPhotoCapture: () => void
 	onSuggestionClick: (suggestion: string) => void
+	onAudioRecording?: (audioBlob: Blob) => void
 	placeholder?: string
 	disabled?: boolean
 	isLoading?: boolean
@@ -83,6 +86,7 @@ export function EnhancedInput({
 	onSubmit,
 	onPhotoCapture,
 	onSuggestionClick,
+	onAudioRecording,
 	placeholder = "Mensagem para o Zé...",
 	disabled = false,
 	isLoading = false,
@@ -93,7 +97,13 @@ export function EnhancedInput({
 }: EnhancedInputProps) {
 	const [showSuggestions, setShowSuggestions] = useState(false)
 	const [isFocused, setIsFocused] = useState(false)
+	const [isRecording, setIsRecording] = useState(false)
+	const [recordingMode, setRecordingMode] = useState<'text' | 'audio'>('text')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+	const audioChunksRef = useRef<Blob[]>([])
+	const pressTimerRef = useRef<NodeJS.Timeout | null>(null)
+	// Visual é controlado pelo componente MicrophoneWaveform
 
 	// Detectar quando o usuário digita "/"
 	useEffect(() => {
@@ -135,6 +145,93 @@ export function EnhancedInput({
 		}
 	}, [isListening, onStartListening, onStopListening])
 
+	// Função para iniciar gravação de áudio
+	const startAudioRecording = useCallback(async () => {
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+			const mediaRecorder = new MediaRecorder(stream)
+			mediaRecorderRef.current = mediaRecorder
+			audioChunksRef.current = []
+
+			mediaRecorder.ondataavailable = (event) => {
+				if (event.data.size > 0) {
+					audioChunksRef.current.push(event.data)
+				}
+			}
+
+			mediaRecorder.onstop = () => {
+				const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' })
+				if (onAudioRecording) {
+					onAudioRecording(audioBlob)
+				}
+				stream.getTracks().forEach(track => track.stop())
+			}
+
+			mediaRecorder.start()
+			setIsRecording(true)
+		} catch (error) {
+			console.error('Erro ao iniciar gravação:', error)
+		}
+	}, [onAudioRecording])
+
+	// Função para parar gravação de áudio
+	const stopAudioRecording = useCallback(() => {
+		if (mediaRecorderRef.current && isRecording) {
+			mediaRecorderRef.current.stop()
+			setIsRecording(false)
+
+		}
+	}, [isRecording])
+
+	// Handlers para mouse/touch
+	const handleMouseDown = useCallback(() => {
+		if (disabled) return
+
+		// Iniciar timer para detectar se é um clique longo
+		pressTimerRef.current = setTimeout(() => {
+			// Clique longo - iniciar gravação de áudio
+			setRecordingMode('audio')
+			startAudioRecording()
+		}, 500) // 500ms para detectar clique longo
+	}, [disabled, startAudioRecording])
+
+	const handleMouseUp = useCallback(() => {
+		if (pressTimerRef.current) {
+			clearTimeout(pressTimerRef.current)
+			pressTimerRef.current = null
+		}
+
+		if (isRecording) {
+			// Parar gravação de áudio
+			stopAudioRecording()
+		} else if (recordingMode === 'text') {
+			// Clique curto - toggle speech-to-text
+			handleVoiceToggle()
+		}
+	}, [isRecording, recordingMode, stopAudioRecording, handleVoiceToggle])
+
+	const handleMouseLeave = useCallback(() => {
+		if (pressTimerRef.current) {
+			clearTimeout(pressTimerRef.current)
+			pressTimerRef.current = null
+		}
+		if (isRecording) {
+			stopAudioRecording()
+		}
+	}, [isRecording, stopAudioRecording])
+
+	// Cleanup
+	useEffect(() => {
+		return () => {
+			if (pressTimerRef.current) {
+				clearTimeout(pressTimerRef.current)
+			}
+			if (isRecording) {
+				stopAudioRecording()
+			}
+		}
+	}, [isRecording, stopAudioRecording])
+
 	return (
 		<div className="relative">
 			{/* Sugestões */}
@@ -169,10 +266,9 @@ export function EnhancedInput({
 			</AnimatePresence>
 
 			{/* Input Container */}
-			<div className={`flex items-end gap-2 p-3 border rounded-2xl bg-muted transition-all ${
-				isFocused ? 'bg-background border-primary' : 'border-input'
-			} ${isListening ? 'border-red-300 bg-red-50 dark:bg-red-950/20' : ''}`}>
-				
+			<div className={`flex items-end gap-2 p-3 border rounded-2xl bg-muted transition-all ${isFocused ? 'bg-background border-primary' : 'border-input'
+				} ${isListening ? 'border-red-300 bg-red-50 dark:bg-red-950/20' : ''}`}>
+
 				{/* Botão Plus */}
 				<Button
 					type="button"
@@ -185,19 +281,34 @@ export function EnhancedInput({
 					<Plus className="h-4 w-4" />
 				</Button>
 
-				{/* Textarea */}
-				<Textarea
-					ref={textareaRef}
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					onKeyDown={handleKeyDown}
-					onFocus={() => setIsFocused(true)}
-					onBlur={() => setIsFocused(false)}
-					placeholder={isListening ? "🎤 Ouvindo... Fale agora" : placeholder}
-					disabled={disabled || isListening}
-					className="flex-1 min-h-[20px] max-h-[120px] resize-none border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-					rows={1}
-				/>
+				{/* Área de entrada: troca por visual de onda quando gravando/ouvindo */}
+				{(isRecording || isListening) ? (
+					<div className="flex-1 h-12 rounded-md bg-background/60 border border-dashed border-primary/40 flex items-center px-3">
+						<MicrophoneWaveform
+							active={true}
+							processing={false}
+							barWidth={3}
+							barGap={1}
+							barRadius={2}
+							barColor="#8b5cf6"
+							height={24}
+							className="w-full"
+						/>
+					</div>
+				) : (
+					<Textarea
+						ref={textareaRef}
+						value={value}
+						onChange={(e) => onChange(e.target.value)}
+						onKeyDown={handleKeyDown}
+						onFocus={() => setIsFocused(true)}
+						onBlur={() => setIsFocused(false)}
+						placeholder={placeholder}
+						disabled={disabled}
+						className="flex-1 min-h-[20px] max-h-[120px] resize-none border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+						rows={1}
+					/>
+				)}
 
 				{/* Botão de Voz */}
 				{isVoiceSupported && (
@@ -205,15 +316,36 @@ export function EnhancedInput({
 						type="button"
 						variant="ghost"
 						size="icon"
-						onClick={handleVoiceToggle}
+						onMouseDown={handleMouseDown}
+						onMouseUp={handleMouseUp}
+						onMouseLeave={handleMouseLeave}
+						onTouchStart={handleMouseDown}
+						onTouchEnd={handleMouseUp}
 						disabled={disabled}
-						className={`flex-shrink-0 h-8 w-8 rounded-lg transition-colors ${
-							isListening 
-								? 'text-red-600 hover:text-red-700 bg-red-100 dark:bg-red-950/30' 
-								: 'text-muted-foreground hover:text-foreground hover:bg-muted'
-						}`}
+						className={`flex-shrink-0 h-8 w-8 rounded-lg transition-colors relative ${isListening || isRecording
+							? 'text-red-600 hover:text-red-700 bg-red-100 dark:bg-red-950/30'
+							: 'text-muted-foreground hover:text-foreground hover:bg-muted'
+							}`}
+						title={
+							isRecording
+								? 'Gravando áudio... Solte para enviar'
+								: isListening
+									? 'Ouvindo... Clique para parar'
+									: 'Clique para falar • Segure para gravar áudio'
+						}
 					>
-						{isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+						{isRecording ? (
+							<Send className="h-4 w-4" />
+						) : isListening ? (
+							<MicOff className="h-4 w-4" />
+						) : (
+							<Mic className="h-4 w-4" />
+						)}
+
+						{/* Indicador de gravação */}
+						{isRecording && (
+							<div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+						)}
 					</Button>
 				)}
 
@@ -231,7 +363,12 @@ export function EnhancedInput({
 			{/* Dica */}
 			<div className="flex items-center justify-center mt-2">
 				<p className="text-xs text-muted-foreground">
-					Digite "/" para sugestões • Pressione Enter para enviar
+					Digite "/" para sugestões • Pressione Enter para enviar •
+					{isVoiceSupported && (
+						<span className="ml-1">
+							Clique no microfone para falar • Segure para gravar áudio
+						</span>
+					)}
 				</p>
 			</div>
 		</div>

@@ -15,7 +15,6 @@ import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
 import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
 import { ChatGPTSidebar } from "@/components/ai-chat/chatgpt-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
-import { AudioRecorder } from "@/components/audio-recorder/audio-recorder"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistory } from "@/hooks"
@@ -32,7 +31,6 @@ export default function CleanAssistentePage() {
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
 	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
-	const [isUsingAudioRecorder, setIsUsingAudioRecorder] = useState(false)
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -240,18 +238,21 @@ export default function CleanAssistentePage() {
 		try {
 			addMessage({
 				role: "user",
-				content: "🎤 Áudio enviado para análise"
+				content: "🎤 Processando áudio..."
 			})
 
-			// Aqui você pode implementar o processamento do áudio
-			// Por exemplo, enviar para uma API de speech-to-text
-			// Por enquanto, vamos simular uma resposta
-			setTimeout(() => {
+			// Converter áudio para texto usando Web Speech API
+			const text = await convertAudioToText(audioBlob)
+
+			if (text && text.trim()) {
+				// Enviar o texto convertido como mensagem normal
+				await sendMessage(text)
+			} else {
 				addMessage({
 					role: "assistant",
-					content: "Recebi sua mensagem de áudio! Em breve implementarei o processamento de áudio para conversão em texto."
+					content: "❌ Não consegui entender o áudio. Tente falar mais claramente ou verifique se o microfone está funcionando."
 				})
-			}, 1000)
+			}
 		} catch (error) {
 			console.error('Erro ao processar áudio:', error)
 			addMessage({
@@ -260,6 +261,64 @@ export default function CleanAssistentePage() {
 			})
 		}
 	}
+
+	// Função para converter áudio em texto
+	const convertAudioToText = async (audioBlob: Blob): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			// Verificar se a Web Speech API está disponível
+			if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+				reject(new Error('Speech recognition não é suportado neste navegador'))
+				return
+			}
+
+			// Criar um URL temporário para o áudio
+			const audioUrl = URL.createObjectURL(audioBlob)
+			const audio = new Audio(audioUrl)
+
+			// Configurar o reconhecimento de fala
+			const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+			const recognition = new SpeechRecognition()
+
+			recognition.continuous = false
+			recognition.interimResults = false
+			recognition.lang = 'pt-BR'
+			recognition.maxAlternatives = 1
+
+			recognition.onresult = (event: any) => {
+				const transcript = event.results[0][0].transcript
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+				resolve(transcript)
+			}
+
+			recognition.onerror = (event: any) => {
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+				reject(new Error(`Erro no reconhecimento: ${event.error}`))
+			}
+
+			recognition.onend = () => {
+				URL.revokeObjectURL(audioUrl) // Limpar URL temporário
+			}
+
+			// Reproduzir o áudio e iniciar reconhecimento
+			audio.oncanplaythrough = () => {
+				recognition.start()
+				audio.play()
+			}
+
+			audio.onerror = () => {
+				URL.revokeObjectURL(audioUrl)
+				reject(new Error('Erro ao reproduzir áudio'))
+			}
+
+			// Timeout de segurança
+			setTimeout(() => {
+				recognition.stop()
+				URL.revokeObjectURL(audioUrl)
+				reject(new Error('Timeout no processamento do áudio'))
+			}, 10000) // 10 segundos
+		})
+	}
+
 
 	// Configurar assistente de voz
 	useEffect(() => {
@@ -516,58 +575,21 @@ export default function CleanAssistentePage() {
 					{/* Input Area - Sempre visível */}
 					<div className="border-t bg-background flex-shrink-0">
 						<div className="w-full max-w-4xl mx-auto px-4 py-4">
-							{!isUsingAudioRecorder ? (
-								<div className="space-y-4">
-									<EnhancedInput
-										value={input}
-										onChange={setInput}
-										onSubmit={handleSendMessage}
-										onPhotoCapture={() => setShowPhotoCapture(true)}
-										onSuggestionClick={handleSuggestionClick}
-										placeholder="Mensagem para o Zé..."
-										disabled={isLoading}
-										isLoading={isLoading}
-										isListening={isListening}
-										onStartListening={startListening}
-										onStopListening={stopListening}
-										isVoiceSupported={isVoiceSupported}
-									/>
-									<div className="flex justify-center">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => setIsUsingAudioRecorder(true)}
-											className="gap-2"
-										>
-											<Mic className="h-4 w-4" />
-											Gravar Áudio
-										</Button>
-									</div>
-								</div>
-							) : (
-								<div className="space-y-4">
-									<AudioRecorder
-										onRecordingComplete={handleAudioRecording}
-										onError={(error) => {
-											console.error('Erro no gravador de áudio:', error)
-											addMessage({
-												role: "assistant",
-												content: "❌ Erro ao acessar o microfone. Verifique as permissões."
-											})
-										}}
-										disabled={isLoading}
-									/>
-									<div className="flex justify-center">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => setIsUsingAudioRecorder(false)}
-										>
-											Voltar ao Texto
-										</Button>
-									</div>
-								</div>
-							)}
+							<EnhancedInput
+								value={input}
+								onChange={setInput}
+								onSubmit={handleSendMessage}
+								onPhotoCapture={() => setShowPhotoCapture(true)}
+								onSuggestionClick={handleSuggestionClick}
+								onAudioRecording={handleAudioRecording}
+								placeholder="Mensagem para o Zé..."
+								disabled={isLoading}
+								isLoading={isLoading}
+								isListening={isListening}
+								onStartListening={startListening}
+								onStopListening={stopListening}
+								isVoiceSupported={isVoiceSupported}
+							/>
 						</div>
 					</div>
 				</div>

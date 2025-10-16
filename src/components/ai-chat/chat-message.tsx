@@ -125,13 +125,13 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 				// Buscar preços do produto
 				const response = await fetch(`/api/price-comparison/product?productName=${encodeURIComponent(productData.name)}`)
-				
+
 				if (!response.ok) {
 					throw new Error("Produto não encontrado")
 				}
 
 				const data = await response.json()
-				
+
 				// Pegar os últimos 5 preços
 				const recentPrices = data.markets
 					.filter((market: any) => market.currentPrice > 0)
@@ -150,7 +150,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 				// Formatar mensagem com os preços
 				let priceMessage = `📊 **Últimos preços de ${productData.name}:**\n\n`
-				
+
 				recentPrices.forEach((market: any, index: number) => {
 					const date = new Date(market.lastUpdate).toLocaleDateString('pt-BR')
 					const emoji = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "📍"
@@ -191,7 +191,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 				// Primeiro, tentar buscar o produto por código de barras ou nome
 				let productResponse
-				
+
 				if (productData.barcode) {
 					productResponse = await fetch(`/api/products?barcode=${productData.barcode}`)
 				} else {
@@ -222,17 +222,17 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 				// Formatar mensagem com detalhes do produto
 				let detailsMessage = `📦 **Detalhes de ${productDetails.name}**\n\n`
-				
+
 				if (productDetails.brand?.name) {
 					detailsMessage += `🏷️ **Marca:** ${productDetails.brand.name}\n`
 				}
-				
+
 				if (productDetails.category?.name) {
 					detailsMessage += `📂 **Categoria:** ${productDetails.category.name}\n`
 				}
-				
+
 				detailsMessage += `📏 **Unidade:** ${productDetails.unit}\n`
-				
+
 				if (productDetails.barcode) {
 					detailsMessage += `🔢 **Código de Barras:** ${productDetails.barcode}\n`
 				}
@@ -291,26 +291,25 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					{/* Preview da imagem para mensagens do usuário */}
 					{role === "user" && imagePreview && (
 						<div className="w-32 h-32 rounded-lg overflow-hidden border">
-							<img 
-								src={imagePreview} 
+							<img
+								src={imagePreview}
 								alt="Imagem enviada"
 								className="w-full h-full object-cover"
 							/>
 						</div>
 					)}
-					
+
 					<div
-						className={`rounded-lg px-3 py-2 text-sm ${
-							role === "user"
+						className={`rounded-lg px-3 py-2 text-sm ${role === "user"
 								? "bg-primary text-primary-foreground"
 								: isError
 									? "bg-red-50 text-red-700 border border-red-200"
 									: "bg-muted"
-						}`}
+							}`}
 					>
 						{role === "assistant" ? (
 							content === "product-recognition-card" && productData ? (
-								<ProductRecognitionCard 
+								<ProductRecognitionCard
 									product={productData}
 									imagePreview={productData.imagePreview}
 								/>
@@ -324,13 +323,13 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 									<span className="text-xs text-muted-foreground">gerando resposta...</span>
 								</div>
 							) : (
-								<div className="prose prose-sm max-w-none break-words">
+								<div className="prose prose-sm max-w-none break-words overflow-wrap-anywhere hyphens-auto">
 									<ReactMarkdown
 										components={{
-											p: ({ children }) => <p className="my-1 last:mb-0 break-words">{children}</p>,
+											p: ({ children }) => <p className="my-1 last:mb-0 break-words overflow-wrap-anywhere">{children}</p>,
 											ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
 											ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
-											li: ({ children }) => <li className="my-0 break-words">{children}</li>,
+											li: ({ children }) => <li className="my-0 break-words overflow-wrap-anywhere">{children}</li>,
 											strong: ({ children }) => <strong className="font-bold">{children}</strong>,
 											em: ({ children }) => <em className="italic">{children}</em>,
 										}}
@@ -354,7 +353,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 							Tentar novamente
 						</Button>
 					)}
-					
+
 					{/* Menu de opções - só para mensagens do assistente */}
 					{role === "assistant" && !isStreaming && content !== "product-recognition-card" && (
 						<div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 mt-1">
