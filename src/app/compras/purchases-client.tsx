@@ -10,6 +10,7 @@ import {
 	Edit,
 	Eye,
 	Filter,
+	MoreVertical,
 	Plus,
 	Search,
 	ShoppingCart,
@@ -23,6 +24,13 @@ import { useId, useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -316,7 +324,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 					</Empty>
 				) : (
 					<>
-						<div className="flex justify-between items-center text-sm text-gray-600">
+						<div className="flex justify-between items-center text-sm text-gray-600 mb-4">
 							<span>
 								Mostrando {purchases.length} de {totalCount} compras
 							</span>
@@ -325,7 +333,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</span>
 						</div>
 
-						{purchases.map((purchase: any, index: number) => {
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{purchases.map((purchase: any, index: number) => {
 							// Calcular desconto total real (itens + desconto total da compra)
 							const itemsDiscount = purchase.items?.reduce((sum: number, item: any) =>
 								sum + (item.totalDiscount || 0), 0) || 0
@@ -337,59 +346,86 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 									initial={{ opacity: 0, y: 20 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: index * 0.05 }}
+									className="h-full"
 								>
-									<Card>
-										<CardHeader>
-											<div className="flex justify-between items-start">
-												<div>
-													<CardTitle className="flex items-center gap-2">
-														<ShoppingCart className="h-5 w-5" />
-														Compra em {purchase.market?.name}
+									<Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+										<CardHeader className="flex-1 pb-3">
+											<div className="flex flex-col gap-3">
+												{/* Cabeçalho */}
+												<div className="flex justify-between items-start">
+													<CardTitle className="flex items-center gap-2 text-base md:text-lg">
+														<ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
+														{purchase.market?.name}
 													</CardTitle>
-													<CardDescription className="space-y-1 mt-2">
-														<div className="flex items-center gap-1">
-															<Store className="h-3 w-3" />
-															{purchase.market?.location}
+													<div className="text-right">
+														<div className="text-lg md:text-xl font-bold text-green-600">
+															R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
 														</div>
-														<div className="flex items-center gap-1">
-															<Calendar className="h-3 w-3" />
-															{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-														</div>
-													</CardDescription>
-												</div>
-												<div className="flex flex-col justify-end text-right">
-													<div className="flex items-center justify-end gap-1 text-lg font-bold">
-														R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
+														{totalDiscount > 0 && (
+															<div className="text-xs md:text-sm text-red-600 font-medium">
+																-R$ {totalDiscount.toFixed(2)}
+															</div>
+														)}
 													</div>
-													{totalDiscount > 0 && (
-														<div className="text-sm text-red-600">
-															Desconto: -R$ {totalDiscount.toFixed(2)}
-														</div>
-													)}
-													<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
 												</div>
+												
+												{/* Informações */}
+												<CardDescription className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs md:text-sm">
+														<Store className="h-3.5 w-3.5" />
+														{purchase.market?.location}
+													</div>
+													<div className="flex items-center gap-1.5 text-xs md:text-sm">
+														<Calendar className="h-3.5 w-3.5" />
+														{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+													</div>
+													<div className="text-xs md:text-sm font-medium text-muted-foreground">
+														{purchase.items?.length || 0} {purchase.items?.length === 1 ? 'item' : 'itens'}
+													</div>
+												</CardDescription>
 											</div>
 										</CardHeader>
-										<CardContent>
+										<CardContent className="pt-0 pb-4">
 											<div className="flex gap-2">
-												<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
-													<Eye className="h-4 w-4 mr-1" />
-													Detalhes
+												<Button 
+													variant="outline" 
+													size="sm" 
+													className="flex-1"
+													onClick={() => viewPurchaseDetails(purchase)}
+												>
+													<Eye className="h-4 w-4 mr-2" />
+													Ver Detalhes
 												</Button>
-												<Link href={`/compras/editar/${purchase.id}`}>
-													<Button variant="outline" size="sm">
-														<Edit className="h-4 w-4" />
-													</Button>
-												</Link>
-												<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
-													<Trash2 className="h-4 w-4" />
-												</Button>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="outline" size="sm">
+															<MoreVertical className="h-4 w-4" />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														<DropdownMenuItem asChild>
+															<Link href={`/compras/editar/${purchase.id}`} className="cursor-pointer">
+																<Edit className="h-4 w-4 mr-2" />
+																Editar
+															</Link>
+														</DropdownMenuItem>
+														<DropdownMenuSeparator />
+														<DropdownMenuItem 
+															onClick={() => openDeleteConfirm(purchase)}
+															className="text-destructive focus:text-destructive cursor-pointer"
+														>
+															<Trash2 className="h-4 w-4 mr-2" />
+															Excluir
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
 											</div>
 										</CardContent>
 									</Card>
 								</motion.div>
 							)
-						})}
+							})}
+						</div>
 
 						{totalPages > 1 && (
 							<div className="flex justify-center items-center gap-2 pt-6">
