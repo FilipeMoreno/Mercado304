@@ -104,6 +104,18 @@ export function useDeletePasskey() {
 			if (result.error) {
 				throw new Error("Erro ao excluir passkey")
 			}
+
+			// Registra evento de exclusão no histórico E envia email
+			fetch("/api/auth/log-security-event", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					eventType: "passkey_removed",
+					metadata: { passkeyId },
+					sendEmail: true, // Flag para enviar email
+				}),
+			}).catch(err => console.error("Failed to log passkey removal:", err))
+
 			return passkeyId
 		},
 		onSuccess: (deletedId) => {
@@ -181,11 +193,48 @@ export function useTerminateAllSessions() {
 
 export function useDisableTwoFactor() {
 	return useMutation({
-		mutationFn: async (password: string) => {
-			const result = await twoFactor.disable({ password })
+		mutationFn: async (passwordOrToken: string) => {
+			console.log("useDisableTwoFactor: received", {
+				value: passwordOrToken?.substring(0, 20) + "...",
+				isAuthToken: passwordOrToken?.startsWith("eyJ")
+			})
+
+			let passwordToUse = passwordOrToken
+			let tempPasswordCreated = false
+
+			// Detecta se é um token de reautenticação (base64, começa com "eyJ")
+			const isAuthToken = passwordOrToken?.startsWith("eyJ") || false
+
+			// Se tem token de reautenticação, usa endpoint customizado para OAuth
+			if (isAuthToken) {
+				console.log("useDisableTwoFactor: using custom OAuth endpoint with reauth token")
+
+				const response = await fetch("/api/auth/two-factor/disable-oauth", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ authToken: passwordOrToken }),
+				})
+
+				if (!response.ok) {
+					const errorData = await response.json()
+					console.error("useDisableTwoFactor: OAuth disable failed", errorData)
+					throw new Error(errorData.error || "Erro ao desativar 2FA")
+				}
+
+				console.log("useDisableTwoFactor: SUCCESS via OAuth endpoint!")
+				return { success: true }
+			}
+
+			// Para contas com senha, usa o método normal do Better Auth
+			console.log("useDisableTwoFactor: using standard Better Auth method with password")
+			const result = await twoFactor.disable({ password: passwordOrToken })
+
 			if (result.error) {
+				console.error("useDisableTwoFactor: Better Auth returned error:", result.error)
 				throw new Error("Erro ao desativar 2FA. Verifique sua senha.")
 			}
+
+			console.log("useDisableTwoFactor: SUCCESS via Better Auth!")
 			return result
 		},
 		onSuccess: () => {
@@ -199,11 +248,41 @@ export function useDisableTwoFactor() {
 
 export function useGenerateBackupCodes() {
 	return useMutation({
-		mutationFn: async (password: string) => {
-			const result = await twoFactor.generateBackupCodes({ password })
+		mutationFn: async (passwordOrToken: string) => {
+			// Detecta se é um token de reautenticação (base64, começa com "eyJ")
+			const isAuthToken = passwordOrToken?.startsWith("eyJ") || false
+
+			// Se tem token de reautenticação, usa endpoint customizado para OAuth
+			if (isAuthToken) {
+				console.log("useGenerateBackupCodes: using custom OAuth endpoint with reauth token")
+
+				const response = await fetch("/api/auth/two-factor/backup-codes-oauth", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ authToken: passwordOrToken }),
+				})
+
+				if (!response.ok) {
+					const errorData = await response.json()
+					console.error("useGenerateBackupCodes: OAuth generation failed", errorData)
+					throw new Error(errorData.error || "Erro ao gerar códigos de backup")
+				}
+
+				const { backupCodes } = await response.json()
+				console.log("useGenerateBackupCodes: SUCCESS via OAuth endpoint!")
+				return backupCodes
+			}
+
+			// Para contas com senha, usa o método normal do Better Auth
+			console.log("useGenerateBackupCodes: using standard Better Auth method with password")
+			const result = await twoFactor.generateBackupCodes({ password: passwordOrToken })
+
 			if (result.error) {
+				console.error("useGenerateBackupCodes: Better Auth returned error:", result.error)
 				throw new Error("Erro ao gerar códigos de backup. Verifique sua senha.")
 			}
+
+			console.log("useGenerateBackupCodes: SUCCESS via Better Auth!")
 			return result.data?.backupCodes || []
 		},
 		onSuccess: () => {

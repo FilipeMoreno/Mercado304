@@ -2,7 +2,7 @@
 
 import { Copy, Download, Eye, EyeOff, Loader2, Shield, ShieldCheck } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,32 +28,88 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 	const [backupCodes, setBackupCodes] = useState<string[]>([])
 	const [showBackupCodes, setShowBackupCodes] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [hasPassword, setHasPassword] = useState<boolean | null>(null)
 
-	const isSocialAccount = !!session?.user?.image
+	// Verifica se o usuário tem senha ao montar o componente
+	useEffect(() => {
+		checkHasPassword()
+	}, [])
 
-	const handleInitialSetup = () => {
-		if (isSocialAccount) {
-			generateAndEnable2FA()
+	const checkHasPassword = async () => {
+		try {
+			const response = await fetch("/api/user/has-password")
+			if (response.ok) {
+				const data = await response.json()
+				setHasPassword(data.hasPassword)
+			}
+		} catch (error) {
+			console.error("Erro ao verificar senha:", error)
+			// Em caso de erro, assume que tem senha por segurança
+			setHasPassword(true)
+		}
+	}
+
+	const handleInitialSetup = async () => {
+		// Se ainda não verificou se tem senha, verifica agora
+		if (hasPassword === null) {
+			await checkHasPassword()
+			// Aguarda um pouco para garantir que o estado foi atualizado
+			setTimeout(() => {
+				if (hasPassword === false) {
+					generateAndEnable2FA()
+				} else {
+					setStep("password")
+				}
+			}, 100)
 		} else {
-			setStep("password")
+			// Já sabe se tem senha ou não
+			if (!hasPassword) {
+				generateAndEnable2FA()
+			} else {
+				setStep("password")
+			}
 		}
 	}
 
 	const generateAndEnable2FA = async () => {
 		setIsLoading(true)
 		try {
-			const result = await twoFactor.enable({
-				password: isSocialAccount ? "" : password || "",
-			})
+			let totpUriFromApi = ""
+			let backupCodesFromApi: string[] = []
 
-			if (result.error) {
-				handleAuthError(result.error, "general")
-				setIsLoading(false)
-				return
+			if (!hasPassword) {
+				// Para contas OAuth, usa endpoint customizado
+				console.log("TwoFactorSetup: Using OAuth endpoint (no password)")
+				const response = await fetch("/api/auth/two-factor/enable-oauth", {
+					method: "POST",
+				})
+
+				if (!response.ok) {
+					const data = await response.json()
+					throw new Error(data.error || "Erro ao habilitar 2FA")
+				}
+
+				const data = await response.json()
+				totpUriFromApi = data.totpURI || ""
+				backupCodesFromApi = data.backupCodes || []
+				console.log("TwoFactorSetup: OAuth endpoint success")
+			} else {
+				// Para contas com senha, usa o método normal do Better Auth
+				console.log("TwoFactorSetup: Using standard Better Auth method")
+				const result = await twoFactor.enable({
+					password: password,
+				})
+
+				if (result.error) {
+					handleAuthError(result.error, "general")
+					setIsLoading(false)
+					return
+				}
+
+				totpUriFromApi = result.data?.totpURI || ""
+				backupCodesFromApi = result.data?.backupCodes || []
+				console.log("TwoFactorSetup: Better Auth success")
 			}
-
-			const totpUriFromApi = result.data?.totpURI || ""
-			const backupCodesFromApi = result.data?.backupCodes || []
 
 			const secretMatch = totpUriFromApi.match(/secret=([^&]+)/)
 			const secret = secretMatch ? secretMatch[1] : ""
@@ -91,13 +147,37 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 
 		setIsLoading(true)
 		try {
-			const verifyResult = await twoFactor.verifyTotp({
-				code: verificationCode,
-			})
+			if (!hasPassword) {
+				// Para contas OAuth, usa endpoint customizado
+				console.log("TwoFactorSetup: Verifying TOTP with OAuth endpoint")
+				const response = await fetch("/api/auth/two-factor/verify-totp-oauth", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ code: verificationCode }),
+				})
 
-			if (verifyResult.error) {
-				handleAuthError(verifyResult.error, "general")
-				return
+				if (!response.ok) {
+					const data = await response.json()
+					toast.error(data.error || "Código inválido")
+					setIsLoading(false)
+					return
+				}
+
+				console.log("TwoFactorSetup: TOTP verified successfully via OAuth endpoint")
+			} else {
+				// Para contas com senha, usa método normal do Better Auth
+				console.log("TwoFactorSetup: Verifying TOTP with Better Auth")
+				const verifyResult = await twoFactor.verifyTotp({
+					code: verificationCode,
+				})
+
+				if (verifyResult.error) {
+					handleAuthError(verifyResult.error, "general")
+					setIsLoading(false)
+					return
+				}
+
+				console.log("TwoFactorSetup: TOTP verified successfully via Better Auth")
 			}
 
 			setStep("backup-codes")
@@ -150,6 +230,14 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					<CardDescription>Adicione uma camada extra de segurança à sua conta com TOTP</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
+					{hasPassword === false && (
+						<div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
+							<p className="text-sm text-blue-800 dark:text-blue-200">
+								<strong>Conta OAuth detectada:</strong> Como você está usando login do Google, não será necessário
+								confirmar senha para ativar o 2FA.
+							</p>
+						</div>
+					)}
 					<div className="rounded-lg bg-muted p-4">
 						<h4 className="font-medium">Como funciona:</h4>
 						<ul className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -161,11 +249,11 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</div>
 				</CardContent>
 				<CardFooter>
-					<Button onClick={handleInitialSetup} disabled={isLoading} className="w-full">
-						{isLoading ? (
+					<Button onClick={handleInitialSetup} disabled={isLoading || hasPassword === null} className="w-full">
+						{isLoading || hasPassword === null ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Aguarde...
+								{hasPassword === null ? "Verificando..." : "Aguarde..."}
 							</>
 						) : (
 							"Iniciar Configuração"
@@ -263,7 +351,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					</div>
 				</CardContent>
 				<CardFooter className="flex space-x-2">
-					<Button variant="outline" onClick={() => setStep(isSocialAccount ? "setup" : "password")} className="flex-1">
+					<Button variant="outline" onClick={() => setStep(hasPassword ? "password" : "setup")} className="flex-1">
 						Voltar
 					</Button>
 					<Button

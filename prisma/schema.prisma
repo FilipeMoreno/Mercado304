@@ -427,19 +427,20 @@ model PriceRecord {
 }
 
 model User {
-  id               String      @id
-  name             String
-  email            String
-  emailVerified    Boolean     @default(false)
-  image            String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @default(now()) @updatedAt
-  normalizedEmail  String?
-  twoFactorEnabled Boolean?    @default(false)
-  sessions         Session[]
-  accounts         Account[]
-  passkeys         Passkey[]
-  twofactors       TwoFactor[]
+  id                    String      @id
+  name                  String
+  email                 String
+  emailVerified         Boolean     @default(false)
+  image                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @default(now()) @updatedAt
+  normalizedEmail       String?
+  twoFactorEnabled      Boolean?    @default(false)
+  twoFactorEmailEnabled Boolean?    @default(false)
+  sessions              Session[]
+  accounts              Account[]
+  passkeys              Passkey[]
+  twofactors            TwoFactor[]
 
   lastLoginMethod String?
 
@@ -456,6 +457,7 @@ model User {
 
   securityAudits        SecurityAudit[]
   securityNotifications SecurityNotification[]
+  twoFactorEmailCodes   TwoFactorEmailCode[]
 
   @@unique([email])
   @@unique([normalizedEmail])
@@ -545,6 +547,23 @@ model TwoFactor {
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("twoFactor")
+}
+
+model TwoFactorEmailCode {
+  id        String    @id @default(cuid())
+  userId    String
+  code      String
+  type      String    @default("EMAIL")
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([used])
+  @@map("two_factor_email_code")
 }
 
 model DashboardPreference {

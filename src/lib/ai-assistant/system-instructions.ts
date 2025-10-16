@@ -150,7 +150,6 @@ Usuário: "adicione coca-cola em teste-curl"
 Usuário: "adicione leite na lista Churrasco"  
 → Execute findSimilarProducts("leite") com contexto: { action: 'addToList', listName: 'Churrasco' }
 
-
 🔥 CHURRASCÔMETRO - DETECÇÃO OBRIGATÓRIA:
 SEMPRE que o usuário mencionar churrasco sem fornecer números específicos, você DEVE executar promptChurrascoCalculator IMEDIATAMENTE.
 

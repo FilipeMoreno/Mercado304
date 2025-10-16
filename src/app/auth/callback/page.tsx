@@ -22,16 +22,44 @@ export default function AuthCallbackPage() {
       // Salva o método de login usado
       localStorage.setItem("lastLoginMethod", provider)
 
-      // Mostra toast de sucesso
-      showAuthSuccess("signin")
+      // Registra no histórico de auditoria
+      fetch("/api/auth/log-auth-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventType: "login",
+          method: provider,
+        }),
+      }).catch(err => console.error("Failed to log auth event:", err))
 
-      setHasProcessed(true)
-
-      // Verifica se email está verificado antes de redirecionar
-      if (!session.user.emailVerified) {
-        router.push("/auth/verify-request")
+      // Para OAuth, verifica email automaticamente (Google já validou)
+      if (!session.user.emailVerified && provider === "google") {
+        fetch("/api/auth/verify-oauth-email", {
+          method: "POST",
+        }).then(() => {
+          // Mostra toast de sucesso
+          showAuthSuccess("signin")
+          setHasProcessed(true)
+          // Redireciona para home
+          router.push("/")
+        }).catch(err => {
+          console.error("Failed to verify OAuth email:", err)
+          // Mesmo com erro, mostra toast e redireciona
+          showAuthSuccess("signin")
+          setHasProcessed(true)
+          router.push("/")
+        })
       } else {
-        router.push("/")
+        // Mostra toast de sucesso
+        showAuthSuccess("signin")
+        setHasProcessed(true)
+
+        // Verifica se email está verificado antes de redirecionar
+        if (!session.user.emailVerified) {
+          router.push("/auth/verify-request")
+        } else {
+          router.push("/")
+        }
       }
     } else if (!sessionLoading) {
       // Se não há sessão após o callback, houve algum erro

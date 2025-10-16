@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
-import { haveIBeenPwned, lastLoginMethod, oneTap, twoFactor } from "better-auth/plugins"
+import { emailOTP, haveIBeenPwned, lastLoginMethod, oneTap, twoFactor } from "better-auth/plugins"
 import { passkey } from "better-auth/plugins/passkey"
 import { emailHarmony } from "better-auth-harmony"
 import { localization } from "better-auth-localization"
-import { sendPasswordResetEmail, sendVerificationEmail } from "./email"
+import { sendPasswordResetEmail, sendTwoFactorEmail, sendVerificationEmail } from "./email"
 
 const prisma = new PrismaClient()
 
@@ -19,26 +19,39 @@ export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
 		provider: "postgresql",
 	}),
+	user: {
+		// Adiciona campos customizados ao objeto user na sessão
+		additionalFields: {
+			twoFactorEmailEnabled: {
+				type: "boolean",
+				defaultValue: false,
+				input: false, // Não aceita input do usuário
+			},
+		},
+	},
 	emailVerification: {
 		sendOnSignUp: true,
-	},
-	emailAndPassword: {
-		enabled: true,
-		requireEmailVerification: false,
-		sendResetPassword: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
-			try {
-				await sendPasswordResetEmail({ user, url })
-				console.log(`Email de reset de senha enviado para ${user.email}`)
-			} catch (error) {
-				console.error(`Erro ao enviar email de reset para ${user.email}:`, error)
-			}
-		},
+		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
 			try {
 				await sendVerificationEmail({ user, url })
-				console.log(`Email de verificação enviado para ${user.email}`)
+				console.log(`[Better Auth] Email de verificação enviado para ${user.email}`)
 			} catch (error) {
-				console.error(`Erro ao enviar email de verificação para ${user.email}:`, error)
+				console.error(`[Better Auth] Erro ao enviar email de verificação para ${user.email}:`, error)
+				throw error
+			}
+		},
+	},
+	emailAndPassword: {
+		enabled: true,
+		requireEmailVerification: false, // Permitimos login, mas middleware controla acesso
+		sendResetPassword: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
+			try {
+				await sendPasswordResetEmail({ user, url })
+				console.log(`[Better Auth] Email de reset de senha enviado para ${user.email}`)
+			} catch (error) {
+				console.error(`[Better Auth] Erro ao enviar email de reset para ${user.email}:`, error)
+				throw error
 			}
 		},
 	},
@@ -52,7 +65,7 @@ export const auth = betterAuth({
 		expiresIn: 60 * 60 * 24 * 7, // 1 week
 		updateAge: 60 * 60 * 24, // 1 day
 	},
-	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3001"],
+	trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3000"],
 	plugins: [
 		oneTap({
 			clientId: process.env.AUTH_GOOGLE_ID as string,
@@ -63,6 +76,26 @@ export const auth = betterAuth({
 		}),
 		emailHarmony({
 			allowNormalizedSignin: true,
+		}),
+		emailOTP({
+			async sendVerificationOTP({ email, otp, type }) {
+				console.log(`[EmailOTP] Sending ${type} OTP to ${email}`)
+
+				try {
+					await sendTwoFactorEmail({
+						user: { email },
+						code: otp,
+					})
+					console.log(`[EmailOTP] OTP sent successfully`)
+				} catch (error) {
+					console.error(`[EmailOTP] Error sending OTP:`, error)
+					throw error
+				}
+			},
+			otpLength: 6,
+			expiresIn: 600, // 10 minutos
+			sendVerificationOnSignUp: false,
+			disableSignUp: true,
 		}),
 		twoFactor({
 			backupCodeOptions: {
@@ -80,7 +113,7 @@ export const auth = betterAuth({
 			origin:
 				process.env.NODE_ENV === "production"
 					? process.env.BETTER_AUTH_URL || "https://mercado.filipemoreno.com.br"
-					: "http://localhost:3001",
+					: "http://localhost:3000",
 		}),
 		lastLoginMethod({
 			storeInDatabase: true,

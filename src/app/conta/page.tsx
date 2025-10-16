@@ -1,10 +1,10 @@
 "use client"
 
-import { AlertCircle, ArrowLeft, Camera, CheckCircle, Loader2, Mail, Save, Shield, Trash2, User } from "lucide-react"
+import { AlertCircle, ArrowLeft, ArrowRight, Camera, CheckCircle, Loader2, Mail, Save, Shield, Trash2, User } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { SecurityTab } from "@/components/auth/security-tab"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -60,7 +60,7 @@ export default function ContaPage() {
 				},
 				body: JSON.stringify({
 					name,
-					email,
+					// email não é enviado pois não pode ser alterado
 				}),
 			})
 
@@ -139,37 +139,14 @@ export default function ContaPage() {
 								<p className="text-sm text-muted-foreground mt-1">Gerencie sua conta e preferências</p>
 							</div>
 						</div>
-						
-						{/* Avatar no Header */}
-						<Avatar className="h-12 w-12 border-2 border-primary/20">
-							<AvatarImage src={session.user?.image || undefined} />
-							<AvatarFallback className="bg-primary/10 text-primary font-semibold">
-								{getInitials(session.user?.name || "U")}
-							</AvatarFallback>
-						</Avatar>
 					</div>
 				</div>
 			</div>
 
 			{/* Content */}
-			<div className="container max-w-6xl mx-auto px-4 py-8">
-				<Tabs defaultValue="perfil" className="space-y-8">
-					<TabsList className="inline-flex h-11 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground w-auto">
-						<TabsTrigger value="perfil" className="rounded-md px-6">
-							<User className="h-4 w-4 mr-2" />
-							Perfil
-						</TabsTrigger>
-						<TabsTrigger value="seguranca" className="rounded-md px-6">
-							<Shield className="h-4 w-4 mr-2" />
-							Segurança
-						</TabsTrigger>
-						<TabsTrigger value="conta" className="rounded-md px-6">
-							<AlertCircle className="h-4 w-4 mr-2" />
-							Conta
-						</TabsTrigger>
-					</TabsList>
-
-				<TabsContent value="perfil" className="space-y-6">
+			<div className="container max-w-6xl mx-auto px-4 py-8 space-y-8">
+				{/* Perfil Section */}
+				<div className="space-y-6">
 					{/* Card de Perfil Minimalista */}
 					<Card className="border-0 shadow-sm">
 						<CardContent className="pt-6">
@@ -248,12 +225,32 @@ export default function ContaPage() {
 														onChange={(e) => setEmail(e.target.value)}
 														placeholder="seu@email.com"
 														required
-														disabled={isUpdatingProfile}
-														className="h-11 pr-10"
+														disabled={true}
+														className="h-11 pr-10 bg-muted/50 cursor-not-allowed"
+														title="O email não pode ser alterado"
 													/>
-													<CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+													{session?.user?.emailVerified ? (
+														<CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+													) : (
+														<AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
+													)}
 												</div>
-												<p className="text-xs text-muted-foreground">Email verificado</p>
+												{session?.user?.emailVerified ? (
+													<p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+														<CheckCircle className="h-3 w-3" />
+														Email verificado
+													</p>
+												) : (
+													<div className="flex items-center justify-between">
+														<p className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
+															<AlertCircle className="h-3 w-3" />
+															Email não verificado
+														</p>
+														<Link href="/auth/verify-request" className="text-xs text-blue-600 hover:underline">
+															Verificar agora
+														</Link>
+													</div>
+												)}
 											</div>
 										</div>
 
@@ -277,93 +274,121 @@ export default function ContaPage() {
 							</div>
 						</CardContent>
 					</Card>
-				</TabsContent>
 
-				<TabsContent value="seguranca">
-					<SecurityTab session={session} />
-				</TabsContent>
+					{/* Card de Segurança com Link */}
+					<Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+						<CardHeader>
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-3">
+									<div className="p-2 rounded-full bg-blue-100 dark:bg-blue-950">
+										<Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+									</div>
+									<div>
+										<CardTitle>Segurança</CardTitle>
+										<CardDescription>
+											Gerencie autenticação, sessões e configurações de segurança
+										</CardDescription>
+									</div>
+								</div>
+								<Link href="/conta/seguranca">
+									<Button variant="ghost" size="icon">
+										<ArrowRight className="h-5 w-5" />
+									</Button>
+								</Link>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<Link href="/conta/seguranca">
+								<Button className="w-full" size="lg">
+									<Shield className="mr-2 h-4 w-4" />
+									Acessar Configurações de Segurança
+								</Button>
+							</Link>
+						</CardContent>
+					</Card>
+				</div>
 
-					<TabsContent value="conta" className="space-y-6">
+				{/* Zona de Perigo */}
+				<div className="space-y-6">
 					{/* Zona de Perigo Minimalista */}
 					<Card className="border-0 shadow-sm overflow-hidden">
-					<div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 p-6 border-b border-red-200 dark:border-red-900">
-						<div className="flex items-center gap-3">
-							<div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
-								<AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-							</div>
-							<div>
-								<h3 className="text-lg font-semibold text-red-900 dark:text-red-100">Zona de Perigo</h3>
-								<p className="text-sm text-red-700 dark:text-red-300">Ações irreversíveis</p>
+						<div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 p-6 border-b border-red-200 dark:border-red-900">
+							<div className="flex items-center gap-3">
+								<div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
+									<AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+								</div>
+								<div>
+									<h3 className="text-lg font-semibold text-red-900 dark:text-red-100">Zona de Perigo</h3>
+									<p className="text-sm text-red-700 dark:text-red-300">Ações irreversíveis</p>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<CardContent className="p-6">
-						<div className="space-y-4">
-							<div>
-								<h4 className="font-medium text-foreground mb-2">Excluir Conta Permanentemente</h4>
-								<p className="text-sm text-muted-foreground mb-6">
-									Esta ação não pode ser desfeita. Todos os seus dados, incluindo compras, listas e histórico serão permanentemente removidos de nossos servidores.
-								</p>
+						<CardContent className="p-6">
+							<div className="space-y-4">
+								<div>
+									<h4 className="font-medium text-foreground mb-2">Excluir Conta Permanentemente</h4>
+									<p className="text-sm text-muted-foreground mb-6">
+										Esta ação não pode ser desfeita. Todos os seus dados, incluindo compras, listas e histórico serão permanentemente removidos de nossos servidores.
+									</p>
+								</div>
+
+								<AlertDialog>
+									<AlertDialogTrigger asChild>
+										<Button variant="destructive" className="w-full sm:w-auto">
+											<Trash2 className="mr-2 h-4 w-4" />
+											Excluir Minha Conta
+										</Button>
+									</AlertDialogTrigger>
+									<AlertDialogContent className="max-w-md">
+										<AlertDialogHeader>
+											<AlertDialogTitle className="text-xl">Tem certeza absoluta?</AlertDialogTitle>
+											<AlertDialogDescription className="space-y-4 text-base">
+												<p className="text-foreground font-medium">
+													Esta ação excluirá permanentemente sua conta e todos os dados associados.
+												</p>
+												<div className="space-y-2">
+													<Label htmlFor="delete-confirm" className="text-sm font-medium">
+														Para confirmar, digite <span className="font-bold text-red-600">"DELETAR"</span> abaixo:
+													</Label>
+													<Input
+														id="delete-confirm"
+														value={deleteConfirmation}
+														onChange={(e) => setDeleteConfirmation(e.target.value)}
+														placeholder="Digite DELETAR"
+														className="h-11"
+													/>
+												</div>
+											</AlertDialogDescription>
+										</AlertDialogHeader>
+										<AlertDialogFooter className="flex-col sm:flex-row gap-2">
+											<AlertDialogCancel onClick={() => setDeleteConfirmation("")} className="w-full sm:w-auto">
+												Cancelar
+											</AlertDialogCancel>
+											<AlertDialogAction
+												onClick={handleDeleteAccount}
+												disabled={deleteConfirmation !== "DELETAR" || isDeletingAccount}
+												className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+											>
+												{isDeletingAccount ? (
+													<>
+														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														Excluindo...
+													</>
+												) : (
+													<>
+														<Trash2 className="mr-2 h-4 w-4" />
+														Excluir Permanentemente
+													</>
+												)}
+											</AlertDialogAction>
+										</AlertDialogFooter>
+									</AlertDialogContent>
+								</AlertDialog>
 							</div>
-
-							<AlertDialog>
-								<AlertDialogTrigger asChild>
-									<Button variant="destructive" className="w-full sm:w-auto">
-										<Trash2 className="mr-2 h-4 w-4" />
-										Excluir Minha Conta
-									</Button>
-								</AlertDialogTrigger>
-								<AlertDialogContent className="max-w-md">
-									<AlertDialogHeader>
-										<AlertDialogTitle className="text-xl">Tem certeza absoluta?</AlertDialogTitle>
-										<AlertDialogDescription className="space-y-4 text-base">
-											<p className="text-foreground font-medium">
-												Esta ação excluirá permanentemente sua conta e todos os dados associados.
-											</p>
-											<div className="space-y-2">
-												<Label htmlFor="delete-confirm" className="text-sm font-medium">
-													Para confirmar, digite <span className="font-bold text-red-600">"DELETAR"</span> abaixo:
-												</Label>
-												<Input
-													id="delete-confirm"
-													value={deleteConfirmation}
-													onChange={(e) => setDeleteConfirmation(e.target.value)}
-													placeholder="Digite DELETAR"
-													className="h-11"
-												/>
-											</div>
-										</AlertDialogDescription>
-									</AlertDialogHeader>
-									<AlertDialogFooter className="flex-col sm:flex-row gap-2">
-										<AlertDialogCancel onClick={() => setDeleteConfirmation("")} className="w-full sm:w-auto">
-											Cancelar
-										</AlertDialogCancel>
-										<AlertDialogAction
-											onClick={handleDeleteAccount}
-											disabled={deleteConfirmation !== "DELETAR" || isDeletingAccount}
-											className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
-										>
-											{isDeletingAccount ? (
-												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-													Excluindo...
-												</>
-											) : (
-												<>
-													<Trash2 className="mr-2 h-4 w-4" />
-													Excluir Permanentemente
-												</>
-											)}
-										</AlertDialogAction>
-									</AlertDialogFooter>
-								</AlertDialogContent>
-							</AlertDialog>
-						</div>
-					</CardContent>
+						</CardContent>
 					</Card>
-				</TabsContent>
-			</Tabs>
+				</div>
 			</div>
 		</div>
 	)

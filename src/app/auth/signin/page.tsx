@@ -52,6 +52,17 @@ export default function SignInPage() {
 				// Salva o método de login usado
 				localStorage.setItem("lastLoginMethod", "google")
 				setLastLoginMethod("google")
+
+				// Registra no histórico de auditoria
+				fetch("/api/auth/log-auth-event", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						eventType: "login",
+						method: "one-tap",
+					}),
+				}).catch(err => console.error("Failed to log auth event:", err))
+
 				// Redireciona para a home após autenticação bem-sucedida
 				window.location.href = "/"
 			},
@@ -66,6 +77,12 @@ export default function SignInPage() {
 		setIsLoading(true)
 
 		try {
+			// Salva email ANTES de fazer o login para caso precise de 2FA
+			// Usa múltiplos storages para garantir que não perca
+			sessionStorage.setItem("2fa_user_email", email)
+			localStorage.setItem("2fa_user_email_temp", email)
+			localStorage.setItem("lastUserEmail", email)
+
 			const result = await signIn.email({
 				email,
 				password,
@@ -85,6 +102,16 @@ export default function SignInPage() {
 			// Salva o método de login usado
 			localStorage.setItem("lastLoginMethod", "email")
 			setLastLoginMethod("email")
+
+			// Registra no histórico de auditoria
+			fetch("/api/auth/log-auth-event", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					eventType: "login",
+					method: "email",
+				}),
+			}).catch(err => console.error("Failed to log auth event:", err))
 
 			showAuthSuccess("signin")
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect
@@ -146,6 +173,16 @@ export default function SignInPage() {
 			// Salva o método de login usado
 			localStorage.setItem("lastLoginMethod", "passkey")
 			setLastLoginMethod("passkey")
+
+			// Registra no histórico de auditoria
+			fetch("/api/auth/log-auth-event", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					eventType: "login",
+					method: "passkey",
+				}),
+			}).catch(err => console.error("Failed to log auth event:", err))
 
 			showAuthSuccess("signin")
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect

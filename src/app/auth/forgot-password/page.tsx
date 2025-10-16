@@ -2,35 +2,86 @@
 
 import { Loader2, Mail, ShoppingCart } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { forgetPassword } from "@/lib/auth-client"
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("")
 	const [isLoading, setIsLoading] = useState(false)
+	const [codeSent, setCodeSent] = useState(false)
+	const [otp, setOtp] = useState("")
+	const [newPassword, setNewPassword] = useState("")
+	const [cooldown, setCooldown] = useState(0)
+	const router = useRouter()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	// Cooldown timer
+	useEffect(() => {
+		let timer: NodeJS.Timeout
+		if (cooldown > 0) {
+			timer = setTimeout(() => setCooldown(cooldown - 1), 1000)
+		}
+		return () => clearTimeout(timer)
+	}, [cooldown])
+
+	const handleSendOTP = async (e?: React.FormEvent) => {
+		if (e) e.preventDefault()
+		if (cooldown > 0) return
+
+		setIsLoading(true)
+
+		try {
+
+			// Usa o plugin emailOTP do Better Auth
+			const result = await forgetPassword.emailOtp({
+				email,
+			})
+
+			if (result.error) {
+				throw new Error(result.error.message || "Erro ao enviar código")
+			}
+
+			toast.success("Código enviado para seu email!")
+			setCodeSent(true)
+			setCooldown(60) // 60 segundos de cooldown
+		} catch (error: any) {
+			console.error("[ForgotPassword] Error:", error)
+			toast.error(error.message || "Erro ao enviar email de recuperação")
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const handleResetPassword = async (e: React.FormEvent) => {
 		e.preventDefault()
 		setIsLoading(true)
 
 		try {
-			const res = await fetch("/api/auth/forgot-password", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email }),
+
+			// Usa o plugin emailOTP do Better Auth para resetar senha
+			const result = await forgetPassword.resetPassword({
+				email,
+				otp,
+				password: newPassword,
 			})
 
-			if (res.ok) {
-				toast.success("Um email com as instruções para resetar sua senha foi enviado.")
-			} else {
-				toast.error("Erro ao enviar email de recuperação.")
+			if (result.error) {
+				throw new Error(result.error.message || "Código inválido ou expirado")
 			}
-		} catch (error) {
-			toast.error("Erro ao enviar email de recuperação.")
+
+			toast.success("Senha alterada com sucesso!")
+
+			// Aguarda e redireciona
+			await new Promise(resolve => setTimeout(resolve, 1000))
+			router.push("/auth/signin")
+		} catch (error: any) {
+			console.error("[ForgotPassword] Error:", error)
+			toast.error(error.message || "Erro ao alterar senha")
 		} finally {
 			setIsLoading(false)
 		}
@@ -45,37 +96,111 @@ export default function ForgotPasswordPage() {
 			<Card>
 				<CardHeader className="text-center">
 					<CardTitle>Esqueceu sua senha?</CardTitle>
-					<CardDescription>Digite seu email para receber um link de recuperação.</CardDescription>
+					<CardDescription>
+						{codeSent ? "Digite o código enviado para seu email e sua nova senha." : "Digite seu email para receber um código de recuperação."}
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handleSubmit} className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
-							<div className="relative">
-								<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+					{!codeSent ? (
+						<form onSubmit={handleSendOTP} className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="email">Email</Label>
+								<div className="relative">
+									<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+									<Input
+										id="email"
+										type="email"
+										placeholder="seu@email.com"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										className="pl-9"
+										required
+										disabled={isLoading}
+									/>
+								</div>
+							</div>
+							<Button type="submit" className="w-full" disabled={isLoading}>
+								{isLoading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Enviando...
+									</>
+								) : (
+									"Enviar código de recuperação"
+								)}
+							</Button>
+						</form>
+					) : (
+						<form onSubmit={handleResetPassword} className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="otp">Código de 6 dígitos</Label>
 								<Input
-									id="email"
-									type="email"
-									placeholder="seu@email.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									className="pl-9"
+									id="otp"
+									type="text"
+									inputMode="numeric"
+									pattern="[0-9]{6}"
+									maxLength={6}
+									placeholder="_ _ _ _ _ _"
+									value={otp}
+									onChange={(e) => setOtp(e.target.value)}
+									className="text-center tracking-[0.5em]"
 									required
 									disabled={isLoading}
 								/>
 							</div>
-						</div>
-						<Button type="submit" className="w-full" disabled={isLoading}>
-							{isLoading ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Enviando...
-								</>
-							) : (
-								"Enviar email de recuperação"
-							)}
-						</Button>
-					</form>
+							<div className="space-y-2">
+								<Label htmlFor="newPassword">Nova Senha</Label>
+								<Input
+									id="newPassword"
+									type="password"
+									placeholder="Sua nova senha"
+									value={newPassword}
+									onChange={(e) => setNewPassword(e.target.value)}
+									required
+									disabled={isLoading}
+								/>
+							</div>
+							<Button type="submit" className="w-full" disabled={isLoading || otp.length !== 6}>
+								{isLoading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Alterando senha...
+									</>
+								) : (
+									"Alterar Senha"
+								)}
+							</Button>
+							<div className="flex gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									className="flex-1"
+									onClick={() => handleSendOTP()}
+									disabled={isLoading || cooldown > 0}
+								>
+									{cooldown > 0 ? (
+										`Reenviar em ${cooldown}s`
+									) : (
+										"Reenviar código"
+									)}
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									className="flex-1"
+									onClick={() => {
+										setCodeSent(false)
+										setOtp("")
+										setNewPassword("")
+										setCooldown(0)
+									}}
+									disabled={isLoading}
+								>
+									Voltar
+								</Button>
+							</div>
+						</form>
+					)}
 				</CardContent>
 				<CardFooter>
 					<p className="text-center text-sm text-muted-foreground w-full">

@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { lazy, Suspense, useCallback, useMemo } from "react"
+import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
@@ -31,6 +31,7 @@ import {
 } from "@/hooks"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
+import { useSession } from "@/lib/auth-client"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
 
 const MonthlySpendingChart = lazy(() =>
@@ -41,6 +42,14 @@ const MonthlySpendingChart = lazy(() =>
 
 export function DashboardClient() {
 	const router = useRouter()
+	const { data: session, isPending: sessionLoading } = useSession()
+
+	// Proteção: redireciona se email não verificado
+	useEffect(() => {
+		if (!sessionLoading && session?.user && !session.user.emailVerified) {
+			router.push("/auth/verify-request")
+		}
+	}, [session, sessionLoading, router])
 
 	// React Query hooks
 	const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStatsQuery()

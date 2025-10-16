@@ -1,41 +1,101 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getSession } from "@/lib/auth-server"
+import { headers } from "next/headers"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { sendTwoFactorEmail } from "@/lib/email"
 
 // Enviar código de verificação por email
-export async function POST() {
+export async function POST(request: NextRequest) {
 	try {
-		const session = await getSession()
 
-		if (!session?.user) {
+		// Tenta pegar o email do corpo da requisição (se enviado)
+		let requestBody: any = {}
+		try {
+			requestBody = await request.json()
+		} catch {
+			// Corpo vazio, tudo bem
+		}
+
+		const emailFromRequest = requestBody.email
+
+		// Tenta buscar sessão
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		let user: any = null
+		let userId: string
+
+		// Se tem sessão, usa ela
+		if (session?.user) {
+			userId = session.user.id
+			user = await prisma.user.findUnique({
+				where: { id: userId },
+				select: { id: true, twoFactorEmailEnabled: true, email: true, name: true },
+			})
+		}
+		// Se não tem sessão mas tem email, busca por email
+		else if (emailFromRequest) {
+			user = await prisma.user.findUnique({
+				where: { email: emailFromRequest },
+				select: { id: true, twoFactorEmailEnabled: true, email: true, name: true },
+			})
+			userId = user?.id
+		}
+		// Se não tem nenhum, retorna erro
+		else {
 			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 		}
 
+		if (!user) {
+			return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
+		}
+
+		if (!user.twoFactorEmailEnabled) {
+			return NextResponse.json(
+				{ error: "2FA por email não está habilitado" },
+				{ status: 400 }
+			)
+		}
+
+		// Invalida códigos antigos não usados deste usuário
+		await prisma.twoFactorEmailCode.updateMany({
+			where: {
+				userId: userId,
+				used: false,
+			},
+			data: {
+				used: true,
+				usedAt: new Date(),
+			},
+		})
+
 		// Gerar código de 6 dígitos
 		const code = Math.floor(100000 + Math.random() * 900000).toString()
+		const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutos
 
-		// Salvar código temporariamente (você pode usar Redis ou banco de dados)
-		// Por enquanto, vamos usar uma abordagem simples
-		// const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutos
+		// Salvar código no banco
+		await prisma.twoFactorEmailCode.create({
+			data: {
+				userId: userId,
+				code,
+				expiresAt,
+				type: "EMAIL",
+			},
+		})
 
-		// TODO: Implementar armazenamento do código no banco de dados
-		// await prisma.twoFactorCode.create({
-		//   data: {
-		//     userId: session.user.id,
-		//     code,
-		//     expiresAt,
-		//     type: 'EMAIL'
-		//   }
-		// })
+		console.log(`[2FA-Email-Send] Código gerado para usuário ${userId}, expira em 10min`)
 
 		// Enviar email
 		await sendTwoFactorEmail({
 			user: {
-				email: session.user.email,
-				name: session.user.name || undefined,
+				email: user.email,
+				name: user.name || undefined,
 			},
 			code,
 		})
+
+		console.log(`[2FA-Email-Send] Email enviado com sucesso para ${user.email}`)
 
 		return NextResponse.json({
 			success: true,
@@ -43,54 +103,88 @@ export async function POST() {
 			expiresIn: "10 minutos",
 		})
 	} catch (error) {
-		console.error("Erro ao enviar código de verificação:", error)
-		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+		console.error("[2FA-Email-Send] ===== ERRO =====")
+		console.error("[2FA-Email-Send] Erro ao enviar código:", error)
+		return NextResponse.json(
+			{ error: "Erro ao enviar código" },
+			{ status: 500 }
+		)
 	}
 }
 
 // Verificar código de verificação
 export async function PUT(request: NextRequest) {
 	try {
-		const session = await getSession()
 
-		if (!session?.user) {
-			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
-		}
-
-		const { code } = await request.json()
+		const { code, email } = await request.json()
 
 		if (!code || code.length !== 6) {
 			return NextResponse.json({ error: "Código inválido" }, { status: 400 })
 		}
 
-		// TODO: Implementar verificação do código no banco de dados
-		// const validCode = await prisma.twoFactorCode.findFirst({
-		//   where: {
-		//     userId: session.user.id,
-		//     code,
-		//     expiresAt: { gt: new Date() },
-		//     type: 'EMAIL'
-		//   }
-		// })
+		// Tenta buscar sessão
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
 
-		// if (!validCode) {
-		//   return NextResponse.json({ error: "Código inválido ou expirado" }, { status: 400 })
-		// }
+		let userId: string | undefined
 
-		// // Deletar código usado
-		// await prisma.twoFactorCode.delete({
-		//   where: { id: validCode.id }
-		// })
+		// Se tem sessão, usa ela
+		if (session?.user) {
+			userId = session.user.id
+		}
+		// Se não tem sessão mas tem email, busca userId pelo email
+		else if (email) {
+			const user = await prisma.user.findUnique({
+				where: { email },
+				select: { id: true },
+			})
+			userId = user?.id
+		}
 
-		// Por enquanto, vamos simular uma verificação bem-sucedida
-		// Em produção, você deve implementar a verificação real
+		if (!userId) {
+			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
+		}
+
+		// Buscar código válido no banco
+		const validCode = await prisma.twoFactorEmailCode.findFirst({
+			where: {
+				userId: userId,
+				code,
+				expiresAt: { gt: new Date() },
+				used: false,
+			},
+			orderBy: {
+				createdAt: "desc",
+			},
+		})
+
+		if (!validCode) {
+			return NextResponse.json(
+				{ error: "Código inválido ou expirado" },
+				{ status: 400 }
+			)
+		}
+
+		// Marca código como usado
+		await prisma.twoFactorEmailCode.update({
+			where: { id: validCode.id },
+			data: {
+				used: true,
+				usedAt: new Date(),
+			},
+		})
 
 		return NextResponse.json({
 			success: true,
 			message: "Código verificado com sucesso",
 		})
 	} catch (error) {
-		console.error("Erro ao verificar código:", error)
-		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+		console.error("[2FA-Email-Verify] ===== ERRO =====")
+		console.error("[2FA-Email-Verify] Erro ao verificar código:", error)
+		return NextResponse.json(
+			{ error: "Erro interno do servidor" },
+			{ status: 500 }
+		)
 	}
 }

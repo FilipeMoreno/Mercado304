@@ -2,6 +2,10 @@ import bcrypt from "bcryptjs"
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
+import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
+import { getRequestInfo } from "@/lib/auth-logger"
+import { sendSecurityAlertEmail } from "@/lib/email"
+import { getLocationFromIP } from "@/lib/geolocation"
 
 export async function PUT(request: NextRequest) {
 	try {
@@ -81,6 +85,32 @@ export async function PUT(request: NextRequest) {
 				password: hashedNewPassword,
 			},
 		})
+
+		// Registra evento de alteração de senha
+		const { ipAddress, userAgent } = await getRequestInfo()
+		await logSecurityEvent({
+			userId: session.user.id,
+			eventType: SecurityEventType.PASSWORD_CHANGED,
+			ipAddress,
+			userAgent,
+			metadata: {
+				method: "password-update",
+			},
+		}).catch(err => console.error("Failed to log password change event:", err))
+
+		// Envia email de notificação
+		const location = await getLocationFromIP(ipAddress)
+		sendSecurityAlertEmail({
+			user: {
+				email: session.user.email,
+				name: session.user.name || undefined,
+			},
+			action: "Sua senha foi ALTERADA",
+			device: userAgent,
+			location,
+			ipAddress,
+			timestamp: new Date().toLocaleString('pt-BR'),
+		}).catch(err => console.error("Failed to send security alert:", err))
 
 		return NextResponse.json({
 			message: "Senha alterada com sucesso",

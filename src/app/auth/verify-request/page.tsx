@@ -107,13 +107,26 @@ export default function VerifyRequestPage() {
 
 				<Card className="w-full">
 					<CardHeader className="text-center">
-						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-							<Mail className="h-6 w-6 text-blue-600" />
+						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+							<Mail className="h-6 w-6 text-orange-600 dark:text-orange-400" />
 						</div>
-						<CardTitle>Verifique seu email</CardTitle>
-						<CardDescription>Enviamos um link de verificação para sua caixa de entrada</CardDescription>
+						<CardTitle>⚠️ Verificação Obrigatória</CardTitle>
+						<CardDescription>
+							Você deve verificar seu email antes de acessar o sistema.
+							Enviamos um link de verificação para sua caixa de entrada.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
+						<Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
+							<Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+							<AlertDescription className="text-orange-900 dark:text-orange-100">
+								<strong>🔒 Acesso bloqueado</strong>
+								<p className="mt-1 text-sm">
+									Por segurança, você não pode acessar o sistema enquanto seu email não for verificado.
+								</p>
+							</AlertDescription>
+						</Alert>
+
 						<Alert className="flex items-center justify-center">
 							<CheckCircle className="h-4 w-4" />
 							<AlertDescription>
@@ -122,11 +135,11 @@ export default function VerifyRequestPage() {
 						</Alert>
 
 						<div className="space-y-3 text-sm text-muted-foreground">
-							<p>Para completar sua conta, você precisa:</p>
+							<p>Para liberar o acesso, você precisa:</p>
 							<ol className="list-decimal list-inside space-y-1 ml-4">
-								<li>Verificar sua caixa de entrada</li>
+								<li>Verificar sua caixa de entrada (e spam)</li>
 								<li>Clicar no link de verificação</li>
-								<li>Retornar aqui para continuar</li>
+								<li>Seu acesso será liberado automaticamente</li>
 							</ol>
 						</div>
 

@@ -98,6 +98,17 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 				return
 			}
 
+			// Registra evento de criação no histórico E envia email
+			fetch("/api/auth/log-security-event", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					eventType: "passkey_added",
+					metadata: { name: credentialName },
+					sendEmail: true, // Flag para enviar email
+				}),
+			}).catch(err => console.error("Failed to log passkey creation:", err))
+
 			toast.success("Passkey registrado com sucesso!")
 
 			// Atualiza a lista de credenciais para exibir a nova
