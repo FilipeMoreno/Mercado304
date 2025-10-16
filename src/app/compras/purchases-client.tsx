@@ -355,7 +355,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 												<div className="flex items-center gap-1 text-lg font-bold">
 													R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
 												</div>
-												{purchase.totalDiscount && purchase.totalDiscount > 0 && (
+												{purchase.totalDiscount > 0 && (
 													<div className="text-sm text-red-600">
 														Desconto: -R$ {purchase.totalDiscount.toFixed(2)}
 													</div>
