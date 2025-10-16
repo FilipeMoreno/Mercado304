@@ -64,6 +64,9 @@ const TwoFactorSetup = lazy(() =>
 const ReauthDialog = lazy(() =>
 	import("@/components/auth/reauth-dialog").then((mod) => ({ default: mod.ReauthDialog }))
 )
+const TrustedDevices = lazy(() =>
+	import("@/components/auth/trusted-devices").then((mod) => ({ default: mod.TrustedDevices }))
+)
 
 interface SecurityTabProps {
 	session: any
@@ -1470,6 +1473,28 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								)}
 							</CardContent>
 						</Card>
+
+						{/* Trusted Devices */}
+						<Suspense fallback={
+							<div className="space-y-4">
+								{[1, 2, 3].map((i) => (
+									<div key={i} className="flex items-start justify-between p-4 border rounded-lg">
+										<div className="flex items-start gap-3 flex-1">
+											<div className="h-5 w-5 mt-1 rounded bg-muted animate-pulse" />
+											<div className="flex-1 space-y-2">
+												<div className="h-4 bg-muted rounded animate-pulse w-48" />
+												<div className="h-3 bg-muted rounded animate-pulse w-32" />
+												<div className="h-3 bg-muted rounded animate-pulse w-40" />
+												<div className="h-3 bg-muted rounded animate-pulse w-36" />
+											</div>
+										</div>
+										<div className="h-8 w-8 rounded bg-muted animate-pulse" />
+									</div>
+								))}
+							</div>
+						}>
+							<TrustedDevices />
+						</Suspense>
 					</div>
 				</TabsContent>
 

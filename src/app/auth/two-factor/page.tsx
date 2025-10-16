@@ -17,6 +17,7 @@ export default function TwoFactorPage() {
 	const [code, setCode] = useState("")
 	const [isLoading, setIsLoading] = useState(false)
 	const [mode, setMode] = useState<VerificationMode>("totp")
+	const [trustDevice, setTrustDevice] = useState(false)
 	const [emailCodeSent, setEmailCodeSent] = useState(false)
 	const [isSendingEmail, setIsSendingEmail] = useState(false)
 	const [cooldown, setCooldown] = useState(0)
@@ -130,7 +131,10 @@ export default function TwoFactorPage() {
 					setIsLoading(false)
 					return
 				}
-				result = await twoFactor.verifyBackupCode({ code })
+				result = await twoFactor.verifyBackupCode({
+					code,
+					trustDevice
+				})
 			} else if (mode === "email") {
 				// Verificar código recebido por email usando Better Auth emailOTP
 				if (code.length !== 6) {
@@ -177,7 +181,10 @@ export default function TwoFactorPage() {
 					setIsLoading(false)
 					return
 				}
-				result = await twoFactor.verifyTotp({ code })
+				result = await twoFactor.verifyTotp({
+					code,
+					trustDevice
+				})
 			}
 
 			if (result.error) {
@@ -236,6 +243,22 @@ export default function TwoFactorPage() {
 								/>
 							</div>
 						</div>
+
+						{/* Checkbox para confiar no dispositivo */}
+						<div className="flex items-center space-x-2">
+							<input
+								type="checkbox"
+								id="trustDevice"
+								checked={trustDevice}
+								onChange={(e) => setTrustDevice(e.target.checked)}
+								disabled={isLoading}
+								className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+							/>
+							<label htmlFor="trustDevice" className="text-sm text-muted-foreground cursor-pointer">
+								Confiar neste dispositivo por 60 dias
+							</label>
+						</div>
+
 						<Button type="submit" className="w-full" disabled={isLoading || code.length < 6}>
 							{isLoading ? (
 								<>

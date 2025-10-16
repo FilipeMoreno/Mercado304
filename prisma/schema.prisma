@@ -458,6 +458,7 @@ model User {
   securityAudits        SecurityAudit[]
   securityNotifications SecurityNotification[]
   twoFactorEmailCodes   TwoFactorEmailCode[]
+  trustedDevices        TrustedDevice[]
 
   @@unique([email])
   @@unique([normalizedEmail])
@@ -564,6 +565,19 @@ model TwoFactorEmailCode {
   @@index([expiresAt])
   @@index([used])
   @@map("two_factor_email_code")
+}
+
+model TrustedDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  userAgent String
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("trustedDevice")
 }
 
 model DashboardPreference {
