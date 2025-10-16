@@ -52,6 +52,8 @@ export default function SignInPage() {
 				// Salva o método de login usado
 				localStorage.setItem("lastLoginMethod", "google")
 				setLastLoginMethod("google")
+				// Redireciona para a home após autenticação bem-sucedida
+				window.location.href = "/"
 			},
 			onError: (_error: unknown) => {
 				handleAuthError({ message: "Erro no login com Google One Tap" }, "signin")
@@ -96,25 +98,19 @@ export default function SignInPage() {
 	const handleGoogleSignIn = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const result = await signIn.social({
+			// O signIn.social redireciona o navegador para o Google OAuth
+			// O toast e localStorage serão definidos apenas após o callback
+			await signIn.social({
 				provider: "google",
-				callbackURL: "/",
+				callbackURL: "/auth/callback?provider=google",
 			})
-
-			if (result?.error) {
-				handleAuthError(result.error, "signin")
-			} else {
-				// Salva o método de login usado
-				localStorage.setItem("lastLoginMethod", "google")
-				setLastLoginMethod("google")
-				showAuthSuccess("signin")
-				// O redirecionamento será gerenciado pelo hook useAuthRedirect
-			}
+			// Se chegou aqui sem erro, significa que o redirecionamento está acontecendo
+			// Não mostramos toast ainda pois a autenticação não foi completada
 		} catch (error: unknown) {
 			handleAuthError({ message: (error as Error).message || "Erro ao fazer login com Google" }, "signin")
-		} finally {
 			setIsGoogleLoading(false)
 		}
+		// Não definimos setIsGoogleLoading(false) aqui pois o navegador será redirecionado
 	}
 
 	const handlePasskeySignIn = async () => {
@@ -125,7 +121,7 @@ export default function SignInPage() {
 
 			if (result?.error) {
 				// Verifica se é um erro de cancelamento
-				if (result.error.message?.toLowerCase().includes("cancelled") || 
+				if (result.error.message?.toLowerCase().includes("cancelled") ||
 					result.error.message?.toLowerCase().includes("canceled") ||
 					result.error.message?.toLowerCase().includes("abort")) {
 					// Não mostra erro para cancelamento pelo usuário
@@ -134,7 +130,7 @@ export default function SignInPage() {
 				}
 
 				// Verifica se é erro de passkey não encontrado
-				if ((result.error as any)?.code === "PASSKEY_NOT_FOUND" || 
+				if ((result.error as any)?.code === "PASSKEY_NOT_FOUND" ||
 					result.error.message?.toLowerCase().includes("passkey not found")) {
 					toast.error("Nenhum passkey encontrado. Faça login com email/senha e configure um passkey nas configurações de segurança.", {
 						duration: 5000
@@ -155,16 +151,16 @@ export default function SignInPage() {
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect
 		} catch (error: unknown) {
 			const errorMessage = (error as Error).message || "Erro ao fazer login com passkey"
-			
+
 			// Verifica se é um erro de cancelamento
-			if (errorMessage.toLowerCase().includes("cancelled") || 
+			if (errorMessage.toLowerCase().includes("cancelled") ||
 				errorMessage.toLowerCase().includes("canceled") ||
 				errorMessage.toLowerCase().includes("abort")) {
 				// Não mostra erro para cancelamento pelo usuário
 				setIsPasskeyLoading(false)
 				return
 			}
-			
+
 			handleAuthError({ message: errorMessage }, "general")
 		} finally {
 			setIsPasskeyLoading(false)

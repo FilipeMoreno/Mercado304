@@ -88,24 +88,19 @@ export default function SignUpPage() {
 	const handleGoogleSignIn = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const result = await signIn.social({
+			// O signIn.social redireciona o navegador para o Google OAuth
+			// O toast e localStorage serão definidos apenas após o callback
+			await signIn.social({
 				provider: "google",
-				callbackURL: "/",
+				callbackURL: "/auth/callback?provider=google",
 			})
-
-			if (result?.error) {
-				handleAuthError(result.error, "signup")
-			} else {
-				// Salva o método de login usado
-				localStorage.setItem("lastLoginMethod", "google")
-				showAuthSuccess("signup")
-				// O redirecionamento será gerenciado pelo hook useAuthRedirect
-			}
+			// Se chegou aqui sem erro, significa que o redirecionamento está acontecendo
+			// Não mostramos toast ainda pois a autenticação não foi completada
 		} catch (error: unknown) {
 			handleAuthError({ message: (error as Error).message || "Erro ao criar conta com Google" }, "signup")
-		} finally {
 			setIsGoogleLoading(false)
 		}
+		// Não definimos setIsGoogleLoading(false) aqui pois o navegador será redirecionado
 	}
 
 	// Mostra loading enquanto verifica a sessão
