@@ -2,7 +2,8 @@
 
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react"
+import { Edit, Eye, MoreHorizontal, Package, Plus, Search, Trash2 } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -34,6 +35,8 @@ interface WasteGridProps {
 	onViewDetails: (record: WasteRecord) => void
 	onEdit: (record: WasteRecord) => void
 	onDelete: (record: WasteRecord) => void
+	hasFilters?: boolean
+	onCreateNew?: () => void
 }
 
 const wasteReasonLabels = {
@@ -56,7 +59,7 @@ const wasteReasonColors = {
 	OTHER: "secondary",
 }
 
-export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit, onDelete }: WasteGridProps) {
+export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit, onDelete, hasFilters, onCreateNew }: WasteGridProps) {
 	if (isLoading) {
 		return (
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,19 +83,82 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 	}
 
 	if (records.length === 0) {
+		// Empty state diferente quando há filtros aplicados
+		if (hasFilters) {
+			return (
+				<Card className="border-dashed">
+					<CardContent className="py-16">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Search className="h-12 w-12" />
+								</EmptyMedia>
+								<EmptyTitle>Nenhum desperdício encontrado</EmptyTitle>
+								<EmptyDescription>
+									Não há registros de desperdício que correspondam aos filtros aplicados.
+								</EmptyDescription>
+							</EmptyHeader>
+							<EmptyContent>
+								<p className="text-sm text-muted-foreground mb-4">
+									Tente ajustar os filtros de busca ou motivo para encontrar registros.
+								</p>
+							</EmptyContent>
+						</Empty>
+					</CardContent>
+				</Card>
+			)
+		}
+
+		// Empty state quando não há nenhum registro
 		return (
-			<Empty>
-				<EmptyHeader>
-					<EmptyMedia>
-						<Trash2 className="h-12 w-12 text-gray-400" />
-					</EmptyMedia>
-					<EmptyTitle>Nenhum desperdício registrado</EmptyTitle>
-					<EmptyDescription>
-						Comece registrando seus primeiros desperdícios para acompanhar as perdas.
-					</EmptyDescription>
-				</EmptyHeader>
-				<EmptyContent />
-			</Empty>
+			<Card className="border-dashed">
+				<CardContent className="py-16">
+					<Empty>
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Trash2 className="h-12 w-12" />
+							</EmptyMedia>
+							<EmptyTitle>Nenhum desperdício registrado</EmptyTitle>
+							<EmptyDescription>
+								Ótimas notícias! Você ainda não registrou nenhum desperdício.
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<div className="space-y-4">
+								<p className="text-sm text-muted-foreground max-w-md mx-auto">
+									O controle de desperdícios ajuda você a identificar padrões de perda e reduzir custos.
+									Registre desperdícios quando ocorrerem para acompanhar e melhorar.
+								</p>
+								<div className="flex flex-col sm:flex-row gap-3 justify-center">
+									{onCreateNew && (
+										<Button onClick={onCreateNew} size="lg">
+											<Plus className="h-4 w-4 mr-2" />
+											Registrar Primeiro Desperdício
+										</Button>
+									)}
+									<Link href="/estoque">
+										<Button variant="outline" size="lg">
+											<Package className="h-4 w-4 mr-2" />
+											Ir para Estoque
+										</Button>
+									</Link>
+								</div>
+								<div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200">
+									<h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-2">
+										💡 Dica: Quando registrar desperdícios?
+									</h4>
+									<ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+										<li>• Produtos vencidos ou estragados</li>
+										<li>• Itens danificados durante o armazenamento</li>
+										<li>• Sobras de receitas que foram descartadas</li>
+										<li>• Produtos esquecidos que não puderam ser aproveitados</li>
+									</ul>
+								</div>
+							</div>
+						</EmptyContent>
+					</Empty>
+				</CardContent>
+			</Card>
 		)
 	}
 
@@ -161,10 +227,10 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 								<Badge
 									variant={
 										wasteReasonColors[record.wasteReason as keyof typeof wasteReasonColors] as
-											| "default"
-											| "secondary"
-											| "destructive"
-											| "outline"
+										| "default"
+										| "secondary"
+										| "destructive"
+										| "outline"
 									}
 									className="text-xs"
 								>

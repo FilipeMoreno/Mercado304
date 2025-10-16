@@ -189,6 +189,8 @@ export default function DesperdiciosClient() {
 					onViewDetails={handleViewDetails}
 					onEdit={handleEdit}
 					onDelete={handleDelete}
+					hasFilters={searchTerm !== "" || filterReason !== "all"}
+					onCreateNew={() => setShowCreateDialog(true)}
 				/>
 
 				{/* Paginação */}

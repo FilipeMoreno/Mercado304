@@ -1,7 +1,8 @@
 "use client"
 
-import { AlertTriangle, TrendingDown, TrendingUp } from "lucide-react"
+import { AlertTriangle, CheckCircle2, TrendingDown, TrendingUp } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface WasteStatsProps {
@@ -47,13 +48,23 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 		)
 	}
 
-	if (!stats) {
+	if (!stats || stats.totalCount === 0) {
 		return (
-			<Card>
-				<CardContent className="text-center py-12">
-					<AlertTriangle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-					<h3 className="text-lg font-medium mb-2 text-gray-600">Nenhuma estatística disponível</h3>
-					<p className="text-gray-500">Registre alguns desperdícios para ver as estatísticas.</p>
+			<Card className="border-dashed border-2 border-green-200 bg-green-50/50 dark:bg-green-950/20">
+				<CardContent className="py-12">
+					<Empty>
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<CheckCircle2 className="h-12 w-12 text-green-600" />
+							</EmptyMedia>
+							<EmptyTitle className="text-green-900 dark:text-green-100">
+								Excelente! Sem desperdícios
+							</EmptyTitle>
+							<EmptyDescription className="text-green-700 dark:text-green-300">
+								Continue assim! Manter o desperdício zerado é ótimo para seu bolso e para o meio ambiente.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
 				</CardContent>
 			</Card>
 		)
