@@ -116,16 +116,16 @@ export default function EditarCompraPage() {
 
 			const mappedItems = purchaseData.items.map((item: any) => ({
 				productId: item.productId || "",
-				quantity: item.quantity,
-				unitPrice: item.unitPrice,
+				quantity: item.quantity || 1,
+				unitPrice: item.unitPrice || 0,
 				unitDiscount: item.unitDiscount || 0,
 				bestPriceAlert: null,
 			}))
 			setItems(mappedItems)
-			setQuantityInputs(mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toString() : "")))
-			setUnitPriceInputs(mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toString() : "")))
-			setUnitDiscountInputs(mappedItems.map((it: any) => (typeof it.unitDiscount === "number" ? it.unitDiscount.toString() : "")))
-			setTotalDiscountInput(purchaseData.totalDiscount ? purchaseData.totalDiscount.toString() : "0.00")
+			setQuantityInputs(mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toFixed(3) : "1.000")))
+			setUnitPriceInputs(mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toFixed(2) : "0.00")))
+			setUnitDiscountInputs(mappedItems.map((it: any) => (typeof it.unitDiscount === "number" ? it.unitDiscount.toFixed(2) : "0.00")))
+			setTotalDiscountInput(purchaseData.totalDiscount ? purchaseData.totalDiscount.toFixed(2) : "0.00")
 		}
 	}, [purchaseData, purchaseLoading])
 
@@ -318,153 +318,159 @@ export default function EditarCompraPage() {
 						<CardTitle>Itens da Compra</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{items.map((item, index) => {
-							const selectedProduct = products.find((p: any) => p.id === item.productId)
-							return (
-								<div key={`item-${item.productId}-${index}`} className="space-y-4 p-4 border rounded-lg">
-									{/* Número do item */}
-									<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
-									{/* Produto full width */}
-									<div className="space-y-2">
-										<Label>Produto *</Label>
-										<ProductSelect
-											value={item.productId}
-											products={products}
-											onValueChange={(value) => updateItem(index, "productId", value)}
-											preserveFormData={{
-												formData,
-												items,
-												targetItemIndex: index,
-											}}
-										/>
-									</div>
-									{/* Quantidade, Preço, Total em 3 colunas */}
-									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+						{items.length === 0 ? (
+							<div className="text-center text-gray-500 py-8">
+								<p>Nenhum item encontrado nesta compra.</p>
+							</div>
+						) : (
+							items.map((item, index) => {
+								const selectedProduct = products.find((p: any) => p.id === item.productId)
+								return (
+									<div key={`item-${item.productId}-${index}`} className="space-y-4 p-4 border rounded-lg">
+										{/* Número do item */}
+										<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
+										{/* Produto full width */}
 										<div className="space-y-2">
-											<Label>Quantidade *</Label>
-											<Input
-												type="text"
-												inputMode="decimal"
-												step="0.001"
-												min="0"
-												value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
-												onChange={(e) => {
-													const raw = e.target.value
-													setQuantityInputs((prev) => {
-														const next = [...prev]
-														next[index] = raw
-														return next
-													})
-													const normalized = raw.replace(',', '.')
-													const parsed = parseFloat(normalized)
-													if (!Number.isNaN(parsed)) {
-														updateItem(index, "quantity", parsed)
-													} else if (raw === "") {
-														updateItem(index, "quantity", 0)
-													}
+											<Label>Produto *</Label>
+											<ProductSelect
+												value={item.productId}
+												products={products}
+												onValueChange={(value) => updateItem(index, "productId", value)}
+												preserveFormData={{
+													formData,
+													items,
+													targetItemIndex: index,
 												}}
-												placeholder="0,000"
 											/>
 										</div>
-										<div className="space-y-2">
-											<Label>Preço Unitário (R$) *</Label>
-											<Input
-												type="text"
-												inputMode="decimal"
-												step="0.01"
-												min="0"
-												value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
-												onChange={(e) => {
-													const raw = e.target.value
-													setUnitPriceInputs((prev) => {
-														const next = [...prev]
-														next[index] = raw
-														return next
-													})
-													const normalized = raw.replace(',', '.')
-													const parsed = parseFloat(normalized)
-													if (!Number.isNaN(parsed)) {
-														updateItem(index, "unitPrice", parsed)
-													} else if (raw === "") {
-														updateItem(index, "unitPrice", 0)
+										{/* Quantidade, Preço, Total em 3 colunas */}
+										<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+											<div className="space-y-2">
+												<Label>Quantidade *</Label>
+												<Input
+													type="text"
+													inputMode="decimal"
+													step="0.001"
+													min="0"
+													value={quantityInputs[index] ?? (item.quantity ? String(item.quantity) : "")}
+													onChange={(e) => {
+														const raw = e.target.value
+														setQuantityInputs((prev) => {
+															const next = [...prev]
+															next[index] = raw
+															return next
+														})
+														const normalized = raw.replace(',', '.')
+														const parsed = parseFloat(normalized)
+														if (!Number.isNaN(parsed)) {
+															updateItem(index, "quantity", parsed)
+														} else if (raw === "") {
+															updateItem(index, "quantity", 0)
+														}
+													}}
+													placeholder="0,000"
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label>Preço Unitário (R$) *</Label>
+												<Input
+													type="text"
+													inputMode="decimal"
+													step="0.01"
+													min="0"
+													value={unitPriceInputs[index] ?? (item.unitPrice ? String(item.unitPrice) : "")}
+													onChange={(e) => {
+														const raw = e.target.value
+														setUnitPriceInputs((prev) => {
+															const next = [...prev]
+															next[index] = raw
+															return next
+														})
+														const normalized = raw.replace(',', '.')
+														const parsed = parseFloat(normalized)
+														if (!Number.isNaN(parsed)) {
+															updateItem(index, "unitPrice", parsed)
+														} else if (raw === "") {
+															updateItem(index, "unitPrice", 0)
+														}
+													}}
+													placeholder="0,00"
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label>Desconto por Unidade</Label>
+												<Input
+													type="text"
+													inputMode="decimal"
+													step="0.01"
+													min="0"
+													value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
+													onChange={(e) => {
+														const raw = e.target.value
+														setUnitDiscountInputs((prev) => {
+															const next = [...prev]
+															next[index] = raw
+															return next
+														})
+														const normalized = raw.replace(',', '.')
+														const parsed = parseFloat(normalized)
+														if (!Number.isNaN(parsed)) {
+															updateItem(index, "unitDiscount", parsed)
+														} else if (raw === "") {
+															updateItem(index, "unitDiscount", 0)
+														}
+													}}
+													placeholder="0,00"
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label>Total</Label>
+												<Input
+													value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
+													disabled
+													className="bg-gray-50"
+												/>
+											</div>
+										</div>
+										{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
+											<BestPriceAlert
+												productName={products.find((p: any) => p.id === item.productId)?.name || "Produto"}
+												currentPrice={item.unitPrice}
+												previousBestPrice={item.bestPriceAlert.previousBestPrice}
+												totalRecords={item.bestPriceAlert.totalRecords}
+												onClose={() => {
+													const newItems = [...items]
+													newItems[index] = {
+														...newItems[index],
+														bestPriceAlert: null,
 													}
+													setItems(newItems)
 												}}
-												placeholder="0,00"
 											/>
-										</div>
-										<div className="space-y-2">
-											<Label>Desconto por Unidade</Label>
-											<Input
-												type="text"
-												inputMode="decimal"
-												step="0.01"
-												min="0"
-												value={unitDiscountInputs[index] ?? (item.unitDiscount ? String(item.unitDiscount) : "")}
-												onChange={(e) => {
-													const raw = e.target.value
-													setUnitDiscountInputs((prev) => {
-														const next = [...prev]
-														next[index] = raw
-														return next
-													})
-													const normalized = raw.replace(',', '.')
-													const parsed = parseFloat(normalized)
-													if (!Number.isNaN(parsed)) {
-														updateItem(index, "unitDiscount", parsed)
-													} else if (raw === "") {
-														updateItem(index, "unitDiscount", 0)
-													}
-												}}
-												placeholder="0,00"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label>Total</Label>
-											<Input
-												value={`R$ ${(item.quantity * item.unitPrice - item.quantity * (item.unitDiscount || 0)).toFixed(2)}`}
-												disabled
-												className="bg-gray-50"
-											/>
+										)}
+										<div className="flex justify-between items-center">
+											<div className="text-sm text-gray-600">
+												{selectedProduct && (
+													<span>
+														Unidade: {selectedProduct.unit}
+														{selectedProduct.category && ` • Categoria: ${selectedProduct.category.name}`}
+													</span>
+												)}
+											</div>
+											<Button
+												type="button"
+												variant="destructive"
+												size="sm"
+												onClick={() => removeItem(index)}
+												disabled={items.length <= 1}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
 										</div>
 									</div>
-									{item.bestPriceAlert?.isBestPrice && !item.bestPriceAlert.isFirstRecord && (
-										<BestPriceAlert
-											productName={products.find((p: any) => p.id === item.productId)?.name || "Produto"}
-											currentPrice={item.unitPrice}
-											previousBestPrice={item.bestPriceAlert.previousBestPrice}
-											totalRecords={item.bestPriceAlert.totalRecords}
-											onClose={() => {
-												const newItems = [...items]
-												newItems[index] = {
-													...newItems[index],
-													bestPriceAlert: null,
-												}
-												setItems(newItems)
-											}}
-										/>
-									)}
-									<div className="flex justify-between items-center">
-										<div className="text-sm text-gray-600">
-											{selectedProduct && (
-												<span>
-													Unidade: {selectedProduct.unit}
-													{selectedProduct.category && ` • Categoria: ${selectedProduct.category.name}`}
-												</span>
-											)}
-										</div>
-										<Button
-											type="button"
-											variant="destructive"
-											size="sm"
-											onClick={() => removeItem(index)}
-											disabled={items.length <= 1}
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</div>
-								</div>
-							)
-						})}
+								)
+							})
+						)}
 					</CardContent>
 				</Card>
 				<Card>

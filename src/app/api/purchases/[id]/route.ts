@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 // Função para normalizar o método de pagamento
 function normalizePaymentMethod(method: string): any {
 	const normalizedMethod = method?.toUpperCase().replace(/[-_]/g, "")
-	
+
 	// Mapeamento de valores comuns para os valores do enum
 	const mapping: Record<string, string> = {
 		CREDITCARD: "CREDIT",
@@ -23,7 +23,7 @@ function normalizePaymentMethod(method: string): any {
 		OUTRO: "OTHER",
 		OUTROS: "OTHER",
 	}
-	
+
 	return mapping[normalizedMethod] || "MONEY"
 }
 
@@ -59,13 +59,24 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const body = await request.json()
-		const { marketId, items, purchaseDate, paymentMethod } = body
+		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0 } = body
 
 		if (!marketId || !items || items.length === 0) {
 			return NextResponse.json({ error: "Mercado e itens são obrigatórios" }, { status: 400 })
 		}
 
-		const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
+		// Totais considerando descontos por item
+		const { totalAmount, itemsTotalDiscount } = items.reduce(
+			(acc: { totalAmount: number; itemsTotalDiscount: number }, item: any) => {
+				const itemTotal = (item.quantity || 0) * (item.unitPrice || 0)
+				const itemDiscount = (item.quantity || 0) * (item.unitDiscount || 0)
+				acc.totalAmount += itemTotal - itemDiscount
+				acc.itemsTotalDiscount += itemDiscount
+				return acc
+			},
+			{ totalAmount: 0, itemsTotalDiscount: 0 },
+		)
+		const finalAmount = totalAmount - (totalDiscount || 0)
 
 		// Buscar informações dos produtos para snapshot
 		const productIds = items.map((item: any) => item.productId).filter(Boolean)
@@ -87,6 +98,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 			data: {
 				marketId,
 				totalAmount,
+				totalDiscount: totalDiscount || 0,
+				finalAmount,
 				purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
 				paymentMethod: paymentMethod ? normalizePaymentMethod(paymentMethod) : undefined,
 				items: {
@@ -96,7 +109,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 							productId: item.productId,
 							quantity: item.quantity,
 							unitPrice: item.unitPrice,
-							totalPrice: item.quantity * item.unitPrice,
+							unitDiscount: item.unitDiscount || 0,
+							totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
+							totalDiscount: (item.quantity || 0) * (item.unitDiscount || 0),
+							finalPrice:
+								(item.quantity || 0) * (item.unitPrice || 0) - (item.quantity || 0) * (item.unitDiscount || 0),
 							productName: product?.name,
 							productUnit: product?.unit,
 							productCategory: product?.category?.name,

@@ -325,64 +325,71 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</span>
 						</div>
 
-						{purchases.map((purchase: any, index: number) => (
-							<motion.div
-								key={purchase.id}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: index * 0.05 }}
-							>
-								<Card>
-									<CardHeader>
-										<div className="flex justify-between items-start">
-											<div>
-												<CardTitle className="flex items-center gap-2">
-													<ShoppingCart className="h-5 w-5" />
-													Compra em {purchase.market?.name}
-												</CardTitle>
-												<CardDescription className="space-y-1 mt-2">
-													<div className="flex items-center gap-1">
-														<Store className="h-3 w-3" />
-														{purchase.market?.location}
-													</div>
-													<div className="flex items-center gap-1">
-														<Calendar className="h-3 w-3" />
-														{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-													</div>
-												</CardDescription>
-											</div>
-											<div className="text-right">
-												<div className="flex items-center gap-1 text-lg font-bold">
-													R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
+						{purchases.map((purchase: any, index: number) => {
+							// Calcular desconto total real (itens + desconto total da compra)
+							const itemsDiscount = purchase.items?.reduce((sum: number, item: any) =>
+								sum + (item.totalDiscount || 0), 0) || 0
+							const totalDiscount = itemsDiscount + (purchase.totalDiscount || 0)
+
+							return (
+								<motion.div
+									key={purchase.id}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.05 }}
+								>
+									<Card>
+										<CardHeader>
+											<div className="flex justify-between items-start">
+												<div>
+													<CardTitle className="flex items-center gap-2">
+														<ShoppingCart className="h-5 w-5" />
+														Compra em {purchase.market?.name}
+													</CardTitle>
+													<CardDescription className="space-y-1 mt-2">
+														<div className="flex items-center gap-1">
+															<Store className="h-3 w-3" />
+															{purchase.market?.location}
+														</div>
+														<div className="flex items-center gap-1">
+															<Calendar className="h-3 w-3" />
+															{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+														</div>
+													</CardDescription>
 												</div>
-												{purchase.totalDiscount > 0 && (
-													<div className="text-sm text-red-600">
-														Desconto: -R$ {purchase.totalDiscount.toFixed(2)}
+												<div className="flex flex-col justify-end text-right">
+													<div className="flex items-center justify-end gap-1 text-lg font-bold">
+														R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
 													</div>
-												)}
-												<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
+													{totalDiscount > 0 && (
+														<div className="text-sm text-red-600">
+															Desconto: -R$ {totalDiscount.toFixed(2)}
+														</div>
+													)}
+													<div className="text-sm text-gray-500">{purchase.items?.length || 0} itens</div>
+												</div>
 											</div>
-										</div>
-									</CardHeader>
-									<CardContent>
-										<div className="flex gap-2">
-											<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
-												<Eye className="h-4 w-4 mr-1" />
-												Detalhes
-											</Button>
-											<Link href={`/compras/editar/${purchase.id}`}>
-												<Button variant="outline" size="sm">
-													<Edit className="h-4 w-4" />
+										</CardHeader>
+										<CardContent>
+											<div className="flex gap-2">
+												<Button variant="outline" size="sm" onClick={() => viewPurchaseDetails(purchase)}>
+													<Eye className="h-4 w-4 mr-1" />
+													Detalhes
 												</Button>
-											</Link>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							</motion.div>
-						))}
+												<Link href={`/compras/editar/${purchase.id}`}>
+													<Button variant="outline" size="sm">
+														<Edit className="h-4 w-4" />
+													</Button>
+												</Link>
+												<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(purchase)}>
+													<Trash2 className="h-4 w-4" />
+												</Button>
+											</div>
+										</CardContent>
+									</Card>
+								</motion.div>
+							)
+						})}
 
 						{totalPages > 1 && (
 							<div className="flex justify-center items-center gap-2 pt-6">

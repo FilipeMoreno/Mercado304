@@ -78,6 +78,7 @@ export function DashboardClient() {
 		showExpirationAlerts: true,
 		showReplenishment: true,
 		showSavingsCard: true,
+		showDiscountStats: true,
 		showTemporalComp: true,
 		showNutritionCard: true,
 		showPaymentStats: true,
@@ -277,10 +278,10 @@ export function DashboardClient() {
 									<>
 										<div
 											className={`text-2xl font-bold ${temporalData?.changes.spent > 0
-													? "text-red-600"
-													: temporalData?.changes.spent < 0
-														? "text-green-600"
-														: "text-gray-600"
+												? "text-red-600"
+												: temporalData?.changes.spent < 0
+													? "text-green-600"
+													: "text-gray-600"
 												}`}
 										>
 											{temporalData?.changes.spent > 0 ? "+" : ""}
@@ -311,7 +312,7 @@ export function DashboardClient() {
 			</div>
 
 			{/* Card de Estatísticas de Descontos */}
-			{stats?.discountStats && (
+			{currentPrefs.showDiscountStats && stats?.discountStats && (
 				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
 					<DiscountStatsCard discountStats={stats.discountStats} isLoading={statsLoading} />
 				</motion.div>

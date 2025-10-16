@@ -2,7 +2,7 @@
 
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd"
 import { Cog, Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
@@ -94,6 +94,11 @@ const cardSections = [
 		description: "Análise de economias e oportunidades",
 	},
 	{
+		key: "showDiscountStats",
+		label: "Estatísticas de Descontos",
+		description: "Análise dos descontos obtidos nas compras",
+	},
+	{
 		key: "showTemporalComp",
 		label: "Comparação Temporal",
 		description: "Comparação entre períodos",
@@ -116,6 +121,8 @@ interface DashboardCustomizerProps {
 
 export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizerProps) {
 	const [isOpen, setIsOpen] = useState(false)
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+	const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const [localPreferences, setLocalPreferences] = useState<DashboardPreferences>({
 		cardOrder: ["total-purchases", "total-spent", "total-products", "total-markets", "price-records"],
 		hiddenCards: [],
@@ -130,6 +137,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 		showExpirationAlerts: true,
 		showReplenishment: true,
 		showSavingsCard: true,
+		showDiscountStats: true,
 		showTemporalComp: true,
 		showNutritionCard: true,
 		showPaymentStats: true,
@@ -160,6 +168,8 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 			cardOrder: items,
 		}
 		setLocalPreferences(newPreferences)
+		setHasUnsavedChanges(true)
+		debouncedSave(newPreferences)
 	}
 
 	const toggleCardVisibility = (cardId: string) => {
@@ -172,6 +182,8 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 			hiddenCards,
 		}
 		setLocalPreferences(newPreferences)
+		setHasUnsavedChanges(true)
+		debouncedSave(newPreferences)
 	}
 
 	const updateSectionVisibility = (sectionKey: string, visible: boolean) => {
@@ -180,7 +192,35 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 			[sectionKey]: visible,
 		}
 		setLocalPreferences(newPreferences)
+		setHasUnsavedChanges(true)
+		debouncedSave(newPreferences)
 	}
+
+	// Auto-save com debounce
+	const debouncedSave = useCallback((preferences: DashboardPreferences) => {
+		if (saveTimeoutRef.current) {
+			clearTimeout(saveTimeoutRef.current)
+		}
+
+		saveTimeoutRef.current = setTimeout(async () => {
+			try {
+				await updatePreferences.mutateAsync(preferences)
+				setHasUnsavedChanges(false)
+				onPreferencesChange?.(preferences)
+			} catch (error) {
+				console.error("Erro ao salvar preferências:", error)
+			}
+		}, 1000) // 1 segundo de debounce
+	}, [updatePreferences, onPreferencesChange])
+
+	// Cleanup do timeout ao desmontar
+	useEffect(() => {
+		return () => {
+			if (saveTimeoutRef.current) {
+				clearTimeout(saveTimeoutRef.current)
+			}
+		}
+	}, [])
 
 	const handleSavePreferences = async () => {
 		try {
@@ -209,6 +249,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				showExpirationAlerts: true,
 				showReplenishment: true,
 				showSavingsCard: true,
+				showDiscountStats: true,
 				showTemporalComp: true,
 				showNutritionCard: true,
 				showPaymentStats: true,
@@ -216,6 +257,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				customSubtitle: undefined,
 			}
 			setLocalPreferences(defaultPreferences)
+			setHasUnsavedChanges(false)
 			onPreferencesChange?.(defaultPreferences)
 		} catch (error) {
 			console.error("Erro ao resetar preferências:", error)
@@ -272,12 +314,15 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									id="customTitle"
 									placeholder="Bem-vindo ao Mercado304"
 									value={localPreferences.customTitle || ""}
-									onChange={(e) =>
-										setLocalPreferences({
+									onChange={(e) => {
+										const newPreferences = {
 											...localPreferences,
 											customTitle: e.target.value || undefined,
-										})
-									}
+										}
+										setLocalPreferences(newPreferences)
+										setHasUnsavedChanges(true)
+										debouncedSave(newPreferences)
+									}}
 								/>
 							</div>
 
@@ -287,12 +332,15 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									id="customSubtitle"
 									placeholder="Sistema completo de gerenciamento de compras de mercado"
 									value={localPreferences.customSubtitle || ""}
-									onChange={(e) =>
-										setLocalPreferences({
+									onChange={(e) => {
+										const newPreferences = {
 											...localPreferences,
 											customSubtitle: e.target.value || undefined,
-										})
-									}
+										}
+										setLocalPreferences(newPreferences)
+										setHasUnsavedChanges(true)
+										debouncedSave(newPreferences)
+									}}
 								/>
 							</div>
 						</div>
@@ -302,12 +350,15 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 								<Label>Estilo do Layout</Label>
 								<Select
 									value={localPreferences.layoutStyle}
-									onValueChange={(value: "grid" | "list" | "compact") =>
-										setLocalPreferences({
+									onValueChange={(value: "grid" | "list" | "compact") => {
+										const newPreferences = {
 											...localPreferences,
 											layoutStyle: value,
-										})
-									}
+										}
+										setLocalPreferences(newPreferences)
+										setHasUnsavedChanges(true)
+										debouncedSave(newPreferences)
+									}}
 								>
 									<SelectTrigger>
 										<SelectValue />
@@ -339,12 +390,15 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 								<Label>Cards por Linha</Label>
 								<Select
 									value={localPreferences.cardsPerRow.toString()}
-									onValueChange={(value) =>
-										setLocalPreferences({
+									onValueChange={(value) => {
+										const newPreferences = {
 											...localPreferences,
 											cardsPerRow: parseInt(value),
-										})
-									}
+										}
+										setLocalPreferences(newPreferences)
+										setHasUnsavedChanges(true)
+										debouncedSave(newPreferences)
+									}}
 								>
 									<SelectTrigger>
 										<SelectValue />
@@ -385,13 +439,12 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 															ref={provided.innerRef}
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
-															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
-																snapshot.isDragging
+															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${snapshot.isDragging
 																	? "bg-accent"
 																	: isHidden
 																		? "bg-muted opacity-60"
 																		: "bg-background hover:bg-accent/50"
-															}`}
+																}`}
 														>
 															<div className="flex items-center gap-3">
 																<div className="flex-1">
@@ -449,25 +502,36 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 
 					{/* Botões de Ação */}
 					<div className="flex items-center justify-between">
-						<Button
-							variant="outline"
-							onClick={handleResetPreferences}
-							disabled={resetPreferences.isPending}
-							className="flex items-center gap-2"
-						>
-							<RotateCcw className="h-4 w-4" />
-							Restaurar Padrões
-						</Button>
-
-						<div className="flex items-center gap-2">
-							<Button variant="outline" onClick={() => setIsOpen(false)}>
-								<X className="h-4 w-4 mr-2" />
-								Cancelar
+						<div className="flex items-center gap-4">
+							<Button
+								variant="outline"
+								onClick={handleResetPreferences}
+								disabled={resetPreferences.isPending}
+								className="flex items-center gap-2"
+							>
+								<RotateCcw className="h-4 w-4" />
+								Restaurar Padrões
 							</Button>
-							<Button onClick={handleSavePreferences} disabled={updatePreferences.isPending}>
-								Salvar Configurações
-							</Button>
+							
+							{hasUnsavedChanges && (
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+									Salvando...
+								</div>
+							)}
+							
+							{!hasUnsavedChanges && updatePreferences.isSuccess && (
+								<div className="flex items-center gap-2 text-sm text-green-600">
+									<div className="w-2 h-2 bg-green-500 rounded-full"></div>
+									Salvo automaticamente
+								</div>
+							)}
 						</div>
+
+						<Button variant="outline" onClick={() => setIsOpen(false)}>
+							<X className="h-4 w-4 mr-2" />
+							Fechar
+						</Button>
 					</div>
 				</div>
 			</ResponsiveDialog>

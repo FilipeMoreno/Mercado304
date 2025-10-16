@@ -1,0 +1,1 @@
+-- Create Column\nALTER TABLE \ dashboard_preferences\ ADD COLUMN IF NOT EXISTS \showDiscountStats\ BOOLEAN NOT NULL DEFAULT true;

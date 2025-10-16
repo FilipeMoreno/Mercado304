@@ -884,6 +884,7 @@ export interface DashboardPreferences {
 	showExpirationAlerts: boolean
 	showReplenishment: boolean
 	showSavingsCard: boolean
+	showDiscountStats: boolean
 	showTemporalComp: boolean
 	showNutritionCard: boolean
 	showPaymentStats: boolean

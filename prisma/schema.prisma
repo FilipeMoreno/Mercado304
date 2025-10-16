@@ -563,6 +563,7 @@ model DashboardPreference {
   showExpirationAlerts Boolean  @default(true)
   showReplenishment    Boolean  @default(true)
   showSavingsCard      Boolean  @default(true)
+  showDiscountStats    Boolean  @default(true)
   showTemporalComp     Boolean  @default(true)
   showNutritionCard    Boolean  @default(true)
   showPaymentStats     Boolean  @default(true)
