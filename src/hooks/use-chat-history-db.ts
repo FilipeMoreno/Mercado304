@@ -2,18 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { Message } from "./use-ai-chat"
-
-export interface ChatSession {
-  id: string
-  title: string
-  messages: Message[]
-  createdAt: Date
-  updatedAt: Date
-  isPinned?: boolean
-  isArchived?: boolean
-  lastMessage?: string
-  messageCount?: number
-}
+import type { ChatSession } from "./use-chat-history"
 
 export function useChatHistoryDB() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
