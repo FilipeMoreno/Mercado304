@@ -24,14 +24,6 @@ export async function POST(request: NextRequest) {
 
     // Decodifica e valida o token
     const tokenData = JSON.parse(Buffer.from(authToken, "base64").toString("utf-8"))
-      userId: tokenData.userId,
-      tokenOperation: tokenData.operation,
-      requestOperation: operation,
-      email: tokenData.email,
-      timestamp: tokenData.timestamp,
-      age: (Date.now() - tokenData.timestamp) / 1000 + "s"
-    })
-
     const { userId, operation: tokenOperation, timestamp, email } = tokenData
 
     // Validações

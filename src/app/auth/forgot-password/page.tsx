@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { forgetPassword } from "@/lib/auth-client"
+import { forgetPassword, emailOtp } from "@/lib/auth-client"
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("")
@@ -63,15 +63,20 @@ export default function ForgotPasswordPage() {
 
 		try {
 
-			// Usa o plugin emailOTP do Better Auth para resetar senha
-			const result = await forgetPassword.resetPassword({
-				email,
-				otp,
-				password: newPassword,
+			// Usa a API diretamente para resetar senha com OTP
+			const response = await fetch("/api/auth/reset-password", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					email,
+					otp,
+					newPassword,
+				}),
 			})
 
-			if (result.error) {
-				throw new Error(result.error.message || "Código inválido ou expirado")
+			if (!response.ok) {
+				const data = await response.json()
+				throw new Error(data.error || "Código inválido ou expirado")
 			}
 
 			toast.success("Senha alterada com sucesso!")

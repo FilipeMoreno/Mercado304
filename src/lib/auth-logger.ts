@@ -25,7 +25,7 @@ export async function logAuthEvent(params: {
     if (eventType === "login" || eventType === "reauth") {
       securityEventType = SecurityEventType.LOGIN_SUCCESS
     } else {
-      securityEventType = SecurityEventType.LOGOUT
+      securityEventType = SecurityEventType.LOGIN_SUCCESS // Usar LOGIN_SUCCESS para outros eventos também
     }
 
     // Registra no SecurityAudit

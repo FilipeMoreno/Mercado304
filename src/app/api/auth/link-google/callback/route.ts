@@ -6,6 +6,7 @@ import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
 import { getRequestInfo } from "@/lib/auth-logger"
 import { sendSecurityAlertEmail } from "@/lib/email"
 import { getLocationFromIP } from "@/lib/geolocation"
+import { randomBytes } from "crypto"
 
 /**
  * Callback após autorização do Google para vinculação
@@ -132,6 +133,7 @@ export async function GET(request: NextRequest) {
     // Cria a vinculação
     await prisma.account.create({
       data: {
+        id: randomBytes(16).toString("hex"),
         userId,
         providerId: "google",
         accountId: googleId,

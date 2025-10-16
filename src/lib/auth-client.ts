@@ -6,9 +6,8 @@ export const authClient = createAuthClient({
 	plugins: [
 		emailOTPClient(),
 		twoFactorClient({
-			onTwoFactorRedirect(data) {
+			onTwoFactorRedirect() {
 				// Tenta salvar o email do usuário se disponível
-				// O email pode vir do contexto do login
 				const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]')
 				if (emailInput?.value) {
 					sessionStorage.setItem("2fa_user_email", emailInput.value)

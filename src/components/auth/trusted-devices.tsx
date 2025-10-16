@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TrustedDevicesSkeleton } from "@/components/skeletons/trusted-devices-skeleton"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Monitor, Smartphone, Tablet, Trash2 } from "lucide-react"
+import { Loader2, Monitor, Smartphone, Tablet, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
