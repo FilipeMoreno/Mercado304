@@ -100,10 +100,14 @@ export function CategoryCombobox({
 					disabled={disabled}
 				>
 					<span className="truncate flex-1 text-left font-normal">
-						{value
+						{value && value !== ""
 							? (() => {
 								const selectedCategory = categories.find((c) => c.id === value)
-								return selectedCategory ? `${selectedCategory.icon || "📦"} ${selectedCategory.name}` : placeholder
+								if (!selectedCategory) {
+									console.warn("[CategoryCombobox] Value set but category not found:", value, "Available categories:", categories.map(c => ({ id: c.id, name: c.name })))
+									return placeholder
+								}
+								return `${selectedCategory.icon || "📦"} ${selectedCategory.name}`
 							})()
 							: placeholder}
 					</span>
@@ -152,7 +156,13 @@ export function CategoryCombobox({
 											key={option.value}
 											value={option.label}
 											onSelect={() => {
-												onValueChange?.(option.value === value ? "" : option.value)
+												console.log("[CategoryCombobox] Item selected:", {
+													optionValue: option.value,
+													currentValue: value,
+													willSet: option.value === value ? "" : option.value
+												})
+												const newValue = option.value === value ? "" : option.value
+												onValueChange?.(newValue)
 												setOpen(false)
 												setSearchTerm("")
 											}}

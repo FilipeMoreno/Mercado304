@@ -100,10 +100,14 @@ export function BrandCombobox({
 					disabled={disabled}
 				>
 					<span className="truncate flex-1 text-left font-normal">
-						{value
+						{value && value !== ""
 							? (() => {
 								const selectedBrand = brands.find((b) => b.id === value)
-								return selectedBrand ? selectedBrand.name : placeholder
+								if (!selectedBrand) {
+									console.warn("[BrandCombobox] Value set but brand not found:", value, "Available brands:", brands.map(b => ({ id: b.id, name: b.name })))
+									return placeholder
+								}
+								return selectedBrand.name
 							})()
 							: placeholder}
 					</span>
@@ -152,7 +156,13 @@ export function BrandCombobox({
 											key={option.value}
 											value={option.label}
 											onSelect={() => {
-												onValueChange?.(option.value === value ? "" : option.value)
+												console.log("[BrandCombobox] Item selected:", {
+													optionValue: option.value,
+													currentValue: value,
+													willSet: option.value === value ? "" : option.value
+												})
+												const newValue = option.value === value ? "" : option.value
+												onValueChange?.(newValue)
 												setOpen(false)
 												setSearchTerm("")
 											}}

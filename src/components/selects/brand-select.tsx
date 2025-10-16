@@ -45,19 +45,28 @@ export function BrandSelect({
 	// Reset search when dropdown is closed
 	const handleValueChange = useCallback(
 		(newValue: string) => {
+			console.log("[BrandSelect] Value changed:", newValue)
+			console.log("[BrandSelect] Brands available:", brands.map(b => ({ id: b.id, name: b.name })))
 			onValueChange?.(newValue)
 			if (newValue) {
 				setSearch("")
 			}
 		},
-		[onValueChange],
+		[onValueChange, brands],
 	)
 
 	const handleCreateBrand = async (name: string) => {
 		try {
+			console.log("[BrandSelect] Creating brand:", name)
 			const newBrand = await createBrandMutation.mutateAsync({
 				name: name.trim(),
 			})
+			console.log("[BrandSelect] Brand created:", newBrand)
+
+			// Força refetch antes de setar o valor
+			await new Promise(resolve => setTimeout(resolve, 300))
+
+			console.log("[BrandSelect] Setting value to:", newBrand.id)
 			onValueChange?.(newBrand.id)
 		} catch (error) {
 			console.error("Error creating brand:", error)

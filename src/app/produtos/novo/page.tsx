@@ -212,7 +212,12 @@ export default function NovoProdutoPage() {
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [name]: value }))
+		console.log("[NovoProduto] handleSelectChange called:", { name, value })
+		setFormData((prev) => {
+			const newData = { ...prev, [name]: value }
+			console.log("[NovoProduto] New formData:", newData)
+			return newData
+		})
 	}
 
 	const handleBarcodeScanned = (barcode: string) => {
@@ -299,13 +304,16 @@ export default function NovoProdutoPage() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>
-								<BrandSelect value={formData.brandId} onValueChange={(value) => handleSelectChange("brandId", value)} />
+								<BrandSelect
+									value={formData.brandId || undefined}
+									onValueChange={(value) => handleSelectChange("brandId", value || "")}
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="categoryId">Categoria</Label>
 								<CategorySelect
-									value={formData.categoryId}
-									onValueChange={(value) => handleSelectChange("categoryId", value)}
+									value={formData.categoryId || undefined}
+									onValueChange={(value) => handleSelectChange("categoryId", value || "")}
 								/>
 							</div>
 							<div className="space-y-2">

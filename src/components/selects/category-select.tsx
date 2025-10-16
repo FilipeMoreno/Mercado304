@@ -44,21 +44,30 @@ export function CategorySelect({
 	// Reset search when dropdown is closed
 	const handleValueChange = useCallback(
 		(newValue: string) => {
+			console.log("[CategorySelect] Value changed:", newValue)
+			console.log("[CategorySelect] Categories available:", categories.map(c => ({ id: c.id, name: c.name })))
 			onValueChange?.(newValue)
 			if (newValue) {
 				setSearch("")
 			}
 		},
-		[onValueChange],
+		[onValueChange, categories],
 	)
 
 	const handleCreateCategory = async (name: string) => {
 		try {
+			console.log("[CategorySelect] Creating category:", name)
 			const newCategory = await createCategoryMutation.mutateAsync({
 				name: name.trim(),
 				icon: "📦", // Ícone padrão
 				isFood: false, // Padrão para não-alimento
 			})
+			console.log("[CategorySelect] Category created:", newCategory)
+
+			// Força refetch antes de setar o valor
+			await new Promise(resolve => setTimeout(resolve, 300))
+
+			console.log("[CategorySelect] Setting value to:", newCategory.id)
 			onValueChange?.(newCategory.id)
 		} catch (error) {
 			console.error("Error creating category:", error)

@@ -84,10 +84,10 @@ export const useCreateCategoryMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories"] })
-			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			queryClient.invalidateQueries({ queryKey: ["products"] })
+		onSuccess: async () => {
+			// Invalida e aguarda refetch
+			await queryClient.invalidateQueries({ queryKey: ["categories"] })
+			await queryClient.refetchQueries({ queryKey: ["categories"] })
 			toast.success("Categoria criada com sucesso!")
 		},
 		onError: (error) => {
@@ -172,10 +172,10 @@ export const useCreateBrandMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["brands"] })
-			queryClient.invalidateQueries({ queryKey: queryKeys.allBrands() })
-			queryClient.invalidateQueries({ queryKey: ["products"] })
+		onSuccess: async () => {
+			// Invalida e aguarda refetch
+			await queryClient.invalidateQueries({ queryKey: ["brands"] })
+			await queryClient.refetchQueries({ queryKey: ["brands"] })
 			toast.success("Marca criada com sucesso!")
 		},
 		onError: (error) => {
@@ -251,9 +251,10 @@ export const useCreateMarketMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["markets"] })
-			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+		onSuccess: async () => {
+			// Invalida e aguarda refetch
+			await queryClient.invalidateQueries({ queryKey: ["markets"] })
+			await queryClient.refetchQueries({ queryKey: ["markets"] })
 			toast.success("Mercado criado com sucesso!")
 		},
 		onError: (error) => {
