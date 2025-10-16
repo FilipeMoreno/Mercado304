@@ -53,7 +53,27 @@ export const productFunctions = {
 		}
 	},
 
-	searchProducts: async ({ search, categoryId, brandId }: any) => {
+	searchProducts: async ({ search, categoryId, brandId, sortBy = "name", sortOrder = "asc" }: any) => {
+		// Configurar ordenação
+		let orderBy: any = { name: "asc" }
+		
+		switch (sortBy) {
+			case "name":
+				orderBy = { name: sortOrder === "desc" ? "desc" : "asc" }
+				break
+			case "date":
+				orderBy = { createdAt: sortOrder === "desc" ? "desc" : "asc" }
+				break
+			case "category":
+				orderBy = { category: { name: sortOrder === "desc" ? "desc" : "asc" } }
+				break
+			case "brand":
+				orderBy = { brand: { name: sortOrder === "desc" ? "desc" : "asc" } }
+				break
+			default:
+				orderBy = { name: "asc" }
+		}
+
 		const products = await prisma.product.findMany({
 			where: {
 				name: { contains: search, mode: "insensitive" },
@@ -61,9 +81,19 @@ export const productFunctions = {
 				...(brandId && { brandId }),
 			},
 			include: { brand: true, category: true },
+			orderBy,
 			take: 10,
 		})
-		return { success: true, products }
+		
+		return { 
+			success: true, 
+			products,
+			sortInfo: {
+				sortBy,
+				sortOrder,
+				message: `Produtos ordenados por ${sortBy} (${sortOrder})`
+			}
+		}
 	},
 
 	getProductPriceComparison: async ({ productName }: { productName: string }) => {
@@ -161,8 +191,28 @@ export const productFunctions = {
 		}
 	},
 
-	getMostExpensiveProducts: async ({ limit = 10 }: { limit?: number } = {}) => {
+	getMostExpensiveProducts: async ({ limit = 10, sortBy = "price", sortOrder = "desc" }: { limit?: number; sortBy?: string; sortOrder?: string } = {}) => {
 		try {
+			// Configurar ordenação
+			let orderBy: any = { unitPrice: 'desc' }
+			
+			switch (sortBy) {
+				case "price":
+					orderBy = { unitPrice: sortOrder === "asc" ? "asc" : "desc" }
+					break
+				case "date":
+					orderBy = { purchase: { purchaseDate: sortOrder === "asc" ? "asc" : "desc" } }
+					break
+				case "product":
+					orderBy = { product: { name: sortOrder === "asc" ? "asc" : "desc" } }
+					break
+				case "market":
+					orderBy = { purchase: { market: { name: sortOrder === "asc" ? "asc" : "desc" } } }
+					break
+				default:
+					orderBy = { unitPrice: 'desc' }
+			}
+
 			// Busca os produtos com os preços mais altos baseado nas compras mais recentes
 			const expensiveProducts = await prisma.purchaseItem.findMany({
 				include: {
@@ -178,9 +228,7 @@ export const productFunctions = {
 						},
 					},
 				},
-				orderBy: {
-					unitPrice: 'desc',
-				},
+				orderBy,
 				take: limit,
 				distinct: ['productId'], // Evita produtos duplicados
 			})
@@ -208,6 +256,11 @@ export const productFunctions = {
 				message: `O produto mais caro registrado é "${mostExpensive.product}" (${mostExpensive.brand}) por R$ ${mostExpensive.price.toFixed(2)} no ${mostExpensive.market}.`,
 				mostExpensive,
 				topProducts: formattedProducts,
+				sortInfo: {
+					sortBy,
+					sortOrder,
+					message: `Produtos ordenados por ${sortBy} (${sortOrder})`
+				}
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao buscar produtos mais caros: ${error}` }

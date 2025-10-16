@@ -24,7 +24,7 @@ import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAiChat, useChatHistory } from "@/hooks"
+import { useAiChat, useChatHistoryDB } from "@/hooks"
 
 export default function EnhancedAssistentePage() {
 	const [input, setInput] = useState("")
@@ -41,7 +41,7 @@ export default function EnhancedAssistentePage() {
 		deleteSession,
 		renameSession,
 		clearAllHistory,
-	} = useChatHistory()
+	} = useChatHistoryDB()
 
 	const {
 		messages,

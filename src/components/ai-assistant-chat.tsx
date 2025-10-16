@@ -20,7 +20,7 @@ import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAiChat, useChatHistory } from "@/hooks"
+import { useAiChat, useChatHistoryDB } from "@/hooks"
 
 export function AiAssistantChat() {
 	const [input, setInput] = useState("")
@@ -48,7 +48,7 @@ export function AiAssistantChat() {
 		deleteSession,
 		renameSession,
 		clearAllHistory,
-	} = useChatHistory()
+	} = useChatHistoryDB()
 
 	const {
 		messages,

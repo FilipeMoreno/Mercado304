@@ -1,9 +1,9 @@
 "use client"
 
 import { useQueryClient } from "@tanstack/react-query"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { queryKeys } from "./use-react-query"
-import { useChatHistory } from "./use-chat-history"
+import { useChatHistoryDB } from "./use-chat-history-db"
 import { useAiCache } from "./use-ai-cache"
 
 export interface Message {
@@ -28,9 +28,9 @@ export function useAiChat(sessionId?: string | null) {
 		updateSession,
 		loadSession,
 		createNewSession
-	} = useChatHistory()
+	} = useChatHistoryDB()
 	const { getCachedResponse, setCachedResponse, shouldCache } = useAiCache()
-	
+
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			role: "assistant",
@@ -51,12 +51,18 @@ export function useAiChat(sessionId?: string | null) {
 		}
 	}, [sessionId, loadSession])
 
-	// Salvar mensagens na sessão atual sempre que mudarem
+	// Salvar mensagens na sessão atual sempre que mudarem (evita loop)
+	const lastSavedHashRef = useRef<string>("")
+	const currentSessionId = currentSession?.id
 	useEffect(() => {
-		if (currentSession && messages.length > 1) {
-			updateSession(currentSession.id, messages)
-		}
-	}, [messages, currentSession, updateSession])
+		if (!currentSessionId || messages.length <= 1) return
+
+		const hash = JSON.stringify(messages)
+		if (hash === lastSavedHashRef.current) return
+
+		lastSavedHashRef.current = hash
+		updateSession(currentSessionId, messages)
+	}, [messages, currentSessionId, updateSession])
 
 	// Detecta mudança de contexto baseada na mensagem atual
 	const detectContextChange = (currentMessage: string, previousMessages: Message[]) => {
@@ -174,12 +180,17 @@ export function useAiChat(sessionId?: string | null) {
 	const sendMessage = async (content: string, useStreaming: boolean = true) => {
 		const userMessage: Message = { role: "user", content }
 
+		// Se não há sessão atual, criar uma nova
+		if (!currentSession) {
+			await createNewSession(userMessage)
+		}
+
 		// Verificar cache primeiro
 		const cachedResponse = getCachedResponse(content)
 		if (cachedResponse) {
 			console.log("🚀 Resposta encontrada no cache!")
 			addMessage(userMessage)
-			
+
 			// Simular pequeno delay para parecer natural
 			setTimeout(() => {
 				const assistantMessage: Message = {
@@ -188,7 +199,7 @@ export function useAiChat(sessionId?: string | null) {
 				}
 				addMessage(assistantMessage)
 			}, 300)
-			
+
 			return
 		}
 
@@ -223,9 +234,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-					role: msg.role,
-					parts: [{ text: msg.content }],
-				}))
+				role: msg.role,
+				parts: [{ text: msg.content }],
+			}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -272,9 +283,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-					role: msg.role,
-					parts: [{ text: msg.content }],
-				}))
+				role: msg.role,
+				parts: [{ text: msg.content }],
+			}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -331,7 +342,7 @@ export function useAiChat(sessionId?: string | null) {
 
 							if (data.final) {
 								updateLastMessage({ isStreaming: false })
-								
+
 								// Cachear resposta completa se apropriado
 								if (shouldCache(messageContent) && !hasSelectionData && fullResponse) {
 									setCachedResponse(messageContent, fullResponse)
@@ -472,10 +483,13 @@ export function useAiChat(sessionId?: string | null) {
 	}
 
 	// Função para iniciar nova conversa
-	const startNewChat = () => {
-		const newSession = createNewSession()
-		setMessages(newSession.messages)
-		return newSession
+	const startNewChat = async () => {
+		const newSession = await createNewSession()
+		if (newSession) {
+			setMessages(newSession.messages)
+			return newSession
+		}
+		return null
 	}
 
 	// Função para carregar conversa específica

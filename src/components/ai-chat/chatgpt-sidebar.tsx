@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns"
 import { Button } from "@/components/ui/button"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -562,16 +563,54 @@ export function ChatGPTSidebar({
 			{/* Footer */}
 			{sessions.length > 0 && (
 				<div className="p-3 border-t">
-					<Button
-						onClick={onClearAll}
-						variant="ghost"
-						className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 text-sm rounded-xl"
-					>
-						<Trash2 className="h-4 w-4 mr-2" />
-						Limpar conversas
-					</Button>
+					<ClearAllConversationsButton onConfirm={onClearAll} />
 				</div>
 			)}
 		</motion.div>
+	)
+}
+
+function ClearAllConversationsButton({ onConfirm }: { onConfirm: () => void }) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<Button
+				onClick={() => setOpen(true)}
+				variant="ghost"
+				className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 text-sm rounded-xl"
+			>
+				<Trash2 className="h-4 w-4 mr-2" />
+				Limpar conversas
+			</Button>
+
+			<ResponsiveDialog
+				open={open}
+				onOpenChange={setOpen}
+				title="Limpar todas as conversas?"
+				description="Esta ação removerá permanentemente todo o histórico de conversas."
+				maxWidth="sm"
+			>
+				<div className="space-y-4">
+					<p className="text-sm text-muted-foreground">
+						Essa ação não pode ser desfeita. Confirme para continuar.
+					</p>
+					<div className="flex flex-col sm:flex-row gap-2 justify-end">
+						<Button variant="outline" onClick={() => setOpen(false)}>
+							Cancelar
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => {
+								setOpen(false)
+								onConfirm()
+							}}
+						>
+							Limpar tudo
+						</Button>
+					</div>
+				</div>
+			</ResponsiveDialog>
+		</>
 	)
 }

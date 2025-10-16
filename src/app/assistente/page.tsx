@@ -17,7 +17,7 @@ import { ChatGPTSidebar } from "@/components/ai-chat/chatgpt-sidebar"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAiChat, useChatHistory } from "@/hooks"
+import { useAiChat, useChatHistoryDB } from "@/hooks"
 import { SimpleSuggestions } from "@/components/ai-chat/simple-suggestions"
 
 export default function CleanAssistentePage() {
@@ -45,7 +45,7 @@ export default function CleanAssistentePage() {
 		deleteSession,
 		renameSession,
 		clearAllHistory,
-	} = useChatHistory()
+	} = useChatHistoryDB()
 
 	const {
 		messages,

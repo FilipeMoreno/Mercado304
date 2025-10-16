@@ -140,35 +140,51 @@ export const tools: any = [
 			},
 			{
 				name: "searchProducts",
-				description: "Busca produtos por nome, marca ou categoria.",
+				description: "Busca produtos por nome, marca ou categoria com opções de ordenação.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						query: {
+						search: {
 							type: SchemaType.STRING,
 							description: "Termo de busca para produtos.",
 						},
-						categoryName: {
+						categoryId: {
 							type: SchemaType.STRING,
-							description: "Nome da categoria para filtrar (opcional).",
+							description: "ID da categoria para filtrar (opcional).",
 						},
-						brandName: {
+						brandId: {
 							type: SchemaType.STRING,
-							description: "Nome da marca para filtrar (opcional).",
+							description: "ID da marca para filtrar (opcional).",
+						},
+						sortBy: {
+							type: SchemaType.STRING,
+							description: "Campo para ordenação: 'name', 'date', 'category', 'brand' (padrão: 'name').",
+						},
+						sortOrder: {
+							type: SchemaType.STRING,
+							description: "Ordem da ordenação: 'asc' ou 'desc' (padrão: 'asc').",
 						},
 					},
-					required: ["query"],
+					required: ["search"],
 				},
 			},
 			{
 				name: "getMostExpensiveProducts",
-				description: "Busca os produtos mais caros registrados no sistema baseado nos preços das compras.",
+				description: "Busca os produtos mais caros registrados no sistema baseado nos preços das compras com opções de ordenação.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
 						limit: {
 							type: SchemaType.NUMBER,
 							description: "Número máximo de produtos a retornar (padrão 10).",
+						},
+						sortBy: {
+							type: SchemaType.STRING,
+							description: "Campo para ordenação: 'price', 'date', 'product', 'market' (padrão: 'price').",
+						},
+						sortOrder: {
+							type: SchemaType.STRING,
+							description: "Ordem da ordenação: 'asc' ou 'desc' (padrão: 'desc').",
 						},
 					},
 				},

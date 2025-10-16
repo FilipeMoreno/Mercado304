@@ -638,3 +638,19 @@ model ChurrascoCalculation {
   @@index([createdAt])
   @@map("churrasco_calculations")
 }
+
+model AssistantChatSession {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  messages   Json // Array de mensagens: [{ role, content, timestamp, etc }]
+  isPinned   Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("assistant_chat_sessions")
+}
