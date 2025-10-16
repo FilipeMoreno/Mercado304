@@ -20,6 +20,7 @@ As seguintes migrações foram criadas para sincronizar com o schema atual:
 3. **20250116000003_add_nutritional_extended_fields** - Adiciona campos nutricionais estendidos
 4. **20250116000004_add_security_features** - Adiciona recursos de segurança
 5. **20250116000005_add_missing_indexes** - Adiciona índices para performance
+6. **20250116000006_add_churrasco_calculations** - Adiciona tabela para histórico do churrascômetro
 
 ## ✅ Garantias de Segurança
 
@@ -62,6 +63,7 @@ psql $PRISMA_DATABASE_URL
 \i prisma/migrations/20250116000003_add_nutritional_extended_fields/migration.sql
 \i prisma/migrations/20250116000004_add_security_features/migration.sql
 \i prisma/migrations/20250116000005_add_missing_indexes/migration.sql
+\i prisma/migrations/20250116000006_add_churrasco_calculations/migration.sql
 
 # 3. Registre as migrações na tabela _prisma_migrations
 INSERT INTO "_prisma_migrations" ("id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count")
@@ -70,7 +72,8 @@ VALUES
   (gen_random_uuid(), '', NOW(), '20250116000002_add_temporary_shopping_list_fields', NULL, NULL, NOW(), 1),
   (gen_random_uuid(), '', NOW(), '20250116000003_add_nutritional_extended_fields', NULL, NULL, NOW(), 1),
   (gen_random_uuid(), '', NOW(), '20250116000004_add_security_features', NULL, NULL, NOW(), 1),
-  (gen_random_uuid(), '', NOW(), '20250116000005_add_missing_indexes', NULL, NULL, NOW(), 1);
+  (gen_random_uuid(), '', NOW(), '20250116000005_add_missing_indexes', NULL, NULL, NOW(), 1),
+  (gen_random_uuid(), '', NOW(), '20250116000006_add_churrasco_calculations', NULL, NULL, NOW(), 1);
 ```
 
 ## ✨ Pós-Aplicação

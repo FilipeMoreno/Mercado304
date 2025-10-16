@@ -623,3 +623,18 @@ model IpLocation {
   @@index([expiresAt])
   @@map("ip_locations")
 }
+
+model ChurrascoCalculation {
+  id          String   @id @default(cuid())
+  userId      String
+  adults      Int
+  children    Int
+  drinkers    Int
+  preferences String?
+  result      Json // Armazena o resultado completo: { summary, shoppingList, chefTip }
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("churrasco_calculations")
+}

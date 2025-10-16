@@ -1,34 +1,29 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
 import {
 	Beer,
 	Calculator,
 	Clock,
-	Drumstick,
-	Flame,
 	History,
 	Loader2,
-	ShoppingCart,
 	Sparkles,
 	Users,
-	Utensils,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { ChurrascometroSkeleton } from "@/components/skeletons/churrascometro-skeleton"
+import { ChurrascoHistorySkeleton } from "@/components/skeletons/churrasco-history-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useDataMutation } from "@/hooks"
 
 interface ChurrascoResult {
+	id: string
 	summary: {
 		totalPeople: number
 	}
@@ -37,13 +32,7 @@ interface ChurrascoResult {
 	}
 	chefTip: string
 	timestamp: string
-}
-
-const categoryIcons: { [key: string]: React.ReactNode } = {
-	Carnes: <Drumstick className="h-5 w-5 text-red-500" />,
-	Bebidas: <Beer className="h-5 w-5 text-yellow-500" />,
-	Acompanhamentos: <Utensils className="h-5 w-5 text-orange-500" />,
-	Outros: <Flame className="h-5 w-5 text-gray-500" />,
+	preferences?: string | null
 }
 
 export default function ChurrascoClient() {
@@ -57,37 +46,70 @@ export default function ChurrascoClient() {
 	const [drinkers, setDrinkers] = useState(8)
 	const [preferences, setPreferences] = useState("")
 	const [loading, setLoading] = useState(false)
-	const [result, setResult] = useState<ChurrascoResult | null>(null)
+	const [loadingHistory, setLoadingHistory] = useState(true)
 	const [history, setHistory] = useState<ChurrascoResult[]>([])
-	const { create, loading: creatingList } = useDataMutation()
 	const router = useRouter()
 
-	const HISTORY_KEY = "churrascometro_history"
-
 	useEffect(() => {
+		loadHistory()
+	}, [])
+
+	const loadHistory = async () => {
 		try {
-			const savedHistory = localStorage.getItem(HISTORY_KEY)
-			if (savedHistory) {
-				setHistory(JSON.parse(savedHistory))
+			setLoadingHistory(true)
+			const response = await fetch("/api/churrasco/history")
+			if (response.ok) {
+				const calculations = await response.json()
+				// Mapear os dados do banco para o formato esperado pelo componente
+				const formattedHistory = calculations.map((calc: any) => ({
+					id: calc.id,
+					summary: calc.result.summary,
+					shoppingList: calc.result.shoppingList,
+					chefTip: calc.result.chefTip,
+					timestamp: calc.createdAt,
+					preferences: calc.preferences,
+				}))
+				setHistory(formattedHistory)
 			}
 		} catch (error) {
 			console.error("Erro ao carregar histórico do churrasco:", error)
+		} finally {
+			setLoadingHistory(false)
 		}
-	}, [])
+	}
 
-	const saveToHistory = (newResult: ChurrascoResult) => {
+	const saveToHistory = async (newResult: any, calculationData: { adults: number; children: number; drinkers: number; preferences: string }) => {
 		try {
-			const updatedHistory = [newResult, ...history].slice(0, 5)
-			setHistory(updatedHistory)
-			localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory))
+			const response = await fetch("/api/churrasco/history", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					adults: calculationData.adults,
+					children: calculationData.children,
+					drinkers: calculationData.drinkers,
+					preferences: calculationData.preferences,
+					result: {
+						summary: newResult.summary,
+						shoppingList: newResult.shoppingList,
+						chefTip: newResult.chefTip,
+					},
+				}),
+			})
+			if (response.ok) {
+				const savedCalculation = await response.json()
+				// Recarregar o histórico após salvar
+				await loadHistory()
+				return savedCalculation
+			}
+			return null
 		} catch (error) {
 			console.error("Erro ao salvar histórico do churrasco:", error)
+			return null
 		}
 	}
 
 	const handleCalculate = async () => {
 		setLoading(true)
-		setResult(null)
 		try {
 			const response = await fetch("/api/ai/churrascometro", {
 				method: "POST",
@@ -96,9 +118,12 @@ export default function ChurrascoClient() {
 			})
 			if (response.ok) {
 				const data = await response.json()
-				const newResult = { ...data, timestamp: new Date().toISOString() }
-				setResult(newResult)
-				saveToHistory(newResult)
+				// Salvar no banco de dados
+				const savedCalculation = await saveToHistory(data, { adults, children, drinkers, preferences })
+				if (savedCalculation) {
+					// Redirecionar para a página de detalhes
+					router.push(`/churrasco/${savedCalculation.id}`)
+				}
 			} else {
 				toast.error("A IA não conseguiu calcular. Tente novamente.")
 			}
@@ -109,34 +134,6 @@ export default function ChurrascoClient() {
 		}
 	}
 
-	const handleCreateList = async () => {
-		if (!result) return
-
-		const itemsToCreate = Object.values(result.shoppingList)
-			.flat()
-			.map((item) => ({
-				productName: item.item,
-				quantity: 1,
-				isChecked: false,
-			}))
-
-		await create(
-			"/api/shopping-lists",
-			{
-				name: `Churrasco para ${result.summary.totalPeople} pessoas`,
-				items: itemsToCreate,
-			},
-			{
-				successMessage: "Lista de compras para o churrasco criada!",
-				onSuccess: (newList) => router.push(`/lista/${newList.id}`),
-			},
-		)
-	}
-
-	const loadFromHistory = (historicalResult: ChurrascoResult) => {
-		setResult(historicalResult)
-		window.scrollTo({ top: 0, behavior: "smooth" })
-	}
 
 	return (
 		<div className="space-y-6">
@@ -273,7 +270,9 @@ export default function ChurrascoClient() {
 				</TabsContent>
 
 				<TabsContent value="history" className="space-y-6">
-					{history.length === 0 ? (
+					{loadingHistory ? (
+						<ChurrascoHistorySkeleton />
+					) : history.length === 0 ? (
 						<Empty className="border border-dashed py-12">
 							<EmptyHeader>
 								<EmptyMedia variant="icon">
@@ -297,7 +296,7 @@ export default function ChurrascoClient() {
 									{history.map((item, index) => (
 										<div key={item.timestamp} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
 											<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-												<div className="space-y-1">
+												<div className="space-y-1 flex-1">
 													<div className="flex items-center gap-2">
 														<h3 className="font-semibold">Churrasco para {item.summary.totalPeople} pessoas</h3>
 														<Badge variant="outline">#{history.length - index}</Badge>
@@ -311,9 +310,18 @@ export default function ChurrascoClient() {
 															minute: "2-digit",
 														})}
 													</p>
+													{item.preferences && (
+														<p className="text-xs text-muted-foreground mt-1">
+															<span className="font-medium">Preferências:</span>{" "}
+															{item.preferences.length > 50
+																? `${item.preferences.substring(0, 50)}...`
+																: item.preferences
+															}
+														</p>
+													)}
 												</div>
 
-												<Button variant="outline" size="sm" onClick={() => loadFromHistory(item)}>
+												<Button variant="outline" size="sm" onClick={() => router.push(`/churrasco/${item.id}`)} className="shrink-0">
 													Ver Detalhes
 												</Button>
 											</div>
@@ -326,73 +334,6 @@ export default function ChurrascoClient() {
 				</TabsContent>
 			</Tabs>
 
-			<AnimatePresence>
-				{loading && <ChurrascometroSkeleton />}
-				{result && (
-					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Sparkles className="h-5 w-5" />
-									Resultado para {result.summary.totalPeople} pessoas
-								</CardTitle>
-								<CardDescription>Lista de compras calculada com inteligência artificial</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{Object.entries(result.shoppingList).map(([category, items]) => (
-										<div key={category} className="space-y-3">
-											<h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-												{categoryIcons[category]}
-												{category}
-												<Badge variant="secondary">{items.length}</Badge>
-											</h3>
-											<div className="space-y-2">
-												{items.map((item, index) => (
-													<div
-														key={`${item.item}-${index}`}
-														className="flex items-center justify-between p-2 bg-muted/30 rounded-lg"
-													>
-														<span className="font-medium">{item.item}</span>
-														<Badge variant="outline" className="font-bold text-primary">
-															{item.quantity}
-														</Badge>
-													</div>
-												))}
-											</div>
-										</div>
-									))}
-								</div>
-
-								<Separator />
-
-								<div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-									<div className="flex items-start gap-3">
-										<Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-										<div>
-											<h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">Dica do Chef</h4>
-											<p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">{result.chefTip}</p>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex flex-col sm:flex-row gap-3">
-									<Button onClick={handleCreateList} disabled={creatingList} className="flex-1" size="lg">
-										<ShoppingCart className="mr-2 h-4 w-4" />
-										<span className="hidden sm:inline">
-											{creatingList ? "Criando lista..." : "Criar Lista de Compras"}
-										</span>
-										<span className="sm:hidden">{creatingList ? "Criando..." : "Criar Lista"}</span>
-									</Button>
-									<Button variant="outline" onClick={() => setResult(null)} size="lg">
-										Novo Cálculo
-									</Button>
-								</div>
-							</CardContent>
-						</Card>
-					</motion.div>
-				)}
-			</AnimatePresence>
 		</div>
 	)
 }
