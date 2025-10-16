@@ -2,7 +2,7 @@
 
 import { Wand2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 
 interface NutritionAiAnalysisProps {
 	productId: string
@@ -39,40 +39,18 @@ export function NutritionAiAnalysis({ productId, productName }: NutritionAiAnaly
 		fetchAnalysis()
 	}, [productId, productName])
 
-	if (loading) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Wand2 className="h-5 w-5 text-purple-500" />
-						Análise da IA
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="space-y-2 animate-pulse">
-						<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-						<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-					</div>
-				</CardContent>
-			</Card>
-		)
-	}
-
-	if (!analysis) {
+	if (!analysis && !loading) {
 		return null // Não renderiza nada se não houver análise
 	}
 
 	return (
-		<Card className="bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-400">
-					<Wand2 className="h-5 w-5" />
-					Opinião do Nutricionista Virtual
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="text-sm text-purple-800 dark:text-purple-300">{analysis}</p>
-			</CardContent>
-		</Card>
+		<AiAnalysisCard
+			title="Análise Nutricional do Zé"
+			description="Informações e recomendações nutricionais"
+			icon={Wand2}
+			loading={loading}
+		>
+			{analysis}
+		</AiAnalysisCard>
 	)
 }

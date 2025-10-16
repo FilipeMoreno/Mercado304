@@ -19,6 +19,7 @@ import {
 	Store,
 	ThermometerSnowflake,
 } from "lucide-react"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -130,22 +131,15 @@ export default function AnaliseNutricionalPage() {
 				</div>
 			</div>
 
-			{/* Resumo do Produto com IA Badge */}
-			<Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Sparkles className="h-5 w-5 text-blue-600" />
-						Resumo do Produto
-						<Badge variant="secondary" className="ml-auto">
-							<Sparkles className="h-3 w-3 mr-1" />
-							IA
-						</Badge>
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<p className="text-lg leading-relaxed">{aiAnalysis.summary}</p>
-				</CardContent>
-			</Card>
+			{/* Resumo do Produto com IA Badge - Padronizado */}
+			<AiAnalysisCard
+				title="Resumo do Produto"
+				description="Visão geral inteligente sobre o produto"
+				icon={Lightbulb}
+				loading={false}
+			>
+				{aiAnalysis.summary}
+			</AiAnalysisCard>
 
 			{/* Cards de Informações Nutricionais */}
 			{nutritionalInfo && (

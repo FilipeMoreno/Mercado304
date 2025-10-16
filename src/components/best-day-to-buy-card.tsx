@@ -1,6 +1,7 @@
 "use client"
 
 import { CalendarDays, Sparkles } from "lucide-react"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
@@ -136,30 +137,16 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 					</p>
 				</div>
 
-				{loadingAi && (
-					<Card className="mt-4 bg-blue-50 border-blue-200">
-						<CardContent className="p-4">
-							<div className="flex items-center gap-2 text-sm text-blue-700">
-								<Sparkles className="h-4 w-4 animate-pulse" />
-								<Skeleton className="h-4 w-48 bg-blue-100" />
-							</div>
-						</CardContent>
-					</Card>
-				)}
-
-				{aiAnalysis && !loadingAi && (
-					<Card className="mt-4 bg-blue-50 border-blue-200">
-						<CardHeader className="pb-2">
-							<CardTitle className="flex items-center gap-2 text-sm text-blue-800">
-								<Sparkles className="h-4 w-4" />
-								Análise do Zé
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-sm text-blue-700">{aiAnalysis}</p>
-						</CardContent>
-					</Card>
-				)}
+				{/* Card de Análise do Zé padronizado */}
+				<AiAnalysisCard
+					title="Análise do Zé"
+					description="Insights sobre o melhor dia para comprar"
+					icon={Sparkles}
+					loading={loadingAi}
+					className="mt-4"
+				>
+					{aiAnalysis}
+				</AiAnalysisCard>
 			</CardContent>
 		</Card>
 	)

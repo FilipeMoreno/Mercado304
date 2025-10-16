@@ -1,6 +1,7 @@
 "use client"
 
-import { Loader2, Sparkles } from "lucide-react"
+import { Sparkles } from "lucide-react"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 
 interface PriceAiInsightProps {
 	analysis: string | null
@@ -8,21 +9,17 @@ interface PriceAiInsightProps {
 }
 
 export function PriceAiInsight({ analysis, loading }: PriceAiInsightProps) {
-	if (loading) {
-		return (
-			<div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-				<Loader2 className="h-4 w-4 animate-spin" />
-				<span>Analisando preço...</span>
-			</div>
-		)
-	}
-
-	if (!analysis) return null
+	if (!analysis && !loading) return null
 
 	return (
-		<div className="mt-2 flex items-start gap-2 rounded-lg border border-purple-200 bg-purple-50 p-2 text-sm text-blue-800">
-			<Sparkles className="h-4 w-4 flex-shrink-0 mt-0.5" />
-			<p>{analysis}</p>
-		</div>
+		<AiAnalysisCard
+			title="Análise de Preço do Zé"
+			description="Insights inteligentes sobre o preço atual"
+			icon={Sparkles}
+			loading={loading}
+			className="mt-4"
+		>
+			{analysis}
+		</AiAnalysisCard>
 	)
 }
