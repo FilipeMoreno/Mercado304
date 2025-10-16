@@ -39,6 +39,8 @@ async function addItemToListForUser(listName: string, itemName: string) {
 		data: {
 			listId: shoppingList.id,
 			productId: product.id,
+			productName: product.name,
+			productUnit: product.unit,
 			quantity: 1, // Quantidade padrão, pode ser aprimorado depois
 		},
 	})

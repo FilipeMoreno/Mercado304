@@ -255,5 +255,3 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
   )
 }
 
-export default NfceItemReview
-

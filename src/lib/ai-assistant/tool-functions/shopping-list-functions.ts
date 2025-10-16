@@ -28,6 +28,8 @@ export const shoppingListFunctions = {
 					items: {
 						create: foundProducts.map((p) => ({
 							productId: p.id,
+							productName: p.name,
+							productUnit: p.unit,
 							quantity: 1,
 						})),
 					},
@@ -83,6 +85,8 @@ export const shoppingListFunctions = {
 				data: foundProducts.map((p) => ({
 					listId: list.id,
 					productId: p.id,
+					productName: p.name,
+					productUnit: p.unit,
 					quantity: 1,
 				})),
 				skipDuplicates: true,
@@ -134,6 +138,8 @@ export const shoppingListFunctions = {
 					items: {
 						create: lastPurchase.items.map((item) => ({
 							productId: item.productId,
+							productName: item.productName || "Produto sem nome",
+							productUnit: item.productUnit || "unidade",
 							quantity: item.quantity,
 						})),
 					},
@@ -198,6 +204,8 @@ export const shoppingListFunctions = {
 					itemsToAdd.push({
 						listId: targetList.id,
 						productId: sourceItem.productId,
+						productName: sourceItem.productName,
+						productUnit: sourceItem.productUnit,
 						quantity: sourceItem.quantity,
 					})
 				}
@@ -205,7 +213,7 @@ export const shoppingListFunctions = {
 
 			// Executa as operações
 			await Promise.all([
-				...itemsToUpdate.map(item => 
+				...itemsToUpdate.map(item =>
 					prisma.shoppingListItem.update({
 						where: { id: item.id },
 						data: { quantity: item.quantity },
@@ -258,7 +266,7 @@ export const shoppingListFunctions = {
 						items: { some: priceQuery },
 					},
 					include: {
-						items: { 
+						items: {
 							where: { productId: item.productId },
 							include: { product: true }
 						},
