@@ -169,65 +169,83 @@ export async function GET() {
 
 			// Estatísticas de descontos
 			(async () => {
+				// Calcular descontos totais incluindo descontos de compra E descontos de itens
 				const [
-					totalDiscounts,
-					purchasesWithDiscounts,
-					averageDiscount,
+					purchaseDiscounts,
+					itemDiscounts,
+					totalPurchasesCount,
 					monthlyDiscounts,
 					topDiscountMarkets,
 				] = await Promise.all([
+					// Descontos ao nível da compra
 					prisma.purchase.aggregate({
 						_sum: { totalDiscount: true },
-						_count: { id: true },
 					}),
-					prisma.purchase.count({
-						where: {
-							totalDiscount: { gt: 0 },
-						},
+					// Descontos ao nível dos itens
+					prisma.purchaseItem.aggregate({
+						_sum: { totalDiscount: true },
 					}),
-					prisma.purchase.aggregate({
-						where: {
-							totalDiscount: { gt: 0 },
-						},
-						_avg: { totalDiscount: true },
-					}),
+					// Total de compras
+					prisma.purchase.count(),
+					// Descontos mensais (compra + itens)
 					prisma.$queryRaw`
 						SELECT 
-							TO_CHAR(date_trunc('month', "purchaseDate"), 'YYYY-MM') as month,
-							SUM("totalDiscount") as "totalDiscounts"
-						FROM "purchases"
-						WHERE "totalDiscount" > 0 AND "purchaseDate" >= ${twelveMonthsAgo}
+							TO_CHAR(date_trunc('month', p."purchaseDate"), 'YYYY-MM') as month,
+							COALESCE(SUM(p."totalDiscount"), 0) + COALESCE(SUM(pi."totalDiscount"), 0) as "totalDiscounts"
+						FROM "purchases" p
+						LEFT JOIN "purchase_items" pi ON p.id = pi."purchaseId"
+						WHERE p."purchaseDate" >= ${twelveMonthsAgo}
 						GROUP BY month
+						HAVING COALESCE(SUM(p."totalDiscount"), 0) + COALESCE(SUM(pi."totalDiscount"), 0) > 0
 						ORDER BY month ASC
 					`,
-					prisma.purchase.groupBy({
-						by: ["marketId"],
-						where: {
-							totalDiscount: { gt: 0 },
-						},
-						_sum: { totalDiscount: true },
-						_count: { id: true },
-						orderBy: {
-							_sum: { totalDiscount: "desc" },
-						},
-						take: 5,
-					}),
+					// Top mercados com descontos
+					prisma.$queryRaw`
+						SELECT 
+							p."marketId" as "marketId",
+							COALESCE(SUM(p."totalDiscount"), 0) + COALESCE(SUM(pi."totalDiscount"), 0) as "totalDiscounts",
+							COUNT(DISTINCT p.id) as "purchasesWithDiscounts"
+						FROM "purchases" p
+						LEFT JOIN "purchase_items" pi ON p.id = pi."purchaseId"
+						GROUP BY p."marketId"
+						HAVING COALESCE(SUM(p."totalDiscount"), 0) + COALESCE(SUM(pi."totalDiscount"), 0) > 0
+						ORDER BY "totalDiscounts" DESC
+						LIMIT 5
+					`,
 				])
 
+				// Calcular total de descontos (compra + itens)
+				const totalDiscountsValue = (purchaseDiscounts._sum.totalDiscount || 0) + (itemDiscounts._sum.totalDiscount || 0)
+
+				// Contar compras com desconto (qualquer tipo)
+				const purchasesWithDiscountsCount = await prisma.purchase.count({
+					where: {
+						OR: [
+							{ totalDiscount: { gt: 0 } },
+							{ items: { some: { totalDiscount: { gt: 0 } } } }
+						]
+					}
+				})
+
+				// Calcular média de desconto por compra com desconto
+				const averageDiscountValue = purchasesWithDiscountsCount > 0
+					? totalDiscountsValue / purchasesWithDiscountsCount
+					: 0
+
 				return {
-					totalDiscounts: totalDiscounts._sum.totalDiscount || 0,
-					totalPurchases: totalDiscounts._count.id || 0,
-					purchasesWithDiscounts,
-					averageDiscount: averageDiscount._avg.totalDiscount || 0,
-					discountPercentage: totalDiscounts._count.id > 0 ? (purchasesWithDiscounts / totalDiscounts._count.id) * 100 : 0,
+					totalDiscounts: totalDiscountsValue,
+					totalPurchases: totalPurchasesCount,
+					purchasesWithDiscounts: purchasesWithDiscountsCount,
+					averageDiscount: averageDiscountValue,
+					discountPercentage: totalPurchasesCount > 0 ? (purchasesWithDiscountsCount / totalPurchasesCount) * 100 : 0,
 					monthlyDiscounts: (monthlyDiscounts as any[]).map((data) => ({
-						...data,
-						totalDiscounts: parseFloat(data.totalDiscounts),
+						month: data.month,
+						totalDiscounts: parseFloat(data.totalDiscounts || '0'),
 					})),
-					topDiscountMarkets: topDiscountMarkets.map((market) => ({
+					topDiscountMarkets: (topDiscountMarkets as any[]).map((market) => ({
 						marketId: market.marketId,
-						totalDiscounts: market._sum.totalDiscount || 0,
-						purchasesWithDiscounts: market._count.id,
+						totalDiscounts: parseFloat(market.totalDiscounts || '0'),
+						purchasesWithDiscounts: parseInt(market.purchasesWithDiscounts || '0'),
 					})),
 				}
 			})(),
