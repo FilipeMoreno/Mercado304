@@ -16,28 +16,29 @@ export function isBarcode(input: string): boolean {
 }
 
 /**
- * Normaliza códigos de barras removendo zeros à esquerda desnecessários
- * Cupons fiscais podem ter zeros extras que impedem a correspondência com produtos
+ * Normaliza códigos de barras removendo UM zero inicial se presente
+ * Cupons fiscais podem ter um zero extra no início que impede a correspondência com produtos
  * Ex: "08423243009753" -> "8423243009753"
+ * Ex: "7891234567890" -> "7891234567890" (não remove se não começar com 0)
  */
 export function normalizeBarcode(barcode: string): string {
 	if (!barcode) return barcode
-	
+
 	// Remove espaços e caracteres não numéricos
 	const cleaned = barcode.trim().replace(/\D/g, '')
-	
+
 	// Se não for um código de barras válido, retorna como está
 	if (!isBarcode(cleaned)) return barcode
-	
-	// Remove zeros à esquerda, mas mantém pelo menos 8 dígitos (tamanho mínimo de código de barras)
-	const normalized = cleaned.replace(/^0+/, '') || '0'
-	
-	// Se ficou muito curto após remover zeros, pode não ser um código válido
-	// Neste caso, retorna o original
+
+	// Remove APENAS UM zero do início, se começar com 0
+	const normalized = cleaned.startsWith('0') ? cleaned.substring(1) : cleaned
+
+	// Se ficou muito curto após remover o zero, retorna o original
+	// (pode ser um código que realmente precisa começar com 0)
 	if (normalized.length < 8) {
 		return cleaned
 	}
-	
+
 	return normalized
 }
 

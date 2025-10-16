@@ -72,7 +72,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
     try {
       // Primeiro tenta com o código original
       let response = await fetch(`/api/products/barcode/${barcode}`)
-      
+
       if (!response.ok && response.status === 404) {
         // Se não encontrou, tenta com o código normalizado
         const normalizedCode = normalizeBarcode(barcode)
@@ -147,7 +147,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
     setMappedItems(newItems)
   }
 
-  const handleFieldChange = (index: number, field: "quantity" | "price", value: string) => {
+  const handleFieldChange = (index: number, field: "quantity" | "price" | "unitDiscount", value: string) => {
     const newItems = [...mappedItems]
     const numericValue = parseFloat(value) || 0
     newItems[index][field] = numericValue
@@ -158,7 +158,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
     setCurrentItemIndexForCreation(index)
     setIsCreateProductDialogOpen(true)
   }
-  
+
   const openCreateBrandDialog = () => {
     setIsCreateBrandDialogOpen(true)
   }
@@ -185,8 +185,15 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
       return
     }
 
-    onConfirm(confirmedItems)
+    onConfirm(confirmedItems, totalDiscount)
   }
+
+  // Calcular totais
+  const subtotal = mappedItems.reduce((acc, item) => {
+    return acc + ((item.price - (item.unitDiscount || 0)) * item.quantity)
+  }, 0)
+
+  const total = subtotal - totalDiscount
 
   const associatedItemsCount = mappedItems.filter((item) => item.isAssociated).length
   const currentItemToCreate =
@@ -218,7 +225,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
           />
         )}
       </Dialog>
-      
+
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Revise e Associe os Itens</CardTitle>
@@ -283,7 +290,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                     </Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor={`quantity-${index}`}>Quantidade</Label>
                     <Input
@@ -304,17 +311,63 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                       onChange={(e) => handleFieldChange(index, "price", e.target.value)}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor={`discount-${index}`}>Desconto Unit. (R$)</Label>
+                    <Input
+                      id={`discount-${index}`}
+                      type="number"
+                      step="0.01"
+                      value={item.unitDiscount || 0}
+                      onChange={(e) => handleFieldChange(index, "unitDiscount", e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="text-right text-sm">
+                  <span className="text-muted-foreground">Subtotal: </span>
+                  <span className="font-semibold">
+                    R$ {((item.price - (item.unitDiscount || 0)) * item.quantity).toFixed(2)}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
 
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">
-            {associatedItemsCount} de {mappedItems.length} itens associados.
-          </span>
-          <div className="flex gap-2">
+        <CardFooter className="flex flex-col gap-4">
+          {/* Resumo de totais */}
+          <div className="w-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Subtotal dos itens:</span>
+              <span className="font-semibold">R$ {subtotal.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between items-center gap-4">
+              <Label htmlFor="total-discount" className="text-sm text-muted-foreground">
+                Desconto total da compra:
+              </Label>
+              <Input
+                id="total-discount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={totalDiscount}
+                onChange={(e) => setTotalDiscount(parseFloat(e.target.value) || 0)}
+                className="w-32 text-right"
+              />
+            </div>
+
+            <div className="border-t pt-3 flex justify-between items-center">
+              <span className="font-semibold text-lg">Valor Total:</span>
+              <span className="font-bold text-2xl text-green-600">R$ {total.toFixed(2)}</span>
+            </div>
+
+            <div className="text-xs text-muted-foreground text-center">
+              {associatedItemsCount} de {mappedItems.length} itens associados
+            </div>
+          </div>
+
+          {/* Botões de ação */}
+          <div className="flex justify-end gap-2 w-full">
             <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancelar
             </Button>

@@ -1,6 +1,32 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Função para normalizar o método de pagamento
+function normalizePaymentMethod(method: string): any {
+	const normalizedMethod = method?.toUpperCase().replace(/[-_]/g, "")
+	
+	// Mapeamento de valores comuns para os valores do enum
+	const mapping: Record<string, string> = {
+		CREDITCARD: "CREDIT",
+		CREDIT: "CREDIT",
+		DEBITCARD: "DEBIT",
+		DEBIT: "DEBIT",
+		MONEY: "MONEY",
+		CASH: "MONEY",
+		DINHEIRO: "MONEY",
+		PIX: "PIX",
+		VOUCHER: "VOUCHER",
+		VALE: "VOUCHER",
+		CHECK: "CHECK",
+		CHEQUE: "CHECK",
+		OTHER: "OTHER",
+		OUTRO: "OTHER",
+		OUTROS: "OTHER",
+	}
+	
+	return mapping[normalizedMethod] || "MONEY"
+}
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const purchase = await prisma.purchase.findUnique({
@@ -62,7 +88,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				marketId,
 				totalAmount,
 				purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-				paymentMethod: paymentMethod || undefined,
+				paymentMethod: paymentMethod ? normalizePaymentMethod(paymentMethod) : undefined,
 				items: {
 					create: items.map((item: any) => {
 						const product = products.find((p) => p.id === item.productId)

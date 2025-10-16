@@ -195,12 +195,12 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 								<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
 								<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
 								<div className="mt-2 text-white/80 text-sm">
-									{currentStep === 'reading_image' && "🔍 Processando imagem..."}
-									{currentStep === 'extracting_text' && "📄 Extraindo texto do cupom..."}
-									{currentStep === 'identifying_products' && "🛒 Identificando produtos..."}
-									{currentStep === 'analyzing_prices' && "💰 Analisando preços..."}
-									{currentStep === 'organizing_data' && "📊 Organizando informações..."}
-									{currentStep === 'finalizing' && "✅ Quase pronto..."}
+									{currentStep === 'reading_image' && "Processando imagem..."}
+									{currentStep === 'extracting_text' && "Extraindo texto do cupom..."}
+									{currentStep === 'identifying_products' && "Identificando produtos..."}
+									{currentStep === 'analyzing_prices' && "Analisando preços..."}
+									{currentStep === 'organizing_data' && "Organizando informações..."}
+									{currentStep === 'finalizing' && "Quase pronto..."}
 								</div>
 							</div>
 						</div>

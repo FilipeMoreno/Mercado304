@@ -2,6 +2,32 @@ import { addDays } from "date-fns"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Função para normalizar o método de pagamento
+function normalizePaymentMethod(method: string): any {
+	const normalizedMethod = method?.toUpperCase().replace(/[-_]/g, "")
+
+	// Mapeamento de valores comuns para os valores do enum
+	const mapping: Record<string, string> = {
+		CREDITCARD: "CREDIT",
+		CREDIT: "CREDIT",
+		DEBITCARD: "DEBIT",
+		DEBIT: "DEBIT",
+		MONEY: "MONEY",
+		CASH: "MONEY",
+		DINHEIRO: "MONEY",
+		PIX: "PIX",
+		VOUCHER: "VOUCHER",
+		VALE: "VOUCHER",
+		CHECK: "CHECK",
+		CHEQUE: "CHECK",
+		OTHER: "OTHER",
+		OUTRO: "OTHER",
+		OUTROS: "OTHER",
+	}
+
+	return mapping[normalizedMethod] || "MONEY"
+}
+
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url)
@@ -121,50 +147,57 @@ export async function POST(request: Request) {
 			const allItemsData = [...items]
 
 			if (convertTemporaryItems && temporaryItems.length > 0) {
-				for (const tempItem of temporaryItems) {
-					if (tempItem.shouldConvert) {
-						// Verificar se a categoria existe ou criar uma nova
-						let categoryId = tempItem.categoryId
-						if (!categoryId && tempItem.tempCategory) {
-							const category = await tx.category.findFirst({
-								where: { name: { equals: tempItem.tempCategory, mode: "insensitive" } },
+				// Coletar todas as categorias e marcas únicas primeiro
+				const uniqueCategories = Array.from(new Set(temporaryItems.filter((i: any) => i.shouldConvert && i.tempCategory).map((i: any) => i.tempCategory as string))) as string[]
+				const uniqueBrands = Array.from(new Set(temporaryItems.filter((i: any) => i.shouldConvert && i.tempBrand).map((i: any) => i.tempBrand as string))) as string[]
+
+				// Buscar categorias e marcas existentes em paralelo
+				const [existingCategories, existingBrands] = await Promise.all([
+					uniqueCategories.length > 0
+						? tx.category.findMany({ where: { name: { in: uniqueCategories, mode: "insensitive" } } })
+						: Promise.resolve([]),
+					uniqueBrands.length > 0
+						? tx.brand.findMany({ where: { name: { in: uniqueBrands, mode: "insensitive" } } })
+						: Promise.resolve([])
+				])
+
+				// Criar categorias e marcas faltantes em paralelo
+				const categoriesToCreate = uniqueCategories.filter(
+					(cat: string) => !existingCategories.find(ec => ec.name.toLowerCase() === cat.toLowerCase())
+				)
+				const brandsToCreate = uniqueBrands.filter(
+					(brand: string) => !existingBrands.find(eb => eb.name.toLowerCase() === brand.toLowerCase())
+				)
+
+				const [newCategories, newBrands] = await Promise.all([
+					categoriesToCreate.length > 0
+						? Promise.all(categoriesToCreate.map((name: string) =>
+							tx.category.create({
+								data: { name, icon: "📦", color: "#64748b", isFood: true }
 							})
+						))
+						: Promise.resolve([]),
+					brandsToCreate.length > 0
+						? Promise.all(brandsToCreate.map((name: string) =>
+							tx.brand.create({ data: { name } })
+						))
+						: Promise.resolve([])
+				])
 
-							if (category) {
-								categoryId = category.id
-							} else {
-								const newCategory = await tx.category.create({
-									data: {
-										name: tempItem.tempCategory,
-										icon: "📦",
-										color: "#64748b",
-										isFood: true,
-									},
-								})
-								categoryId = newCategory.id
-							}
-						}
+				const allCategories = [...existingCategories, ...newCategories]
+				const allBrands = [...existingBrands, ...newBrands]
 
-						// Verificar se a marca existe ou criar uma nova
-						let brandId = tempItem.brandId
-						if (!brandId && tempItem.tempBrand) {
-							const brand = await tx.brand.findFirst({
-								where: { name: { equals: tempItem.tempBrand, mode: "insensitive" } },
-							})
+				// Criar todos os produtos em paralelo
+				const productCreationPromises = temporaryItems
+					.filter((tempItem: any) => tempItem.shouldConvert)
+					.map(async (tempItem: any) => {
+						const categoryId = tempItem.categoryId || allCategories.find(
+							c => c.name.toLowerCase() === tempItem.tempCategory?.toLowerCase()
+						)?.id
+						const brandId = tempItem.brandId || allBrands.find(
+							b => b.name.toLowerCase() === tempItem.tempBrand?.toLowerCase()
+						)?.id
 
-							if (brand) {
-								brandId = brand.id
-							} else {
-								const newBrand = await tx.brand.create({
-									data: {
-										name: tempItem.tempBrand,
-									},
-								})
-								brandId = newBrand.id
-							}
-						}
-
-						// Criar o produto permanente
 						const newProduct = await tx.product.create({
 							data: {
 								name: tempItem.productName,
@@ -180,8 +213,6 @@ export async function POST(request: Request) {
 							},
 						})
 
-						convertedProducts.push(newProduct)
-
 						// Atualizar o item para referenciar o produto criado
 						const updatedItemIndex = allItemsData.findIndex((item) => item.tempId === tempItem.tempId)
 						if (updatedItemIndex !== -1) {
@@ -191,8 +222,11 @@ export async function POST(request: Request) {
 								isTemporary: false,
 							}
 						}
-					}
-				}
+
+						return newProduct
+					})
+
+				convertedProducts.push(...await Promise.all(productCreationPromises))
 			}
 
 			const newPurchase = await tx.purchase.create({
@@ -202,7 +236,7 @@ export async function POST(request: Request) {
 					totalDiscount,
 					finalAmount,
 					purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-					paymentMethod: paymentMethod || "MONEY",
+					paymentMethod: normalizePaymentMethod(paymentMethod || "MONEY"),
 					items: {
 						create: allItemsData.map((item: any) => {
 							const product =
@@ -228,25 +262,30 @@ export async function POST(request: Request) {
 				include: { items: true },
 			})
 
-			for (const item of items) {
-				const product = products.find((p) => p.id === item.productId)
-				if (item.addToStock && product && product.hasStock) {
+			// Criar entradas de estoque em paralelo
+			const stockCreationPromises = items
+				.filter((item: any) => {
+					const product = products.find((p) => p.id === item.productId)
+					return item.addToStock && product && product.hasStock
+				})
+				.flatMap((item: any) => {
+					const product = products.find((p) => p.id === item.productId)!
 					const entriesToCreate =
 						item.stockEntries && item.stockEntries.length > 0
 							? item.stockEntries
 							: [
-									{
-										quantity: item.quantity,
-										location: "Despensa",
-										expirationDate: item.expirationDate,
-									},
-								]
+								{
+									quantity: item.quantity,
+									location: "Despensa",
+									expirationDate: item.expirationDate,
+								},
+							]
 
-					for (const entry of entriesToCreate) {
+					return entriesToCreate.map(async (entry: any) => {
 						const stockItem = await tx.stockItem.create({
 							data: {
 								productId: item.productId,
-								quantity: entry.quantity || 1, // Cada entrada é uma unidade
+								quantity: entry.quantity || 1,
 								unitCost: item.unitPrice,
 								location: entry.location || "Despensa",
 								expirationDate: entry.expirationDate ? new Date(entry.expirationDate) : null,
@@ -255,7 +294,7 @@ export async function POST(request: Request) {
 							},
 						})
 
-						await tx.stockMovement.create({
+						return tx.stockMovement.create({
 							data: {
 								stockItemId: stockItem.id,
 								purchaseItemId: newPurchase.items.find((pi) => pi.productId === item.productId)?.id,
@@ -264,14 +303,18 @@ export async function POST(request: Request) {
 								reason: "Registro de compra",
 							},
 						})
-					}
-				}
-			}
+					})
+				})
+
+			await Promise.all(stockCreationPromises)
 
 			return tx.purchase.findUnique({
 				where: { id: newPurchase.id },
 				include: { market: true, items: { include: { product: true } } },
 			})
+		}, {
+			maxWait: 10000, // 10 segundos de espera máxima
+			timeout: 15000, // 15 segundos de timeout
 		})
 
 		return NextResponse.json(purchase, { status: 201 })

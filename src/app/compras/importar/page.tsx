@@ -199,18 +199,28 @@ export default function ImportarCompraPage() {
     }
   };
 
-  const handleReviewConfirm = (mappedItems: MappedPurchaseItem[]) => {
+  const handleReviewConfirm = (mappedItems: MappedPurchaseItem[], reviewTotalDiscount?: number) => {
     if (!marketId) {
       toast.error('Selecione um mercado antes de salvar.');
       return;
     }
-    const total = mappedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    // Calcular o total considerando os descontos unitários
+    const totalAmount = mappedItems.reduce((acc, item) => {
+      const itemTotal = item.quantity * item.price
+      const itemDiscount = item.quantity * (item.unitDiscount || 0)
+      return acc + itemTotal - itemDiscount
+    }, 0);
+
+    const finalTotalDiscount = reviewTotalDiscount || totalDiscount || 0
+    const finalAmount = totalAmount - finalTotalDiscount
 
     // Preparar os itens para a API
     const purchaseItems = mappedItems.map(item => ({
       productId: item.productId,
       quantity: item.quantity,
       unitPrice: item.price,
+      unitDiscount: item.unitDiscount || 0,
       productName: item.productName,
       addToStock: true, // Adicionar ao estoque por padrão
       stockEntries: [{
@@ -223,8 +233,9 @@ export default function ImportarCompraPage() {
       marketId,
       paymentMethod,
       purchaseDate: new Date(purchaseDate),
-      totalAmount: total,
-      totalDiscount,
+      totalAmount: totalAmount + finalTotalDiscount, // Total antes do desconto
+      totalDiscount: finalTotalDiscount,
+      finalAmount: finalAmount,
       items: purchaseItems
     });
   };
