@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
@@ -89,14 +89,7 @@ export default function ProdutoDetalhesPage() {
 		}
 	}
 
-	useEffect(() => {
-		if (productId) {
-			fetchProductDetails()
-			fetchNutritionalInfo()
-		}
-	}, [productId])
-
-	const fetchProductDetails = async () => {
+	const fetchProductDetails = useCallback(async () => {
 		try {
 			const response = await fetch(`/api/products/${productId}?includeStats=true`)
 
@@ -120,9 +113,9 @@ export default function ProdutoDetalhesPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [productId, router])
 
-	const fetchNutritionalInfo = async () => {
+	const fetchNutritionalInfo = useCallback(async () => {
 		try {
 			const response = await fetch(`/api/products/${productId}/scan-nutrition`)
 
@@ -137,7 +130,14 @@ export default function ProdutoDetalhesPage() {
 			console.error("Erro ao buscar informações nutricionais:", error)
 			setNutritionalInfo(null)
 		}
-	}
+	}, [productId])
+
+	useEffect(() => {
+		if (productId) {
+			fetchProductDetails()
+			fetchNutritionalInfo()
+		}
+	}, [productId, fetchProductDetails, fetchNutritionalInfo])
 
 	const handleDeleteProduct = async () => {
 		if (!confirm(`Tem certeza que deseja excluir o produto "${product?.name}"? Esta ação não pode ser desfeita.`)) {
@@ -1212,39 +1212,20 @@ export default function ProdutoDetalhesPage() {
 			{/* Informações sobre Alérgenos */}
 			{nutritionalInfo &&
 				(nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<AlertTriangle className="h-5 w-5 text-orange-500" />
-								Informações sobre Alérgenos
+					<Card className="border-2 overflow-hidden">
+						<CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-b">
+							<CardTitle className="flex items-center gap-2.5">
+								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
+									<AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+								</div>
+								<span className="text-lg">Informações sobre Alérgenos</span>
 							</CardTitle>
+							<CardDescription className="mt-2">
+								Informações importantes para pessoas com alergias alimentares
+							</CardDescription>
 						</CardHeader>
-						<CardContent className="space-y-4">
-							{nutritionalInfo.allergensContains?.length > 0 && (
-								<div>
-									<h4 className="font-semibold text-red-600 mb-2">CONTÉM:</h4>
-									<div className="flex flex-wrap gap-2">
-										{nutritionalInfo.allergensContains.map((allergen, index) => (
-											<Badge key={index} variant="destructive">
-												{allergen}
-											</Badge>
-										))}
-									</div>
-								</div>
-							)}
-
-							{nutritionalInfo.allergensMayContain?.length > 0 && (
-								<div>
-									<h4 className="font-semibold text-yellow-600 mb-2">PODE CONTER:</h4>
-									<div className="flex flex-wrap gap-2">
-										{nutritionalInfo.allergensMayContain.map((allergen, index) => (
-											<Badge key={index} variant="secondary" className="bg-yellow-100 text-yellow-800">
-												{allergen}
-											</Badge>
-										))}
-									</div>
-								</div>
-							)}
+						<CardContent className="pt-6">
+							<AllergenIcons nutritionalInfo={nutritionalInfo} />
 						</CardContent>
 					</Card>
 				)}
