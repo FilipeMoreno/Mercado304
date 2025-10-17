@@ -84,7 +84,8 @@ export default function ChurrascoDetailsPage() {
       .flat()
       .map((item) => ({
         productName: item.item,
-        quantity: 1,
+        productUnit: "kg", // Padrão para churrasco (carnes geralmente em kg)
+        quantity: parseFloat(item.quantity.replace(/[^\d.,]/g, '').replace(',', '.')) || 1,
         isChecked: false,
       }))
 

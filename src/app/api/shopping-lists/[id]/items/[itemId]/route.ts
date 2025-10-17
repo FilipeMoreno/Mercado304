@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 export async function PUT(request: Request, { params }: { params: { id: string; itemId: string } }) {
 	try {
 		const { id: listId, itemId } = params
-		const { isChecked, quantity, estimatedPrice } = await request.json()
+		const { isChecked, quantity, estimatedPrice, productId, productName, productUnit } = await request.json()
 
 		// Validar os dados recebidos
 		const updateData: any = {}
@@ -29,6 +29,21 @@ export async function PUT(request: Request, { params }: { params: { id: string; 
 			} else if (estimatedPrice === null || estimatedPrice === 0) {
 				updateData.estimatedPrice = null
 			}
+		}
+
+		if (productId !== undefined) {
+			updateData.productId = productId || null
+		}
+
+		if (productName !== undefined) {
+			if (typeof productName !== "string" || !productName.trim()) {
+				return NextResponse.json({ error: "Nome do produto é obrigatório" }, { status: 400 })
+			}
+			updateData.productName = productName.trim()
+		}
+
+		if (productUnit !== undefined) {
+			updateData.productUnit = productUnit || "unidade"
 		}
 
 		const updatedItem = await prisma.shoppingListItem.update({

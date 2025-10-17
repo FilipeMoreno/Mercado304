@@ -1,11 +1,16 @@
 "use client"
 
-import { Edit, Save } from "lucide-react"
+import { Check, Edit, LinkIcon, Save, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import { cn } from "@/lib/utils"
 
 interface ShoppingListItem {
 	id: string
@@ -31,6 +36,9 @@ interface ShoppingListItem {
 }
 
 interface EditItemData {
+	productId?: string
+	productName: string
+	productUnit: string
 	quantity: number
 	estimatedPrice: number
 }
@@ -58,6 +66,53 @@ export function EditItemDialog({
 	onCloseBestPriceAlert,
 	onCheckBestPrice,
 }: EditItemDialogProps) {
+	const [products, setProducts] = useState<any[]>([])
+	const [openProductPopover, setOpenProductPopover] = useState(false)
+
+	// Buscar TODOS os produtos
+	useEffect(() => {
+		const fetchProducts = async () => {
+			try {
+				const response = await fetch('/api/products?limit=10000')
+				if (response.ok) {
+					const data = await response.json()
+					setProducts(data.products || [])
+				}
+			} catch (error) {
+				console.error('Erro ao buscar produtos:', error)
+			}
+		}
+		fetchProducts()
+	}, [])
+
+	const handleProductNameChange = (name: string) => {
+		onEditItemDataChange({
+			...editItemData,
+			productName: name,
+			// Remove vínculo se editar manualmente
+			productId: undefined,
+		})
+	}
+
+	const handleProductSelected = (product: any) => {
+		onEditItemDataChange({
+			...editItemData,
+			productId: product.id,
+			productName: product.name,
+			productUnit: product.unit || 'unidade',
+		})
+		setOpenProductPopover(false)
+		toast.success(`Produto vinculado: "${product.name}"`)
+	}
+
+	const handleUnlinkProduct = () => {
+		onEditItemDataChange({
+			...editItemData,
+			productId: undefined,
+		})
+		toast.info('Produto desvinculado, permanecerá como texto livre')
+	}
+
 	return (
 		<ResponsiveDialog
 			open={isOpen}
@@ -67,9 +122,76 @@ export function EditItemDialog({
 		>
 			{editingItem && (
 				<div className="space-y-4">
-					<div className="p-3 bg-gray-50 rounded">
-						<p className="font-medium">{editingItem.product?.name || editingItem.productName}</p>
-						{editingItem.product?.brand && <p className="text-sm text-gray-600">{editingItem.product.brand.name}</p>}
+					{/* Nome do produto editável */}
+					<div className="space-y-2">
+						<Label>Nome do Produto *</Label>
+						<div className="flex gap-2">
+							<div className="flex-1 relative">
+								<Input
+									value={editItemData.productName}
+									onChange={(e) => handleProductNameChange(e.target.value)}
+									placeholder="Digite o nome do produto..."
+									className="pr-10"
+								/>
+								<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
+									<PopoverTrigger asChild>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+											title="Buscar produto cadastrado"
+										>
+											<LinkIcon className="h-4 w-4" />
+										</Button>
+									</PopoverTrigger>
+									<PopoverContent className="w-[400px] p-0" align="start">
+										<Command>
+											<CommandInput placeholder="Buscar produto..." />
+											<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+											<CommandGroup className="max-h-[300px] overflow-auto">
+												{products.map((product) => (
+													<CommandItem
+														key={product.id}
+														value={product.name}
+														onSelect={() => handleProductSelected(product)}
+													>
+														<Check
+															className={cn(
+																"mr-2 h-4 w-4",
+																editItemData.productId === product.id ? "opacity-100" : "opacity-0"
+															)}
+														/>
+														<div className="flex-1">
+															<div className="font-medium">{product.name}</div>
+															{product.brand && (
+																<div className="text-xs text-muted-foreground">{product.brand.name}</div>
+															)}
+														</div>
+													</CommandItem>
+												))}
+											</CommandGroup>
+										</Command>
+									</PopoverContent>
+								</Popover>
+							</div>
+							{editItemData.productId && (
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									onClick={handleUnlinkProduct}
+									title="Desvincular produto"
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							)}
+						</div>
+						{editItemData.productId && (
+							<p className="text-xs text-green-600">
+								✓ Vinculado a produto cadastrado
+							</p>
+						)}
 					</div>
 
 					<div className="space-y-2">

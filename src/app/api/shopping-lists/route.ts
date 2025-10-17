@@ -76,10 +76,16 @@ export async function POST(request: Request) {
 		// Processa os itens da lista
 		const processedItems = await Promise.all(
 			items.map(async (item: any) => {
-				// Se tem productId, usa produto existente
+				// Se tem productId, busca dados do produto
 				if (item.productId) {
+					const product = await prisma.product.findUnique({
+						where: { id: item.productId },
+					})
+
 					return {
 						productId: item.productId,
+						productName: product?.name || item.productName || "Produto",
+						productUnit: product?.unit || item.productUnit || "unidade",
 						quantity: item.quantity || 1,
 						estimatedPrice: item.estimatedPrice || null,
 					}
@@ -96,16 +102,18 @@ export async function POST(request: Request) {
 						},
 					})
 
-					// Se encontrou produto existente, usa ele
+					// Se encontrou produto existente, vincula
 					if (existingProduct) {
 						return {
 							productId: existingProduct.id,
+							productName: existingProduct.name,
+							productUnit: existingProduct.unit,
 							quantity: item.quantity || 1,
 							estimatedPrice: item.estimatedPrice || null,
 						}
 					}
 
-					// Se não encontrou, cria item temporário (sem produto)
+					// Se não encontrou, cria item com texto livre
 					return {
 						productId: null,
 						productName: item.productName,

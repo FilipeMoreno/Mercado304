@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Minus, Plus, Trash2 } from "lucide-react"
+import { Check, LinkIcon, Minus, Plus, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
+import { cn } from "@/lib/utils"
 
 interface ShoppingListItem {
 	id: string
@@ -34,17 +37,39 @@ interface QuickEditDialogProps {
 	item: ShoppingListItem | null
 	isOpen: boolean
 	onClose: () => void
-	onUpdate: (itemId: string, updates: { quantity: number; estimatedPrice?: number }) => void
+	onUpdate: (itemId: string, updates: { productId?: string; productName?: string; productUnit?: string; quantity: number; estimatedPrice?: number }) => void
 	onDelete: (item: ShoppingListItem) => void
 }
 
 export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: QuickEditDialogProps) {
+	const [productName, setProductName] = useState("")
+	const [productId, setProductId] = useState<string | undefined>(undefined)
 	const [quantity, setQuantity] = useState("")
 	const [estimatedPrice, setEstimatedPrice] = useState("")
+	const [products, setProducts] = useState<any[]>([])
+	const [openProductPopover, setOpenProductPopover] = useState(false)
+
+	// Buscar TODOS os produtos
+	useEffect(() => {
+		const fetchProducts = async () => {
+			try {
+				const response = await fetch('/api/products?limit=10000')
+				if (response.ok) {
+					const data = await response.json()
+					setProducts(data.products || [])
+				}
+			} catch (error) {
+				console.error('Erro ao buscar produtos:', error)
+			}
+		}
+		fetchProducts()
+	}, [])
 
 	// Atualizar valores quando o item mudar
 	useEffect(() => {
 		if (item) {
+			setProductName(item.product?.name || item.productName || "")
+			setProductId(item.product?.id)
 			setQuantity(item.quantity.toString())
 			setEstimatedPrice(item.estimatedPrice?.toString() || "")
 		}
@@ -59,8 +84,36 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			toast.error("Quantidade deve ser maior que zero")
 			return
 		}
-		onUpdate(item.id, { quantity: qty, estimatedPrice: price })
+		if (!productName.trim()) {
+			toast.error("Nome do produto é obrigatório")
+			return
+		}
+		onUpdate(item.id, {
+			productId,
+			productName: productName.trim(),
+			productUnit: item.productUnit,
+			quantity: qty,
+			estimatedPrice: price
+		})
 		onClose()
+	}
+
+	const handleProductNameChange = (name: string) => {
+		setProductName(name)
+		// Remove vínculo se editar manualmente
+		setProductId(undefined)
+	}
+
+	const handleProductSelected = (product: any) => {
+		setProductId(product.id)
+		setProductName(product.name)
+		setOpenProductPopover(false)
+		toast.success(`Produto vinculado: "${product.name}"`)
+	}
+
+	const handleUnlinkProduct = () => {
+		setProductId(undefined)
+		toast.info('Produto desvinculado, permanecerá como texto livre')
 	}
 
 	const handleQuantityChange = (newQuantity: string) => {
@@ -69,10 +122,10 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			setQuantity("")
 			return
 		}
-		
+
 		// Normalizar vírgula para ponto
 		const normalized = newQuantity.replace(',', '.')
-		
+
 		// Validar se é um número válido (incluindo decimais)
 		const numberRegex = /^\d*\.?\d*$/
 		if (numberRegex.test(normalized)) {
@@ -96,22 +149,85 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 	}
 
 	const totalPrice = (parseFloat(quantity) || 0) * (parseFloat(estimatedPrice) || 0)
-	const productName = item.product?.name || item.productName || "Item"
 	const productUnit = item.product?.unit || item.productUnit || "unidade"
 
 	return (
 		<ResponsiveFormDialog
 			open={isOpen}
 			onOpenChange={(open) => !open && onClose()}
-			title={productName}
-			description={`Editar quantidade e preço do item`}
+			title="Editar Item"
+			description={`Edite o produto, quantidade e preço`}
 		>
 			<div className="space-y-6">
-				{/* Informações do produto */}
-				<div className="text-center p-4 bg-gray-50 rounded-lg">
-					<h3 className="font-medium text-gray-900">{productName}</h3>
-					{item.product?.brand && (
-						<p className="text-sm text-gray-600">{item.product.brand.name}</p>
+				{/* Nome do produto editável */}
+				<div className="space-y-2">
+					<Label>Nome do Produto *</Label>
+					<div className="flex gap-2">
+						<div className="flex-1 relative">
+							<Input
+								value={productName}
+								onChange={(e) => handleProductNameChange(e.target.value)}
+								placeholder="Digite o nome do produto..."
+								className="pr-10"
+							/>
+							<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+										title="Buscar produto cadastrado"
+									>
+										<LinkIcon className="h-4 w-4" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="w-[400px] p-0" align="start">
+									<Command>
+										<CommandInput placeholder="Buscar produto..." />
+										<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+										<CommandGroup className="max-h-[300px] overflow-auto">
+											{products.map((product) => (
+												<CommandItem
+													key={product.id}
+													value={product.name}
+													onSelect={() => handleProductSelected(product)}
+												>
+													<Check
+														className={cn(
+															"mr-2 h-4 w-4",
+															productId === product.id ? "opacity-100" : "opacity-0"
+														)}
+													/>
+													<div className="flex-1">
+														<div className="font-medium">{product.name}</div>
+														{product.brand && (
+															<div className="text-xs text-muted-foreground">{product.brand.name}</div>
+														)}
+													</div>
+												</CommandItem>
+											))}
+										</CommandGroup>
+									</Command>
+								</PopoverContent>
+							</Popover>
+						</div>
+						{productId && (
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								onClick={handleUnlinkProduct}
+								title="Desvincular produto"
+							>
+								<X className="h-4 w-4" />
+							</Button>
+						)}
+					</div>
+					{productId && (
+						<p className="text-xs text-green-600">
+							✓ Vinculado a produto cadastrado
+						</p>
 					)}
 				</div>
 

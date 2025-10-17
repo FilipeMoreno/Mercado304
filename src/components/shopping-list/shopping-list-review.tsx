@@ -103,6 +103,12 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
     setReviewItems(newItems)
   }
 
+  const handleQuantityChange = (index: number, value: string) => {
+    const newItems = [...reviewItems]
+    newItems[index].quantity = parseFloat(value) || 1
+    setReviewItems(newItems)
+  }
+
   const handleConfirm = async () => {
     // Valida se todos os itens tem preço
     const invalidItems = reviewItems.filter(item => !item.unitPrice || item.unitPrice <= 0)
@@ -267,8 +273,19 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                   )}
                 </div>
 
-                {/* Preços */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Quantidade e Preços */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label>Quantidade *</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={item.quantity || ""}
+                      onChange={(e) => handleQuantityChange(index, e.target.value)}
+                      placeholder="1"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label>Preço Unitário *</Label>
                     <Input

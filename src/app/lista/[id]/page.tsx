@@ -58,6 +58,14 @@ interface ExtendedShoppingListItem {
 	}
 }
 
+interface EditItemData {
+	productId?: string
+	productName: string
+	productUnit: string
+	quantity: number
+	estimatedPrice: number
+}
+
 interface ShoppingListDetails {
 	id: string
 	name: string
@@ -110,7 +118,10 @@ export default function ListaDetalhesPage() {
 
 	// Estados para editar item
 	const [editingItem, setEditingItem] = useState<ExtendedShoppingListItem | null>(null)
-	const [editItemData, setEditItemData] = useState({
+	const [editItemData, setEditItemData] = useState<EditItemData>({
+		productId: undefined,
+		productName: "",
+		productUnit: "unidade",
 		quantity: 1,
 		estimatedPrice: 0,
 	})
@@ -136,6 +147,19 @@ export default function ListaDetalhesPage() {
 	// Estados para edição rápida e toggle de itens marcados
 	const [quickEditingItem, setQuickEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [showCompletedItems, setShowCompletedItems] = useState(true)
+
+	// Inicializar editItemData quando editingItem mudar
+	useEffect(() => {
+		if (editingItem) {
+			setEditItemData({
+				productId: editingItem.productId,
+				productName: editingItem.product?.name || editingItem.productName || "",
+				productUnit: editingItem.product?.unit || editingItem.productUnit || "unidade",
+				quantity: editingItem.quantity,
+				estimatedPrice: editingItem.estimatedPrice || 0,
+			})
+		}
+	}, [editingItem])
 
 	const fetchListDetails = useCallback(async () => {
 		try {
@@ -478,6 +502,9 @@ export default function ListaDetalhesPage() {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
+					productId: editItemData.productId,
+					productName: editItemData.productName,
+					productUnit: editItemData.productUnit,
 					quantity: editItemData.quantity,
 					estimatedPrice: editItemData.estimatedPrice,
 				}),
@@ -815,7 +842,7 @@ export default function ListaDetalhesPage() {
 				onClose={() => setEditingItem(null)}
 				editingItem={editingItem}
 				editItemData={editItemData}
-				onEditItemDataChange={setEditItemData}
+				onEditItemDataChange={(data) => setEditItemData(data)}
 				onUpdate={handleUpdateItem}
 				updating={updatingItem}
 				onCloseBestPriceAlert={() => {
@@ -859,12 +886,31 @@ export default function ListaDetalhesPage() {
 				isOpen={!!quickEditingItem}
 				onClose={() => setQuickEditingItem(null)}
 				onUpdate={(itemId, updates) => {
-					if (updates.quantity !== undefined) {
-						handleUpdateQuantity(itemId, updates.quantity)
-					}
-					if (updates.estimatedPrice !== undefined) {
-						handleUpdateEstimatedPrice(itemId, updates.estimatedPrice)
-					}
+					// Atualiza todos os campos (nome, produto vinculado, quantidade, preço)
+					const updateData: any = {}
+					if (updates.productId !== undefined) updateData.productId = updates.productId
+					if (updates.productName !== undefined) updateData.productName = updates.productName
+					if (updates.productUnit !== undefined) updateData.productUnit = updates.productUnit
+					if (updates.quantity !== undefined) updateData.quantity = updates.quantity
+					if (updates.estimatedPrice !== undefined) updateData.estimatedPrice = updates.estimatedPrice
+
+					// Atualizar no servidor
+					updateItemInServer(itemId, updateData)
+
+					// Atualizar estado local
+					setList((prev) =>
+						prev
+							? {
+								...prev,
+								items: prev.items.map((item) =>
+									item.id === itemId ? { ...item, ...updateData } : item
+								),
+							}
+							: null,
+					)
+
+					// Fechar dialog
+					setQuickEditingItem(null)
 				}}
 				onDelete={(item) => {
 					setDeleteItemConfirm(item)
