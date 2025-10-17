@@ -88,17 +88,29 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	// Build URLSearchParams for the queries
 	const purchaseParams = useMemo(() => {
 		const params: Record<string, string> = {
-			search: String(state.search),
-			market: String(state.market),
-			sort: String(state.sort),
-			period: String(state.period),
-			dateFrom: String(state.dateFrom),
-			dateTo: String(state.dateTo),
 			page: String(state.page),
 			limit: itemsPerPage.toString(),
 		}
+
+		// Adicionar apenas parâmetros com valores válidos
+		if (state.search && state.search !== "undefined") {
+			params.search = String(state.search)
+		}
+		if (state.market && state.market !== "all" && state.market !== "undefined") {
+			params.marketId = String(state.market)
+		}
+		if (state.sort && state.sort !== "undefined") {
+			params.sort = String(state.sort)
+		}
+		if (state.dateFrom && state.dateFrom !== "undefined" && state.dateFrom !== "") {
+			params.dateFrom = String(state.dateFrom)
+		}
+		if (state.dateTo && state.dateTo !== "undefined" && state.dateTo !== "") {
+			params.dateTo = String(state.dateTo)
+		}
+
 		return new URLSearchParams(params)
-	}, [state.search, state.market, state.sort, state.period, state.dateFrom, state.dateTo, state.page])
+	}, [state.search, state.market, state.sort, state.dateFrom, state.dateTo, state.page])
 
 	// React Query hooks
 	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams)

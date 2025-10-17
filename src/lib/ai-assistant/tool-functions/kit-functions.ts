@@ -24,6 +24,9 @@ export async function listProductKits(args: { includeInactive?: boolean }) {
       id: kit.kitProductId,
       name: kit.kitProduct.name,
       description: kit.description,
+      barcode: kit.barcode,
+      brand: kit.brand?.name,
+      category: kit.category?.name,
       isActive: kit.isActive,
       productCount: kit.items.length,
       products: kit.items.map((item) => ({
@@ -35,11 +38,15 @@ export async function listProductKits(args: { includeInactive?: boolean }) {
 
     const message = `Encontrei ${kits.length} kit(s) cadastrado(s):\n\n${kitList
       .map(
-        (k, i) =>
-          `${i + 1}. **${k.name}** ${!k.isActive ? "(Inativo)" : ""}\n   ${k.description || "Sem descrição"
-          }\n   Produtos: ${k.products
-            .map((p) => `${p.quantity}x ${p.name}`)
-            .join(", ")}`
+        (k, i) => {
+          let kitInfo = `${i + 1}. **${k.name}** ${!k.isActive ? "(Inativo)" : ""}`;
+          if (k.brand) kitInfo += ` - ${k.brand}`;
+          kitInfo += `\n   ${k.description || "Sem descrição"}`;
+          if (k.category) kitInfo += `\n   Categoria: ${k.category}`;
+          if (k.barcode) kitInfo += `\n   Código: ${k.barcode}`;
+          kitInfo += `\n   Produtos: ${k.products.map((p) => `${p.quantity}x ${p.name}`).join(", ")}`;
+          return kitInfo;
+        }
       )
       .join("\n\n")}`;
 
@@ -62,16 +69,47 @@ export async function listProductKits(args: { includeInactive?: boolean }) {
 export async function createProductKit(args: {
   kitName: string;
   description?: string;
+  barcode?: string;
+  brandName?: string;
+  categoryName?: string;
   products: Array<{ productName: string; quantity: number }>;
 }) {
   try {
-    const { kitName, description, products } = args;
+    const { kitName, description, barcode, brandName, categoryName, products } = args;
 
     if (!kitName || !products || products.length === 0) {
       return {
         success: false,
         message: "Para criar um kit, preciso do nome e pelo menos um produto.",
       };
+    }
+
+    // Buscar ou criar marca se fornecida
+    let brandId: string | undefined;
+    if (brandName) {
+      let brand = await prisma.brand.findFirst({
+        where: { name: { equals: brandName, mode: "insensitive" } },
+      });
+      if (!brand) {
+        brand = await prisma.brand.create({
+          data: { name: brandName },
+        });
+      }
+      brandId = brand.id;
+    }
+
+    // Buscar ou criar categoria se fornecida
+    let categoryId: string | undefined;
+    if (categoryName) {
+      let category = await prisma.category.findFirst({
+        where: { name: { equals: categoryName, mode: "insensitive" } },
+      });
+      if (!category) {
+        category = await prisma.category.create({
+          data: { name: categoryName, icon: "📦", isFood: false },
+        });
+      }
+      categoryId = category.id;
     }
 
     // Buscar os produtos pelo nome
@@ -113,20 +151,28 @@ export async function createProductKit(args: {
     const kit = await productKitService.createProductKit({
       kitProductId: kitProduct.id,
       description,
+      barcode,
+      brandId,
+      categoryId,
       items: productsData.map((p) => ({
-        productId: p.foundProduct!.id,
+        productId: p.foundProduct?.id,
         quantity: p.quantity,
       })),
     });
 
     const productsList = productsData
-      .map((p) => `${p.quantity}x ${p.foundProduct!.name}`)
+      .map((p) => `${p.quantity}x ${p.foundProduct?.name}`)
       .join(", ");
+
+    let message = `Kit "${kitName}" criado com sucesso! Produtos inclusos: ${productsList}.`;
+    if (description) message += ` Descrição: ${description}.`;
+    if (brandName) message += ` Marca: ${brandName}.`;
+    if (categoryName) message += ` Categoria: ${categoryName}.`;
+    if (barcode) message += ` Código de barras: ${barcode}.`;
 
     return {
       success: true,
-      message: `Kit "${kitName}" criado com sucesso! Produtos inclusos: ${productsList}. ${description ? `Descrição: ${description}` : ""
-        }`,
+      message,
       kitId: kit.kitProductId,
       kitName: kit.kitProduct.name,
     };
@@ -179,8 +225,20 @@ export async function getProductKitDetails(args: { kitName: string }) {
 
     let message = `**${kit.kitProduct.name}**\n`;
     if (kit.description) {
-      message += `${kit.description}\n\n`;
+      message += `${kit.description}\n`;
     }
+    
+    // Informações adicionais do kit
+    if (kit.brand?.name) {
+      message += `Marca: ${kit.brand.name}\n`;
+    }
+    if (kit.category?.name) {
+      message += `Categoria: ${kit.category.name}\n`;
+    }
+    if (kit.barcode) {
+      message += `Código de Barras: ${kit.barcode}\n`;
+    }
+    message += "\n";
 
     message += `**Produtos inclusos (${kit.items.length}):**\n`;
     kit.items.forEach((item) => {
@@ -200,9 +258,31 @@ export async function getProductKitDetails(args: { kitName: string }) {
     }
 
     if (price) {
-      message += `\n**Preço sugerido:**\n`;
-      message += `• Total (separados): R$ ${price.totalPrice.toFixed(2)}\n`;
-      message += `• Economia potencial: Compare com o preço do combo no mercado!\n`;
+      message += `\n**Análise de Preços:**\n`;
+      message += `• Soma dos produtos separados: R$ ${price.totalPrice.toFixed(2)}\n`;
+      
+      if (price.kitRegisteredPrice) {
+        message += `• Preço do kit registrado: R$ ${price.kitRegisteredPrice.toFixed(2)}`;
+        if (price.kitPriceMarketName) {
+          message += ` (${price.kitPriceMarketName})`;
+        }
+        message += "\n";
+        
+        const savings = price.totalPrice - price.kitRegisteredPrice;
+        const savingsPercent = (savings / price.totalPrice) * 100;
+        
+        if (savings > 0) {
+          message += `• ✅ Economia: R$ ${savings.toFixed(2)} (${savingsPercent.toFixed(1)}%)\n`;
+          message += `• 💡 Vale a pena comprar o kit!\n`;
+        } else if (savings < 0) {
+          message += `• ⚠️ Mais caro: R$ ${Math.abs(savings).toFixed(2)} (${Math.abs(savingsPercent).toFixed(1)}%)\n`;
+          message += `• 💡 Melhor comprar os produtos separados!\n`;
+        } else {
+          message += `• Mesmo preço dos produtos separados\n`;
+        }
+      } else {
+        message += `• 💡 Registre o preço do kit no mercado para ver se vale a pena!\n`;
+      }
     }
 
     if (nutrition) {
@@ -219,6 +299,9 @@ export async function getProductKitDetails(args: { kitName: string }) {
         id: kit.kitProductId,
         name: kit.kitProduct.name,
         description: kit.description,
+        barcode: kit.barcode,
+        brand: kit.brand?.name,
+        category: kit.category?.name,
         products: kit.items.map((item) => ({
           name: item.product.name,
           quantity: item.quantity,
@@ -239,6 +322,8 @@ export async function getProductKitDetails(args: { kitName: string }) {
         price: price
           ? {
             total: price.totalPrice,
+            kitPrice: price.kitRegisteredPrice,
+            savings: price.kitRegisteredPrice ? price.totalPrice - price.kitRegisteredPrice : null,
           }
           : null,
       },
@@ -645,7 +730,7 @@ export async function compareKitPrices(args: { kitName: string }) {
       if (!byMarket.has(marketName)) {
         byMarket.set(marketName, []);
       }
-      byMarket.get(marketName)!.push(record);
+      byMarket.get(marketName)?.push(record);
     });
 
     let message = `**${kitProduct.name}**\n\n`;
@@ -693,6 +778,125 @@ export async function compareKitPrices(args: { kitName: string }) {
   }
 }
 
+/**
+ * Registra preços rapidamente e analisa se vale a pena comprar o kit
+ */
+export async function quickKitPriceAnalysis(args: {
+  kitName: string;
+  marketName: string;
+  kitPrice: number;
+  itemPrices: Array<{ productName: string; price: number }>;
+}) {
+  try {
+    const { kitName, marketName, kitPrice, itemPrices } = args;
+
+    // Buscar o produto kit
+    const kitProduct = await prisma.product.findFirst({
+      where: {
+        name: { contains: kitName, mode: "insensitive" },
+        isKit: true,
+      },
+      select: { id: true, name: true },
+    });
+
+    if (!kitProduct) {
+      return {
+        success: false,
+        message: `Kit "${kitName}" não encontrado.`,
+      };
+    }
+
+    // Buscar mercado
+    let market = await prisma.market.findFirst({
+      where: {
+        name: { contains: marketName, mode: "insensitive" },
+      },
+    });
+
+    if (!market) {
+      market = await prisma.market.create({
+        data: { name: marketName },
+      });
+    }
+
+    // Buscar o kit completo
+    const kit = await productKitService.getProductKitWithDetails(kitProduct.id);
+    if (!kit) {
+      return {
+        success: false,
+        message: "Erro ao buscar detalhes do kit.",
+      };
+    }
+
+    // Mapear preços dos itens aos produtos do kit
+    const mappedItemPrices = [];
+    for (const item of kit.items) {
+      const priceData = itemPrices.find((ip) =>
+        item.product.name.toLowerCase().includes(ip.productName.toLowerCase())
+      );
+      
+      if (!priceData) {
+        return {
+          success: false,
+          message: `Não encontrei o preço para o produto "${item.product.name}" no kit.`,
+        };
+      }
+
+      mappedItemPrices.push({
+        productId: item.product.id,
+        price: priceData.price,
+      });
+    }
+
+    // Executar análise rápida
+    const analysis = await productKitService.quickPriceAnalysis({
+      kitProductId: kitProduct.id,
+      marketId: market.id,
+      kitPrice,
+      itemPrices: mappedItemPrices,
+    });
+
+    let message = `**Análise de Preço: ${kitProduct.name}**\n`;
+    message += `Mercado: ${market.name}\n\n`;
+    message += `💰 **Preço do Kit:** R$ ${analysis.kitPrice.toFixed(2)}\n`;
+    message += `🛒 **Produtos Separados:** R$ ${analysis.individualTotal.toFixed(2)}\n\n`;
+
+    if (analysis.worthIt) {
+      message += `✅ **VALE A PENA!**\n`;
+      message += `🎉 Economia: R$ ${analysis.savings.toFixed(2)} (${analysis.savingsPercentage.toFixed(1)}%)\n\n`;
+      message += `${analysis.recommendation}\n`;
+    } else {
+      message += `❌ **NÃO COMPENSA**\n`;
+      message += `⚠️ Diferença: R$ ${Math.abs(analysis.savings).toFixed(2)} (${Math.abs(analysis.savingsPercentage).toFixed(1)}%)\n\n`;
+      message += `${analysis.recommendation}\n`;
+    }
+
+    message += `\n**Detalhamento:**\n`;
+    analysis.itemBreakdown.forEach((item) => {
+      message += `• ${item.productName}: ${item.quantity}x R$ ${item.unitPrice.toFixed(2)} = R$ ${item.totalPrice.toFixed(2)}\n`;
+    });
+
+    message += `\n✅ Preços registrados com sucesso no sistema!`;
+
+    return {
+      success: true,
+      message,
+      analysis: {
+        kitPrice: analysis.kitPrice,
+        individualTotal: analysis.individualTotal,
+        savings: analysis.savings,
+        savingsPercentage: analysis.savingsPercentage,
+        worthIt: analysis.worthIt,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Erro ao analisar preços do kit: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+    };
+  }
+}
+
 // Exportar todas as funções
 export const kitFunctions = {
   listProductKits,
@@ -701,5 +905,6 @@ export const kitFunctions = {
   checkKitStock,
   suggestKitsFromStock,
   compareKitPrices,
+  quickKitPriceAnalysis,
 };
 

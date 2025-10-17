@@ -21,11 +21,12 @@ model Market {
 }
 
 model Brand {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[]
+  id          String       @id @default(cuid())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  products    Product[]
+  productKits ProductKit[]
 
   @@map("brands")
 }
@@ -40,7 +41,8 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  products Product[]
+  products    Product[]
+  productKits ProductKit[]
 
   @@index([isFood])
   @@map("categories")
@@ -705,15 +707,25 @@ model ProductKit {
   description  String? // Descrição adicional sobre o kit
   isActive     Boolean @default(true) // Se o kit está ativo ou não
 
+  // Campos adicionais para o kit (independentes do kitProduct)
+  barcode    String? // Código de barras específico do kit
+  brandId    String? // Marca do kit
+  categoryId String? // Categoria do kit
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relações
   kitProduct Product          @relation("KitProduct", fields: [kitProductId], references: [id], onDelete: Cascade)
   items      ProductKitItem[] // Produtos que compõem o kit
+  brand      Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category   Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([kitProductId])
   @@index([isActive])
+  @@index([barcode])
+  @@index([brandId])
+  @@index([categoryId])
   @@map("product_kits")
 }
 

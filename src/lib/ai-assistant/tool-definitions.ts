@@ -1162,7 +1162,19 @@ export const tools: any = [
 						},
 						description: {
 							type: SchemaType.STRING,
-							description: "Descrição do kit (ex: 'Economiza R$ 2,00').",
+							description: "Descrição do kit (ex: 'Economiza R$ 2,00', opcional).",
+						},
+						barcode: {
+							type: SchemaType.STRING,
+							description: "Código de barras do kit (opcional).",
+						},
+						brandName: {
+							type: SchemaType.STRING,
+							description: "Marca do kit (ex: 'Nestlé', opcional).",
+						},
+						categoryName: {
+							type: SchemaType.STRING,
+							description: "Categoria do kit (ex: 'Bebidas', opcional).",
 						},
 						products: {
 							type: SchemaType.ARRAY,
@@ -1274,6 +1286,46 @@ export const tools: any = [
 						},
 					},
 					required: ["searchTerm"],
+				},
+			},
+			{
+				name: "quickKitPriceAnalysis",
+				description: "Registra preços rapidamente do kit e produtos individuais e retorna análise instantânea se vale a pena. Use quando usuário estiver no mercado e quiser registrar preços para análise.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit.",
+						},
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado onde está vendo os preços.",
+						},
+						kitPrice: {
+							type: SchemaType.NUMBER,
+							description: "Preço do kit no mercado.",
+						},
+						itemPrices: {
+							type: SchemaType.ARRAY,
+							description: "Preços dos produtos individuais.",
+							items: {
+								type: SchemaType.OBJECT,
+								properties: {
+									productName: {
+										type: SchemaType.STRING,
+										description: "Nome do produto.",
+									},
+									price: {
+										type: SchemaType.NUMBER,
+										description: "Preço do produto individual.",
+									},
+								},
+								required: ["productName", "price"],
+							},
+						},
+					},
+					required: ["kitName", "marketName", "kitPrice", "itemPrices"],
 				},
 			},
 		],
