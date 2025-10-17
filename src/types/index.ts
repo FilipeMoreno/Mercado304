@@ -330,3 +330,61 @@ export interface StockItem {
 	isLowStock: boolean
 	product?: Product
 }
+
+// Nota Paraná API Types
+export interface NotaParanaCategoria {
+	id: number
+	qtd: number
+	desc: string
+}
+
+export interface NotaParanaCategoriaResponse {
+	local: string
+	tempo: number
+	termo: string
+	regiao: string
+	categorias: NotaParanaCategoria[]
+}
+
+export interface NotaParanaEstabelecimento {
+	codigo: string
+	nm_fan: string
+	nm_emp: string
+	tp_logr: string
+	nm_logr: string
+	nr_logr: string
+	complemento: string
+	bairro: string
+	mun: string
+	uf: string
+	mesoreg: string
+	microreg: string
+}
+
+export interface NotaParanaProduto {
+	id: string
+	local: string
+	desc: string
+	ncm: string
+	cdanp: string
+	valor_desconto: string
+	valor_tabela: string
+	valor: string
+	datahora: string
+	tempo: string
+	distkm: string
+	gtin: string
+	nrdoc: string
+	estabelecimento: NotaParanaEstabelecimento
+}
+
+export interface NotaParanaProdutosResponse {
+	tempo: number
+	local: string
+	produtos: NotaParanaProduto[]
+	total: number
+	precos: {
+		min: string
+		max: string
+	}
+}
