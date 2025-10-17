@@ -155,7 +155,7 @@ export async function createProductKit(args: {
       brandId,
       categoryId,
       items: productsData.map((p) => ({
-        productId: p.foundProduct?.id,
+        productId: p.foundProduct?.id, // Safe: validated above that all products were found
         quantity: p.quantity,
       })),
     });
