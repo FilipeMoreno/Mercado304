@@ -387,7 +387,8 @@ export const useAllMarketsQuery = () => {
 	return useQuery({
 		queryKey: ["markets", "all"],
 		queryFn: () => fetchWithErrorHandling("/api/markets"),
-		staleTime: 0, // Sempre refetch quando invalidado
+		staleTime: 5 * 60 * 1000, // 5 minutos - mercados não mudam com frequência
+		gcTime: 10 * 60 * 1000, // 10 minutos
 	})
 }
 

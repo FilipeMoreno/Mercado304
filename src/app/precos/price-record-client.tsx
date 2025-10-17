@@ -595,12 +595,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const handleScanResult = async (result: { barcode: string; price: number; confidence: number }) => {
 		try {
 			// Buscar produto pelo código de barras
-			const productResponse = await fetch(`/api/products/search?barcode=${result.barcode}`)
-			const productData = await productResponse.json()
+			const productResponse = await fetch(`/api/products/barcode/${result.barcode}`)
 
-			if (productData.success && productData.product) {
+			if (productResponse.ok) {
+				const product = await productResponse.json()
 				// Produto encontrado - preencher formulário
-				const product = productData.product
 				setFormData({
 					productId: product.id,
 					marketId: scannerMarketId,
@@ -621,11 +620,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					}),
 				})
 
-				const createProductData = await createProductResponse.json()
-
-				if (createProductData.success) {
+				if (createProductResponse.ok) {
+					const newProduct = await createProductResponse.json()
 					setFormData({
-						productId: createProductData.product.id,
+						productId: newProduct.id,
 						marketId: scannerMarketId,
 					})
 					setPrice(result.price.toString())
