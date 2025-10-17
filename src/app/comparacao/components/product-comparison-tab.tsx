@@ -4,11 +4,13 @@ import { Loader2, MapPin, Search, Target, TrendingDown, TrendingUp } from "lucid
 import { useState } from "react"
 import { toast } from "sonner"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Label } from "@/components/ui/label"
+import { useUIPreferences } from "@/hooks"
 import type { Product } from "@/types"
 
 interface PriceComparison {
@@ -40,6 +42,7 @@ export function ProductComparisonTab({
 	onProductChange,
 	preserveFormData,
 }: ProductComparisonTabProps) {
+	const { selectStyle } = useUIPreferences()
 	const [productComparison, setProductComparison] = useState<PriceComparison | null>(null)
 	const [loadingProduct, setLoadingProduct] = useState(false)
 
@@ -92,13 +95,22 @@ export function ProductComparisonTab({
 					<div className="flex flex-col sm:flex-row gap-4">
 						<div className="flex-1">
 							<Label>Selecione um Produto</Label>
-							<ProductSelect
-								value={selectedProductId}
-								onValueChange={onProductChange}
-								placeholder="Buscar produto..."
-								products={products}
-								preserveFormData={preserveFormData}
-							/>
+							{selectStyle === "dialog" ? (
+								<ProductSelectDialog
+									value={selectedProductId}
+									onValueChange={onProductChange}
+									placeholder="Buscar produto..."
+									preserveFormData={preserveFormData}
+								/>
+							) : (
+								<ProductSelect
+									value={selectedProductId}
+									onValueChange={onProductChange}
+									placeholder="Buscar produto..."
+									products={products}
+									preserveFormData={preserveFormData}
+								/>
+							)}
 						</div>
 						<div className="flex items-end">
 							<Button onClick={compareProduct} disabled={loadingProduct} className="w-full sm:w-auto">
@@ -148,9 +160,8 @@ export function ProductComparisonTab({
 										return (
 											<div
 												key={market.marketId}
-												className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-colors gap-3 ${
-													isBest ? "bg-green-50 border-green-200" : isWorst ? "bg-red-50 border-red-200" : "bg-gray-50"
-												}`}
+												className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-colors gap-3 ${isBest ? "bg-green-50 border-green-200" : isWorst ? "bg-red-50 border-red-200" : "bg-gray-50"
+													}`}
 											>
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 flex-wrap">

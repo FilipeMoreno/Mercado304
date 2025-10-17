@@ -12,7 +12,10 @@ import { BestPriceAlert } from "@/components/best-price-alert"
 import { PriceAiInsight } from "@/components/price-ai-insight"
 import { PriceAlert } from "@/components/price-alert"
 import { MarketSelect } from "@/components/selects/market-select"
+import { MarketSelectDialog } from "@/components/selects/market-select-dialog"
+import { PaymentMethodSelectDialog } from "@/components/selects/payment-method-select-dialog"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
 import { type StockEntry, StockEntryDialog } from "@/components/stock-entry-dialog"
 import { Button } from "@/components/ui/button"
@@ -21,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCreatePurchaseMutation } from "@/hooks"
+import { useCreatePurchaseMutation, useUIPreferences } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod, type Product } from "@/types"
@@ -68,6 +71,7 @@ export default function NovaCompraPage() {
 	const searchParams = useSearchParams()
 	const createPurchaseMutation = useCreatePurchaseMutation()
 	const id = useId()
+	const { selectStyle } = useUIPreferences()
 	const [products, setProducts] = useState<Product[]>([])
 	const [loading, setLoading] = useState(false)
 	const [dataLoading, setDataLoading] = useState(true)
@@ -444,12 +448,21 @@ export default function NovaCompraPage() {
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 									<div className="space-y-2">
 										<Label htmlFor="marketId">Mercado *</Label>
-										<MarketSelect
-											value={formData.marketId}
-											onValueChange={(value) => {
-												setFormData((prev) => ({ ...prev, marketId: value }))
-											}}
-										/>
+										{selectStyle === "dialog" ? (
+											<MarketSelectDialog
+												value={formData.marketId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, marketId: value }))
+												}}
+											/>
+										) : (
+											<MarketSelect
+												value={formData.marketId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, marketId: value }))
+												}}
+											/>
+										)}
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor={`purchaseDate-${id}`}>Data da Compra</Label>
@@ -468,28 +481,40 @@ export default function NovaCompraPage() {
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="paymentMethod">Método de Pagamento *</Label>
-										<Select
-											value={formData.paymentMethod}
-											onValueChange={(value) =>
-												setFormData((prev) => ({
-													...prev,
-													paymentMethod: value as PaymentMethod,
-												}))
-											}
-										>
-											<SelectTrigger>
-												<SelectValue placeholder="Selecione..." />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
-												<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
-												<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
-												<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-												<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
-												<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
-												<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
-											</SelectContent>
-										</Select>
+										{selectStyle === "dialog" ? (
+											<PaymentMethodSelectDialog
+												value={formData.paymentMethod}
+												onValueChange={(value) =>
+													setFormData((prev) => ({
+														...prev,
+														paymentMethod: value,
+													}))
+												}
+											/>
+										) : (
+											<Select
+												value={formData.paymentMethod}
+												onValueChange={(value) =>
+													setFormData((prev) => ({
+														...prev,
+														paymentMethod: value as PaymentMethod,
+													}))
+												}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Selecione..." />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+													<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+													<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+													<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
+													<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+													<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+													<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
 									</div>
 								</div>
 							</CardContent>
@@ -524,17 +549,30 @@ export default function NovaCompraPage() {
 												{/* Produto em largura total */}
 												<div className="space-y-2">
 													<Label>Produto *</Label>
-													<ProductSelect
-														value={item.productId || ""}
-														className="w-full"
-														onValueChange={(value) => updateItem(index, "productId", value)}
-														products={products}
-														preserveFormData={{
-															formData,
-															items,
-															targetItemIndex: index,
-														}}
-													/>
+													{selectStyle === "dialog" ? (
+														<ProductSelectDialog
+															value={item.productId || ""}
+															className="w-full"
+															onValueChange={(value) => updateItem(index, "productId", value)}
+															preserveFormData={{
+																formData,
+																items,
+																targetItemIndex: index,
+															}}
+														/>
+													) : (
+														<ProductSelect
+															value={item.productId || ""}
+															className="w-full"
+															onValueChange={(value) => updateItem(index, "productId", value)}
+															products={products}
+															preserveFormData={{
+																formData,
+																items,
+																targetItemIndex: index,
+															}}
+														/>
+													)}
 												</div>
 
 												{/* Quantidade, Preço, Desconto e Total em 4 colunas */}

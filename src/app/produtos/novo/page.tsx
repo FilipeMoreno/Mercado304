@@ -9,7 +9,10 @@ import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
 import { BrandSelect } from "@/components/selects/brand-select"
+import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
+import { CategorySelectDialog } from "@/components/selects/category-select-dialog"
+import { UnitSelectDialog } from "@/components/selects/unit-select-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -17,7 +20,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation } from "@/hooks"
+import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation, useUIPreferences } from "@/hooks"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { TempStorage } from "@/lib/temp-storage"
 import { AppToasts } from "@/lib/toasts"
@@ -30,6 +33,7 @@ const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa"
 export default function NovoProdutoPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const { selectStyle } = useUIPreferences()
 
 	const [loading, setLoading] = useState(false)
 	const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
@@ -304,32 +308,53 @@ export default function NovoProdutoPage() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>
-								<BrandSelect
-									value={formData.brandId || undefined}
-									onValueChange={(value) => handleSelectChange("brandId", value || "")}
-								/>
+								{selectStyle === "dialog" ? (
+									<BrandSelectDialog
+										value={formData.brandId || undefined}
+										onValueChange={(value) => handleSelectChange("brandId", value || "")}
+									/>
+								) : (
+									<BrandSelect
+										value={formData.brandId || undefined}
+										onValueChange={(value) => handleSelectChange("brandId", value || "")}
+									/>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="categoryId">Categoria</Label>
-								<CategorySelect
-									value={formData.categoryId || undefined}
-									onValueChange={(value) => handleSelectChange("categoryId", value || "")}
-								/>
+								{selectStyle === "dialog" ? (
+									<CategorySelectDialog
+										value={formData.categoryId || undefined}
+										onValueChange={(value) => handleSelectChange("categoryId", value || "")}
+									/>
+								) : (
+									<CategorySelect
+										value={formData.categoryId || undefined}
+										onValueChange={(value) => handleSelectChange("categoryId", value || "")}
+									/>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="unit">Unidade de Medida</Label>
-								<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{units.map((unit) => (
-											<SelectItem key={unit} value={unit}>
-												{unit}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								{selectStyle === "dialog" ? (
+									<UnitSelectDialog
+										value={formData.unit}
+										onValueChange={(value) => handleSelectChange("unit", value)}
+									/>
+								) : (
+									<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{units.map((unit) => (
+												<SelectItem key={unit} value={unit}>
+													{unit}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
 							</div>
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>

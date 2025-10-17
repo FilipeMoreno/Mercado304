@@ -19,7 +19,9 @@ import type React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { MarketSelect } from "@/components/selects/market-select"
+import { MarketSelectDialog } from "@/components/selects/market-select-dialog"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { PriceRecordSkeleton } from "@/components/skeletons/price-record-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -30,6 +32,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
+import { useUIPreferences } from "@/hooks"
 
 function PriceAnalysisCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
 	if (priceRecords.length === 0) {
@@ -162,9 +165,9 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 						{marketStats.map((stat, index) => (
 							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
 								<div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-										index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
-											index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
-												'bg-muted text-muted-foreground'
+									index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
+										index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
+											'bg-muted text-muted-foreground'
 									}`}>
 									{index + 1}
 								</div>
@@ -451,6 +454,7 @@ interface PriceRecordClientProps {
 }
 
 export function PriceRecordClient({ initialProducts, initialMarkets }: PriceRecordClientProps) {
+	const { selectStyle } = useUIPreferences()
 	const products = Array.isArray(initialProducts) ? initialProducts : []
 	const markets = Array.isArray(initialMarkets) ? initialMarkets : []
 
@@ -737,23 +741,42 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<Label htmlFor="product">Produto *</Label>
-										<ProductSelect
-											value={formData.productId}
-											onValueChange={(value) => {
-												setFormData((prev) => ({ ...prev, productId: value }))
-											}}
-											placeholder="Selecione o produto"
-										/>
+										{selectStyle === "dialog" ? (
+											<ProductSelectDialog
+												value={formData.productId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, productId: value }))
+												}}
+												placeholder="Selecione o produto"
+											/>
+										) : (
+											<ProductSelect
+												value={formData.productId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, productId: value }))
+												}}
+												placeholder="Selecione o produto"
+											/>
+										)}
 									</div>
 
 									<div>
 										<Label htmlFor="market">Mercado *</Label>
-										<MarketSelect
-											value={formData.marketId}
-											onValueChange={(value) => {
-												setFormData((prev) => ({ ...prev, marketId: value }))
-											}}
-										/>
+										{selectStyle === "dialog" ? (
+											<MarketSelectDialog
+												value={formData.marketId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, marketId: value }))
+												}}
+											/>
+										) : (
+											<MarketSelect
+												value={formData.marketId}
+												onValueChange={(value) => {
+													setFormData((prev) => ({ ...prev, marketId: value }))
+												}}
+											/>
+										)}
 									</div>
 								</div>
 

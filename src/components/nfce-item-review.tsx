@@ -6,7 +6,8 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ProductSelect } from "@/components/selects/product-select";
+import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Brand, Category, Product } from "@prisma/client"
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { Dialog } from "@/components/ui/dialog"
 import { QuickProductForm } from "@/components/quick-product-form"
 import { QuickBrandForm } from "@/components/quick-brand-form"
+import { useUIPreferences } from "@/hooks"
 import { normalizeBarcode } from "@/lib/barcode-utils"
 
 // Interfaces para os dados da nota e itens mapeados
@@ -50,6 +52,7 @@ type MappedItemState = MappedPurchaseItem & {
 }
 
 const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCancel, isSubmitting }) => {
+  const { selectStyle } = useUIPreferences()
   const [mappedItems, setMappedItems] = useState<MappedItemState[]>(() =>
     items.map((item) => {
       // Calcular desconto unitário a partir do desconto total do item
@@ -268,24 +271,45 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                   {/* --- CORREÇÃO DE LAYOUT E LÓGICA AQUI --- */}
                   <div className="flex-grow">
                     <Label>Associar ao Produto</Label>
-                    <ProductSelect
-                      value={item.productId ? item.productId.toString() : undefined}
-                      onValueChange={(value) => {
-                        if (value) {
-                          // Buscar o produto pelo ID para obter o nome
-                          fetch(`/api/products/${value}`)
-                            .then(res => res.json())
-                            .then(product => {
-                              handleProductChange(index, product);
-                            })
-                            .catch(err => {
-                              console.error("Erro ao buscar produto:", err);
-                            });
-                        } else {
-                          handleProductChange(index, null);
-                        }
-                      }}
-                    />
+                    {selectStyle === "dialog" ? (
+                      <ProductSelectDialog
+                        value={item.productId ? item.productId.toString() : undefined}
+                        onValueChange={(value) => {
+                          if (value) {
+                            // Buscar o produto pelo ID para obter o nome
+                            fetch(`/api/products/${value}`)
+                              .then(res => res.json())
+                              .then(product => {
+                                handleProductChange(index, product);
+                              })
+                              .catch(err => {
+                                console.error("Erro ao buscar produto:", err);
+                              });
+                          } else {
+                            handleProductChange(index, null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <ProductSelect
+                        value={item.productId ? item.productId.toString() : undefined}
+                        onValueChange={(value) => {
+                          if (value) {
+                            // Buscar o produto pelo ID para obter o nome
+                            fetch(`/api/products/${value}`)
+                              .then(res => res.json())
+                              .then(product => {
+                                handleProductChange(index, product);
+                              })
+                              .catch(err => {
+                                console.error("Erro ao buscar produto:", err);
+                              });
+                          } else {
+                            handleProductChange(index, null);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="sm:self-end flex gap-2">
                     <Button

@@ -19,7 +19,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ResponsiveSelectDialog, type SelectOption } from "@/components/ui/responsive-select-dialog";
 import { useAllProductsQuery } from "@/hooks/use-react-query";
+import { useUIPreferences } from "@/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface SelectedProduct {
@@ -43,6 +45,7 @@ export function ProductSelector({
 }: ProductSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { selectStyle } = useUIPreferences();
 
   // Excluir kits da seleção (não faz sentido kit dentro de kit)
   const { data: productsData, isLoading } = useAllProductsQuery({ excludeKits: true });
@@ -68,6 +71,15 @@ export function ProductSelector({
         product.brand?.name.toLowerCase().includes(search)
     );
   }, [availableProducts, searchTerm]);
+
+  // Convert to SelectOption for dialog
+  const dialogOptions: SelectOption[] = useMemo(() => {
+    return filteredProducts.map((product: any) => ({
+      id: product.id,
+      label: product.name,
+      sublabel: product.brand?.name ? `${product.brand.name} • ${product.unit}` : product.unit,
+    }));
+  }, [filteredProducts]);
 
   const handleAddProduct = (product: any) => {
     onChange([
@@ -165,62 +177,97 @@ export function ProductSelector({
       )}
 
       {/* Add Product Button */}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full">
+      {selectStyle === "dialog" ? (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => setOpen(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Produto
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0" align="start">
-          <Command>
-            <div className="flex items-center border-b px-3">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                placeholder="Buscar produtos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
 
-            <CommandList>
-              {isLoading ? (
-                <div className="p-4 space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-              ) : (
-                <CommandGroup>
-                  {filteredProducts.map((product: any) => (
-                    <CommandItem
-                      key={product.id}
-                      value={product.id}
-                      onSelect={() => handleAddProduct(product)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {product.brand?.name}
-                          </p>
+          <ResponsiveSelectDialog
+            open={open}
+            onOpenChange={setOpen}
+            value=""
+            onValueChange={(productId) => {
+              const product = availableProducts.find((p: any) => p.id === productId);
+              if (product) {
+                handleAddProduct(product);
+              }
+            }}
+            options={dialogOptions}
+            title="Selecionar Produto"
+            placeholder="Selecione um produto"
+            searchPlaceholder="Buscar produtos..."
+            emptyText="Nenhum produto encontrado."
+            isLoading={isLoading}
+            onSearchChange={setSearchTerm}
+            showCreateNew={false}
+            renderTrigger={false}
+          />
+        </>
+      ) : (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="outline" className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Produto
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[400px] p-0" align="start">
+            <Command>
+              <div className="flex items-center border-b px-3">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                <input
+                  placeholder="Buscar produtos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+
+              <CommandList>
+                {isLoading ? (
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ) : filteredProducts.length === 0 ? (
+                  <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                ) : (
+                  <CommandGroup>
+                    {filteredProducts.map((product: any) => (
+                      <CommandItem
+                        key={product.id}
+                        value={product.id}
+                        onSelect={() => handleAddProduct(product)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.brand?.name}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {product.unit}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-xs">
-                          {product.unit}
-                        </Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
 
       {selectedProducts.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">

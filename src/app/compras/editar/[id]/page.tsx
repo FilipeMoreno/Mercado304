@@ -7,14 +7,17 @@ import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { MarketSelect } from "@/components/selects/market-select"
+import { MarketSelectDialog } from "@/components/selects/market-select-dialog"
+import { PaymentMethodSelectDialog } from "@/components/selects/payment-method-select-dialog"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { NovaCompraSkeleton } from "@/components/skeletons/nova-compra-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAllProductsQuery, useMarketsQuery, usePurchaseQuery, useUpdatePurchaseMutation } from "@/hooks"
+import { useAllProductsQuery, useMarketsQuery, usePurchaseQuery, useUpdatePurchaseMutation, useUIPreferences } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod } from "@/types"
@@ -33,6 +36,7 @@ export default function EditarCompraPage() {
 	const searchParams = useSearchParams()
 	const purchaseId = params.id as string
 	const id = useId()
+	const { selectStyle } = useUIPreferences()
 
 	const [loading, setLoading] = useState(false)
 
@@ -266,10 +270,17 @@ export default function EditarCompraPage() {
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="market">Mercado *</Label>
-								<MarketSelect
-									value={formData.marketId}
-									onValueChange={(value) => setFormData((prev) => ({ ...prev, marketId: value }))}
-								/>
+								{selectStyle === "dialog" ? (
+									<MarketSelectDialog
+										value={formData.marketId}
+										onValueChange={(value) => setFormData((prev) => ({ ...prev, marketId: value }))}
+									/>
+								) : (
+									<MarketSelect
+										value={formData.marketId}
+										onValueChange={(value) => setFormData((prev) => ({ ...prev, marketId: value }))}
+									/>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor={`purchaseDate-${id}`}>Data da Compra</Label>
@@ -287,28 +298,40 @@ export default function EditarCompraPage() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="paymentMethod">Método de Pagamento *</Label>
-								<Select
-									value={formData.paymentMethod}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											paymentMethod: value as PaymentMethod,
-										}))
-									}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Selecione..." />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
-										<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
-										<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
-										<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
-										<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
-										<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
-										<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
-									</SelectContent>
-								</Select>
+								{selectStyle === "dialog" ? (
+									<PaymentMethodSelectDialog
+										value={formData.paymentMethod}
+										onValueChange={(value) =>
+											setFormData((prev) => ({
+												...prev,
+												paymentMethod: value,
+											}))
+										}
+									/>
+								) : (
+									<Select
+										value={formData.paymentMethod}
+										onValueChange={(value) =>
+											setFormData((prev) => ({
+												...prev,
+												paymentMethod: value as PaymentMethod,
+											}))
+										}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Selecione..." />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value={PaymentMethod.MONEY}>💵 Dinheiro</SelectItem>
+											<SelectItem value={PaymentMethod.DEBIT}>💳 Cartão de Débito</SelectItem>
+											<SelectItem value={PaymentMethod.CREDIT}>💳 Cartão de Crédito</SelectItem>
+											<SelectItem value={PaymentMethod.PIX}>📱 PIX</SelectItem>
+											<SelectItem value={PaymentMethod.VOUCHER}>🎫 Vale Alimentação/Refeição</SelectItem>
+											<SelectItem value={PaymentMethod.CHECK}>📄 Cheque</SelectItem>
+											<SelectItem value={PaymentMethod.OTHER}>🔄 Outros</SelectItem>
+										</SelectContent>
+									</Select>
+								)}
 							</div>
 						</div>
 					</CardContent>
@@ -332,16 +355,28 @@ export default function EditarCompraPage() {
 										{/* Produto full width */}
 										<div className="space-y-2">
 											<Label>Produto *</Label>
-											<ProductSelect
-												value={item.productId}
-												products={products}
-												onValueChange={(value) => updateItem(index, "productId", value)}
-												preserveFormData={{
-													formData,
-													items,
-													targetItemIndex: index,
-												}}
-											/>
+											{selectStyle === "dialog" ? (
+												<ProductSelectDialog
+													value={item.productId}
+													onValueChange={(value) => updateItem(index, "productId", value)}
+													preserveFormData={{
+														formData,
+														items,
+														targetItemIndex: index,
+													}}
+												/>
+											) : (
+												<ProductSelect
+													value={item.productId}
+													products={products}
+													onValueChange={(value) => updateItem(index, "productId", value)}
+													preserveFormData={{
+														formData,
+														items,
+														targetItemIndex: index,
+													}}
+												/>
+											)}
 										</div>
 										{/* Quantidade, Preço, Total em 3 colunas */}
 										<div className="grid grid-cols-1 md:grid-cols-4 gap-4">

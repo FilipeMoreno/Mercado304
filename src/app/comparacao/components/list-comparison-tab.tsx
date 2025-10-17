@@ -4,10 +4,12 @@ import { ChevronDown, ChevronUp, Loader2, MapPin, ShoppingCart, X } from "lucide
 import { useState } from "react"
 import { toast } from "sonner"
 import { ShoppingListSelect } from "@/components/selects/shopping-list-select"
+import { ShoppingListSelectDialog } from "@/components/selects/shopping-list-select-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { useUIPreferences } from "@/hooks"
 import { cn } from "@/lib/utils"
 
 interface ListComparison {
@@ -44,6 +46,7 @@ interface ListComparisonTabProps {
 }
 
 export function ListComparisonTab({ selectedListId, onListChange }: ListComparisonTabProps) {
+	const { selectStyle } = useUIPreferences()
 	const [listComparison, setListComparison] = useState<ListComparison | null>(null)
 	const [loadingList, setLoadingList] = useState(false)
 	const [expandedMarket, setExpandedMarket] = useState<string | null>(null)
@@ -87,11 +90,19 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 					<div className="flex flex-col sm:flex-row gap-4">
 						<div className="flex-1">
 							<Label>Selecione uma Lista</Label>
-							<ShoppingListSelect
-								value={selectedListId}
-								onValueChange={onListChange}
-								placeholder="Selecionar lista..."
-							/>
+							{selectStyle === "dialog" ? (
+								<ShoppingListSelectDialog
+									value={selectedListId}
+									onValueChange={onListChange}
+									placeholder="Selecionar lista..."
+								/>
+							) : (
+								<ShoppingListSelect
+									value={selectedListId}
+									onValueChange={onListChange}
+									placeholder="Selecionar lista..."
+								/>
+							)}
 						</div>
 						<div className="flex items-end">
 							<Button onClick={compareList} disabled={loadingList} className="w-full sm:w-auto">

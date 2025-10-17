@@ -8,10 +8,14 @@ import { toast } from "sonner"
 import { ShoppingListReview } from "@/components/shopping-list/shopping-list-review"
 import { Button } from "@/components/ui/button"
 import { MarketSelect } from "@/components/selects/market-select"
+import { MarketSelectDialog } from "@/components/selects/market-select-dialog"
+import { PaymentMethodSelectDialog } from "@/components/selects/payment-method-select-dialog"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { useUIPreferences } from "@/hooks"
+import { PaymentMethod } from "@/types"
 
 const paymentMethods = [
   { value: "MONEY", label: "Dinheiro" },
@@ -24,6 +28,7 @@ export default function RegistrarCompraListaPage() {
   const params = useParams()
   const router = useRouter()
   const listId = params.id as string
+  const { selectStyle } = useUIPreferences()
 
   const [list, setList] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -174,10 +179,17 @@ export default function RegistrarCompraListaPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Mercado *</Label>
-              <MarketSelect
-                value={marketId}
-                onValueChange={setMarketId}
-              />
+              {selectStyle === "dialog" ? (
+                <MarketSelectDialog
+                  value={marketId}
+                  onValueChange={setMarketId}
+                />
+              ) : (
+                <MarketSelect
+                  value={marketId}
+                  onValueChange={setMarketId}
+                />
+              )}
             </div>
 
             <div className="space-y-2">
@@ -191,18 +203,25 @@ export default function RegistrarCompraListaPage() {
 
             <div className="space-y-2">
               <Label>Forma de Pagamento *</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.value} value={method.value}>
-                      {method.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {selectStyle === "dialog" ? (
+                <PaymentMethodSelectDialog
+                  value={paymentMethod as PaymentMethod}
+                  onValueChange={(value) => setPaymentMethod(value)}
+                />
+              ) : (
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentMethods.map((method) => (
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">

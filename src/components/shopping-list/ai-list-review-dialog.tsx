@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
@@ -13,6 +14,7 @@ import { QuickProductForm } from "@/components/quick-product-form"
 import { QuickBrandForm } from "@/components/quick-brand-form"
 import { Dialog } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { useUIPreferences } from "@/hooks"
 import { Brand, Category, Product } from "@prisma/client"
 import { ProductSuggestionsDialog, type ProductSuggestion } from "./product-suggestions-dialog"
 
@@ -62,6 +64,7 @@ export function AIListReviewDialog({
 	onConfirm,
 	isSubmitting = false
 }: AIListReviewDialogProps) {
+	const { selectStyle } = useUIPreferences()
 	const [processedItems, setProcessedItems] = useState<ProcessedAIItem[]>([])
 	const [isCreateProductDialogOpen, setIsCreateProductDialogOpen] = useState(false)
 	const [isCreateBrandDialogOpen, setIsCreateBrandDialogOpen] = useState(false)
@@ -341,23 +344,43 @@ export function AIListReviewDialog({
 									<Label>Associar ao Produto</Label>
 									<div className="flex gap-2">
 										<div className="flex-1">
-											<ProductSelect
-												value={item.productId || undefined}
-												onValueChange={(value) => {
-													if (value) {
-														fetch(`/api/products/${value}`)
-															.then(res => res.json())
-															.then(product => {
-																handleProductChange(index, product)
-															})
-															.catch(err => {
-																console.error("Erro ao buscar produto:", err)
-															})
-													} else {
-														handleProductChange(index, null)
-													}
-												}}
-											/>
+											{selectStyle === "dialog" ? (
+												<ProductSelectDialog
+													value={item.productId || undefined}
+													onValueChange={(value) => {
+														if (value) {
+															fetch(`/api/products/${value}`)
+																.then(res => res.json())
+																.then(product => {
+																	handleProductChange(index, product)
+																})
+																.catch(err => {
+																	console.error("Erro ao buscar produto:", err)
+																})
+														} else {
+															handleProductChange(index, null)
+														}
+													}}
+												/>
+											) : (
+												<ProductSelect
+													value={item.productId || undefined}
+													onValueChange={(value) => {
+														if (value) {
+															fetch(`/api/products/${value}`)
+																.then(res => res.json())
+																.then(product => {
+																	handleProductChange(index, product)
+																})
+																.catch(err => {
+																	console.error("Erro ao buscar produto:", err)
+																})
+														} else {
+															handleProductChange(index, null)
+														}
+													}}
+												/>
+											)}
 										</div>
 										<Button
 											variant="outline"

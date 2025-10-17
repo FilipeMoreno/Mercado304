@@ -1,10 +1,11 @@
 "use client"
 
-import { AlertCircle, ArrowLeft, ArrowRight, Camera, CheckCircle, Loader2, Mail, Save, Shield, Trash2, User } from "lucide-react"
+import { AlertCircle, ArrowLeft, ArrowRight, Camera, CheckCircle, Layout, Loader2, Mail, Save, Shield, Trash2, User } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useUIPreferences } from "@/hooks"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,12 +24,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { signOut, useSession } from "@/lib/auth-client"
 
 export default function ContaPage() {
 	const { data: session } = useSession()
 	const router = useRouter()
+	const { selectStyle, setSelectStyle, isLoaded } = useUIPreferences()
 
 	// Estados para perfil
 	const [name, setName] = useState(session?.user?.name || "")
@@ -304,6 +307,69 @@ export default function ContaPage() {
 									Acessar Configurações de Segurança
 								</Button>
 							</Link>
+						</CardContent>
+					</Card>
+
+					{/* Card de Preferências de Interface */}
+					<Card className="border-0 shadow-sm">
+						<CardHeader>
+							<div className="flex items-center gap-3">
+								<div className="p-2 rounded-full bg-purple-100 dark:bg-purple-950">
+									<Layout className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+								</div>
+								<div>
+									<CardTitle>Preferências de Interface</CardTitle>
+									<CardDescription>
+										Personalize a forma como você interage com os seletores
+									</CardDescription>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="space-y-4">
+								<div>
+									<Label className="text-sm font-medium">Estilo de Seletores</Label>
+									<p className="text-sm text-muted-foreground mt-1 mb-4">
+										Escolha como deseja selecionar produtos, mercados, categorias, etc.
+									</p>
+								</div>
+
+								<RadioGroup
+									value={selectStyle}
+									onValueChange={(value: "traditional" | "dialog") => {
+										setSelectStyle(value)
+										toast.success(`Preferência salva! ${value === "dialog" ? "Dialogs responsivos" : "Selects tradicionais"} serão usados.`)
+									}}
+									disabled={!isLoaded}
+									className="space-y-3"
+								>
+									<div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:bg-accent/50 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+										<RadioGroupItem value="dialog" id="dialog" className="mt-1" />
+										<div className="flex-1">
+											<Label htmlFor="dialog" className="font-medium cursor-pointer">
+												Dialogs Responsivos (Recomendado)
+											</Label>
+											<p className="text-sm text-muted-foreground mt-1">
+												Interface moderna com dialogs full-screen em dispositivos móveis e busca integrada.
+												Ideal para telas sensíveis ao toque.
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:bg-accent/50 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+										<RadioGroupItem value="traditional" id="traditional" className="mt-1" />
+										<div className="flex-1">
+											<Label htmlFor="traditional" className="font-medium cursor-pointer">
+												Selects Tradicionais
+											</Label>
+											<p className="text-sm text-muted-foreground mt-1">
+												Dropdowns compactos que abrem na posição do elemento.
+												Mais familiar para usuários de desktop.
+											</p>
+										</div>
+									</div>
+								</RadioGroup>
+							</div>
 						</CardContent>
 					</Card>
 				</div>

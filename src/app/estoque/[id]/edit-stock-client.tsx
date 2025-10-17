@@ -7,11 +7,13 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUIPreferences } from "@/hooks"
 import { formatLocalDate, toDateInputValue } from "@/lib/date-utils"
 
 interface StockItem {
@@ -40,6 +42,7 @@ interface EditStockClientProps {
 
 export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 	const router = useRouter()
+	const { selectStyle } = useUIPreferences()
 	const [saving, setSaving] = useState(false)
 
 	const [formData, setFormData] = useState({
@@ -108,12 +111,20 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 							<form onSubmit={handleSubmit} className="space-y-6">
 								<div className="space-y-2">
 									<Label>Produto *</Label>
-									<ProductSelect
-										value={formData.productId}
-										products={products}
-										onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
-										disabled={saving}
-									/>
+									{selectStyle === "dialog" ? (
+										<ProductSelectDialog
+											value={formData.productId}
+											onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
+											disabled={saving}
+										/>
+									) : (
+										<ProductSelect
+											value={formData.productId}
+											products={products}
+											onValueChange={(value) => setFormData((prev) => ({ ...prev, productId: value }))}
+											disabled={saving}
+										/>
+									)}
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">

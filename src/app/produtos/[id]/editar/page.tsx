@@ -8,7 +8,10 @@ import { toast } from "sonner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
 import { BrandSelect } from "@/components/selects/brand-select"
+import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
+import { CategorySelectDialog } from "@/components/selects/category-select-dialog"
+import { UnitSelectDialog } from "@/components/selects/unit-select-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -16,6 +19,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUIPreferences } from "@/hooks"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { useDataStore } from "@/store/useDataStore"
 import type { NutritionalInfo, Product } from "@/types"
@@ -28,6 +32,7 @@ export default function EditarProdutoPage() {
 	const params = useParams()
 	const router = useRouter()
 	const productId = params.id as string
+	const { selectStyle } = useUIPreferences()
 	const { categories, fetchCategories } = useDataStore()
 
 	const [product, setProduct] = useState<Product | null>(null)
@@ -323,34 +328,55 @@ export default function EditarProdutoPage() {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="brandId">Marca</Label>
-									<BrandSelect
-										value={formData.brandId}
-										onValueChange={(value) => handleSelectChange("brandId", value)}
-									/>
+									{selectStyle === "dialog" ? (
+										<BrandSelectDialog
+											value={formData.brandId}
+											onValueChange={(value) => handleSelectChange("brandId", value)}
+										/>
+									) : (
+										<BrandSelect
+											value={formData.brandId}
+											onValueChange={(value) => handleSelectChange("brandId", value)}
+										/>
+									)}
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="categoryId">Categoria</Label>
-									<CategorySelect
-										value={formData.categoryId}
-										onValueChange={(value) => handleSelectChange("categoryId", value)}
-									/>
+									{selectStyle === "dialog" ? (
+										<CategorySelectDialog
+											value={formData.categoryId}
+											onValueChange={(value) => handleSelectChange("categoryId", value)}
+										/>
+									) : (
+										<CategorySelect
+											value={formData.categoryId}
+											onValueChange={(value) => handleSelectChange("categoryId", value)}
+										/>
+									)}
 								</div>
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>
-									<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{units.map((unit) => (
-												<SelectItem key={unit} value={unit}>
-													{unit}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+									{selectStyle === "dialog" ? (
+										<UnitSelectDialog
+											value={formData.unit}
+											onValueChange={(value) => handleSelectChange("unit", value)}
+										/>
+									) : (
+										<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{units.map((unit) => (
+													<SelectItem key={unit} value={unit}>
+														{unit}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="barcode">Código de Barras</Label>

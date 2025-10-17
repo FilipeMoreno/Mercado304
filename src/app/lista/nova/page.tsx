@@ -17,7 +17,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useCreateShoppingListMutation } from "@/hooks"
+import { ResponsiveSelectDialog, type SelectOption } from "@/components/ui/responsive-select-dialog"
+import { useCreateShoppingListMutation, useUIPreferences } from "@/hooks"
 import { cn } from "@/lib/utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
@@ -54,6 +55,7 @@ export default function NovaListaPage() {
 	const searchParams = useSearchParams()
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const id = useId()
+	const { selectStyle } = useUIPreferences()
 	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
@@ -64,6 +66,7 @@ export default function NovaListaPage() {
 
 	const [checkingPrices, setCheckingPrices] = useState<boolean[]>([false])
 	const [openPopovers, setOpenPopovers] = useState<number[]>([])
+	const [openDialogs, setOpenDialogs] = useState<number[]>([])
 
 	const [listName, setListName] = useState("")
 
@@ -514,56 +517,22 @@ export default function NovaListaPage() {
 															placeholder="Digite o nome ou busque um produto..."
 															className="pr-10"
 														/>
-														<Popover
-															open={openPopovers.includes(index)}
-															onOpenChange={(open) => {
-																if (open) {
-																	setOpenPopovers(prev => [...prev, index])
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+															onClick={() => {
+																if (selectStyle === "dialog") {
+																	setOpenDialogs(prev => [...prev, index])
 																} else {
-																	setOpenPopovers(prev => prev.filter(i => i !== index))
+																	setOpenPopovers(prev => [...prev, index])
 																}
 															}}
+															title="Buscar produto cadastrado"
 														>
-															<PopoverTrigger asChild>
-																<Button
-																	type="button"
-																	variant="ghost"
-																	size="sm"
-																	className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
-																	title="Buscar produto cadastrado"
-																>
-																	<LinkIcon className="h-4 w-4" />
-																</Button>
-															</PopoverTrigger>
-															<PopoverContent className="w-[400px] p-0" align="start">
-																<Command>
-																	<CommandInput placeholder="Buscar produto..." />
-																	<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
-																	<CommandGroup className="max-h-[300px] overflow-auto">
-																		{products.map((product) => (
-																			<CommandItem
-																				key={product.id}
-																				value={product.name}
-																				onSelect={() => handleProductSelected(index, product)}
-																			>
-																				<Check
-																					className={cn(
-																						"mr-2 h-4 w-4",
-																						item.productId === product.id ? "opacity-100" : "opacity-0"
-																					)}
-																				/>
-																				<div className="flex-1">
-																					<div className="font-medium">{product.name}</div>
-																					{(product as any).brand && (
-																						<div className="text-xs text-muted-foreground">{(product as any).brand.name}</div>
-																					)}
-																				</div>
-																			</CommandItem>
-																		))}
-																	</CommandGroup>
-																</Command>
-															</PopoverContent>
-														</Popover>
+															<LinkIcon className="h-4 w-4" />
+														</Button>
 													</div>
 													{item.productId && (
 														<Button
@@ -581,6 +550,80 @@ export default function NovaListaPage() {
 													<p className="text-xs text-green-600">
 														✓ Vinculado a produto cadastrado
 													</p>
+												)}
+
+												{/* Dialogs/Popovers separados do input */}
+												{selectStyle === "dialog" ? (
+													<ResponsiveSelectDialog
+														open={openDialogs.includes(index)}
+														onOpenChange={(open) => {
+															if (!open) {
+																setOpenDialogs(prev => prev.filter(i => i !== index))
+															}
+														}}
+														value={item.productId || ""}
+														onValueChange={(productId) => {
+															const product = products.find(p => p.id === productId)
+															if (product) {
+																handleProductSelected(index, product)
+																setOpenDialogs(prev => prev.filter(i => i !== index))
+															}
+														}}
+														options={products.map((product) => ({
+															id: product.id,
+															label: product.name,
+															sublabel: (product as any).brand?.name || undefined,
+														}))}
+														title="Buscar Produto"
+														placeholder="Selecione um produto"
+														searchPlaceholder="Buscar produto..."
+														emptyText="Nenhum produto encontrado."
+														showCreateNew={false}
+														renderTrigger={false}
+													/>
+												) : (
+													<Popover
+														open={openPopovers.includes(index)}
+														onOpenChange={(open) => {
+															if (open) {
+																setOpenPopovers(prev => [...prev, index])
+															} else {
+																setOpenPopovers(prev => prev.filter(i => i !== index))
+															}
+														}}
+													>
+														<PopoverTrigger asChild>
+															<div className="hidden" />
+														</PopoverTrigger>
+														<PopoverContent className="w-[400px] p-0" align="start">
+															<Command>
+																<CommandInput placeholder="Buscar produto..." />
+																<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+																<CommandGroup className="max-h-[300px] overflow-auto">
+																	{products.map((product) => (
+																		<CommandItem
+																			key={product.id}
+																			value={product.name}
+																			onSelect={() => handleProductSelected(index, product)}
+																		>
+																			<Check
+																				className={cn(
+																					"mr-2 h-4 w-4",
+																					item.productId === product.id ? "opacity-100" : "opacity-0"
+																				)}
+																			/>
+																			<div className="flex-1">
+																				<div className="font-medium">{product.name}</div>
+																				{(product as any).brand && (
+																					<div className="text-xs text-muted-foreground">{(product as any).brand.name}</div>
+																				)}
+																			</div>
+																		</CommandItem>
+																	))}
+																</CommandGroup>
+															</Command>
+														</PopoverContent>
+													</Popover>
 												)}
 											</div>
 

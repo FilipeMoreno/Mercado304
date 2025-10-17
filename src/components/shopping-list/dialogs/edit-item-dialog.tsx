@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
+import { useUIPreferences } from "@/hooks"
 import { cn } from "@/lib/utils"
 
 interface ShoppingListItem {
@@ -66,8 +68,10 @@ export function EditItemDialog({
 	onCloseBestPriceAlert,
 	onCheckBestPrice,
 }: EditItemDialogProps) {
+	const { selectStyle } = useUIPreferences()
 	const [products, setProducts] = useState<any[]>([])
 	const [openProductPopover, setOpenProductPopover] = useState(false)
+	const [openProductDialog, setOpenProductDialog] = useState(false)
 
 	// Buscar TODOS os produtos
 	useEffect(() => {
@@ -102,6 +106,7 @@ export function EditItemDialog({
 			productUnit: product.unit || 'unidade',
 		})
 		setOpenProductPopover(false)
+		setOpenProductDialog(false)
 		toast.success(`Produto vinculado: "${product.name}"`)
 	}
 
@@ -133,47 +138,22 @@ export function EditItemDialog({
 									placeholder="Digite o nome do produto..."
 									className="pr-10"
 								/>
-								<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
-									<PopoverTrigger asChild>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
-											title="Buscar produto cadastrado"
-										>
-											<LinkIcon className="h-4 w-4" />
-										</Button>
-									</PopoverTrigger>
-									<PopoverContent className="w-[400px] p-0" align="start">
-										<Command>
-											<CommandInput placeholder="Buscar produto..." />
-											<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
-											<CommandGroup className="max-h-[300px] overflow-auto">
-												{products.map((product) => (
-													<CommandItem
-														key={product.id}
-														value={product.name}
-														onSelect={() => handleProductSelected(product)}
-													>
-														<Check
-															className={cn(
-																"mr-2 h-4 w-4",
-																editItemData.productId === product.id ? "opacity-100" : "opacity-0"
-															)}
-														/>
-														<div className="flex-1">
-															<div className="font-medium">{product.name}</div>
-															{product.brand && (
-																<div className="text-xs text-muted-foreground">{product.brand.name}</div>
-															)}
-														</div>
-													</CommandItem>
-												))}
-											</CommandGroup>
-										</Command>
-									</PopoverContent>
-								</Popover>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+									onClick={() => {
+										if (selectStyle === "dialog") {
+											setOpenProductDialog(true)
+										} else {
+											setOpenProductPopover(true)
+										}
+									}}
+									title="Buscar produto cadastrado"
+								>
+									<LinkIcon className="h-4 w-4" />
+								</Button>
 							</div>
 							{editItemData.productId && (
 								<Button
@@ -191,6 +171,66 @@ export function EditItemDialog({
 							<p className="text-xs text-green-600">
 								✓ Vinculado a produto cadastrado
 							</p>
+						)}
+
+						{/* Dialog ou Popover separado */}
+						{selectStyle === "dialog" ? (
+							<ResponsiveSelectDialog
+								open={openProductDialog}
+								onOpenChange={setOpenProductDialog}
+								value={editItemData.productId || ""}
+								onValueChange={(productId) => {
+									const product = products.find(p => p.id === productId)
+									if (product) {
+										handleProductSelected(product)
+									}
+								}}
+								options={products.map((product) => ({
+									id: product.id,
+									label: product.name,
+									sublabel: product.brand?.name || undefined,
+								}))}
+								title="Buscar Produto"
+								placeholder="Selecione um produto"
+								searchPlaceholder="Buscar produto..."
+								emptyText="Nenhum produto encontrado."
+								showCreateNew={false}
+								renderTrigger={false}
+							/>
+						) : (
+							<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
+								<PopoverTrigger asChild>
+									<div className="hidden" />
+								</PopoverTrigger>
+								<PopoverContent className="w-[400px] p-0" align="start">
+									<Command>
+										<CommandInput placeholder="Buscar produto..." />
+										<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+										<CommandGroup className="max-h-[300px] overflow-auto">
+											{products.map((product) => (
+												<CommandItem
+													key={product.id}
+													value={product.name}
+													onSelect={() => handleProductSelected(product)}
+												>
+													<Check
+														className={cn(
+															"mr-2 h-4 w-4",
+															editItemData.productId === product.id ? "opacity-100" : "opacity-0"
+														)}
+													/>
+													<div className="flex-1">
+														<div className="font-medium">{product.name}</div>
+														{product.brand && (
+															<div className="text-xs text-muted-foreground">{product.brand.name}</div>
+														)}
+													</div>
+												</CommandItem>
+											))}
+										</CommandGroup>
+									</Command>
+								</PopoverContent>
+							</Popover>
 						)}
 					</div>
 

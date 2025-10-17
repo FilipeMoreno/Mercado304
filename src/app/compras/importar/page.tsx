@@ -14,11 +14,15 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MarketSelect } from '@/components/selects/market-select';
+import { MarketSelectDialog } from '@/components/selects/market-select-dialog';
+import { PaymentMethodSelectDialog } from '@/components/selects/payment-method-select-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Market } from '@prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreatePurchaseMutation } from '@/hooks/use-react-query';
+import { useUIPreferences } from '@/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaymentMethod } from '@/types';
 
 type ViewState = 'idle' | 'processing' | 'reviewing';
 
@@ -35,6 +39,7 @@ interface NfceParseResponse {
 
 export default function ImportarCompraPage() {
   const router = useRouter();
+  const { selectStyle } = useUIPreferences();
   const [viewState, setViewState] = useState<ViewState>('idle');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isFiscalReceiptScannerOpen, setIsFiscalReceiptScannerOpen] = useState(false);
@@ -369,26 +374,41 @@ export default function ImportarCompraPage() {
               <CardContent className="p-6 grid md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="market" className="text-green-800">Mercado *</Label>
-                  <MarketSelect
-                    key={suggestedMarket?.id}
-                    value={marketId?.toString()}
-                    onValueChange={(value) => setMarketId(parseInt(value))}
-                  />
+                  {selectStyle === "dialog" ? (
+                    <MarketSelectDialog
+                      key={suggestedMarket?.id}
+                      value={marketId?.toString()}
+                      onValueChange={(value) => setMarketId(parseInt(value))}
+                    />
+                  ) : (
+                    <MarketSelect
+                      key={suggestedMarket?.id}
+                      value={marketId?.toString()}
+                      onValueChange={(value) => setMarketId(parseInt(value))}
+                    />
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="payment-method" className="text-green-800">Forma de Pagamento</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger id="payment-method">
-                      <SelectValue placeholder="Selecione a forma de pagamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
-                      <SelectItem value="DEBIT_CARD">Cartão de Débito</SelectItem>
-                      <SelectItem value="CASH">Dinheiro</SelectItem>
-                      <SelectItem value="PIX">Pix</SelectItem>
-                      <SelectItem value="OTHER">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {selectStyle === "dialog" ? (
+                    <PaymentMethodSelectDialog
+                      value={paymentMethod as PaymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value)}
+                    />
+                  ) : (
+                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <SelectTrigger id="payment-method">
+                        <SelectValue placeholder="Selecione a forma de pagamento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                        <SelectItem value="DEBIT_CARD">Cartão de Débito</SelectItem>
+                        <SelectItem value="CASH">Dinheiro</SelectItem>
+                        <SelectItem value="PIX">Pix</SelectItem>
+                        <SelectItem value="OTHER">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="date" className="text-green-800">Data da Compra</Label>

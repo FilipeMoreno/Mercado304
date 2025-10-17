@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UnitSelectDialog } from "@/components/selects/unit-select-dialog"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useUIPreferences } from "@/hooks"
 import { cn } from "@/lib/utils"
 
 const units = ["unidade", "kg", "g", "litro", "ml", "pacote", "caixa", "garrafa", "lata", "saco"]
@@ -47,8 +50,10 @@ export function AddItemDialog({
 	onCreateQuickProduct,
 	preserveFormData,
 }: AddItemDialogProps) {
+	const { selectStyle } = useUIPreferences()
 	const [showAdvanced, setShowAdvanced] = useState(false)
 	const [openProductPopover, setOpenProductPopover] = useState(false)
+	const [openProductDialog, setOpenProductDialog] = useState(false)
 
 	const handleProductSelected = (product: any) => {
 		onNewItemChange({
@@ -60,6 +65,7 @@ export function AddItemDialog({
 			category: product.category?.name || '',
 		})
 		setOpenProductPopover(false)
+		setOpenProductDialog(false)
 	}
 
 	const handleProductNameChange = (name: string) => {
@@ -104,47 +110,22 @@ export function AddItemDialog({
 								autoFocus
 								className="pr-10"
 							/>
-							<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
-								<PopoverTrigger asChild>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
-										title="Buscar produto cadastrado"
-									>
-										<LinkIcon className="h-4 w-4" />
-									</Button>
-								</PopoverTrigger>
-								<PopoverContent className="w-[400px] p-0" align="start">
-									<Command>
-										<CommandInput placeholder="Buscar produto..." />
-										<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
-										<CommandGroup className="max-h-[300px] overflow-auto">
-											{products.map((product) => (
-												<CommandItem
-													key={product.id}
-													value={product.name}
-													onSelect={() => handleProductSelected(product)}
-												>
-													<Check
-														className={cn(
-															"mr-2 h-4 w-4",
-															newItem.productId === product.id ? "opacity-100" : "opacity-0"
-														)}
-													/>
-													<div className="flex-1">
-														<div className="font-medium">{product.name}</div>
-														{product.brand && (
-															<div className="text-xs text-muted-foreground">{product.brand.name}</div>
-														)}
-													</div>
-												</CommandItem>
-											))}
-										</CommandGroup>
-									</Command>
-								</PopoverContent>
-							</Popover>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
+								onClick={() => {
+									if (selectStyle === "dialog") {
+										setOpenProductDialog(true)
+									} else {
+										setOpenProductPopover(true)
+									}
+								}}
+								title="Buscar produto cadastrado"
+							>
+								<LinkIcon className="h-4 w-4" />
+							</Button>
 						</div>
 						{newItem.productId && (
 							<Button
@@ -162,6 +143,66 @@ export function AddItemDialog({
 						<p className="text-xs text-green-600">
 							✓ Vinculado a produto cadastrado
 						</p>
+					)}
+
+					{/* Dialog ou Popover separado */}
+					{selectStyle === "dialog" ? (
+						<ResponsiveSelectDialog
+							open={openProductDialog}
+							onOpenChange={setOpenProductDialog}
+							value={newItem.productId || ""}
+							onValueChange={(productId) => {
+								const product = products.find(p => p.id === productId)
+								if (product) {
+									handleProductSelected(product)
+								}
+							}}
+							options={products.map((product) => ({
+								id: product.id,
+								label: product.name,
+								sublabel: product.brand?.name || undefined,
+							}))}
+							title="Buscar Produto"
+							placeholder="Selecione um produto"
+							searchPlaceholder="Buscar produto..."
+							emptyText="Nenhum produto encontrado."
+							showCreateNew={false}
+							renderTrigger={false}
+						/>
+					) : (
+						<Popover open={openProductPopover} onOpenChange={setOpenProductPopover}>
+							<PopoverTrigger asChild>
+								<div className="hidden" />
+							</PopoverTrigger>
+							<PopoverContent className="w-[400px] p-0" align="start">
+								<Command>
+									<CommandInput placeholder="Buscar produto..." />
+									<CommandEmpty>Nenhum produto encontrado</CommandEmpty>
+									<CommandGroup className="max-h-[300px] overflow-auto">
+										{products.map((product) => (
+											<CommandItem
+												key={product.id}
+												value={product.name}
+												onSelect={() => handleProductSelected(product)}
+											>
+												<Check
+													className={cn(
+														"mr-2 h-4 w-4",
+														newItem.productId === product.id ? "opacity-100" : "opacity-0"
+													)}
+												/>
+												<div className="flex-1">
+													<div className="font-medium">{product.name}</div>
+													{product.brand && (
+														<div className="text-xs text-muted-foreground">{product.brand.name}</div>
+													)}
+												</div>
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</Command>
+							</PopoverContent>
+						</Popover>
 					)}
 				</div>
 
@@ -185,21 +226,28 @@ export function AddItemDialog({
 
 					<div className="space-y-2">
 						<Label>Unidade *</Label>
-						<Select
-							value={newItem.productUnit}
-							onValueChange={(value) => onNewItemChange({ ...newItem, productUnit: value })}
-						>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{units.map((unit) => (
-									<SelectItem key={unit} value={unit}>
-										{unit}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						{selectStyle === "dialog" ? (
+							<UnitSelectDialog
+								value={newItem.productUnit}
+								onValueChange={(value) => onNewItemChange({ ...newItem, productUnit: value })}
+							/>
+						) : (
+							<Select
+								value={newItem.productUnit}
+								onValueChange={(value) => onNewItemChange({ ...newItem, productUnit: value })}
+							>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{units.map((unit) => (
+										<SelectItem key={unit} value={unit}>
+											{unit}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
 					</div>
 				</div>
 

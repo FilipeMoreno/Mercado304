@@ -4,10 +4,12 @@ import { Loader2, Search, ShoppingCart } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ShoppingListSelect } from "@/components/selects/shopping-list-select"
+import { ShoppingListSelectDialog } from "@/components/selects/shopping-list-select-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { MultiSelect } from "@/components/ui/multi-select"
+import { useUIPreferences } from "@/hooks"
 import { DetailedComparisonTable } from "./detailed-comparison-table"
 import { ListItemsSelector } from "./list-items-selector"
 
@@ -64,6 +66,7 @@ export function DetailedComparisonTab({
 	selectedMarketIds,
 	onSelectedMarketIdsChange,
 }: DetailedComparisonTabProps) {
+	const { selectStyle } = useUIPreferences()
 	const [detailedComparison, setDetailedComparison] = useState<DetailedComparison | null>(null)
 	const [loadingDetailed, setLoadingDetailed] = useState(false)
 	const [listItems, setListItems] = useState<ListItem[]>([])
@@ -159,12 +162,20 @@ export function DetailedComparisonTab({
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 						<div className="space-y-2">
 							<Label htmlFor="detailedListSelect">Selecione uma Lista</Label>
-							<ShoppingListSelect
-								value={detailedListId}
-								onValueChange={onDetailedListChange}
-								placeholder="Selecionar lista..."
-								className="w-full"
-							/>
+							{selectStyle === "dialog" ? (
+								<ShoppingListSelectDialog
+									value={detailedListId}
+									onValueChange={onDetailedListChange}
+									placeholder="Selecionar lista..."
+								/>
+							) : (
+								<ShoppingListSelect
+									value={detailedListId}
+									onValueChange={onDetailedListChange}
+									placeholder="Selecionar lista..."
+									className="w-full"
+								/>
+							)}
 						</div>
 						<div className="space-y-2">
 							<Label>Selecione os Mercados</Label>

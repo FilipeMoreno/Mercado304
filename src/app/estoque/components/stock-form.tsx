@@ -2,11 +2,13 @@
 
 import { useId, useState } from "react"
 import { ProductSelect } from "@/components/selects/product-select"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useUIPreferences } from "@/hooks"
 import type { Product } from "@/types"
 
 interface StockItem {
@@ -35,6 +37,7 @@ interface StockFormProps {
 }
 
 export function StockForm({ initialData, products, onSubmit, onCancel }: StockFormProps) {
+	const { selectStyle } = useUIPreferences()
 	const productId = useId()
 	const quantityId = useId()
 	const locationId = useId()
@@ -106,17 +109,37 @@ export function StockForm({ initialData, products, onSubmit, onCancel }: StockFo
 		<form onSubmit={handleSubmit} className="space-y-4">
 			<div>
 				<Label htmlFor={productId}>Produto *</Label>
-				<ProductSelect
-					value={formData.productId}
-					products={products}
-					onValueChange={(value) => {
-						setFormData((prev) => ({ ...prev, productId: value }))
-						if (errors.productId) {
-							setErrors((prev) => ({ ...prev, productId: "" }))
-						}
-					}}
-					disabled={isSubmitting}
-				/>
+				{selectStyle === "dialog" ? (
+					<ProductSelectDialog
+						value={formData.productId}
+						onValueChange={(value) => {
+							setFormData((prev) => ({ ...prev, productId: value }))
+							if (errors.productId) {
+								setErrors((prev) => {
+									const newErrors = { ...prev }
+									delete newErrors.productId
+									return newErrors
+								})
+							}
+						}}
+					/>
+				) : (
+					<ProductSelect
+						value={formData.productId}
+						products={products}
+						onValueChange={(value) => {
+							setFormData((prev) => ({ ...prev, productId: value }))
+							if (errors.productId) {
+								setErrors((prev) => {
+									const newErrors = { ...prev }
+									delete newErrors.productId
+									return newErrors
+								})
+							}
+						}}
+						disabled={isSubmitting}
+					/>
+				)}
 				{errors.productId && <p className="text-red-500 text-sm mt-1">{errors.productId}</p>}
 			</div>
 
