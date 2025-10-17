@@ -19,10 +19,13 @@ export async function POST() {
 		})
 
 		if (jobRodando) {
-			return NextResponse.json({
-				error: "Já existe uma sincronização em andamento",
-				jobId: jobRodando.id,
-			}, { status: 409 })
+			return NextResponse.json(
+				{
+					error: "Já existe uma sincronização em andamento",
+					jobId: jobRodando.id,
+				},
+				{ status: 409 },
+			)
 		}
 
 		// Criar novo job
@@ -44,10 +47,7 @@ export async function POST() {
 		})
 	} catch (error) {
 		console.error("Erro ao iniciar sincronização:", error)
-		return NextResponse.json(
-			{ error: "Erro ao iniciar sincronização" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro ao iniciar sincronização" }, { status: 500 })
 	}
 }
 
@@ -137,17 +137,45 @@ async function processarSyncJob(jobId: string) {
 
 		// 3. Processar produtos
 		let precosRegistrados = 0
-		const detalhes: { mercado: string; produtos: number; precos: number }[] = []
+		const detalhes: {
+			mercado: string
+			mercadoId: string
+			itens: {
+				produto: string
+				preco: number
+				data: string
+			}[]
+		}[] = []
+		const produtosNaoEncontrados: {
+			id: string
+			nome: string
+			barcode: string
+		}[] = []
+		const startTime = Date.now()
 
 		for (let i = 0; i < produtos.length; i++) {
 			const produto = produtos[i]
 			if (!produto.barcode) continue
 
-			// Atualizar progresso
+			// Calcular tempo estimado
+			const elapsed = Date.now() - startTime
+			const avgTimePerProduct = elapsed / (i + 1)
+			const remaining = produtos.length - (i + 1)
+			const estimatedTimeRemaining = Math.round((avgTimePerProduct * remaining) / 1000) // segundos
+
+			// Atualizar progresso com estimativa
 			const progresso = Math.floor(5 + ((i + 1) / produtos.length) * 90)
 			await prisma.syncJob.update({
 				where: { id: jobId },
-				data: { progresso },
+				data: {
+					progresso,
+					detalhes: {
+						estimativaSegundos: estimatedTimeRemaining,
+						produtosProcessadosAtual: i + 1,
+						produtosTotal: produtos.length,
+						quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
+					},
+				},
 			})
 
 			// Buscar em categorias
@@ -238,24 +266,40 @@ async function processarSyncJob(jobId: string) {
 
 							precosRegistrados++
 
-							let detalhe = detalhes.find((d) => d.mercado === mercadoMatch.name)
+							let detalhe = detalhes.find((d) => d.mercadoId === mercadoMatch.id)
 							if (!detalhe) {
-								detalhe = { mercado: mercadoMatch.name, produtos: 0, precos: 0 }
+								detalhe = {
+									mercado: mercadoMatch.name,
+									mercadoId: mercadoMatch.id,
+									itens: [],
+								}
 								detalhes.push(detalhe)
 							}
-							detalhe.produtos++
-							detalhe.precos++
+							detalhe.itens.push({
+								produto: produto.name,
+								preco: preco,
+								data: produtoNP.datahora,
+							})
 
-							await adicionarLog(jobId, `Preço registrado: ${produto.name} em ${mercadoMatch.name} - R$ ${preco.toFixed(2)}`)
+							await adicionarLog(
+								jobId,
+								`Preço registrado: ${produto.name} em ${mercadoMatch.name} - R$ ${preco.toFixed(2)}`,
+							)
 						}
 					}
-				} catch {
-					continue
-				}
+				} catch {}
 			}
 
 			if (encontrouProduto) {
 				await adicionarLog(jobId, `✓ ${produto.name} processado`)
+			} else {
+				// Produto não encontrado em nenhuma categoria
+				produtosNaoEncontrados.push({
+					id: produto.id,
+					nome: produto.name,
+					barcode: produto.barcode,
+				})
+				await adicionarLog(jobId, `⚠ ${produto.name} não encontrado na API`)
 			}
 
 			// Delay entre produtos
@@ -269,12 +313,25 @@ async function processarSyncJob(jobId: string) {
 				status: "completed",
 				progresso: 100,
 				precosRegistrados,
-				detalhes,
+				detalhes: {
+					mercados: detalhes,
+					produtosNaoEncontrados: produtosNaoEncontrados,
+					estatisticas: {
+						produtosTotal: produtos.length,
+						produtosEncontrados: produtos.length - produtosNaoEncontrados.length,
+						produtosNaoEncontrados: produtosNaoEncontrados.length,
+						precosRegistrados,
+						tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+					},
+				},
 				completedAt: new Date(),
 			},
 		})
 
-		await adicionarLog(jobId, `Sincronização concluída: ${precosRegistrados} preços registrados`)
+		await adicionarLog(
+			jobId,
+			`Sincronização concluída: ${precosRegistrados} preços registrados, ${produtosNaoEncontrados.length} produtos não encontrados`,
+		)
 	} catch (err) {
 		console.error("Erro ao processar job:", err)
 		await prisma.syncJob.update({
@@ -305,4 +362,3 @@ async function adicionarLog(jobId: string, mensagem: string) {
 		},
 	})
 }
-
