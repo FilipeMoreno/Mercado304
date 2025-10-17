@@ -1135,6 +1135,147 @@ export const tools: any = [
 					required: ["marketName", "productName", "quantity", "unitPrice"],
 				},
 			},
+
+			// Kits e Combos Promocionais
+			{
+				name: "listProductKits",
+				description: "Lista todos os kits/combos promocionais cadastrados. Kits são combos que os mercados oferecem (ex: Kit 2 Refris).",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						includeInactive: {
+							type: SchemaType.BOOLEAN,
+							description: "Se deve incluir kits inativos (padrão: false).",
+						},
+					},
+				},
+			},
+			{
+				name: "createProductKit",
+				description: "Cria um novo kit/combo promocional. Use quando o usuário mencionar combos de mercados (ex: 'Kit 2 Refris Carrefour').",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit/combo (ex: 'Kit 2 Refris Carrefour').",
+						},
+						description: {
+							type: SchemaType.STRING,
+							description: "Descrição do kit (ex: 'Economiza R$ 2,00').",
+						},
+						products: {
+							type: SchemaType.ARRAY,
+							description: "Produtos que compõem o kit.",
+							items: {
+								type: SchemaType.OBJECT,
+								properties: {
+									productName: {
+										type: SchemaType.STRING,
+										description: "Nome do produto.",
+									},
+									quantity: {
+										type: SchemaType.NUMBER,
+										description: "Quantidade deste produto no kit.",
+									},
+								},
+								required: ["productName", "quantity"],
+							},
+						},
+					},
+					required: ["kitName", "products"],
+				},
+			},
+			{
+				name: "getProductKitDetails",
+				description: "Obtém detalhes completos de um kit, incluindo produtos, estoque, nutrição e preço sugerido.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit para buscar detalhes.",
+						},
+					},
+					required: ["kitName"],
+				},
+			},
+			{
+				name: "checkKitStock",
+				description: "Verifica quantos kits completos podem ser montados com o estoque atual e identifica produto limitante.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit para verificar estoque.",
+						},
+					},
+					required: ["kitName"],
+				},
+			},
+			{
+				name: "calculateKitSavings",
+				description: "Calcula a economia ao comprar um kit comparado com produtos separados. Use quando usuário comprar um kit ou perguntar sobre economia.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit.",
+						},
+						paidPrice: {
+							type: SchemaType.NUMBER,
+							description: "Preço que o usuário pagou pelo kit (opcional).",
+						},
+						marketName: {
+							type: SchemaType.STRING,
+							description: "Nome do mercado onde viu o kit (opcional).",
+						},
+					},
+					required: ["kitName"],
+				},
+			},
+			{
+				name: "suggestKitsFromStock",
+				description: "Sugere quais kits podem ser montados com o estoque atual do usuário.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {},
+				},
+			},
+			{
+				name: "compareKitPrices",
+				description: "Compara preços de um kit entre diferentes mercados baseado no histórico de preços registrados.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						kitName: {
+							type: SchemaType.STRING,
+							description: "Nome do kit para comparar preços.",
+						},
+					},
+					required: ["kitName"],
+				},
+			},
+			{
+				name: "findSimilarKits",
+				description: "Busca kits similares ao termo fornecido. Use para seleção quando usuário mencionar um kit que pode ter múltiplas opções.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						searchTerm: {
+							type: SchemaType.STRING,
+							description: "Termo de busca para encontrar kits.",
+						},
+						context: {
+							type: SchemaType.OBJECT,
+							description: "Contexto da ação que será executada após a seleção (opcional).",
+						},
+					},
+					required: ["searchTerm"],
+				},
+			},
 		],
 	},
 ]

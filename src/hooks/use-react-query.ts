@@ -37,6 +37,13 @@ export const queryKeys = {
 	nutrition: {
 		analysis: () => ["nutrition", "analysis"],
 	},
+	productKits: {
+		all: (params?: URLSearchParams) => ["product-kits", params?.toString()],
+		detail: (id: string) => ["product-kits", id],
+		nutrition: (id: string) => ["product-kits", id, "nutrition"],
+		stock: (id: string) => ["product-kits", id, "stock"],
+		price: (id: string, marketId?: string) => ["product-kits", id, "price", marketId],
+	},
 } as const
 
 // API Functions
@@ -319,11 +326,18 @@ export const useProductQuery = (id: string) => {
 	})
 }
 
-export const useAllProductsQuery = () => {
+export const useAllProductsQuery = (options?: { excludeKits?: boolean }) => {
+	const { excludeKits = false } = options || {}
+
 	return useQuery({
-		queryKey: ["products", "all"],
-		queryFn: () => fetchWithErrorHandling("/api/products?limit=10000"),
-		staleTime: 0, // Sempre refetch quando invalidado
+		queryKey: ["products", "all", { excludeKits }],
+		queryFn: () => {
+			const params = new URLSearchParams()
+			if (excludeKits) params.set("excludeKits", "true")
+			return fetchWithErrorHandling(`/api/products/all?${params.toString()}`)
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutos
+		gcTime: 5 * 60 * 1000, // 5 minutos
 	})
 }
 
@@ -1043,6 +1057,140 @@ export const useResetDashboardPreferencesMutation = () => {
 		},
 		onError: (error) => {
 			toast.error(`Erro ao resetar preferências: ${error.message}`)
+		},
+	})
+}
+
+// Product Kits
+export const useProductKitsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.productKits.all(params),
+		queryFn: () => fetchWithErrorHandling(`/api/product-kits?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000, // 2 minutos
+		gcTime: 5 * 60 * 1000, // 5 minutos
+	})
+}
+
+export const useProductKitQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.productKits.detail(id),
+		queryFn: () => fetchWithErrorHandling(`/api/product-kits/${id}`),
+		staleTime: 3 * 60 * 1000,
+		enabled: !!id,
+	})
+}
+
+export const useProductKitNutritionQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.productKits.nutrition(id),
+		queryFn: () => fetchWithErrorHandling(`/api/product-kits/${id}/nutrition`),
+		staleTime: 5 * 60 * 1000, // Informações nutricionais mudam raramente
+		enabled: !!id,
+	})
+}
+
+export const useProductKitStockQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.productKits.stock(id),
+		queryFn: () => fetchWithErrorHandling(`/api/product-kits/${id}/stock`),
+		staleTime: 30 * 1000, // 30 segundos - estoque muda mais frequentemente
+		enabled: !!id,
+	})
+}
+
+export const useProductKitPriceQuery = (id: string, marketId?: string) => {
+	return useQuery({
+		queryKey: queryKeys.productKits.price(id, marketId),
+		queryFn: () => {
+			const url = marketId
+				? `/api/product-kits/${id}/price?marketId=${marketId}`
+				: `/api/product-kits/${id}/price`
+			return fetchWithErrorHandling(url)
+		},
+		staleTime: 2 * 60 * 1000,
+		enabled: !!id,
+	})
+}
+
+export const useCreateProductKitMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (data: any) =>
+			fetchWithErrorHandling("/api/product-kits", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: async () => {
+			// Invalidar e refetch imediatamente
+			await queryClient.invalidateQueries({ queryKey: ["product-kits"] })
+			await queryClient.refetchQueries({ queryKey: ["product-kits"] })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
+			toast.success("Kit criado com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar kit: ${error.message}`)
+		},
+	})
+}
+
+export const useUpdateProductKitMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: any }) =>
+			fetchWithErrorHandling(`/api/product-kits/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["product-kits"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.productKits.detail(id) })
+			toast.success("Kit atualizado com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar kit: ${error.message}`)
+		},
+	})
+}
+
+export const useConsumeKitStockMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, quantity, reason }: { id: string; quantity: number; reason?: string }) =>
+			fetchWithErrorHandling(`/api/product-kits/${id}/stock/consume`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ quantity, reason }),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.productKits.stock(id) })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
+			toast.success("Kit consumido do estoque com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao consumir kit: ${error.message}`)
+		},
+	})
+}
+
+export const useDeleteProductKitMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/product-kits/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: async () => {
+			// Invalidar e refetch imediatamente
+			await queryClient.invalidateQueries({ queryKey: ["product-kits"] })
+			await queryClient.refetchQueries({ queryKey: ["product-kits"] })
+			queryClient.invalidateQueries({ queryKey: ["products"] })
+			toast.success("Kit excluído com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir kit: ${error.message}`)
 		},
 	})
 }

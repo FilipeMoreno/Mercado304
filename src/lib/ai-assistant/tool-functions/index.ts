@@ -16,6 +16,7 @@ import { stockFunctions } from "./stock-functions"
 import { advancedAnalyticsFunctions } from "./advanced-analytics-functions"
 import { advancedStockFunctions } from "./advanced-stock-functions"
 import { predictionFunctions } from "./prediction-functions"
+import { kitFunctions } from "./kit-functions"
 
 // Exporta todas as funções das ferramentas em um único objeto
 export const toolFunctions = {
@@ -35,4 +36,5 @@ export const toolFunctions = {
 	...advancedAnalyticsFunctions,
 	...advancedStockFunctions,
 	...predictionFunctions,
+	...kitFunctions,
 }

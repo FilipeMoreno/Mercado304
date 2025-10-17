@@ -445,12 +445,59 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
 	try {
+		// Verificar se o produto está vinculado a algum kit
+		const kitCheck = await prisma.productKitItem.findFirst({
+			where: { productId: params.id },
+			include: {
+				kit: {
+					include: {
+						kitProduct: {
+							select: {
+								name: true,
+							},
+						},
+					},
+				},
+			},
+		})
+
+		if (kitCheck) {
+			return NextResponse.json(
+				{
+					error: `Este produto está sendo usado no kit "${kitCheck.kit.kitProduct.name}". Remova-o do kit antes de excluir.`,
+					kitName: kitCheck.kit.kitProduct.name,
+					kitId: kitCheck.kit.kitProductId,
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Verificar se o produto é um kit (produto principal de um kit)
+		const isKitProduct = await prisma.productKit.findUnique({
+			where: { kitProductId: params.id },
+			select: {
+				id: true,
+			},
+		})
+
+		if (isKitProduct) {
+			return NextResponse.json(
+				{
+					error: "Este produto é um kit. Exclua o kit pela página de Kits.",
+					isKit: true,
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Se não está em nenhum kit, pode deletar
 		await prisma.product.delete({
 			where: { id: params.id },
 		})
 
 		return NextResponse.json({ message: "Produto excluído com sucesso" })
-	} catch (_error) {
+	} catch (error) {
+		console.error("Erro ao excluir produto:", error)
 		return NextResponse.json({ error: "Erro ao excluir produto" }, { status: 500 })
 	}
 }

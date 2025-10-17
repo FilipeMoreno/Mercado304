@@ -10,6 +10,7 @@ import {
 	List,
 	Menu,
 	Package,
+	PackageCheck,
 	Receipt,
 	ShoppingBag,
 	ShoppingCart,
@@ -30,10 +31,17 @@ import { UserNav } from "./user-nav"
 const navigation = [
 	{ name: "Dashboard", href: "/", icon: LayoutDashboard },
 	{ name: "Mercados", href: "/mercados", icon: Store },
-	{ name: "Produtos", href: "/produtos", icon: Package },
-	{ name: "Categorias", href: "/categorias", icon: Grid3X3 },
-	{ name: "Marcas", href: "/marcas", icon: Tag },
-	// { name: "Compras", href: "/compras", icon: ShoppingCart },
+	{
+		name: "Produtos",
+		href: "/produtos",
+		icon: Package,
+		subItems: [
+			{ name: "Produtos", href: "/produtos", icon: Package },
+			{ name: "Kits e Combos", href: "/produtos/kits", icon: PackageCheck },
+			{ name: "Categorias", href: "/categorias", icon: Grid3X3 },
+			{ name: "Marcas", href: "/marcas", icon: Tag },
+		],
+	},
 	{
 		name: "Compras",
 		href: "/compras",
@@ -41,9 +49,27 @@ const navigation = [
 		subItems: [
 			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
 			{ name: "Importar NFC-e", href: "/compras/importar", icon: Receipt },
+			{ name: "Lista de Compras", href: "/lista", icon: List },
 		],
 	},
-	{ name: "Lista de Compras", href: "/lista", icon: List },
+	{
+		name: "Preços",
+		href: "/precos",
+		icon: DollarSign,
+		subItems: [
+			{ name: "Registro de Preços", href: "/precos", icon: Receipt },
+			{ name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
+		],
+	},
+	{
+		name: "Estoque",
+		href: "/estoque",
+		icon: Warehouse,
+		subItems: [
+			{ name: "Estoque", href: "/estoque", icon: Warehouse },
+			{ name: "Desperdícios", href: "/desperdicios", icon: Trash2 },
+		],
+	},
 	{
 		name: "Receitas",
 		href: "/receitas",
@@ -53,8 +79,6 @@ const navigation = [
 			{ name: "Gerar Receitas", href: "/receitas/gerar", icon: Sparkles },
 		],
 	},
-	{ name: "Registro de Preços", href: "/precos", icon: Receipt },
-	{ name: "Comparação de Preços", href: "/comparacao", icon: DollarSign },
 	{
 		name: "Análise Nutricional",
 		href: "/nutricao",
@@ -64,8 +88,6 @@ const navigation = [
 			{ name: "Produtos sem Info", href: "/produtos/nutricao", icon: Package },
 		],
 	},
-	{ name: "Estoque", href: "/estoque", icon: Warehouse },
-	{ name: "Desperdícios", href: "/desperdicios", icon: Trash2 },
 	{ name: "Churrascômetro", href: "/churrasco", icon: Beef },
 ]
 
@@ -77,15 +99,29 @@ interface SidebarProps {
 function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 	const pathname = usePathname()
 	const [expandedItems, setExpandedItems] = useState<string[]>(() => {
-		// Auto-expand receitas se estiver em uma página de receitas
+		const expanded = []
+		
+		// Auto-expand baseado na URL atual
+		if (pathname.startsWith("/produtos") || pathname.startsWith("/categorias") || pathname.startsWith("/marcas")) {
+			expanded.push("Produtos")
+		}
+		if (pathname.startsWith("/compras") || pathname.startsWith("/lista")) {
+			expanded.push("Compras")
+		}
+		if (pathname.startsWith("/precos") || pathname.startsWith("/comparacao")) {
+			expanded.push("Preços")
+		}
+		if (pathname.startsWith("/estoque") || pathname.startsWith("/desperdicios")) {
+			expanded.push("Estoque")
+		}
 		if (pathname.startsWith("/receitas")) {
-			return ["Receitas"]
+			expanded.push("Receitas")
 		}
-		// Auto-expand análise nutricional se estiver em páginas relacionadas
-		if (pathname.startsWith("/nutricao") || pathname.startsWith("/produtos/nutricao")) {
-			return ["Análise Nutricional"]
+		if (pathname.startsWith("/nutricao")) {
+			expanded.push("Análise Nutricional")
 		}
-		return []
+		
+		return expanded
 	})
 
 	const toggleExpanded = (itemName: string) => {
@@ -96,13 +132,34 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 
 	// Auto-expand ao navegar para páginas específicas
 	useEffect(() => {
-		if (pathname.startsWith("/receitas") && !expandedItems.includes("Receitas")) {
-			setExpandedItems((prev) => [...prev, "Receitas"])
+		const newExpanded = []
+		
+		if (pathname.startsWith("/produtos") || pathname.startsWith("/categorias") || pathname.startsWith("/marcas")) {
+			newExpanded.push("Produtos")
 		}
-		if ((pathname.startsWith("/nutricao") || pathname.startsWith("/produtos/nutricao")) && !expandedItems.includes("Análise Nutricional")) {
-			setExpandedItems((prev) => [...prev, "Análise Nutricional"])
+		if (pathname.startsWith("/compras") || pathname.startsWith("/lista")) {
+			newExpanded.push("Compras")
 		}
-	}, [pathname, expandedItems])
+		if (pathname.startsWith("/precos") || pathname.startsWith("/comparacao")) {
+			newExpanded.push("Preços")
+		}
+		if (pathname.startsWith("/estoque") || pathname.startsWith("/desperdicios")) {
+			newExpanded.push("Estoque")
+		}
+		if (pathname.startsWith("/receitas")) {
+			newExpanded.push("Receitas")
+		}
+		if (pathname.startsWith("/nutricao")) {
+			newExpanded.push("Análise Nutricional")
+		}
+		
+		// Adicionar apenas se não estiver já expandido
+		newExpanded.forEach(item => {
+			if (!expandedItems.includes(item)) {
+				setExpandedItems(prev => [...prev, item])
+			}
+		})
+	}, [pathname])
 
 	return (
 		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>

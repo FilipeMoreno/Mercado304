@@ -58,6 +58,7 @@ model Product {
   maxStock             Float?
   hasExpiration        Boolean @default(false)
   defaultShelfLifeDays Int?
+  isKit                Boolean @default(false) // Indica se é um produto kit
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -70,11 +71,16 @@ model Product {
   nutritionalInfo NutritionalInfo?
   priceRecords    PriceRecord[]
 
+  // Relações com kits
+  kit      ProductKit?      @relation("KitProduct")
+  kitItems ProductKitItem[] @relation("KitItemProduct")
+
   @@index([name])
   @@index([categoryId])
   @@index([brandId])
   @@index([hasStock])
   @@index([hasExpiration])
+  @@index([isKit])
   @@map("products")
 }
 
@@ -687,4 +693,44 @@ model AssistantChatSession {
   @@index([createdAt])
   @@index([updatedAt])
   @@map("assistant_chat_sessions")
+}
+
+// ============================================
+// PRODUCT KITS (Kits de Produtos)
+// ============================================
+
+model ProductKit {
+  id           String  @id @default(cuid())
+  kitProductId String  @unique // ID do produto que representa o kit
+  description  String? // Descrição adicional sobre o kit
+  isActive     Boolean @default(true) // Se o kit está ativo ou não
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  kitProduct Product          @relation("KitProduct", fields: [kitProductId], references: [id], onDelete: Cascade)
+  items      ProductKitItem[] // Produtos que compõem o kit
+
+  @@index([kitProductId])
+  @@index([isActive])
+  @@map("product_kits")
+}
+
+model ProductKitItem {
+  id        String @id @default(cuid())
+  kitId     String // ID do kit
+  productId String // ID do produto individual
+  quantity  Float  @default(1) // Quantidade do produto no kit
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  kit     ProductKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product Product    @relation("KitItemProduct", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([kitId])
+  @@index([productId])
+  @@map("product_kit_items")
 }
