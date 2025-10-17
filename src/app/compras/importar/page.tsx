@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -51,6 +51,13 @@ export default function ImportarCompraPage() {
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
 
   const mutation = useCreatePurchaseMutation();
+
+  // Redirecionar após sucesso
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      router.push('/compras');
+    }
+  }, [mutation.isSuccess, router]);
   const handleFiscalReceiptScanComplete = async (data: any) => {
     setIsFiscalReceiptScannerOpen(false);
     setViewState('processing');
@@ -59,15 +66,26 @@ export default function ImportarCompraPage() {
 
     try {
       // Mapear os dados do cupom fiscal para o formato esperado
-      const items: NfceItem[] = data.itens.map((item: any, index: number) => ({
-        id: index + 1,
-        name: item.descricao,
-        quantity: item.quantidade || 1,
-        unitPrice: item.valorUnitario || 0,
-        totalPrice: item.valorTotal || (item.valorUnitario * (item.quantidade || 1)),
-        code: item.codigo,
-        unit: item.unidade || 'UN'
-      }));
+      const items: NfceItem[] = data.itens.map((item: any, index: number) => {
+        const quantity = item.quantidade || 1;
+        const unitPrice = item.valorUnitario || 0;
+        const totalPrice = item.valorTotal || (unitPrice * quantity);
+
+        // Calcular desconto se houver
+        const expectedTotal = quantity * unitPrice;
+        const discount = item.desconto || (expectedTotal > totalPrice ? expectedTotal - totalPrice : 0);
+
+        return {
+          id: index + 1,
+          name: item.descricao,
+          quantity: quantity,
+          unitPrice: unitPrice,
+          totalPrice: totalPrice,
+          discount: discount > 0 ? discount : undefined,
+          code: item.codigo,
+          unit: item.unidade || 'UN'
+        };
+      });
 
       const marketInfo = {
         name: data.estabelecimento?.nome || '',

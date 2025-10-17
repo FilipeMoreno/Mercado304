@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ProductSelect } from "@/components/selects/product-select";
@@ -21,7 +22,8 @@ export interface NfceItem {
   quantity: number
   unit: string
   unitPrice: number
-  totalPrice: number // Adicionei de volta para consistência
+  totalPrice: number
+  discount?: number // Desconto total do item
   code?: string // Código de barras do produto (opcional)
 }
 
@@ -49,15 +51,22 @@ type MappedItemState = MappedPurchaseItem & {
 
 const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCancel, isSubmitting }) => {
   const [mappedItems, setMappedItems] = useState<MappedItemState[]>(() =>
-    items.map((item) => ({
-      productId: "",
-      productName: "",
-      quantity: item.quantity,
-      price: item.unitPrice,
-      unitDiscount: 0,
-      originalName: item.name,
-      isAssociated: false,
-    })),
+    items.map((item) => {
+      // Calcular desconto unitário a partir do desconto total do item
+      const unitDiscount = item.discount && item.quantity > 0
+        ? item.discount / item.quantity
+        : 0;
+
+      return {
+        productId: "",
+        productName: "",
+        quantity: item.quantity,
+        price: item.unitPrice,
+        unitDiscount: unitDiscount,
+        originalName: item.name,
+        isAssociated: false,
+      };
+    }),
   )
   const [isInitialized, setIsInitialized] = useState(false)
   const [totalDiscount, setTotalDiscount] = useState<number>(0)
@@ -244,10 +253,17 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
                   item.isAssociated ? "border-green-500 bg-green-500/5" : "",
                 )}
               >
-                <p className="text-sm font-semibold text-muted-foreground">
-                  Item da Nota:{" "}
-                  <span className="font-bold text-primary">{item.originalName}</span>
-                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    Item da Nota:{" "}
+                    <span className="font-bold text-primary">{item.originalName}</span>
+                  </p>
+                  {item.unitDiscount && item.unitDiscount > 0 && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                      🏷️ Desconto: R$ {item.unitDiscount.toFixed(2)}/un
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {/* --- CORREÇÃO DE LAYOUT E LÓGICA AQUI --- */}
                   <div className="flex-grow">
