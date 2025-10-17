@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
 	Bar,
 	BarChart,
@@ -78,25 +78,7 @@ export default function MarketDetailsPage() {
 	const [dateFilter, setDateFilter] = useState("all")
 	const [sortBy, setSortBy] = useState("date-desc")
 
-	useEffect(() => {
-		if (params.id) {
-			fetchMarketStats()
-		}
-	}, [params.id])
-
-	// Auto refresh when page gains focus
-	useEffect(() => {
-		const handleFocus = () => {
-			if (!loading && params.id) {
-				fetchMarketStats()
-			}
-		}
-
-		window.addEventListener("focus", handleFocus)
-		return () => window.removeEventListener("focus", handleFocus)
-	}, [loading, params.id])
-
-	const fetchMarketStats = async () => {
+	const fetchMarketStats = useCallback(async () => {
 		try {
 			const [statsRes, purchasesRes] = await Promise.all([
 				fetch(`/api/markets/${params.id}/stats`, { cache: "no-store" }),
@@ -121,7 +103,25 @@ export default function MarketDetailsPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [params.id, router])
+
+	useEffect(() => {
+		if (params.id) {
+			fetchMarketStats()
+		}
+	}, [params.id, fetchMarketStats])
+
+	// Auto refresh when page gains focus
+	useEffect(() => {
+		const handleFocus = () => {
+			if (!loading && params.id) {
+				fetchMarketStats()
+			}
+		}
+
+		window.addEventListener("focus", handleFocus)
+		return () => window.removeEventListener("focus", handleFocus)
+	}, [loading, params.id, fetchMarketStats])
 
 	// Filtrar compras
 	useEffect(() => {
@@ -226,6 +226,11 @@ export default function MarketDetailsPage() {
 						<Store className="h-8 w-8" />
 						{data.market.name}
 					</h1>
+					{data.market.legalName && (
+						<p className="text-muted-foreground mt-1 text-sm">
+							Razão Social: {data.market.legalName}
+						</p>
+					)}
 					{data.market.location && (
 						<p className="text-gray-600 mt-2 flex items-center gap-1">
 							<MapPin className="h-4 w-4" />
@@ -467,7 +472,7 @@ export default function MarketDetailsPage() {
 										<XAxis dataKey="name" />
 										<YAxis tickFormatter={(value) => `R$ ${value.toFixed(1)}`} />
 										<Tooltip
-											formatter={(value: any, name, props) => [
+											formatter={(value: any, _name, props) => [
 												`R$ ${value.toFixed(2)}`,
 												props.payload.isCurrentMarket ? "Este Mercado" : "Preço Médio",
 											]}

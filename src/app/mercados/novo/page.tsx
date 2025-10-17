@@ -3,7 +3,7 @@
 import { ArrowLeft, Save, Store } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,8 +15,12 @@ import { useCreateMarketMutation } from "@/hooks"
 export default function NovoMercadoPage() {
 	const router = useRouter()
 	const createMarketMutation = useCreateMarketMutation()
+	const nameId = useId()
+	const legalNameId = useId()
+	const locationId = useId()
 	const [formData, setFormData] = useState({
 		name: "",
+		legalName: "",
 		location: "",
 	})
 
@@ -31,6 +35,7 @@ export default function NovoMercadoPage() {
 		try {
 			await createMarketMutation.mutateAsync({
 				name: formData.name.trim(),
+				legalName: formData.legalName.trim() || undefined,
 				location: formData.location.trim() || undefined,
 			})
 
@@ -77,21 +82,34 @@ export default function NovoMercadoPage() {
 				<CardContent>
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="name">Nome do Mercado *</Label>
+							<Label htmlFor={nameId}>Nome do Mercado *</Label>
 							<Input
-								id="name"
+								id={nameId}
 								name="name"
 								value={formData.name}
 								onChange={handleChange}
 								placeholder="Ex: Supermercado ABC"
 								required
 							/>
+							<p className="text-xs text-muted-foreground">Nome fantasia usado no aplicativo</p>
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="location">Localização</Label>
+							<Label htmlFor={legalNameId}>Nome de Registro / Razão Social</Label>
+							<Input
+								id={legalNameId}
+								name="legalName"
+								value={formData.legalName}
+								onChange={handleChange}
+								placeholder="Ex: ABC Supermercados Ltda"
+							/>
+							<p className="text-xs text-muted-foreground">Nome que aparece na nota fiscal</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={locationId}>Localização</Label>
 							<Textarea
-								id="location"
+								id={locationId}
 								name="location"
 								value={formData.location}
 								onChange={handleChange}

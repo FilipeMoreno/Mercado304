@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const searchTerm = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "name-asc"
-		const page = parseInt(searchParams.get("page") || "1")
+		const page = parseInt(searchParams.get("page") || "1", 10)
 		const itemsPerPage = 12
 
 		const [orderBy, orderDirection] = sort.split("-")
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { name, location } = body
+		const { name, legalName, location } = body
 
 		if (!name || !name.trim()) {
 			throw new AppError("MKT_001")
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
 		const market = await prisma.market.create({
 			data: {
 				name,
+				legalName: legalName || null,
 				location: location || null,
 			},
 		})

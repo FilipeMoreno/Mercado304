@@ -3,7 +3,7 @@
 import { ArrowLeft, Save, X } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,12 +16,16 @@ export default function EditarMercadoPage() {
 	const params = useParams()
 	const router = useRouter()
 	const marketId = params.id as string
+	const nameId = useId()
+	const legalNameId = useId()
+	const locationId = useId()
 
 	const { data: market, isLoading } = useMarketQuery(marketId)
 	const updateMarketMutation = useUpdateMarketMutation()
 
 	const [formData, setFormData] = useState({
 		name: "",
+		legalName: "",
 		location: "",
 	})
 
@@ -29,6 +33,7 @@ export default function EditarMercadoPage() {
 		if (market) {
 			setFormData({
 				name: market.name || "",
+				legalName: market.legalName || "",
 				location: market.location || "",
 			})
 		}
@@ -47,6 +52,7 @@ export default function EditarMercadoPage() {
 				id: marketId,
 				data: {
 					name: formData.name.trim(),
+					legalName: formData.legalName.trim() || undefined,
 					location: formData.location.trim() || undefined,
 				},
 			})
@@ -135,21 +141,32 @@ export default function EditarMercadoPage() {
 				<CardContent>
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div className="space-y-2">
-							<Label htmlFor="name">Nome do Mercado *</Label>
+							<Label htmlFor={nameId}>Nome do Mercado *</Label>
 							<Input
-								id="name"
+								id={nameId}
 								value={formData.name}
 								onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Ex: Supermercado ABC, Mercado Central..."
 								required
 							/>
-							<p className="text-xs text-gray-500">Digite o nome do estabelecimento comercial</p>
+							<p className="text-xs text-gray-500">Nome fantasia usado no aplicativo</p>
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="location">Localização</Label>
+							<Label htmlFor={legalNameId}>Nome de Registro / Razão Social</Label>
+							<Input
+								id={legalNameId}
+								value={formData.legalName}
+								onChange={(e) => setFormData((prev) => ({ ...prev, legalName: e.target.value }))}
+								placeholder="Ex: ABC Supermercados Ltda"
+							/>
+							<p className="text-xs text-gray-500">Nome que aparece na nota fiscal</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={locationId}>Localização</Label>
 							<Textarea
-								id="location"
+								id={locationId}
 								value={formData.location}
 								onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
 								placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo/SP"

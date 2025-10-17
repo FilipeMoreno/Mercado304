@@ -1,6 +1,7 @@
 export interface Market {
 	id: string
 	name: string
+	legalName?: string // Nome de registro/razão social
 	location?: string
 	createdAt: Date
 	updatedAt: Date
