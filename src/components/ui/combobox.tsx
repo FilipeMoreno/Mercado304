@@ -24,6 +24,7 @@ interface ComboboxProps {
 	disabled?: boolean
 	onCreateNew?: (searchTerm: string) => void
 	createNewText?: string
+	selectedLabel?: string
 }
 
 export function Combobox({
@@ -37,6 +38,7 @@ export function Combobox({
 	disabled = false,
 	onCreateNew,
 	createNewText = "Criar novo",
+	selectedLabel,
 }: ComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -71,7 +73,7 @@ export function Combobox({
 					disabled={disabled}
 				>
 					<span className="truncate flex-1 text-left font-normal">
-						{value ? options.find((option) => option.value === value)?.label : placeholder}
+						{value ? (selectedLabel || options.find((option) => option.value === value)?.label) : placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { CategoryCombobox } from "@/components/ui/category-combobox"
 import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -54,6 +54,8 @@ export function CategorySelect({
 		[onValueChange, categories],
 	)
 
+	const [pendingCategoryName, setPendingCategoryName] = useState<string | null>(null)
+
 	const handleCreateCategory = async (name: string) => {
 		try {
 			console.log("[CategorySelect] Creating category:", name)
@@ -64,11 +66,18 @@ export function CategorySelect({
 			})
 			console.log("[CategorySelect] Category created:", newCategory)
 
-			// Força refetch antes de setar o valor
-			await new Promise(resolve => setTimeout(resolve, 300))
-
-			console.log("[CategorySelect] Setting value to:", newCategory.id)
+			// Define o valor imediatamente após a criação
+			console.log("[CategorySelect] Setting value immediately:", newCategory.id)
 			onValueChange?.(newCategory.id)
+
+			// Define o nome da categoria pendente para exibição
+			setPendingCategoryName(newCategory.name)
+
+			// Limpa o nome pendente após 3 segundos (quando a lista deve estar atualizada)
+			setTimeout(() => {
+				setPendingCategoryName(null)
+			}, 3000)
+
 		} catch (error) {
 			console.error("Error creating category:", error)
 		}
@@ -95,6 +104,7 @@ export function CategorySelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
+			pendingCategoryName={pendingCategoryName}
 		/>
 	)
 }

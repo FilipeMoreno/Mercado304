@@ -74,6 +74,8 @@ export function ProductSelect({
 		[onValueChange],
 	)
 
+	const [pendingProductName, setPendingProductName] = useState<string | null>(null)
+
 	const handleCreateProduct = (name: string) => {
 		if (preserveFormData) {
 			// Usar targetItemIndex de preserveFormData se existir, senão usar itemIndex prop
@@ -142,6 +144,7 @@ export function ProductSelect({
 					isLoading={isLoading || isPlaceholderData}
 					onSearchChange={handleSearchChange}
 					selectedProduct={selectedProduct}
+					pendingProductName={pendingProductName || undefined}
 				/>
 				{showScanButton && (
 					<Button

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 interface ProductComboboxOption {
 	value: string
 	label: string
+	brand?: string
 	barcode?: string
 	product: any
 }
@@ -32,6 +33,7 @@ interface ProductComboboxProps {
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
 	selectedProduct?: any
+	pendingProductName?: string
 }
 
 export function ProductCombobox({
@@ -51,6 +53,7 @@ export function ProductCombobox({
 	isLoading = false,
 	onSearchChange,
 	selectedProduct,
+	pendingProductName,
 }: ProductComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -81,7 +84,8 @@ export function ProductCombobox({
 	const options: ProductComboboxOption[] = React.useMemo(() => {
 		return products.map((product) => ({
 			value: product.id,
-			label: `${product.name} ${product.brand ? `- ${product.brand.name}` : ""} (${product.unit})`,
+			label: product.name,
+			brand: product.brand?.name || "",
 			barcode: product.barcode,
 			product,
 		}))
@@ -126,8 +130,21 @@ export function ProductCombobox({
 					disabled={disabled}
 				>
 					<span className="truncate flex-1 text-left font-normal">
-						{value && selectedProduct
-							? `${selectedProduct.name} ${selectedProduct.brand ? `- ${selectedProduct.brand.name}` : ""} (${selectedProduct.unit})`
+						{value && value !== ""
+							? (() => {
+								// Primeiro tenta usar selectedProduct se disponível
+								if (selectedProduct) {
+									return `${selectedProduct.name} (${selectedProduct.unit})`
+								}
+								// Se não, busca na lista de produtos
+								const foundProduct = products.find((p) => p.id === value)
+								if (foundProduct) {
+									return `${foundProduct.name} (${foundProduct.unit})`
+								}
+								// Se não encontrou o produto na lista, pode ser um produto recém-criado
+								// Mostra o nome do produto pendente se disponível
+								return pendingProductName || "Produto selecionado"
+							})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -179,18 +196,25 @@ export function ProductCombobox({
 											key={option.value}
 											value={option.label}
 											onSelect={() => {
-												onValueChange?.(option.value === value ? "" : option.value)
+												// Sempre define o valor selecionado, não alterna
+												onValueChange?.(option.value)
 												setOpen(false)
 												setSearchTerm("")
 											}}
 										>
 											<Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
 											<div className="flex-1 min-w-0">
-												<div className="truncate">{option.label}</div>
-												{option.barcode && (
-													<div className="flex text-xs text-gray-500 mt-1">
-														<Barcode className="h-4 w-4 mr-1 shrink-0" />
-														<span className="truncate">{option.barcode}</span>
+												<div className="flex items-center justify-between">
+													<div className="truncate font-semibold">{option.label}</div>
+													{option.product?.unit && (
+														<span className="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full whitespace-nowrap">
+															{option.product.unit}
+														</span>
+													)}
+												</div>
+												{option.brand && option.barcode && (
+													<div className="text-xs text-gray-500 mt-1 truncate">
+														{option.brand} - {option.barcode}
 													</div>
 												)}
 											</div>

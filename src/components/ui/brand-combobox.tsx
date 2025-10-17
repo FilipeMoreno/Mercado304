@@ -29,6 +29,7 @@ interface BrandComboboxProps {
 	isFetchingNextPage?: boolean
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
+	pendingBrandName?: string
 }
 
 export function BrandCombobox({
@@ -47,6 +48,7 @@ export function BrandCombobox({
 	isFetchingNextPage = false,
 	isLoading = false,
 	onSearchChange,
+	pendingBrandName,
 }: BrandComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -104,8 +106,9 @@ export function BrandCombobox({
 							? (() => {
 								const selectedBrand = brands.find((b) => b.id === value)
 								if (!selectedBrand) {
-									console.warn("[BrandCombobox] Value set but brand not found:", value, "Available brands:", brands.map(b => ({ id: b.id, name: b.name })))
-									return placeholder
+									// Se não encontrou a marca na lista, pode ser uma marca recém-criada
+									// Mostra o nome da marca pendente se disponível
+									return pendingBrandName || "Marca selecionada"
 								}
 								return selectedBrand.name
 							})()
@@ -159,10 +162,10 @@ export function BrandCombobox({
 												console.log("[BrandCombobox] Item selected:", {
 													optionValue: option.value,
 													currentValue: value,
-													willSet: option.value === value ? "" : option.value
+													willSet: option.value
 												})
-												const newValue = option.value === value ? "" : option.value
-												onValueChange?.(newValue)
+												// Sempre define o valor selecionado, não alterna
+												onValueChange?.(option.value)
 												setOpen(false)
 												setSearchTerm("")
 											}}

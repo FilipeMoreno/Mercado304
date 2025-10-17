@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { BrandCombobox } from "@/components/ui/brand-combobox"
 import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -55,6 +55,8 @@ export function BrandSelect({
 		[onValueChange, brands],
 	)
 
+	const [pendingBrandName, setPendingBrandName] = useState<string | null>(null)
+
 	const handleCreateBrand = async (name: string) => {
 		try {
 			console.log("[BrandSelect] Creating brand:", name)
@@ -63,11 +65,18 @@ export function BrandSelect({
 			})
 			console.log("[BrandSelect] Brand created:", newBrand)
 
-			// Força refetch antes de setar o valor
-			await new Promise(resolve => setTimeout(resolve, 300))
-
-			console.log("[BrandSelect] Setting value to:", newBrand.id)
+			// Define o valor imediatamente após a criação
+			console.log("[BrandSelect] Setting value immediately:", newBrand.id)
 			onValueChange?.(newBrand.id)
+
+			// Define o nome da marca pendente para exibição
+			setPendingBrandName(newBrand.name)
+
+			// Limpa o nome pendente após 3 segundos (quando a lista deve estar atualizada)
+			setTimeout(() => {
+				setPendingBrandName(null)
+			}, 3000)
+
 		} catch (error) {
 			console.error("Error creating brand:", error)
 		}
@@ -94,6 +103,7 @@ export function BrandSelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
+			pendingBrandName={pendingBrandName}
 		/>
 	)
 }

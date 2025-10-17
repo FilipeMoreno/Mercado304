@@ -29,6 +29,7 @@ interface CategoryComboboxProps {
 	isFetchingNextPage?: boolean
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
+	pendingCategoryName?: string
 }
 
 export function CategoryCombobox({
@@ -47,6 +48,7 @@ export function CategoryCombobox({
 	isFetchingNextPage = false,
 	isLoading = false,
 	onSearchChange,
+	pendingCategoryName,
 }: CategoryComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -104,8 +106,9 @@ export function CategoryCombobox({
 							? (() => {
 								const selectedCategory = categories.find((c) => c.id === value)
 								if (!selectedCategory) {
-									console.warn("[CategoryCombobox] Value set but category not found:", value, "Available categories:", categories.map(c => ({ id: c.id, name: c.name })))
-									return placeholder
+									// Se não encontrou a categoria na lista, pode ser uma categoria recém-criada
+									// Mostra o nome da categoria pendente se disponível
+									return pendingCategoryName ? `📦 ${pendingCategoryName}` : "Categoria selecionada"
 								}
 								return `${selectedCategory.icon || "📦"} ${selectedCategory.name}`
 							})()
@@ -159,10 +162,10 @@ export function CategoryCombobox({
 												console.log("[CategoryCombobox] Item selected:", {
 													optionValue: option.value,
 													currentValue: value,
-													willSet: option.value === value ? "" : option.value
+													willSet: option.value
 												})
-												const newValue = option.value === value ? "" : option.value
-												onValueChange?.(newValue)
+												// Sempre define o valor selecionado, não alterna
+												onValueChange?.(option.value)
 												setOpen(false)
 												setSearchTerm("")
 											}}

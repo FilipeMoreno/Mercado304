@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Combobox } from "@/components/ui/combobox"
 import { useAllMarketsQuery, useCreateMarketMutation } from "@/hooks"
 
@@ -23,12 +24,28 @@ export function MarketSelect({
 
 	const markets = marketsData?.markets || []
 
+	const [pendingMarketName, setPendingMarketName] = useState<string | null>(null)
+
 	const handleCreateMarket = async (name: string) => {
 		try {
+			console.log("[MarketSelect] Creating market:", name)
 			const newMarket = await createMarketMutation.mutateAsync({
 				name: name.trim(),
 			})
+			console.log("[MarketSelect] Market created:", newMarket)
+
+			// Define o valor imediatamente após a criação
+			console.log("[MarketSelect] Setting value immediately:", newMarket.id)
 			onValueChange?.(newMarket.id)
+
+			// Define o nome do mercado pendente para exibição
+			setPendingMarketName(newMarket.name)
+
+			// Limpa o nome pendente após 3 segundos (quando a lista deve estar atualizada)
+			setTimeout(() => {
+				setPendingMarketName(null)
+			}, 3000)
+
 		} catch (error) {
 			console.error("Error creating market:", error)
 		}
@@ -36,6 +53,19 @@ export function MarketSelect({
 
 	if (isLoading && markets.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
+	}
+
+	// Função para obter o label do mercado selecionado
+	const getSelectedMarketLabel = () => {
+		if (!value) return placeholder
+
+		const selectedMarket = markets.find((m: any) => m.id === value)
+		if (selectedMarket) {
+			return `${selectedMarket.name}${selectedMarket.location ? ` - ${selectedMarket.location}` : ""}`
+		}
+
+		// Se não encontrou o mercado na lista, pode ser um mercado recém-criado
+		return pendingMarketName || "Mercado selecionado"
 	}
 
 	return (
@@ -53,6 +83,7 @@ export function MarketSelect({
 			createNewText="Criar mercado"
 			className={className}
 			disabled={disabled}
+			selectedLabel={getSelectedMarketLabel()}
 		/>
 	)
 }

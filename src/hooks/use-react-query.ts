@@ -91,11 +91,23 @@ export const useCreateCategoryMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: async () => {
-			// Invalida e aguarda refetch
-			await queryClient.invalidateQueries({ queryKey: ["categories"] })
-			await queryClient.refetchQueries({ queryKey: ["categories"] })
+		onSuccess: async (newCategory: Category) => {
+			// Invalida todas as queries de categories (incluindo infinite queries)
+			await queryClient.invalidateQueries({
+				queryKey: ["categories"],
+				exact: false, // Isso invalida ["categories", "infinite", ...] também
+			})
+
+			// Aguarda refetch de todas as queries de categories
+			await queryClient.refetchQueries({
+				queryKey: ["categories"],
+				exact: false,
+			})
+
 			toast.success("Categoria criada com sucesso!")
+
+			// Retorna a nova categoria para ser usada no onSuccess do componente
+			return newCategory
 		},
 		onError: (error) => {
 			toast.error(`Erro ao criar categoria: ${error.message}`)
@@ -179,11 +191,29 @@ export const useCreateBrandMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: async () => {
-			// Invalida e aguarda refetch
-			await queryClient.invalidateQueries({ queryKey: ["brands"] })
-			await queryClient.refetchQueries({ queryKey: ["brands"] })
+		onSuccess: async (newBrand: Brand) => {
+			console.log("[useCreateBrandMutation] Brand created, invalidating queries...")
+
+			// Invalida todas as queries de brands (incluindo infinite queries)
+			await queryClient.invalidateQueries({
+				queryKey: ["brands"],
+				exact: false, // Isso invalida ["brands", "infinite", ...] também
+			})
+
+			console.log("[useCreateBrandMutation] Queries invalidated, refetching...")
+
+			// Aguarda refetch de todas as queries de brands
+			await queryClient.refetchQueries({
+				queryKey: ["brands"],
+				exact: false,
+			})
+
+			console.log("[useCreateBrandMutation] Refetch completed")
+
 			toast.success("Marca criada com sucesso!")
+
+			// Retorna a nova marca para ser usada no onSuccess do componente
+			return newBrand
 		},
 		onError: (error) => {
 			toast.error(`Erro ao criar marca: ${error.message}`)
@@ -258,11 +288,23 @@ export const useCreateMarketMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: async () => {
-			// Invalida e aguarda refetch
-			await queryClient.invalidateQueries({ queryKey: ["markets"] })
-			await queryClient.refetchQueries({ queryKey: ["markets"] })
+		onSuccess: async (newMarket: Market) => {
+			// Invalida todas as queries de markets (incluindo infinite queries se houver)
+			await queryClient.invalidateQueries({
+				queryKey: ["markets"],
+				exact: false,
+			})
+
+			// Aguarda refetch de todas as queries de markets
+			await queryClient.refetchQueries({
+				queryKey: ["markets"],
+				exact: false,
+			})
+
 			toast.success("Mercado criado com sucesso!")
+
+			// Retorna o novo mercado para ser usado no onSuccess do componente
+			return newMarket
 		},
 		onError: (error) => {
 			toast.error(`Erro ao criar mercado: ${error.message}`)
