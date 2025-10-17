@@ -54,6 +54,7 @@ export function BrandSelectDialog({
       console.log("[BrandSelectDialog] Value changed:", newValue)
       onValueChange?.(newValue)
       setSearch("")
+      setOpen(false) // Fechar dialog após selecionar
     },
     [onValueChange],
   )
@@ -69,6 +70,7 @@ export function BrandSelectDialog({
       // Define o valor imediatamente após a criação
       onValueChange?.(newBrand.id)
       setSearch("")
+      setOpen(false) // Fechar dialog após criar
     } catch (error) {
       console.error("Error creating brand:", error)
     }

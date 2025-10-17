@@ -29,7 +29,7 @@ export function ShoppingListSelectDialog({
       hasFetched.current = true
       fetchShoppingLists()
     }
-  }, [])
+  }, [fetchShoppingLists])
 
   // Convert shopping lists to SelectOption format
   const options: SelectOption[] = useMemo(() => {
@@ -44,6 +44,7 @@ export function ShoppingListSelectDialog({
   const handleValueChange = useCallback(
     (newValue: string) => {
       onValueChange?.(newValue)
+      setOpen(false) // Fechar dialog após selecionar
     },
     [onValueChange],
   )
@@ -57,6 +58,7 @@ export function ShoppingListSelectDialog({
       fetchShoppingLists(true) // Força a atualização da lista
       onValueChange?.(newList.id)
       AppToasts.created("Lista")
+      setOpen(false) // Fechar dialog após criar
     } catch (error) {
       AppToasts.error(error, "Erro ao criar lista")
     }

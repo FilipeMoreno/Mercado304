@@ -31,7 +31,7 @@ export function MarketSelectDialog({
     const searchLower = search.toLowerCase()
     return markets.filter((market: any) =>
       market.name.toLowerCase().includes(searchLower) ||
-      (market.location && market.location.toLowerCase().includes(searchLower))
+      (market.location?.toLowerCase().includes(searchLower))
     )
   }, [markets, search])
 
@@ -53,6 +53,7 @@ export function MarketSelectDialog({
     (newValue: string) => {
       onValueChange?.(newValue)
       setSearch("")
+      setOpen(false) // Fechar dialog após selecionar
     },
     [onValueChange],
   )
@@ -68,6 +69,7 @@ export function MarketSelectDialog({
       // Define o valor imediatamente após a criação
       onValueChange?.(newMarket.id)
       setSearch("")
+      setOpen(false) // Fechar dialog após criar
     } catch (error) {
       console.error("Error creating market:", error)
     }

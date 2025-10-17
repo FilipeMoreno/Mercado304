@@ -49,6 +49,7 @@ export function UnitSelectDialog({
   const handleValueChange = (newValue: string) => {
     onValueChange?.(newValue)
     setSearch("")
+    setOpen(false) // Fechar dialog após selecionar
   }
 
   return (

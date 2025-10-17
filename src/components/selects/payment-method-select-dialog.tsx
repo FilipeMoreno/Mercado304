@@ -46,6 +46,7 @@ export function PaymentMethodSelectDialog({
   const handleValueChange = (newValue: string) => {
     onValueChange?.(newValue as PaymentMethod)
     setSearch("")
+    setOpen(false) // Fechar dialog após selecionar
   }
 
   return (

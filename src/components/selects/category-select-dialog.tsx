@@ -55,6 +55,7 @@ export function CategorySelectDialog({
       console.log("[CategorySelectDialog] Value changed:", newValue)
       onValueChange?.(newValue)
       setSearch("")
+      setOpen(false) // Fechar dialog após selecionar
     },
     [onValueChange],
   )
@@ -72,6 +73,7 @@ export function CategorySelectDialog({
       // Define o valor imediatamente após a criação
       onValueChange?.(newCategory.id)
       setSearch("")
+      setOpen(false) // Fechar dialog após criar
     } catch (error) {
       console.error("Error creating category:", error)
     }

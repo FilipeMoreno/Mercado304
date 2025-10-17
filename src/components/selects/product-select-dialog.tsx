@@ -90,6 +90,7 @@ export function ProductSelectDialog({
     (newValue: string) => {
       onValueChange?.(newValue)
       setSearch("")
+      setOpen(false) // Fechar dialog após selecionar
     },
     [onValueChange],
   )
@@ -140,7 +141,7 @@ export function ProductSelectDialog({
   }
 
   // Encontrar a opção selecionada atual
-  const selectedOption = useMemo(() => {
+  const _selectedOption = useMemo(() => {
     if (!selectedProduct) return undefined
 
     // Construir sublabel com marca, unidade e código
