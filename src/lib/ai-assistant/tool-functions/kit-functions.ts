@@ -148,6 +148,7 @@ export async function createProductKit(args: {
     });
 
     // Criar o kit
+    // Todos os produtos foram validados acima, então foundProduct está definido
     const kit = await productKitService.createProductKit({
       kitProductId: kitProduct.id,
       description,
@@ -155,7 +156,7 @@ export async function createProductKit(args: {
       brandId,
       categoryId,
       items: productsData.map((p) => ({
-        productId: p.foundProduct?.id, // Safe: validated above that all products were found
+        productId: p.foundProduct?.id as string, // Safe: validated above that all products were found
         quantity: p.quantity,
       })),
     });
