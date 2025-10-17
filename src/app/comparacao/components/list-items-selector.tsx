@@ -10,11 +10,17 @@ import { cn } from "@/lib/utils"
 
 interface ListItem {
 	id: string
-	productId: string
-	productName: string
+	productId?: string | null
+	productName?: string | null
 	quantity: number
-	unit: string
+	unit?: string
+	productUnit?: string
 	notes?: string
+	product?: {
+		id: string
+		name: string
+		unit: string
+	}
 }
 
 interface ListItemsSelectorProps {
@@ -93,6 +99,8 @@ export function ListItemsSelector({
 					<div className="space-y-2 max-h-60 overflow-y-auto">
 						{listItems.map((item) => {
 							const isSelected = selectedItemIds.includes(item.id)
+							const itemName = item.product?.name || item.productName || "Item sem nome"
+							const itemUnit = item.product?.unit || item.productUnit || item.unit || "unidade"
 							return (
 								<div
 									key={item.id}
@@ -109,10 +117,10 @@ export function ListItemsSelector({
 									/>
 									<div className="flex-1 min-w-0">
 										<Label htmlFor={`item-${item.id}`} className="font-medium cursor-pointer">
-											{item.productName}
+											{itemName}
 										</Label>
 										<div className="text-sm text-gray-600 mt-1">
-											Quantidade: {item.quantity} {item.unit}
+											Quantidade: {item.quantity} {itemUnit}
 											{item.notes && (
 												<span className="ml-2 text-gray-500">• {item.notes}</span>
 											)}
@@ -130,15 +138,19 @@ export function ListItemsSelector({
 						<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
 							<h4 className="font-medium text-blue-800 mb-2">Itens Selecionados:</h4>
 							<div className="flex flex-wrap gap-2">
-								{selectedItems.map((item) => (
-									<div
-										key={item.id}
-										className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
-									>
-										<span className="font-medium">{item.productName}</span>
-										<span className="text-blue-600">({item.quantity} {item.unit})</span>
-									</div>
-								))}
+								{selectedItems.map((item) => {
+									const itemName = item.product?.name || item.productName || "Item sem nome"
+									const itemUnit = item.product?.unit || item.productUnit || item.unit || "unidade"
+									return (
+										<div
+											key={item.id}
+											className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
+										>
+											<span className="font-medium">{itemName}</span>
+											<span className="text-blue-600">({item.quantity} {itemUnit})</span>
+										</div>
+									)
+								})}
 							</div>
 						</div>
 					)}

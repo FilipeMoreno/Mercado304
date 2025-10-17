@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { MultiSelect } from "@/components/ui/multi-select"
+import { ResponsiveMultiSelect } from "@/components/ui/responsive-multi-select"
 import { useUIPreferences } from "@/hooks"
 import { DetailedComparisonTable } from "./detailed-comparison-table"
 import { ListItemsSelector } from "./list-items-selector"
@@ -179,15 +180,33 @@ export function DetailedComparisonTab({
 						</div>
 						<div className="space-y-2">
 							<Label>Selecione os Mercados</Label>
-							<MultiSelect
-								options={markets.map((m) => ({
-									value: m.id,
-									label: `${m.name} - ${m.location}`,
-								}))}
-								selected={selectedMarketIds}
-								onSelectedChange={onSelectedMarketIdsChange}
-								placeholder="Selecione mercados..."
-							/>
+							{selectStyle === "dialog" ? (
+								<ResponsiveMultiSelect
+									options={markets.map((m) => ({
+										value: m.id,
+										label: `${m.name}${m.location ? ` - ${m.location}` : ""}`,
+										icon: "🏪",
+									}))}
+									selected={selectedMarketIds}
+									onSelectedChange={(newIds) => {
+										onSelectedMarketIdsChange(newIds)
+									}}
+									placeholder="Selecione mercados..."
+									title="Selecionar Mercados"
+									searchPlaceholder="Buscar mercados..."
+									emptyText="Nenhum mercado encontrado."
+								/>
+							) : (
+								<MultiSelect
+									options={markets.map((m) => ({
+										value: m.id,
+										label: `${m.name} - ${m.location}`,
+									}))}
+									selected={selectedMarketIds}
+									onSelectedChange={onSelectedMarketIdsChange}
+									placeholder="Selecione mercados..."
+								/>
+							)}
 						</div>
 					</div>
 					<div className="flex justify-end">

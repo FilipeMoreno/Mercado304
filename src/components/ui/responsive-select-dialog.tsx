@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 export interface SelectOption {
@@ -177,9 +178,17 @@ export function ResponsiveSelectDialog({
           <ScrollArea className="h-[400px]" onScrollCapture={handleScroll}>
             <div className="space-y-1">
               {isLoading && options.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                <div className="space-y-2 p-2">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                      <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-3/4" />
+                      </div>
+                      <Skeleton className="h-4 w-4 shrink-0" />
+                    </div>
+                  ))}
                 </div>
               ) : options.length === 0 ? (
                 <div className="py-12 text-center">
@@ -227,8 +236,17 @@ export function ResponsiveSelectDialog({
                   ))}
 
                   {isFetchingNextPage && (
-                    <div className="py-4 text-center">
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                    <div className="space-y-2 p-2 border-t pt-2">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                          <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-3 w-2/3" />
+                          </div>
+                          <Skeleton className="h-4 w-4 shrink-0" />
+                        </div>
+                      ))}
                     </div>
                   )}
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { Combobox } from "@/components/ui/combobox"
 import { AppToasts } from "@/lib/toasts"
 import { createShoppingList } from "@/services/shoppingListService"
@@ -23,10 +23,14 @@ export function ShoppingListSelect({
 	disabled = false,
 }: ShoppingListSelectProps) {
 	const { shoppingLists, loading, fetchShoppingLists } = useDataStore()
+	const hasFetched = useRef(false)
 
 	useEffect(() => {
-		fetchShoppingLists()
-	}, [fetchShoppingLists])
+		if (!hasFetched.current) {
+			hasFetched.current = true
+			fetchShoppingLists()
+		}
+	}, [])
 
 	const handleCreateList = async (name: string) => {
 		try {

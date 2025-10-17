@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { AppToasts } from "@/lib/toasts"
@@ -22,10 +22,14 @@ export function ShoppingListSelectDialog({
 }: ShoppingListSelectDialogProps) {
   const [open, setOpen] = useState(false)
   const { shoppingLists, loading, fetchShoppingLists } = useDataStore()
+  const hasFetched = useRef(false)
 
   useEffect(() => {
-    fetchShoppingLists()
-  }, [fetchShoppingLists])
+    if (!hasFetched.current) {
+      hasFetched.current = true
+      fetchShoppingLists()
+    }
+  }, [])
 
   // Convert shopping lists to SelectOption format
   const options: SelectOption[] = useMemo(() => {
