@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import type {
 	NotaParanaCategoriaResponse,
+	NotaParanaProduto,
 	NotaParanaProdutosResponse,
 } from "@/types"
 
@@ -100,10 +101,14 @@ export function useNotaParana() {
 
 	/**
 	 * Busca completa: primeiro busca categorias e depois produtos da categoria mais relevante
+	 * Se for código de barras, busca produtos de todas as categorias automaticamente
 	 * @param params - Parâmetros de busca
-	 * @returns Dados dos produtos encontrados na categoria mais relevante
+	 * @returns Dados dos produtos encontrados
 	 */
 	const buscarCompleto = async (params: NotaParanaParams): Promise<NotaParanaProdutosResponse | null> => {
+		// Detectar se é código de barras
+		const isBarcode = /^\d{8,14}$/.test(params.termo.trim())
+		
 		// Primeiro, buscar categorias
 		const categorias = await buscarCategorias(params)
 		
@@ -112,7 +117,45 @@ export function useNotaParana() {
 			return null
 		}
 
-		// Pegar a categoria com mais produtos (primeira da lista)
+		// Se for código de barras, buscar produtos de TODAS as categorias
+		if (isBarcode) {
+			const todosProdutos: NotaParanaProduto[] = []
+			
+			// Buscar produtos de cada categoria
+			for (const categoria of categorias.categorias) {
+				const resultado = await buscarProdutos({
+					...params,
+					categoria: categoria.id,
+				})
+				
+				if (resultado?.produtos) {
+					todosProdutos.push(...resultado.produtos)
+				}
+			}
+			
+			// Retornar todos os produtos encontrados
+			if (todosProdutos.length > 0) {
+				// Criar resposta consolidada
+				const precos = todosProdutos.map(p => parseFloat(p.valor_tabela) - parseFloat(p.valor_desconto))
+				const resposta: NotaParanaProdutosResponse = {
+					tempo: 0,
+					local: params.local || "",
+					produtos: todosProdutos,
+					total: todosProdutos.length,
+					precos: {
+						min: Math.min(...precos).toFixed(2),
+						max: Math.max(...precos).toFixed(2)
+					}
+				}
+				setProdutosData(resposta)
+				return resposta
+			}
+			
+			toast.error("Nenhum produto encontrado com este código de barras")
+			return null
+		}
+
+		// Para busca por nome, pegar apenas a categoria principal (comportamento normal)
 		const categoriaPrincipal = categorias.categorias[0]
 		
 		// Buscar produtos da categoria principal

@@ -24,6 +24,7 @@ export function NotaParanaSearchAdvanced() {
 	// Estado da busca
 	const [termo, setTermo] = useState("")
 	const [step, setStep] = useState<"busca" | "categorias" | "produtos">("busca")
+	const [isBarcode, setIsBarcode] = useState(false)
 
 	// Categorias
 	const [categoriasDisponiveis, setCategoriasDisponiveis] = useState<NotaParanaCategoria[]>([])
@@ -43,10 +44,58 @@ export function NotaParanaSearchAdvanced() {
 
 	const { loading, buscarCategorias, buscarProdutos } = useNotaParana()
 
-	// Buscar categorias
+	// Buscar categorias (ou produtos direto se for código de barras)
 	const handleBuscarCategorias = async () => {
 		if (!termo.trim()) return
 
+		// Detectar se é código de barras
+		const isBarcodeDetected = /^\d{8,14}$/.test(termo.trim())
+		setIsBarcode(isBarcodeDetected)
+
+		// Se for código de barras, buscar produtos diretamente em categorias comuns
+		if (isBarcodeDetected) {
+			// Categorias mais comuns para buscar produtos
+			// Isso evita ter que buscar a API de categorias que não funciona com código de barras
+			const categoriasComuns = [
+				55, // Bebidas
+				63, // Alimentos e bebidas
+				56, // Alimentos
+				13, // Preparos alimentícios
+				53, // Outros produtos
+				0, // Não catalogado
+			]
+
+			const todosProdutosTemp: NotaParanaProduto[] = []
+
+			// Buscar produtos em cada categoria comum
+			for (const categoriaId of categoriasComuns) {
+				try {
+					const resultado = await buscarProdutos({
+						termo: termo.trim(),
+						categoria: categoriaId,
+						raio: RAIO_FIXO,
+						data: parseInt(periodo, 10) as -1 | 0 | 1 | 7 | 30,
+						offset: 0,
+					})
+
+					if (resultado?.produtos) {
+						todosProdutosTemp.push(...resultado.produtos)
+					}
+				} catch {}
+			}
+
+			if (todosProdutosTemp.length > 0) {
+				setTodosProdutos(todosProdutosTemp)
+				aplicarFiltros(todosProdutosTemp)
+				setStep("produtos")
+				setPaginaAtual(1)
+			} else {
+				toast.error("Nenhum produto encontrado com este código de barras")
+			}
+			return
+		}
+
+		// Para busca por nome, mostrar categorias para seleção
 		const resultado = await buscarCategorias({
 			termo: termo.trim(),
 			raio: RAIO_FIXO,
@@ -174,6 +223,7 @@ export function NotaParanaSearchAdvanced() {
 	const handleNovaBusca = () => {
 		setStep("busca")
 		setTermo("")
+		setIsBarcode(false)
 		setCategoriasDisponiveis([])
 		setCategoriasSelecionadas([])
 		setTodosProdutos([])
@@ -237,28 +287,40 @@ export function NotaParanaSearchAdvanced() {
 						<CardDescription>Digite o nome do produto ou código de barras para iniciar</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="flex gap-4">
-							<div className="flex-1">
-								<Input
-									placeholder="Ex: Coca Cola, Arroz, ou código de barras"
-									value={termo}
-									onChange={(e) => setTermo(e.target.value)}
-									onKeyDown={(e) => e.key === "Enter" && handleBuscarCategorias()}
-								/>
+						<div className="space-y-4">
+							<div className="flex gap-4">
+								<div className="flex-1">
+									<Input
+										placeholder="Ex: Coca Cola, Arroz, ou código de barras"
+										value={termo}
+										onChange={(e) => {
+											const valor = e.target.value
+											setTermo(valor)
+											setIsBarcode(/^\d{8,14}$/.test(valor.trim()))
+										}}
+										onKeyDown={(e) => e.key === "Enter" && handleBuscarCategorias()}
+									/>
+								</div>
+								<Button onClick={handleBuscarCategorias} disabled={loading || !termo.trim()}>
+									{loading ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Buscando...
+										</>
+									) : (
+										<>
+											<Search className="mr-2 h-4 w-4" />
+											Buscar
+										</>
+									)}
+								</Button>
 							</div>
-							<Button onClick={handleBuscarCategorias} disabled={loading || !termo.trim()}>
-								{loading ? (
-									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Buscando...
-									</>
-								) : (
-									<>
-										<Search className="mr-2 h-4 w-4" />
-										Buscar
-									</>
-								)}
-							</Button>
+							{isBarcode && termo.trim() && (
+								<div className="flex items-center gap-2 text-sm text-primary">
+									<ShoppingBag className="h-4 w-4" />
+									<span className="font-medium">Código de barras detectado - busca direta ativada</span>
+								</div>
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -267,61 +329,61 @@ export function NotaParanaSearchAdvanced() {
 			{/* Passo 2: Seleção de categorias */}
 			{step === "categorias" && (
 				<Card>
-						<CardHeader>
-							<div className="flex items-center justify-between">
-								<div>
-									<CardTitle>Selecione as Categorias</CardTitle>
-									<CardDescription>Escolha uma ou mais categorias para buscar produtos</CardDescription>
-								</div>
-								<Button variant="outline" onClick={handleNovaBusca}>
-									Nova Busca
-								</Button>
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div>
+								<CardTitle>Selecione as Categorias</CardTitle>
+								<CardDescription>Escolha uma ou mais categorias para buscar produtos</CardDescription>
 							</div>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-3">
-								{categoriasDisponiveis.map((categoria) => (
-									<button
-										key={categoria.id}
-										type="button"
-										className="w-full flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-accent text-left"
-										onClick={() => toggleCategoria(categoria.id)}
-									>
-										<Checkbox
-											checked={categoriasSelecionadas.includes(categoria.id)}
-											onCheckedChange={() => toggleCategoria(categoria.id)}
-										/>
-										<div className="flex-1">
-											<div className="font-semibold">{categoria.desc}</div>
-											<div className="text-sm text-muted-foreground">{categoria.qtd} produtos</div>
-										</div>
-										<Badge variant="secondary">{categoria.qtd}</Badge>
-									</button>
-								))}
-							</div>
-
-							<div className="mt-6 flex justify-end">
-								<Button
-									onClick={handleBuscarProdutos}
-									disabled={loading || categoriasSelecionadas.length === 0}
-									size="lg"
+							<Button variant="outline" onClick={handleNovaBusca}>
+								Nova Busca
+							</Button>
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							{categoriasDisponiveis.map((categoria) => (
+								<button
+									key={categoria.id}
+									type="button"
+									className="w-full flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-accent text-left"
+									onClick={() => toggleCategoria(categoria.id)}
 								>
-									{loading ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Carregando produtos...
-										</>
-									) : (
-										<>
-											<ShoppingBag className="mr-2 h-4 w-4" />
-											Ver Produtos ({categoriasSelecionadas.length}{" "}
-											{categoriasSelecionadas.length === 1 ? "categoria" : "categorias"})
-										</>
-									)}
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
+									<Checkbox
+										checked={categoriasSelecionadas.includes(categoria.id)}
+										onCheckedChange={() => toggleCategoria(categoria.id)}
+									/>
+									<div className="flex-1">
+										<div className="font-semibold">{categoria.desc}</div>
+										<div className="text-sm text-muted-foreground">{categoria.qtd} produtos</div>
+									</div>
+									<Badge variant="secondary">{categoria.qtd}</Badge>
+								</button>
+							))}
+						</div>
+
+						<div className="mt-6 flex justify-end">
+							<Button
+								onClick={handleBuscarProdutos}
+								disabled={loading || categoriasSelecionadas.length === 0}
+								size="lg"
+							>
+								{loading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Carregando produtos...
+									</>
+								) : (
+									<>
+										<ShoppingBag className="mr-2 h-4 w-4" />
+										Ver Produtos ({categoriasSelecionadas.length}{" "}
+										{categoriasSelecionadas.length === 1 ? "categoria" : "categorias"})
+									</>
+								)}
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 			)}
 
 			{/* Passo 3: Produtos com filtros */}

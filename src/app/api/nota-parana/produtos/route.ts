@@ -30,8 +30,16 @@ export async function GET(request: Request) {
 			)
 		}
 
+		// Detectar se é código de barras (somente números, geralmente 8, 12, 13 ou 14 dígitos)
+		const isBarcode = /^\d{8,14}$/.test(termo.trim())
+
 		// Fazer a requisição para a API do Nota Paraná
-		const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${encodeURIComponent(local)}&termo=${encodeURIComponent(termo)}&categoria=${categoria}&offset=${offset}&raio=${raio}&data=${data}&ordem=${ordem}`
+		let url = `${NOTA_PARANA_BASE_URL}/produtos?local=${encodeURIComponent(local)}&termo=${encodeURIComponent(termo)}&categoria=${categoria}&offset=${offset}&raio=${raio}&data=${data}&ordem=${ordem}`
+		
+		// Se for código de barras, adicionar parâmetro gtin
+		if (isBarcode) {
+			url += `&gtin=${termo.trim()}`
+		}
 		
 		const response = await fetch(url, {
 			method: "GET",
