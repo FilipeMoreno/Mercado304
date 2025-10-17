@@ -1,11 +1,13 @@
 "use client"
 
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
+import { useMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 interface SelectWithSearchProps {
@@ -30,9 +32,38 @@ export function SelectWithSearch({
 	disabled = false,
 }: SelectWithSearchProps) {
 	const [open, setOpen] = React.useState(false)
+	const { isMobile } = useMobile()
 
 	const selectedOption = options.find((option) => option.value === value)
 
+	// Mobile: usa ResponsiveSelectDialog
+	if (isMobile) {
+		const dialogOptions = options.map((option) => ({
+			id: option.value,
+			label: option.label,
+			icon: option.icon,
+		}))
+
+		return (
+			<div className="space-y-2">
+				{label && <Label>{label}</Label>}
+				<ResponsiveSelectDialog
+					open={open}
+					onOpenChange={setOpen}
+					value={value}
+					onValueChange={onValueChange}
+					options={dialogOptions}
+					title={label || "Selecionar"}
+					placeholder={placeholder}
+					searchPlaceholder={searchPlaceholder}
+					emptyText={emptyMessage}
+					renderTrigger={true}
+				/>
+			</div>
+		)
+	}
+
+	// Desktop: mantém Popover
 	return (
 		<div className="space-y-2">
 			{label && <Label>{label}</Label>}

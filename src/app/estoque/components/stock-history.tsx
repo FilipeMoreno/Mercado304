@@ -7,6 +7,7 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DateInput } from "@/components/ui/date-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -82,24 +83,24 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 
 	const { data: historyData, isLoading, error } = useStockHistoryQuery(historyParams)
 
-const getMovementIcon = (type: string) => {
-	switch (type) {
-		case "ENTRADA":
-			return <TrendingUp className="h-4 w-4" />
-		case "SAIDA":
-			return <TrendingDown className="h-4 w-4" />
-		case "AJUSTE":
-			return <ArrowUpDown className="h-4 w-4" />
-		case "VENCIMENTO":
-			return <Calendar className="h-4 w-4" />
-		case "PERDA":
-			return <AlertTriangle className="h-4 w-4" />
-		case "DESPERDICIO":
-			return <Trash2 className="h-4 w-4" />
-		default:
-			return <Package className="h-4 w-4" />
+	const getMovementIcon = (type: string) => {
+		switch (type) {
+			case "ENTRADA":
+				return <TrendingUp className="h-4 w-4" />
+			case "SAIDA":
+				return <TrendingDown className="h-4 w-4" />
+			case "AJUSTE":
+				return <ArrowUpDown className="h-4 w-4" />
+			case "VENCIMENTO":
+				return <Calendar className="h-4 w-4" />
+			case "PERDA":
+				return <AlertTriangle className="h-4 w-4" />
+			case "DESPERDICIO":
+				return <Trash2 className="h-4 w-4" />
+			default:
+				return <Package className="h-4 w-4" />
+		}
 	}
-}
 
 	const _formatQuantity = (quantity: number, unit: string) => {
 		return `${quantity} ${unit}`
@@ -159,29 +160,23 @@ const getMovementIcon = (type: string) => {
 					</Select>
 				</div>
 
-				<div className="space-y-2">
-					<Label>Data Inicial</Label>
-					<Input
-						type="date"
-						value={filters.startDate}
-						onChange={(e) => {
-							setFilters((prev) => ({ ...prev, startDate: e.target.value }))
-							onPageChange?.(1)
-						}}
-					/>
-				</div>
+				<DateInput
+					label="Data Inicial"
+					value={filters.startDate}
+					onChange={(value) => {
+						setFilters((prev) => ({ ...prev, startDate: value }))
+						onPageChange?.(1)
+					}}
+				/>
 
-				<div className="space-y-2">
-					<Label>Data Final</Label>
-					<Input
-						type="date"
-						value={filters.endDate}
-						onChange={(e) => {
-							setFilters((prev) => ({ ...prev, endDate: e.target.value }))
-							onPageChange?.(1)
-						}}
-					/>
-				</div>
+				<DateInput
+					label="Data Final"
+					value={filters.endDate}
+					onChange={(value) => {
+						setFilters((prev) => ({ ...prev, endDate: value }))
+						onPageChange?.(1)
+					}}
+				/>
 
 				<div className="flex items-end gap-2">
 					<Button
@@ -300,29 +295,27 @@ const getMovementIcon = (type: string) => {
 				) : (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{historyRecords.map((movement: MovementRecord) => (
-							<Card 
-								key={movement.id} 
-								className={`h-56 transition-all hover:shadow-md ${
-									movement.type === 'DESPERDICIO' 
-										? "border-red-200 bg-red-50/50 hover:bg-red-50" 
+							<Card
+								key={movement.id}
+								className={`h-56 transition-all hover:shadow-md ${movement.type === 'DESPERDICIO'
+										? "border-red-200 bg-red-50/50 hover:bg-red-50"
 										: movement.type === 'VENCIMENTO'
-										? "border-orange-200 bg-orange-50/50 hover:bg-orange-50"
-										: "hover:bg-gray-50"
-								}`}
+											? "border-orange-200 bg-orange-50/50 hover:bg-orange-50"
+											: "hover:bg-gray-50"
+									}`}
 							>
 								<CardContent className="p-4 h-full flex flex-col">
 									<div className="flex items-start gap-3 mb-3">
-										<div className={`p-2 rounded-lg ${
-											movement.type === 'DESPERDICIO'
+										<div className={`p-2 rounded-lg ${movement.type === 'DESPERDICIO'
 												? "bg-red-100 text-red-600"
 												: movement.type === 'VENCIMENTO'
-												? "bg-orange-100 text-orange-600"
-												: movement.type === 'ENTRADA'
-												? "bg-green-100 text-green-600"
-												: movement.type === 'SAIDA'
-												? "bg-blue-100 text-blue-600"
-												: "bg-gray-100 text-gray-600"
-										}`}>
+													? "bg-orange-100 text-orange-600"
+													: movement.type === 'ENTRADA'
+														? "bg-green-100 text-green-600"
+														: movement.type === 'SAIDA'
+															? "bg-blue-100 text-blue-600"
+															: "bg-gray-100 text-gray-600"
+											}`}>
 											{getMovementIcon(movement.type)}
 										</div>
 										<div className="flex-1 min-w-0">
@@ -398,7 +391,7 @@ const getMovementIcon = (type: string) => {
 							const startPage = Math.max(1, currentPage - 2)
 							const page = startPage + i
 							if (page > historyData.pagination.totalPages) return null
-							
+
 							return (
 								<Button
 									key={page}

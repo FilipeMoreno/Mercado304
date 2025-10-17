@@ -20,6 +20,7 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DateInput } from "@/components/ui/date-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -186,35 +187,29 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 					</Select>
 				</div>
 
-				<div className="space-y-2">
-					<Label>Data Inicial</Label>
-					<Input
-						type="date"
-						value={filters.startDate}
-						onChange={(e) =>
-							setFilters((prev) => ({
-								...prev,
-								startDate: e.target.value,
-								page: 1,
-							}))
-						}
-					/>
-				</div>
+				<DateInput
+					label="Data Inicial"
+					value={filters.startDate}
+					onChange={(value) =>
+						setFilters((prev) => ({
+							...prev,
+							startDate: value,
+							page: 1,
+						}))
+					}
+				/>
 
-				<div className="space-y-2">
-					<Label>Data Final</Label>
-					<Input
-						type="date"
-						value={filters.endDate}
-						onChange={(e) =>
-							setFilters((prev) => ({
-								...prev,
-								endDate: e.target.value,
-								page: 1,
-							}))
-						}
-					/>
-				</div>
+				<DateInput
+					label="Data Final"
+					value={filters.endDate}
+					onChange={(value) =>
+						setFilters((prev) => ({
+							...prev,
+							endDate: value,
+							page: 1,
+						}))
+					}
+				/>
 
 				<div className="flex items-end gap-2">
 					<Button

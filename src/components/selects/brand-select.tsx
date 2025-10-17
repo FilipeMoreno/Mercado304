@@ -103,7 +103,7 @@ export function BrandSelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
-			pendingBrandName={pendingBrandName}
+			pendingBrandName={pendingBrandName ?? undefined}
 		/>
 	)
 }

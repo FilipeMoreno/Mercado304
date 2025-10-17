@@ -35,6 +35,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DateInput } from "@/components/ui/date-input"
 // removed unused imports
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -226,24 +227,18 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 			</div>
 			{(state.period === "custom" || (state.dateFrom && state.dateTo)) && (
 				<div className="grid grid-cols-2 gap-2">
-					<div className="space-y-2">
-						<Label htmlFor={`dateFrom-${id}`}>De</Label>
-						<Input
-							type="date"
-							id={`dateFrom-${id}`}
-							value={state.dateFrom as string}
-							onChange={(e) => updateSingleValue("dateFrom", e.target.value)}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor={`dateTo-${id}`}>Até</Label>
-						<Input
-							type="date"
-							id={`dateTo-${id}`}
-							value={state.dateTo as string}
-							onChange={(e) => updateSingleValue("dateTo", e.target.value)}
-						/>
-					</div>
+					<DateInput
+						id={`dateFrom-${id}`}
+						label="De"
+						value={state.dateFrom as string}
+						onChange={(value) => updateSingleValue("dateFrom", value)}
+					/>
+					<DateInput
+						id={`dateTo-${id}`}
+						label="Até"
+						value={state.dateTo as string}
+						onChange={(value) => updateSingleValue("dateTo", value)}
+					/>
 				</div>
 			)}
 		</>

@@ -104,7 +104,7 @@ export function CategorySelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
-			pendingCategoryName={pendingCategoryName}
+			pendingCategoryName={pendingCategoryName ?? undefined}
 		/>
 	)
 }

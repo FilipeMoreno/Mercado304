@@ -47,7 +47,7 @@ export default function EditProductKitPage() {
       setKitDescription(kit.description || "");
       setIsActive(kit.isActive);
       setSelectedProducts(
-        kit.items.map((item) => ({
+        kit.items.map((item: any) => ({
           productId: item.product.id,
           productName: item.product.name,
           quantity: item.quantity,
@@ -124,13 +124,13 @@ export default function EditProductKitPage() {
     const statusChanged = kit.isActive !== isActive;
 
     // Check if products changed
-    const currentProductIds = kit.items.map((i) => i.product.id).sort();
+    const currentProductIds = kit.items.map((i: any) => i.product.id).sort();
     const selectedProductIds = selectedProducts.map((p) => p.productId).sort();
     const productsChanged =
       JSON.stringify(currentProductIds) !== JSON.stringify(selectedProductIds);
 
     // Check if quantities changed
-    const quantitiesChanged = kit.items.some((item) => {
+    const quantitiesChanged = kit.items.some((item: any) => {
       const selectedProduct = selectedProducts.find(
         (p) => p.productId === item.product.id
       );

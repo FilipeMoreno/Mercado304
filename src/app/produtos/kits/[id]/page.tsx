@@ -165,7 +165,7 @@ export default function KitDetailsPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Unidades Totais</p>
                     <p className="font-medium">
-                      {kit.items.reduce((sum, item) => sum + item.quantity, 0)} unidades
+                      {kit.items.reduce((sum: number, item: any) => sum + item.quantity, 0)} unidades
                     </p>
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function KitDetailsPage() {
                 <div>
                   <h3 className="font-semibold mb-3">Produtos Inclusos</h3>
                   <div className="space-y-2">
-                    {kit.items.map((item) => (
+                    {kit.items.map((item: any) => (
                       <Card key={item.id}>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
@@ -242,8 +242,8 @@ export default function KitDetailsPage() {
                               stockData.data.availableQuantity === 0
                                 ? "destructive"
                                 : stockData.data.availableQuantity <= 3
-                                ? "secondary"
-                                : "default"
+                                  ? "secondary"
+                                  : "default"
                             }
                             className="text-lg py-2 px-4"
                           >
@@ -276,7 +276,7 @@ export default function KitDetailsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {stockData.data.itemsStock.map((item) => (
+                        {stockData.data.itemsStock.map((item: any) => (
                           <div
                             key={item.productId}
                             className="flex items-center justify-between p-3 border rounded-lg"
@@ -368,7 +368,7 @@ export default function KitDetailsPage() {
                         <div>
                           <p className="text-sm font-semibold mb-2">Contém Alérgenos:</p>
                           <div className="flex flex-wrap gap-2">
-                            {nutritionData.data.allergensContains.map((allergen) => (
+                            {nutritionData.data.allergensContains.map((allergen: string) => (
                               <Badge key={allergen} variant="destructive">
                                 {allergen}
                               </Badge>
@@ -432,7 +432,7 @@ export default function KitDetailsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {priceData.data.itemPrices.map((item) => (
+                        {priceData.data.itemPrices.map((item: any) => (
                           <div
                             key={item.productId}
                             className="flex items-center justify-between p-3 border rounded-lg"
