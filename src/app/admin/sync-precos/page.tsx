@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, CheckCircle, FileText, Loader2, Pause, Play, RefreshCw, XCircle } from "lucide-react"
+import { AlertCircle, Ban, CheckCircle, FileText, Loader2, Pause, Play, RefreshCw, XCircle } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -139,6 +139,35 @@ export default function AdminSyncPrecosPage() {
 		}
 	}
 
+	const handleCancelSync = async () => {
+		if (!currentJob) return
+		
+		// Confirmar cancelamento
+		if (!confirm("Tem certeza que deseja cancelar a sincronização em andamento?")) {
+			return
+		}
+
+		try {
+			const response = await fetch(`/api/admin/sync-precos/cancel/${currentJob.id}`, {
+				method: "POST",
+			})
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.error || "Erro ao cancelar sincronização")
+			}
+
+			const data = await response.json()
+			toast.success("Sincronização cancelada!")
+			
+			// Atualizar status do job
+			setCurrentJob(data.job)
+		} catch (error) {
+			console.error("Erro ao cancelar sincronização:", error)
+			toast.error(error instanceof Error ? error.message : "Erro ao cancelar sincronização")
+		}
+	}
+
 	const getStatusBadge = (status: string) => {
 		switch (status) {
 			case "pending":
@@ -162,6 +191,13 @@ export default function AdminSyncPrecosPage() {
 					<Badge variant="destructive">
 						<XCircle className="h-3 w-3 mr-1" />
 						Falhou
+					</Badge>
+				)
+			case "cancelled":
+				return (
+					<Badge variant="outline" className="border-orange-600 text-orange-600">
+						<Ban className="h-3 w-3 mr-1" />
+						Cancelado
 					</Badge>
 				)
 			default:
@@ -229,34 +265,46 @@ export default function AdminSyncPrecosPage() {
 							</Button>
 
 							{isRunning && (
-								<div className="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setAutoRefresh(!autoRefresh)}
-										className="flex-1"
+								<>
+									<Button 
+										onClick={handleCancelSync} 
+										variant="destructive" 
+										size="lg" 
+										className="w-full"
 									>
-										{autoRefresh ? (
-											<>
-												<Pause className="mr-2 h-3 w-3" />
-												Pausar Atualização
-											</>
-										) : (
-											<>
-												<Play className="mr-2 h-3 w-3" />
-												Retomar Atualização
-											</>
-										)}
+										<Ban className="mr-2 h-4 w-4" />
+										Cancelar Sincronização
 									</Button>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => currentJob && fetchJobStatus(currentJob.id)}
-										disabled={polling}
-									>
-										<RefreshCw className={`h-3 w-3 ${polling ? "animate-spin" : ""}`} />
-									</Button>
-								</div>
+									
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => setAutoRefresh(!autoRefresh)}
+											className="flex-1"
+										>
+											{autoRefresh ? (
+												<>
+													<Pause className="mr-2 h-3 w-3" />
+													Pausar Atualização
+												</>
+											) : (
+												<>
+													<Play className="mr-2 h-3 w-3" />
+													Retomar Atualização
+												</>
+											)}
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => currentJob && fetchJobStatus(currentJob.id)}
+											disabled={polling}
+										>
+											<RefreshCw className={`h-3 w-3 ${polling ? "animate-spin" : ""}`} />
+										</Button>
+									</div>
+								</>
 							)}
 
 							<Alert>

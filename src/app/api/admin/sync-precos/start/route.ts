@@ -155,6 +155,18 @@ async function processarSyncJob(jobId: string) {
 
 		for (let i = 0; i < produtos.length; i++) {
 			const produto = produtos[i]
+			
+			// Verificar se o job foi cancelado
+			const jobAtual = await prisma.syncJob.findUnique({
+				where: { id: jobId },
+				select: { status: true },
+			})
+			
+			if (jobAtual?.status === "cancelled") {
+				await adicionarLog(jobId, "Sincronização cancelada pelo usuário")
+				return
+			}
+			
 			if (!produto.barcode) continue
 
 			// Calcular tempo estimado
@@ -163,17 +175,20 @@ async function processarSyncJob(jobId: string) {
 			const remaining = produtos.length - (i + 1)
 			const estimatedTimeRemaining = Math.round((avgTimePerProduct * remaining) / 1000) // segundos
 
-			// Atualizar progresso com estimativa
+			// Atualizar progresso com estimativa e contadores em tempo real
 			const progresso = Math.floor(5 + ((i + 1) / produtos.length) * 90)
 			await prisma.syncJob.update({
 				where: { id: jobId },
 				data: {
 					progresso,
+					precosRegistrados, // Atualizar em tempo real
 					detalhes: {
 						estimativaSegundos: estimatedTimeRemaining,
 						produtosProcessadosAtual: i + 1,
 						produtosTotal: produtos.length,
 						quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
+						mercados: detalhes, // Atualizar mercados em tempo real
+						produtosNaoEncontrados: produtosNaoEncontrados, // Atualizar produtos não encontrados em tempo real
 					},
 				},
 			})
