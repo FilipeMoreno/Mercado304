@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNotaParana } from "@/hooks"
+import { getCategoriasParaBusca, isProvavelmenteAlimento } from "@/lib/nota-parana-config"
 import type { NotaParanaCategoria, NotaParanaProduto } from "@/types"
 
 type OrdenacaoType = "relevancia" | "menor-preco" | "maior-preco" | "maior-desconto"
@@ -25,6 +26,7 @@ export function NotaParanaSearchAdvanced() {
 	const [termo, setTermo] = useState("")
 	const [step, setStep] = useState<"busca" | "categorias" | "produtos">("busca")
 	const [isBarcode, setIsBarcode] = useState(false)
+	const [isAlimento, setIsAlimento] = useState(true)
 
 	// Categorias
 	const [categoriasDisponiveis, setCategoriasDisponiveis] = useState<NotaParanaCategoria[]>([])
@@ -52,23 +54,16 @@ export function NotaParanaSearchAdvanced() {
 		const isBarcodeDetected = /^\d{8,14}$/.test(termo.trim())
 		setIsBarcode(isBarcodeDetected)
 
-		// Se for código de barras, buscar produtos diretamente em categorias comuns
+		// Se for código de barras, buscar produtos diretamente usando categorias inteligentes
 		if (isBarcodeDetected) {
-			// Categorias mais comuns para buscar produtos
-			// Isso evita ter que buscar a API de categorias que não funciona com código de barras
-			const categoriasComuns = [
-				55, // Bebidas
-				63, // Alimentos e bebidas
-				56, // Alimentos
-				13, // Preparos alimentícios
-				53, // Outros produtos
-				0, // Não catalogado
-			]
+			// Usa detecção inteligente: se for alimento busca em categorias de alimentos,
+			// senão busca em categorias de não alimentos
+			const categoriasParaBuscar = getCategoriasParaBusca(termo.trim())
 
 			const todosProdutosTemp: NotaParanaProduto[] = []
 
-			// Buscar produtos em cada categoria comum
-			for (const categoriaId of categoriasComuns) {
+			// Buscar produtos em cada categoria
+			for (const categoriaId of categoriasParaBuscar) {
 				try {
 					const resultado = await buscarProdutos({
 						termo: termo.trim(),
@@ -296,7 +291,9 @@ export function NotaParanaSearchAdvanced() {
 										onChange={(e) => {
 											const valor = e.target.value
 											setTermo(valor)
-											setIsBarcode(/^\d{8,14}$/.test(valor.trim()))
+											const isBarcodeTemp = /^\d{8,14}$/.test(valor.trim())
+											setIsBarcode(isBarcodeTemp)
+											setIsAlimento(isProvavelmenteAlimento(valor))
 										}}
 										onKeyDown={(e) => e.key === "Enter" && handleBuscarCategorias()}
 									/>
@@ -315,10 +312,18 @@ export function NotaParanaSearchAdvanced() {
 									)}
 								</Button>
 							</div>
-							{isBarcode && termo.trim() && (
-								<div className="flex items-center gap-2 text-sm text-primary">
-									<ShoppingBag className="h-4 w-4" />
-									<span className="font-medium">Código de barras detectado - busca direta ativada</span>
+							{termo.trim() && (
+								<div className="flex items-center gap-3 text-sm">
+									{isBarcode && (
+										<Badge variant="default" className="flex items-center gap-1">
+											<ShoppingBag className="h-3 w-3" />
+											Código de barras - busca direta
+										</Badge>
+									)}
+									<Badge variant={isAlimento ? "secondary" : "outline"} className="flex items-center gap-1">
+										{isAlimento ? "🍎" : "🧹"} {isAlimento ? "Alimento" : "Não alimento"} - {getCategoriasParaBusca(termo).length}{" "}
+										categorias
+									</Badge>
 								</div>
 							)}
 						</div>

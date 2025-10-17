@@ -435,6 +435,27 @@ model PriceRecord {
   @@map("price_records")
 }
 
+model SyncJob {
+  id                   String   @id @default(cuid())
+  status               String   @default("pending") // pending, running, completed, failed
+  tipo                 String   @default("precos") // precos, produtos, etc
+  progresso            Int      @default(0) // 0-100
+  mercadosProcessados  Int      @default(0)
+  produtosProcessados  Int      @default(0)
+  precosRegistrados    Int      @default(0)
+  erros                Json     @default("[]")
+  logs                 Json     @default("[]")
+  detalhes             Json?
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("sync_jobs")
+}
+
 model User {
   id                    String      @id
   name                  String
