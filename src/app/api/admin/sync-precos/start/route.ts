@@ -4,6 +4,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Configuração de paralelismo
+const BATCH_SIZE = 5 // Processar 5 produtos simultaneamente
+const DELAY_BETWEEN_BATCHES = 500 // 500ms entre batches (reduzido de 200ms por produto)
+
 export async function POST() {
 	try {
 		// Verificar se já existe job rodando
@@ -63,7 +67,7 @@ async function processarSyncJob(jobId: string) {
 			data: {
 				status: "running",
 				startedAt: new Date(),
-				logs: ["Sincronização iniciada"],
+				logs: ["[SERVER] Sincronização iniciada", "[DEBUG] Modo de processamento paralelo ativado"],
 			},
 		})
 
@@ -82,7 +86,8 @@ async function processarSyncJob(jobId: string) {
 			},
 		})
 
-		await adicionarLog(jobId, `${mercados.length} mercados com razão social encontrados`)
+		await adicionarLog(jobId, `[SERVER] ${mercados.length} mercados com razão social encontrados`)
+		await adicionarLog(jobId, `[DEBUG] Mercados: ${mercados.map((m) => m.name).join(", ")}`)
 
 		if (mercados.length === 0) {
 			await prisma.syncJob.update({
@@ -111,7 +116,8 @@ async function processarSyncJob(jobId: string) {
 			},
 		})
 
-		await adicionarLog(jobId, `${produtos.length} produtos com código de barras encontrados`)
+		await adicionarLog(jobId, `[SERVER] ${produtos.length} produtos com código de barras encontrados`)
+		await adicionarLog(jobId, `[DEBUG] Primeiros produtos: ${produtos.slice(0, 5).map((p) => p.name).join(", ")}...`)
 
 		if (produtos.length === 0) {
 			await prisma.syncJob.update({
@@ -135,7 +141,7 @@ async function processarSyncJob(jobId: string) {
 			},
 		})
 
-		// 3. Processar produtos
+		// 3. Processar produtos em paralelo (batches)
 		let precosRegistrados = 0
 		const detalhes: {
 			mercado: string
@@ -152,173 +158,137 @@ async function processarSyncJob(jobId: string) {
 			barcode: string
 		}[] = []
 		const startTime = Date.now()
+		let produtosProcessados = 0
 
-		for (let i = 0; i < produtos.length; i++) {
-			const produto = produtos[i]
-			
-			// Verificar se o job foi cancelado
+		// Dividir produtos em batches
+		const batches: typeof produtos[] = []
+		for (let i = 0; i < produtos.length; i += BATCH_SIZE) {
+			batches.push(produtos.slice(i, i + BATCH_SIZE))
+		}
+
+		await adicionarLog(jobId, `[SERVER] Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${BATCH_SIZE} por vez)`)
+		await adicionarLog(jobId, `[DEBUG] Configuração: BATCH_SIZE=${BATCH_SIZE}, DELAY=${DELAY_BETWEEN_BATCHES}ms`)
+
+		// Processar cada batch em paralelo
+		for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+			const batch = batches[batchIndex]
+
+			// Verificar se o job foi cancelado antes de cada batch
 			const jobAtual = await prisma.syncJob.findUnique({
 				where: { id: jobId },
 				select: { status: true },
 			})
-			
+
 			if (jobAtual?.status === "cancelled") {
-				await adicionarLog(jobId, "Sincronização cancelada pelo usuário")
+				await adicionarLog(jobId, "[SERVER] Sincronização cancelada pelo usuário")
+				await adicionarLog(jobId, `[DEBUG] Batch ${batchIndex + 1}/${batches.length} interrompido`)
 				return
 			}
-			
-			if (!produto.barcode) continue
 
-			// Calcular tempo estimado
-			const elapsed = Date.now() - startTime
-			const avgTimePerProduct = elapsed / (i + 1)
-			const remaining = produtos.length - (i + 1)
-			const estimatedTimeRemaining = Math.round((avgTimePerProduct * remaining) / 1000) // segundos
+			await adicionarLog(jobId, `[DEBUG] Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos`)
 
-			// Atualizar progresso com estimativa e contadores em tempo real
-			const progresso = Math.floor(5 + ((i + 1) / produtos.length) * 90)
-			await prisma.syncJob.update({
-				where: { id: jobId },
-				data: {
-					progresso,
-					precosRegistrados, // Atualizar em tempo real
-					detalhes: {
-						estimativaSegundos: estimatedTimeRemaining,
-						produtosProcessadosAtual: i + 1,
-						produtosTotal: produtos.length,
-						quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
-						mercados: detalhes, // Atualizar mercados em tempo real
-						produtosNaoEncontrados: produtosNaoEncontrados, // Atualizar produtos não encontrados em tempo real
-					},
-				},
-			})
+			// Processar produtos do batch em paralelo
+			const batchResults = await Promise.all(
+				batch.map(async (produto) => {
+					if (!produto.barcode) return { encontrou: false, precosCount: 0 }
 
-			// Buscar em categorias
-			let encontrouProduto = false
+					return await processarProduto(
+						produto,
+						mercados,
+						NOTA_PARANA_BASE_URL,
+						CATEGORIAS_BUSCA,
+						LOCAL_PADRAO,
+						RAIO_PADRAO,
+						PERIODO_PADRAO,
+					)
+				}),
+			)
 
-			for (const categoria of CATEGORIAS_BUSCA) {
-				if (encontrouProduto) break
+			// Consolidar resultados do batch
+			for (let i = 0; i < batch.length; i++) {
+				const produto = batch[i]
+				const result = batchResults[i]
 
-				try {
-					const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&categoria=${categoria}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
+				// Adicionar logs de debug do processamento
+				if (result.debugLogs && result.debugLogs.length > 0) {
+					for (const debugLog of result.debugLogs) {
+						await adicionarLog(jobId, debugLog)
+					}
+				}
 
-					const response = await fetch(url)
-					if (!response.ok) continue
+				if (result.encontrou) {
+					await adicionarLog(jobId, `✓ ${produto.name} processado`)
 
-					const data = await response.json()
-					if (!data.produtos || data.produtos.length === 0) continue
-
-					encontrouProduto = true
-
-					// Processar estabelecimentos
-					for (const produtoNP of data.produtos) {
-						const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
-						const enderecoEstabelecimento = produtoNP.estabelecimento
-
-						if (!nomeEstabelecimento) continue
-
-						// Encontrar mercado
-						const mercadoMatch = mercados.find((m) => {
-							if (!m.legalName) return false
-
-							const palavrasMercado = m.legalName.toLowerCase().split(" ")
-							const palavrasEstabelecimento = nomeEstabelecimento.toLowerCase().split(" ")
-
-							let matchesNome = 0
-							for (const palavra of palavrasMercado) {
-								if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
-									matchesNome++
-								}
-							}
-
-							if (matchesNome < 2) return false
-
-							if (m.location) {
-								const enderecoMercado = m.location.toLowerCase()
-								const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
-								const numeroAPI = enderecoEstabelecimento.nr_logr || ""
-								const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
-
-								const temRua = ruaAPI && enderecoMercado.includes(ruaAPI)
-								const temNumero = numeroAPI && enderecoMercado.includes(numeroAPI)
-								const temBairro = bairroAPI && enderecoMercado.includes(bairroAPI)
-
-								const matchesEndereco = [temRua, temNumero, temBairro].filter(Boolean).length
-
-								if (matchesEndereco < 2) return false
-							}
-
-							return true
-						})
-
-						if (!mercadoMatch) continue
-
-						// Calcular e registrar preço
-						const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
-						if (preco <= 0) continue
-
-						const dataLimite = new Date()
-						dataLimite.setHours(dataLimite.getHours() - 24)
-
-						const registroExistente = await prisma.priceRecord.findFirst({
-							where: {
-								productId: produto.id,
-								marketId: mercadoMatch.id,
-								recordDate: { gte: dataLimite },
-							},
-						})
-
-						if (!registroExistente || Math.abs(registroExistente.price - preco) > 0.01) {
-							await prisma.priceRecord.create({
-								data: {
-									productId: produto.id,
-									marketId: mercadoMatch.id,
-									price: preco,
-									recordDate: new Date(produtoNP.datahora),
-									notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
-								},
-							})
-
+					// Registrar preços encontrados
+					if (result.precosEncontrados && result.precosEncontrados.length > 0) {
+						for (const precoInfo of result.precosEncontrados) {
 							precosRegistrados++
 
-							let detalhe = detalhes.find((d) => d.mercadoId === mercadoMatch.id)
+							let detalhe = detalhes.find((d) => d.mercadoId === precoInfo.mercadoId)
 							if (!detalhe) {
 								detalhe = {
-									mercado: mercadoMatch.name,
-									mercadoId: mercadoMatch.id,
+									mercado: precoInfo.mercadoNome,
+									mercadoId: precoInfo.mercadoId,
 									itens: [],
 								}
 								detalhes.push(detalhe)
 							}
 							detalhe.itens.push({
 								produto: produto.name,
-								preco: preco,
-								data: produtoNP.datahora,
+								preco: precoInfo.preco,
+								data: precoInfo.data,
 							})
 
 							await adicionarLog(
 								jobId,
-								`Preço registrado: ${produto.name} em ${mercadoMatch.name} - R$ ${preco.toFixed(2)}`,
+								`Preço registrado: ${produto.name} em ${precoInfo.mercadoNome} - R$ ${precoInfo.preco.toFixed(2)}`,
 							)
 						}
 					}
-				} catch {}
+				} else if (produto.barcode) {
+					// Produto não encontrado
+					produtosNaoEncontrados.push({
+						id: produto.id,
+						nome: produto.name,
+						barcode: produto.barcode,
+					})
+					await adicionarLog(jobId, `⚠ ${produto.name} não encontrado na API`)
+				}
+
+				produtosProcessados++
 			}
 
-			if (encontrouProduto) {
-				await adicionarLog(jobId, `✓ ${produto.name} processado`)
-			} else {
-				// Produto não encontrado em nenhuma categoria
-				produtosNaoEncontrados.push({
-					id: produto.id,
-					nome: produto.name,
-					barcode: produto.barcode,
-				})
-				await adicionarLog(jobId, `⚠ ${produto.name} não encontrado na API`)
-			}
+			// Calcular tempo estimado
+			const elapsed = Date.now() - startTime
+			const avgTimePerProduct = elapsed / produtosProcessados
+			const remaining = produtos.length - produtosProcessados
+			const estimatedTimeRemaining = Math.round((avgTimePerProduct * remaining) / 1000)
 
-			// Delay entre produtos
-			await new Promise((resolve) => setTimeout(resolve, 200))
+			// Atualizar progresso após cada batch
+			const progresso = Math.floor(5 + (produtosProcessados / produtos.length) * 90)
+			await prisma.syncJob.update({
+				where: { id: jobId },
+				data: {
+					progresso,
+					precosRegistrados,
+					detalhes: {
+						estimativaSegundos: estimatedTimeRemaining,
+						produtosProcessadosAtual: produtosProcessados,
+						produtosTotal: produtos.length,
+						quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
+						mercados: detalhes,
+						produtosNaoEncontrados: produtosNaoEncontrados,
+						batchAtual: batchIndex + 1,
+						totalBatches: batches.length,
+						produtosPorBatch: BATCH_SIZE,
+					},
+				},
+			})
+
+			// Delay entre batches (não mais entre cada produto)
+			if (batchIndex < batches.length - 1) {
+				await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_BATCHES))
+			}
 		}
 
 		// Finalizar
@@ -343,9 +313,10 @@ async function processarSyncJob(jobId: string) {
 			},
 		})
 
+		await adicionarLog(jobId, `[SERVER] Sincronização concluída com sucesso`)
 		await adicionarLog(
 			jobId,
-			`Sincronização concluída: ${precosRegistrados} preços registrados, ${produtosNaoEncontrados.length} produtos não encontrados`,
+			`[DEBUG] Resumo: ${precosRegistrados} preços registrados, ${produtosNaoEncontrados.length} produtos não encontrados em ${Math.round((Date.now() - startTime) / 1000)}s`,
 		)
 	} catch (err) {
 		console.error("Erro ao processar job:", err)
@@ -358,6 +329,218 @@ async function processarSyncJob(jobId: string) {
 				erros: [err instanceof Error ? err.message : "Erro desconhecido"],
 			},
 		})
+	}
+}
+
+// Função auxiliar para processar um produto individualmente
+async function processarProduto(
+	produto: { id: string; name: string; barcode: string | null },
+	mercados: { id: string; name: string; legalName: string | null; location: string | null }[],
+	NOTA_PARANA_BASE_URL: string,
+	CATEGORIAS_BUSCA: string[],
+	LOCAL_PADRAO: string,
+	RAIO_PADRAO: string,
+	PERIODO_PADRAO: string,
+) {
+	if (!produto.barcode) {
+		return { encontrou: false, precosEncontrados: [], debugLogs: [] }
+	}
+
+	const precosEncontrados: {
+		mercadoId: string
+		mercadoNome: string
+		preco: number
+		data: string
+	}[] = []
+
+	const debugLogs: string[] = []
+	let encontrouProduto = false
+
+	// Buscar em categorias
+	for (const categoria of CATEGORIAS_BUSCA) {
+		if (encontrouProduto) break
+
+		try {
+			const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&categoria=${categoria}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
+
+			debugLogs.push(`[API] Buscando: ${produto.name} (EAN: ${produto.barcode})`)
+			debugLogs.push(`[API] Categoria: ${categoria} | Raio: ${RAIO_PADRAO}m | Período: ${PERIODO_PADRAO} | Local: ${LOCAL_PADRAO}`)
+			debugLogs.push(`[API] URL: ${url}`)
+
+			const response = await fetch(url)
+			if (!response.ok) {
+				debugLogs.push(`[API] Resposta HTTP ${response.status} para categoria ${categoria}`)
+				continue
+			}
+
+			const data = await response.json()
+			if (!data.produtos || data.produtos.length === 0) {
+				debugLogs.push(`[API] Nenhum produto encontrado na categoria ${categoria}`)
+				continue
+			}
+
+			encontrouProduto = true
+			debugLogs.push(`[API] ✓ Produto encontrado! ${data.produtos.length} estabelecimento(s) retornado(s)`)
+			
+			// Log de debug da API (será filtrado se debug mode estiver desligado)
+			console.log(`[API] Produto encontrado: ${produto.name} - ${data.produtos.length} estabelecimentos`)
+
+			// Processar estabelecimentos
+			for (const produtoNP of data.produtos) {
+				const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
+				const enderecoEstabelecimento = produtoNP.estabelecimento
+
+				if (!nomeEstabelecimento) {
+					debugLogs.push(`[DEBUG] Estabelecimento sem nome, pulando...`)
+					continue
+				}
+
+				// Log dos dados do estabelecimento da API
+				debugLogs.push(`[DEBUG] ─────────────────────────────────────`)
+				debugLogs.push(`[DEBUG] Estabelecimento API: ${nomeEstabelecimento}`)
+				debugLogs.push(`[DEBUG] Endereço API: ${enderecoEstabelecimento.nm_logr || "N/A"}, ${enderecoEstabelecimento.nr_logr || "S/N"} - ${enderecoEstabelecimento.bairro || "N/A"}`)
+				debugLogs.push(`[DEBUG] Preço API: R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`)
+				debugLogs.push(`[DEBUG] Data API: ${produtoNP.datahora} (${produtoNP.tempo})`)
+
+				// Encontrar mercado correspondente com logs detalhados
+				let melhorMatch: {
+					mercado: { id: string; name: string; legalName: string | null; location: string | null }
+					score: number
+					detalhes: string
+				} | null = null
+
+				for (const m of mercados) {
+					if (!m.legalName) continue
+
+					const palavrasMercado = m.legalName.toLowerCase().split(" ")
+					const palavrasEstabelecimento = nomeEstabelecimento.toLowerCase().split(" ")
+
+					let matchesNome = 0
+					const palavrasMatched: string[] = []
+					for (const palavra of palavrasMercado) {
+						if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
+							matchesNome++
+							palavrasMatched.push(palavra)
+						}
+					}
+
+					if (matchesNome < 2) continue
+
+					let matchesEndereco = 0
+					const enderecoMatches: string[] = []
+
+					if (m.location) {
+						const enderecoMercado = m.location.toLowerCase()
+						const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
+						const numeroAPI = enderecoEstabelecimento.nr_logr || ""
+						const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
+
+						if (ruaAPI && enderecoMercado.includes(ruaAPI)) {
+							matchesEndereco++
+							enderecoMatches.push("rua")
+						}
+						if (numeroAPI && enderecoMercado.includes(numeroAPI)) {
+							matchesEndereco++
+							enderecoMatches.push("número")
+						}
+						if (bairroAPI && enderecoMercado.includes(bairroAPI)) {
+							matchesEndereco++
+							enderecoMatches.push("bairro")
+						}
+					}
+
+					if (matchesEndereco < 2 && m.location) continue
+
+					// Calcular score do match
+					const score = matchesNome + matchesEndereco
+					const detalhes = `Nome: ${matchesNome} matches [${palavrasMatched.join(", ")}] | Endereço: ${matchesEndereco} matches [${enderecoMatches.join(", ")}]`
+
+					if (!melhorMatch || score > melhorMatch.score) {
+						melhorMatch = { mercado: m, score, detalhes }
+					}
+				}
+
+				if (!melhorMatch) {
+					debugLogs.push(`[DEBUG] ✗ Nenhum mercado correspondente encontrado`)
+					continue
+				}
+
+				const mercadoMatch = melhorMatch.mercado
+				debugLogs.push(`[DEBUG] ✓ Match encontrado: ${mercadoMatch.name}`)
+				debugLogs.push(`[DEBUG] Match Score: ${melhorMatch.score} | ${melhorMatch.detalhes}`)
+				debugLogs.push(`[DEBUG] Mercado DB: ${mercadoMatch.legalName} - ${mercadoMatch.location || "Sem endereço"}`)
+
+				// Calcular preço
+				const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
+				if (preco <= 0) {
+					debugLogs.push(`[DEBUG] Preço inválido (≤ 0), pulando...`)
+					continue
+				}
+
+				// Verificar se já existe registro recente
+				const dataLimite = new Date()
+				dataLimite.setHours(dataLimite.getHours() - 24)
+
+				const registroExistente = await prisma.priceRecord.findFirst({
+					where: {
+						productId: produto.id,
+						marketId: mercadoMatch.id,
+						recordDate: { gte: dataLimite },
+					},
+				})
+
+				// Registrar preço se não existe ou mudou significativamente
+				if (!registroExistente) {
+					debugLogs.push(`[DEBUG] Novo preço! Registrando R$ ${preco.toFixed(2)}`)
+					await prisma.priceRecord.create({
+						data: {
+							productId: produto.id,
+							marketId: mercadoMatch.id,
+							price: preco,
+							recordDate: new Date(produtoNP.datahora),
+							notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
+						},
+					})
+
+					precosEncontrados.push({
+						mercadoId: mercadoMatch.id,
+						mercadoNome: mercadoMatch.name,
+						preco: preco,
+						data: produtoNP.datahora,
+					})
+				} else if (Math.abs(registroExistente.price - preco) > 0.01) {
+					debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)}`)
+					await prisma.priceRecord.create({
+						data: {
+							productId: produto.id,
+							marketId: mercadoMatch.id,
+							price: preco,
+							recordDate: new Date(produtoNP.datahora),
+							notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
+						},
+					})
+
+					precosEncontrados.push({
+						mercadoId: mercadoMatch.id,
+						mercadoNome: mercadoMatch.name,
+						preco: preco,
+						data: produtoNP.datahora,
+					})
+				} else {
+					debugLogs.push(`[DEBUG] Preço já registrado recentemente (R$ ${preco.toFixed(2)}), pulando...`)
+				}
+			}
+		} catch (error) {
+			// Ignorar erros individuais para não parar o processamento
+			debugLogs.push(`[DEBUG] ✗ Erro ao processar: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+			console.error(`Erro ao processar produto ${produto.name}:`, error)
+		}
+	}
+
+	return {
+		encontrou: encontrouProduto,
+		precosEncontrados,
+		debugLogs,
 	}
 }
 
