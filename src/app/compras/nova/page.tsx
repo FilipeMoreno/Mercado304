@@ -351,7 +351,7 @@ export default function NovaCompraPage() {
 		})
 	}, [items])
 
-	const calculateTotal = () => {
+	const _calculateTotal = () => {
 		return items.reduce((sum, item) => {
 			const totalPrice = item.quantity * item.unitPrice
 			const totalDiscount = item.quantity * (item.unitDiscount || 0)
@@ -386,12 +386,21 @@ export default function NovaCompraPage() {
 		setLoading(true)
 
 		try {
+			// Mapear items com productName
+			const itemsWithNames = validItems.map((item) => {
+				const product = products.find((p) => p.id === item.productId)
+				return {
+					...item,
+					productName: product?.name || "Produto sem nome",
+				}
+			})
+
 			await createPurchaseMutation.mutateAsync({
 				marketId: formData.marketId,
 				purchaseDate: formData.purchaseDate,
 				paymentMethod: formData.paymentMethod,
 				totalDiscount: formData.totalDiscount || 0,
-				items: validItems,
+				items: itemsWithNames,
 			})
 
 			toast.success("Compra registrada com sucesso!")

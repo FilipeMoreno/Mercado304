@@ -17,7 +17,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAllProductsQuery, useMarketsQuery, usePurchaseQuery, useUpdatePurchaseMutation, useUIPreferences } from "@/hooks"
+import {
+	useAllProductsQuery,
+	useMarketsQuery,
+	usePurchaseQuery,
+	useUIPreferences,
+	useUpdatePurchaseMutation,
+} from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod } from "@/types"
@@ -126,9 +132,15 @@ export default function EditarCompraPage() {
 				bestPriceAlert: null,
 			}))
 			setItems(mappedItems)
-			setQuantityInputs(mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toFixed(3) : "1.000")))
-			setUnitPriceInputs(mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toFixed(2) : "0.00")))
-			setUnitDiscountInputs(mappedItems.map((it: any) => (typeof it.unitDiscount === "number" ? it.unitDiscount.toFixed(2) : "0.00")))
+			setQuantityInputs(
+				mappedItems.map((it: any) => (typeof it.quantity === "number" ? it.quantity.toFixed(3) : "1.000")),
+			)
+			setUnitPriceInputs(
+				mappedItems.map((it: any) => (typeof it.unitPrice === "number" ? it.unitPrice.toFixed(2) : "0.00")),
+			)
+			setUnitDiscountInputs(
+				mappedItems.map((it: any) => (typeof it.unitDiscount === "number" ? it.unitDiscount.toFixed(2) : "0.00")),
+			)
 			setTotalDiscountInput(purchaseData.totalDiscount ? purchaseData.totalDiscount.toFixed(2) : "0.00")
 		}
 	}, [purchaseData, purchaseLoading])
@@ -187,7 +199,7 @@ export default function EditarCompraPage() {
 		}
 	}
 
-	const calculateTotal = () => {
+	const _calculateTotal = () => {
 		return items.reduce((sum, item) => {
 			const totalPrice = item.quantity * item.unitPrice
 			const totalDiscount = item.quantity * (item.unitDiscount || 0)
@@ -200,7 +212,7 @@ export default function EditarCompraPage() {
 	}
 
 	const calculateTotalDiscounts = () => {
-		const itemDiscounts = items.reduce((sum, item) => sum + (item.quantity * (item.unitDiscount || 0)), 0)
+		const itemDiscounts = items.reduce((sum, item) => sum + item.quantity * (item.unitDiscount || 0), 0)
 		return itemDiscounts + (formData.totalDiscount || 0)
 	}
 
@@ -217,11 +229,20 @@ export default function EditarCompraPage() {
 		}
 		setLoading(true)
 		try {
+			// Mapear items com productName
+			const itemsWithNames = validItems.map((item) => {
+				const product = products.find((p) => p.id === item.productId)
+				return {
+					...item,
+					productName: product?.name || "Produto sem nome",
+				}
+			})
+
 			await updatePurchaseMutation.mutateAsync({
 				id: purchaseId,
 				data: {
 					marketId: formData.marketId,
-					items: validItems,
+					items: itemsWithNames,
 					purchaseDate: formData.purchaseDate,
 					paymentMethod: formData.paymentMethod,
 					totalDiscount: formData.totalDiscount || 0,
@@ -395,7 +416,7 @@ export default function EditarCompraPage() {
 															next[index] = raw
 															return next
 														})
-														const normalized = raw.replace(',', '.')
+														const normalized = raw.replace(",", ".")
 														const parsed = parseFloat(normalized)
 														if (!Number.isNaN(parsed)) {
 															updateItem(index, "quantity", parsed)
@@ -421,7 +442,7 @@ export default function EditarCompraPage() {
 															next[index] = raw
 															return next
 														})
-														const normalized = raw.replace(',', '.')
+														const normalized = raw.replace(",", ".")
 														const parsed = parseFloat(normalized)
 														if (!Number.isNaN(parsed)) {
 															updateItem(index, "unitPrice", parsed)
@@ -447,7 +468,7 @@ export default function EditarCompraPage() {
 															next[index] = raw
 															return next
 														})
-														const normalized = raw.replace(',', '.')
+														const normalized = raw.replace(",", ".")
 														const parsed = parseFloat(normalized)
 														if (!Number.isNaN(parsed)) {
 															updateItem(index, "unitDiscount", parsed)
@@ -524,12 +545,12 @@ export default function EditarCompraPage() {
 										onChange={(e) => {
 											const raw = e.target.value
 											setTotalDiscountInput(raw)
-											const normalized = raw.replace(',', '.')
+											const normalized = raw.replace(",", ".")
 											const parsed = parseFloat(normalized)
 											if (!Number.isNaN(parsed)) {
-												setFormData(prev => ({ ...prev, totalDiscount: parsed }))
+												setFormData((prev) => ({ ...prev, totalDiscount: parsed }))
 											} else if (raw === "") {
-												setFormData(prev => ({ ...prev, totalDiscount: 0 }))
+												setFormData((prev) => ({ ...prev, totalDiscount: 0 }))
 											}
 										}}
 										placeholder="0,00"
