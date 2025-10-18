@@ -78,6 +78,7 @@ export default function AdminSyncPrecosPage() {
 
 	const [currentJob, setCurrentJob] = useState<SyncJob | null>(null)
 	const [polling, setPolling] = useState(false)
+	const [loading, setLoading] = useState(true)
 	const [autoRefresh, setAutoRefresh] = useState(true)
 	const [expandedMercado, setExpandedMercado] = useState<string | null>(null)
 	const [showProdutosNaoEncontrados, setShowProdutosNaoEncontrados] = useState(false)
@@ -86,41 +87,58 @@ export default function AdminSyncPrecosPage() {
 
 	const fetchLatestJob = useCallback(async () => {
 		try {
+			setLoading(true)
 			const response = await fetch("/api/admin/sync-precos/latest")
 			if (response.ok) {
 				const data = await response.json()
 				if (data.job) {
 					setCurrentJob(data.job)
+					console.log("[UI] Job carregado:", data.job.id, "Status:", data.job.status)
+				} else {
+					setCurrentJob(null)
+					console.log("[UI] Nenhum job encontrado")
 				}
 			}
 		} catch (error) {
 			console.error("Erro ao buscar último job:", error)
+		} finally {
+			setLoading(false)
 		}
 	}, [])
 
 	const fetchJobStatus = useCallback(async (jobId: string) => {
 		try {
 			setPolling(true)
+			setLoading(true)
 			const response = await fetch(`/api/admin/sync-precos/status/${jobId}`)
 			if (response.ok) {
 				const job = await response.json()
 				setCurrentJob(job)
+				console.log("[UI] Status atualizado:", job.id, "Status:", job.status, "Progresso:", job.progresso)
 			}
 		} catch (error) {
 			console.error("Erro ao buscar status:", error)
 		} finally {
 			setPolling(false)
+			setLoading(false)
 		}
 	}, [])
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
-		if (jobIdFromUrl) {
-			fetchJobStatus(jobIdFromUrl)
-		} else {
-			fetchLatestJob()
+		const loadInitialJob = async () => {
+			console.log("[UI] Carregando página - jobIdFromUrl:", jobIdFromUrl)
+			if (jobIdFromUrl) {
+				console.log("[UI] Buscando job específico:", jobIdFromUrl)
+				await fetchJobStatus(jobIdFromUrl)
+			} else {
+				console.log("[UI] Buscando último job")
+				await fetchLatestJob()
+			}
 		}
-	}, [jobIdFromUrl, fetchLatestJob, fetchJobStatus])
+		
+		loadInitialJob()
+	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
 
 	// Polling quando tem job rodando (requisições a cada 2s)
 	useEffect(() => {
@@ -300,8 +318,13 @@ export default function AdminSyncPrecosPage() {
 							<CardDescription>Inicie ou monitore a sincronização</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							<Button onClick={handleStartSync} disabled={!canStart} size="lg" className="w-full">
-								{isRunning ? (
+							<Button onClick={handleStartSync} disabled={!canStart || loading} size="lg" className="w-full">
+								{loading ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Carregando...
+									</>
+								) : isRunning ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 										Sincronizando...
