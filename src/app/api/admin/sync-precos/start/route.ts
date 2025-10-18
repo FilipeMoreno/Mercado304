@@ -190,7 +190,7 @@ async function processarSyncJob(jobId: string) {
 			// Processar produtos do batch em paralelo
 			const batchResults = await Promise.all(
 				batch.map(async (produto) => {
-					if (!produto.barcode) return { encontrou: false, precosCount: 0 }
+					if (!produto.barcode) return { encontrou: false, precosEncontrados: [], debugLogs: [] }
 
 					return await processarProduto(
 						produto,
@@ -337,10 +337,10 @@ async function processarProduto(
 	produto: { id: string; name: string; barcode: string | null },
 	mercados: { id: string; name: string; legalName: string | null; location: string | null }[],
 	NOTA_PARANA_BASE_URL: string,
-	CATEGORIAS_BUSCA: string[],
+	CATEGORIAS_BUSCA: readonly number[],
 	LOCAL_PADRAO: string,
-	RAIO_PADRAO: string,
-	PERIODO_PADRAO: string,
+	RAIO_PADRAO: number,
+	PERIODO_PADRAO: number,
 ) {
 	if (!produto.barcode) {
 		return { encontrou: false, precosEncontrados: [], debugLogs: [] }
