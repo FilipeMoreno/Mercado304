@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Loader2, Plus, Search, X } from "lucide-react"
+import { Check, Plus, Search, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,7 +60,6 @@ export function ResponsiveSelectDialog({
   renderTrigger = true,
 }: ResponsiveSelectDialogProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Focus no input quando o dialog abrir
@@ -151,8 +150,8 @@ export function ResponsiveSelectDialog({
       >
         <div className="space-y-4">
           {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               ref={inputRef}
               type="text"
@@ -160,6 +159,10 @@ export function ResponsiveSelectDialog({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-9"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
             {searchTerm && (
               <Button
@@ -180,7 +183,7 @@ export function ResponsiveSelectDialog({
               {isLoading && options.length === 0 ? (
                 <div className="space-y-2 p-2">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                    <div key={`skeleton-${i}`} className="flex items-center gap-3 px-3 py-2.5">
                       <Skeleton className="h-5 w-5 rounded-full shrink-0" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-full" />
@@ -238,7 +241,7 @@ export function ResponsiveSelectDialog({
                   {isFetchingNextPage && (
                     <div className="space-y-2 p-2 border-t pt-2">
                       {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+                        <div key={`loading-${i}`} className="flex items-center gap-3 px-3 py-2.5">
                           <Skeleton className="h-5 w-5 rounded-full shrink-0" />
                           <div className="flex-1 space-y-2">
                             <Skeleton className="h-4 w-full" />

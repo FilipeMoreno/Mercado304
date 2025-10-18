@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Check, LinkIcon, Minus, Plus, Trash2, X } from "lucide-react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
@@ -39,12 +39,24 @@ interface QuickEditDialogProps {
 	item: ShoppingListItem | null
 	isOpen: boolean
 	onClose: () => void
-	onUpdate: (itemId: string, updates: { productId?: string; productName?: string; productUnit?: string; quantity: number; estimatedPrice?: number }) => void
+	onUpdate: (
+		itemId: string,
+		updates: {
+			productId?: string
+			productName?: string
+			productUnit?: string
+			quantity: number
+			estimatedPrice?: number
+		},
+		options?: { closeDialog?: boolean }
+	) => void
 	onDelete: (item: ShoppingListItem) => void
 }
 
 export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: QuickEditDialogProps) {
 	const { selectStyle } = useUIPreferences()
+	const quantityInputId = useId()
+	const priceInputId = useId()
 	const [productName, setProductName] = useState("")
 	const [productId, setProductId] = useState<string | undefined>(undefined)
 	const [quantity, setQuantity] = useState("")
@@ -52,18 +64,25 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 	const [products, setProducts] = useState<any[]>([])
 	const [openProductPopover, setOpenProductPopover] = useState(false)
 	const [openProductDialog, setOpenProductDialog] = useState(false)
+	const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+	const initialValuesRef = useRef<{
+		productName: string
+		productId?: string
+		quantity: string
+		estimatedPrice: string
+	} | null>(null)
 
 	// Buscar TODOS os produtos
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
-				const response = await fetch('/api/products?limit=10000')
+				const response = await fetch("/api/products?limit=10000")
 				if (response.ok) {
 					const data = await response.json()
 					setProducts(data.products || [])
 				}
 			} catch (error) {
-				console.error('Erro ao buscar produtos:', error)
+				console.error("Erro ao buscar produtos:", error)
 			}
 		}
 		fetchProducts()
@@ -72,35 +91,84 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 	// Atualizar valores quando o item mudar
 	useEffect(() => {
 		if (item) {
-			setProductName(item.product?.name || item.productName || "")
-			setProductId(item.product?.id)
-			setQuantity(item.quantity.toString())
-			setEstimatedPrice(item.estimatedPrice?.toString() || "")
+			const newProductName = item.product?.name || item.productName || ""
+			const newProductId = item.product?.id
+			const newQuantity = item.quantity.toString()
+			const newEstimatedPrice = item.estimatedPrice?.toString() || ""
+
+			setProductName(newProductName)
+			setProductId(newProductId)
+			setQuantity(newQuantity)
+			setEstimatedPrice(newEstimatedPrice)
+
+			// Armazenar valores iniciais para comparação
+			initialValuesRef.current = {
+				productName: newProductName,
+				productId: newProductId,
+				quantity: newQuantity,
+				estimatedPrice: newEstimatedPrice,
+			}
 		}
 	}, [item])
 
-	if (!item) return null
+	// Auto-save com debounce
+	const autoSave = useCallback(() => {
+		if (!item) return
 
-	const handleSave = () => {
 		const price = estimatedPrice ? parseFloat(estimatedPrice) : undefined
 		const qty = parseFloat(quantity) || 0
-		if (qty <= 0) {
-			toast.error("Quantidade deve ser maior que zero")
+
+		// Validações silenciosas - não salvar se inválido
+		if (qty <= 0 || !productName.trim()) {
 			return
 		}
-		if (!productName.trim()) {
-			toast.error("Nome do produto é obrigatório")
-			return
+
+		// Verificar se houve mudanças
+		const hasChanges =
+			productName !== initialValuesRef.current?.productName ||
+			productId !== initialValuesRef.current?.productId ||
+			quantity !== initialValuesRef.current?.quantity ||
+			estimatedPrice !== initialValuesRef.current?.estimatedPrice
+
+		if (!hasChanges) return
+
+		// Atualizar valores iniciais
+		initialValuesRef.current = {
+			productName,
+			productId,
+			quantity,
+			estimatedPrice,
 		}
+
 		onUpdate(item.id, {
 			productId,
 			productName: productName.trim(),
 			productUnit: item.productUnit,
 			quantity: qty,
-			estimatedPrice: price
-		})
-		onClose()
-	}
+			estimatedPrice: price,
+		}, { closeDialog: false })
+	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])
+
+	// Trigger auto-save quando valores mudarem
+	useEffect(() => {
+		// Limpar timeout anterior
+		if (autoSaveTimeoutRef.current) {
+			clearTimeout(autoSaveTimeoutRef.current)
+		}
+
+		// Agendar novo auto-save
+		autoSaveTimeoutRef.current = setTimeout(() => {
+			autoSave()
+		}, 800) // 800ms de debounce
+
+		return () => {
+			if (autoSaveTimeoutRef.current) {
+				clearTimeout(autoSaveTimeoutRef.current)
+			}
+		}
+	}, [autoSave])
+
+	if (!item) return null
 
 	const handleProductNameChange = (name: string) => {
 		setProductName(name)
@@ -118,7 +186,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 
 	const handleUnlinkProduct = () => {
 		setProductId(undefined)
-		toast.info('Produto desvinculado, permanecerá como texto livre')
+		toast.info("Produto desvinculado, permanecerá como texto livre")
 	}
 
 	const handleQuantityChange = (newQuantity: string) => {
@@ -129,13 +197,13 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 		}
 
 		// Normalizar vírgula para ponto
-		const normalized = newQuantity.replace(',', '.')
+		const normalized = newQuantity.replace(",", ".")
 
 		// Validar se é um número válido (incluindo decimais)
 		const numberRegex = /^\d*\.?\d*$/
 		if (numberRegex.test(normalized)) {
 			const parsed = parseFloat(normalized)
-			if (!isNaN(parsed) && parsed >= 0) {
+			if (!Number.isNaN(parsed) && parsed >= 0) {
 				setQuantity(normalized)
 			}
 		}
@@ -204,11 +272,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							</Button>
 						)}
 					</div>
-					{productId && (
-						<p className="text-xs text-green-600">
-							✓ Vinculado a produto cadastrado
-						</p>
-					)}
+					{productId && <p className="text-xs text-green-600">✓ Vinculado a produto cadastrado</p>}
 
 					{/* Dialog ou Popover separado */}
 					{selectStyle === "dialog" ? (
@@ -217,7 +281,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							onOpenChange={setOpenProductDialog}
 							value={productId || ""}
 							onValueChange={(productId) => {
-								const product = products.find(p => p.id === productId)
+								const product = products.find((p) => p.id === productId)
 								if (product) {
 									handleProductSelected(product)
 								}
@@ -250,17 +314,10 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 												value={product.name}
 												onSelect={() => handleProductSelected(product)}
 											>
-												<Check
-													className={cn(
-														"mr-2 h-4 w-4",
-														productId === product.id ? "opacity-100" : "opacity-0"
-													)}
-												/>
+												<Check className={cn("mr-2 h-4 w-4", productId === product.id ? "opacity-100" : "opacity-0")} />
 												<div className="flex-1">
 													<div className="font-medium">{product.name}</div>
-													{product.brand && (
-														<div className="text-xs text-muted-foreground">{product.brand.name}</div>
-													)}
+													{product.brand && <div className="text-xs text-muted-foreground">{product.brand.name}</div>}
 												</div>
 											</CommandItem>
 										))}
@@ -273,7 +330,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 
 				{/* Quantidade */}
 				<div className="space-y-2">
-					<Label htmlFor="quantity">Quantidade</Label>
+					<Label htmlFor={quantityInputId}>Quantidade</Label>
 					<div className="flex items-center gap-3">
 						<Button
 							type="button"
@@ -287,7 +344,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 						</Button>
 						<div className="flex-1 text-center">
 							<Input
-								id="quantity"
+								id={quantityInputId}
 								type="text"
 								inputMode="decimal"
 								value={quantity}
@@ -297,13 +354,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							/>
 							<p className="text-sm text-gray-500 mt-1">{productUnit}</p>
 						</div>
-						<Button
-							type="button"
-							variant="outline"
-							size="icon"
-							onClick={handleQuantityIncrement}
-							className="h-12 w-12"
-						>
+						<Button type="button" variant="outline" size="icon" onClick={handleQuantityIncrement} className="h-12 w-12">
 							<Plus className="h-4 w-4" />
 						</Button>
 					</div>
@@ -311,9 +362,9 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 
 				{/* Preço unitário */}
 				<div className="space-y-2">
-					<Label htmlFor="price">Preço unitário (R$)</Label>
+					<Label htmlFor={priceInputId}>Preço unitário (R$)</Label>
 					<Input
-						id="price"
+						id={priceInputId}
 						type="number"
 						step="0.01"
 						placeholder="0,00"
@@ -328,9 +379,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 					<div className="p-4 bg-blue-50 rounded-lg">
 						<div className="flex justify-between items-center">
 							<span className="font-medium text-blue-900">Valor Total:</span>
-							<span className="text-xl font-bold text-blue-900">
-								R$ {totalPrice.toFixed(2)}
-							</span>
+							<span className="text-xl font-bold text-blue-900">R$ {totalPrice.toFixed(2)}</span>
 						</div>
 						{parseFloat(quantity) > 1 && (
 							<p className="text-sm text-blue-700 mt-1">
@@ -340,8 +389,8 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 					</div>
 				)}
 
-				{/* Botões de ação */}
-				<div className="flex gap-3 pt-4">
+				{/* Botão de remoção */}
+				<div className="pt-4 border-t">
 					<Button
 						type="button"
 						variant="destructive"
@@ -349,18 +398,12 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							onDelete(item)
 							onClose()
 						}}
-						className="flex-1"
+						className="w-full"
 					>
 						<Trash2 className="h-4 w-4 mr-2" />
-						Remover
+						Remover Item
 					</Button>
-					<Button
-						type="button"
-						onClick={handleSave}
-						className="flex-2"
-					>
-						Salvar Alterações
-					</Button>
+					<p className="text-xs text-center text-gray-500 mt-3">💡 As alterações são salvas automaticamente</p>
 				</div>
 			</div>
 		</ResponsiveFormDialog>

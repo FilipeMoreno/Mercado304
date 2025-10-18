@@ -1,10 +1,10 @@
 "use client"
 
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { ReactNode } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MobileModal } from "@/components/ui/mobile-modal"
 import { useMobile } from "@/hooks/use-mobile"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 interface ResponsiveDialogProps {
 	open: boolean
@@ -18,6 +18,7 @@ interface ResponsiveDialogProps {
 	// Props específicas para mobile
 	dragToClose?: boolean
 	swipeToClose?: boolean
+	preventScrollClose?: boolean
 	subtitle?: string
 }
 
@@ -31,6 +32,7 @@ export function ResponsiveDialog({
 	maxHeight = true,
 	dragToClose = true,
 	swipeToClose = true,
+	preventScrollClose = true,
 	subtitle,
 }: ResponsiveDialogProps) {
 	const mobile = useMobile()
@@ -46,6 +48,7 @@ export function ResponsiveDialog({
 				subtitle={subtitle || description}
 				dragToClose={dragToClose}
 				swipeToClose={swipeToClose}
+				preventScrollClose={preventScrollClose}
 			>
 				{children}
 			</MobileModal>
@@ -60,9 +63,7 @@ export function ResponsiveDialog({
 		"2xl": "max-w-2xl",
 	}
 
-	const heightClasses = maxHeight 
-		? "max-h-[90vh] overflow-hidden flex flex-col" 
-		: ""
+	const heightClasses = maxHeight ? "max-h-[90vh] overflow-hidden flex flex-col" : ""
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,9 +78,7 @@ export function ResponsiveDialog({
 					)}
 					{description && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
-				<div className={maxHeight ? "flex-1 overflow-y-auto min-h-0" : ""}>
-					{children}
-				</div>
+				<div className={maxHeight ? "flex-1 overflow-y-auto min-h-0" : ""}>{children}</div>
 			</DialogContent>
 		</Dialog>
 	)

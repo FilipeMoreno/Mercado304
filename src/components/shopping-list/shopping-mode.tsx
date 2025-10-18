@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Check, ChevronDown, ChevronLeft, Eye, EyeOff, LayoutList, Save, Settings2, SortAsc } from "lucide-react"
+import { useState } from "react"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -136,16 +136,12 @@ export function ShoppingMode({
 						className="flex items-center gap-2"
 					>
 						{showCompleted ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-						<span className="hidden sm:inline">
-							{showCompleted ? "Ocultar" : "Mostrar"} Concluídos
-						</span>
+						<span className="hidden sm:inline">{showCompleted ? "Ocultar" : "Mostrar"} Concluídos</span>
 						{checkedItems.length > 0 && (
-							<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-								{checkedItems.length}
-							</span>
+							<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{checkedItems.length}</span>
 						)}
 					</Button>
-					
+
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" size="icon">
@@ -229,7 +225,9 @@ export function ShoppingMode({
 													className={`font-medium text-lg ${item.isChecked ? "line-through text-gray-500" : "text-gray-900"}`}
 												>
 													{item.product?.name || item.productName}
-													{item.product?.brand && <span className="text-gray-500 font-normal ml-2">- {item.product.brand.name}</span>}
+													{item.product?.brand && (
+														<span className="text-gray-500 font-normal ml-2">- {item.product.brand.name}</span>
+													)}
 												</p>
 												<div className="text-sm text-gray-600">
 													{item.quantity} {item.product?.unit || item.productUnit || "unidades"}
@@ -353,12 +351,17 @@ export function ShoppingMode({
 				item={editingItem}
 				isOpen={!!editingItem}
 				onClose={() => setEditingItem(null)}
-				onUpdate={(itemId, updates) => {
+				onUpdate={(itemId, updates, options) => {
 					if (updates.quantity !== undefined) {
 						onUpdateQuantity(itemId, updates.quantity)
 					}
 					if (updates.estimatedPrice !== undefined) {
 						onUpdateEstimatedPrice(itemId, updates.estimatedPrice)
+					}
+
+					// Fechar dialog apenas se closeDialog não for false (auto-save envia false)
+					if (options?.closeDialog !== false) {
+						setEditingItem(null)
 					}
 				}}
 				onDelete={(item) => {

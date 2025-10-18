@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Package, Plus, ShoppingCart } from "lucide-react"
+import { Eye, EyeOff, Package, Plus, } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -885,7 +885,7 @@ export default function ListaDetalhesPage() {
 				item={quickEditingItem}
 				isOpen={!!quickEditingItem}
 				onClose={() => setQuickEditingItem(null)}
-				onUpdate={(itemId, updates) => {
+				onUpdate={(itemId, updates, options) => {
 					// Atualiza todos os campos (nome, produto vinculado, quantidade, preço)
 					const updateData: any = {}
 					if (updates.productId !== undefined) updateData.productId = updates.productId
@@ -909,8 +909,10 @@ export default function ListaDetalhesPage() {
 							: null,
 					)
 
-					// Fechar dialog
-					setQuickEditingItem(null)
+					// Fechar dialog apenas se closeDialog não for false (auto-save envia false)
+					if (options?.closeDialog !== false) {
+						setQuickEditingItem(null)
+					}
 				}}
 				onDelete={(item) => {
 					setDeleteItemConfirm(item)
