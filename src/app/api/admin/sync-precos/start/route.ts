@@ -572,16 +572,26 @@ async function processarProduto(
 					},
 				})
 
+				// Formatar data/hora da API para exibição
+				const dataAPI = new Date(produtoNP.datahora)
+				const dataFormatada = dataAPI.toLocaleString("pt-BR", {
+					day: "2-digit",
+					month: "2-digit",
+					year: "numeric",
+					hour: "2-digit",
+					minute: "2-digit",
+				})
+
 				// Registrar preço se não existe ou mudou significativamente
 				if (!registroExistente) {
-					debugLogs.push(`[DEBUG] Novo preço! Registrando R$ ${preco.toFixed(2)}`)
+					debugLogs.push(`[DEBUG] Novo preço! Registrando R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
 					await prisma.priceRecord.create({
 						data: {
 							productId: produto.id,
 							marketId: mercadoMatch.id,
 							price: preco,
-							recordDate: new Date(produtoNP.datahora),
-							notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
+							recordDate: dataAPI, // Usa a data/hora da API
+							notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
 						},
 					})
 
@@ -592,14 +602,14 @@ async function processarProduto(
 						data: produtoNP.datahora,
 					})
 				} else if (Math.abs(registroExistente.price - preco) > 0.01) {
-					debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)}`)
+					debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
 					await prisma.priceRecord.create({
 						data: {
 							productId: produto.id,
 							marketId: mercadoMatch.id,
 							price: preco,
-							recordDate: new Date(produtoNP.datahora),
-							notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
+							recordDate: dataAPI, // Usa a data/hora da API
+							notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
 						},
 					})
 
