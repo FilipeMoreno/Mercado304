@@ -11,6 +11,7 @@ import {
 	MapPin,
 	Navigation,
 	Package,
+	Store,
 	TrendingDown,
 } from "lucide-react"
 import { useCallback, useEffect, useId, useState } from "react"

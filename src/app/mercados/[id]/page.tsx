@@ -15,6 +15,8 @@ import {
 	Search,
 	ShoppingCart,
 	Store,
+	Tag,
+	TrendingDown,
 	TrendingUp,
 	Users,
 } from "lucide-react"
@@ -227,9 +229,7 @@ export default function MarketDetailsPage() {
 						{data.market.name}
 					</h1>
 					{data.market.legalName && (
-						<p className="text-muted-foreground mt-1 text-sm">
-							Razão Social: {data.market.legalName}
-						</p>
+						<p className="text-muted-foreground mt-1 text-sm">Razão Social: {data.market.legalName}</p>
 					)}
 					{data.market.location && (
 						<p className="text-gray-600 mt-2 flex items-center gap-1">
@@ -728,82 +728,144 @@ export default function MarketDetailsPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-4">
-								{(Array.isArray(filteredPurchases) ? filteredPurchases : []).map((purchase) => (
-									<Card key={purchase.id} className="border-l-4 border-l-blue-500">
-										<CardContent className="pt-4">
-											<div className="flex justify-between items-start mb-3">
-												<div>
-													<p className="font-semibold text-lg">
-														{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-													</p>
-													<p className="text-sm text-gray-600">
-														{purchase.items?.length || 0} itens • R$ {purchase.totalAmount.toFixed(2)}
-													</p>
-												</div>
-												<div className="text-right">
-													<div className="text-2xl font-bold text-green-600">R$ {purchase.totalAmount.toFixed(2)}</div>
-													<p className="text-xs text-gray-500">
-														{format(new Date(purchase.purchaseDate), "HH:mm", {
-															locale: ptBR,
-														})}
-													</p>
-												</div>
-											</div>
+								{(Array.isArray(filteredPurchases) ? filteredPurchases : []).map((purchase) => {
+									const hasDiscount = (purchase.totalDiscount || 0) > 0
+									const finalAmount = purchase.finalAmount || purchase.totalAmount
 
-											{/* Itens da Compra */}
-											<div className="space-y-2">
-												<h4 className="text-sm font-medium text-gray-700 mb-2">Itens comprados:</h4>
-												<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-													{purchase.items?.map((item: any, index: number) => (
-														<div
-															key={index}
-															className="flex justify-between items-center p-2 bg-gray-50 rounded text-sm"
-														>
-															<div className="flex-1">
-																<span className="font-medium">{item.product?.name || item.productName}</span>
-																{(item.product?.brand?.name || item.brandName) && (
-																	<span className="text-gray-500 ml-1">
-																		- {item.product?.brand?.name || item.brandName}
-																	</span>
-																)}
-																{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
-															</div>
-															<div className="text-right">
-																<div>
-																	{item.quantity} {item.product?.unit || item.productUnit}
-																</div>
-																<div className="text-xs text-gray-500">
-																	R$ {item.unitPrice.toFixed(2)} → R$ {item.totalPrice.toFixed(2)}
-																</div>
-															</div>
+									return (
+										<Card
+											key={purchase.id}
+											className={`border-l-4 ${hasDiscount ? "border-l-green-500" : "border-l-blue-500"}`}
+										>
+											<CardContent className="pt-4">
+												<div className="flex justify-between items-start mb-3">
+													<div className="flex-1">
+														<div className="flex items-center gap-2 flex-wrap">
+															<p className="font-semibold text-lg">
+																{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+															</p>
+															{hasDiscount && (
+																<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+																	<Tag className="h-3 w-3" />
+																	Com desconto
+																</span>
+															)}
 														</div>
-													))}
+														<p className="text-sm text-gray-600">{purchase.items?.length || 0} itens</p>
+													</div>
+													<div className="text-right">
+														{hasDiscount ? (
+															<div>
+																<div className="text-sm text-gray-500 line-through">
+																	R$ {purchase.totalAmount.toFixed(2)}
+																</div>
+																<div className="text-2xl font-bold text-green-600">R$ {finalAmount.toFixed(2)}</div>
+																<div className="flex items-center gap-1 text-xs text-green-600 font-medium">
+																	<TrendingDown className="h-3 w-3" />
+																	-R$ {(purchase.totalDiscount || 0).toFixed(2)}
+																</div>
+															</div>
+														) : (
+															<div>
+																<div className="text-2xl font-bold text-green-600">
+																	R$ {purchase.totalAmount.toFixed(2)}
+																</div>
+															</div>
+														)}
+														<p className="text-xs text-gray-500 mt-1">
+															{format(new Date(purchase.purchaseDate), "HH:mm", {
+																locale: ptBR,
+															})}
+														</p>
+													</div>
 												</div>
-											</div>
 
-											{/* Estatísticas da Compra */}
-											<div className="grid grid-cols-3 gap-4 mt-4 pt-3 border-t">
-												<div className="text-center">
-													<p className="text-xs text-gray-500">Itens</p>
-													<p className="font-semibold">{purchase.items?.length || 0}</p>
+												{/* Itens da Compra */}
+												<div className="space-y-2">
+													<h4 className="text-sm font-medium text-gray-700 mb-2">Itens comprados:</h4>
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+														{purchase.items?.map((item: any, index: number) => {
+															const itemHasDiscount = (item.totalDiscount || 0) > 0
+															const itemFinalPrice = item.finalPrice || item.totalPrice
+
+															return (
+																<div
+																	key={item.id || `${purchase.id}-item-${index}`}
+																	className={`flex justify-between items-center p-2 rounded text-sm ${
+																		itemHasDiscount ? "bg-green-50 border border-green-200" : "bg-gray-50"
+																	}`}
+																>
+																	<div className="flex-1 min-w-0">
+																		<div className="flex items-center gap-1 flex-wrap">
+																			<span className="font-medium">{item.product?.name || item.productName}</span>
+																			{itemHasDiscount && <Tag className="h-3 w-3 text-green-600 flex-shrink-0" />}
+																		</div>
+																		{(item.product?.brand?.name || item.brandName) && (
+																			<span className="text-gray-500 text-xs">
+																				{item.product?.brand?.name || item.brandName}
+																			</span>
+																		)}
+																		{!item.product && <span className="text-red-500 text-xs">(produto removido)</span>}
+																	</div>
+																	<div className="text-right flex-shrink-0 ml-2">
+																		<div className="font-medium">
+																			{item.quantity} {item.product?.unit || item.productUnit}
+																		</div>
+																		{itemHasDiscount ? (
+																			<div className="space-y-0.5">
+																				<div className="text-xs text-gray-400 line-through">
+																					R$ {item.totalPrice.toFixed(2)}
+																				</div>
+																				<div className="text-xs font-medium text-green-600">
+																					R$ {itemFinalPrice.toFixed(2)}
+																				</div>
+																				<div className="text-xs text-green-600">
+																					-R$ {(item.totalDiscount || 0).toFixed(2)}
+																				</div>
+																			</div>
+																		) : (
+																			<div className="text-xs text-gray-500">
+																				R$ {item.unitPrice.toFixed(2)} → R$ {item.totalPrice.toFixed(2)}
+																			</div>
+																		)}
+																	</div>
+																</div>
+															)
+														})}
+													</div>
 												</div>
-												<div className="text-center">
-													<p className="text-xs text-gray-500">Preço Médio</p>
-													<p className="font-semibold">
-														R${" "}
-														{purchase.items?.length > 0
-															? (purchase.totalAmount / purchase.items.length).toFixed(2)
-															: "0.00"}
-													</p>
+
+												{/* Estatísticas da Compra */}
+												<div className={`grid ${hasDiscount ? "grid-cols-4" : "grid-cols-3"} gap-4 mt-4 pt-3 border-t`}>
+													<div className="text-center">
+														<p className="text-xs text-gray-500">Itens</p>
+														<p className="font-semibold">{purchase.items?.length || 0}</p>
+													</div>
+													<div className="text-center">
+														<p className="text-xs text-gray-500">Preço Médio</p>
+														<p className="font-semibold">
+															R${" "}
+															{purchase.items?.length > 0 ? (finalAmount / purchase.items.length).toFixed(2) : "0.00"}
+														</p>
+													</div>
+													{hasDiscount && (
+														<div className="text-center">
+															<p className="text-xs text-gray-500">Desconto</p>
+															<p className="font-semibold text-green-600 flex items-center justify-center gap-1">
+																<TrendingDown className="h-3 w-3" />
+																R$ {(purchase.totalDiscount || 0).toFixed(2)}
+															</p>
+														</div>
+													)}
+													<div className="text-center">
+														<p className="text-xs text-gray-500">Total {hasDiscount ? "Final" : ""}</p>
+														<p className="font-semibold text-green-600">R$ {finalAmount.toFixed(2)}</p>
+													</div>
 												</div>
-												<div className="text-center">
-													<p className="text-xs text-gray-500">Total</p>
-													<p className="font-semibold text-green-600">R$ {purchase.totalAmount.toFixed(2)}</p>
-												</div>
-											</div>
-										</CardContent>
-									</Card>
-								))}
+											</CardContent>
+										</Card>
+									)
+								})}
 
 								{(!Array.isArray(filteredPurchases) || filteredPurchases.length === 0) && (
 									<div className="text-center py-12">
