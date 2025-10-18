@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -74,6 +74,7 @@ interface SyncJob {
 export default function AdminSyncPrecosPage() {
 	const searchParams = useSearchParams()
 	const jobIdFromUrl = searchParams.get("jobId")
+	const debugSwitchId = useId()
 
 	const [currentJob, setCurrentJob] = useState<SyncJob | null>(null)
 	const [polling, setPolling] = useState(false)
@@ -281,12 +282,12 @@ export default function AdminSyncPrecosPage() {
 				<div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border">
 					<Bug className="h-5 w-5 text-muted-foreground" />
 					<div className="flex-1">
-						<Label htmlFor="debug-mode" className="text-sm font-medium cursor-pointer">
+						<Label htmlFor={debugSwitchId} className="text-sm font-medium cursor-pointer">
 							Modo Debug
 						</Label>
 						<p className="text-xs text-muted-foreground">Exibe logs detalhados do servidor, API e processamento</p>
 					</div>
-					<Switch id="debug-mode" checked={debugMode} onCheckedChange={setDebugMode} />
+					<Switch id={debugSwitchId} checked={debugMode} onCheckedChange={setDebugMode} />
 				</div>
 			</div>
 
@@ -642,17 +643,19 @@ export default function AdminSyncPrecosPage() {
 								</CardHeader>
 								<CardContent>
 									<ScrollArea className="h-[300px] w-full rounded border p-4">
-										<div className="space-y-1 font-mono text-xs">
+										<div className="space-y-1 font-mono text-xs whitespace-pre-wrap break-all">
 											{Array.isArray(currentJob.logs) && currentJob.logs.length > 0 ? (
 												currentJob.logs
 													.filter((log) => {
-														// No modo normal, ocultar logs de debug
-														if (!debugMode) {
-															return !log.includes("[DEBUG]") && !log.includes("[API]") && !log.includes("[SERVER]")
+														// No modo debug, mostra todos
+														if (debugMode) {
+															return true
 														}
-														return true
+														// No modo normal, oculta apenas logs com prefixos de debug
+														const logLower = log.toLowerCase()
+														return !logLower.includes("[debug]") && !logLower.includes("[api]") && !logLower.includes("[server]")
 													})
-													.map((log, index) => {
+													.map((log) => {
 														// Colorir baseado no tipo de log
 														let colorClass = "text-muted-foreground"
 														if (log.includes("✓")) colorClass = "text-green-600"
@@ -662,8 +665,9 @@ export default function AdminSyncPrecosPage() {
 														else if (log.includes("[SERVER]")) colorClass = "text-orange-500"
 														else if (log.includes("⚠")) colorClass = "text-orange-600"
 
+														// Usar o log completo como key (é único por ter timestamp)
 														return (
-															<div key={`${log}-${index}`} className={colorClass}>
+															<div key={log} className={colorClass}>
 																{log}
 															</div>
 														)

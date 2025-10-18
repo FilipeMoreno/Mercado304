@@ -8,6 +8,48 @@ import { prisma } from "@/lib/prisma"
 const BATCH_SIZE = 5 // Processar 5 produtos simultaneamente
 const DELAY_BETWEEN_BATCHES = 500 // 500ms entre batches (reduzido de 200ms por produto)
 
+// Verificar e retomar jobs interrompidos ao iniciar o servidor
+async function retomarJobsInterrompidos() {
+	try {
+		// Buscar jobs que estavam rodando ou pendentes
+		const jobsInterrompidos = await prisma.syncJob.findMany({
+			where: {
+				status: {
+					in: ["pending", "running"],
+				},
+			},
+			orderBy: {
+				createdAt: "asc",
+			},
+		})
+
+		if (jobsInterrompidos.length > 0) {
+			console.log(`[RETOMADA] Encontrados ${jobsInterrompidos.length} jobs interrompidos`)
+			
+			for (const job of jobsInterrompidos) {
+				console.log(`[RETOMADA] Retomando job ${job.id}`)
+				
+				// Adicionar log de retomada
+				const logsAtuais = (job.logs as string[]) || []
+				await prisma.syncJob.update({
+					where: { id: job.id },
+					data: {
+						logs: [...logsAtuais, `[SERVER] Servidor reiniciado - retomando sincronização`],
+					},
+				})
+				
+				// Reiniciar processamento
+				processarSyncJob(job.id).catch(console.error)
+			}
+		}
+	} catch (error) {
+		console.error("[RETOMADA] Erro ao retomar jobs:", error)
+	}
+}
+
+// Executar retomada ao carregar o módulo
+retomarJobsInterrompidos().catch(console.error)
+
 export async function POST() {
 	try {
 		// Verificar se já existe job rodando
@@ -138,6 +180,11 @@ async function processarSyncJob(jobId: string) {
 				mercadosProcessados: mercados.length,
 				produtosProcessados: produtos.length,
 				progresso: 5,
+				detalhes: {
+					produtosTotal: produtos.length,
+					produtosProcessadosAtual: 0,
+					quantidadeProdutosNaoEncontrados: 0,
+				},
 			},
 		})
 
@@ -185,14 +232,19 @@ async function processarSyncJob(jobId: string) {
 				return
 			}
 
-			await adicionarLog(jobId, `[DEBUG] Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos`)
+			await adicionarLog(jobId, `[DEBUG] Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos EM PARALELO`)
+			
+			// Log no console para debug
+			console.log(`[PARALLEL] Iniciando processamento paralelo de ${batch.length} produtos`)
+			const batchStartTime = Date.now()
 
-			// Processar produtos do batch em paralelo
+			// Processar produtos do batch em paralelo (todos ao mesmo tempo)
 			const batchResults = await Promise.all(
-				batch.map(async (produto) => {
+				batch.map(async (produto, idx) => {
+					console.log(`[PARALLEL] Thread ${idx + 1}/${batch.length}: Iniciando ${produto.name}`)
 					if (!produto.barcode) return { encontrou: false, precosEncontrados: [], debugLogs: [] }
 
-					return await processarProduto(
+					const result = await processarProduto(
 						produto,
 						mercados,
 						NOTA_PARANA_BASE_URL,
@@ -201,23 +253,29 @@ async function processarSyncJob(jobId: string) {
 						RAIO_PADRAO,
 						PERIODO_PADRAO,
 					)
+					console.log(`[PARALLEL] Thread ${idx + 1}/${batch.length}: Concluído ${produto.name}`)
+					return result
 				}),
 			)
+			
+			const batchElapsed = Date.now() - batchStartTime
+			console.log(`[PARALLEL] Batch ${batchIndex + 1} concluído em ${batchElapsed}ms (${batch.length} produtos em paralelo)`)
+			await adicionarLog(jobId, `[DEBUG] Batch ${batchIndex + 1} processado em ${(batchElapsed / 1000).toFixed(1)}s`)
 
 			// Consolidar resultados do batch
+			const logsParaAdicionar: string[] = []
+			
 			for (let i = 0; i < batch.length; i++) {
 				const produto = batch[i]
 				const result = batchResults[i]
 
-				// Adicionar logs de debug do processamento
+				// Coletar logs de debug do processamento
 				if (result.debugLogs && result.debugLogs.length > 0) {
-					for (const debugLog of result.debugLogs) {
-						await adicionarLog(jobId, debugLog)
-					}
+					logsParaAdicionar.push(...result.debugLogs)
 				}
 
 				if (result.encontrou) {
-					await adicionarLog(jobId, `✓ ${produto.name} processado`)
+					logsParaAdicionar.push(`✓ ${produto.name} processado`)
 
 					// Registrar preços encontrados
 					if (result.precosEncontrados && result.precosEncontrados.length > 0) {
@@ -239,8 +297,7 @@ async function processarSyncJob(jobId: string) {
 								data: precoInfo.data,
 							})
 
-							await adicionarLog(
-								jobId,
+							logsParaAdicionar.push(
 								`Preço registrado: ${produto.name} em ${precoInfo.mercadoNome} - R$ ${precoInfo.preco.toFixed(2)}`,
 							)
 						}
@@ -252,10 +309,15 @@ async function processarSyncJob(jobId: string) {
 						nome: produto.name,
 						barcode: produto.barcode,
 					})
-					await adicionarLog(jobId, `⚠ ${produto.name} não encontrado na API`)
+					logsParaAdicionar.push(`⚠ ${produto.name} não encontrado na API`)
 				}
 
 				produtosProcessados++
+			}
+			
+			// Adicionar todos os logs do batch de uma vez (mais eficiente)
+			if (logsParaAdicionar.length > 0) {
+				await adicionarLogsEmLote(jobId, logsParaAdicionar)
 			}
 
 			// Calcular tempo estimado
@@ -266,22 +328,32 @@ async function processarSyncJob(jobId: string) {
 
 			// Atualizar progresso após cada batch
 			const progresso = Math.floor(5 + (produtosProcessados / produtos.length) * 90)
+			
+			// Buscar detalhes atuais para fazer merge
+			const currentJob = await prisma.syncJob.findUnique({
+				where: { id: jobId },
+				select: { detalhes: true },
+			})
+			
+			const detalhesAtualizados = {
+				...(typeof currentJob?.detalhes === 'object' && currentJob?.detalhes !== null ? currentJob.detalhes : {}),
+				estimativaSegundos: estimatedTimeRemaining,
+				produtosProcessadosAtual: produtosProcessados,
+				produtosTotal: produtos.length,
+				quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
+				mercados: detalhes,
+				produtosNaoEncontrados: produtosNaoEncontrados,
+				batchAtual: batchIndex + 1,
+				totalBatches: batches.length,
+				produtosPorBatch: BATCH_SIZE,
+			}
+			
 			await prisma.syncJob.update({
 				where: { id: jobId },
 				data: {
 					progresso,
 					precosRegistrados,
-					detalhes: {
-						estimativaSegundos: estimatedTimeRemaining,
-						produtosProcessadosAtual: produtosProcessados,
-						produtosTotal: produtos.length,
-						quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
-						mercados: detalhes,
-						produtosNaoEncontrados: produtosNaoEncontrados,
-						batchAtual: batchIndex + 1,
-						totalBatches: batches.length,
-						produtosPorBatch: BATCH_SIZE,
-					},
+					detalhes: detalhesAtualizados,
 				},
 			})
 
@@ -291,24 +363,35 @@ async function processarSyncJob(jobId: string) {
 			}
 		}
 
-		// Finalizar
+		// Finalizar - buscar detalhes atuais para preservar dados
+		const finalJob = await prisma.syncJob.findUnique({
+			where: { id: jobId },
+			select: { detalhes: true },
+		})
+		
+		const detalhesFinal = {
+			...(typeof finalJob?.detalhes === 'object' && finalJob?.detalhes !== null ? finalJob.detalhes : {}),
+			mercados: detalhes,
+			produtosNaoEncontrados: produtosNaoEncontrados,
+			produtosProcessadosAtual: produtos.length,
+			produtosTotal: produtos.length,
+			quantidadeProdutosNaoEncontrados: produtosNaoEncontrados.length,
+			estatisticas: {
+				produtosTotal: produtos.length,
+				produtosEncontrados: produtos.length - produtosNaoEncontrados.length,
+				produtosNaoEncontrados: produtosNaoEncontrados.length,
+				precosRegistrados,
+				tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+			},
+		}
+		
 		await prisma.syncJob.update({
 			where: { id: jobId },
 			data: {
 				status: "completed",
 				progresso: 100,
 				precosRegistrados,
-				detalhes: {
-					mercados: detalhes,
-					produtosNaoEncontrados: produtosNaoEncontrados,
-					estatisticas: {
-						produtosTotal: produtos.length,
-						produtosEncontrados: produtos.length - produtosNaoEncontrados.length,
-						produtosNaoEncontrados: produtosNaoEncontrados.length,
-						precosRegistrados,
-						tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
-					},
-				},
+				detalhes: detalhesFinal,
 				completedAt: new Date(),
 			},
 		})
@@ -557,6 +640,25 @@ async function adicionarLog(jobId: string, mensagem: string) {
 		where: { id: jobId },
 		data: {
 			logs: [...logsAtuais, `[${timestamp}] ${mensagem}`],
+		},
+	})
+}
+
+// Adicionar múltiplos logs de uma vez (mais eficiente para batches)
+async function adicionarLogsEmLote(jobId: string, mensagens: string[]) {
+	const job = await prisma.syncJob.findUnique({
+		where: { id: jobId },
+		select: { logs: true },
+	})
+
+	const logsAtuais = (job?.logs as string[]) || []
+	const timestamp = new Date().toISOString()
+	const novosLogs = mensagens.map((msg) => `[${timestamp}] ${msg}`)
+
+	await prisma.syncJob.update({
+		where: { id: jobId },
+		data: {
+			logs: [...logsAtuais, ...novosLogs],
 		},
 	})
 }
