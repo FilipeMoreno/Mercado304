@@ -492,11 +492,25 @@ async function processarProduto(
 					detalhes: string
 				} | null = null
 
+				// Função para normalizar nome (remove /  .  e outros caracteres especiais)
+				const normalizarNome = (nome: string) => {
+					return nome
+						.toLowerCase()
+						.replace(/\//g, "") // Remove /
+						.replace(/\./g, "") // Remove .
+						.replace(/-/g, " ") // Substitui - por espaço
+						.replace(/\s+/g, " ") // Remove espaços extras
+						.trim()
+				}
+
 				for (const m of mercados) {
 					if (!m.legalName) continue
 
-					const palavrasMercado = m.legalName.toLowerCase().split(" ")
-					const palavrasEstabelecimento = nomeEstabelecimento.toLowerCase().split(" ")
+					const nomeNormalizadoMercado = normalizarNome(m.legalName)
+					const nomeNormalizadoEstabelecimento = normalizarNome(nomeEstabelecimento)
+					
+					const palavrasMercado = nomeNormalizadoMercado.split(" ")
+					const palavrasEstabelecimento = nomeNormalizadoEstabelecimento.split(" ")
 
 					let matchesNome = 0
 					const palavrasMatched: string[] = []
