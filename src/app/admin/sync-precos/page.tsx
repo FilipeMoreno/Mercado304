@@ -121,14 +121,14 @@ export default function AdminSyncPrecosPage() {
 		}
 	}, [jobIdFromUrl, fetchLatestJob, fetchJobStatus])
 
-	// Polling quando tem job rodando
+	// Polling quando tem job rodando (requisições a cada 2s)
 	useEffect(() => {
 		if (!autoRefresh || !currentJob) return
 		if (currentJob.status !== "pending" && currentJob.status !== "running") return
 
 		intervalRef.current = setInterval(() => {
 			fetchJobStatus(currentJob.id)
-		}, 30000) // Atualiza a cada 30 segundos
+		}, 2000) // Requisições ao servidor a cada 2 segundos
 
 		return () => {
 			if (intervalRef.current) {
@@ -457,7 +457,7 @@ export default function AdminSyncPrecosPage() {
 
 									{isRunning && (
 										<p className="text-xs text-muted-foreground text-center">
-											Atualização automática a cada 30 segundos • Última atualização: agora
+											Atualização automática a cada 10 segundos • Última atualização: agora
 										</p>
 									)}
 								</CardContent>
