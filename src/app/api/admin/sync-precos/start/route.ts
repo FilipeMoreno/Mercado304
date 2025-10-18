@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma"
 // Configuração de paralelismo
 const BATCH_SIZE = 5 // Processar 5 produtos simultaneamente
 const DELAY_BETWEEN_BATCHES = 500 // 500ms entre batches (reduzido de 200ms por produto)
+const MAX_LOGS = 500 // Máximo de logs para evitar exceder 5MB
+const MAX_LOG_LENGTH = 500 // Tamanho máximo de cada log
 
 // Verificar e retomar jobs interrompidos ao iniciar o servidor
 async function retomarJobsInterrompidos() {
@@ -264,14 +266,23 @@ async function processarSyncJob(jobId: string) {
 
 			// Consolidar resultados do batch
 			const logsParaAdicionar: string[] = []
+			const logsDebugParaAdicionar: string[] = []
 			
 			for (let i = 0; i < batch.length; i++) {
 				const produto = batch[i]
 				const result = batchResults[i]
 
-				// Coletar logs de debug do processamento
+				// Separar logs de debug dos logs normais
 				if (result.debugLogs && result.debugLogs.length > 0) {
-					logsParaAdicionar.push(...result.debugLogs)
+					// Filtrar apenas alguns logs de debug importantes (reduzir volume)
+					const logsDebugImportantes = result.debugLogs.filter((log) => 
+						log.includes("✓ Match encontrado") || 
+						log.includes("✗ Nenhum mercado") ||
+						log.includes("Match Score") ||
+						log.includes("Novo preço!") ||
+						log.includes("Preço atualizado!")
+					)
+					logsDebugParaAdicionar.push(...logsDebugImportantes)
 				}
 
 				if (result.encontrou) {
@@ -315,9 +326,10 @@ async function processarSyncJob(jobId: string) {
 				produtosProcessados++
 			}
 			
-			// Adicionar todos os logs do batch de uma vez (mais eficiente)
-			if (logsParaAdicionar.length > 0) {
-				await adicionarLogsEmLote(jobId, logsParaAdicionar)
+			// Adicionar todos os logs (normais + debug importantes) de uma vez
+			const todosLogs = [...logsParaAdicionar, ...logsDebugParaAdicionar]
+			if (todosLogs.length > 0) {
+				await adicionarLogsEmLote(jobId, todosLogs)
 			}
 
 			// Calcular tempo estimado
@@ -658,12 +670,23 @@ async function adicionarLog(jobId: string, mensagem: string) {
 	})
 
 	const logsAtuais = (job?.logs as string[]) || []
-	const timestamp = new Date().toISOString()
+	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
+	
+	// Truncar mensagem se muito longa
+	const mensagemTruncada = mensagem.length > MAX_LOG_LENGTH 
+		? `${mensagem.substring(0, MAX_LOG_LENGTH)}...` 
+		: mensagem
+	
+	// Manter apenas os últimos MAX_LOGS logs (circular buffer)
+	const novosLogs = [...logsAtuais, `[${timestamp}] ${mensagemTruncada}`]
+	const logsFinais = novosLogs.length > MAX_LOGS 
+		? novosLogs.slice(-MAX_LOGS) 
+		: novosLogs
 
 	await prisma.syncJob.update({
 		where: { id: jobId },
 		data: {
-			logs: [...logsAtuais, `[${timestamp}] ${mensagem}`],
+			logs: logsFinais,
 		},
 	})
 }
@@ -676,13 +699,26 @@ async function adicionarLogsEmLote(jobId: string, mensagens: string[]) {
 	})
 
 	const logsAtuais = (job?.logs as string[]) || []
-	const timestamp = new Date().toISOString()
-	const novosLogs = mensagens.map((msg) => `[${timestamp}] ${msg}`)
+	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
+	
+	// Truncar mensagens longas
+	const novosLogs = mensagens.map((msg) => {
+		const mensagemTruncada = msg.length > MAX_LOG_LENGTH 
+			? `${msg.substring(0, MAX_LOG_LENGTH)}...` 
+			: msg
+		return `[${timestamp}] ${mensagemTruncada}`
+	})
+	
+	// Manter apenas os últimos MAX_LOGS logs (circular buffer)
+	const logsCompletos = [...logsAtuais, ...novosLogs]
+	const logsFinais = logsCompletos.length > MAX_LOGS 
+		? logsCompletos.slice(-MAX_LOGS) 
+		: logsCompletos
 
 	await prisma.syncJob.update({
 		where: { id: jobId },
 		data: {
-			logs: [...logsAtuais, ...novosLogs],
+			logs: logsFinais,
 		},
 	})
 }

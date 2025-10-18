@@ -83,7 +83,10 @@ export default function AdminSyncPrecosPage() {
 	const [expandedMercado, setExpandedMercado] = useState<string | null>(null)
 	const [showProdutosNaoEncontrados, setShowProdutosNaoEncontrados] = useState(false)
 	const [debugMode, setDebugMode] = useState(false)
+	const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
+	const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("agora")
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
+	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
 	const fetchLatestJob = useCallback(async () => {
 		try {
@@ -93,6 +96,7 @@ export default function AdminSyncPrecosPage() {
 				const data = await response.json()
 				if (data.job) {
 					setCurrentJob(data.job)
+					setLastUpdateTime(new Date()) // Marcar hora da atualização
 					console.log("[UI] Job carregado:", data.job.id, "Status:", data.job.status)
 				} else {
 					setCurrentJob(null)
@@ -114,6 +118,7 @@ export default function AdminSyncPrecosPage() {
 			if (response.ok) {
 				const job = await response.json()
 				setCurrentJob(job)
+				setLastUpdateTime(new Date()) // Marcar hora da atualização
 				console.log("[UI] Status atualizado:", job.id, "Status:", job.status, "Progresso:", job.progresso)
 			}
 		} catch (error) {
@@ -139,6 +144,39 @@ export default function AdminSyncPrecosPage() {
 		
 		loadInitialJob()
 	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
+
+	// Atualizar contador de tempo desde última atualização
+	useEffect(() => {
+		if (!lastUpdateTime) return
+
+		const updateTimer = () => {
+			const now = new Date()
+			const diffMs = now.getTime() - lastUpdateTime.getTime()
+			const diffSeconds = Math.floor(diffMs / 1000)
+
+			if (diffSeconds < 5) {
+				setTimeSinceUpdate("agora")
+			} else if (diffSeconds < 60) {
+				setTimeSinceUpdate(`há ${diffSeconds}s`)
+			} else {
+				const minutes = Math.floor(diffSeconds / 60)
+				const seconds = diffSeconds % 60
+				setTimeSinceUpdate(`há ${minutes}m ${seconds}s`)
+			}
+		}
+
+		// Atualizar imediatamente
+		updateTimer()
+
+		// Atualizar a cada segundo
+		updateTimerRef.current = setInterval(updateTimer, 1000)
+
+		return () => {
+			if (updateTimerRef.current) {
+				clearInterval(updateTimerRef.current)
+			}
+		}
+	}, [lastUpdateTime])
 
 	// Polling quando tem job rodando (requisições a cada 2s)
 	useEffect(() => {
@@ -481,7 +519,7 @@ export default function AdminSyncPrecosPage() {
 
 									{isRunning && (
 										<p className="text-xs text-muted-foreground text-center">
-											Atualização automática a cada 10 segundos • Última atualização: agora
+											Atualização automática a cada 10 segundos • Última atualização: {timeSinceUpdate}
 										</p>
 									)}
 								</CardContent>
@@ -655,14 +693,14 @@ export default function AdminSyncPrecosPage() {
 										<FileText className="h-5 w-5" />
 										{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}
 										<Badge variant="outline" className="ml-auto">
-											{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0} entradas
+											{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0} / 500
 										</Badge>
 									</CardTitle>
-									{debugMode && (
-										<CardDescription>
-											Modo debug ativo: exibindo logs do servidor, API e processamento detalhado
-										</CardDescription>
-									)}
+									<CardDescription>
+										{debugMode 
+											? "Modo debug ativo: exibindo logs do servidor, API e processamento detalhado" 
+											: "Últimos 500 logs essenciais (ative debug para mais detalhes)"}
+									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<ScrollArea className="h-[300px] w-full rounded border p-4">
