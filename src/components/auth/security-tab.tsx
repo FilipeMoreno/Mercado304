@@ -24,21 +24,9 @@ import {
 } from "lucide-react"
 import { lazy, Suspense, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { useReauth } from "@/hooks/use-reauth"
-import {
-	usePasskeys,
-	useSessions,
-	useLoginHistory,
-	useDeletePasskey,
-	useTerminateSession,
-	useTerminateAllSessions,
-	useDisableTwoFactor,
-	useGenerateBackupCodes,
-} from "@/hooks/use-security-data"
-import {
-	SessionsSkeleton,
-	PasskeysListSkeleton
-} from "@/components/skeletons/security-skeleton"
+import { BiometricLockSettings } from "@/components/auth/biometric-lock-settings"
+import { SecurityNotifications } from "@/components/security-notifications"
+import { PasskeysListSkeleton, SessionsSkeleton } from "@/components/skeletons/security-skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,24 +36,34 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useReauth } from "@/hooks/use-reauth"
+import {
+	useDeletePasskey,
+	useDisableTwoFactor,
+	useGenerateBackupCodes,
+	useLoginHistory,
+	usePasskeys,
+	useSessions,
+	useTerminateAllSessions,
+	useTerminateSession,
+} from "@/hooks/use-security-data"
 import { useSession } from "@/lib/auth-client"
-import { SecurityNotifications } from "@/components/security-notifications"
 
 // Lazy load heavy components
 const BackupCodesDisplay = lazy(() =>
-	import("@/components/auth/backup-codes-display").then((mod) => ({ default: mod.BackupCodesDisplay }))
+	import("@/components/auth/backup-codes-display").then((mod) => ({ default: mod.BackupCodesDisplay })),
 )
 const PasskeySetup = lazy(() =>
-	import("@/components/auth/passkey-setup").then((mod) => ({ default: mod.PasskeySetup }))
+	import("@/components/auth/passkey-setup").then((mod) => ({ default: mod.PasskeySetup })),
 )
 const TwoFactorSetup = lazy(() =>
-	import("@/components/auth/two-factor-setup").then((mod) => ({ default: mod.TwoFactorSetup }))
+	import("@/components/auth/two-factor-setup").then((mod) => ({ default: mod.TwoFactorSetup })),
 )
 const ReauthDialog = lazy(() =>
-	import("@/components/auth/reauth-dialog").then((mod) => ({ default: mod.ReauthDialog }))
+	import("@/components/auth/reauth-dialog").then((mod) => ({ default: mod.ReauthDialog })),
 )
 const TrustedDevices = lazy(() =>
-	import("@/components/auth/trusted-devices").then((mod) => ({ default: mod.TrustedDevices }))
+	import("@/components/auth/trusted-devices").then((mod) => ({ default: mod.TrustedDevices })),
 )
 
 interface SecurityTabProps {
@@ -98,19 +96,27 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 	// 2FA Estados - Inicializa da sessão para evitar flash
 	const [twoFactorTotpEnabled, setTwoFactorTotpEnabled] = useState(() => session?.user?.twoFactorEnabled || false)
-	const [twoFactorEmailEnabled, setTwoFactorEmailEnabled] = useState(() => (session?.user as any)?.twoFactorEmailEnabled || false)
+	const [twoFactorEmailEnabled, setTwoFactorEmailEnabled] = useState(
+		() => (session?.user as any)?.twoFactorEmailEnabled || false,
+	)
 
 	// Modal states
 	const [showReauthDialog, setShowReauthDialog] = useState(false)
 	const [reauthOperation, setReauthOperation] = useState<{
-		type: "enable-2fa" | "disable-2fa" | "disable-email-2fa" | "generate-backup-codes" | "delete-passkey" | "change-password"
+		type:
+			| "enable-2fa"
+			| "disable-2fa"
+			| "disable-email-2fa"
+			| "generate-backup-codes"
+			| "delete-passkey"
+			| "change-password"
 		title: string
 		description: string
 		passkeyId?: string
 		callback: (password?: string, authToken?: string) => void
 	} | null>(null)
-	const [operationPassword, setOperationPassword] = useState("")
-	const [currentOperation, setCurrentOperation] = useState<"enable" | "disable" | "backup-codes" | null>(null)
+	const [_operationPassword,_setOperationPasswordd] = useState("")
+	const [_currentOperation,_setCurrentOperationn] = useState<"enable" | "disable" | "backup-codes" | null>(null)
 
 	// Backup codes
 	const [generatedBackupCodes, setGeneratedBackupCodes] = useState<string[]>([])
@@ -118,20 +124,19 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 	// Verificação de senha e reautenticação
 	const [hasPassword, setHasPassword] = useState<boolean | null>(null)
-	const [authToken, setAuthToken] = useState<string | null>(null)
+	const [_authToken, setAuthToken] = useState<string | null>(null)
 	const [isProcessingReauth, setIsProcessingReauth] = useState(false)
-	const [hasProcessedReauth, setHasProcessedReauth] = useState(false)
+	const [_hasProcessedReauth, setHasProcessedReauth] = useState(false)
 
 	// React Query hooks - com placeholderData para evitar flash
-	const { data: passkeys = [], isLoading: isLoadingPasskeys, refetch: refetchPasskeys, isFetching: isFetchingPasskeys } = usePasskeys()
 	const {
-		data: activeSessions = [],
-		isLoading: isLoadingSessions,
-	} = useSessions(activeTab === "sessions")
-	const {
-		data: loginHistory = [],
-		isLoading: isLoadingHistory,
-	} = useLoginHistory(activeTab === "sessions")
+		data: passkeys = [],
+		isLoading: isLoadingPasskeys,
+		refetch: refetchPasskeys,
+		isFetching: isFetchingPasskeys,
+	} = usePasskeys()
+	const { data: activeSessions = [], isLoading: isLoadingSessions } = useSessions(activeTab === "sessions")
+	const { data: loginHistory = [], isLoading: isLoadingHistory } = useLoginHistory(activeTab === "sessions")
 
 	// Atualiza estados quando a sessão muda
 	useEffect(() => {
@@ -246,7 +251,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify({
 									authToken: token,
-									operation: "manage-passkey"
+									operation: "manage-passkey",
 								}),
 							})
 
@@ -369,18 +374,19 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	}
 
 	// Função auxiliar para mostrar dialog de reautenticação
-	const showReauthenticationDialog = (
-		operation: typeof reauthOperation,
-	) => {
+	const showReauthenticationDialog = (operation: typeof reauthOperation) => {
 		setReauthOperation(operation)
 		setShowReauthDialog(true)
 
 		// Salva informações adicionais no sessionStorage se necessário
 		if (operation?.type === "delete-passkey" && operation.passkeyId) {
-			sessionStorage.setItem("currentReauthOperation", JSON.stringify({
-				type: operation.type,
-				passkeyId: operation.passkeyId,
-			}))
+			sessionStorage.setItem(
+				"currentReauthOperation",
+				JSON.stringify({
+					type: operation.type,
+					passkeyId: operation.passkeyId,
+				}),
+			)
 		}
 	}
 
@@ -400,7 +406,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						setTwoFactorTotpEnabled(false)
 						setShowReauthDialog(false)
 						setReauthOperation(null)
-					} catch (error) {
+					} catch (_error) {
 						// Error handled by mutation
 					}
 				},
@@ -426,7 +432,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 				setTwoFactorEmailEnabled(true)
 				toast.success("2FA via email ativado")
-			} catch (error) {
+			} catch (_error) {
 				toast.error("Erro ao ativar 2FA via email")
 			}
 		} else {
@@ -444,7 +450,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({
 								password: password || undefined,
-								authToken: authToken || undefined
+								authToken: authToken || undefined,
 							}),
 						})
 
@@ -458,7 +464,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						setShowReauthDialog(false)
 						setReauthOperation(null)
 						toast.success("2FA via email desativado")
-					} catch (error) {
+					} catch (_error) {
 						toast.error("Erro ao desativar 2FA via email")
 					}
 				},
@@ -478,7 +484,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 					setShowReauthDialog(false)
 					setReauthOperation(null)
 					setShowBackupCodesDisplay(true)
-				} catch (error) {
+				} catch (_error) {
 					// Error handled by mutation
 				}
 			},
@@ -493,7 +499,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 			passkeyId: passkeyId,
 			callback: async (password, authToken) => {
 				try {
-					console.log("handleDeletePasskey callback called", { hasPassword: !!password, hasAuthToken: !!authToken, passkeyId })
+					console.log("handleDeletePasskey callback called", {
+						hasPassword: !!password,
+						hasAuthToken: !!authToken,
+						passkeyId,
+					})
 					const loadingToast = toast.loading("Excluindo passkey...")
 
 					// Se tem token de reautenticação, valida primeiro
@@ -503,7 +513,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({
 								authToken,
-								operation: "manage-passkey"
+								operation: "manage-passkey",
 							}),
 						})
 
@@ -709,11 +719,21 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 				<TabsList className="inline-flex h-11 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground w-auto">
-					<TabsTrigger value="password" className="rounded-md px-4">Senha</TabsTrigger>
-					<TabsTrigger value="overview" className="rounded-md px-4">Visão Geral</TabsTrigger>
-					<TabsTrigger value="two-factor" className="rounded-md px-4">2FA</TabsTrigger>
-					<TabsTrigger value="passkeys" className="rounded-md px-4">Passkeys</TabsTrigger>
-					<TabsTrigger value="sessions" className="rounded-md px-4">Sessões</TabsTrigger>
+					<TabsTrigger value="password" className="rounded-md px-4">
+						Senha
+					</TabsTrigger>
+					<TabsTrigger value="overview" className="rounded-md px-4">
+						Visão Geral
+					</TabsTrigger>
+					<TabsTrigger value="two-factor" className="rounded-md px-4">
+						2FA
+					</TabsTrigger>
+					<TabsTrigger value="passkeys" className="rounded-md px-4">
+						Passkeys
+					</TabsTrigger>
+					<TabsTrigger value="sessions" className="rounded-md px-4">
+						Sessões
+					</TabsTrigger>
 					<TabsTrigger value="notifications" className="rounded-md px-4">
 						<Bell className="h-4 w-4 mr-1" />
 						Notificações
@@ -739,7 +759,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										<div>
 											<h3 className="font-semibold">Conta Google</h3>
 											<p className="text-sm text-muted-foreground mt-1">
-												Esta conta está conectada com o Google. Para alterar a senha, acesse as configurações da sua conta Google.
+												Esta conta está conectada com o Google. Para alterar a senha, acesse as configurações da sua
+												conta Google.
 											</p>
 										</div>
 									</div>
@@ -799,12 +820,17 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												{passwordRequirements.map((req, index) => (
 													<div key={index} className="flex items-center space-x-2">
 														<div
-															className={`w-4 h-4 rounded-full flex items-center justify-center ${req.regex.test(newPassword) ? "bg-green-500" : "bg-gray-300"
-																}`}
+															className={`w-4 h-4 rounded-full flex items-center justify-center ${
+																req.regex.test(newPassword) ? "bg-green-500" : "bg-gray-300"
+															}`}
 														>
 															{req.regex.test(newPassword) && <CheckCircle className="w-2 h-2 text-white" />}
 														</div>
-														<span className={req.regex.test(newPassword) ? "text-green-600 dark:text-green-400" : "text-gray-500"}>
+														<span
+															className={
+																req.regex.test(newPassword) ? "text-green-600 dark:text-green-400" : "text-gray-500"
+															}
+														>
 															{req.text}
 														</span>
 													</div>
@@ -1064,6 +1090,9 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</div>
 					)}
 
+					{/* Biometric Lock Settings */}
+					<BiometricLockSettings />
+
 					{/* Security Score */}
 					<Card className="mt-6">
 						<CardHeader>
@@ -1107,8 +1136,9 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												</div>
 												<div className="w-full bg-gray-200 rounded-full h-2">
 													<div
-														className={`h-2 rounded-full ${percentage >= 100 ? "bg-green-500" : percentage >= 67 ? "bg-yellow-500" : "bg-red-500"
-															}`}
+														className={`h-2 rounded-full ${
+															percentage >= 100 ? "bg-green-500" : percentage >= 67 ? "bg-yellow-500" : "bg-red-500"
+														}`}
 														style={{ width: `${percentage}%` }}
 													></div>
 												</div>
@@ -1140,7 +1170,9 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								<div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
 									<div className="flex items-center space-x-3">
 										<div className={`p-2 rounded-full ${twoFactorTotpEnabled ? "bg-green-500/10" : "bg-gray-100"}`}>
-											<Smartphone className={`h-5 w-5 ${twoFactorTotpEnabled ? "text-green-600 dark:text-green-400" : "text-gray-600"}`} />
+											<Smartphone
+												className={`h-5 w-5 ${twoFactorTotpEnabled ? "text-green-600 dark:text-green-400" : "text-gray-600"}`}
+											/>
 										</div>
 										<div className="flex-1">
 											<h4 className="font-medium">Aplicativo Authenticator</h4>
@@ -1251,7 +1283,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												</div>
 												<div>
 													<h4 className="font-semibold text-sm">
-														Você tem {passkeyCount} {passkeyCount === 1 ? "passkey" : "passkeys"} configurado{passkeyCount === 1 ? "" : "s"}
+														Você tem {passkeyCount} {passkeyCount === 1 ? "passkey" : "passkeys"} configurado
+														{passkeyCount === 1 ? "" : "s"}
 													</h4>
 													<p className="text-xs text-muted-foreground mt-1">
 														Você pode usar biometria ou chaves de segurança para fazer login.
@@ -1262,7 +1295,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 										<div className="space-y-3">
 											{passkeys.map((passkey: any, index: number) => (
-												<div key={passkey.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
+												<div
+													key={passkey.id}
+													className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0"
+												>
 													<div className="flex items-center space-x-3">
 														<div className="p-2 rounded-full bg-primary/10">{getDeviceIcon(passkey.deviceType)}</div>
 														<div className="flex-1">
@@ -1320,7 +1356,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 													<div>
 														<h4 className="font-semibold text-sm">Múltiplos passkeys configurados</h4>
 														<p className="text-xs text-muted-foreground mt-1">
-															Você pode usar qualquer um desses passkeys para fazer login. Recomendamos manter pelo menos um passkey ativo.
+															Você pode usar qualquer um desses passkeys para fazer login. Recomendamos manter pelo
+															menos um passkey ativo.
 														</p>
 													</div>
 												</div>
@@ -1350,7 +1387,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								) : (
 									<div className="space-y-3">
 										{activeSessions.map((session) => (
-											<div key={session.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0">
+											<div
+												key={session.id}
+												className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border-0"
+											>
 												<div className="flex items-center space-x-3">
 													<div className="p-2 rounded-full bg-primary/10">
 														<Smartphone className="h-4 w-4 text-primary" />
@@ -1475,24 +1515,26 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</Card>
 
 						{/* Trusted Devices */}
-						<Suspense fallback={
-							<div className="space-y-4">
-								{[1, 2, 3].map((i) => (
-									<div key={i} className="flex items-start justify-between p-4 border rounded-lg">
-										<div className="flex items-start gap-3 flex-1">
-											<div className="h-5 w-5 mt-1 rounded bg-muted animate-pulse" />
-											<div className="flex-1 space-y-2">
-												<div className="h-4 bg-muted rounded animate-pulse w-48" />
-												<div className="h-3 bg-muted rounded animate-pulse w-32" />
-												<div className="h-3 bg-muted rounded animate-pulse w-40" />
-												<div className="h-3 bg-muted rounded animate-pulse w-36" />
+						<Suspense
+							fallback={
+								<div className="space-y-4">
+									{[1, 2, 3].map((i) => (
+										<div key={i} className="flex items-start justify-between p-4 border rounded-lg">
+											<div className="flex items-start gap-3 flex-1">
+												<div className="h-5 w-5 mt-1 rounded bg-muted animate-pulse" />
+												<div className="flex-1 space-y-2">
+													<div className="h-4 bg-muted rounded animate-pulse w-48" />
+													<div className="h-3 bg-muted rounded animate-pulse w-32" />
+													<div className="h-3 bg-muted rounded animate-pulse w-40" />
+													<div className="h-3 bg-muted rounded animate-pulse w-36" />
+												</div>
 											</div>
+											<div className="h-8 w-8 rounded bg-muted animate-pulse" />
 										</div>
-										<div className="h-8 w-8 rounded bg-muted animate-pulse" />
-									</div>
-								))}
-							</div>
-						}>
+									))}
+								</div>
+							}
+						>
 							<TrustedDevices />
 						</Suspense>
 					</div>
