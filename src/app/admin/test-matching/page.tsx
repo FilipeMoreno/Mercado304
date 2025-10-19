@@ -343,8 +343,14 @@ export default function TestMatchingPage() {
 						<div className="space-y-4">
 							<h2 className="text-2xl font-bold flex items-center gap-2">
 								<AlertCircle className="h-6 w-6 text-yellow-600" />
-								Possíveis Matches ({result.estatisticas.possiveisMatches})
+								Possíveis Matches - Precisa Ajuste ({result.estatisticas.possiveisMatches})
 							</h2>
+							<Alert>
+								<AlertCircle className="h-4 w-4" />
+								<AlertDescription>
+									Estes mercados têm match de nome mas faltam dados de endereço ou o endereço não corresponde.
+								</AlertDescription>
+							</Alert>
 							{result.resultados.possiveisMatches.slice(0, 5).map((match) => (
 								<Card
 									key={`${match.mercadoCadastrado}-${match.estabelecimentoAPI}`}
@@ -431,6 +437,114 @@ export default function TestMatchingPage() {
 									</AlertDescription>
 								</Alert>
 							)}
+						</div>
+					)}
+
+					{/* Sem Match */}
+					{result.estatisticas.semMatch > 0 && (
+						<div className="space-y-4">
+							<h2 className="text-2xl font-bold flex items-center gap-2 text-red-600">
+								❌ Sem Match - Não Serão Sincronizados ({result.estatisticas.semMatch})
+							</h2>
+							<Alert variant="destructive">
+								<AlertCircle className="h-4 w-4" />
+								<AlertTitle>Atenção!</AlertTitle>
+								<AlertDescription>
+									Estes mercados NÃO serão incluídos na sincronização automática de preços. 
+									Verifique se a razão social e o endereço estão cadastrados corretamente.
+								</AlertDescription>
+							</Alert>
+							{result.resultados.semMatch.map((match) => (
+								<Card
+									key={match.mercadoCadastrado}
+									className="border-l-4 border-l-red-600 opacity-75"
+								>
+									<CardHeader>
+										<div className="flex items-start justify-between">
+											<div className="flex-1">
+												<CardTitle className="flex items-center gap-2">
+													<AlertCircle className="h-5 w-5 text-red-600" />
+													{match.mercadoCadastrado}
+												</CardTitle>
+												<CardDescription className="mt-2">
+													<span className="text-red-600 font-medium">
+														❌ {match.estabelecimentoAPI === "Nenhum estabelecimento encontrado na API" 
+															? "Nenhum estabelecimento correspondente encontrado na API do Nota Paraná" 
+															: "Não há match suficiente com os dados da API"}
+													</span>
+												</CardDescription>
+											</div>
+											<div className="text-right">
+												{match.preco !== "-" && (
+													<>
+														<div className="text-2xl font-bold text-muted-foreground">{match.preco}</div>
+														<div className="text-xs text-muted-foreground">{match.tempo}</div>
+													</>
+												)}
+											</div>
+										</div>
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-4">
+											{/* Dados Cadastrados */}
+											<div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded">
+												<div>
+													<div className="text-sm font-medium mb-1">Razão Social Cadastrada</div>
+													<div className="text-sm text-muted-foreground">{match.razaoSocialCadastrada}</div>
+												</div>
+												<div>
+													<div className="text-sm font-medium mb-1">Endereço Cadastrado</div>
+													<div className="text-sm text-muted-foreground">{match.enderecoCadastrado}</div>
+												</div>
+											</div>
+
+											{/* Melhor Tentativa de Match */}
+											{match.estabelecimentoAPI !== "Nenhum estabelecimento encontrado na API" && (
+												<div>
+													<div className="text-sm font-medium mb-2">Melhor correspondência encontrada na API:</div>
+													<div className="grid grid-cols-2 gap-4">
+														<div>
+															<div className="text-xs text-muted-foreground mb-1">Estabelecimento</div>
+															<div className="text-sm">{match.estabelecimentoAPI}</div>
+														</div>
+														<div>
+															<div className="text-xs text-muted-foreground mb-1">Endereço</div>
+															<div className="text-sm">{match.enderecoAPI}</div>
+														</div>
+													</div>
+													{match.detalhesMatch.totalMatchesNome > 0 && (
+														<div className="mt-2">
+															<Badge variant="secondary" className="text-xs">
+																{match.detalhesMatch.totalMatchesNome} palavra(s) coincidem: {match.detalhesMatch.palavrasMatch.join(", ")}
+															</Badge>
+															<span className="text-xs text-muted-foreground ml-2">(mínimo: 2 palavras)</span>
+														</div>
+													)}
+												</div>
+											)}
+
+											{/* Recomendações */}
+											<Alert>
+												<AlertCircle className="h-4 w-4" />
+												<AlertTitle>Como resolver:</AlertTitle>
+												<AlertDescription className="space-y-1">
+													{!match.razaoSocialCadastrada || match.razaoSocialCadastrada === "Não informada" ? (
+														<p>• Cadastre a <strong>razão social</strong> (nome oficial) do mercado</p>
+													) : null}
+													{!match.enderecoCadastrado || match.enderecoCadastrado === "Não informado" ? (
+														<p>• Cadastre o <strong>endereço completo</strong> (rua, número e bairro)</p>
+													) : null}
+													{match.estabelecimentoAPI === "Nenhum estabelecimento encontrado na API" ? (
+														<p>• Este mercado pode não estar no raio de busca ({RAIO_PADRAO}km) ou não ter este produto em estoque</p>
+													) : (
+														<p>• Verifique se a razão social e endereço cadastrados correspondem aos dados oficiais do mercado</p>
+													)}
+												</AlertDescription>
+											</Alert>
+										</div>
+									</CardContent>
+								</Card>
+							))}
 						</div>
 					)}
 				</div>

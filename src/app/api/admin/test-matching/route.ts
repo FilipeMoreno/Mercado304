@@ -70,29 +70,52 @@ export async function POST(request: Request) {
 		// Processar produtos das top 3 categorias
 		const todosProdutos = categoriasOrdenadas.flatMap(([_, produtos]) => produtos)
 
+		// Função para normalizar nome (mesma lógica do sync)
+		const normalizarNome = (nome: string) => {
+			return nome
+				.toLowerCase()
+				.replace(/\//g, "") // Remove /
+				.replace(/\./g, "") // Remove .
+				.replace(/-/g, " ") // Substitui - por espaço
+				.replace(/\s+/g, " ") // Remove espaços extras
+				.trim()
+		}
+
 		const resultados = []
 
-		// Para cada estabelecimento da API, testar com TODOS os mercados cadastrados
-		for (const produtoNP of todosProdutos) {
-			const nomeEst = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
-			const enderecoAPI = produtoNP.estabelecimento
-			const categoria = produtoNP.categoria || 0
+		// INVERTER LÓGICA: Para cada mercado cadastrado, buscar matches na API
+		for (const mercado of mercados) {
+			// Buscar o melhor match deste mercado nos estabelecimentos da API
+			let melhorMatch: {
+				mercadoCadastrado: string
+				razaoSocialCadastrada: string
+				enderecoCadastrado: string
+				estabelecimentoAPI: string
+				enderecoAPI: string
+				categoria: number
+				matchNome: boolean
+				matchEndereco: boolean
+				preco: string
+				dataHora: string
+				tempo: string
+				detalhesMatch: {
+					palavrasMatch: string[]
+					totalMatchesNome: number
+					temRua: boolean
+					temNumero: boolean
+					temBairro: boolean
+					totalMatchesEndereco: number
+				}
+			} | null = null
+			let melhorScore = 0
 
-			if (!nomeEst) continue
+			for (const produtoNP of todosProdutos) {
+				const nomeEst = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
+				const enderecoAPI = produtoNP.estabelecimento
+				const categoria = produtoNP.categoria || 0
 
-			// Função para normalizar nome (mesma lógica do sync)
-			const normalizarNome = (nome: string) => {
-				return nome
-					.toLowerCase()
-					.replace(/\//g, "") // Remove /
-					.replace(/\./g, "") // Remove .
-					.replace(/-/g, " ") // Substitui - por espaço
-					.replace(/\s+/g, " ") // Remove espaços extras
-					.trim()
-			}
+				if (!nomeEst) continue
 
-			// Testar contra TODOS os mercados cadastrados
-			for (const mercado of mercados) {
 				const matchResult = {
 					mercadoCadastrado: mercado.name,
 					razaoSocialCadastrada: mercado.legalName || "Não informada",
@@ -154,16 +177,54 @@ export async function POST(request: Request) {
 					matchResult.detalhesMatch.totalMatchesEndereco = matchesEndereco
 				}
 
-				// Resultado final (mesma lógica do sync)
-				const wouldMatch = matchResult.matchNome && (mercado.location ? matchResult.matchEndereco : true)
+				// Calcular score do match
+				const scoreNome = matchResult.detalhesMatch.totalMatchesNome
+				const scoreEndereco = matchResult.detalhesMatch.totalMatchesEndereco
+				const scoretotal = scoreNome + scoreEndereco
 
-				// Adicionar TODOS os resultados, não apenas matches
+				// Guardar melhor match para este mercado
+				if (scoretotal > melhorScore || (scoretotal === melhorScore && matchResult.matchNome)) {
+					melhorScore = scoretotal
+					melhorMatch = {
+						...matchResult,
+						preco: `R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`,
+						dataHora: produtoNP.datahora,
+						tempo: produtoNP.tempo,
+					}
+				}
+			}
+
+			// Se encontrou algum match (mesmo que parcial), adicionar
+			// Se não encontrou nenhum, adicionar mesmo assim para mostrar o mercado sem match
+			if (melhorMatch) {
+				const wouldMatch = melhorMatch.matchNome && (mercado.location ? melhorMatch.matchEndereco : true)
 				resultados.push({
-					...matchResult,
+					...melhorMatch,
 					wouldMatch,
-					preco: `R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`,
-					dataHora: produtoNP.datahora,
-					tempo: produtoNP.tempo,
+				})
+			} else {
+				// Mercado sem nenhum estabelecimento correspondente na API
+				resultados.push({
+					mercadoCadastrado: mercado.name,
+					razaoSocialCadastrada: mercado.legalName || "Não informada",
+					enderecoCadastrado: mercado.location || "Não informado",
+					estabelecimentoAPI: "Nenhum estabelecimento encontrado na API",
+					enderecoAPI: "-",
+					categoria: 0,
+					matchNome: false,
+					matchEndereco: false,
+					wouldMatch: false,
+					preco: "-",
+					dataHora: "-",
+					tempo: "-",
+					detalhesMatch: {
+						palavrasMatch: [],
+						totalMatchesNome: 0,
+						temRua: false,
+						temNumero: false,
+						temBairro: false,
+						totalMatchesEndereco: 0,
+					},
 				})
 			}
 		}
