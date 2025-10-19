@@ -1,3 +1,16 @@
+/* Estilo para cobrir splash nativa do PWA - aplicado ANTES de tudo */
+html, body {
+	background-color: white;
+	margin: 0;
+	padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	html, body {
+		background-color: #0a0a0a;
+	}
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

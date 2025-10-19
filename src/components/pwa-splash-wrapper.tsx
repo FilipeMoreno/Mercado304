@@ -1,34 +1,38 @@
 "use client"
 
-import { useState } from "react"
-import { SplashScreen } from "./splash-screen"
+import { useEffect, useState } from "react"
 import { usePWA } from "@/hooks"
+import { SplashScreen } from "./splash-screen"
 
 interface PWASplashWrapperProps {
-  children: React.ReactNode
+	children: React.ReactNode
 }
 
 export function PWASplashWrapper({ children }: PWASplashWrapperProps) {
-  const [showSplash, setShowSplash] = useState(true)
-  const { shouldShowSplash } = usePWA()
+	const [showSplash, setShowSplash] = useState(true)
+	const [mounted, setMounted] = useState(false)
+	const { shouldShowSplash } = usePWA()
 
-  const handleSplashComplete = () => {
-    setShowSplash(false)
-  }
+	useEffect(() => {
+		setMounted(true)
+	}, [])
 
-  // Se não deve mostrar splash ou já foi completada, renderiza o conteúdo normal
-  if (!shouldShowSplash || !showSplash) {
-    return <>{children}</>
-  }
+	const handleSplashComplete = () => {
+		setShowSplash(false)
+	}
 
-  // Renderiza a splash screen
-  return (
-    <>
-      <SplashScreen onComplete={handleSplashComplete} duration={2500} />
-      {/* Renderiza o conteúdo por baixo para evitar flash */}
-      <div style={{ visibility: 'hidden', position: 'absolute' }}>
-        {children}
-      </div>
-    </>
-  )
+	// Se não deve mostrar splash ou já foi completada, renderiza o conteúdo normal
+	if (!shouldShowSplash || !showSplash) {
+		return <>{children}</>
+	}
+
+	// Renderiza a splash screen SEMPRE primeiro para cobrir a splash nativa do PWA
+	return (
+		<>
+			{/* Renderiza a splash screen IMEDIATAMENTE */}
+			<SplashScreen onComplete={handleSplashComplete} duration={2000} />
+			{/* Renderiza o conteúdo por baixo para evitar flash */}
+			{mounted && <div style={{ visibility: "hidden", position: "absolute", pointerEvents: "none" }}>{children}</div>}
+		</>
+	)
 }

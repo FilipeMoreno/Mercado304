@@ -40,13 +40,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				{/* PWA Meta Tags */}
 				<meta name="mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
-				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+				<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 				<meta name="apple-mobile-web-app-title" content="Mercado304" />
 				<meta name="application-name" content="Mercado304" />
-				<meta name="msapplication-TileColor" content="#3b82f6" />
+				<meta name="msapplication-TileColor" content="#ffffff" />
 				<meta name="msapplication-config" content="/browserconfig.xml" />
-				{/* Splash Screen for iOS */}
-				<link rel="apple-touch-startup-image" href="/icon-512x512.png" />
 			</head>
 			<body className={inter.className}>
 				<SpeedInsights />

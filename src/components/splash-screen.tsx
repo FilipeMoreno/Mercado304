@@ -16,7 +16,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setIsVisible(false)
-			setTimeout(onComplete, 500) // Aguarda animação de saída
+			setTimeout(onComplete, 400) // Aguarda animação de saída
 		}, duration)
 
 		return () => clearTimeout(timer)
@@ -26,11 +26,15 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 		<AnimatePresence>
 			{isVisible && (
 				<motion.div
-					initial={{ opacity: 0 }}
+					initial={{ opacity: 1 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					transition={{ duration: 0.3, ease: "easeInOut" }}
+					transition={{ duration: 0.4, ease: "easeOut" }}
 					className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
+					style={{ 
+						// Força o background para cobrir a splash nativa do PWA
+						backgroundColor: 'var(--background)',
+					}}
 				>
 					{/* Subtle Grid Pattern */}
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
