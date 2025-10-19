@@ -1031,14 +1031,12 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 											value={selectedMarket}
 											onValueChange={setSelectedMarket}
 											placeholder="Todos os mercados"
-											allowClear
 										/>
 									) : (
 										<MarketSelect
 											value={selectedMarket}
 											onValueChange={setSelectedMarket}
 											placeholder="Todos os mercados"
-											allowClear
 										/>
 									)}
 								</div>
@@ -1050,14 +1048,12 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 											value={selectedProduct}
 											onValueChange={setSelectedProduct}
 											placeholder="Todos os produtos"
-											allowClear
 										/>
 									) : (
 										<ProductSelect
 											value={selectedProduct}
 											onValueChange={setSelectedProduct}
 											placeholder="Todos os produtos"
-											allowClear
 										/>
 									)}
 								</div>
