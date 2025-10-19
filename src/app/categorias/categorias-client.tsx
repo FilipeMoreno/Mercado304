@@ -1,10 +1,11 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Plus, Search, Tag, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Search, Tag } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { CategoryDeleteDialog, type CategoryTransferData } from "@/components/category-delete-dialog"
 import { CategoryCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,13 +14,13 @@ import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { Switch } from "@/components/ui/switch"
 import {
+	useAllCategoriesQuery,
 	useCategoriesQuery,
+	useCategoryQuery,
 	useDeleteCategoryMutation,
-	useDeleteConfirmation,
 	useUpdateCategoryMutation,
 	useUrlState,
 } from "@/hooks"
@@ -40,6 +41,13 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	const [editForm, setEditForm] = useState({ name: "", icon: "", color: "", isFood: false })
 	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
+	const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+	const [categoryProducts, setCategoryProducts] = useState<any[]>([])
+	
+	const editNameId = React.useId()
+	const editIconId = React.useId()
+	const editColorId = React.useId()
+	const editIsFoodId = React.useId()
 
 	// URL state management
 	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
@@ -94,17 +102,24 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 	// React Query hooks
 	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)
+	const { data: allCategoriesData } = useAllCategoriesQuery()
+	const { data: categoryDetail } = useCategoryQuery(deletingCategory?.id || "")
 	const updateCategoryMutation = useUpdateCategoryMutation()
 	const deleteCategoryMutation = useDeleteCategoryMutation()
 
-	// Delete confirmation hook
-	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Category>()
-
 	// Extract data from React Query
 	const categories = categoriesData?.categories || []
+	const allCategories = allCategoriesData?.categories || []
 	const totalCount = categoriesData?.pagination?.totalCount || 0
 	const itemsPerPage = 12
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
+
+	// Atualizar produtos da categoria quando ela mudar
+	useEffect(() => {
+		if (categoryDetail?.products) {
+			setCategoryProducts(categoryDetail.products)
+		}
+	}, [categoryDetail])
 
 	const sortOptions = [
 		{ value: "name-asc", label: "Nome (A-Z)" },
@@ -141,12 +156,20 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		}
 	}
 
-	const handleDeleteCategory = async () => {
-		if (!deleteState.item) return
+	const handleOpenDeleteDialog = (category: Category) => {
+		setDeletingCategory(category)
+	}
+
+	const handleDeleteCategory = async (transferData: CategoryTransferData) => {
+		if (!deletingCategory) return
 
 		try {
-			await deleteCategoryMutation.mutateAsync(deleteState.item.id)
-			closeDeleteConfirm()
+			await deleteCategoryMutation.mutateAsync({
+				id: deletingCategory.id,
+				transferData,
+			})
+			setDeletingCategory(null)
+			setCategoryProducts([])
 		} catch (error) {
 			console.error("Error deleting category:", error)
 		}
@@ -279,7 +302,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 									>
 										<CategoryCardMemo 
 											category={category} 
-											onDelete={openDeleteConfirm}
+											onDelete={handleOpenDeleteDialog}
 											onEdit={(category) => router.push(`/categorias/${category.id}/editar`)}
 										/>
 									</motion.div>
@@ -345,27 +368,27 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				isLoading={updateCategoryMutation.isPending}
 			>
 				<div>
-					<Label htmlFor="edit-name">Nome</Label>
+					<Label htmlFor={editNameId}>Nome</Label>
 					<Input
-						id="edit-name"
+						id={editNameId}
 						value={editForm.name}
 						onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
 						placeholder="Nome da categoria"
 					/>
 				</div>
 				<div>
-					<Label htmlFor="edit-icon">Ícone</Label>
+					<Label htmlFor={editIconId}>Ícone</Label>
 					<Input
-						id="edit-icon"
+						id={editIconId}
 						value={editForm.icon}
 						onChange={(e) => setEditForm((prev) => ({ ...prev, icon: e.target.value }))}
 						placeholder="📦"
 					/>
 				</div>
 				<div>
-					<Label htmlFor="edit-color">Cor</Label>
+					<Label htmlFor={editColorId}>Cor</Label>
 					<Input
-						id="edit-color"
+						id={editColorId}
 						type="color"
 						value={editForm.color}
 						onChange={(e) => setEditForm((prev) => ({ ...prev, color: e.target.value }))}
@@ -373,33 +396,29 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				</div>
 				<div className="flex items-center space-x-2">
 					<Switch
-						id="edit-isFood"
+						id={editIsFoodId}
 						checked={editForm.isFood}
 						onCheckedChange={(checked) => setEditForm((prev) => ({ ...prev, isFood: checked }))}
 					/>
-					<Label htmlFor="edit-isFood">É um alimento?</Label>
+					<Label htmlFor={editIsFoodId}>É um alimento?</Label>
 				</div>
 			</ResponsiveFormDialog>
 
-			{/* Delete Confirmation Dialog */}
-			<ResponsiveConfirmDialog
-				open={deleteState.show}
-				onOpenChange={(open) => !open && closeDeleteConfirm()}
-				title="Confirmar Exclusão"
-				description="Esta ação não pode ser desfeita"
+			{/* Delete Confirmation Dialog with Product Transfer */}
+			<CategoryDeleteDialog
+				open={!!deletingCategory}
+				onOpenChange={(open) => {
+					if (!open) {
+						setDeletingCategory(null)
+						setCategoryProducts([])
+					}
+				}}
+				category={deletingCategory}
+				products={categoryProducts}
+				availableCategories={allCategories}
 				onConfirm={handleDeleteCategory}
-				onCancel={closeDeleteConfirm}
-				confirmText={deleteCategoryMutation.isPending ? "Excluindo..." : "Sim, Excluir"}
-				cancelText="Cancelar"
-				confirmVariant="destructive"
 				isLoading={deleteCategoryMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
-			>
-				<p className="text-lg font-medium">
-					Tem certeza que deseja excluir a categoria <strong>{deleteState.item?.name}</strong>?
-				</p>
-				<p className="text-sm text-gray-600 mt-2">Todos os produtos desta categoria ficarão sem categoria.</p>
-			</ResponsiveConfirmDialog>
+			/>
 		</>
 	)
 }

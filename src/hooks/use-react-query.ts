@@ -139,15 +139,17 @@ export const useUpdateCategoryMutation = () => {
 export const useDeleteCategoryMutation = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) =>
+		mutationFn: ({ id, transferData }: { id: string; transferData?: any }) =>
 			fetchWithErrorHandling(`/api/categories/${id}`, {
 				method: "DELETE",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ transferData }),
 			}),
-		onSuccess: () => {
+		onSuccess: (data: { message?: string }) => {
 			queryClient.invalidateQueries({ queryKey: ["categories"] })
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
 			queryClient.invalidateQueries({ queryKey: ["products"] })
-			toast.success("Categoria excluída com sucesso!")
+			toast.success(data.message || "Categoria excluída com sucesso!")
 		},
 		onError: (error) => {
 			toast.error(`Erro ao excluir categoria: ${error.message}`)
@@ -633,6 +635,31 @@ export const useDeleteStockMutation = () => {
 		},
 		onError: (error) => {
 			toast.error(`Erro ao remover item do estoque: ${error.message}`)
+		},
+	})
+}
+
+export const useResetStockMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: () =>
+			fetchWithErrorHandling("/api/stock/reset", {
+				method: "DELETE",
+			}),
+		onSuccess: (data: { message: string; deletedCount: number }) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.stock() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.stockHistory() })
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.expiration.alerts(),
+			})
+			// Invalidate all stock-related queries
+			queryClient.invalidateQueries({ queryKey: ["stock"] })
+			queryClient.invalidateQueries({ queryKey: ["stock-history"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			toast.success(data.message || "Estoque resetado com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao resetar estoque: ${error.message}`)
 		},
 	})
 }

@@ -84,7 +84,7 @@ export default function CategoriaDetalhesPage() {
 	const [category, setCategory] = useState<CategoryDetails | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [stats, setStats] = useState<CategoryStats | null>(null)
-	const [statsLoading, setStatsLoading] = useState(true)
+	const [_statsLoading, setStatsLoading] = useState(true)
 
 	const fetchCategoryDetails = async () => {
 		try {
@@ -132,26 +132,27 @@ export default function CategoriaDetalhesPage() {
 		if (categoryId) {
 			fetchCategoryDetails()
 		}
-	}, [categoryId])
+	}, [categoryId, fetchCategoryDetails])
 
 	const deleteCategory = async () => {
 		if (!categoryId) return
 
-		if (!confirm("Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.")) {
-			return
-		}
-
-		try {
-			await deleteCategoryMutation.mutateAsync(categoryId)
-			toast.success("Categoria excluída com sucesso!")
-			setTimeout(() => {
-				router.push("/categorias")
-			}, 100)
-		} catch (error) {
-			console.error("Erro ao excluir categoria:", error)
-			toast.error("Erro ao excluir categoria")
-		}
+	if (!confirm("Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.")) {
+		return
 	}
+
+	try {
+		// Excluir sem transferência (assumindo que não tem produtos ou serão desvinculados)
+		await deleteCategoryMutation.mutateAsync({ id: categoryId })
+		toast.success("Categoria excluída com sucesso!")
+		setTimeout(() => {
+			router.push("/categorias")
+		}, 100)
+	} catch (error) {
+		console.error("Erro ao excluir categoria:", error)
+		toast.error("Erro ao excluir categoria")
+	}
+}
 
 	if (loading) {
 		return (
@@ -784,7 +785,7 @@ export default function CategoriaDetalhesPage() {
 
 															// Verificar se há dados suficientes para comparação
 															if (prevMonth.spent === 0 && lastMonth.spent === 0) {
-																return <>Sem dados suficientes para análise de tendência.</>
+																return "Sem dados suficientes para análise de tendência."
 															}
 
 															if (prevMonth.spent === 0 && lastMonth.spent > 0) {

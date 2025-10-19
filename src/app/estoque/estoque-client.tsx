@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, Plus, Search, Trash2 } from "lucide-react"
+import { AlertTriangle, Plus, RotateCcw, Search, Trash2 } from "lucide-react"
 import * as React from "react"
 import { useMemo, useState } from "react"
 import { RecipeSuggester } from "@/components/recipe-suggester"
@@ -11,12 +11,14 @@ import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dial
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TextConfirmDialog } from "@/components/ui/text-confirm-dialog"
 import { WasteDialog } from "@/components/waste-dialog"
 import {
 	useCreateStockMutation,
 	useDeleteConfirmation,
 	useDeleteStockMutation,
 	useProductsQuery,
+	useResetStockMutation,
 	useStockQuery,
 	useUpdateStockMutation,
 	useUrlState,
@@ -62,6 +64,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const [showDetailsDialog, setShowDetailsDialog] = useState(false)
 	const [showUseDialog, setShowUseDialog] = useState(false)
 	const [showWasteDialog, setShowWasteDialog] = useState(false)
+	const [showResetDialog, setShowResetDialog] = useState(false)
 	const [selectedItem, setSelectedItem] = useState<StockItem | null>(null)
 	const [wasteItem, setWasteItem] = useState<StockItem | null>(null)
 	const [consumedQuantity, setConsumedQuantity] = useState("")
@@ -106,6 +109,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const createStockMutation = useCreateStockMutation()
 	const updateStockMutation = useUpdateStockMutation()
 	const deleteStockMutation = useDeleteStockMutation()
+	const resetStockMutation = useResetStockMutation()
 
 	// Extract data from React Query
 	const stockItems = stockData?.items || []
@@ -173,6 +177,16 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const handleWasteItem = (item: StockItem) => {
 		setWasteItem(item)
 		setShowWasteDialog(true)
+	}
+
+	const handleResetStock = async () => {
+		try {
+			await resetStockMutation.mutateAsync()
+			setShowResetDialog(false)
+			setCurrentPage(1)
+		} catch (error) {
+			console.error("Error resetting stock:", error)
+		}
 	}
 
 	const handleCreateStock = async (newStockData: Omit<StockItem, "id">) => {
@@ -267,6 +281,15 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 					<Button onClick={() => setShowAddDialog(true)}>
 						<Plus className="mr-2 h-4 w-4" />
 						Adicionar
+					</Button>
+					<Button 
+						variant="destructive" 
+						onClick={() => setShowResetDialog(true)}
+						disabled={stockItems.length === 0}
+						title="Resetar todo o estoque"
+					>
+						<RotateCcw className="mr-2 h-4 w-4" />
+						<span className="hidden sm:inline">Resetar</span>
 					</Button>
 				</div>
 			</div>
@@ -486,6 +509,19 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 					</p>
 				</div>
 			</ResponsiveConfirmDialog>
+
+			{/* Dialog de confirmação para resetar estoque */}
+			<TextConfirmDialog
+				open={showResetDialog}
+				onOpenChange={setShowResetDialog}
+				title="⚠️ Resetar Todo o Estoque"
+				description="Esta ação irá remover TODOS os itens do estoque permanentemente. Esta ação não pode ser desfeita!"
+				confirmText="RESETAR"
+				confirmPlaceholder="Digite RESETAR para confirmar"
+				onConfirm={handleResetStock}
+				isLoading={resetStockMutation.isPending}
+				variant="destructive"
+			/>
 		</div>
 	)
 }
