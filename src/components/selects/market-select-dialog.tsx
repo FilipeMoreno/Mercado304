@@ -38,7 +38,7 @@ export function MarketSelectDialog({
   // Convert markets to SelectOption format
   const options: SelectOption[] = useMemo(() => {
     return filteredMarkets.map((market: any) => ({
-      id: market.id,
+      id: String(market.id), // Garantir que o id seja string
       label: market.name,
       sublabel: market.location || undefined,
       icon: "🏪",
@@ -66,8 +66,8 @@ export function MarketSelectDialog({
       })
       console.log("[MarketSelectDialog] Market created:", newMarket)
 
-      // Define o valor imediatamente após a criação
-      onValueChange?.(newMarket.id)
+      // Define o valor imediatamente após a criação (converter para string)
+      onValueChange?.(String(newMarket.id))
       setSearch("")
       setOpen(false) // Fechar dialog após criar
     } catch (error) {

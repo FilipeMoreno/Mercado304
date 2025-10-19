@@ -34,9 +34,9 @@ export function MarketSelect({
 			})
 			console.log("[MarketSelect] Market created:", newMarket)
 
-			// Define o valor imediatamente após a criação
+			// Define o valor imediatamente após a criação (converter para string)
 			console.log("[MarketSelect] Setting value immediately:", newMarket.id)
-			onValueChange?.(newMarket.id)
+			onValueChange?.(String(newMarket.id))
 
 			// Define o nome do mercado pendente para exibição
 			setPendingMarketName(newMarket.name)
@@ -59,7 +59,8 @@ export function MarketSelect({
 	const getSelectedMarketLabel = () => {
 		if (!value) return placeholder
 
-		const selectedMarket = markets.find((m: any) => m.id === value)
+		// Garantir comparação consistente convertendo ambos para string
+		const selectedMarket = markets.find((m: any) => String(m.id) === String(value))
 		if (selectedMarket) {
 			return `${selectedMarket.name}${selectedMarket.location ? ` - ${selectedMarket.location}` : ""}`
 		}
@@ -71,7 +72,7 @@ export function MarketSelect({
 	return (
 		<Combobox
 			options={markets.map((market: any) => ({
-				value: market.id,
+				value: String(market.id), // Garantir que o value seja string
 				label: `${market.name}${market.location ? ` - ${market.location}` : ""}`,
 			}))}
 			value={value}

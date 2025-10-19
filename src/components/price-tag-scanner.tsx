@@ -122,7 +122,8 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 			const capabilities = track.getCapabilities() as { torch?: boolean }
 			if (capabilities.torch) {
 				await track.applyConstraints({
-					advanced: [{ torch: !isFlashOn }] as MediaTrackConstraintSet[],
+					// @ts-expect-error - torch não está no tipo padrão mas é suportado em dispositivos móveis
+					advanced: [{ torch: !isFlashOn }],
 				})
 				setIsFlashOn(!isFlashOn)
 			}
