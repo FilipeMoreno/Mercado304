@@ -34,6 +34,7 @@ export interface Product {
 	categoryId?: string
 	brandId?: string
 	unit: string
+	packageSize?: string // Peso/Volume do produto (ex: "2L", "500g", "1kg")
 	// Controle de estoque
 	hasStock?: boolean
 	minStock?: number

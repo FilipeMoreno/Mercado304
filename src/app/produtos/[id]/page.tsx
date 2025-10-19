@@ -181,16 +181,21 @@ export default function ProdutoDetalhesPage() {
 				{/* Título e Badges */}
 				<div className="flex items-start gap-3">
 					<div className="flex-1 min-w-0">
-						<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
-						<div className="flex flex-wrap items-center gap-2 mt-3">
-							{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
-							{product.category && (
-								<Badge variant="outline">
-									{product.category.icon} {product.category.name}
-								</Badge>
-							)}
-							<Badge variant="outline">{product.unit}</Badge>
-						</div>
+					<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
+					<div className="flex flex-wrap items-center gap-2 mt-3">
+						{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
+						{product.category && (
+							<Badge variant="outline">
+								{product.category.icon} {product.category.name}
+							</Badge>
+						)}
+						{product.packageSize && (
+							<Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
+								📦 {product.packageSize}
+							</Badge>
+						)}
+						<Badge variant="outline">{product.unit}</Badge>
+					</div>
 					</div>
 				</div>
 				<div className="flex flex-row gap-3">

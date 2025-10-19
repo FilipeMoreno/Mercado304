@@ -23,6 +23,7 @@ interface ShoppingListItem {
 		id: string
 		name: string
 		unit: string
+		packageSize?: string
 		brand?: {
 			name: string
 		}
@@ -97,6 +98,11 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 				<div className="text-sm text-gray-600 space-y-0.5">
 					<div>
 						{item.quantity} {item.product?.unit || item.productUnit || "unidades"}
+						{item.product?.packageSize && (
+							<span className="ml-2 text-blue-600 font-semibold">
+								📦 {item.product.packageSize}
+							</span>
+						)}
 						{item.estimatedPrice && (
 							<span className="ml-2">
 								• R$ {item.estimatedPrice.toFixed(2)}

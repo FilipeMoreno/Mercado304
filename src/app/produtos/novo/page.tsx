@@ -50,6 +50,7 @@ export default function NovoProdutoPage() {
 		categoryId: "",
 		brandId: "",
 		unit: "unidade",
+		packageSize: "",
 		hasStock: false,
 		minStock: "",
 		maxStock: "",
@@ -161,6 +162,7 @@ export default function NovoProdutoPage() {
 				categoryId: formData.categoryId || undefined,
 				brandId: formData.brandId || undefined,
 				unit: formData.unit,
+				packageSize: formData.packageSize || undefined,
 				hasStock: formData.hasStock,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : undefined,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
@@ -334,27 +336,42 @@ export default function NovoProdutoPage() {
 									/>
 								)}
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="unit">Unidade de Medida</Label>
-								{selectStyle === "dialog" ? (
-									<UnitSelectDialog
-										value={formData.unit}
-										onValueChange={(value) => handleSelectChange("unit", value)}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-2">
+									<Label htmlFor="packageSize">Peso/Volume</Label>
+									<Input
+										id="packageSize"
+										name="packageSize"
+										value={formData.packageSize}
+										onChange={handleChange}
+										placeholder="Ex: 2L, 500g, 1kg"
 									/>
-								) : (
-									<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{units.map((unit) => (
-												<SelectItem key={unit} value={unit}>
-													{unit}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
+									<p className="text-xs text-gray-500">
+										Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)
+									</p>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="unit">Unidade de Medida</Label>
+									{selectStyle === "dialog" ? (
+										<UnitSelectDialog
+											value={formData.unit}
+											onValueChange={(value) => handleSelectChange("unit", value)}
+										/>
+									) : (
+										<Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{units.map((unit) => (
+													<SelectItem key={unit} value={unit}>
+														{unit}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+								</div>
 							</div>
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>

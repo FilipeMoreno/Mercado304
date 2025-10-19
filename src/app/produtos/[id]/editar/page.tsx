@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, Loader2, Package, Save, ScanLine } from "lucide-react"
+import { ArrowLeft, Loader2, Save, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
@@ -46,6 +46,7 @@ export default function EditarProdutoPage() {
 		name: "",
 		categoryId: "",
 		unit: "unidade",
+		packageSize: "",
 		brandId: "",
 		barcode: "",
 		hasStock: false,
@@ -59,7 +60,7 @@ export default function EditarProdutoPage() {
 
 	// Estados para erros específicos de campos
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-	const [showFieldErrors, setShowFieldErrors] = useState(false)
+	const [_showFieldErrors, setShowFieldErrors] = useState(false)
 
 	useEffect(() => {
 		fetchCategories()
@@ -137,7 +138,7 @@ export default function EditarProdutoPage() {
 		if (productId) {
 			fetchData()
 		}
-	}, [productId])
+	}, [productId, fetchData])
 
 	const fetchData = async () => {
 		try {
@@ -154,6 +155,7 @@ export default function EditarProdutoPage() {
 				name: productData.name,
 				categoryId: productData.categoryId || "",
 				unit: productData.unit,
+				packageSize: productData.packageSize || "",
 				brandId: productData.brandId || "",
 				barcode: productData.barcode || "",
 				hasStock: productData.hasStock || false,
@@ -357,6 +359,19 @@ export default function EditarProdutoPage() {
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
+									<Label htmlFor="packageSize">Peso/Volume</Label>
+									<Input
+										id="packageSize"
+										name="packageSize"
+										value={formData.packageSize}
+										onChange={handleChange}
+										placeholder="Ex: 2L, 500g, 1kg"
+									/>
+									<p className="text-xs text-gray-500">
+										Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)
+									</p>
+								</div>
+								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>
 									{selectStyle === "dialog" ? (
 										<UnitSelectDialog
@@ -378,18 +393,18 @@ export default function EditarProdutoPage() {
 										</Select>
 									)}
 								</div>
-								<div className="space-y-2">
-									<Label htmlFor="barcode">Código de Barras</Label>
-									<Input
-										id="barcode"
-										name="barcode"
-										value={formData.barcode}
-										onChange={handleChange}
-										placeholder="Ex: 7891234567890"
-										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
-									/>
-									{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
-								</div>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="barcode">Código de Barras</Label>
+								<Input
+									id="barcode"
+									name="barcode"
+									value={formData.barcode}
+									onChange={handleChange}
+									placeholder="Ex: 7891234567890"
+									className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+								/>
+								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
 							</div>
 							<div className="space-y-4 pt-4 border-t">
 								<h3 className="text-lg font-medium">Controle de Estoque</h3>

@@ -9,8 +9,8 @@ export async function GET(request: Request) {
 		const category = searchParams.get("category") || ""
 		const brand = searchParams.get("brand") || ""
 		const sort = searchParams.get("sort") || "name-asc"
-		const page = parseInt(searchParams.get("page") || "1")
-		const limit = parseInt(searchParams.get("limit") || "12")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const limit = parseInt(searchParams.get("limit") || "12", 10)
 		const include = searchParams.get("include") || ""
 
 		const skip = (page - 1) * limit
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
 				hasMore: page < totalPages,
 			},
 		})
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao buscar produtos" }, { status: 500 })
 	}
 }
@@ -88,6 +88,7 @@ export async function POST(request: Request) {
 			categoryId,
 			brandId,
 			unit,
+			packageSize,
 			hasStock,
 			minStock,
 			maxStock,
@@ -124,6 +125,7 @@ export async function POST(request: Request) {
 				categoryId: categoryId || null,
 				brandId: brandId || null,
 				unit: unit || "unidade",
+				packageSize: packageSize || null,
 				hasStock,
 				minStock,
 				maxStock,
