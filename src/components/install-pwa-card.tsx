@@ -17,6 +17,7 @@ export function InstallPWACard() {
 	const [isStandalone, setIsStandalone] = useState(false)
 	const [showCard, setShowCard] = useState(true)
 	const [platform, setPlatform] = useState<"android" | "ios" | "desktop" | "unknown">("unknown")
+	const [showDebug, setShowDebug] = useState(false)
 
 	useEffect(() => {
 		// Detectar se já está instalado
@@ -27,6 +28,11 @@ export function InstallPWACard() {
 			
 			setIsStandalone(standalone)
 			setIsInstalled(standalone)
+			
+			// Debug
+			console.log("[PWA] Display mode:", window.matchMedia("(display-mode: standalone)").matches)
+			console.log("[PWA] Navigator standalone:", (window.navigator as any).standalone)
+			console.log("[PWA] Referrer:", document.referrer)
 		}
 
 		// Detectar plataforma
@@ -39,6 +45,8 @@ export function InstallPWACard() {
 			} else if (/windows|mac|linux/.test(ua)) {
 				setPlatform("desktop")
 			}
+			
+			console.log("[PWA] Platform detected:", ua)
 		}
 
 		checkInstalled()
@@ -48,16 +56,19 @@ export function InstallPWACard() {
 		const dismissed = localStorage.getItem("mercado304-pwa-install-dismissed")
 		if (dismissed === "true") {
 			setShowCard(false)
+			console.log("[PWA] Card was dismissed permanently")
 		}
 
 		// Capturar evento de instalação (Chrome/Edge)
 		const handleBeforeInstallPrompt = (e: Event) => {
+			console.log("[PWA] beforeinstallprompt event fired!")
 			e.preventDefault()
 			setDeferredPrompt(e as BeforeInstallPromptEvent)
 		}
 
 		// Detectar quando o app foi instalado
 		const handleAppInstalled = () => {
+			console.log("[PWA] App installed successfully!")
 			setIsInstalled(true)
 			setDeferredPrompt(null)
 			// Auto-fechar o card após instalação
@@ -101,10 +112,20 @@ export function InstallPWACard() {
 	}
 
 	return (
-		<Card className="border-2 border-primary/20 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20">
+		<Card className="border-2 border-primary/20 bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/20 relative">
 			<CardHeader>
 				<div className="flex items-start justify-between">
 					<div className="flex items-center gap-2">
+						{/* Debug toggle - apenas desenvolvimento */}
+						{process.env.NODE_ENV === "development" && (
+							<button
+								type="button"
+								onClick={() => setShowDebug(!showDebug)}
+								className="absolute top-2 left-2 text-xs opacity-30 hover:opacity-100"
+							>
+								🐛
+							</button>
+						)}
 						<div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
 							<Download className="h-5 w-5 text-primary" />
 						</div>
@@ -156,18 +177,22 @@ export function InstallPWACard() {
 					</div>
 				</div>
 
-				{/* Botão de instalação ou instruções */}
-				{deferredPrompt && platform === "android" ? (
-					<Button
-						onClick={handleInstallClick}
-						className="w-full bg-primary hover:bg-primary/90"
-						size="lg"
-					>
-						<Download className="mr-2 h-5 w-5" />
-						Instalar Agora
-					</Button>
-				) : (
-					<div className="space-y-3">
+				{/* Botão de instalação */}
+				<div className="space-y-3">
+					{deferredPrompt && (
+						<Button
+							onClick={handleInstallClick}
+							className="w-full bg-primary hover:bg-primary/90"
+							size="lg"
+						>
+							<Download className="mr-2 h-5 w-5" />
+							Instalar Agora com 1 Clique
+						</Button>
+					)}
+					
+					{/* Instruções sempre visíveis */}
+					{!deferredPrompt && (
+						<>
 						<div className="text-sm">
 							<p className="font-medium mb-2 flex items-center gap-2">
 								{platform === "ios" ? <Smartphone className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
@@ -177,22 +202,22 @@ export function InstallPWACard() {
 								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">1.</span>
-										<span>Toque no botão de <strong>Compartilhar</strong> (ícone quadrado com seta)</span>
+										<span>Toque no botão de <strong>Compartilhar</strong> 📤 (parte inferior)</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">2.</span>
-										<span>Role e selecione <strong>"Adicionar à Tela de Início"</strong></span>
+										<span>Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong></span>
 									</li>
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">3.</span>
-										<span>Toque em <strong>"Adicionar"</strong> no canto superior direito</span>
+										<span>Confirme tocando em <strong>"Adicionar"</strong></span>
 									</li>
 								</ol>
 							) : platform === "android" ? (
 								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">1.</span>
-										<span>Toque no menu <strong>(⋮)</strong> do navegador</span>
+										<span>Toque no menu <strong>⋮</strong> (3 pontos) do navegador</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">2.</span>
@@ -207,11 +232,11 @@ export function InstallPWACard() {
 								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">1.</span>
-										<span>Clique no ícone de <strong>instalação</strong> na barra de endereço (Chrome/Edge)</span>
+										<span>Procure o ícone de <strong>instalação (⊕)</strong> na barra de endereço</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<span className="font-bold text-primary">2.</span>
-										<span>Ou abra o menu do navegador e selecione <strong>"Instalar Mercado304"</strong></span>
+										<span>Ou abra o menu <strong>(⋮)</strong> e clique em <strong>"Instalar Mercado304"</strong></span>
 									</li>
 								</ol>
 							)}
@@ -222,6 +247,18 @@ export function InstallPWACard() {
 								{platform === "ios" ? "📱 iOS/Safari" : platform === "android" ? "🤖 Android/Chrome" : "💻 Desktop"}
 							</Badge>
 						</div>
+						</>
+					)}
+				</div>
+
+				{/* Debug Info - apenas desenvolvimento */}
+				{showDebug && process.env.NODE_ENV === "development" && (
+					<div className="mt-4 p-3 bg-gray-900 text-white text-xs font-mono rounded-lg">
+						<div>Platform: {platform}</div>
+						<div>Has Prompt: {deferredPrompt ? "Yes ✅" : "No ❌"}</div>
+						<div>Is Standalone: {isStandalone ? "Yes" : "No"}</div>
+						<div>Is Installed: {isInstalled ? "Yes" : "No"}</div>
+						<div>User Agent: {typeof window !== "undefined" ? navigator.userAgent.substring(0, 50) : "N/A"}</div>
 					</div>
 				)}
 			</CardContent>
