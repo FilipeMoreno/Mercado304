@@ -35,6 +35,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { APP_VERSION } from "@/lib/version"
 import { UserNav } from "./user-nav"
 
 const navigation = [
@@ -368,9 +369,14 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 				})}
 			</nav>
 
-			<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
-				<UserNav collapsed={collapsed} />
-			</div>
+		<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
+			<UserNav collapsed={collapsed} />
+			{!collapsed && (
+				<div className="text-center text-xs text-muted-foreground/50 pt-2 border-t border-border/50">
+					v{APP_VERSION}
+				</div>
+			)}
+		</div>
 		</div>
 	)
 }
