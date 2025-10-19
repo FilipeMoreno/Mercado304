@@ -49,8 +49,7 @@ export default function ImportarCompraPage() {
 	const [suggestedMarket, setSuggestedMarket] = useState<Market | null>(null)
 	const [paymentMethod, setPaymentMethod] = useState<string>("CREDIT_CARD")
 	const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split("T")[0])
-	const [totalDiscount, setTotalDiscount] = useState<number>(0)
-_setTotalDiscount
+	const [totalDiscount, _setTotalDiscount] = useState<number>(0)
 	const mutation = useCreatePurchaseMutation()
 
 	// Redirecionar após sucesso

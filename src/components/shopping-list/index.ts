@@ -5,6 +5,7 @@ export { EditItemDialog } from "./dialogs/edit-item-dialog"
 // Dialogs
 export { EditListDialog } from "./dialogs/edit-list-dialog"
 export { QuickProductDialog } from "./dialogs/quick-product-dialog"
+export { PriceSearchDialog } from "./price-search-dialog"
 export { ProgressBar } from "./progress-bar"
 export { QuickEditDialog } from "./quick-edit-dialog"
 export { ShoppingListHeader } from "./shopping-list-header"

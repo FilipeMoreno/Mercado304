@@ -12,6 +12,7 @@ import {
 	DeleteListDialog,
 	EditItemDialog,
 	EditListDialog,
+	PriceSearchDialog,
 	ProgressBar,
 	QuickEditDialog,
 	QuickProductDialog,
@@ -147,6 +148,10 @@ export default function ListaDetalhesPage() {
 	// Estados para edição rápida e toggle de itens marcados
 	const [quickEditingItem, setQuickEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [showCompletedItems, setShowCompletedItems] = useState(true)
+
+	// Estados para busca de preços
+	const [priceSearchItem, setPriceSearchItem] = useState<ExtendedShoppingListItem | null>(null)
+	const [showPriceSearch, setShowPriceSearch] = useState(false)
 
 	// Inicializar editItemData quando editingItem mudar
 	useEffect(() => {
@@ -764,6 +769,10 @@ export default function ListaDetalhesPage() {
 													onToggle={toggleItem}
 													onEdit={(item) => setQuickEditingItem(item)}
 													onDelete={(item) => setDeleteItemConfirm(item)}
+													onSearchPrice={(item) => {
+														setPriceSearchItem(item)
+														setShowPriceSearch(true)
+													}}
 												/>
 											</motion.div>
 										))}
@@ -887,7 +896,7 @@ export default function ListaDetalhesPage() {
 				onClose={() => setQuickEditingItem(null)}
 				onUpdate={(itemId, updates, options) => {
 					// Atualiza todos os campos (nome, produto vinculado, quantidade, preço)
-					const updateData: any = {}
+					const updateData: Record<string, unknown> = {}
 					if (updates.productId !== undefined) updateData.productId = updates.productId
 					if (updates.productName !== undefined) updateData.productName = updates.productName
 					if (updates.productUnit !== undefined) updateData.productUnit = updates.productUnit
@@ -926,6 +935,17 @@ export default function ListaDetalhesPage() {
 				listName={list.name}
 				isOpen={showOptimizedRoute}
 				onClose={() => setShowOptimizedRoute(false)}
+			/>
+
+			{/* Dialog de Busca de Preços */}
+			<PriceSearchDialog
+				isOpen={showPriceSearch}
+				onClose={() => {
+					setShowPriceSearch(false)
+					setPriceSearchItem(null)
+				}}
+				itemId={priceSearchItem?.id || null}
+				itemName={priceSearchItem?.product?.name || priceSearchItem?.productName || ""}
 			/>
 		</div>
 	)

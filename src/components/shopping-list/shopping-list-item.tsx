@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Trash2 } from "lucide-react"
+import { Check, DollarSign, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ShoppingListItem {
@@ -8,7 +8,12 @@ interface ShoppingListItem {
 	quantity: number
 	estimatedPrice?: number
 	isChecked: boolean
-	bestPriceAlert?: any
+	bestPriceAlert?: {
+		isBestPrice: boolean
+		previousBestPrice?: number
+		totalRecords?: number
+		isFirstRecord?: boolean
+	}
 	productName?: string // Pode ser undefined temporariamente ao carregar
 	productUnit?: string // Pode ser undefined temporariamente ao carregar
 	brand?: string
@@ -32,30 +37,30 @@ interface ShoppingListItem {
 interface ShoppingListItemProps {
 	item: ShoppingListItem
 	onToggle: (itemId: string, currentStatus: boolean) => void
-	onEdit: (item: any) => void
-	onDelete: (item: any) => void
-	onQuickEdit?: (item: any) => void
+	onEdit: (item: ShoppingListItem) => void
+	onDelete: (item: ShoppingListItem) => void
+	onQuickEdit?: (item: ShoppingListItem) => void
+	onSearchPrice?: (item: ShoppingListItem) => void
 }
 
-export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, onQuickEdit }: ShoppingListItemProps) {
+export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, onQuickEdit, onSearchPrice }: ShoppingListItemProps) {
 	const totalPrice = item.quantity * (item.estimatedPrice || 0)
+
+	const handleItemClick = () => {
+		if (onQuickEdit) {
+			onQuickEdit(item)
+		} else {
+			onEdit(item)
+		}
+	}
 
 	return (
 		<div
-			className={`flex items-center gap-4 p-4 border rounded-lg transition-all duration-200 cursor-pointer ${item.isChecked ? "bg-green-50 dark:bg-green-950/20 border-green-200" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
+			className={`flex items-center gap-4 p-4 border rounded-lg transition-all duration-200 ${item.isChecked ? "bg-green-50 dark:bg-green-950/20 border-green-200" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
 				}`}
-			onClick={(e) => {
-				// Evita abrir o dialog se clicar no checkbox ou botão de delete
-				if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.item-content')) {
-					if (onQuickEdit) {
-						onQuickEdit(item)
-					} else {
-						onEdit(item)
-					}
-				}
-			}}
 		>
 			<button
+				type="button"
 				onClick={(e) => {
 					e.stopPropagation()
 					onToggle(item.id, item.isChecked)
@@ -66,7 +71,11 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 				{item.isChecked && <Check className="h-4 w-4" />}
 			</button>
 
-			<div className="flex-1 item-content">
+			<button
+				type="button"
+				className="flex-1 text-left item-content bg-transparent border-none cursor-pointer"
+				onClick={handleItemClick}
+			>
 				<div
 					className={`font-medium transition-all duration-200 ${item.isChecked ? "line-through text-gray-500" : "text-gray-900"
 						}`}
@@ -109,7 +118,7 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 						</div>
 					)}
 				</div>
-			</div>
+			</button>
 
 			<div className="flex items-center gap-2">
 				{totalPrice > 0 && (
@@ -121,6 +130,20 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 							</div>
 						)}
 					</div>
+				)}
+				{onSearchPrice && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={(e) => {
+							e.stopPropagation()
+							onSearchPrice(item)
+						}}
+						title="Buscar menor preço"
+						className="text-primary hover:text-primary"
+					>
+						<DollarSign className="h-3 w-3" />
+					</Button>
 				)}
 				<Button
 					variant="destructive"
