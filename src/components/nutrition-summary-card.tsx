@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Apple, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,11 +29,7 @@ export function NutritionSummaryCard() {
 	const [summary, setSummary] = useState<NutritionSummary | null>(null)
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		fetchNutritionSummary()
-	}, [fetchNutritionSummary])
-
-	const fetchNutritionSummary = async () => {
+	const fetchNutritionSummary = useCallback(async () => {
 		try {
 			const response = await fetch("/api/nutrition/analysis?period=30")
 			if (response.ok) {
@@ -67,7 +63,11 @@ export function NutritionSummaryCard() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [])
+
+	useEffect(() => {
+		fetchNutritionSummary()
+	}, [fetchNutritionSummary])
 
 	const getHealthScoreColor = (score: number) => {
 		if (score >= 80) return "text-green-600"
