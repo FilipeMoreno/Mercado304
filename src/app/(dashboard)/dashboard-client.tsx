@@ -29,9 +29,9 @@ import {
 	useSavingsQuery,
 	useTemporalComparisonQuery,
 } from "@/hooks"
+import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
-import { useSession } from "@/lib/auth-client"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
 
 const MonthlySpendingChart = lazy(() =>
@@ -286,12 +286,13 @@ export function DashboardClient() {
 								) : (
 									<>
 										<div
-											className={`text-2xl font-bold ${temporalData?.changes.spent > 0
-												? "text-red-600"
-												: temporalData?.changes.spent < 0
-													? "text-green-600"
-													: "text-gray-600"
-												}`}
+											className={`text-2xl font-bold ${
+												temporalData?.changes.spent > 0
+													? "text-red-600"
+													: temporalData?.changes.spent < 0
+														? "text-green-600"
+														: "text-gray-600"
+											}`}
 										>
 											{temporalData?.changes.spent > 0 ? "+" : ""}
 											{temporalData?.changes.spent.toFixed(1)}%
@@ -387,7 +388,9 @@ export function DashboardClient() {
 											<Package className="h-6 w-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>Registre sua primeira compra para ver os produtos mais comprados.</EmptyDescription>
+										<EmptyDescription>
+											Registre sua primeira compra para ver os produtos mais comprados.
+										</EmptyDescription>
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/compras/nova" className="inline-flex">
@@ -450,8 +453,8 @@ export function DashboardClient() {
 										const cheapest =
 											(stats?.marketComparison?.length || 0) > 1
 												? stats?.marketComparison?.reduce((min: MarketComparison, curr: MarketComparison) =>
-													curr.averagePrice < min.averagePrice ? curr : min,
-												)
+														curr.averagePrice < min.averagePrice ? curr : min,
+													)
 												: null
 										const isCheapest = cheapest && market.marketId === cheapest.marketId
 
@@ -459,8 +462,9 @@ export function DashboardClient() {
 											<div key={market.marketId} className="flex items-center justify-between">
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${isCheapest ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
-															}`}
+														className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
+															isCheapest ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
+														}`}
 													>
 														{index + 1}
 													</div>
@@ -468,7 +472,7 @@ export function DashboardClient() {
 														<div className="font-medium flex items-center gap-2">
 															{market.marketName}
 															{isCheapest && (
-																<span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+																<span className="text-xs bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 px-2 py-1 rounded">
 																	Mais Barato
 																</span>
 															)}
