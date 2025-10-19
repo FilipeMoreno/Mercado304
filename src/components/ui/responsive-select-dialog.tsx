@@ -260,7 +260,7 @@ export function ResponsiveSelectDialog({
                         variant="outline"
                         size="sm"
                         onClick={handleCreateNew}
-                        className="w-full gap-2 text-blue-600 hover:text-blue-700 border-blue-200 hover:bg-blue-50"
+                        className="w-full gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950"
                       >
                         <Plus className="h-4 w-4" />
                         {createNewText} "{searchTerm}"

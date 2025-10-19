@@ -147,7 +147,7 @@ export function MobileModal({
 					<motion.div
 						ref={containerRef}
 						className={cn(
-							"fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl z-50 flex flex-col",
+							"fixed inset-x-0 bottom-0 bg-white dark:bg-gray-950 rounded-t-2xl shadow-2xl z-50 flex flex-col",
 							fullHeight ? "top-12" : "max-h-[90vh]",
 							className,
 						)}
@@ -170,7 +170,7 @@ export function MobileModal({
 						{dragToClose && (
 							<div className="flex justify-center pt-3 pb-2">
 								<motion.div
-									className="w-12 h-1 bg-gray-300 rounded-full cursor-grab active:cursor-grabbing"
+									className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full cursor-grab active:cursor-grabbing"
 									whileHover={{ scale: 1.1 }}
 									whileTap={{ scale: 0.95 }}
 									onPointerDown={(e) => {
@@ -184,10 +184,10 @@ export function MobileModal({
 
 						{/* Header */}
 						{(title || showCloseButton) && (
-							<div className="flex items-center justify-between p-4 border-b border-gray-100">
+							<div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
 								<div className="flex-1">
-									{title && <h2 className="text-lg font-semibold text-gray-900">{title}</h2>}
-									{subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+									{title && <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>}
+									{subtitle && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{subtitle}</p>}
 								</div>
 
 								{showCloseButton && (
