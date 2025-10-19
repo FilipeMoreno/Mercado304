@@ -18,6 +18,7 @@ import {
 	Store,
 	Target,
 	Trash2,
+	X,
 	Zap,
 } from "lucide-react"
 import type React from "react"
@@ -1026,36 +1027,64 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 								<div>
 									<Label>Mercado</Label>
-									{selectStyle === "dialog" ? (
-										<MarketSelectDialog
-											value={selectedMarket}
-											onValueChange={setSelectedMarket}
-											placeholder="Todos os mercados"
-										/>
-									) : (
-										<MarketSelect
-											value={selectedMarket}
-											onValueChange={setSelectedMarket}
-											placeholder="Todos os mercados"
-										/>
-									)}
+									<div className="flex gap-2">
+										<div className="flex-1">
+											{selectStyle === "dialog" ? (
+												<MarketSelectDialog
+													value={selectedMarket}
+													onValueChange={setSelectedMarket}
+													placeholder="Todos os mercados"
+												/>
+											) : (
+												<MarketSelect
+													value={selectedMarket}
+													onValueChange={setSelectedMarket}
+													placeholder="Todos os mercados"
+												/>
+											)}
+										</div>
+										{selectedMarket && (
+											<Button
+												variant="outline"
+												size="icon"
+												onClick={() => setSelectedMarket("")}
+												title="Limpar filtro"
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										)}
+									</div>
 								</div>
 
 								<div>
 									<Label>Produto</Label>
-									{selectStyle === "dialog" ? (
-										<ProductSelectDialog
-											value={selectedProduct}
-											onValueChange={setSelectedProduct}
-											placeholder="Todos os produtos"
-										/>
-									) : (
-										<ProductSelect
-											value={selectedProduct}
-											onValueChange={setSelectedProduct}
-											placeholder="Todos os produtos"
-										/>
-									)}
+									<div className="flex gap-2">
+										<div className="flex-1">
+											{selectStyle === "dialog" ? (
+												<ProductSelectDialog
+													value={selectedProduct}
+													onValueChange={setSelectedProduct}
+													placeholder="Todos os produtos"
+												/>
+											) : (
+												<ProductSelect
+													value={selectedProduct}
+													onValueChange={setSelectedProduct}
+													placeholder="Todos os produtos"
+												/>
+											)}
+										</div>
+										{selectedProduct && (
+											<Button
+												variant="outline"
+												size="icon"
+												onClick={() => setSelectedProduct("")}
+												title="Limpar filtro"
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										)}
+									</div>
 								</div>
 							</div>
 						</CardContent>
