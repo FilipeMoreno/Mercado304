@@ -164,7 +164,7 @@ export function useBiometricLock() {
 
 			// Determina se deve mostrar bloqueio
 			const shouldLock =
-				config.enabled && hasCredential && (wasLocked || (config.lockOnClose && lastActivity) || checkInactivity())
+				config.enabled && hasCredential && (wasLocked || (config.lockOnClose && !!lastActivity) || checkInactivity())
 
 			setState({
 				isLocked: shouldLock,

@@ -44,18 +44,18 @@ export function BiometricLockSettings() {
 
 		try {
 			// Verifica se já tem passkey registrada
-			const existingPasskeys = await passkey.listPasskeys()
+			const result = await passkey.listUserPasskeys()
 
-			if (existingPasskeys && existingPasskeys.length > 0) {
+			if (result.data && result.data.length > 0) {
 				// Já tem passkey registrada
 				setHasCredential(true)
 				toast.success("Credencial biométrica já está configurada!")
 			} else {
 				// Registra nova passkey
-				const result = await passkey.addPasskey()
+				const addResult = await passkey.addPasskey()
 
-				if (result.error) {
-					throw result.error
+				if (addResult?.error) {
+					throw addResult.error
 				}
 
 				setHasCredential(true)
@@ -181,7 +181,7 @@ export function BiometricLockSettings() {
 						</div>
 					</div>
 					{hasCredential && (
-						<Badge variant="success" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400">
+						<Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-400">
 							<CheckCircle className="h-3 w-3 mr-1" />
 							Configurado
 						</Badge>

@@ -4,7 +4,7 @@ import { Fingerprint, Lock, ShieldAlert } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { passkey, signOut, useSession } from "@/lib/auth-client"
+import { signIn, signOut, useSession } from "@/lib/auth-client"
 import { handleAuthError } from "@/lib/auth-errors"
 
 interface BiometricLockScreenProps {
@@ -27,9 +27,9 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 
 		try {
 			// Usa o passkey do better-auth para autenticação biométrica
-			const result = await passkey.signIn()
+			const result = await signIn.passkey()
 
-			if (result.error) {
+			if (result?.error) {
 				throw result.error
 			}
 
