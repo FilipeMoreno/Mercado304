@@ -104,6 +104,83 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 		}
 	}, [])
 
+	// Função para calcular similaridade entre duas strings (usando Levenshtein simplificado)
+	const calculateStringSimilarity = (str1: string, str2: string): number => {
+		const s1 = str1.toLowerCase().trim()
+		const s2 = str2.toLowerCase().trim()
+
+		if (s1 === s2) return 1.0
+
+		// Verifica se uma string contém a outra
+		if (s1.includes(s2) || s2.includes(s1)) {
+			return 0.8
+		}
+
+		// Calcula palavras em comum
+		const words1 = s1.split(/\s+/)
+		const words2 = s2.split(/\s+/)
+		const commonWords = words1.filter((w) => words2.includes(w))
+
+		if (commonWords.length > 0) {
+			const similarity = (commonWords.length * 2) / (words1.length + words2.length)
+			return similarity * 0.7 // Peso reduzido para palavras em comum
+		}
+
+		return 0
+	}
+
+	// Função para calcular score de match entre produto e item da nota
+	const calculateMatchScore = (
+		product: Product,
+		item: MappedItemState,
+		productPriceHistory?: Array<{ price: number }>,
+	): number => {
+		let score = 0
+
+		// 1. Similaridade de nome (peso 40%)
+		const nameSimilarity = calculateStringSimilarity(product.name, item.originalName)
+		score += nameSimilarity * 0.4
+
+		// 2. Similaridade de preço (peso 35%)
+		if (productPriceHistory && productPriceHistory.length > 0) {
+			// Buscar preços no histórico
+			const prices = productPriceHistory.map((record) => record.price)
+			const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length
+			const minPrice = Math.min(...prices)
+			const maxPrice = Math.max(...prices)
+
+			// Verifica se o preço está dentro do range histórico ou próximo
+			if (item.price >= minPrice && item.price <= maxPrice) {
+				score += 0.35 // Preço dentro do range
+			} else {
+				// Calcula proximidade com média
+				const priceDiff = Math.abs(item.price - avgPrice)
+				const priceRatio = 1 - Math.min(priceDiff / avgPrice, 1)
+				score += priceRatio * 0.35
+			}
+		} else {
+			// Sem histórico, apenas dá um score médio se o preço for razoável
+			if (item.price > 0 && item.price < 1000) {
+				score += 0.15
+			}
+		}
+
+		// 3. Consistência de valor total (peso 25%)
+		const expectedTotal = item.price * item.quantity
+		const actualTotal = item.price * item.quantity - (item.unitDiscount || 0) * item.quantity
+
+		if (Math.abs(expectedTotal - actualTotal) < 0.01) {
+			score += 0.25
+		} else {
+			// Score proporcional à proximidade
+			const totalDiff = Math.abs(expectedTotal - actualTotal)
+			const totalRatio = 1 - Math.min(totalDiff / expectedTotal, 1)
+			score += totalRatio * 0.25
+		}
+
+		return score
+	}
+
 	// Função para processar códigos de barras escaneados do cupom físico
 	const handleBarcodesScanned = async (barcodes: string[]) => {
 		setIsBarcodeScannerOpen(false)
@@ -115,28 +192,63 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 		const updatedItems = [...mappedItems]
 		let matchCount = 0
 
-		// Tentar associar cada código de barras a um item não associado
+		// Para cada código de barras, buscar o melhor match inteligente
 		for (const barcode of barcodes) {
-			// Encontrar primeiro item não associado
-			const itemIndex = updatedItems.findIndex((item) => !item.isAssociated)
+			const product = await fetchProductByBarcode(barcode)
 
-			if (itemIndex === -1) {
+			if (!product) {
+				toast.warning(`Código ${barcode} não encontrado no cadastro`)
+				continue
+			}
+
+			// Buscar histórico de preços do produto
+			let priceHistory: Array<{ price: number }> = []
+			try {
+				const priceResponse = await fetch(`/api/products/${product.id}/prices`)
+				if (priceResponse.ok) {
+					const prices = await priceResponse.json()
+					priceHistory = prices
+				}
+			} catch {
+				console.log("Não foi possível buscar histórico de preços")
+			}
+
+			// Calcular score para todos os itens não associados
+			const unassociatedItems = updatedItems
+				.map((item, index) => ({ item, index }))
+				.filter(({ item }) => !item.isAssociated)
+
+			if (unassociatedItems.length === 0) {
 				toast.warning("Todos os itens já foram associados")
 				break
 			}
 
-			const product = await fetchProductByBarcode(barcode)
-			if (product) {
-				updatedItems[itemIndex] = {
-					...updatedItems[itemIndex],
+			let bestMatch = { index: -1, score: 0 }
+
+			for (const { item, index } of unassociatedItems) {
+				const score = calculateMatchScore(product, item, priceHistory)
+
+				if (score > bestMatch.score) {
+					bestMatch = { index, score }
+				}
+			}
+
+			// Associar apenas se o score for razoável (> 0.3)
+			if (bestMatch.score > 0.3) {
+				updatedItems[bestMatch.index] = {
+					...updatedItems[bestMatch.index],
 					productId: product.id,
 					productName: product.name,
 					isAssociated: true,
 				}
 				matchCount++
-				toast.success(`"${product.name}" associado!`)
+
+				const confidence = Math.round(bestMatch.score * 100)
+				toast.success(`"${product.name}" associado a "${updatedItems[bestMatch.index].originalName}" (${confidence}% confiança)`)
 			} else {
-				toast.warning(`Código ${barcode} não encontrado no cadastro`)
+				toast.warning(
+					`Produto "${product.name}" não teve match suficiente com nenhum item (melhor score: ${Math.round(bestMatch.score * 100)}%)`,
+				)
 			}
 		}
 

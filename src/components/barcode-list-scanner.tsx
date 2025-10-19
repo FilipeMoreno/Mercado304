@@ -90,9 +90,10 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 				} else {
 					toast.warning("Nenhum código de barras foi detectado na imagem")
 				}
-			} catch (error: any) {
+			} catch (error) {
 				console.error("Erro ao processar imagem:", error)
-				toast.error(error.message || "Erro ao processar imagem")
+				const errorMessage = error instanceof Error ? error.message : "Erro ao processar imagem"
+				toast.error(errorMessage)
 			} finally {
 				setIsProcessing(false)
 				setCapturedImage("")
@@ -243,7 +244,7 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 						<li>Certifique-se de que os códigos de barras estejam visíveis e nítidos</li>
 						<li>Evite reflexos e sombras sobre os códigos</li>
 						<li>Mantenha o cupom plano e bem iluminado</li>
-						<li>Os códigos serão associados aos itens na ordem em que aparecem</li>
+						<li>Os códigos serão associados automaticamente aos itens corretos usando nome, preço e valor</li>
 					</ul>
 				</div>
 			</div>
