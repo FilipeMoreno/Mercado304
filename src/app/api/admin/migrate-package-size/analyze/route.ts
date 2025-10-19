@@ -65,7 +65,7 @@ function analyzeProductName(name: string): ProductAnalysis | null {
 				bestMatch = {
 					value,
 					unit: pattern.unit,
-					confidence: pattern.confidence,
+					confidence: pattern.confidence as "high" | "medium" | "low",
 					matchText,
 					startIndex,
 				}

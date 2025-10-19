@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, Save, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
@@ -134,13 +134,7 @@ export default function EditarProdutoPage() {
 		toast.error(`❌ ${error}`)
 	}
 
-	useEffect(() => {
-		if (productId) {
-			fetchData()
-		}
-	}, [productId, fetchData])
-
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const productRes = await fetch(`/api/products/${productId}`)
 			if (!productRes.ok) {
@@ -175,7 +169,13 @@ export default function EditarProdutoPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [productId, router])
+
+	useEffect(() => {
+		if (productId) {
+			fetchData()
+		}
+	}, [productId, fetchData])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
