@@ -10,6 +10,7 @@ import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
+import { InstallPWACard } from "@/components/install-pwa-card"
 import { DashboardCardMemo, DashboardStatsCardMemo } from "@/components/memoized"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
@@ -194,6 +195,11 @@ export function DashboardClient() {
 					<AiDashboardSummary />
 				</motion.div>
 			)}
+
+			{/* Card de instalação do PWA */}
+			<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+				<InstallPWACard />
+			</motion.div>
 
 			{/* Cards principais ordenados conforme preferências */}
 			<motion.div
