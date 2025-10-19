@@ -2,7 +2,6 @@
 
 import { NextResponse } from "next/server"
 import {
-	CATEGORIAS_BUSCA,
 	LOCAL_PADRAO,
 	NOTA_PARANA_BASE_URL,
 	PERIODO_PADRAO,
@@ -84,32 +83,44 @@ export async function POST() {
 		for (const produto of produtos) {
 			if (!produto.barcode) continue
 
-			// Buscar produto em cada categoria até encontrar
-			let encontrouProduto = false
+			try {
+				// Buscar produto direto pela API para descobrir categorias
+				const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
 
-			for (const categoria of CATEGORIAS_BUSCA) {
-				if (encontrouProduto) break
+				const response = await fetch(url, {
+					method: "GET",
+					headers: {
+						Accept: "application/json",
+					},
+				})
 
-				try {
-					const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&categoria=${categoria}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
+				if (!response.ok) continue
 
-					const response = await fetch(url, {
-						method: "GET",
-						headers: {
-							Accept: "application/json",
-						},
-					})
+				const data = await response.json()
 
-					if (!response.ok) continue
+				if (!data.produtos || data.produtos.length === 0) continue
 
-					const data = await response.json()
+				// Agrupar produtos por categoria para identificar as top 3
+				const produtosPorCategoria = new Map<number, typeof data.produtos>()
+				
+				for (const prod of data.produtos) {
+					const categoria = prod.categoria || 0
+					if (!produtosPorCategoria.has(categoria)) {
+						produtosPorCategoria.set(categoria, [])
+					}
+					produtosPorCategoria.get(categoria)?.push(prod)
+				}
 
-					if (!data.produtos || data.produtos.length === 0) continue
+				// Ordenar categorias por quantidade de produtos e pegar top 3
+				const categoriasOrdenadas = Array.from(produtosPorCategoria.entries())
+					.sort((a, b) => b[1].length - a[1].length)
+					.slice(0, 3) // Top 3 categorias (ou todas se tiver menos)
 
-					encontrouProduto = true
+				// Processar produtos das top 3 categorias
+				const todosProdutos = categoriasOrdenadas.flatMap(([_, produtos]) => produtos)
 
-					// Para cada estabelecimento encontrado
-					for (const produtoNP of data.produtos) {
+				// Para cada estabelecimento encontrado nas top 3 categorias
+				for (const produtoNP of todosProdutos) {
 						const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
 						const enderecoEstabelecimento = produtoNP.estabelecimento
 
@@ -197,11 +208,13 @@ export async function POST() {
 								detalhe = { mercado: mercadoMatch.name, produtos: 0, precos: 0 }
 								result.detalhes.push(detalhe)
 							}
-							detalhe.produtos++
-							detalhe.precos++
-						}
+						detalhe.produtos++
+						detalhe.precos++
 					}
-				} catch {}
+				}
+			} catch (error) {
+				// Ignorar erros individuais para não parar o processamento
+				console.error(`Erro ao processar produto ${produto.name}:`, error)
 			}
 
 			// Pequeno delay para não sobrecarregar a API

@@ -1,8 +1,8 @@
-# Busca Inteligente por Categorias - Nota Paraná
+# Busca Simplificada - Nota Paraná
 
 ## 🎯 Funcionalidade
 
-O sistema agora **detecta automaticamente** se o produto é alimentício ou não, e busca nas categorias apropriadas!
+O sistema agora utiliza a **API do Nota Paraná de forma otimizada**, deixando que a própria API determine a melhor categoria baseada no código de barras!
 
 ## ✨ Como Funciona
 

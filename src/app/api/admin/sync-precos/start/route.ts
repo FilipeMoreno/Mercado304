@@ -102,7 +102,7 @@ export async function POST() {
 // Função que processa o job em background
 async function processarSyncJob(jobId: string) {
 	const NOTA_PARANA_BASE_URL = "https://menorpreco.notaparana.pr.gov.br/api/v1"
-	const { CATEGORIAS_BUSCA, LOCAL_PADRAO, PERIODO_PADRAO, RAIO_PADRAO } = await import("@/lib/nota-parana-config")
+	const { LOCAL_PADRAO, PERIODO_PADRAO, RAIO_PADRAO } = await import("@/lib/nota-parana-config")
 
 	try {
 		// Atualizar status para running
@@ -250,7 +250,6 @@ async function processarSyncJob(jobId: string) {
 						produto,
 						mercados,
 						NOTA_PARANA_BASE_URL,
-						CATEGORIAS_BUSCA,
 						LOCAL_PADRAO,
 						RAIO_PADRAO,
 						PERIODO_PADRAO,
@@ -432,7 +431,6 @@ async function processarProduto(
 	produto: { id: string; name: string; barcode: string | null },
 	mercados: { id: string; name: string; legalName: string | null; location: string | null }[],
 	NOTA_PARANA_BASE_URL: string,
-	CATEGORIAS_BUSCA: readonly number[],
 	LOCAL_PADRAO: string,
 	RAIO_PADRAO: number,
 	PERIODO_PADRAO: number,
@@ -451,209 +449,230 @@ async function processarProduto(
 	const debugLogs: string[] = []
 	let encontrouProduto = false
 
-	// Buscar em categorias
-	for (const categoria of CATEGORIAS_BUSCA) {
-		if (encontrouProduto) break
+	// Buscar produto nas top 3 categorias com mais registros
+	try {
+		// 1. Primeiro, fazer busca sem categoria para descobrir quais categorias têm o produto
+		const urlInicial = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
 
-		try {
-			const url = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&categoria=${categoria}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
+		debugLogs.push(`[API] Buscando: ${produto.name} (EAN: ${produto.barcode})`)
+		debugLogs.push(`[API] Raio: ${RAIO_PADRAO}m | Período: ${PERIODO_PADRAO} dias | Local: ${LOCAL_PADRAO}`)
 
-			debugLogs.push(`[API] Buscando: ${produto.name} (EAN: ${produto.barcode})`)
-			debugLogs.push(`[API] Categoria: ${categoria} | Raio: ${RAIO_PADRAO}m | Período: ${PERIODO_PADRAO} | Local: ${LOCAL_PADRAO}`)
-			debugLogs.push(`[API] URL: ${url}`)
+		const responseInicial = await fetch(urlInicial)
+		if (!responseInicial.ok) {
+			debugLogs.push(`[API] Resposta HTTP ${responseInicial.status}`)
+		} else {
+			const dataInicial = await responseInicial.json()
+			if (!dataInicial.produtos || dataInicial.produtos.length === 0) {
+				debugLogs.push(`[API] Nenhum produto encontrado`)
+			} else {
+				encontrouProduto = true
+				
+				// 2. Agrupar produtos por categoria para identificar as top 3
+				const produtosPorCategoria = new Map<number, typeof dataInicial.produtos>()
+				
+				for (const prod of dataInicial.produtos) {
+					const categoria = prod.categoria || 0
+					if (!produtosPorCategoria.has(categoria)) {
+						produtosPorCategoria.set(categoria, [])
+					}
+					produtosPorCategoria.get(categoria)?.push(prod)
+				}
 
-			const response = await fetch(url)
-			if (!response.ok) {
-				debugLogs.push(`[API] Resposta HTTP ${response.status} para categoria ${categoria}`)
-				continue
-			}
+				// 3. Ordenar categorias por quantidade de produtos e pegar top 3
+				const categoriasOrdenadas = Array.from(produtosPorCategoria.entries())
+					.sort((a, b) => b[1].length - a[1].length)
+					.slice(0, 3) // Top 3 categorias
 
-			const data = await response.json()
-			if (!data.produtos || data.produtos.length === 0) {
-				debugLogs.push(`[API] Nenhum produto encontrado na categoria ${categoria}`)
-				continue
-			}
+				debugLogs.push(`[API] ✓ Produto encontrado em ${produtosPorCategoria.size} categoria(s)!`)
+				debugLogs.push(`[API] Processando top ${categoriasOrdenadas.length} categoria(s) com mais registros`)
+				
+				// 4. Log das categorias selecionadas
+				for (const [catId, produtos] of categoriasOrdenadas) {
+					debugLogs.push(`[API] Categoria ${catId}: ${produtos.length} estabelecimento(s)`)
+				}
 
-			encontrouProduto = true
-			debugLogs.push(`[API] ✓ Produto encontrado! ${data.produtos.length} estabelecimento(s) retornado(s)`)
+				// 5. Processar produtos das top 3 categorias
+				const todosProdutos = categoriasOrdenadas.flatMap(([_, produtos]) => produtos)
+				debugLogs.push(`[API] Total de estabelecimentos a processar: ${todosProdutos.length}`)
 			
-			// Log de debug da API (será filtrado se debug mode estiver desligado)
-			console.log(`[API] Produto encontrado: ${produto.name} - ${data.produtos.length} estabelecimentos`)
+				// Log de debug da API (será filtrado se debug mode estiver desligado)
+				console.log(`[API] Produto encontrado: ${produto.name} - ${todosProdutos.length} estabelecimentos nas top categorias`)
 
-			// Processar estabelecimentos
-			for (const produtoNP of data.produtos) {
-				const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
-				const enderecoEstabelecimento = produtoNP.estabelecimento
+				// Processar estabelecimentos das top 3 categorias
+				for (const produtoNP of todosProdutos) {
+					const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
+					const enderecoEstabelecimento = produtoNP.estabelecimento
 
-				if (!nomeEstabelecimento) {
-					debugLogs.push(`[DEBUG] Estabelecimento sem nome, pulando...`)
-					continue
-				}
+					if (!nomeEstabelecimento) {
+						debugLogs.push(`[DEBUG] Estabelecimento sem nome, pulando...`)
+						continue
+					}
 
-				// Log dos dados do estabelecimento da API
-				debugLogs.push(`[DEBUG] ─────────────────────────────────────`)
-				debugLogs.push(`[DEBUG] Estabelecimento API: ${nomeEstabelecimento}`)
-				debugLogs.push(`[DEBUG] Endereço API: ${enderecoEstabelecimento.nm_logr || "N/A"}, ${enderecoEstabelecimento.nr_logr || "S/N"} - ${enderecoEstabelecimento.bairro || "N/A"}`)
-				debugLogs.push(`[DEBUG] Preço API: R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`)
-				debugLogs.push(`[DEBUG] Data API: ${produtoNP.datahora} (${produtoNP.tempo})`)
+					// Log dos dados do estabelecimento da API
+					debugLogs.push(`[DEBUG] ─────────────────────────────────────`)
+					debugLogs.push(`[DEBUG] Estabelecimento API: ${nomeEstabelecimento}`)
+					debugLogs.push(`[DEBUG] Endereço API: ${enderecoEstabelecimento.nm_logr || "N/A"}, ${enderecoEstabelecimento.nr_logr || "S/N"} - ${enderecoEstabelecimento.bairro || "N/A"}`)
+					debugLogs.push(`[DEBUG] Preço API: R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`)
+					debugLogs.push(`[DEBUG] Data API: ${produtoNP.datahora} (${produtoNP.tempo})`)
 
-				// Encontrar mercado correspondente com logs detalhados
-				let melhorMatch: {
-					mercado: { id: string; name: string; legalName: string | null; location: string | null }
-					score: number
-					detalhes: string
-				} | null = null
+					// Encontrar mercado correspondente com logs detalhados
+					let melhorMatch: {
+						mercado: { id: string; name: string; legalName: string | null; location: string | null }
+						score: number
+						detalhes: string
+					} | null = null
 
-				// Função para normalizar nome (remove /  .  e outros caracteres especiais)
-				const normalizarNome = (nome: string) => {
-					return nome
-						.toLowerCase()
-						.replace(/\//g, "") // Remove /
-						.replace(/\./g, "") // Remove .
-						.replace(/-/g, " ") // Substitui - por espaço
-						.replace(/\s+/g, " ") // Remove espaços extras
-						.trim()
-				}
+					// Função para normalizar nome (remove /  .  e outros caracteres especiais)
+					const normalizarNome = (nome: string) => {
+						return nome
+							.toLowerCase()
+							.replace(/\//g, "") // Remove /
+							.replace(/\./g, "") // Remove .
+							.replace(/-/g, " ") // Substitui - por espaço
+							.replace(/\s+/g, " ") // Remove espaços extras
+							.trim()
+					}
 
-				for (const m of mercados) {
-					if (!m.legalName) continue
+					for (const m of mercados) {
+						if (!m.legalName) continue
 
-					const nomeNormalizadoMercado = normalizarNome(m.legalName)
-					const nomeNormalizadoEstabelecimento = normalizarNome(nomeEstabelecimento)
-					
-					const palavrasMercado = nomeNormalizadoMercado.split(" ")
-					const palavrasEstabelecimento = nomeNormalizadoEstabelecimento.split(" ")
+						const nomeNormalizadoMercado = normalizarNome(m.legalName)
+						const nomeNormalizadoEstabelecimento = normalizarNome(nomeEstabelecimento)
+						
+						const palavrasMercado = nomeNormalizadoMercado.split(" ")
+						const palavrasEstabelecimento = nomeNormalizadoEstabelecimento.split(" ")
 
-					let matchesNome = 0
-					const palavrasMatched: string[] = []
-					for (const palavra of palavrasMercado) {
-						if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
-							matchesNome++
-							palavrasMatched.push(palavra)
+						let matchesNome = 0
+						const palavrasMatched: string[] = []
+						for (const palavra of palavrasMercado) {
+							if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
+								matchesNome++
+								palavrasMatched.push(palavra)
+							}
+						}
+
+						if (matchesNome < 2) continue
+
+						let matchesEndereco = 0
+						const enderecoMatches: string[] = []
+
+						if (m.location) {
+							const enderecoMercado = m.location.toLowerCase()
+							const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
+							const numeroAPI = enderecoEstabelecimento.nr_logr || ""
+							const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
+
+							if (ruaAPI && enderecoMercado.includes(ruaAPI)) {
+								matchesEndereco++
+								enderecoMatches.push("rua")
+							}
+							if (numeroAPI && enderecoMercado.includes(numeroAPI)) {
+								matchesEndereco++
+								enderecoMatches.push("número")
+							}
+							if (bairroAPI && enderecoMercado.includes(bairroAPI)) {
+								matchesEndereco++
+								enderecoMatches.push("bairro")
+							}
+						}
+
+						if (matchesEndereco < 2 && m.location) continue
+
+						// Calcular score do match
+						const score = matchesNome + matchesEndereco
+						const detalhes = `Nome: ${matchesNome} matches [${palavrasMatched.join(", ")}] | Endereço: ${matchesEndereco} matches [${enderecoMatches.join(", ")}]`
+
+						if (!melhorMatch || score > melhorMatch.score) {
+							melhorMatch = { mercado: m, score, detalhes }
 						}
 					}
 
-					if (matchesNome < 2) continue
-
-					let matchesEndereco = 0
-					const enderecoMatches: string[] = []
-
-					if (m.location) {
-						const enderecoMercado = m.location.toLowerCase()
-						const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
-						const numeroAPI = enderecoEstabelecimento.nr_logr || ""
-						const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
-
-						if (ruaAPI && enderecoMercado.includes(ruaAPI)) {
-							matchesEndereco++
-							enderecoMatches.push("rua")
-						}
-						if (numeroAPI && enderecoMercado.includes(numeroAPI)) {
-							matchesEndereco++
-							enderecoMatches.push("número")
-						}
-						if (bairroAPI && enderecoMercado.includes(bairroAPI)) {
-							matchesEndereco++
-							enderecoMatches.push("bairro")
-						}
+					if (!melhorMatch) {
+						debugLogs.push(`[DEBUG] ✗ Nenhum mercado correspondente encontrado`)
+						continue
 					}
 
-					if (matchesEndereco < 2 && m.location) continue
+					const mercadoMatch = melhorMatch.mercado
+					debugLogs.push(`[DEBUG] ✓ Match encontrado: ${mercadoMatch.name}`)
+					debugLogs.push(`[DEBUG] Match Score: ${melhorMatch.score} | ${melhorMatch.detalhes}`)
+					debugLogs.push(`[DEBUG] Mercado DB: ${mercadoMatch.legalName} - ${mercadoMatch.location || "Sem endereço"}`)
 
-					// Calcular score do match
-					const score = matchesNome + matchesEndereco
-					const detalhes = `Nome: ${matchesNome} matches [${palavrasMatched.join(", ")}] | Endereço: ${matchesEndereco} matches [${enderecoMatches.join(", ")}]`
-
-					if (!melhorMatch || score > melhorMatch.score) {
-						melhorMatch = { mercado: m, score, detalhes }
+					// Calcular preço
+					const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
+					if (preco <= 0) {
+						debugLogs.push(`[DEBUG] Preço inválido (≤ 0), pulando...`)
+						continue
 					}
-				}
 
-				if (!melhorMatch) {
-					debugLogs.push(`[DEBUG] ✗ Nenhum mercado correspondente encontrado`)
-					continue
-				}
+					// Verificar se já existe registro recente
+					const dataLimite = new Date()
+					dataLimite.setHours(dataLimite.getHours() - 24)
 
-				const mercadoMatch = melhorMatch.mercado
-				debugLogs.push(`[DEBUG] ✓ Match encontrado: ${mercadoMatch.name}`)
-				debugLogs.push(`[DEBUG] Match Score: ${melhorMatch.score} | ${melhorMatch.detalhes}`)
-				debugLogs.push(`[DEBUG] Mercado DB: ${mercadoMatch.legalName} - ${mercadoMatch.location || "Sem endereço"}`)
-
-				// Calcular preço
-				const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
-				if (preco <= 0) {
-					debugLogs.push(`[DEBUG] Preço inválido (≤ 0), pulando...`)
-					continue
-				}
-
-				// Verificar se já existe registro recente
-				const dataLimite = new Date()
-				dataLimite.setHours(dataLimite.getHours() - 24)
-
-				const registroExistente = await prisma.priceRecord.findFirst({
-					where: {
-						productId: produto.id,
-						marketId: mercadoMatch.id,
-						recordDate: { gte: dataLimite },
-					},
-				})
-
-				// Formatar data/hora da API para exibição
-				const dataAPI = new Date(produtoNP.datahora)
-				const dataFormatada = dataAPI.toLocaleString("pt-BR", {
-					day: "2-digit",
-					month: "2-digit",
-					year: "numeric",
-					hour: "2-digit",
-					minute: "2-digit",
-				})
-
-				// Registrar preço se não existe ou mudou significativamente
-				if (!registroExistente) {
-					debugLogs.push(`[DEBUG] Novo preço! Registrando R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
-					await prisma.priceRecord.create({
-						data: {
+					const registroExistente = await prisma.priceRecord.findFirst({
+						where: {
 							productId: produto.id,
 							marketId: mercadoMatch.id,
-							price: preco,
-							recordDate: dataAPI, // Usa a data/hora da API
-							notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
+							recordDate: { gte: dataLimite },
 						},
 					})
 
-					precosEncontrados.push({
-						mercadoId: mercadoMatch.id,
-						mercadoNome: mercadoMatch.name,
-						preco: preco,
-						data: produtoNP.datahora,
-					})
-				} else if (Math.abs(registroExistente.price - preco) > 0.01) {
-					debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
-					await prisma.priceRecord.create({
-						data: {
-							productId: produto.id,
-							marketId: mercadoMatch.id,
-							price: preco,
-							recordDate: dataAPI, // Usa a data/hora da API
-							notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
-						},
+					// Formatar data/hora da API para exibição
+					const dataAPI = new Date(produtoNP.datahora)
+					const dataFormatada = dataAPI.toLocaleString("pt-BR", {
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+						hour: "2-digit",
+						minute: "2-digit",
 					})
 
-					precosEncontrados.push({
-						mercadoId: mercadoMatch.id,
-						mercadoNome: mercadoMatch.name,
-						preco: preco,
-						data: produtoNP.datahora,
-					})
-				} else {
-					debugLogs.push(`[DEBUG] Preço já registrado recentemente (R$ ${preco.toFixed(2)}), pulando...`)
+					// Registrar preço se não existe ou mudou significativamente
+					if (!registroExistente) {
+						debugLogs.push(`[DEBUG] Novo preço! Registrando R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
+						await prisma.priceRecord.create({
+							data: {
+								productId: produto.id,
+								marketId: mercadoMatch.id,
+								price: preco,
+								recordDate: dataAPI, // Usa a data/hora da API
+								notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
+							},
+						})
+
+						precosEncontrados.push({
+							mercadoId: mercadoMatch.id,
+							mercadoNome: mercadoMatch.name,
+							preco: preco,
+							data: produtoNP.datahora,
+						})
+					} else if (Math.abs(registroExistente.price - preco) > 0.01) {
+						debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
+						await prisma.priceRecord.create({
+							data: {
+								productId: produto.id,
+								marketId: mercadoMatch.id,
+								price: preco,
+								recordDate: dataAPI, // Usa a data/hora da API
+								notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
+							},
+						})
+
+						precosEncontrados.push({
+							mercadoId: mercadoMatch.id,
+							mercadoNome: mercadoMatch.name,
+							preco: preco,
+							data: produtoNP.datahora,
+						})
+					} else {
+						debugLogs.push(`[DEBUG] Preço já registrado recentemente (R$ ${preco.toFixed(2)}), pulando...`)
+					}
 				}
 			}
-		} catch (error) {
-			// Ignorar erros individuais para não parar o processamento
-			debugLogs.push(`[DEBUG] ✗ Erro ao processar: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
-			console.error(`Erro ao processar produto ${produto.name}:`, error)
 		}
+	} catch (error) {
+		// Ignorar erros individuais para não parar o processamento
+		debugLogs.push(`[DEBUG] ✗ Erro ao processar: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+		console.error(`Erro ao processar produto ${produto.name}:`, error)
 	}
 
 	return {
