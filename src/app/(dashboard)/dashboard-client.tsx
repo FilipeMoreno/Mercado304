@@ -428,8 +428,8 @@ export function DashboardClient() {
 				{currentPrefs.showMarketCompare && (
 					<Card className="shadow-sm hover:shadow-lg transition-shadow">
 						<CardHeader>
-							<CardTitle>Comparação de Mercados</CardTitle>
-							<CardDescription>Média de preços por mercado</CardDescription>
+							<CardTitle>Estatísticas por Mercado</CardTitle>
+							<CardDescription>Seus mercados mais frequentados</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{(stats?.marketComparison || []).length === 0 ? (
@@ -439,7 +439,7 @@ export function DashboardClient() {
 											<Store className="h-6 w-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>Cadastre um mercado para começar a comparar preços.</EmptyDescription>
+										<EmptyDescription>Cadastre um mercado e registre suas compras para ver estatísticas.</EmptyDescription>
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/mercados/novo" className="inline-flex">
@@ -449,44 +449,36 @@ export function DashboardClient() {
 								</Empty>
 							) : (
 								<div className="space-y-3">
-									{(stats?.marketComparison || []).map((market: MarketComparison, index: number) => {
-										const cheapest =
-											(stats?.marketComparison?.length || 0) > 1
-												? stats?.marketComparison?.reduce((min: MarketComparison, curr: MarketComparison) =>
-														curr.averagePrice < min.averagePrice ? curr : min,
-													)
-												: null
-										const isCheapest = cheapest && market.marketId === cheapest.marketId
-
-										return (
-											<div key={market.marketId} className="flex items-center justify-between">
-												<div className="flex items-center gap-3">
-													<div
-														className={`w-6 h-6 rounded-full text-xs flex items-center justify-center ${
-															isCheapest ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"
-														}`}
-													>
-														{index + 1}
-													</div>
-													<div>
-														<div className="font-medium flex items-center gap-2">
-															{market.marketName}
-															{isCheapest && (
-																<span className="text-xs bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 px-2 py-1 rounded">
-																	Mais Barato
-																</span>
-															)}
+									{(stats?.marketComparison || [])
+										.sort((a: MarketComparison, b: MarketComparison) => b.totalPurchases - a.totalPurchases)
+										.map((market: MarketComparison, index: number) => {
+											// Calcular o total gasto aproximado
+											const totalSpent = market.averagePrice * market.totalPurchases
+											
+											return (
+												<div key={market.marketId} className="border rounded-lg p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors">
+													<div className="flex items-start justify-between gap-3">
+														<div className="flex items-start gap-3 flex-1 min-w-0">
+															<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold flex-shrink-0">
+																{index + 1}
+															</div>
+															<div className="flex-1 min-w-0">
+																<div className="font-medium truncate">{market.marketName}</div>
+																<div className="text-sm text-muted-foreground mt-1 space-y-1">
+																	<div className="flex items-center gap-4">
+																		<span>🛒 {market.totalPurchases} {market.totalPurchases === 1 ? 'compra' : 'compras'}</span>
+																		<span>💰 R$ {totalSpent.toFixed(2)} total</span>
+																	</div>
+																	<div className="text-xs opacity-75">
+																		Ticket médio: R$ {market.averagePrice.toFixed(2)}
+																	</div>
+																</div>
+															</div>
 														</div>
-														<div className="text-sm text-gray-500">{market.totalPurchases} compras</div>
 													</div>
 												</div>
-												<div className="text-right">
-													<div className="font-medium">R$ {(market.averagePrice || 0).toFixed(2)}</div>
-													<div className="text-sm text-gray-500">média por compra</div>
-												</div>
-											</div>
-										)
-									})}
+											)
+										})}
 								</div>
 							)}
 						</CardContent>
