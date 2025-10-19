@@ -2,6 +2,7 @@
 
 import {
 	BarChart3,
+	Barcode,
 	DollarSign,
 	Edit,
 	MoreHorizontal,
@@ -81,24 +82,36 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 								</DropdownMenu>
 							</div>
 
-							{brandName && (
-								<div className="mb-2 flex items-center gap-2">
-									<Badge variant="secondary" className="text-xs">
-										{brandName}
+						{brandName && (
+							<div className="mb-2 flex flex-wrap items-center gap-2">
+								<Badge variant="secondary" className="text-xs">
+									{brandName}
+								</Badge>
+								<Badge variant="secondary" className="text-xs">
+									{productUnit}
+								</Badge>
+								{product.barcode && (
+									<Badge variant="outline" className="text-xs flex items-center gap-1">
+										<Barcode className="h-3 w-3" />
+										{product.barcode}
 									</Badge>
-									<Badge variant="secondary" className="text-xs">
-										{productUnit}
-									</Badge>
-								</div>
-							)}
+								)}
+							</div>
+						)}
 
-							{!brandName && (
-								<div className="mb-2">
-									<Badge variant="secondary" className="text-xs">
-										{productUnit}
+						{!brandName && (
+							<div className="mb-2 flex flex-wrap items-center gap-2">
+								<Badge variant="secondary" className="text-xs">
+									{productUnit}
+								</Badge>
+								{product.barcode && (
+									<Badge variant="outline" className="text-xs flex items-center gap-1">
+										<Barcode className="h-3 w-3" />
+										{product.barcode}
 									</Badge>
-								</div>
-							)}
+								)}
+							</div>
+						)}
 						</div>
 
 						<div className="mt-auto">
@@ -124,6 +137,7 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 			prevProps.product.name === nextProps.product.name &&
 			prevProps.product.brand?.name === nextProps.product.brand?.name &&
 			prevProps.product.unit === nextProps.product.unit &&
+			prevProps.product.barcode === nextProps.product.barcode &&
 			prevProps.product.updatedAt === nextProps.product.updatedAt
 		)
 	},

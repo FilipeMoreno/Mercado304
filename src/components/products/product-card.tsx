@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart3, Edit, MoreHorizontal, Package, Trash2 } from "lucide-react"
+import { BarChart3, Barcode, Edit, MoreHorizontal, Package, Trash2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { Badge } from "@/components/ui/badge"
@@ -53,11 +53,19 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 							<span>{product.brand.name}</span>
 						</div>
 					)}
-					{product.unit && (
-						<Badge variant="secondary" className="w-fit">
-							{product.unit}
-						</Badge>
-					)}
+					<div className="flex flex-wrap gap-2">
+						{product.unit && (
+							<Badge variant="secondary" className="w-fit">
+								{product.unit}
+							</Badge>
+						)}
+						{product.barcode && (
+							<Badge variant="outline" className="w-fit flex items-center gap-1">
+								<Barcode className="h-3 w-3" />
+								{product.barcode}
+							</Badge>
+						)}
+					</div>
 				</div>
 				<div className="flex gap-2 mt-auto">
 					<Link href={`/produtos/${product.id}`} className="flex-1">
