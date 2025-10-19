@@ -1,30 +1,39 @@
 "use client"
 
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
-	Apple, Beef, ChefHat,
+	Apple,
+	Beef,
+	Camera,
+	ChefHat,
 	ChevronLeft,
 	ChevronRight,
 	DollarSign,
+	FileText,
+	FlaskConical,
 	Grid3X3,
+	History,
 	LayoutDashboard,
 	List,
 	Menu,
 	Package,
 	PackageCheck,
 	Receipt,
+	RefreshCw,
+	Settings,
 	ShoppingBag,
 	ShoppingCart,
 	Sparkles,
 	Store,
 	Tag,
-	Trash2, Warehouse
+	Trash2,
+	Warehouse,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { cn } from "@/lib/utils"
 import { UserNav } from "./user-nav"
 
@@ -89,6 +98,29 @@ const navigation = [
 		],
 	},
 	{ name: "Churrascômetro", href: "/churrasco", icon: Beef },
+	{
+		name: "Admin",
+		href: "/admin",
+		icon: Settings,
+		subItems: [
+			{
+				name: "Sync Preços",
+				href: "/admin/sync-precos",
+				icon: RefreshCw,
+				subItems: [
+					{ name: "Sincronizar", href: "/admin/sync-precos", icon: RefreshCw },
+					{ name: "Histórico", href: "/admin/sync-precos/historico", icon: History },
+				],
+			},
+			{ name: "Nota Paraná", href: "/admin/nota-parana", icon: FileText },
+			{
+				name: "Playground",
+				href: "/admin/playground",
+				icon: FlaskConical,
+				subItems: [{ name: "Teste Câmera", href: "/admin/playground/teste-camera", icon: Camera }],
+			},
+		],
+	},
 ]
 
 interface SidebarProps {
@@ -100,7 +132,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 	const pathname = usePathname()
 	const [expandedItems, setExpandedItems] = useState<string[]>(() => {
 		const expanded = []
-		
+
 		// Auto-expand baseado na URL atual
 		if (pathname.startsWith("/produtos") || pathname.startsWith("/categorias") || pathname.startsWith("/marcas")) {
 			expanded.push("Produtos")
@@ -120,7 +152,16 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		if (pathname.startsWith("/nutricao")) {
 			expanded.push("Análise Nutricional")
 		}
-		
+		if (pathname.startsWith("/admin")) {
+			expanded.push("Admin")
+			if (pathname.startsWith("/admin/sync-precos")) {
+				expanded.push("Sync Preços")
+			}
+			if (pathname.startsWith("/admin/playground")) {
+				expanded.push("Playground")
+			}
+		}
+
 		return expanded
 	})
 
@@ -133,7 +174,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 	// Auto-expand ao navegar para páginas específicas
 	useEffect(() => {
 		const newExpanded = []
-		
+
 		if (pathname.startsWith("/produtos") || pathname.startsWith("/categorias") || pathname.startsWith("/marcas")) {
 			newExpanded.push("Produtos")
 		}
@@ -152,14 +193,23 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		if (pathname.startsWith("/nutricao")) {
 			newExpanded.push("Análise Nutricional")
 		}
-		
+		if (pathname.startsWith("/admin")) {
+			newExpanded.push("Admin")
+			if (pathname.startsWith("/admin/sync-precos")) {
+				newExpanded.push("Sync Preços")
+			}
+			if (pathname.startsWith("/admin/playground")) {
+				newExpanded.push("Playground")
+			}
+		}
+
 		// Adicionar apenas se não estiver já expandido
-		newExpanded.forEach(item => {
+		newExpanded.forEach((item) => {
 			if (!expandedItems.includes(item)) {
-				setExpandedItems(prev => [...prev, item])
+				setExpandedItems((prev) => [...prev, item])
 			}
 		})
-	}, [pathname])
+	}, [pathname, expandedItems])
 
 	return (
 		<div className={cn("flex h-full flex-col bg-accent transition-all duration-300", collapsed ? "w-16" : "w-64")}>
@@ -185,7 +235,17 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 					const isActive = pathname === item.href
 					const hasSubItems = item.subItems && item.subItems.length > 0
 					const isExpanded = expandedItems.includes(item.name)
-					const isSubItemActive = hasSubItems && item.subItems.some((subItem) => pathname === subItem.href)
+
+					// Verifica se algum subitem ou subitem aninhado está ativo
+					const isSubItemActive =
+						hasSubItems &&
+						item.subItems.some((subItem) => {
+							if (pathname === subItem.href) return true
+							if (subItem.subItems) {
+								return subItem.subItems.some((nestedItem) => pathname === nestedItem.href)
+							}
+							return false
+						})
 
 					if (hasSubItems && !collapsed) {
 						return (
@@ -209,6 +269,63 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 										{item.subItems.map((subItem) => {
 											const SubIcon = subItem.icon
 											const isSubActive = pathname === subItem.href
+											const hasNestedItems = subItem.subItems && subItem.subItems.length > 0
+											const isSubExpanded = expandedItems.includes(subItem.name)
+											const isNestedActive =
+												hasNestedItems && subItem.subItems.some((nested) => pathname === nested.href)
+
+											// Se tem subitens aninhados
+											if (hasNestedItems) {
+												return (
+													<div key={subItem.name} className="space-y-1">
+														<Button
+															variant="ghost"
+															onClick={() => toggleExpanded(subItem.name)}
+															className={cn(
+																"w-full justify-start h-auto py-2 px-4 rounded-lg",
+																"text-muted-foreground text-sm",
+																isSubActive || isNestedActive
+																	? "bg-primary/10 text-primary font-medium"
+																	: "hover:bg-muted",
+															)}
+														>
+															<SubIcon className="h-4 w-4 mr-3" />
+															{subItem.name}
+															<ChevronRight
+																className={cn("h-3 w-3 ml-auto transition-transform", isSubExpanded && "rotate-90")}
+															/>
+														</Button>
+
+														{isSubExpanded && (
+															<div className="pl-4 space-y-1">
+																{subItem.subItems.map((nestedItem) => {
+																	const NestedIcon = nestedItem.icon
+																	const isNestedItemActive = pathname === nestedItem.href
+																	return (
+																		<Link key={nestedItem.name} href={nestedItem.href}>
+																			<Button
+																				variant="ghost"
+																				className={cn(
+																					"w-full justify-start h-auto py-2 px-4 rounded-lg",
+																					"text-muted-foreground text-xs",
+																					isNestedItemActive
+																						? "bg-primary/10 text-primary font-medium"
+																						: "hover:bg-muted",
+																				)}
+																			>
+																				<NestedIcon className="h-3 w-3 mr-3" />
+																				{nestedItem.name}
+																			</Button>
+																		</Link>
+																	)
+																})}
+															</div>
+														)}
+													</div>
+												)
+											}
+
+											// Subitem simples
 											return (
 												<Link key={subItem.name} href={subItem.href}>
 													<Button
