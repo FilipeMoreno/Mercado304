@@ -17,7 +17,6 @@ import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
 import { Switch } from "@/components/ui/switch"
 import {
-	useAllCategoriesQuery,
 	useCategoriesQuery,
 	useCategoryQuery,
 	useDeleteCategoryMutation,
@@ -102,14 +101,12 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 
 	// React Query hooks
 	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)
-	const { data: allCategoriesData } = useAllCategoriesQuery()
 	const { data: categoryDetail } = useCategoryQuery(deletingCategory?.id || "")
 	const updateCategoryMutation = useUpdateCategoryMutation()
 	const deleteCategoryMutation = useDeleteCategoryMutation()
 
 	// Extract data from React Query
 	const categories = categoriesData?.categories || []
-	const allCategories = allCategoriesData?.categories || []
 	const totalCount = categoriesData?.pagination?.totalCount || 0
 	const itemsPerPage = 12
 	const totalPages = Math.ceil(totalCount / itemsPerPage)
@@ -415,7 +412,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				}}
 				category={deletingCategory}
 				products={categoryProducts}
-				availableCategories={allCategories}
 				onConfirm={handleDeleteCategory}
 				isLoading={deleteCategoryMutation.isPending}
 			/>

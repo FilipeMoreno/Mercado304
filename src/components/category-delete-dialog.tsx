@@ -3,13 +3,13 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, Layers, Package, Plus } from "lucide-react"
 import { useId, useState } from "react"
 import { toast } from "sonner"
+import { CategorySelectDialog } from "@/components/selects/category-select-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Product {
@@ -30,7 +30,6 @@ interface CategoryDeleteDialogProps {
 	onOpenChange: (open: boolean) => void
 	category: Category | null
 	products: Product[]
-	availableCategories: Category[]
 	onConfirm: (transferData: CategoryTransferData) => Promise<void>
 	isLoading?: boolean
 }
@@ -49,7 +48,6 @@ export function CategoryDeleteDialog({
 	onOpenChange,
 	category,
 	products,
-	availableCategories,
 	onConfirm,
 	isLoading = false,
 }: CategoryDeleteDialogProps) {
@@ -201,23 +199,11 @@ export function CategoryDeleteDialog({
 						<TabsContent value="transfer-all" className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor={`${inputId}-transfer`}>Categoria de Destino</Label>
-								<Select value={targetCategoryId} onValueChange={setTargetCategoryId}>
-									<SelectTrigger id={`${inputId}-transfer`}>
-										<SelectValue placeholder="Selecione uma categoria" />
-									</SelectTrigger>
-									<SelectContent>
-										{availableCategories
-											.filter((c) => c.id !== category?.id)
-											.map((cat) => (
-												<SelectItem key={cat.id} value={cat.id}>
-													<span className="flex items-center gap-2">
-														{cat.icon && <span>{cat.icon}</span>}
-														<span>{cat.name}</span>
-													</span>
-												</SelectItem>
-											))}
-									</SelectContent>
-								</Select>
+								<CategorySelectDialog
+									value={targetCategoryId}
+									onValueChange={setTargetCategoryId}
+									placeholder="Selecione uma categoria"
+								/>
 								<p className="text-xs text-muted-foreground">
 									Todos os {products.length} produtos serão transferidos para a categoria selecionada.
 								</p>
@@ -271,7 +257,7 @@ export function CategoryDeleteDialog({
 									{products.map((product) => (
 										<div
 											key={product.id}
-											className="flex items-center gap-3 p-3 bg-muted/50 dark:bg-muted/10 rounded-lg"
+											className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50 dark:bg-muted/10 rounded-lg"
 										>
 											<div className="flex-1 min-w-0">
 												<p className="font-medium truncate">{product.name}</p>
@@ -279,28 +265,15 @@ export function CategoryDeleteDialog({
 													<p className="text-xs text-muted-foreground truncate">{product.brand.name}</p>
 												)}
 											</div>
-											<div className="flex items-center gap-2">
+											<div className="flex items-center gap-2 w-full sm:w-auto">
 												<ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-												<Select
-													value={individualTransfers[product.id] || ""}
-													onValueChange={(value) => handleIndividualChange(product.id, value)}
-												>
-													<SelectTrigger className="w-[180px]">
-														<SelectValue placeholder="Escolher categoria" />
-													</SelectTrigger>
-													<SelectContent>
-														{availableCategories
-															.filter((c) => c.id !== category?.id)
-															.map((cat) => (
-																<SelectItem key={cat.id} value={cat.id}>
-																	<span className="flex items-center gap-2">
-																		{cat.icon && <span>{cat.icon}</span>}
-																		<span>{cat.name}</span>
-																	</span>
-																</SelectItem>
-															))}
-													</SelectContent>
-												</Select>
+												<div className="flex-1 sm:w-[200px]">
+													<CategorySelectDialog
+														value={individualTransfers[product.id] || ""}
+														onValueChange={(value) => handleIndividualChange(product.id, value)}
+														placeholder="Escolher categoria"
+													/>
+												</div>
 												{individualTransfers[product.id] && (
 													<CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
 												)}
