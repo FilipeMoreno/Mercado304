@@ -3,35 +3,57 @@
 import {
 	Activity,
 	Calendar,
+	ChevronLeft,
+	ChevronRight,
 	Clock,
 	DollarSign,
+	Edit,
 	Filter,
 	Package,
+	Pencil,
 	Plus,
 	Receipt,
 	Search,
 	StickyNote,
 	Store,
 	Target,
+	Trash2,
 	Zap,
 } from "lucide-react"
 import type React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
+import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { MarketSelect } from "@/components/selects/market-select"
 import { MarketSelectDialog } from "@/components/selects/market-select-dialog"
 import { ProductSelect } from "@/components/selects/product-select"
 import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { PriceRecordSkeleton } from "@/components/skeletons/price-record-skeleton"
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { useUIPreferences } from "@/hooks"
 
 function PriceAnalysisCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
@@ -62,50 +84,60 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 	}
 
 	// Agrupar por produto
-	const productPrices = priceRecords.reduce((acc, record) => {
-		if (!acc[record.product]) {
-			acc[record.product] = []
-		}
-		acc[record.product].push(record)
-		return acc
-	}, {} as Record<string, PriceRecord[]>)
+	const productPrices = priceRecords.reduce(
+		(acc, record) => {
+			if (!acc[record.product]) {
+				acc[record.product] = []
+			}
+			acc[record.product].push(record)
+			return acc
+		},
+		{} as Record<string, PriceRecord[]>,
+	)
 
 	// Calcular estatísticas por produto
-	const productStats = Object.entries(productPrices).map(([product, records]) => {
-		const prices = records.map(r => r.price)
-		const markets = new Set(records.map(r => r.market))
+	const productStats = Object.entries(productPrices)
+		.map(([product, records]) => {
+			const prices = records.map((r) => r.price)
+			const markets = new Set(records.map((r) => r.market))
 
-		return {
-			product,
-			minPrice: Math.min(...prices),
-			maxPrice: Math.max(...prices),
-			avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
-			variance: Math.max(...prices) - Math.min(...prices),
-			recordCount: records.length,
-			marketCount: markets.size,
-			lastRecord: records.sort((a, b) => new Date(b.recordDate).getTime() - new Date(a.recordDate).getTime())[0]
-		}
-	}).sort((a, b) => b.variance - a.variance)
+			return {
+				product,
+				minPrice: Math.min(...prices),
+				maxPrice: Math.max(...prices),
+				avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+				variance: Math.max(...prices) - Math.min(...prices),
+				recordCount: records.length,
+				marketCount: markets.size,
+				lastRecord: records.sort((a, b) => new Date(b.recordDate).getTime() - new Date(a.recordDate).getTime())[0],
+			}
+		})
+		.sort((a, b) => b.variance - a.variance)
 
 	// Top produtos com maior variação de preço
 	const topVariance = productStats.slice(0, 5)
 
 	// Comparação de preços por mercado
-	const marketPrices = priceRecords.reduce((acc, record) => {
-		if (!acc[record.market]) {
-			acc[record.market] = []
-		}
-		acc[record.market].push(record.price)
-		return acc
-	}, {} as Record<string, number[]>)
+	const marketPrices = priceRecords.reduce(
+		(acc, record) => {
+			if (!acc[record.market]) {
+				acc[record.market] = []
+			}
+			acc[record.market].push(record.price)
+			return acc
+		},
+		{} as Record<string, number[]>,
+	)
 
-	const marketStats = Object.entries(marketPrices).map(([market, prices]) => ({
-		market,
-		avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
-		minPrice: Math.min(...prices),
-		maxPrice: Math.max(...prices),
-		recordCount: prices.length,
-	})).sort((a, b) => a.avgPrice - b.avgPrice)
+	const marketStats = Object.entries(marketPrices)
+		.map(([market, prices]) => ({
+			market,
+			avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+			minPrice: Math.min(...prices),
+			maxPrice: Math.max(...prices),
+			recordCount: prices.length,
+		}))
+		.sort((a, b) => a.avgPrice - b.avgPrice)
 
 	return (
 		<div className={`space-y-6 ${className}`}>
@@ -128,9 +160,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 											{stat.recordCount} registros em {stat.marketCount} mercado(s)
 										</p>
 									</div>
-									<Badge variant="destructive">
-										Variação: R$ {stat.variance.toFixed(2)}
-									</Badge>
+									<Badge variant="destructive">Variação: R$ {stat.variance.toFixed(2)}</Badge>
 								</div>
 								<div className="grid grid-cols-3 gap-4 mt-3">
 									<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
@@ -164,18 +194,22 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 					<div className="space-y-3">
 						{marketStats.map((stat, index) => (
 							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
-								<div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-									index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
-										index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
-											'bg-muted text-muted-foreground'
-									}`}>
+								<div
+									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+										index === 0
+											? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+											: index === 1
+												? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+												: index === 2
+													? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+													: "bg-muted text-muted-foreground"
+									}`}
+								>
 									{index + 1}
 								</div>
 								<div className="flex-1">
 									<h4 className="font-semibold">{stat.market}</h4>
-									<p className="text-sm text-muted-foreground">
-										{stat.recordCount} registros
-									</p>
+									<p className="text-sm text-muted-foreground">{stat.recordCount} registros</p>
 								</div>
 								<div className="text-right">
 									<p className="text-lg font-bold text-green-600">R$ {stat.avgPrice.toFixed(2)}</p>
@@ -219,9 +253,9 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 	// Análise por dia da semana
 	const dayOfWeekPrices: Record<number, number[]> = {}
-	const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+	const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
 
-	priceRecords.forEach(record => {
+	priceRecords.forEach((record) => {
 		const dayOfWeek = new Date(record.recordDate).getDay()
 		if (!dayOfWeekPrices[dayOfWeek]) {
 			dayOfWeekPrices[dayOfWeek] = []
@@ -231,8 +265,8 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 	const dayStats = Object.entries(dayOfWeekPrices)
 		.map(([day, prices]) => ({
-			day: parseInt(day),
-			dayName: dayNames[parseInt(day)],
+			day: parseInt(day, 10),
+			dayName: dayNames[parseInt(day, 10)],
 			avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
 			recordCount: prices.length,
 		}))
@@ -242,14 +276,17 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 	const worstDay = dayStats[dayStats.length - 1]
 
 	// Encontrar produtos mais e menos econômicos
-	const productAvgPrices = priceRecords.reduce((acc, record) => {
-		if (!acc[record.product]) {
-			acc[record.product] = { total: 0, count: 0, market: record.market }
-		}
-		acc[record.product].total += record.price
-		acc[record.product].count += 1
-		return acc
-	}, {} as Record<string, { total: number; count: number; market: string }>)
+	const productAvgPrices = priceRecords.reduce(
+		(acc, record) => {
+			if (!acc[record.product]) {
+				acc[record.product] = { total: 0, count: 0, market: record.market }
+			}
+			acc[record.product].total += record.price
+			acc[record.product].count += 1
+			return acc
+		},
+		{} as Record<string, { total: number; count: number; market: string }>,
+	)
 
 	const productRanking = Object.entries(productAvgPrices)
 		.map(([product, data]) => ({
@@ -264,15 +301,18 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 	const cheapest = productRanking.slice(-3).reverse()
 
 	// Recomendações por mercado
-	const marketBestDeals = priceRecords.reduce((acc, record) => {
-		const key = `${record.product}-${record.market}`
-		if (!acc[key]) {
-			acc[key] = record
-		} else if (record.price < acc[key].price) {
-			acc[key] = record
-		}
-		return acc
-	}, {} as Record<string, PriceRecord>)
+	const marketBestDeals = priceRecords.reduce(
+		(acc, record) => {
+			const key = `${record.product}-${record.market}`
+			if (!acc[key]) {
+				acc[key] = record
+			} else if (record.price < acc[key].price) {
+				acc[key] = record
+			}
+			return acc
+		},
+		{} as Record<string, PriceRecord>,
+	)
 
 	const bestDeals = Object.values(marketBestDeals)
 		.sort((a, b) => a.price - b.price)
@@ -292,9 +332,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 					<div className="grid md:grid-cols-2 gap-4 mb-6">
 						<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
 							<div className="flex items-center gap-2 mb-2">
-								<div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
-									👍
-								</div>
+								<div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">👍</div>
 								<h4 className="font-semibold text-green-900 dark:text-green-100">Melhor Dia</h4>
 							</div>
 							<p className="text-2xl font-bold text-green-600">{bestDay.dayName}</p>
@@ -305,9 +343,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 						<div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
 							<div className="flex items-center gap-2 mb-2">
-								<div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center">
-									👎
-								</div>
+								<div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center">👎</div>
 								<h4 className="font-semibold text-red-900 dark:text-red-100">Evitar</h4>
 							</div>
 							<p className="text-2xl font-bold text-red-600">{worstDay.dayName}</p>
@@ -346,7 +382,10 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 				<CardContent>
 					<div className="space-y-3">
 						{bestDeals.map((deal, index) => (
-							<div key={deal.id} className="flex items-center gap-4 p-3 border rounded-lg bg-gradient-to-r from-green-50 to-transparent dark:from-green-950">
+							<div
+								key={deal.id}
+								className="flex items-center gap-4 p-3 border rounded-lg bg-gradient-to-r from-green-50 to-transparent dark:from-green-950"
+							>
 								<div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
 									{index + 1}
 								</div>
@@ -357,12 +396,14 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 										<span>{deal.market}</span>
 										<span>•</span>
 										<Calendar className="h-3 w-3" />
-										<span>{new Date(deal.recordDate).toLocaleDateString('pt-BR')}</span>
+										<span>{new Date(deal.recordDate).toLocaleDateString("pt-BR")}</span>
 									</div>
 								</div>
 								<div className="text-right">
 									<p className="text-xl font-bold text-green-600">R$ {deal.price.toFixed(2)}</p>
-									<Badge variant="outline" className="text-xs">Melhor preço</Badge>
+									<Badge variant="outline" className="text-xs">
+										Melhor preço
+									</Badge>
 								</div>
 							</div>
 						))}
@@ -465,6 +506,12 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const [selectedMarket, setSelectedMarket] = useState("")
 	const [selectedProduct, setSelectedProduct] = useState("")
 
+	// Estados para paginação
+	const [currentPage, setCurrentPage] = useState(1)
+	const [totalPages, setTotalPages] = useState(1)
+	const [totalRecords, setTotalRecords] = useState(0)
+	const [itemsPerPage] = useState(20)
+
 	// Estados para o formulário
 	const [price, setPrice] = useState("")
 	const [notes, setNotes] = useState("")
@@ -474,35 +521,52 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const [isScannerOpen, setIsScannerOpen] = useState(false)
 	const [scannerMarketId, setScannerMarketId] = useState("")
 
+	// Estados para edição
+	const [editingRecord, setEditingRecord] = useState<PriceRecord | null>(null)
+	const [editPrice, setEditPrice] = useState("")
+	const [editNotes, setEditNotes] = useState("")
+	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+
+	// Estados para exclusão
+	const [deletingRecord, setDeletingRecord] = useState<PriceRecord | null>(null)
+	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
 	const [formData, setFormData] = useState({
 		productId: "",
 		marketId: "",
 	})
 
 	// Carregar registros de preços
-	const loadPriceRecords = useCallback(async (filters?: { product?: string; market?: string }) => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (filters?.product) params.append("product", filters.product)
-			if (filters?.market) params.append("market", filters.market)
-			params.append("limit", "100")
+	const loadPriceRecords = useCallback(
+		async (page = 1, filters?: { product?: string; market?: string }) => {
+			setLoading(true)
+			try {
+				const params = new URLSearchParams()
+				if (filters?.product) params.append("product", filters.product)
+				if (filters?.market) params.append("market", filters.market)
+				params.append("limit", itemsPerPage.toString())
+				params.append("page", page.toString())
 
-			const response = await fetch(`/api/prices/record?${params.toString()}`)
-			const data = await response.json()
+				const response = await fetch(`/api/prices/record?${params.toString()}`)
+				const data = await response.json()
 
-			if (data.success) {
-				setPriceRecords(data.priceRecords)
-			} else {
-				toast.error("Erro ao carregar registros de preços")
+				if (data.success) {
+					setPriceRecords(data.priceRecords)
+					setTotalRecords(data.total)
+					setTotalPages(data.totalPages)
+					setCurrentPage(data.page)
+				} else {
+					toast.error("Erro ao carregar registros de preços")
+				}
+			} catch (_error) {
+				toast.error("Erro ao conectar com o servidor")
+			} finally {
+				setLoading(false)
+				setInitialLoading(false)
 			}
-		} catch (_error) {
-			toast.error("Erro ao conectar com o servidor")
-		} finally {
-			setLoading(false)
-			setInitialLoading(false)
-		}
-	}, [])
+		},
+		[itemsPerPage],
+	)
 
 	// Registrar novo preço
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -547,7 +611,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				setFormData({ productId: "", marketId: "" })
 				setPrice("")
 				setNotes("")
-				loadPriceRecords()
+				loadPriceRecords(currentPage)
 			} else {
 				toast.error(data.message || "Erro ao registrar preço")
 			}
@@ -558,34 +622,129 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 		}
 	}
 
-	// Filtrar registros
-	const filteredRecords = priceRecords.filter((record) => {
-		const matchesSearch =
-			!searchTerm ||
-			record.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			record.market.toLowerCase().includes(searchTerm.toLowerCase())
+	// Função para abrir dialog de edição
+	const handleEditClick = (record: PriceRecord) => {
+		setEditingRecord(record)
+		setEditPrice(record.price.toString())
+		setEditNotes(record.notes || "")
+		setIsEditDialogOpen(true)
+	}
 
-		const matchesMarket =
-			!selectedMarket || selectedMarket === "all" || record.market.toLowerCase().includes(selectedMarket.toLowerCase())
-		const matchesProduct =
-			!selectedProduct ||
-			selectedProduct === "all" ||
-			record.product.toLowerCase().includes(selectedProduct.toLowerCase())
+	// Função para salvar edição
+	const handleEditSave = async () => {
+		if (!editingRecord) return
 
-		return matchesSearch && matchesMarket && matchesProduct
-	})
+		const priceNum = parseFloat(editPrice)
+		if (Number.isNaN(priceNum) || priceNum < 0) {
+			toast.error("Preço deve ser um número válido maior ou igual a zero")
+			return
+		}
+
+		setIsSubmitting(true)
+		try {
+			const response = await fetch("/api/prices/record", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					id: editingRecord.id,
+					price: priceNum,
+					notes: editNotes.trim() || undefined,
+				}),
+			})
+
+			const data = await response.json()
+
+			if (data.success) {
+				toast.success("Registro atualizado com sucesso")
+				setIsEditDialogOpen(false)
+				loadPriceRecords(currentPage)
+			} else {
+				toast.error(data.message || "Erro ao atualizar registro")
+			}
+		} catch (_error) {
+			toast.error("Erro ao conectar com o servidor")
+		} finally {
+			setIsSubmitting(false)
+		}
+	}
+
+	// Função para abrir dialog de exclusão
+	const handleDeleteClick = (record: PriceRecord) => {
+		setDeletingRecord(record)
+		setIsDeleteDialogOpen(true)
+	}
+
+	// Função para confirmar exclusão
+	const handleDeleteConfirm = async () => {
+		if (!deletingRecord) return
+
+		setIsSubmitting(true)
+		try {
+			const response = await fetch(`/api/prices/record?id=${deletingRecord.id}`, {
+				method: "DELETE",
+			})
+
+			const data = await response.json()
+
+			if (data.success) {
+				toast.success("Registro deletado com sucesso")
+				setIsDeleteDialogOpen(false)
+				// Se a página atual ficar vazia, voltar para a anterior
+				if (priceRecords.length === 1 && currentPage > 1) {
+					loadPriceRecords(currentPage - 1)
+				} else {
+					loadPriceRecords(currentPage)
+				}
+			} else {
+				toast.error(data.message || "Erro ao deletar registro")
+			}
+		} catch (_error) {
+			toast.error("Erro ao conectar com o servidor")
+		} finally {
+			setIsSubmitting(false)
+		}
+	}
+
+	// Função para mudar de página
+	const handlePageChange = (newPage: number) => {
+		if (newPage >= 1 && newPage <= totalPages) {
+			loadPriceRecords(newPage)
+		}
+	}
+
+	// Os registros já vêm filtrados do backend, então apenas exibimos
+	const filteredRecords = priceRecords
 
 	// Estatísticas
 	const stats = {
-		totalRecords: priceRecords.length,
+		totalRecords: totalRecords,
 		uniqueProducts: new Set(priceRecords.map((r) => r.product)).size,
 		uniqueMarkets: new Set(priceRecords.map((r) => r.market)).size,
 		avgPrice: priceRecords.length > 0 ? priceRecords.reduce((sum, r) => sum + r.price, 0) / priceRecords.length : 0,
 	}
 
+	// Carregar dados iniciais
 	useEffect(() => {
-		loadPriceRecords()
+		loadPriceRecords(1)
 	}, [loadPriceRecords])
+
+	// Recarregar quando filtros mudarem
+	useEffect(() => {
+		const filters: { product?: string; market?: string } = {}
+		if (selectedProduct && selectedProduct !== "all") {
+			// Buscar o nome do produto pelo ID
+			const product = products.find((p) => p.id === selectedProduct)
+			if (product) filters.product = product.name
+		}
+		if (selectedMarket && selectedMarket !== "all") {
+			// Buscar o nome do mercado pelo ID
+			const market = markets.find((m) => m.id === selectedMarket)
+			if (market) filters.market = market.name
+		}
+
+		// Resetar para página 1 quando filtros mudarem
+		loadPriceRecords(1, filters)
+	}, [selectedProduct, selectedMarket, products, markets, loadPriceRecords])
 
 	if (initialLoading) {
 		return <PriceRecordSkeleton />
@@ -780,9 +939,8 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
-										<Label htmlFor="price">Valor (R$) *</Label>
+										<Label>Valor (R$) *</Label>
 										<Input
-											id="price"
 											type="number"
 											step="0.01"
 											min="0"
@@ -794,9 +952,8 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									</div>
 
 									<div>
-										<Label htmlFor="notes">Observações (opcional)</Label>
+										<Label>Observações (opcional)</Label>
 										<Input
-											id="notes"
 											value={notes}
 											onChange={(e) => setNotes(e.target.value)}
 											placeholder="Ex: Promoção, produto vencendo..."
@@ -826,9 +983,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<div className="flex items-start gap-3">
 										<Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
 										<div>
-											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-												Scanner de Etiquetas com IA
-											</h4>
+											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Scanner de Etiquetas com IA</h4>
 											<p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
 												Use o scanner para registrar preços automaticamente através de fotos de etiquetas.
 											</p>
@@ -857,11 +1012,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								<div>
-									<Label htmlFor="search">Buscar</Label>
+									<Label>Buscar</Label>
 									<div className="relative">
 										<Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
 										<Input
-											id="search"
 											value={searchTerm}
 											onChange={(e) => setSearchTerm(e.target.value)}
 											placeholder="Produto ou mercado..."
@@ -871,41 +1025,41 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								</div>
 
 								<div>
-									<Label htmlFor="filterMarket">Mercado</Label>
-									<Select value={selectedMarket} onValueChange={setSelectedMarket}>
-										<SelectTrigger>
-											<SelectValue placeholder="Todos os mercados" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">Todos os mercados</SelectItem>
-											{Array.from(new Set(priceRecords?.map((r) => r.market) || []))
-												.filter(Boolean)
-												.map((market) => (
-													<SelectItem key={market} value={market}>
-														{market}
-													</SelectItem>
-												))}
-										</SelectContent>
-									</Select>
+									<Label>Mercado</Label>
+									{selectStyle === "dialog" ? (
+										<MarketSelectDialog
+											value={selectedMarket}
+											onValueChange={setSelectedMarket}
+											placeholder="Todos os mercados"
+											allowClear
+										/>
+									) : (
+										<MarketSelect
+											value={selectedMarket}
+											onValueChange={setSelectedMarket}
+											placeholder="Todos os mercados"
+											allowClear
+										/>
+									)}
 								</div>
 
 								<div>
-									<Label htmlFor="filterProduct">Produto</Label>
-									<Select value={selectedProduct} onValueChange={setSelectedProduct}>
-										<SelectTrigger>
-											<SelectValue placeholder="Todos os produtos" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">Todos os produtos</SelectItem>
-											{Array.from(new Set(priceRecords?.map((r) => r.product) || []))
-												.filter(Boolean)
-												.map((product) => (
-													<SelectItem key={product} value={product}>
-														{product}
-													</SelectItem>
-												))}
-										</SelectContent>
-									</Select>
+									<Label>Produto</Label>
+									{selectStyle === "dialog" ? (
+										<ProductSelectDialog
+											value={selectedProduct}
+											onValueChange={setSelectedProduct}
+											placeholder="Todos os produtos"
+											allowClear
+										/>
+									) : (
+										<ProductSelect
+											value={selectedProduct}
+											onValueChange={setSelectedProduct}
+											placeholder="Todos os produtos"
+											allowClear
+										/>
+									)}
 								</div>
 							</div>
 						</CardContent>
@@ -913,9 +1067,12 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Clock className="h-5 w-5" />
-								Histórico de Preços ({filteredRecords.length})
+							<CardTitle className="flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Clock className="h-5 w-5" />
+									Histórico de Preços
+								</div>
+								<Badge variant="outline">{totalRecords} registros</Badge>
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -949,38 +1106,88 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									</Empty>
 								)
 							) : (
-								<div className="space-y-4">
-									{filteredRecords.map((record) => (
-										<div key={record.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-											<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-												<div className="space-y-1">
-													<div className="flex items-center gap-2">
-														<h3 className="font-semibold">{record.product}</h3>
-														<Badge variant="outline">{record.market}</Badge>
-													</div>
-													<div className="flex items-center gap-4 text-sm text-muted-foreground">
-														<span className="flex items-center gap-1">
-															<Calendar className="h-3 w-3" />
-															{new Date(record.recordDate).toLocaleDateString("pt-BR")}
-														</span>
-														{record.notes && (
+								<>
+									<div className="space-y-4">
+										{filteredRecords.map((record) => (
+											<div key={record.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+												<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+													<div className="flex-1 space-y-1">
+														<div className="flex items-center gap-2 flex-wrap">
+															<h3 className="font-semibold">{record.product}</h3>
+															<Badge variant="outline">{record.market}</Badge>
+														</div>
+														<div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
 															<span className="flex items-center gap-1">
-																<StickyNote className="h-3 w-3" />
-																{record.notes}
+																<Calendar className="h-3 w-3" />
+																{new Date(record.recordDate).toLocaleDateString("pt-BR")}
 															</span>
-														)}
+															{record.notes && (
+																<span className="flex items-center gap-1">
+																	<StickyNote className="h-3 w-3" />
+																	{record.notes}
+																</span>
+															)}
+														</div>
 													</div>
-												</div>
 
-												<div className="flex items-center gap-2">
-													<div className="text-right">
-														<p className="text-2xl font-bold text-green-600">R$ {record.price.toFixed(2)}</p>
+													<div className="flex items-center gap-2">
+														<div className="text-right mr-4">
+															<p className="text-2xl font-bold text-green-600">R$ {record.price.toFixed(2)}</p>
+														</div>
+														<div className="flex gap-2">
+															<Button
+																variant="outline"
+																size="icon"
+																onClick={() => handleEditClick(record)}
+																title="Editar"
+															>
+																<Pencil className="h-4 w-4" />
+															</Button>
+															<Button
+																variant="outline"
+																size="icon"
+																onClick={() => handleDeleteClick(record)}
+																title="Deletar"
+																className="text-red-600 hover:text-red-700 hover:bg-red-50"
+															>
+																<Trash2 className="h-4 w-4" />
+															</Button>
+														</div>
 													</div>
 												</div>
 											</div>
+										))}
+									</div>
+
+									{/* Paginação */}
+									{totalPages > 1 && (
+										<div className="flex items-center justify-between mt-6 pt-6 border-t">
+											<div className="text-sm text-muted-foreground">
+												Página {currentPage} de {totalPages}
+											</div>
+											<div className="flex items-center gap-2">
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => handlePageChange(currentPage - 1)}
+													disabled={currentPage === 1 || loading}
+												>
+													<ChevronLeft className="h-4 w-4 mr-1" />
+													Anterior
+												</Button>
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => handlePageChange(currentPage + 1)}
+													disabled={currentPage === totalPages || loading}
+												>
+													Próxima
+													<ChevronRight className="h-4 w-4 ml-1" />
+												</Button>
+											</div>
 										</div>
-									))}
-								</div>
+									)}
+								</>
 							)}
 						</CardContent>
 					</Card>
@@ -1002,6 +1209,116 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				onScan={handleScanResult}
 				marketId={scannerMarketId}
 			/>
+
+			{/* Edit Dialog */}
+			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Edit className="h-5 w-5" />
+							Editar Registro de Preço
+						</DialogTitle>
+						<DialogDescription>Atualize as informações do registro de preço selecionado.</DialogDescription>
+					</DialogHeader>
+					{editingRecord && (
+						<div className="space-y-4">
+							<div className="p-4 bg-muted rounded-lg space-y-2">
+								<div className="flex items-center gap-2">
+									<Package className="h-4 w-4 text-muted-foreground" />
+									<span className="font-semibold">{editingRecord.product}</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<Store className="h-4 w-4 text-muted-foreground" />
+									<span className="text-sm text-muted-foreground">{editingRecord.market}</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<Calendar className="h-4 w-4 text-muted-foreground" />
+									<span className="text-sm text-muted-foreground">
+										{new Date(editingRecord.recordDate).toLocaleDateString("pt-BR")}
+									</span>
+								</div>
+							</div>
+
+							<div>
+								<Label>Preço (R$) *</Label>
+								<Input
+									type="number"
+									step="0.01"
+									min="0"
+									value={editPrice}
+									onChange={(e) => setEditPrice(e.target.value)}
+									placeholder="0,00"
+									required
+								/>
+							</div>
+
+							<div>
+								<Label>Observações</Label>
+								<Input
+									value={editNotes}
+									onChange={(e) => setEditNotes(e.target.value)}
+									placeholder="Ex: Promoção, produto vencendo..."
+								/>
+							</div>
+						</div>
+					)}
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSubmitting}>
+							Cancelar
+						</Button>
+						<Button onClick={handleEditSave} disabled={isSubmitting}>
+							{isSubmitting ? "Salvando..." : "Salvar Alterações"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle className="flex items-center gap-2">
+							<Trash2 className="h-5 w-5 text-red-600" />
+							Confirmar Exclusão
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							Tem certeza que deseja deletar este registro de preço? Esta ação não pode ser desfeita.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					{deletingRecord && (
+						<div className="p-4 bg-muted rounded-lg space-y-2">
+							<div className="flex items-center gap-2">
+								<Package className="h-4 w-4 text-muted-foreground" />
+								<span className="font-semibold">{deletingRecord.product}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Store className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm text-muted-foreground">{deletingRecord.market}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<DollarSign className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm font-bold text-green-600">R$ {deletingRecord.price.toFixed(2)}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Calendar className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm text-muted-foreground">
+									{new Date(deletingRecord.recordDate).toLocaleDateString("pt-BR")}
+								</span>
+							</div>
+						</div>
+					)}
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteConfirm}
+							disabled={isSubmitting}
+							className="bg-red-600 hover:bg-red-700"
+						>
+							{isSubmitting ? "Deletando..." : "Deletar Registro"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	)
 }

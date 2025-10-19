@@ -87,10 +87,15 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const productName = searchParams.get("product")
 		const marketName = searchParams.get("market")
-		const limit = parseInt(searchParams.get("limit") || "50")
+		const limit = parseInt(searchParams.get("limit") || "50", 10)
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const skip = (page - 1) * limit
 
 		// Construir filtros
-		const where: any = {}
+		const where: {
+			product?: { name: { contains: string; mode: "insensitive" } }
+			market?: { name: { contains: string; mode: "insensitive" } }
+		} = {}
 
 		if (productName) {
 			where.product = {
@@ -104,7 +109,10 @@ export async function GET(request: Request) {
 			}
 		}
 
-		// Buscar registros de preços
+		// Buscar total de registros (sem limite)
+		const total = await prisma.priceRecord.count({ where })
+
+		// Buscar registros de preços com paginação
 		const priceRecords = await prisma.priceRecord.findMany({
 			where,
 			include: {
@@ -113,6 +121,7 @@ export async function GET(request: Request) {
 			},
 			orderBy: { recordDate: "desc" },
 			take: limit,
+			skip,
 		})
 
 		return NextResponse.json({
@@ -125,10 +134,87 @@ export async function GET(request: Request) {
 				recordDate: record.recordDate,
 				notes: record.notes,
 			})),
-			total: priceRecords.length,
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
 		})
 	} catch (error) {
 		console.error("Erro ao buscar preços:", error)
+		return handleApiError(error)
+	}
+}
+
+export async function DELETE(request: Request) {
+	try {
+		const { searchParams } = new URL(request.url)
+		const id = searchParams.get("id")
+
+		if (!id) {
+			return NextResponse.json(
+				{ success: false, error: "ID do registro é obrigatório" },
+				{ status: 400 }
+			)
+		}
+
+		await prisma.priceRecord.delete({
+			where: { id },
+		})
+
+		return NextResponse.json({
+			success: true,
+			message: "Registro de preço deletado com sucesso",
+		})
+	} catch (error) {
+		console.error("Erro ao deletar registro de preço:", error)
+		return handleApiError(error)
+	}
+}
+
+export async function PATCH(request: Request) {
+	try {
+		const { id, price, notes } = await request.json()
+
+		if (!id) {
+			return NextResponse.json(
+				{ success: false, error: "ID do registro é obrigatório" },
+				{ status: 400 }
+			)
+		}
+
+		if (price !== undefined && (typeof price !== "number" || price < 0)) {
+			return NextResponse.json(
+				{ success: false, error: "Preço deve ser um número válido maior ou igual a zero" },
+				{ status: 400 }
+			)
+		}
+
+		const updatedRecord = await prisma.priceRecord.update({
+			where: { id },
+			data: {
+				...(price !== undefined && { price }),
+				...(notes !== undefined && { notes }),
+			},
+			include: {
+				product: true,
+				market: true,
+			},
+		})
+
+		return NextResponse.json({
+			success: true,
+			message: "Registro de preço atualizado com sucesso",
+			priceRecord: {
+				id: updatedRecord.id,
+				product: updatedRecord.product.name,
+				market: updatedRecord.market.name,
+				price: updatedRecord.price,
+				recordDate: updatedRecord.recordDate,
+				notes: updatedRecord.notes,
+			},
+		})
+	} catch (error) {
+		console.error("Erro ao atualizar registro de preço:", error)
 		return handleApiError(error)
 	}
 }
