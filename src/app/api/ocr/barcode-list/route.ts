@@ -1,9 +1,7 @@
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { type NextRequest, NextResponse } from "next/server"
-import OpenAI from "openai"
 
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-})
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
 export async function POST(request: NextRequest) {
 	try {
@@ -13,7 +11,16 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "URL da imagem é obrigatória" }, { status: 400 })
 		}
 
+		if (!process.env.GEMINI_API_KEY) {
+			return NextResponse.json({ error: "API Key do Gemini não configurada" }, { status: 500 })
+		}
+
 		console.log("🔍 Iniciando extração de códigos de barras...")
+
+		// Converter data URL para base64 puro
+		const base64Data = imageUrl.replace(/^data:image\/[a-z]+;base64,/, "")
+
+		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
 
 		const prompt = `Você é um assistente especializado em extrair códigos de barras de cupons fiscais.
 
@@ -26,7 +33,8 @@ IMPORTANTE:
 - Ignore outros números como valores, quantidades, ou datas
 - Retorne APENAS códigos numéricos válidos
 - Liste os códigos NA ORDEM em que aparecem no cupom (de cima para baixo)
-- Se houver zeros à esquerda, MANTENHA-OS
+- Se houver zeros à esquerda, MANTENHA-OS (exemplo: "0009788" não deve virar "9788")
+- Códigos de barras são geralmente impressos perto dos nomes dos produtos
 
 FORMATO DA RESPOSTA:
 Retorne um JSON com esta estrutura exata:
@@ -39,48 +47,38 @@ Se não encontrar nenhum código de barras, retorne:
 {
   "barcodes": [],
   "count": 0
-}`
+}
 
-		const response = await openai.chat.completions.create({
-			model: "gpt-4o",
-			messages: [
-				{
-					role: "user",
-					content: [
-						{
-							type: "text",
-							text: prompt,
-						},
-						{
-							type: "image_url",
-							image_url: {
-								url: imageUrl,
-								detail: "high",
-							},
-						},
-					],
+ATENÇÃO: Retorne APENAS o JSON, sem texto adicional antes ou depois.`
+
+		const result = await model.generateContent([
+			prompt,
+			{
+				inlineData: {
+					data: base64Data,
+					mimeType: "image/jpeg",
 				},
-			],
-			max_tokens: 1000,
-			temperature: 0.1,
-		})
+			},
+		])
 
-		const content = response.choices[0]?.message?.content
-		console.log("📋 Resposta da IA:", content)
+		const response = await result.response
+		const content = response.text()
+
+		console.log("📋 Resposta do Gemini:", content)
 
 		if (!content) {
 			return NextResponse.json({ error: "Nenhuma resposta da IA" }, { status: 500 })
 		}
 
 		// Parse do JSON
-		let result: { barcodes?: string[] }
+		let parsedResult: { barcodes?: string[] }
 		try {
 			// Tentar extrair JSON da resposta (pode vir com texto adicional)
 			const jsonMatch = content.match(/\{[\s\S]*\}/)
 			if (jsonMatch) {
-				result = JSON.parse(jsonMatch[0])
+				parsedResult = JSON.parse(jsonMatch[0])
 			} else {
-				result = JSON.parse(content)
+				parsedResult = JSON.parse(content)
 			}
 		} catch (parseError) {
 			console.error("Erro ao fazer parse da resposta:", parseError)
@@ -88,7 +86,7 @@ Se não encontrar nenhum código de barras, retorne:
 		}
 
 		// Validar e limpar códigos de barras
-		const barcodes = (result.barcodes || [])
+		const barcodes = (parsedResult.barcodes || [])
 			.filter((code: string) => {
 				// Remover espaços e validar que é numérico
 				const cleaned = code.trim().replace(/\s/g, "")
@@ -102,12 +100,13 @@ Se não encontrar nenhum código de barras, retorne:
 			barcodes,
 			count: barcodes.length,
 		})
-	} catch (error: any) {
+	} catch (error) {
 		console.error("Erro ao processar imagem:", error)
+		const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
 		return NextResponse.json(
 			{
 				error: "Erro ao processar imagem",
-				details: error.message,
+				details: errorMessage,
 			},
 			{ status: 500 },
 		)

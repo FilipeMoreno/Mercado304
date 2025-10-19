@@ -231,7 +231,7 @@ export default function EditarCompraPage() {
 		try {
 			// Mapear items com productName
 			const itemsWithNames = validItems.map((item) => {
-				const product = products.find((p) => p.id === item.productId)
+				const product = products.find((p: any) => p.id === item.productId)
 				return {
 					...item,
 					productName: product?.name || "Produto sem nome",

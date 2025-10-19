@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useUIPreferences } from "@/hooks"
 import { useCreatePurchaseMutation } from "@/hooks/use-react-query"
 import type { PaymentMethod } from "@/types"
@@ -50,8 +50,8 @@ export default function ImportarCompraPage() {
 	const [paymentMethod, setPaymentMethod] = useState<string>("CREDIT_CARD")
 	const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split("T")[0])
 	const [totalDiscount, setTotalDiscount] = useState<number>(0)
-
-	const mutation = useCr_setTotalDiscounttion()
+_setTotalDiscount
+	const mutation = useCreatePurchaseMutation()
 
 	// Redirecionar após sucesso
 	useEffect(() => {
