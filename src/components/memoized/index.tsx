@@ -87,6 +87,11 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 								<Badge variant="secondary" className="text-xs">
 									{brandName}
 								</Badge>
+								{product.packageSize && (
+									<Badge variant="default" className="text-xs bg-blue-600">
+										📦 {product.packageSize}
+									</Badge>
+								)}
 								<Badge variant="secondary" className="text-xs">
 									{productUnit}
 								</Badge>
@@ -101,6 +106,11 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 
 						{!brandName && (
 							<div className="mb-2 flex flex-wrap items-center gap-2">
+								{product.packageSize && (
+									<Badge variant="default" className="text-xs bg-blue-600">
+										📦 {product.packageSize}
+									</Badge>
+								)}
 								<Badge variant="secondary" className="text-xs">
 									{productUnit}
 								</Badge>

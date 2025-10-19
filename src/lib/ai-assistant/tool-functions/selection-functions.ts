@@ -63,6 +63,8 @@ export const selectionFunctions = {
 				brand: p.brand?.name,
 				category: p.category?.name,
 				barcode: p.barcode,
+				packageSize: p.packageSize,
+				unit: p.unit,
 			})),
 			message: `Encontrados ${products.length} produtos similares a "${searchTerm}". Escolha uma das opções:`,
 			context: context ? parseContext(context, searchTerm) : { action: "productSelected", searchTerm },

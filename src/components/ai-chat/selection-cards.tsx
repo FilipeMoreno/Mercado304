@@ -1,20 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { 
-	ShoppingCart, 
-	Store, 
-	Tag, 
-	Package, 
-	List,
-	TrendingUp,
-	Star,
-	MapPin,
-	Barcode,
-	Calendar
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Barcode, Calendar, List, MapPin, Package, ShoppingCart, Star, Store, Tag, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
 interface SelectionCardProps {
@@ -26,7 +15,7 @@ interface SelectionCardProps {
 }
 
 export function SelectionCard({ type, options, searchTerm, context, onSelect }: SelectionCardProps) {
-	const getCardContent = (option: any, index: number) => {
+	const getCardContent = (option: any, _index: number) => {
 		switch (type) {
 			case "products":
 				return (
@@ -37,7 +26,11 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-2 mb-1">
 								<span className="font-semibold text-gray-900 truncate">{option.name}</span>
-								{option.isFood && <Badge variant="secondary" className="text-xs">🍽️</Badge>}
+								{option.isFood && (
+									<Badge variant="secondary" className="text-xs">
+										🍽️
+									</Badge>
+								)}
 							</div>
 							<div className="flex flex-wrap gap-2 text-xs text-gray-600">
 								{option.brand && (
@@ -52,6 +45,9 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 										{option.category}
 									</span>
 								)}
+								{option.packageSize && (
+									<span className="flex items-center gap-1 font-semibold text-blue-600">📦 {option.packageSize}</span>
+								)}
 								{option.barcode && (
 									<span className="flex items-center gap-1">
 										<Barcode className="h-3 w-3" />
@@ -62,12 +58,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 						</div>
 						{option.currentPrice && (
 							<div className="text-right flex-shrink-0">
-								<div className="text-lg font-bold text-green-600">
-									R$ {option.currentPrice.toFixed(2)}
-								</div>
-								{option.marketName && (
-									<div className="text-xs text-gray-500">{option.marketName}</div>
-								)}
+								<div className="text-lg font-bold text-green-600">R$ {option.currentPrice.toFixed(2)}</div>
+								{option.marketName && <div className="text-xs text-gray-500">{option.marketName}</div>}
 							</div>
 						)}
 					</div>
@@ -98,22 +90,14 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 				return (
 					<div className="flex items-center gap-3 w-full">
 						<div className="p-2 bg-purple-100 rounded-lg text-purple-600 flex-shrink-0">
-							{option.icon ? (
-								<span className="text-lg">{option.icon}</span>
-							) : (
-								<Tag className="h-4 w-4" />
-							)}
+							{option.icon ? <span className="text-lg">{option.icon}</span> : <Tag className="h-4 w-4" />}
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-2">
 								<span className="font-semibold text-gray-900 truncate">{option.name}</span>
 								{option.isFood && <Badge className="bg-green-100 text-green-700 text-xs">🍽️ Alimento</Badge>}
 							</div>
-							{option.productCount && (
-								<div className="text-xs text-gray-600 mt-1">
-									{option.productCount} produtos
-								</div>
-							)}
+							{option.productCount && <div className="text-xs text-gray-600 mt-1">{option.productCount} produtos</div>}
 						</div>
 					</div>
 				)
@@ -125,9 +109,7 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="font-semibold text-gray-900 truncate">{option.name}</div>
-							<div className="text-xs text-gray-600 mt-1">
-								{option.productCount} produtos cadastrados
-							</div>
+							<div className="text-xs text-gray-600 mt-1">{option.productCount} produtos cadastrados</div>
 						</div>
 						<Badge variant="outline" className="text-xs">
 							<TrendingUp className="h-3 w-3 mr-1" />
@@ -155,11 +137,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 							</div>
 						</div>
 						{option.status && (
-							<Badge 
-								variant={option.status === 'completed' ? 'default' : 'secondary'}
-								className="text-xs"
-							>
-								{option.status === 'completed' ? '✅ Concluída' : '📝 Ativa'}
+							<Badge variant={option.status === "completed" ? "default" : "secondary"} className="text-xs">
+								{option.status === "completed" ? "✅ Concluída" : "📝 Ativa"}
 							</Badge>
 						)}
 					</div>
@@ -178,38 +157,44 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 
 	const getTypeIcon = () => {
 		switch (type) {
-			case "products": return <Package className="h-4 w-4" />
-			case "markets": return <Store className="h-4 w-4" />
-			case "categories": return <Tag className="h-4 w-4" />
-			case "brands": return <Star className="h-4 w-4" />
-			case "shopping-lists": return <List className="h-4 w-4" />
-			default: return <Package className="h-4 w-4" />
+			case "products":
+				return <Package className="h-4 w-4" />
+			case "markets":
+				return <Store className="h-4 w-4" />
+			case "categories":
+				return <Tag className="h-4 w-4" />
+			case "brands":
+				return <Star className="h-4 w-4" />
+			case "shopping-lists":
+				return <List className="h-4 w-4" />
+			default:
+				return <Package className="h-4 w-4" />
 		}
 	}
 
 	const getTypeLabel = () => {
 		switch (type) {
-			case "products": return "Produtos"
-			case "markets": return "Mercados"
-			case "categories": return "Categorias"
-			case "brands": return "Marcas"
-			case "shopping-lists": return "Listas"
-			default: return "Opções"
+			case "products":
+				return "Produtos"
+			case "markets":
+				return "Mercados"
+			case "categories":
+				return "Categorias"
+			case "brands":
+				return "Marcas"
+			case "shopping-lists":
+				return "Listas"
+			default:
+				return "Opções"
 		}
 	}
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
-		>
+		<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
 			<Card className="p-4 bg-gradient-to-br from-white to-blue-50 border-blue-200 shadow-lg">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-4">
-					<div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-						{getTypeIcon()}
-					</div>
+					<div className="p-2 bg-blue-100 rounded-lg text-blue-600">{getTypeIcon()}</div>
 					<div>
 						<h3 className="font-semibold text-gray-900">{getTypeLabel()}</h3>
 						<p className="text-sm text-gray-600">
@@ -240,9 +225,7 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 
 				{/* Footer */}
 				<div className="mt-4 pt-3 border-t border-blue-100">
-					<p className="text-xs text-blue-600 text-center">
-						💡 Clique em uma opção para continuar
-					</p>
+					<p className="text-xs text-blue-600 text-center">💡 Clique em uma opção para continuar</p>
 				</div>
 			</Card>
 		</motion.div>

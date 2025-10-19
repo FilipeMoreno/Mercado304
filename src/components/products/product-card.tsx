@@ -54,6 +54,11 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 						</div>
 					)}
 					<div className="flex flex-wrap gap-2">
+						{product.packageSize && (
+							<Badge variant="default" className="w-fit bg-blue-600 hover:bg-blue-700">
+								📦 {product.packageSize}
+							</Badge>
+						)}
 						{product.unit && (
 							<Badge variant="secondary" className="w-fit">
 								{product.unit}
