@@ -14,7 +14,7 @@ export function LazyWrapper({ children, fallback, className }: LazyWrapperProps)
 	const defaultFallback = (
 		<div className={`flex items-center justify-center p-8 ${className || ""}`}>
 			<div className="text-center">
-				<Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+				<Loader2 className="size-8 animate-spin mx-auto mb-2" />
 				<p className="text-sm text-gray-600">Carregando...</p>
 			</div>
 		</div>

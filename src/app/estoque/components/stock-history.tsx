@@ -86,19 +86,19 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 	const getMovementIcon = (type: string) => {
 		switch (type) {
 			case "ENTRADA":
-				return <TrendingUp className="h-4 w-4" />
+				return <TrendingUp className="size-4" />
 			case "SAIDA":
-				return <TrendingDown className="h-4 w-4" />
+				return <TrendingDown className="size-4" />
 			case "AJUSTE":
-				return <ArrowUpDown className="h-4 w-4" />
+				return <ArrowUpDown className="size-4" />
 			case "VENCIMENTO":
-				return <Calendar className="h-4 w-4" />
+				return <Calendar className="size-4" />
 			case "PERDA":
-				return <AlertTriangle className="h-4 w-4" />
+				return <AlertTriangle className="size-4" />
 			case "DESPERDICIO":
-				return <Trash2 className="h-4 w-4" />
+				return <Trash2 className="size-4" />
 			default:
-				return <Package className="h-4 w-4" />
+				return <Package className="size-4" />
 		}
 	}
 
@@ -129,7 +129,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center gap-2 mb-6">
-				<History className="h-5 w-5" />
+				<History className="size-5" />
 				<h2 className="text-2xl font-bold">Histórico de Movimentações</h2>
 				{productName && <span className="text-lg text-gray-600">- {productName}</span>}
 			</div>
@@ -192,11 +192,11 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 							onPageChange?.(1)
 						}}
 					>
-						<Filter className="h-4 w-4 mr-1" />
+						<Filter className="size-4 mr-1" />
 						Limpar
 					</Button>
 					<Button variant="outline" size="sm" onClick={exportHistory}>
-						<Download className="h-4 w-4 mr-1" />
+						<Download className="size-4 mr-1" />
 						Exportar
 					</Button>
 				</div>
@@ -252,7 +252,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 								<CardContent className="p-4 h-full">
 									<div className="flex flex-col gap-3 h-full">
 										<div className="flex items-center gap-3">
-											<Skeleton className="h-10 w-10 rounded-lg" />
+											<Skeleton className="size-10 rounded-lg" />
 											<div className="space-y-2 flex-1">
 												<Skeleton className="h-4 w-3/4" />
 												<Skeleton className="h-3 w-1/2" />
@@ -276,7 +276,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 					<Card>
 						<CardContent className="p-12 text-center">
 							<div className="text-red-400 mb-4">
-								<AlertTriangle className="h-12 w-12 mx-auto" />
+								<AlertTriangle className="size-12 mx-auto" />
 							</div>
 							<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar histórico</h3>
 							<p className="text-red-500">Tente novamente mais tarde.</p>
@@ -286,7 +286,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 					<Card>
 						<CardContent className="p-12 text-center">
 							<div className="text-gray-400 mb-4">
-								<History className="h-12 w-12 mx-auto" />
+								<History className="size-12 mx-auto" />
 							</div>
 							<h3 className="text-lg font-medium mb-2 text-gray-600">Nenhum movimento encontrado</h3>
 							<p className="text-gray-500">Não há movimentações para os filtros selecionados.</p>
@@ -346,17 +346,17 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 										</div>
 
 										{movement.reason && (
-											<div className="text-xs text-gray-600 bg-gray-100 p-2 rounded">
+											<div className="text-xs text-gray-600 bg-gray-100 p-2 rounded-sm">
 												{movement.reason}
 											</div>
 										)}
 										{movement.isWaste && movement.recordType === 'waste' && (
-											<div className="text-xs text-red-600 bg-red-100 p-2 rounded">
+											<div className="text-xs text-red-600 bg-red-100 p-2 rounded-sm">
 												<strong>Motivo:</strong> {movement.reason}
 											</div>
 										)}
 										{movement.notes && (
-											<div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+											<div className="text-xs text-gray-500 bg-gray-50 p-2 rounded-sm">
 												{movement.notes}
 											</div>
 										)}
@@ -398,7 +398,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 									variant={currentPage === page ? "default" : "outline"}
 									size="sm"
 									onClick={() => onPageChange?.(page)}
-									className="w-8 h-8 p-0"
+									className="size-8 p-0"
 								>
 									{page}
 								</Button>

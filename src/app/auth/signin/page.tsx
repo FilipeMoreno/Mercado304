@@ -240,7 +240,7 @@ export default function SignInPage() {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				<div className="text-center">
-					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+					<Loader2 className="size-8 animate-spin mx-auto mb-4" />
 					<p className="text-muted-foreground">Verificando autenticação...</p>
 				</div>
 			</div>
@@ -250,7 +250,7 @@ export default function SignInPage() {
 	return (
 		<div className="flex flex-col space-y-2 mb-6">
 			<div className="flex items-center justify-center mb-4">
-				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<ShoppingCart className="mr-2 size-8 text-blue-600" />
 				<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 			</div>
 			<div className="text-center mb-3">
@@ -271,15 +271,15 @@ export default function SignInPage() {
 											disabled={isPasskeyLoading || isLoading}
 										>
 											{isPasskeyLoading ? (
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<Loader2 className="mr-2 size-4 animate-spin" />
 											) : (
-												<Fingerprint className="mr-2 h-4 w-4" />
+												<Fingerprint className="mr-2 size-4" />
 											)}
 											Login com Passkey
 										</Button>
 										<Badge
 											variant="secondary"
-											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-sm"
+											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-xs"
 										>
 											Usado por último
 										</Badge>
@@ -294,9 +294,9 @@ export default function SignInPage() {
 											disabled={isGoogleLoading || isLoading}
 										>
 											{isGoogleLoading ? (
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<Loader2 className="mr-2 size-4 animate-spin" />
 											) : (
-												<svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+												<svg className="mr-2 size-4" viewBox="0 0 24 24">
 													<path
 														d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 														fill="#4285F4"
@@ -319,7 +319,7 @@ export default function SignInPage() {
 										</Button>
 										<Badge
 											variant="secondary"
-											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-sm"
+											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-xs"
 										>
 											Usado por último
 										</Badge>
@@ -328,12 +328,12 @@ export default function SignInPage() {
 								{lastLoginMethod === "email" && (
 									<div className="relative">
 										<Button variant="outline" className="w-full" onClick={() => setShowEmailForm(true)}>
-											<Mail className="mr-2 h-4 w-4" />
+											<Mail className="mr-2 size-4" />
 											Email e Senha
 										</Button>
 										<Badge
 											variant="secondary"
-											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-sm"
+											className="absolute -top-2 -right-1 text-[10px] px-1.5 py-0.5 bg-blue-500 text-white border-0 shadow-xs"
 										>
 											Usado por último
 										</Badge>
@@ -350,9 +350,9 @@ export default function SignInPage() {
 									disabled={isPasskeyLoading || isLoading}
 								>
 									{isPasskeyLoading ? (
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 									) : (
-										<Fingerprint className="mr-2 h-4 w-4" />
+										<Fingerprint className="mr-2 size-4" />
 									)}
 									Login com Passkey
 								</Button>
@@ -366,9 +366,9 @@ export default function SignInPage() {
 									disabled={isGoogleLoading || isLoading}
 								>
 									{isGoogleLoading ? (
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 									) : (
-										<svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+										<svg className="mr-2 size-4" viewBox="0 0 24 24">
 											<path
 												d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 												fill="#4285F4"
@@ -394,7 +394,7 @@ export default function SignInPage() {
 							{/* Botão Email e Senha quando não é o último método */}
 							{(!lastLoginMethod || lastLoginMethod !== "email") && (
 								<Button variant="outline" className="w-full" onClick={() => setShowEmailForm(true)}>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Email e Senha
 								</Button>
 							)}
@@ -410,7 +410,7 @@ export default function SignInPage() {
 						<div className="space-y-2">
 							<Label htmlFor="email">Email</Label>
 							<div className="relative">
-								<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
 								<Input
 									id="email"
 									type="email"
@@ -430,7 +430,7 @@ export default function SignInPage() {
 								<Label htmlFor="password">Senha</Label>
 							</div>
 							<div className="relative">
-								<Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+								<Lock className="absolute left-3 top-3 size-4 text-muted-foreground" />
 								<Input
 									id="password"
 									type={showPassword ? "text" : "password"}
@@ -449,7 +449,7 @@ export default function SignInPage() {
 									onClick={() => setShowPassword(!showPassword)}
 									disabled={isLoading}
 								>
-									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 								</Button>
 							</div>
 							<div className="flex justify-end">
@@ -462,7 +462,7 @@ export default function SignInPage() {
 						{showTwoFactor && (
 							<div className="space-y-2">
 								<div className="flex items-center space-x-2">
-									<Shield className="h-4 w-4 text-blue-600" />
+									<Shield className="size-4 text-blue-600" />
 									<Label htmlFor="twoFactorCode">Código de dois fatores</Label>
 								</div>
 								<Input
@@ -487,7 +487,7 @@ export default function SignInPage() {
 						>
 							{isLoading ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									{showTwoFactor ? "Verificando..." : "Entrando..."}
 								</>
 							) : showTwoFactor ? (

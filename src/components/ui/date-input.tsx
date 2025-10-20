@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface DateInputProps {
   id?: string
@@ -33,7 +33,7 @@ export function DateInput({
 }: DateInputProps) {
   const [open, setOpen] = React.useState(false)
   const [tempValue, setTempValue] = React.useState(value)
-  const { isMobile } = useMobile()
+  const isMobile = useIsMobile()
 
   // Atualizar tempValue quando value mudar
   React.useEffect(() => {
@@ -79,7 +79,7 @@ export function DateInput({
           <span className={value ? "" : "text-muted-foreground"}>
             {formatDateForDisplay(value)}
           </span>
-          <Calendar className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <Calendar className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
 
         <ResponsiveDialog

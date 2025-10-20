@@ -29,8 +29,8 @@ export function DeleteProductModal({
 			swipeToClose={true}
 		>
 			<div className="space-y-4">
-				<div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
-					<Trash2 className="h-8 w-8 text-red-500" />
+				<div className="flex items-center justify-center size-16 mx-auto bg-red-100 rounded-full">
+					<Trash2 className="size-8 text-red-500" />
 				</div>
 
 				<div className="text-center space-y-2">
@@ -44,7 +44,7 @@ export function DeleteProductModal({
 
 				<div className="flex flex-col gap-3 pt-4">
 					<Button variant="destructive" onClick={onConfirm} disabled={isDeleting} className="w-full">
-						<Trash2 className="h-4 w-4 mr-2" />
+						<Trash2 className="size-4 mr-2" />
 						{isDeleting ? "Excluindo..." : "Sim, Excluir"}
 					</Button>
 					<Button variant="outline" onClick={onClose} disabled={isDeleting} className="w-full">

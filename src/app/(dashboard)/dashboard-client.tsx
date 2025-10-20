@@ -34,6 +34,7 @@ import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
+import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -138,34 +139,8 @@ export function DashboardClient() {
 	// Loading skeleton for dashboard stats
 	if (isLoading) {
 		return (
-			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 md:space-y-6">
-				<div>
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-4 w-96 mt-2" />
-				</div>
-				<OptimizedLoading isLoading={true} skeletonType="product" skeletonCount={5}>
-					<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-						{Array.from({ length: 5 }).map((_, i) => (
-							<motion.div
-								key={`dashboard-skeleton-${i}-${Math.random().toString(36).substr(2, 9)}`}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: i * 0.1 }}
-							>
-								<Card className="shadow-sm">
-									<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-										<Skeleton className="h-4 w-20" />
-										<Skeleton className="h-4 w-4" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-8 w-16" />
-									</CardContent>
-								</Card>
-							</motion.div>
-						))}
-					</div>
-				</OptimizedLoading>
-			</motion.div>
+			<DashboardSkeleton />
+
 		)
 	}
 
@@ -267,50 +242,49 @@ export function DashboardClient() {
 					<DashboardStatsCardMemo
 						title="Comparação Mensal"
 						description="Comparação entre este mês e o anterior"
-						icon={<TrendingUp className="h-5 w-5" />}
+						icon={<TrendingUp className="size-5" />}
 					>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div className="text-center p-4 border rounded-lg">
+							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
 								<div className="text-2xl font-bold text-blue-600">R$ {temporalData?.currentMonth.spent.toFixed(2)}</div>
-								<div className="text-sm text-gray-600">Este Mês</div>
-								<div className="text-xs text-gray-500 mt-1">{temporalData?.currentMonth.purchases} compras</div>
+								<div className="text-sm text-muted-foreground">Este Mês</div>
+								<div className="text-xs text-muted-foreground mt-1">{temporalData?.currentMonth.purchases} compras</div>
 							</div>
 
-							<div className="text-center p-4 border rounded-lg">
-								<div className="text-2xl font-bold text-gray-600">R$ {temporalData?.lastMonth.spent.toFixed(2)}</div>
-								<div className="text-sm text-gray-600">Mês Passado</div>
-								<div className="text-xs text-gray-500 mt-1">{temporalData?.lastMonth.purchases} compras</div>
+							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
+								<div className="text-2xl font-bold text-foreground">R$ {temporalData?.lastMonth.spent.toFixed(2)}</div>
+								<div className="text-sm text-muted-foreground">Mês Passado</div>
+								<div className="text-xs text-muted-foreground mt-1">{temporalData?.lastMonth.purchases} compras</div>
 							</div>
 
-							<div className="text-center p-4 border rounded-lg">
+							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
 								{temporalData?.lastMonth.purchases === 0 ? (
 									<>
 										<div className="text-2xl font-bold text-blue-600">Novo</div>
-										<div className="text-sm text-gray-600">Primeiro mês</div>
-										<div className="text-xs text-gray-500 mt-1">sem comparação</div>
+										<div className="text-sm text-muted-foreground">Primeiro mês</div>
+										<div className="text-xs text-muted-foreground mt-1">sem comparação</div>
 									</>
 								) : (
 									<>
 										<div
-											className={`text-2xl font-bold ${
-												temporalData?.changes.spent > 0
-													? "text-red-600"
-													: temporalData?.changes.spent < 0
-														? "text-green-600"
-														: "text-gray-600"
-											}`}
+											className={`text-2xl font-bold ${temporalData?.changes.spent > 0
+												? "text-red-600"
+												: temporalData?.changes.spent < 0
+													? "text-green-600"
+													: "text-muted-foreground"
+												}`}
 										>
 											{temporalData?.changes.spent > 0 ? "+" : ""}
 											{temporalData?.changes.spent.toFixed(1)}%
 										</div>
-										<div className="text-sm text-gray-600">
+										<div className="text-sm text-muted-foreground">
 											{temporalData?.changes.spent > 0
 												? "Aumento"
 												: temporalData?.changes.spent < 0
 													? "Economia"
 													: "Estável"}
 										</div>
-										<div className="text-xs text-gray-500 mt-1">vs. mês anterior</div>
+										<div className="text-xs text-muted-foreground mt-1">vs. mês anterior</div>
 									</>
 								)}
 							</div>
@@ -342,7 +316,7 @@ export function DashboardClient() {
 					<DashboardStatsCardMemo
 						title="Gastos por Categoria"
 						description="Distribuição de gastos por categoria de produtos"
-						icon={<Package className="h-5 w-5" />}
+						icon={<Package className="size-5" />}
 					>
 						<div className="space-y-3">
 							{stats?.categoryStats.slice(0, 8).map((category: CategoryStats, index: number) => {
@@ -357,19 +331,19 @@ export function DashboardClient() {
 										transition={{ delay: 0.7 + index * 0.05 }}
 									>
 										<div className="flex items-center gap-3">
-											<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+											<div className="size-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
 												{index + 1}
 											</div>
 											<div>
 												<div className="font-medium">{category.categoryName}</div>
-												<div className="text-sm text-gray-500">
+												<div className="text-sm text-muted-foreground">
 													{category.totalQuantity.toFixed(1)} itens • {category.totalPurchases} compras
 												</div>
 											</div>
 										</div>
 										<div className="text-right">
 											<div className="font-medium">R$ {category.totalSpent.toFixed(2)}</div>
-											<div className="text-sm text-gray-500">{percentage.toFixed(1)}%</div>
+											<div className="text-sm text-muted-foreground">{percentage.toFixed(1)}%</div>
 										</div>
 									</motion.div>
 								)
@@ -381,7 +355,7 @@ export function DashboardClient() {
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{currentPrefs.showTopProducts && (
-					<Card className="shadow-sm hover:shadow-lg transition-shadow">
+					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
 						<CardHeader>
 							<CardTitle>Produtos Mais Comprados</CardTitle>
 							<CardDescription>Top 5 produtos mais frequentes</CardDescription>
@@ -391,7 +365,7 @@ export function DashboardClient() {
 								<Empty className="border border-dashed py-8">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<Package className="h-6 w-6" />
+											<Package className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
 										<EmptyDescription>
@@ -400,7 +374,7 @@ export function DashboardClient() {
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/compras/nova" className="inline-flex">
-											<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
+											<span className="text-primary hover:text-primary/80">Registre sua primeira compra</span>
 										</Link>
 									</EmptyContent>
 								</Empty>
@@ -409,19 +383,19 @@ export function DashboardClient() {
 									{(stats?.topProducts || []).slice(0, 5).map((product: TopProduct, index: number) => (
 										<div key={product.productId || index} className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
-												<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+												<div className="size-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
 													{index + 1}
 												</div>
 												<div>
 													<div className="font-medium">{product.productName}</div>
-													<div className="text-sm text-gray-500">
+													<div className="text-sm text-muted-foreground">
 														{product.totalQuantity?.toFixed(1) || 0} {product.unit || "unidades"}
 													</div>
 												</div>
 											</div>
 											<div className="text-right">
 												<div className="font-medium">R$ {(product.averagePrice || 0).toFixed(2)}</div>
-												<div className="text-sm text-gray-500">{product.totalPurchases || 0} compras</div>
+												<div className="text-sm text-muted-foreground">{product.totalPurchases || 0} compras</div>
 											</div>
 										</div>
 									))}
@@ -432,7 +406,7 @@ export function DashboardClient() {
 				)}
 
 				{currentPrefs.showMarketCompare && (
-					<Card className="shadow-sm hover:shadow-lg transition-shadow">
+					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
 						<CardHeader>
 							<CardTitle>Estatísticas por Mercado</CardTitle>
 							<CardDescription>Seus mercados mais frequentados</CardDescription>
@@ -442,7 +416,7 @@ export function DashboardClient() {
 								<Empty className="border border-dashed py-8">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<Store className="h-6 w-6" />
+											<Store className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
 										<EmptyDescription>Cadastre um mercado e registre suas compras para ver estatísticas.</EmptyDescription>
@@ -460,12 +434,12 @@ export function DashboardClient() {
 										.map((market: MarketComparison, index: number) => {
 											// Calcular o total gasto aproximado
 											const totalSpent = market.averagePrice * market.totalPurchases
-											
+
 											return (
-												<div key={market.marketId} className="border rounded-lg p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors">
+												<div key={market.marketId} className="border border-border bg-card rounded-sm p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors shadow-xs">
 													<div className="flex items-start justify-between gap-3">
 														<div className="flex items-start gap-3 flex-1 min-w-0">
-															<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold flex-shrink-0">
+															<div className="size-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold shrink-0">
 																{index + 1}
 															</div>
 															<div className="flex-1 min-w-0">
@@ -475,7 +449,7 @@ export function DashboardClient() {
 																		<span>🛒 {market.totalPurchases} {market.totalPurchases === 1 ? 'compra' : 'compras'}</span>
 																		<span>💰 R$ {totalSpent.toFixed(2)} total</span>
 																	</div>
-																	<div className="text-xs opacity-75">
+																	<div className="text-xs text-muted-foreground/75">
 																		Ticket médio: R$ {market.averagePrice.toFixed(2)}
 																	</div>
 																</div>
@@ -492,65 +466,67 @@ export function DashboardClient() {
 				)}
 			</div>
 
-			{currentPrefs.showRecentBuys && (
-				<Card className="shadow-sm hover:shadow-lg transition-shadow">
-					<CardHeader>
-						<CardTitle>Compras Recentes</CardTitle>
-						<CardDescription>Últimas 5 compras realizadas</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{(stats.recentPurchases || []).length === 0 ? (
-							<Empty className="border border-dashed py-8">
-								<EmptyHeader>
-									<EmptyMedia variant="icon">
-										<ShoppingCart className="h-6 w-6" />
-									</EmptyMedia>
-									<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-									<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
-								</EmptyHeader>
-								<EmptyContent>
-									<Link href="/compras/nova" className="inline-flex">
-										<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
-									</Link>
-								</EmptyContent>
-							</Empty>
-						) : (
-							<div className="space-y-3">
-								{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
-									<div
-										key={purchase.id}
-										className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-									>
-										<div className="flex items-center gap-3">
-											<Store className="h-5 w-5 text-gray-400" />
-											<div>
-												<div className="font-medium">{purchase.market?.name || "Mercado não identificado"}</div>
-												<div className="text-sm text-gray-500">
-													{formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+			{
+				currentPrefs.showRecentBuys && (
+					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
+						<CardHeader>
+							<CardTitle>Compras Recentes</CardTitle>
+							<CardDescription>Últimas 5 compras realizadas</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{(stats.recentPurchases || []).length === 0 ? (
+								<Empty className="border border-dashed py-8">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<ShoppingCart className="size-6" />
+										</EmptyMedia>
+										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
+										<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<Link href="/compras/nova" className="inline-flex">
+											<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
+										</Link>
+									</EmptyContent>
+								</Empty>
+							) : (
+								<div className="space-y-3">
+									{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
+										<div
+											key={purchase.id}
+											className="flex items-center justify-between p-3 border border-border bg-card rounded-sm hover:bg-muted/50 transition-colors shadow-xs"
+										>
+											<div className="flex items-center gap-3">
+												<Store className="size-5 text-muted-foreground" />
+												<div>
+													<div className="font-medium">{purchase.market?.name || "Mercado não identificado"}</div>
+													<div className="text-sm text-muted-foreground">
+														{formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+													</div>
+												</div>
+											</div>
+											<div className="text-right">
+												<div className="font-medium">R$ {(purchase.totalAmount || 0).toFixed(2)}</div>
+												<div className="text-sm text-muted-foreground">
+													{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
 												</div>
 											</div>
 										</div>
-										<div className="text-right">
-											<div className="font-medium">R$ {(purchase.totalAmount || 0).toFixed(2)}</div>
-											<div className="text-sm text-gray-500">
-												{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
-											</div>
-										</div>
-									</div>
-								))}
+									))}
 
-								{(stats.recentPurchases || []).length > 5 && (
-									<div className="text-center pt-3 border-t">
-										<Link href="/compras" className="text-sm text-blue-600 hover:text-blue-800">
-											Ver todas as compras ({stats.totalPurchases})
-										</Link>
-									</div>
-								)}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			)}
-		</motion.div>
+									{(stats.recentPurchases || []).length > 5 && (
+										<div className="text-center pt-3 border-t border-border">
+											<Link href="/compras" className="text-sm text-primary hover:text-primary/80 font-medium">
+												Ver todas as compras ({stats.totalPurchases})
+											</Link>
+										</div>
+									)}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				)
+			}
+		</motion.div >
 	)
 }

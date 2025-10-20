@@ -82,7 +82,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<List className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<List className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar listas</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -171,7 +171,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 				{/* Header with search and create button */}
 				<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2">
 					<div className="relative flex-1">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 						<Input
 							placeholder="Buscar listas..."
 							value={state.search as string}
@@ -192,7 +192,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 							}}
 						/>
 						<Button onClick={() => router.push("/lista/nova")} className="bg-green-600 hover:bg-green-700 text-white">
-							<Plus className="h-4 w-4 mr-2" />
+							<Plus className="size-4 mr-2" />
 							<span className="hidden sm:inline">Nova Lista</span>
 							<span className="sm:hidden">Nova</span>
 						</Button>
@@ -203,7 +203,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 					<Empty className="border border-dashed py-12">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<List className="h-6 w-6" />
+								<List className="size-6" />
 							</EmptyMedia>
 							<EmptyTitle>{hasActiveFilters ? "Nenhuma lista encontrada" : "Nenhuma lista criada"}</EmptyTitle>
 							<EmptyDescription>
@@ -220,12 +220,12 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 											updateSingleValue("page", 1)
 										}}
 									>
-										<Filter className="h-4 w-4 mr-2" />
+										<Filter className="size-4 mr-2" />
 										Limpar Filtros
 									</Button>
 								)}
 								<Button onClick={() => router.push("/lista/nova")} className="bg-green-600 hover:bg-green-700 text-white">
-									<Plus className="h-4 w-4 mr-2" />
+									<Plus className="size-4 mr-2" />
 									Nova Lista
 								</Button>
 							</div>
@@ -260,7 +260,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 											<div className="flex justify-between items-start">
 												<div>
 													<CardTitle className="flex items-center gap-2">
-														<List className="h-5 w-5" />
+														<List className="size-5" />
 														{list.name}
 													</CardTitle>
 													<CardDescription className="mt-2">
@@ -277,20 +277,20 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 
 											<Link href={`/lista/${list.id}`}>
 												<Button variant="outline" size="sm" className="w-full">
-													<Eye className="h-4 w-4 mr-1" />
+													<Eye className="size-4 mr-1" />
 													Ver Lista
 												</Button>
 											</Link>
 
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-														<MoreVertical className="h-4 w-4" />
+													<Button variant="ghost" size="sm" className="size-8 p-0">
+														<MoreVertical className="size-4" />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
 													<DropdownMenuItem onClick={() => openDeleteConfirm(list)} className="text-red-600">
-														<Trash2 className="h-4 w-4 mr-2" />
+														<Trash2 className="size-4 mr-2" />
 														Excluir
 													</DropdownMenuItem>
 												</DropdownMenuContent>
@@ -309,7 +309,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 									onClick={() => handlePageChange((state.page as number) - 1)}
 									disabled={state.page === 1}
 								>
-									<ChevronLeft className="h-4 w-4" />
+									<ChevronLeft className="size-4" />
 									Anterior
 								</Button>
 
@@ -325,7 +325,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 													variant={state.page === page ? "default" : "outline"}
 													size="sm"
 													onClick={() => handlePageChange(page)}
-													className="w-8 h-8 p-0"
+													className="size-8 p-0"
 												>
 													{page}
 												</Button>
@@ -340,7 +340,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 									disabled={state.page === totalPages}
 								>
 									Próxima
-									<ChevronRight className="h-4 w-4" />
+									<ChevronRight className="size-4" />
 								</Button>
 							</div>
 						)}
@@ -348,7 +348,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 				)}
 			</div>
 
-			<div className="w-full md:w-1/3 flex-shrink-0">
+			<div className="w-full md:w-1/3 shrink-0">
 				<AiShoppingList onGenerateList={handleGenerateAutoList} onCreateShoppingList={handleCreateAutoList} />
 			</div>
 
@@ -363,7 +363,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteShoppingListMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir a lista <strong>{deleteState.item?.name}</strong>?

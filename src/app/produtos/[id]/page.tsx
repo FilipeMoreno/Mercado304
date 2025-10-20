@@ -201,7 +201,7 @@ export default function ProdutoDetalhesPage() {
 				<div className="flex flex-row gap-3">
 					<Link href="/produtos" className="flex-1">
 						<Button variant="outline" size="lg" className="w-full">
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar para Produtos
 						</Button>
 					</Link>
@@ -209,13 +209,13 @@ export default function ProdutoDetalhesPage() {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" size="lg">
-								<MoreVertical className="h-4 w-4" />
+								<MoreVertical className="size-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem asChild>
 								<Link href={`/produtos/${productId}/editar`} className="flex items-center cursor-pointer">
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar Produto
 								</Link>
 							</DropdownMenuItem>
@@ -223,7 +223,7 @@ export default function ProdutoDetalhesPage() {
 								onClick={handleDeleteProduct}
 								className="text-red-600 focus:text-red-600 cursor-pointer"
 							>
-								<Trash2 className="h-4 w-4 mr-2" />
+								<Trash2 className="size-4 mr-2" />
 								Excluir Produto
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -238,7 +238,7 @@ export default function ProdutoDetalhesPage() {
 			{nutritionalInfo && (
 				<Link href={`/produtos/${productId}/analise-nutricional`}>
 					<Button size="lg" className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
-						<Sparkles className="h-5 w-5 mr-2" />
+						<Sparkles className="size-5 mr-2" />
 						Ver Análise Nutricional Completa com IA
 					</Button>
 				</Link>
@@ -251,7 +251,7 @@ export default function ProdutoDetalhesPage() {
 						<CardContent className="p-4">
 							<div className="flex items-center gap-3">
 								<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-									<ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+									<ShoppingCart className="size-5 text-blue-600 dark:text-blue-400" />
 								</div>
 								<div>
 									<p className="text-2xl font-bold">{stats.totalPurchases || 0}</p>
@@ -265,7 +265,7 @@ export default function ProdutoDetalhesPage() {
 						<CardContent className="p-4">
 							<div className="flex items-center gap-3">
 								<div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-									<DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+									<DollarSign className="size-5 text-green-600 dark:text-green-400" />
 								</div>
 								<div>
 									<p className="text-2xl font-bold">R$ {(stats.averagePrice || 0).toFixed(2)}</p>
@@ -279,7 +279,7 @@ export default function ProdutoDetalhesPage() {
 						<CardContent className="p-4">
 							<div className="flex items-center gap-3">
 								<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-									<Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+									<Calendar className="size-5 text-purple-600 dark:text-purple-400" />
 								</div>
 								<div>
 									<p className="text-2xl font-bold">
@@ -300,11 +300,11 @@ export default function ProdutoDetalhesPage() {
 							<div className="flex items-center gap-3">
 								<div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
 									{stats.priceChange > 0 ? (
-										<TrendingUp className="h-5 w-5 text-red-600 dark:text-red-400" />
+										<TrendingUp className="size-5 text-red-600 dark:text-red-400" />
 									) : stats.priceChange < 0 ? (
-										<TrendingDown className="h-5 w-5 text-green-600 dark:text-green-400" />
+										<TrendingDown className="size-5 text-green-600 dark:text-green-400" />
 									) : (
-										<Minus className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+										<Minus className="size-5 text-gray-600 dark:text-gray-400" />
 									)}
 								</div>
 								<div>
@@ -332,7 +332,7 @@ export default function ProdutoDetalhesPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<AlertTriangle className="h-5 w-5" />
+							<AlertTriangle className="size-5" />
 							Status do Estoque
 						</CardTitle>
 					</CardHeader>
@@ -348,9 +348,9 @@ export default function ProdutoDetalhesPage() {
 										}`}
 								>
 									{stockAlerts.status === "low" ? (
-										<AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+										<AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
 									) : (
-										<CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+										<CheckCircle className="size-5 text-green-600 dark:text-green-400" />
 									)}
 								</div>
 								<div>
@@ -362,7 +362,7 @@ export default function ProdutoDetalhesPage() {
 							{product.minStock && (
 								<div className="flex items-center gap-3">
 									<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-										<Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+										<Package className="size-5 text-blue-600 dark:text-blue-400" />
 									</div>
 									<div>
 										<p className="text-xl font-bold">{product.minStock}</p>
@@ -374,7 +374,7 @@ export default function ProdutoDetalhesPage() {
 							{product.maxStock && (
 								<div className="flex items-center gap-3">
 									<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-										<Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+										<Package className="size-5 text-purple-600 dark:text-purple-400" />
 									</div>
 									<div>
 										<p className="text-xl font-bold">{product.maxStock}</p>
@@ -392,7 +392,7 @@ export default function ProdutoDetalhesPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<TrendingUp className="h-5 w-5" />
+							<TrendingUp className="size-5" />
 							Evolução de Preços por Mercado
 						</CardTitle>
 						<CardDescription>Histórico de preços nos últimos 3 meses</CardDescription>
@@ -496,7 +496,7 @@ export default function ProdutoDetalhesPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Store className="h-5 w-5" />
+							<Store className="size-5" />
 							Comparação entre Mercados
 						</CardTitle>
 						<CardDescription>Preços médios nos diferentes mercados</CardDescription>
@@ -536,7 +536,7 @@ export default function ProdutoDetalhesPage() {
 						<div className="flex justify-between items-center">
 							<div>
 								<CardTitle className="flex items-center gap-2">
-									<BarChart3 className="h-5 w-5" />
+									<BarChart3 className="size-5" />
 									Compras Recentes
 								</CardTitle>
 								<CardDescription>Histórico das últimas compras deste produto</CardDescription>
@@ -550,20 +550,20 @@ export default function ProdutoDetalhesPage() {
 									<Button
 										variant="outline"
 										size="icon"
-										className="h-8 w-8"
+										className="size-8"
 										onClick={() => setPurchasesPage((p) => Math.max(1, p - 1))}
 										disabled={purchasesPage === 1}
 									>
-										<ChevronLeft className="h-4 w-4" />
+										<ChevronLeft className="size-4" />
 									</Button>
 									<Button
 										variant="outline"
 										size="icon"
-										className="h-8 w-8"
+										className="size-8"
 										onClick={() => setPurchasesPage((p) => p + 1)}
 										disabled={purchasesPage * purchasesPerPage >= recentPurchases.length}
 									>
-										<ChevronRight className="h-4 w-4" />
+										<ChevronRight className="size-4" />
 									</Button>
 								</div>
 							</div>
@@ -576,7 +576,7 @@ export default function ProdutoDetalhesPage() {
 								.map((purchase: any) => (
 									<div key={purchase.id} className="flex items-center justify-between p-3 border rounded-lg">
 										<div className="flex items-center gap-3">
-											<Store className="h-4 w-4 text-gray-400" />
+											<Store className="size-4 text-gray-400" />
 											<div>
 												<p className="font-medium">{purchase.market?.name}</p>
 												<p className="text-sm text-gray-600 dark:text-gray-400">
@@ -603,7 +603,7 @@ export default function ProdutoDetalhesPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
 								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5 text-green-600" />
+									<Package className="size-5 text-green-600" />
 									Informações Nutricionais Completas
 								</CardTitle>
 								<CardDescription className="mt-2">
@@ -652,7 +652,7 @@ export default function ProdutoDetalhesPage() {
 													{getDisplayValue(nutritionalInfo.calories, " kcal")}
 												</p>
 											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
+											<div className="absolute -top-2 -right-2 size-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 										</div>
 									)}
 									{_hasValue(nutritionalInfo.carbohydrates) && (
@@ -663,7 +663,7 @@ export default function ProdutoDetalhesPage() {
 													{getDisplayValue(nutritionalInfo.carbohydrates, "g")}
 												</p>
 											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
+											<div className="absolute -top-2 -right-2 size-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 										</div>
 									)}
 									{_hasValue(nutritionalInfo.proteins) && (
@@ -674,7 +674,7 @@ export default function ProdutoDetalhesPage() {
 													{getDisplayValue(nutritionalInfo.proteins, "g")}
 												</p>
 											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
+											<div className="absolute -top-2 -right-2 size-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
 										</div>
 									)}
 									{_hasValue(nutritionalInfo.totalFat) && (
@@ -685,7 +685,7 @@ export default function ProdutoDetalhesPage() {
 													{getDisplayValue(nutritionalInfo.totalFat, "g")}
 												</p>
 											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
+											<div className="absolute -top-2 -right-2 size-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
 										</div>
 									)}
 								</div>
@@ -707,7 +707,7 @@ export default function ProdutoDetalhesPage() {
 														{getDisplayValue(nutritionalInfo.totalSugars, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 size-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
 											</div>
 										)}
 										{_hasValue(nutritionalInfo.addedSugars) && (
@@ -738,7 +738,7 @@ export default function ProdutoDetalhesPage() {
 														{getDisplayValue(nutritionalInfo.addedSugars, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 size-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 											</div>
 										)}
 										{_hasValue(nutritionalInfo.fiber) && (
@@ -749,7 +749,7 @@ export default function ProdutoDetalhesPage() {
 														{getDisplayValue(nutritionalInfo.fiber, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 size-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
 											</div>
 										)}
 									</div>
@@ -776,7 +776,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.saturatedFat, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.transFat) && (
@@ -787,7 +787,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.transFat, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.monounsaturatedFat) && (
@@ -800,7 +800,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.monounsaturatedFat, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.polyunsaturatedFat) && (
@@ -813,7 +813,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.polyunsaturatedFat, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.cholesterol) && (
@@ -824,7 +824,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.cholesterol, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-600 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-gray-200 dark:bg-gray-600 opacity-20"></div>
 												</div>
 											)}
 										</div>
@@ -1113,7 +1113,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.omega3, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.omega6) && (
@@ -1124,7 +1124,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.omega6, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-emerald-200 dark:bg-emerald-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-emerald-200 dark:bg-emerald-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.epa) && (
@@ -1135,7 +1135,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.epa, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.dha) && (
@@ -1146,7 +1146,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.dha, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-cyan-200 dark:bg-cyan-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-cyan-200 dark:bg-cyan-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.taurine) && (
@@ -1157,7 +1157,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.taurine, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-purple-200 dark:bg-purple-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.caffeine) && (
@@ -1168,7 +1168,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.caffeine, "mg")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-amber-200 dark:bg-amber-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-amber-200 dark:bg-amber-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.galactose) && (
@@ -1179,7 +1179,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.lactose, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.lactose) && (
@@ -1190,7 +1190,7 @@ export default function ProdutoDetalhesPage() {
 															{getDisplayValue(nutritionalInfo.lactose, "g")}
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 												</div>
 											)}
 											{_hasValue(nutritionalInfo.alcoholContent) && (
@@ -1201,7 +1201,7 @@ export default function ProdutoDetalhesPage() {
 															{nutritionalInfo.alcoholContent} %
 														</p>
 													</div>
-													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+													<div className="absolute -top-2 -right-2 size-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
 												</div>
 											)}
 										</div>
@@ -1221,7 +1221,7 @@ export default function ProdutoDetalhesPage() {
 						<CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-b">
 							<CardTitle className="flex items-center gap-2.5">
 								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
-									<AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+									<AlertTriangle className="size-5 text-orange-600 dark:text-orange-400" />
 								</div>
 								<span className="text-lg">Informações sobre Alérgenos</span>
 							</CardTitle>

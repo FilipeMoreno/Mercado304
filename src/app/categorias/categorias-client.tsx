@@ -187,7 +187,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<Tag className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<Tag className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar categorias</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -204,7 +204,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				className="flex items-center gap-2 mb-6"
 			>
 				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 					<Input
 						placeholder="Buscar categorias..."
 						value={searchValue}
@@ -224,7 +224,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 						onClick={() => router.push("/categorias/nova")}
 						className="bg-green-600 hover:bg-green-700 text-white"
 					>
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						<span className="hidden sm:inline">Nova Categoria</span>
 						<span className="sm:hidden">Nova</span>
 					</Button>
@@ -238,7 +238,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Tag className="h-6 w-6" />
+										<Tag className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma categoria encontrada</EmptyTitle>
 									<EmptyDescription>Nenhuma categoria corresponde aos filtros aplicados</EmptyDescription>
@@ -259,7 +259,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Tag className="h-6 w-6" />
+										<Tag className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma categoria cadastrada</EmptyTitle>
 									<EmptyDescription>Comece adicionando sua primeira categoria</EmptyDescription>
@@ -267,7 +267,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 								<EmptyContent>
 									<Link href="/categorias/nova">
 										<Button>
-											<Plus className="mr-2 h-4 w-4" />
+											<Plus className="mr-2 size-4" />
 											Cadastrar Primeira Categoria
 										</Button>
 									</Link>
@@ -314,7 +314,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										onClick={() => handlePageChange(Number(state.page) - 1)}
 										disabled={Number(state.page) === 1}
 									>
-										<ChevronLeft className="h-4 w-4" />
+										<ChevronLeft className="size-4" />
 										Anterior
 									</Button>
 
@@ -330,7 +330,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 														variant={Number(state.page) === page ? "default" : "outline"}
 														size="sm"
 														onClick={() => handlePageChange(page)}
-														className="w-8 h-8 p-0"
+														className="size-8 p-0"
 													>
 														{page}
 													</Button>
@@ -345,7 +345,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										disabled={Number(state.page) === totalPages}
 									>
 										Próxima
-										<ChevronRight className="h-4 w-4" />
+										<ChevronRight className="size-4" />
 									</Button>
 								</div>
 							)}

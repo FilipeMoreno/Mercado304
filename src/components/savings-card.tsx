@@ -41,7 +41,7 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<TrendingDown className="h-5 w-5" />
+						<TrendingDown className="size-5" />
 						Oportunidades de Economia
 					</CardTitle>
 					<CardDescription>Comparação de preços entre mercados</CardDescription>
@@ -49,7 +49,7 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 				<CardContent>
 					<div className="space-y-3 animate-pulse">
 						{[1, 2, 3].map((i) => (
-							<div key={i} className="h-16 bg-gray-200 rounded"></div>
+							<div key={i} className="h-16 bg-gray-200 rounded-sm"></div>
 						))}
 					</div>
 				</CardContent>
@@ -62,7 +62,7 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<TrendingDown className="h-5 w-5" />
+						<TrendingDown className="size-5" />
 						Oportunidades de Economia
 					</CardTitle>
 					<CardDescription>Comparação de preços entre mercados</CardDescription>
@@ -78,7 +78,7 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<TrendingDown className="h-5 w-5" />
+					<TrendingDown className="size-5" />
 					Oportunidades de Economia
 				</CardTitle>
 				<CardDescription>
@@ -119,7 +119,7 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 								</div>
 							</div>
 
-						<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
+						<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded-sm">
 							<p className="text-sm text-green-700 dark:text-green-300">
 								Economia de <span className="font-bold">R$ {opportunity.potentialSaving.toFixed(2)}</span> por unidade
 							</p>

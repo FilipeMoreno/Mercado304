@@ -7,7 +7,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 interface SelectWithSearchProps {
@@ -32,7 +32,7 @@ export function SelectWithSearch({
 	disabled = false,
 }: SelectWithSearchProps) {
 	const [open, setOpen] = React.useState(false)
-	const { isMobile } = useMobile()
+	const isMobile = useIsMobile()
 
 	const selectedOption = options.find((option) => option.value === value)
 
@@ -84,7 +84,7 @@ export function SelectWithSearch({
 						) : (
 							placeholder
 						)}
-						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
 				<PopoverContent className="w-[--radix-popover-trigger-width] p-0">

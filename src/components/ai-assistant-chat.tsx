@@ -201,16 +201,16 @@ export function AiAssistantChat() {
 							{isDragOver && (
 								<div className="absolute inset-0 bg-primary/20 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
 									<div className="text-center">
-										<Camera className="h-12 w-12 text-primary mx-auto mb-2" />
+										<Camera className="size-12 text-primary mx-auto mb-2" />
 										<p className="text-primary font-medium">Solte a imagem aqui para enviar</p>
 									</div>
 								</div>
 							)}
 
-							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg flex-shrink-0">
+							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg shrink-0">
 								<CardTitle className="flex items-center gap-2">
-									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-										<Bot className="h-4 w-4 text-white" />
+									<div className="size-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+										<Bot className="size-4 text-white" />
 									</div>
 									<div className="flex flex-col">
 										<span className="text-sm font-semibold text-foreground">Zé, o assistente</span>
@@ -226,19 +226,19 @@ export function AiAssistantChat() {
 										<Button
 											variant="ghost"
 											size="icon"
-											className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+											className="rounded-full size-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 											title="Abrir em página completa"
 										>
-											<ExternalLink className="h-4 w-4" />
+											<ExternalLink className="size-4" />
 										</Button>
 									</Link>
 									<Button
 										variant="ghost"
 										size="icon"
 										onClick={handleCloseChat}
-										className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+										className="rounded-full size-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 									>
-										<X className="h-4 w-4" />
+										<X className="size-4" />
 									</Button>
 								</div>
 							</CardHeader>
@@ -294,7 +294,7 @@ export function AiAssistantChat() {
 									</div>
 								</ScrollArea>
 
-								<div className="p-4 border-t flex-shrink-0">
+								<div className="p-4 border-t shrink-0">
 									<EnhancedInput
 										value={input}
 										onChange={setInput}
@@ -377,7 +377,7 @@ export function AiAssistantChat() {
 								size="icon"
 								onClick={() => setShowPhotoCapture(false)}
 							>
-								<X className="h-4 w-4" />
+								<X className="size-4" />
 							</Button>
 						</div>
 						<div className="p-4">

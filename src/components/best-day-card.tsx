@@ -71,7 +71,7 @@ export function BestDayCard({ className }: { className?: string }) {
 		<Card className={className}>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Calendar className="h-5 w-5" />
+					<Calendar className="size-5" />
 					Melhor Dia para Comprar
 				</CardTitle>
 			</CardHeader>
@@ -86,9 +86,9 @@ export function BestDayCard({ className }: { className?: string }) {
 					/>
 					<Button onClick={searchBestDay} disabled={loading}>
 						{loading ? (
-							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+							<div className="animate-spin rounded-full size-4 border-b-2 border-white"></div>
 						) : (
-							<Search className="h-4 w-4" />
+							<Search className="size-4" />
 						)}
 					</Button>
 				</div>
@@ -100,7 +100,7 @@ export function BestDayCard({ className }: { className?: string }) {
 						<div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
 							<div className="flex items-center justify-between mb-2">
 								<div className="flex items-center gap-2">
-									<Target className="h-5 w-5 text-blue-600" />
+									<Target className="size-5 text-blue-600" />
 									<span className="font-semibold text-blue-800">Melhor dia:</span>
 									<span className="text-xl font-bold text-blue-900">{recommendation.bestDay}</span>
 								</div>
@@ -114,7 +114,7 @@ export function BestDayCard({ className }: { className?: string }) {
 							{recommendation.savings > 0 && (
 								<div className="flex items-center gap-4 text-sm">
 									<div className="flex items-center gap-1">
-										<TrendingDown className="h-4 w-4 text-green-600" />
+										<TrendingDown className="size-4 text-green-600" />
 										<span className="font-medium text-green-600">Economia: R$ {recommendation.savings.toFixed(2)}</span>
 									</div>
 									{recommendation.savingsPercentage > 0 && (
@@ -130,7 +130,7 @@ export function BestDayCard({ className }: { className?: string }) {
 						{analysis?.dayStats && analysis.dayStats.length > 1 && (
 							<div className="space-y-3">
 								<h4 className="font-medium text-sm flex items-center gap-2">
-									<BarChart3 className="h-4 w-4" />
+									<BarChart3 className="size-4" />
 									Análise por Dia da Semana
 								</h4>
 								<div className="space-y-2">
@@ -214,7 +214,7 @@ export function BestDayCard({ className }: { className?: string }) {
 						{insights.length > 0 && (
 							<div className="space-y-3">
 								<h4 className="font-medium text-sm flex items-center gap-2">
-									<Lightbulb className="h-4 w-4" />
+									<Lightbulb className="size-4" />
 									Insights
 								</h4>
 								<div className="space-y-2">
@@ -223,7 +223,7 @@ export function BestDayCard({ className }: { className?: string }) {
 											key={index}
 											className="flex items-start gap-2 p-2 rounded-lg bg-blue-50 border border-blue-200"
 										>
-											<div className="h-2 w-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+											<div className="h-2 w-2 bg-blue-500 rounded-full mt-2 shrink-0"></div>
 											<p className="text-sm text-blue-700">{insight}</p>
 										</div>
 									))}
@@ -244,7 +244,7 @@ export function BestDayCard({ className }: { className?: string }) {
 				{/* Estado vazio */}
 				{!recommendation && !loading && (
 					<div className="text-center py-6 text-muted-foreground">
-						<Clock className="h-8 w-8 mx-auto mb-2" />
+						<Clock className="size-8 mx-auto mb-2" />
 						<p className="text-sm">Digite um produto para descobrir o melhor dia para comprá-lo</p>
 					</div>
 				)}

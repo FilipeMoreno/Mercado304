@@ -146,7 +146,7 @@ export default function ChurrascoClient() {
 								<p className="text-xs sm:text-sm text-muted-foreground">Total de Pessoas</p>
 								<p className="text-lg sm:text-2xl font-bold">{adults + children}</p>
 							</div>
-							<Users className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+							<Users className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -158,7 +158,7 @@ export default function ChurrascoClient() {
 								<p className="text-xs sm:text-sm text-muted-foreground">Bebem Álcool</p>
 								<p className="text-lg sm:text-2xl font-bold">{drinkers}</p>
 							</div>
-							<Beer className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+							<Beer className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -170,7 +170,7 @@ export default function ChurrascoClient() {
 								<p className="text-xs sm:text-sm text-muted-foreground">Cálculos Feitos</p>
 								<p className="text-lg sm:text-2xl font-bold">{history.length}</p>
 							</div>
-							<Calculator className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+							<Calculator className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -180,12 +180,12 @@ export default function ChurrascoClient() {
 			<Tabs defaultValue="calculator" className="w-full">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="calculator" className="flex items-center gap-2">
-						<Calculator className="h-4 w-4" />
+						<Calculator className="size-4" />
 						<span className="hidden sm:inline">Calculadora</span>
 						<span className="sm:hidden">Calc</span>
 					</TabsTrigger>
 					<TabsTrigger value="history" className="flex items-center gap-2">
-						<History className="h-4 w-4" />
+						<History className="size-4" />
 						<span className="hidden sm:inline">Histórico</span>
 						<span className="sm:hidden">Hist</span>
 					</TabsTrigger>
@@ -195,7 +195,7 @@ export default function ChurrascoClient() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Users className="h-5 w-5" />
+								<Users className="size-5" />
 								Configurar Churrasco
 							</CardTitle>
 							<CardDescription>Informe os detalhes dos convidados para um cálculo preciso</CardDescription>
@@ -252,13 +252,13 @@ export default function ChurrascoClient() {
 								<Button onClick={handleCalculate} disabled={loading || adults < 1} size="lg" className="w-full">
 									{loading ? (
 										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											<Loader2 className="mr-2 size-4 animate-spin" />
 											<span className="hidden sm:inline">Calculando com IA...</span>
 											<span className="sm:hidden">Calculando...</span>
 										</>
 									) : (
 										<>
-											<Sparkles className="mr-2 h-4 w-4" />
+											<Sparkles className="mr-2 size-4" />
 											<span className="hidden sm:inline">Calcular Churrasco</span>
 											<span className="sm:hidden">Calcular</span>
 										</>
@@ -276,7 +276,7 @@ export default function ChurrascoClient() {
 						<Empty className="border border-dashed py-12">
 							<EmptyHeader>
 								<EmptyMedia variant="icon">
-									<History className="h-6 w-6" />
+									<History className="size-6" />
 								</EmptyMedia>
 								<EmptyTitle>Nenhum cálculo realizado ainda</EmptyTitle>
 								<EmptyDescription>Seus últimos cálculos aparecerão aqui após realizar o primeiro churrasco.</EmptyDescription>
@@ -286,7 +286,7 @@ export default function ChurrascoClient() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Clock className="h-5 w-5" />
+									<Clock className="size-5" />
 									Cálculos Recentes
 								</CardTitle>
 								<CardDescription>Seus últimos {history.length} cálculos</CardDescription>

@@ -170,7 +170,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			<DialogContent className="max-w-md">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<Receipt className="h-5 w-5" />
+						<Receipt className="size-5" />
 						Escanear Cupom Fiscal
 					</DialogTitle>
 				</DialogHeader>
@@ -192,7 +192,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 										ease: "easeInOut",
 									}}
 								/>
-								<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
+								<Loader2 className="size-8 animate-spin text-white mb-4" />
 								<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
 								<div className="mt-2 text-white/80 text-sm">
 									{currentStep === 'reading_image' && "Processando imagem..."}
@@ -212,12 +212,12 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 							<div className="absolute inset-0 border-4 border-dashed border-blue-500/50 rounded-lg m-4"></div>
 							<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
 								<div className="bg-black/70 text-white px-4 py-2 rounded-lg text-center">
-									<Receipt className="h-8 w-8 mx-auto mb-2" />
+									<Receipt className="size-8 mx-auto mb-2" />
 									<p className="text-sm">Posicione o cupom fiscal dentro da área</p>
 								</div>
 							</div>
 							{error && (
-								<p className="absolute bottom-4 left-4 right-4 text-center text-white bg-red-800/80 p-2 rounded">
+								<p className="absolute bottom-4 left-4 right-4 text-center text-white bg-red-800/80 p-2 rounded-sm">
 									{error}
 								</p>
 							)}
@@ -227,11 +227,11 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 
 				<div className="flex gap-2 mt-4">
 					<Button onClick={takePictureAndProcess} className="flex-1" disabled={isProcessing || !!error}>
-						<Camera className="mr-2 h-4 w-4" />
+						<Camera className="mr-2 size-4" />
 						{isProcessing ? "Aguarde..." : "Capturar"}
 					</Button>
 					<Button onClick={triggerFileUpload} variant="outline" className="flex-1" disabled={isProcessing}>
-						<Upload className="mr-2 h-4 w-4" />
+						<Upload className="mr-2 size-4" />
 						Carregar
 					</Button>
 				</div>

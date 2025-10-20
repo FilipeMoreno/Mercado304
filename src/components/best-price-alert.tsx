@@ -37,7 +37,7 @@ export function BestPriceAlert({
 				<div className="flex items-start justify-between">
 					<div className="flex items-start gap-3">
 						<div className="rounded-full bg-green-500 p-1">
-							<TrendingDown className="h-4 w-4 text-white" />
+							<TrendingDown className="size-4 text-white" />
 						</div>
 						<div className="flex-1">
 							<h4 className="font-semibold text-green-800">🎉 Menor Preço Histórico!</h4>
@@ -57,7 +57,7 @@ export function BestPriceAlert({
 						onClick={handleClose}
 						className="text-green-600 hover:text-green-800 hover:bg-green-100"
 					>
-						<X className="h-4 w-4" />
+						<X className="size-4" />
 					</Button>
 				</div>
 			</CardContent>

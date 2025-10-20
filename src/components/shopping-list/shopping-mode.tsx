@@ -124,7 +124,7 @@ export function ShoppingMode({
 			{/* Header do Modo de Compra */}
 			<div className="flex justify-between items-center bg-background p-4 md:p-6 sticky top-0 z-10 border-b">
 				<Button variant="ghost" size="icon" onClick={onBack}>
-					<ChevronLeft className="h-5 w-5" />
+					<ChevronLeft className="size-5" />
 				</Button>
 				<div className="text-lg font-bold flex-1 text-center">{listName}</div>
 				<div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export function ShoppingMode({
 						onClick={() => setShowCompleted(!showCompleted)}
 						className="flex items-center gap-2"
 					>
-						{showCompleted ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+						{showCompleted ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 						<span className="hidden sm:inline">{showCompleted ? "Ocultar" : "Mostrar"} Concluídos</span>
 						{checkedItems.length > 0 && (
 							<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{checkedItems.length}</span>
@@ -145,7 +145,7 @@ export function ShoppingMode({
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" size="icon">
-								<Settings2 className="h-5 w-5" />
+								<Settings2 className="size-5" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
@@ -154,11 +154,11 @@ export function ShoppingMode({
 								onValueChange={(value) => onSortChange(value as "default" | "category")}
 							>
 								<DropdownMenuRadioItem value="default">
-									<SortAsc className="h-4 w-4 mr-2" />
+									<SortAsc className="size-4 mr-2" />
 									Padrão
 								</DropdownMenuRadioItem>
 								<DropdownMenuRadioItem value="category">
-									<LayoutList className="h-4 w-4 mr-2" />
+									<LayoutList className="size-4 mr-2" />
 									Por Categoria
 								</DropdownMenuRadioItem>
 							</DropdownMenuRadioGroup>
@@ -170,7 +170,7 @@ export function ShoppingMode({
 			<div className="px-4 md:px-6 space-y-4">
 				{/* Botão de Finalizar Compra */}
 				<Button onClick={onFinalizePurchase} disabled={completedItems === 0} className="w-full">
-					<Save className="h-4 w-4 mr-2" />
+					<Save className="size-4 mr-2" />
 					Finalizar Compra ({completedItems} itens)
 				</Button>
 			</div>
@@ -204,7 +204,7 @@ export function ShoppingMode({
 											duration: 0.3,
 											ease: "easeInOut",
 										}}
-										className="p-4 rounded-lg cursor-pointer bg-card shadow-sm"
+										className="p-4 rounded-lg cursor-pointer bg-card shadow-xs"
 										onClick={() => setEditingItem(item)}
 									>
 										<div className="flex items-center gap-4">
@@ -215,9 +215,9 @@ export function ShoppingMode({
 												}}
 												whileHover={{ scale: 1.1 }}
 												whileTap={{ scale: 0.95 }}
-												className="w-8 h-8 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 border-gray-300 hover:border-green-400"
+												className="size-8 rounded-full border-2 shrink-0 flex items-center justify-center transition-all duration-200 border-gray-300 hover:border-green-400"
 											>
-												<Check className="h-5 w-5 opacity-0" />
+												<Check className="size-5 opacity-0" />
 											</motion.button>
 
 											<div className="flex-1">
@@ -277,7 +277,7 @@ export function ShoppingMode({
 				<div className="px-4 md:px-6 space-y-4">
 					<div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
 						<div className="flex items-center gap-2">
-							<Check className="h-5 w-5 text-green-600" />
+							<Check className="size-5 text-green-600" />
 							<h2 className="font-semibold text-green-700 dark:text-green-300">
 								Itens Coletados ({checkedItems.length})
 							</h2>
@@ -288,7 +288,7 @@ export function ShoppingMode({
 							onClick={() => setShowCompleted(false)}
 							className="text-green-600 hover:text-green-700"
 						>
-							<ChevronDown className="h-4 w-4" />
+							<ChevronDown className="size-4" />
 						</Button>
 					</div>
 
@@ -322,9 +322,9 @@ export function ShoppingMode({
 													onClick={() => onToggleItem(item.id, item.isChecked)}
 													whileHover={{ scale: 1.05 }}
 													whileTap={{ scale: 0.95 }}
-													className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-green-500 border-green-500 text-white"
+													className="w-7 h-7 rounded-full border-2 shrink-0 flex items-center justify-center bg-green-500 border-green-500 text-white"
 												>
-													<Check className="h-4 w-4" />
+													<Check className="size-4" />
 												</motion.button>
 
 												<div className="flex-1">

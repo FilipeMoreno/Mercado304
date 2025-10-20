@@ -62,16 +62,16 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardContent className="pt-6">
 						<div className="animate-pulse space-y-4">
-							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-							<div className="h-8 bg-gray-200 rounded w-1/2"></div>
+							<div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
+							<div className="h-8 bg-gray-200 rounded-sm w-1/2"></div>
 						</div>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardContent className="pt-6">
 						<div className="animate-pulse space-y-4">
-							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-							<div className="h-8 bg-gray-200 rounded w-1/2"></div>
+							<div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
+							<div className="h-8 bg-gray-200 rounded-sm w-1/2"></div>
 						</div>
 					</CardContent>
 				</Card>
@@ -84,7 +84,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<CreditCard className="h-5 w-5" />
+						<CreditCard className="size-5" />
 						Métodos de Pagamento
 					</CardTitle>
 				</CardHeader>
@@ -113,7 +113,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex items-center gap-2">
-							<Wallet className="h-5 w-5 text-blue-600" />
+							<Wallet className="size-5 text-blue-600" />
 							<div>
 								<div className="text-2xl font-bold">{data.summary.totalTransactions}</div>
 								<div className="text-sm text-gray-600">Total de Transações</div>
@@ -125,7 +125,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex items-center gap-2">
-							<DollarSign className="h-5 w-5 text-green-600" />
+							<DollarSign className="size-5 text-green-600" />
 							<div>
 								<div className="text-2xl font-bold">R$ {data.summary.totalAmount.toFixed(2)}</div>
 								<div className="text-sm text-gray-600">Valor Total</div>
@@ -137,7 +137,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex items-center gap-2">
-							<TrendingUp className="h-5 w-5 text-purple-600" />
+							<TrendingUp className="size-5 text-purple-600" />
 							<div>
 								<div className="text-2xl font-bold">R$ {data.summary.averageTransactionValue.toFixed(2)}</div>
 								<div className="text-sm text-gray-600">Ticket Médio</div>
@@ -149,7 +149,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex items-center gap-2">
-							<PieChart className="h-5 w-5 text-orange-600" />
+							<PieChart className="size-5 text-orange-600" />
 							<div>
 								<div className="text-lg font-bold">{data.summary.mostUsedMethod?.label || "N/A"}</div>
 								<div className="text-sm text-gray-600">Mais Usado</div>
@@ -165,7 +165,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<PieChart className="h-5 w-5" />
+							<PieChart className="size-5" />
 							Distribuição por Método
 						</CardTitle>
 					</CardHeader>
@@ -173,7 +173,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 						<div className="space-y-4">
 							{data.paymentStats.map((stat, index) => (
 								<div key={stat.paymentMethod} className="flex items-center gap-3">
-									<div className={`w-4 h-4 rounded ${colors[index % colors.length]}`}></div>
+									<div className={`w-4 h-4 rounded-sm ${colors[index % colors.length]}`}></div>
 									<div className="flex-1">
 										<div className="flex justify-between items-center">
 											<span className="text-sm font-medium">{stat.label}</span>
@@ -196,7 +196,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<CreditCard className="h-5 w-5" />
+							<CreditCard className="size-5" />
 							Estatísticas Detalhadas
 						</CardTitle>
 					</CardHeader>
@@ -206,7 +206,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 								<div key={stat.paymentMethod} className="space-y-2">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
-											<div className={`w-3 h-3 rounded ${colors[index % colors.length]}`}></div>
+											<div className={`w-3 h-3 rounded-sm ${colors[index % colors.length]}`}></div>
 											<span className="font-medium">{stat.label}</span>
 										</div>
 										<Badge variant="secondary">{stat.count} transações</Badge>
@@ -235,7 +235,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<TrendingUp className="h-5 w-5" />
+						<TrendingUp className="size-5" />
 						Insights
 					</CardTitle>
 				</CardHeader>
@@ -243,7 +243,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
-								<ArrowUpRight className="h-4 w-4 text-green-600" />
+								<ArrowUpRight className="size-4 text-green-600" />
 								<span className="font-medium">Método Mais Popular</span>
 							</div>
 							<p className="text-sm text-gray-600">
@@ -254,7 +254,7 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-blue-600" />
+								<DollarSign className="size-4 text-blue-600" />
 								<span className="font-medium">Maior Volume Financeiro</span>
 							</div>
 							<p className="text-sm text-gray-600">

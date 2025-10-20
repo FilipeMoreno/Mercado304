@@ -50,7 +50,7 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 
 		return (
 			<TooltipProvider>
-				<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+				<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 					<CardContent className="flex-1 flex flex-col p-4">
 						<div className="flex-1">
 							<div className="flex items-start justify-between mb-2">
@@ -65,63 +65,63 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-											<MoreHorizontal className="h-4 w-4" />
+										<Button variant="ghost" size="sm" className="size-8 p-0">
+											<MoreHorizontal className="size-4" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem onClick={handleEdit}>
-											<Edit className="h-4 w-4 mr-2" />
+											<Edit className="size-4 mr-2" />
 											Editar
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-											<Trash2 className="h-4 w-4 mr-2" />
+											<Trash2 className="size-4 mr-2" />
 											Excluir
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
 							</div>
 
-						{brandName && (
-							<div className="mb-2 flex flex-wrap items-center gap-2">
-								<Badge variant="secondary" className="text-xs">
-									{brandName}
-								</Badge>
-								{product.packageSize && (
-									<Badge variant="default" className="text-xs bg-blue-600">
-										📦 {product.packageSize}
+							{brandName && (
+								<div className="mb-2 flex flex-wrap items-center gap-2">
+									<Badge variant="secondary" className="text-xs">
+										{brandName}
 									</Badge>
-								)}
-								<Badge variant="secondary" className="text-xs">
-									{productUnit}
-								</Badge>
-								{product.barcode && (
-									<Badge variant="outline" className="text-xs flex items-center gap-1">
-										<Barcode className="h-3 w-3" />
-										{product.barcode}
+									{product.packageSize && (
+										<Badge variant="default" className="text-xs bg-blue-600">
+											📦 {product.packageSize}
+										</Badge>
+									)}
+									<Badge variant="secondary" className="text-xs">
+										{productUnit}
 									</Badge>
-								)}
-							</div>
-						)}
+									{product.barcode && (
+										<Badge variant="outline" className="text-xs flex items-center gap-1">
+											<Barcode className="h-3 w-3" />
+											{product.barcode}
+										</Badge>
+									)}
+								</div>
+							)}
 
-						{!brandName && (
-							<div className="mb-2 flex flex-wrap items-center gap-2">
-								{product.packageSize && (
-									<Badge variant="default" className="text-xs bg-blue-600">
-										📦 {product.packageSize}
+							{!brandName && (
+								<div className="mb-2 flex flex-wrap items-center gap-2">
+									{product.packageSize && (
+										<Badge variant="default" className="text-xs bg-blue-600">
+											📦 {product.packageSize}
+										</Badge>
+									)}
+									<Badge variant="secondary" className="text-xs">
+										{productUnit}
 									</Badge>
-								)}
-								<Badge variant="secondary" className="text-xs">
-									{productUnit}
-								</Badge>
-								{product.barcode && (
-									<Badge variant="outline" className="text-xs flex items-center gap-1">
-										<Barcode className="h-3 w-3" />
-										{product.barcode}
-									</Badge>
-								)}
-							</div>
-						)}
+									{product.barcode && (
+										<Badge variant="outline" className="text-xs flex items-center gap-1">
+											<Barcode className="h-3 w-3" />
+											{product.barcode}
+										</Badge>
+									)}
+								</div>
+							)}
 						</div>
 
 						<div className="mt-auto">
@@ -131,7 +131,7 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 								className="w-full"
 								onClick={() => (window.location.href = `/produtos/${product.id}`)}
 							>
-								<BarChart3 className="h-4 w-4 mr-2" />
+								<BarChart3 className="size-4 mr-2" />
 								Ver Detalhes
 							</Button>
 						</div>
@@ -181,7 +181,7 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 		}, [market.location])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -191,17 +191,17 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -216,7 +216,7 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/mercados/${market.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Detalhes
 					</Button>
 				</CardContent>
@@ -261,7 +261,7 @@ export const CategoryCardMemo = memo<CategoryCardMemoProps>(
 		}, [category.icon])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -273,17 +273,17 @@ export const CategoryCardMemo = memo<CategoryCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -298,7 +298,7 @@ export const CategoryCardMemo = memo<CategoryCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/categorias/${category.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Detalhes
 					</Button>
 				</CardContent>
@@ -339,7 +339,7 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 		}, [brand.name])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -348,17 +348,17 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -373,7 +373,7 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/marcas/${brand.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Detalhes
 					</Button>
 				</CardContent>
@@ -419,7 +419,7 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 		}, [purchase.items?.length])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -430,17 +430,17 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -458,7 +458,7 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/compras/${purchase.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Detalhes
 					</Button>
 				</CardContent>
@@ -550,16 +550,16 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 		return (
 			<CardComponent
 				{...cardProps}
-				className={`shadow-sm hover:shadow-lg transition-shadow ${onClick ? "cursor-pointer hover:bg-muted/50" : ""}`}
+				className={`shadow-sm hover:shadow-md transition-shadow ${onClick ? "cursor-pointer hover:bg-muted/50" : ""}`}
 			>
 				<Card className="h-full">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-xs md:text-sm font-medium">{cardContent.title}</CardTitle>
-						{cardContent.icon === "ShoppingCart" && <ShoppingCart className="h-4 w-4 text-muted-foreground" />}
-						{cardContent.icon === "DollarSign" && <DollarSign className="h-4 w-4 text-muted-foreground" />}
-						{cardContent.icon === "Package" && <Package className="h-4 w-4 text-muted-foreground" />}
-						{cardContent.icon === "Store" && <Store className="h-4 w-4 text-muted-foreground" />}
-						{cardContent.icon === "Receipt" && <Receipt className="h-4 w-4 text-muted-foreground" />}
+						{cardContent.icon === "ShoppingCart" && <ShoppingCart className="size-4 text-muted-foreground" />}
+						{cardContent.icon === "DollarSign" && <DollarSign className="size-4 text-muted-foreground" />}
+						{cardContent.icon === "Package" && <Package className="size-4 text-muted-foreground" />}
+						{cardContent.icon === "Store" && <Store className="size-4 text-muted-foreground" />}
+						{cardContent.icon === "Receipt" && <Receipt className="size-4 text-muted-foreground" />}
 					</CardHeader>
 					<CardContent>
 						<div className="text-xl md:text-2xl font-bold">{formatValue(cardContent.value, cardContent.format)}</div>
@@ -595,7 +595,7 @@ interface DashboardStatsCardMemoProps {
 export const DashboardStatsCardMemo = memo<DashboardStatsCardMemoProps>(
 	({ title, description, icon, children }) => {
 		return (
-			<Card className="shadow-sm hover:shadow-lg transition-shadow">
+			<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						{icon}
@@ -644,7 +644,7 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 		}, [shoppingList.createdAt])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -655,17 +655,17 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -680,7 +680,7 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/lista/${shoppingList.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Lista
 					</Button>
 				</CardContent>
@@ -730,7 +730,7 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 		}, [recipe.prepTime])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -741,17 +741,17 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-									<MoreHorizontal className="h-4 w-4" />
+								<Button variant="ghost" size="sm" className="size-8 p-0">
+									<MoreHorizontal className="size-4" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={handleEdit}>
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
+									<Trash2 className="size-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -766,7 +766,7 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 						className="w-full"
 						onClick={() => (window.location.href = `/receitas/${recipe.id}`)}
 					>
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Ver Receita
 					</Button>
 				</CardContent>

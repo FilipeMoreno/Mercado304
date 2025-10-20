@@ -65,7 +65,7 @@ export function StockGrid({ items, isLoading, onView, onEdit, onDelete, onUse, o
 			<Empty className="border border-dashed py-12">
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Package className="h-6 w-6" />
+						<Package className="size-6" />
 					</EmptyMedia>
 					<EmptyTitle>Nenhum item em estoque</EmptyTitle>
 					<EmptyDescription>Comece adicionando produtos ao seu estoque.</EmptyDescription>
@@ -94,7 +94,7 @@ export function StockGrid({ items, isLoading, onView, onEdit, onDelete, onUse, o
 				const expirationStatus = getExpirationStatus(item.expirationDate)
 
 				return (
-					<Card key={item.id} className="hover:shadow-md transition-shadow">
+					<Card key={item.id} className="hover:shadow-md transition-shadow-sm">
 						<CardContent className="p-4">
 							<div className="flex items-start justify-between">
 								<div className="flex-1">
@@ -141,28 +141,28 @@ export function StockGrid({ items, isLoading, onView, onEdit, onDelete, onUse, o
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<Button variant="ghost" size="sm">
-											<MoreHorizontal className="h-4 w-4" />
+											<MoreHorizontal className="size-4" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem onClick={() => onView(item)}>
-											<Eye className="mr-2 h-4 w-4" />
+											<Eye className="mr-2 size-4" />
 											Ver detalhes
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onEdit(item)}>
-											<Edit className="mr-2 h-4 w-4" />
+											<Edit className="mr-2 size-4" />
 											Editar
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onUse(item)}>
-											<Package className="mr-2 h-4 w-4" />
+											<Package className="mr-2 size-4" />
 											Usar produto
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onWaste(item)}>
-											<AlertTriangle className="mr-2 h-4 w-4" />
+											<AlertTriangle className="mr-2 size-4" />
 											Registrar desperdício
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600">
-											<Trash2 className="mr-2 h-4 w-4" />
+											<Trash2 className="mr-2 size-4" />
 											Remover
 										</DropdownMenuItem>
 									</DropdownMenuContent>

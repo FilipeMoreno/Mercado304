@@ -398,8 +398,8 @@ const AllergenIcon = ({
 
 	// Modern gradient background for "contains"
 	const containerClass = isContains
-		? `${allergenData.bgColor} ${allergenData.borderColor} ${allergenData.hoverBg} border-2 shadow-sm`
-		: "bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-dashed border-yellow-400 dark:border-yellow-600 shadow-sm hover:from-yellow-100 hover:to-orange-100 dark:hover:from-yellow-950/50 dark:hover:to-orange-950/50"
+		? `${allergenData.bgColor} ${allergenData.borderColor} ${allergenData.hoverBg} border-2 shadow-xs`
+		: "bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-dashed border-yellow-400 dark:border-yellow-600 shadow-xs hover:from-yellow-100 hover:to-orange-100 dark:hover:from-yellow-950/50 dark:hover:to-orange-950/50"
 
 	const iconClass = isContains ? allergenData.color : "text-yellow-800 dark:text-yellow-200"
 
@@ -468,7 +468,7 @@ export function AllergenIcons({ nutritionalInfo }: AllergenIconsProps) {
 			{allergensContains.length > 0 && (
 				<div className="space-y-4">
 					<div className="flex items-center gap-2.5">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-950/50">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-950/50">
 							<AlertTriangle className="h-4.5 w-4.5 text-red-600 dark:text-red-400" />
 						</div>
 						<h4 className="text-sm font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">
@@ -487,7 +487,7 @@ export function AllergenIcons({ nutritionalInfo }: AllergenIconsProps) {
 			{allergensMayContain.length > 0 && (
 				<div className="space-y-4">
 					<div className="flex items-center gap-2.5">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-950/50">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-950/50">
 							<AlertTriangle className="h-4.5 w-4.5 text-yellow-600 dark:text-yellow-400" />
 						</div>
 						<h4 className="text-sm font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">

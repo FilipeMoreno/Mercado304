@@ -152,7 +152,7 @@ export function EditItemDialog({
 									}}
 									title="Buscar produto cadastrado"
 								>
-									<LinkIcon className="h-4 w-4" />
+									<LinkIcon className="size-4" />
 								</Button>
 							</div>
 							{editItemData.productId && (
@@ -163,7 +163,7 @@ export function EditItemDialog({
 									onClick={handleUnlinkProduct}
 									title="Desvincular produto"
 								>
-									<X className="h-4 w-4" />
+									<X className="size-4" />
 								</Button>
 							)}
 						</div>
@@ -287,7 +287,7 @@ export function EditItemDialog({
 
 					<div className="flex gap-2 pt-4">
 						<Button onClick={onUpdate} disabled={updating} className="flex-1">
-							<Save className="h-4 w-4 mr-2" />
+							<Save className="size-4 mr-2" />
 							{updating ? "Salvando..." : "Salvar"}
 						</Button>
 						<Button type="button" variant="outline" onClick={onClose}>

@@ -71,9 +71,9 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 
 							{/* Logo Background Card */}
 							<div className="relative flex items-center gap-3 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-2xl shadow-blue-600/20">
-								<ShoppingCart className="h-12 w-12 text-white" strokeWidth={2.5} />
+								<ShoppingCart className="size-12 text-white" strokeWidth={2.5} />
 								<div className="h-10 w-0.5 bg-white/20" />
-								<Package className="h-10 w-10 text-white" strokeWidth={2.5} />
+								<Package className="size-10 text-white" strokeWidth={2.5} />
 
 								{/* Floating Sparkles */}
 								<motion.div
@@ -88,7 +88,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 									}}
 									className="absolute -right-2 -top-2"
 								>
-									<Sparkles className="h-5 w-5 text-yellow-400 drop-shadow-lg" fill="currentColor" />
+									<Sparkles className="size-5 text-yellow-400 drop-shadow-lg" fill="currentColor" />
 								</motion.div>
 
 								<motion.div
@@ -104,7 +104,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 									}}
 									className="absolute -bottom-1 -left-2"
 								>
-									<Sparkles className="h-4 w-4 text-blue-300 drop-shadow-lg" fill="currentColor" />
+									<Sparkles className="size-4 text-blue-300 drop-shadow-lg" fill="currentColor" />
 								</motion.div>
 							</div>
 						</motion.div>
@@ -166,7 +166,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 							}}
 							className="absolute bottom-8"
 						>
-							<div className="rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+							<div className="rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-xs">
 								Versão {APP_VERSION}
 							</div>
 						</motion.div>
@@ -184,7 +184,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 							repeat: Number.POSITIVE_INFINITY,
 							ease: "easeInOut",
 						}}
-						className="absolute left-[10%] top-[15%] h-16 w-16 rounded-full bg-blue-500/10 blur-xl"
+						className="absolute left-[10%] top-[15%] size-16 rounded-full bg-blue-500/10 blur-xl"
 					/>
 
 					<motion.div
@@ -214,7 +214,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 							ease: "easeInOut",
 							delay: 0.5,
 						}}
-						className="absolute right-[10%] top-[30%] h-12 w-12 rounded-full bg-blue-400/10 blur-xl"
+						className="absolute right-[10%] top-[30%] size-12 rounded-full bg-blue-400/10 blur-xl"
 					/>
 				</motion.div>
 			)}

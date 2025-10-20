@@ -90,9 +90,9 @@ export function HealthyAlternatives({
 	}
 
 	const getHealthScoreIcon = (score: number) => {
-		if (score >= 80) return <Heart className="h-4 w-4 text-green-600" />
-		if (score >= 60) return <Leaf className="h-4 w-4 text-yellow-600" />
-		return <Apple className="h-4 w-4 text-red-600" />
+		if (score >= 80) return <Heart className="size-4 text-green-600" />
+		if (score >= 60) return <Leaf className="size-4 text-yellow-600" />
+		return <Apple className="size-4 text-red-600" />
 	}
 
 	if (loading) {
@@ -100,7 +100,7 @@ export function HealthyAlternatives({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Apple className="h-5 w-5 text-green-600" />
+						<Apple className="size-5 text-green-600" />
 						Sugestões Saudáveis
 					</CardTitle>
 				</CardHeader>
@@ -110,10 +110,10 @@ export function HealthyAlternatives({
 							<div key={i} className="p-3 border rounded-lg">
 								<div className="flex items-center justify-between">
 									<div className="space-y-2 flex-1">
-										<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-										<div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3" />
+										<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
+										<div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse w-2/3" />
 									</div>
-									<div className="w-16 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+									<div className="w-16 h-6 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 								</div>
 							</div>
 						))}
@@ -128,13 +128,13 @@ export function HealthyAlternatives({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Apple className="h-5 w-5 text-green-600" />
+						<Apple className="size-5 text-green-600" />
 						{title || "Sugestões Saudáveis"}
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="text-center py-6 text-gray-500">
-						<Apple className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+						<Apple className="size-12 mx-auto mb-3 text-gray-400" />
 						<p className="text-sm">Nenhuma alternativa saudável encontrada para {categoryName || "esta categoria"}</p>
 						<p className="text-xs mt-1">Adicione informações nutricionais aos produtos para ver sugestões</p>
 					</div>
@@ -148,7 +148,7 @@ export function HealthyAlternatives({
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<CardTitle className="flex items-center gap-2">
-						<Apple className="h-5 w-5 text-green-600" />
+						<Apple className="size-5 text-green-600" />
 						{title || `Opções Mais Saudáveis - ${categoryName}`}
 					</CardTitle>
 					<Badge variant="secondary" className="bg-green-100 text-green-800">
@@ -163,7 +163,7 @@ export function HealthyAlternatives({
 							<div className="flex items-start justify-between mb-2">
 								<div className="flex items-start gap-3">
 									<div className="flex items-center gap-1 mt-1">
-										<div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+										<div className="size-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
 											{index + 1}
 										</div>
 										{getHealthScoreIcon(product.healthScore)}
@@ -260,7 +260,7 @@ export function HealthyAlternatives({
 
 				<div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
 					<div className="flex items-start gap-2">
-						<CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+						<CheckCircle2 className="size-4 text-green-600 mt-0.5" />
 						<div className="text-xs text-green-700 dark:text-green-400">
 							<p className="font-medium mb-1">Dica: Por que estas opções são mais saudáveis?</p>
 							<p>

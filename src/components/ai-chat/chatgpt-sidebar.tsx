@@ -159,7 +159,7 @@ export function ChatGPTSidebar({
 						size="icon"
 						className="w-full h-10 text-muted-foreground hover:bg-muted"
 					>
-						<ChevronRight className="h-4 w-4" />
+						<ChevronRight className="size-4" />
 					</Button>
 				</div>
 
@@ -172,7 +172,7 @@ export function ChatGPTSidebar({
 						className="w-full h-10 text-muted-foreground hover:bg-muted"
 						title="Nova conversa"
 					>
-						<Plus className="h-4 w-4" />
+						<Plus className="size-4" />
 					</Button>
 				</div>
 
@@ -191,7 +191,7 @@ export function ChatGPTSidebar({
 									}`}
 								title={session.title}
 							>
-								<MessageSquare className="h-4 w-4" />
+								<MessageSquare className="size-4" />
 							</Button>
 						))}
 					</div>
@@ -210,7 +210,7 @@ export function ChatGPTSidebar({
 			<div className="p-4 border-b">
 				<div className="flex items-center justify-between mb-3">
 					<div className="flex items-center gap-2">
-						<div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-sm flex items-center justify-center">
+						<div className="size-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xs flex items-center justify-center">
 							<Bot className="h-3 w-3 text-white" />
 						</div>
 						<span className="font-semibold text-sm">Zé</span>
@@ -219,7 +219,7 @@ export function ChatGPTSidebar({
 						onClick={onToggleCollapse}
 						variant="ghost"
 						size="icon"
-						className="h-6 w-6 text-muted-foreground hover:bg-muted"
+						className="size-6 text-muted-foreground hover:bg-muted"
 					>
 						<ChevronLeft className="h-3 w-3" />
 					</Button>
@@ -230,7 +230,7 @@ export function ChatGPTSidebar({
 					onClick={onNewChat}
 					className="w-full bg-muted hover:bg-muted/80 text-foreground border-0 h-9 text-sm font-normal rounded-xl"
 				>
-					<Plus className="h-4 w-4 mr-2" />
+					<Plus className="size-4 mr-2" />
 					Nova conversa
 				</Button>
 			</div>
@@ -238,7 +238,7 @@ export function ChatGPTSidebar({
 			{/* Busca */}
 			<div className="p-4 border-b">
 				<div className="relative">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						placeholder="Buscar conversas..."
 						value={searchTerm}
@@ -270,7 +270,7 @@ export function ChatGPTSidebar({
 										{editingId === session.id ? (
 											/* Modo de Edição */
 											<div className="flex items-center gap-2 p-2">
-												<Pin className="h-4 w-4 text-primary flex-shrink-0" />
+												<Pin className="size-4 text-primary shrink-0" />
 												<Input
 													ref={editInputRef}
 													value={editingTitle}
@@ -283,7 +283,7 @@ export function ChatGPTSidebar({
 														onClick={handleSaveEdit}
 														variant="ghost"
 														size="icon"
-														className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-muted"
+														className="size-6 text-green-600 hover:text-green-700 hover:bg-muted"
 													>
 														<Check className="h-3 w-3" />
 													</Button>
@@ -291,7 +291,7 @@ export function ChatGPTSidebar({
 														onClick={handleCancelEdit}
 														variant="ghost"
 														size="icon"
-														className="h-6 w-6 text-muted-foreground hover:bg-muted"
+														className="size-6 text-muted-foreground hover:bg-muted"
 													>
 														<X className="h-3 w-3" />
 													</Button>
@@ -303,7 +303,7 @@ export function ChatGPTSidebar({
 												onClick={() => onSessionSelect(session.id)}
 												className="flex items-center gap-2 p-2 cursor-pointer"
 											>
-												<Pin className="h-4 w-4 text-primary flex-shrink-0" />
+												<Pin className="size-4 text-primary shrink-0" />
 												<div className="flex-1 min-w-0">
 													<div className="text-sm truncate">
 														{session.title}
@@ -322,7 +322,7 @@ export function ChatGPTSidebar({
 															<Button
 																variant="ghost"
 																size="icon"
-																className="h-6 w-6 text-muted-foreground hover:bg-muted"
+																className="size-6 text-muted-foreground hover:bg-muted"
 																onClick={(e) => e.stopPropagation()}
 															>
 																<MoreHorizontal className="h-3 w-3" />
@@ -340,7 +340,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Share className="h-4 w-4 mr-2" />
+																	<Share className="size-4 mr-2" />
 																	Compartilhar
 																</DropdownMenuItem>
 															)}
@@ -351,7 +351,7 @@ export function ChatGPTSidebar({
 																}}
 																className="text-popover-foreground hover:bg-accent"
 															>
-																<Edit3 className="h-4 w-4 mr-2" />
+																<Edit3 className="size-4 mr-2" />
 																Renomear
 															</DropdownMenuItem>
 															{onPinSession && (
@@ -362,7 +362,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Pin className="h-4 w-4 mr-2" />
+																	<Pin className="size-4 mr-2" />
 																	Desafixar
 																</DropdownMenuItem>
 															)}
@@ -374,7 +374,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Archive className="h-4 w-4 mr-2" />
+																	<Archive className="size-4 mr-2" />
 																	Arquivar
 																</DropdownMenuItem>
 															)}
@@ -385,7 +385,7 @@ export function ChatGPTSidebar({
 																}}
 																className="text-destructive hover:bg-destructive/10"
 															>
-																<Trash2 className="h-4 w-4 mr-2" />
+																<Trash2 className="size-4 mr-2" />
 																Excluir
 															</DropdownMenuItem>
 														</DropdownMenuContent>
@@ -420,7 +420,7 @@ export function ChatGPTSidebar({
 										{editingId === session.id ? (
 											/* Modo de Edição */
 											<div className="flex items-center gap-2 p-2">
-												<MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												<MessageSquare className="size-4 text-muted-foreground shrink-0" />
 												<Input
 													ref={editInputRef}
 													value={editingTitle}
@@ -433,7 +433,7 @@ export function ChatGPTSidebar({
 														onClick={handleSaveEdit}
 														variant="ghost"
 														size="icon"
-														className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-muted"
+														className="size-6 text-green-600 hover:text-green-700 hover:bg-muted"
 													>
 														<Check className="h-3 w-3" />
 													</Button>
@@ -441,7 +441,7 @@ export function ChatGPTSidebar({
 														onClick={handleCancelEdit}
 														variant="ghost"
 														size="icon"
-														className="h-6 w-6 text-muted-foreground hover:bg-muted"
+														className="size-6 text-muted-foreground hover:bg-muted"
 													>
 														<X className="h-3 w-3" />
 													</Button>
@@ -453,7 +453,7 @@ export function ChatGPTSidebar({
 												onClick={() => onSessionSelect(session.id)}
 												className="flex items-center gap-2 p-2 cursor-pointer"
 											>
-												<MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												<MessageSquare className="size-4 text-muted-foreground shrink-0" />
 												<div className="flex-1 min-w-0">
 													<div className="text-sm truncate">
 														{session.title}
@@ -472,7 +472,7 @@ export function ChatGPTSidebar({
 															<Button
 																variant="ghost"
 																size="icon"
-																className="h-6 w-6 text-muted-foreground hover:bg-muted"
+																className="size-6 text-muted-foreground hover:bg-muted"
 																onClick={(e) => e.stopPropagation()}
 															>
 																<MoreHorizontal className="h-3 w-3" />
@@ -490,7 +490,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Share className="h-4 w-4 mr-2" />
+																	<Share className="size-4 mr-2" />
 																	Compartilhar
 																</DropdownMenuItem>
 															)}
@@ -501,7 +501,7 @@ export function ChatGPTSidebar({
 																}}
 																className="text-popover-foreground hover:bg-accent"
 															>
-																<Edit3 className="h-4 w-4 mr-2" />
+																<Edit3 className="size-4 mr-2" />
 																Renomear
 															</DropdownMenuItem>
 															{onPinSession && (
@@ -512,7 +512,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Pin className="h-4 w-4 mr-2" />
+																	<Pin className="size-4 mr-2" />
 																	{session.isPinned ? 'Desafixar' : 'Fixar'}
 																</DropdownMenuItem>
 															)}
@@ -524,7 +524,7 @@ export function ChatGPTSidebar({
 																	}}
 																	className="text-popover-foreground hover:bg-accent"
 																>
-																	<Archive className="h-4 w-4 mr-2" />
+																	<Archive className="size-4 mr-2" />
 																	Arquivar
 																</DropdownMenuItem>
 															)}
@@ -535,7 +535,7 @@ export function ChatGPTSidebar({
 																}}
 																className="text-destructive hover:bg-destructive/10"
 															>
-																<Trash2 className="h-4 w-4 mr-2" />
+																<Trash2 className="size-4 mr-2" />
 																Excluir
 															</DropdownMenuItem>
 														</DropdownMenuContent>
@@ -551,7 +551,7 @@ export function ChatGPTSidebar({
 
 					{pinnedSessions.length === 0 && Object.keys(groupedSessions).length === 0 && (
 						<div className="text-center py-8">
-							<MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+							<MessageSquare className="size-8 text-muted-foreground mx-auto mb-2" />
 							<p className="text-muted-foreground text-sm">
 								{searchTerm ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}
 							</p>
@@ -580,7 +580,7 @@ function ClearAllConversationsButton({ onConfirm }: { onConfirm: () => void }) {
 				variant="ghost"
 				className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 text-sm rounded-xl"
 			>
-				<Trash2 className="h-4 w-4 mr-2" />
+				<Trash2 className="size-4 mr-2" />
 				Limpar conversas
 			</Button>
 

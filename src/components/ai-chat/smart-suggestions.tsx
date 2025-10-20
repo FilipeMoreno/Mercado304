@@ -37,7 +37,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "create-weekly-list",
 		text: "Criar lista semanal",
 		command: "Crie uma lista de compras para a semana",
-		icon: <List className="h-4 w-4" />,
+		icon: <List className="size-4" />,
 		category: "lista",
 		priority: 10
 	},
@@ -45,7 +45,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "compare-prices",
 		text: "Comparar preços",
 		command: "Compare os preços dos produtos que mais compro",
-		icon: <TrendingDown className="h-4 w-4" />,
+		icon: <TrendingDown className="size-4" />,
 		category: "precos",
 		priority: 9
 	},
@@ -53,7 +53,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "churrasco-calculator",
 		text: "Calcular churrasco",
 		command: "Quero fazer um churrasco",
-		icon: <Calculator className="h-4 w-4" />,
+		icon: <Calculator className="size-4" />,
 		category: "geral",
 		priority: 8
 	},
@@ -61,7 +61,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "search-products",
 		text: "Buscar produtos",
 		command: "Mostre produtos em promoção",
-		icon: <Search className="h-4 w-4" />,
+		icon: <Search className="size-4" />,
 		category: "produtos",
 		priority: 7
 	},
@@ -69,7 +69,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "stock-alerts",
 		text: "Alertas de estoque",
 		command: "Verifique meu estoque e produtos vencendo",
-		icon: <Package className="h-4 w-4" />,
+		icon: <Package className="size-4" />,
 		category: "analise",
 		priority: 6
 	},
@@ -77,7 +77,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "spending-analysis",
 		text: "Análise de gastos",
 		command: "Analise meus gastos do mês",
-		icon: <BarChart3 className="h-4 w-4" />,
+		icon: <BarChart3 className="size-4" />,
 		category: "analise",
 		priority: 5
 	},
@@ -85,7 +85,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "recent-purchases",
 		text: "Compras recentes",
 		command: "Mostre minhas compras recentes",
-		icon: <Clock className="h-4 w-4" />,
+		icon: <Clock className="size-4" />,
 		category: "geral",
 		priority: 4
 	},
@@ -93,7 +93,7 @@ const baseSuggestions: Suggestion[] = [
 		id: "scan-product",
 		text: "Escanear produto",
 		command: "Vou escanear um produto",
-		icon: <Camera className="h-4 w-4" />,
+		icon: <Camera className="size-4" />,
 		category: "produtos",
 		priority: 3
 	}
@@ -114,7 +114,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				id: "churrasco-list",
 				text: "Lista para churrasco",
 				command: "Crie uma lista completa para churrasco",
-				icon: <Sparkles className="h-4 w-4" />,
+				icon: <Sparkles className="size-4" />,
 				category: "lista",
 				priority: 15
 			})
@@ -133,7 +133,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				id: "similar-products",
 				text: "Produtos similares",
 				command: "Mostre produtos similares com melhor preço",
-				icon: <Search className="h-4 w-4" />,
+				icon: <Search className="size-4" />,
 				category: "produtos",
 				priority: 12
 			})
@@ -148,7 +148,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				id: "add-to-list",
 				text: "Adicionar mais itens",
 				command: "Adicione mais itens à lista",
-				icon: <ShoppingCart className="h-4 w-4" />,
+				icon: <ShoppingCart className="size-4" />,
 				category: "lista",
 				priority: 14
 			})
@@ -188,7 +188,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 			>
 				<Card className="p-4 bg-muted/50 border-border">
 					<div className="flex items-center gap-2 mb-3">
-						<Sparkles className="h-4 w-4 text-primary" />
+						<Sparkles className="size-4 text-primary" />
 						<span className="text-sm font-medium text-foreground">
 							Sugestões para você
 						</span>
@@ -212,7 +212,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 									className="w-full justify-start h-auto p-3 text-left hover:bg-muted hover:text-foreground transition-all duration-200"
 								>
 									<div className="flex items-center gap-2 w-full">
-										<div className="text-primary flex-shrink-0">
+										<div className="text-primary shrink-0">
 											{suggestion.icon}
 										</div>
 										<span className="text-xs font-medium truncate text-foreground">

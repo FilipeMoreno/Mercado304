@@ -267,7 +267,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 		return (
 			<div className="flex gap-2">
-				<Bot className="h-6 w-6 flex-shrink-0 text-blue-700" />
+				<Bot className="size-6 shrink-0 text-blue-700" />
 				<div className="max-w-[80%]">
 					<ProductRecognitionCard
 						product={productData}
@@ -284,7 +284,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 	return (
 		<div className={`group flex gap-2 ${role === "user" ? "justify-end" : ""}`}>
 			{role === "assistant" && (
-				<Bot className={`h-6 w-6 flex-shrink-0 ${isError ? "text-red-500" : "text-blue-700"}`} />
+				<Bot className={`h-6 w-6 shrink-0 ${isError ? "text-red-500" : "text-blue-700"}`} />
 			)}
 			<div className={`max-w-[80%] ${role === "user" ? "flex justify-end" : ""}`}>
 				<div className="flex flex-col gap-2">

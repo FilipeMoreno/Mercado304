@@ -62,7 +62,7 @@ export default function NovoMercadoPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/mercados">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
@@ -75,7 +75,7 @@ export default function NovoMercadoPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Store className="h-5 w-5" />
+						<Store className="size-5" />
 						Informações do Mercado
 					</CardTitle>
 				</CardHeader>
@@ -120,7 +120,7 @@ export default function NovoMercadoPage() {
 
 						<div className="flex gap-3 pt-4">
 							<Button type="submit" disabled={createMarketMutation.isPending || !formData.name.trim()}>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{createMarketMutation.isPending ? "Criando..." : "Criar Mercado"}
 							</Button>
 							<Link href="/mercados">

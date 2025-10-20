@@ -59,7 +59,7 @@ export default function NovaCategoriaPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/categorias">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
@@ -135,7 +135,7 @@ export default function NovaCategoriaPage() {
 								disabled={createCategoryMutation.isPending || !formData.name.trim()}
 								className="flex-1"
 							>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{createCategoryMutation.isPending ? "Criando..." : "Criar Categoria"}
 							</Button>
 							<Button
@@ -144,7 +144,7 @@ export default function NovaCategoriaPage() {
 								onClick={handleCancel}
 								disabled={createCategoryMutation.isPending}
 							>
-								<X className="h-4 w-4 mr-2" />
+								<X className="size-4 mr-2" />
 								Cancelar
 							</Button>
 						</div>

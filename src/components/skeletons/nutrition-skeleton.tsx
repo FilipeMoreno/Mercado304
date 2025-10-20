@@ -7,7 +7,7 @@ export function NutritionSkeleton() {
 			{/* Header Principal */}
 			<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 				<div className="flex items-center gap-4">
-					<Skeleton className="h-8 w-8" />
+					<Skeleton className="size-8" />
 					<div>
 						<Skeleton className="h-8 w-48 mb-2" />
 						<Skeleton className="h-5 w-64" />
@@ -18,7 +18,7 @@ export function NutritionSkeleton() {
 			{/* Controles */}
 			<div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
 				<Skeleton className="h-10 w-full sm:w-32" />
-				<Skeleton className="h-10 w-10" />
+				<Skeleton className="size-10" />
 			</div>
 
 			{/* Cards de Resumo */}
@@ -27,7 +27,7 @@ export function NutritionSkeleton() {
 					<Card key={i}>
 						<CardContent className="p-4 sm:p-6">
 							<div className="flex items-center gap-3">
-								<Skeleton className="h-10 w-10 rounded-lg" />
+								<Skeleton className="size-10 rounded-lg" />
 								<div className="flex-1">
 									<Skeleton className="h-6 w-16 mb-1" />
 									<Skeleton className="h-4 w-20" />
@@ -64,7 +64,7 @@ export function NutritionSkeleton() {
 							<div key={i} className="space-y-2">
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
-										<Skeleton className="h-4 w-4" />
+										<Skeleton className="size-4" />
 										<Skeleton className="h-4 w-24" />
 									</div>
 									<Skeleton className="h-4 w-8" />
@@ -88,11 +88,11 @@ export function NutritionSkeleton() {
 							<div key={i} className="p-4 rounded-lg border">
 								<div className="flex items-center justify-between mb-2">
 									<div className="flex items-center gap-2">
-										<Skeleton className="h-5 w-5" />
+										<Skeleton className="size-5" />
 										<Skeleton className="h-5 w-20" />
 									</div>
 									<div className="flex items-center gap-1">
-										<Skeleton className="h-4 w-4" />
+										<Skeleton className="size-4" />
 										<Skeleton className="h-4 w-6" />
 									</div>
 								</div>
@@ -113,7 +113,7 @@ export function NutritionSkeleton() {
 				<Card>
 					<CardHeader>
 						<div className="flex items-center gap-2">
-							<Skeleton className="h-5 w-5" />
+							<Skeleton className="size-5" />
 							<Skeleton className="h-6 w-48" />
 						</div>
 						<Skeleton className="h-4 w-56" />
@@ -122,7 +122,7 @@ export function NutritionSkeleton() {
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-6 w-6 rounded-full" />
+									<Skeleton className="size-6 rounded-full" />
 									<div>
 										<Skeleton className="h-4 w-32 mb-1" />
 										<Skeleton className="h-3 w-24" />
@@ -138,7 +138,7 @@ export function NutritionSkeleton() {
 				<Card>
 					<CardHeader>
 						<div className="flex items-center gap-2">
-							<Skeleton className="h-5 w-5" />
+							<Skeleton className="size-5" />
 							<Skeleton className="h-6 w-48" />
 						</div>
 						<Skeleton className="h-4 w-56" />
@@ -147,7 +147,7 @@ export function NutritionSkeleton() {
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-6 w-6 rounded-full" />
+									<Skeleton className="size-6 rounded-full" />
 									<div>
 										<Skeleton className="h-4 w-32 mb-1" />
 										<Skeleton className="h-3 w-24" />
@@ -164,7 +164,7 @@ export function NutritionSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-40" />
 					</div>
 					<Skeleton className="h-4 w-56" />

@@ -63,7 +63,7 @@ export default function TesteCameraPage() {
 				{/* Header */}
 				<div className="space-y-2">
 					<h1 className="text-4xl font-bold flex items-center gap-3">
-						<Camera className="w-10 h-10" />
+						<Camera className="size-10" />
 						Teste de Câmera PWA
 					</h1>
 					<p className="text-muted-foreground">
@@ -75,7 +75,7 @@ export default function TesteCameraPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Info className="w-5 h-5" />
+							<Info className="size-5" />
 							Estratégias de Captura
 						</CardTitle>
 						<CardDescription>Este sistema implementa três métodos diferentes de captura de imagem</CardDescription>
@@ -84,7 +84,7 @@ export default function TesteCameraPage() {
 						<div className="grid gap-4 md:grid-cols-3">
 							<div className="space-y-2 p-4 border rounded-lg">
 								<div className="flex items-center gap-2">
-									<Zap className="w-5 h-5 text-green-500" />
+									<Zap className="size-5 text-green-500" />
 									<h3 className="font-semibold">Modo Auto</h3>
 								</div>
 								<p className="text-sm text-muted-foreground">
@@ -98,11 +98,11 @@ export default function TesteCameraPage() {
 
 							<div className="space-y-2 p-4 border rounded-lg">
 								<div className="flex items-center gap-2">
-									<Smartphone className="w-5 h-5 text-blue-500" />
+									<Smartphone className="size-5 text-blue-500" />
 									<h3 className="font-semibold">Câmera Nativa</h3>
 								</div>
 								<p className="text-sm text-muted-foreground">
-									Usa <code className="text-xs bg-muted px-1 rounded">input[capture]</code> para abrir a câmera nativa
+									Usa <code className="text-xs bg-muted px-1 rounded-sm">input[capture]</code> para abrir a câmera nativa
 									do dispositivo. Mais eficiente em mobile.
 								</p>
 								<Badge variant="outline" className="text-xs">
@@ -112,11 +112,11 @@ export default function TesteCameraPage() {
 
 							<div className="space-y-2 p-4 border rounded-lg">
 								<div className="flex items-center gap-2">
-									<Code2 className="w-5 h-5 text-purple-500" />
+									<Code2 className="size-5 text-purple-500" />
 									<h3 className="font-semibold">Câmera Web</h3>
 								</div>
 								<p className="text-sm text-muted-foreground">
-									Usa <code className="text-xs bg-muted px-1 rounded">getUserMedia</code> API para controle total da
+									Usa <code className="text-xs bg-muted px-1 rounded-sm">getUserMedia</code> API para controle total da
 									câmera. Ideal para desktop e controles avançados.
 								</p>
 								<Badge variant="outline" className="text-xs">
@@ -127,7 +127,7 @@ export default function TesteCameraPage() {
 
 						<div className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 border p-4 rounded-lg">
 							<div className="flex gap-2">
-								<Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+								<Info className="size-5 text-blue-500 shrink-0 mt-0.5" />
 								<div className="space-y-2 text-sm">
 									<p className="font-semibold text-blue-900 dark:text-blue-100">Vantagens desta implementação:</p>
 									<ul className="space-y-1 text-blue-700 dark:text-blue-300">
@@ -162,7 +162,7 @@ export default function TesteCameraPage() {
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<Button size="lg" onClick={() => openCamera("auto")} className="w-full h-20 text-lg">
-									<Camera className="w-6 h-6 mr-3" />
+									<Camera className="size-6 mr-3" />
 									Abrir Câmera (Modo Auto)
 								</Button>
 							</CardContent>
@@ -177,7 +177,7 @@ export default function TesteCameraPage() {
 							</CardHeader>
 							<CardContent className="grid gap-4 md:grid-cols-3">
 								<Button variant="outline" size="lg" onClick={() => openCamera("auto")} className="h-32 flex-col gap-3">
-									<Zap className="w-8 h-8" />
+									<Zap className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Modo Auto</div>
 										<div className="text-xs text-muted-foreground">Detecção inteligente</div>
@@ -190,7 +190,7 @@ export default function TesteCameraPage() {
 									onClick={() => openCamera("native")}
 									className="h-32 flex-col gap-3"
 								>
-									<Smartphone className="w-8 h-8" />
+									<Smartphone className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Câmera Nativa</div>
 										<div className="text-xs text-muted-foreground">Input capture</div>
@@ -198,7 +198,7 @@ export default function TesteCameraPage() {
 								</Button>
 
 								<Button variant="outline" size="lg" onClick={() => openCamera("web")} className="h-32 flex-col gap-3">
-									<Code2 className="w-8 h-8" />
+									<Code2 className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Câmera Web</div>
 										<div className="text-xs text-muted-foreground">getUserMedia API</div>
@@ -214,7 +214,7 @@ export default function TesteCameraPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<CheckCircle2 className="w-5 h-5 text-green-500" />
+								<CheckCircle2 className="size-5 text-green-500" />
 								Foto Capturada com Sucesso!
 							</CardTitle>
 							<CardDescription>Informações sobre a imagem capturada</CardDescription>
@@ -231,20 +231,20 @@ export default function TesteCameraPage() {
 								<div className="space-y-4">
 									<h4 className="font-semibold">Detalhes:</h4>
 									<div className="space-y-2 text-sm">
-										<div className="flex justify-between p-2 bg-muted rounded">
+										<div className="flex justify-between p-2 bg-muted rounded-sm">
 											<span className="text-muted-foreground">Nome:</span>
 											<span className="font-mono">{imageInfo.name}</span>
 										</div>
-										<div className="flex justify-between p-2 bg-muted rounded">
+										<div className="flex justify-between p-2 bg-muted rounded-sm">
 											<span className="text-muted-foreground">Tamanho:</span>
 											<span className="font-mono">{formatFileSize(imageInfo.size)}</span>
 										</div>
-										<div className="flex justify-between p-2 bg-muted rounded">
+										<div className="flex justify-between p-2 bg-muted rounded-sm">
 											<span className="text-muted-foreground">Tipo:</span>
 											<span className="font-mono">{imageInfo.type}</span>
 										</div>
 										{imageInfo.dimensions && (
-											<div className="flex justify-between p-2 bg-muted rounded">
+											<div className="flex justify-between p-2 bg-muted rounded-sm">
 												<span className="text-muted-foreground">Dimensões:</span>
 												<span className="font-mono">{imageInfo.dimensions}</span>
 											</div>
@@ -259,7 +259,7 @@ export default function TesteCameraPage() {
 										}}
 										className="w-full"
 									>
-										<XCircle className="w-4 h-4 mr-2" />
+										<XCircle className="size-4 mr-2" />
 										Limpar Resultado
 									</Button>
 								</div>
@@ -272,7 +272,7 @@ export default function TesteCameraPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Code2 className="w-5 h-5" />
+							<Code2 className="size-5" />
 							Informações Técnicas
 						</CardTitle>
 					</CardHeader>
@@ -283,25 +283,25 @@ export default function TesteCameraPage() {
 								<div className="space-y-1 text-sm">
 									<div className="flex items-center gap-2">
 										{navigator.mediaDevices ? (
-											<CheckCircle2 className="w-4 h-4 text-green-500" />
+											<CheckCircle2 className="size-4 text-green-500" />
 										) : (
-											<XCircle className="w-4 h-4 text-red-500" />
+											<XCircle className="size-4 text-red-500" />
 										)}
 										<span>getUserMedia API</span>
 									</div>
 									<div className="flex items-center gap-2">
 										{window.matchMedia("(display-mode: standalone)").matches ? (
-											<CheckCircle2 className="w-4 h-4 text-green-500" />
+											<CheckCircle2 className="size-4 text-green-500" />
 										) : (
-											<XCircle className="w-4 h-4 text-gray-400" />
+											<XCircle className="size-4 text-gray-400" />
 										)}
 										<span>PWA Instalado</span>
 									</div>
 									<div className="flex items-center gap-2">
 										{"ontouchstart" in window ? (
-											<CheckCircle2 className="w-4 h-4 text-green-500" />
+											<CheckCircle2 className="size-4 text-green-500" />
 										) : (
-											<XCircle className="w-4 h-4 text-gray-400" />
+											<XCircle className="size-4 text-gray-400" />
 										)}
 										<span>Touch Screen</span>
 									</div>
@@ -310,7 +310,7 @@ export default function TesteCameraPage() {
 
 							<div className="space-y-2">
 								<h4 className="font-semibold text-sm">User Agent:</h4>
-								<p className="text-xs font-mono bg-muted p-2 rounded break-all">{navigator.userAgent}</p>
+								<p className="text-xs font-mono bg-muted p-2 rounded-sm break-all">{navigator.userAgent}</p>
 							</div>
 						</div>
 

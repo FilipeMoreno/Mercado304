@@ -140,7 +140,7 @@ export default function DesperdiciosClient() {
 			{/* Controles */}
 			<div className="flex justify-end items-center mb-6">
 				<Button onClick={() => setShowCreateDialog(true)}>
-					<Plus className="mr-2 h-4 w-4" />
+					<Plus className="mr-2 size-4" />
 					Registrar Desperdício
 				</Button>
 			</div>
@@ -149,7 +149,7 @@ export default function DesperdiciosClient() {
 			<div className="flex flex-row gap-4">
 				<div className="flex-1">
 					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 						<Input
 							placeholder="Buscar por produto..."
 							value={searchTerm}
@@ -251,7 +251,7 @@ export default function DesperdiciosClient() {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteWasteMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<div className="space-y-2">
 					<p className="text-sm text-gray-700">

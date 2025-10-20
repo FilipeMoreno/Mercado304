@@ -63,7 +63,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Activity className="h-5 w-5" />
+						<Activity className="size-5" />
 						Análise de Preços
 					</CardTitle>
 				</CardHeader>
@@ -71,7 +71,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 					<Empty className="border border-dashed py-12">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<Activity className="h-6 w-6" />
+								<Activity className="size-6" />
 							</EmptyMedia>
 							<EmptyTitle>Sem dados para análise</EmptyTitle>
 							<EmptyDescription>
@@ -146,7 +146,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Activity className="h-5 w-5" />
+						<Activity className="size-5" />
 						Produtos com Maior Variação de Preço
 					</CardTitle>
 				</CardHeader>
@@ -164,15 +164,15 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 									<Badge variant="destructive">Variação: R$ {stat.variance.toFixed(2)}</Badge>
 								</div>
 								<div className="grid grid-cols-3 gap-4 mt-3">
-									<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
+									<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded-sm">
 										<p className="text-xs text-muted-foreground">Menor</p>
 										<p className="text-lg font-bold text-green-600">R$ {stat.minPrice.toFixed(2)}</p>
 									</div>
-									<div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded">
+									<div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded-sm">
 										<p className="text-xs text-muted-foreground">Média</p>
 										<p className="text-lg font-bold text-blue-600">R$ {stat.avgPrice.toFixed(2)}</p>
 									</div>
-									<div className="text-center p-2 bg-red-50 dark:bg-red-950 rounded">
+									<div className="text-center p-2 bg-red-50 dark:bg-red-950 rounded-sm">
 										<p className="text-xs text-muted-foreground">Maior</p>
 										<p className="text-lg font-bold text-red-600">R$ {stat.maxPrice.toFixed(2)}</p>
 									</div>
@@ -187,7 +187,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Store className="h-5 w-5" />
+						<Store className="size-5" />
 						Ranking de Mercados (Menor → Maior Preço Médio)
 					</CardTitle>
 				</CardHeader>
@@ -196,7 +196,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 						{marketStats.map((stat, index) => (
 							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
 								<div
-									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+									className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
 										index === 0
 											? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
 											: index === 1
@@ -231,7 +231,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 			<Card className={className}>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Target className="h-5 w-5" />
+						<Target className="size-5" />
 						Insights de Compra
 					</CardTitle>
 				</CardHeader>
@@ -239,7 +239,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 					<Empty className="border border-dashed py-12">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<Target className="h-6 w-6" />
+								<Target className="size-6" />
 							</EmptyMedia>
 							<EmptyTitle>Sem dados para insights</EmptyTitle>
 							<EmptyDescription>
@@ -325,7 +325,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Calendar className="h-5 w-5" />
+						<Calendar className="size-5" />
 						Melhor Dia da Semana para Comprar
 					</CardTitle>
 				</CardHeader>
@@ -333,7 +333,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 					<div className="grid md:grid-cols-2 gap-4 mb-6">
 						<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
 							<div className="flex items-center gap-2 mb-2">
-								<div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">👍</div>
+								<div className="size-8 rounded-full bg-green-600 text-white flex items-center justify-center">👍</div>
 								<h4 className="font-semibold text-green-900 dark:text-green-100">Melhor Dia</h4>
 							</div>
 							<p className="text-2xl font-bold text-green-600">{bestDay.dayName}</p>
@@ -344,7 +344,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 						<div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
 							<div className="flex items-center gap-2 mb-2">
-								<div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center">👎</div>
+								<div className="size-8 rounded-full bg-red-600 text-white flex items-center justify-center">👎</div>
 								<h4 className="font-semibold text-red-900 dark:text-red-100">Evitar</h4>
 							</div>
 							<p className="text-2xl font-bold text-red-600">{worstDay.dayName}</p>
@@ -357,7 +357,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 					<div className="space-y-2">
 						<h5 className="font-semibold text-sm">Ranking Completo:</h5>
 						{dayStats.map((stat, index) => (
-							<div key={stat.day} className="flex items-center justify-between p-2 border rounded">
+							<div key={stat.day} className="flex items-center justify-between p-2 border rounded-sm">
 								<div className="flex items-center gap-2">
 									<span className="text-sm font-medium w-6">{index + 1}º</span>
 									<span>{stat.dayName}</span>
@@ -376,7 +376,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Target className="h-5 w-5" />
+						<Target className="size-5" />
 						Melhores Ofertas Encontradas
 					</CardTitle>
 				</CardHeader>
@@ -387,7 +387,7 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 								key={deal.id}
 								className="flex items-center gap-4 p-3 border rounded-lg bg-gradient-to-r from-green-50 to-transparent dark:from-green-950"
 							>
-								<div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
+								<div className="shrink-0 size-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
 									{index + 1}
 								</div>
 								<div className="flex-1">
@@ -417,14 +417,14 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-base flex items-center gap-2">
-							<DollarSign className="h-4 w-4 text-red-600" />
+							<DollarSign className="size-4 text-red-600" />
 							Produtos Mais Caros
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-2">
 							{mostExpensive.map((product, index) => (
-								<div key={product.product} className="flex justify-between items-center p-2 border rounded">
+								<div key={product.product} className="flex justify-between items-center p-2 border rounded-sm">
 									<div className="flex items-center gap-2">
 										<span className="text-xs font-medium w-5">{index + 1}º</span>
 										<div>
@@ -442,14 +442,14 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-base flex items-center gap-2">
-							<DollarSign className="h-4 w-4 text-green-600" />
+							<DollarSign className="size-4 text-green-600" />
 							Produtos Mais Baratos
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-2">
 							{cheapest.map((product, index) => (
-								<div key={product.product} className="flex justify-between items-center p-2 border rounded">
+								<div key={product.product} className="flex justify-between items-center p-2 border rounded-sm">
 									<div className="flex items-center gap-2">
 										<span className="text-xs font-medium w-5">{index + 1}º</span>
 										<div>
@@ -824,7 +824,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<p className="text-sm text-muted-foreground">Total de Registros</p>
 								<p className="text-2xl font-bold">{stats.totalRecords}</p>
 							</div>
-							<Receipt className="h-8 w-8 text-muted-foreground" />
+							<Receipt className="size-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -836,7 +836,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<p className="text-sm text-muted-foreground">Produtos Únicos</p>
 								<p className="text-2xl font-bold">{stats.uniqueProducts}</p>
 							</div>
-							<Package className="h-8 w-8 text-muted-foreground" />
+							<Package className="size-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -848,7 +848,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<p className="text-sm text-muted-foreground">Mercados Únicos</p>
 								<p className="text-2xl font-bold">{stats.uniqueMarkets}</p>
 							</div>
-							<Store className="h-8 w-8 text-muted-foreground" />
+							<Store className="size-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -860,7 +860,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<p className="text-sm text-muted-foreground">Preço Médio</p>
 								<p className="text-2xl font-bold">R$ {stats.avgPrice.toFixed(2)}</p>
 							</div>
-							<DollarSign className="h-8 w-8 text-muted-foreground" />
+							<DollarSign className="size-8 text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -870,19 +870,19 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			<Tabs defaultValue="new" className="w-full">
 				<TabsList className="grid w-full grid-cols-4">
 					<TabsTrigger value="new" className="flex items-center gap-2">
-						<Plus className="h-4 w-4" />
+						<Plus className="size-4" />
 						Novo Registro
 					</TabsTrigger>
 					<TabsTrigger value="list" className="flex items-center gap-2">
-						<Search className="h-4 w-4" />
+						<Search className="size-4" />
 						Histórico
 					</TabsTrigger>
 					<TabsTrigger value="analysis" className="flex items-center gap-2">
-						<Activity className="h-4 w-4" />
+						<Activity className="size-4" />
 						Análise
 					</TabsTrigger>
 					<TabsTrigger value="insights" className="flex items-center gap-2">
-						<Target className="h-4 w-4" />
+						<Target className="size-4" />
 						Insights
 					</TabsTrigger>
 				</TabsList>
@@ -891,7 +891,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Plus className="h-5 w-5" />
+								<Plus className="size-5" />
 								Registrar Novo Preço
 							</CardTitle>
 						</CardHeader>
@@ -975,7 +975,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 										disabled={isSubmitting}
 										className="flex items-center gap-2"
 									>
-										<Zap className="h-4 w-4" />
+										<Zap className="size-4" />
 										Scanner IA
 									</Button>
 								</div>
@@ -983,7 +983,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								{/* Instruções do Scanner */}
 								<div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
 									<div className="flex items-start gap-3">
-										<Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+										<Zap className="size-5 text-blue-600 dark:text-blue-400 mt-0.5" />
 										<div>
 											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Scanner de Etiquetas com IA</h4>
 											<p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
@@ -1007,7 +1007,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Filter className="h-5 w-5" />
+								<Filter className="size-5" />
 								Filtros
 							</CardTitle>
 						</CardHeader>
@@ -1016,7 +1016,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<div>
 									<Label>Buscar</Label>
 									<div className="relative">
-										<Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+										<Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
 										<Input
 											value={searchTerm}
 											onChange={(e) => setSearchTerm(e.target.value)}
@@ -1051,7 +1051,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												onClick={() => setSelectedMarket("")}
 												title="Limpar filtro"
 											>
-												<X className="h-4 w-4" />
+												<X className="size-4" />
 											</Button>
 										)}
 									</div>
@@ -1082,7 +1082,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												onClick={() => setSelectedProduct("")}
 												title="Limpar filtro"
 											>
-												<X className="h-4 w-4" />
+												<X className="size-4" />
 											</Button>
 										)}
 									</div>
@@ -1095,7 +1095,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						<CardHeader>
 							<CardTitle className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Clock className="h-5 w-5" />
+									<Clock className="size-5" />
 									Histórico de Preços
 								</div>
 								<Badge variant="outline">{totalRecords} registros</Badge>
@@ -1104,7 +1104,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						<CardContent>
 							{loading ? (
 								<div className="text-center py-8">
-									<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+									<div className="animate-spin rounded-full size-8 border-b-2 border-primary mx-auto"></div>
 									<p className="text-muted-foreground mt-2">Carregando...</p>
 								</div>
 							) : filteredRecords.length === 0 ? (
@@ -1112,7 +1112,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<Empty className="border border-dashed py-12">
 										<EmptyHeader>
 											<EmptyMedia variant="icon">
-												<Receipt className="h-6 w-6" />
+												<Receipt className="size-6" />
 											</EmptyMedia>
 											<EmptyTitle>Nenhum registro encontrado</EmptyTitle>
 											<EmptyDescription>Tente ajustar os filtros para encontrar registros.</EmptyDescription>
@@ -1122,7 +1122,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<Empty className="border border-dashed py-12">
 										<EmptyHeader>
 											<EmptyMedia variant="icon">
-												<Receipt className="h-6 w-6" />
+												<Receipt className="size-6" />
 											</EmptyMedia>
 											<EmptyTitle>Nenhum preço registrado</EmptyTitle>
 											<EmptyDescription>
@@ -1167,7 +1167,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 																onClick={() => handleEditClick(record)}
 																title="Editar"
 															>
-																<Pencil className="h-4 w-4" />
+																<Pencil className="size-4" />
 															</Button>
 															<Button
 																variant="outline"
@@ -1176,7 +1176,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 																title="Deletar"
 																className="text-red-600 hover:text-red-700 hover:bg-red-50"
 															>
-																<Trash2 className="h-4 w-4" />
+																<Trash2 className="size-4" />
 															</Button>
 														</div>
 													</div>
@@ -1198,7 +1198,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 													</Label>
 													<select
 														id={itemsPerPageId}
-														className="border rounded px-2 py-1 text-sm"
+														className="border rounded-sm px-2 py-1 text-sm"
 														value={itemsPerPage}
 														onChange={(e) => {
 															setItemsPerPage(Number(e.target.value))
@@ -1227,7 +1227,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 															onClick={() => handlePageChange(currentPage - 1)}
 															disabled={currentPage === 1 || loading}
 														>
-															<ChevronLeft className="h-4 w-4 mr-1" />
+															<ChevronLeft className="size-4 mr-1" />
 															Anterior
 														</Button>
 														<Button
@@ -1237,7 +1237,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 															disabled={currentPage === totalPages || loading}
 														>
 															Próxima
-															<ChevronRight className="h-4 w-4 ml-1" />
+															<ChevronRight className="size-4 ml-1" />
 														</Button>
 													</div>
 												</div>
@@ -1272,7 +1272,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<Edit className="h-5 w-5" />
+							<Edit className="size-5" />
 							Editar Registro de Preço
 						</DialogTitle>
 						<DialogDescription>Atualize as informações do registro de preço selecionado.</DialogDescription>
@@ -1281,15 +1281,15 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						<div className="space-y-4">
 							<div className="p-4 bg-muted rounded-lg space-y-2">
 								<div className="flex items-center gap-2">
-									<Package className="h-4 w-4 text-muted-foreground" />
+									<Package className="size-4 text-muted-foreground" />
 									<span className="font-semibold">{editingRecord.product}</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<Store className="h-4 w-4 text-muted-foreground" />
+									<Store className="size-4 text-muted-foreground" />
 									<span className="text-sm text-muted-foreground">{editingRecord.market}</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<Calendar className="h-4 w-4 text-muted-foreground" />
+									<Calendar className="size-4 text-muted-foreground" />
 									<span className="text-sm text-muted-foreground">
 										{new Date(editingRecord.recordDate).toLocaleDateString("pt-BR")}
 									</span>
@@ -1335,7 +1335,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle className="flex items-center gap-2">
-							<Trash2 className="h-5 w-5 text-red-600" />
+							<Trash2 className="size-5 text-red-600" />
 							Confirmar Exclusão
 						</AlertDialogTitle>
 						<AlertDialogDescription>
@@ -1345,19 +1345,19 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					{deletingRecord && (
 						<div className="p-4 bg-muted rounded-lg space-y-2">
 							<div className="flex items-center gap-2">
-								<Package className="h-4 w-4 text-muted-foreground" />
+								<Package className="size-4 text-muted-foreground" />
 								<span className="font-semibold">{deletingRecord.product}</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<Store className="h-4 w-4 text-muted-foreground" />
+								<Store className="size-4 text-muted-foreground" />
 								<span className="text-sm text-muted-foreground">{deletingRecord.market}</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-muted-foreground" />
+								<DollarSign className="size-4 text-muted-foreground" />
 								<span className="text-sm font-bold text-green-600">R$ {deletingRecord.price.toFixed(2)}</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<Calendar className="h-4 w-4 text-muted-foreground" />
+								<Calendar className="size-4 text-muted-foreground" />
 								<span className="text-sm text-muted-foreground">
 									{new Date(deletingRecord.recordDate).toLocaleDateString("pt-BR")}
 								</span>

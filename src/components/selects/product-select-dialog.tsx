@@ -197,7 +197,7 @@ export function ProductSelectDialog({
             className="shrink-0"
             title="Escanear código de barras"
           >
-            <Camera className="h-4 w-4" />
+            <Camera className="size-4" />
           </Button>
         )}
       </div>

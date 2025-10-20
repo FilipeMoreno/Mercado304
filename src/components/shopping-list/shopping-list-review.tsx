@@ -150,7 +150,7 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
           {unlinkedCount > 0 && (
             <Alert className="mt-3">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="size-4" />
               <AlertDescription className="text-sm">
                 {unlinkedCount} {unlinkedCount === 1 ? 'item permanecerá' : 'itens permanecerão'} como texto livre.
                 Você pode vinculá-los a produtos cadastrados para melhor controle.
@@ -173,9 +173,9 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                   <div className="flex-1">
                     <CardTitle className="text-base flex items-center gap-2">
                       {isLinked ? (
-                        <Check className="h-4 w-4 text-green-600" />
+                        <Check className="size-4 text-green-600" />
                       ) : (
-                        <Package className="h-4 w-4 text-gray-400" />
+                        <Package className="size-4 text-gray-400" />
                       )}
                       {item.productName}
                     </CardTitle>
@@ -222,7 +222,7 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                             className="absolute right-0 top-0 h-full px-3"
                             title="Buscar produto cadastrado"
                           >
-                            <LinkIcon className="h-4 w-4" />
+                            <LinkIcon className="size-4" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] p-0" align="start">
@@ -262,7 +262,7 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                         onClick={() => handleUnlink(index)}
                         title="Desvincular produto"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="size-4" />
                       </Button>
                     )}
                   </div>

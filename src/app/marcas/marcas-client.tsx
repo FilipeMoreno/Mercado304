@@ -156,7 +156,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<Factory className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<Factory className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar marcas</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -173,7 +173,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 				className="flex items-center gap-2 mb-6"
 			>
 				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 					<Input placeholder="Buscar marcas..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
 				<div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 						onClearFilters={clearFilters}
 					/>
 					<Button onClick={() => router.push("/marcas/nova")} className="bg-green-600 hover:bg-green-700 text-white">
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						<span className="hidden sm:inline">Nova Marca</span>
 						<span className="sm:hidden">Nova</span>
 					</Button>
@@ -199,7 +199,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Factory className="h-6 w-6" />
+										<Factory className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma marca encontrada</EmptyTitle>
 									<EmptyDescription>Nenhuma marca corresponde aos filtros aplicados</EmptyDescription>
@@ -220,7 +220,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Factory className="h-6 w-6" />
+										<Factory className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma marca cadastrada</EmptyTitle>
 									<EmptyDescription>Comece adicionando sua primeira marca</EmptyDescription>
@@ -228,7 +228,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 								<EmptyContent>
 									<Link href="/marcas/nova">
 										<Button>
-											<Plus className="mr-2 h-4 w-4" />
+											<Plus className="mr-2 size-4" />
 											Cadastrar Primeira Marca
 										</Button>
 									</Link>
@@ -275,7 +275,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 										onClick={() => handlePageChange(Number(state.page) - 1)}
 										disabled={Number(state.page) === 1}
 									>
-										<ChevronLeft className="h-4 w-4" />
+										<ChevronLeft className="size-4" />
 										Anterior
 									</Button>
 
@@ -291,7 +291,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 														variant={Number(state.page) === page ? "default" : "outline"}
 														size="sm"
 														onClick={() => handlePageChange(page)}
-														className="w-8 h-8 p-0"
+														className="size-8 p-0"
 													>
 														{page}
 													</Button>
@@ -306,7 +306,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 										disabled={Number(state.page) === totalPages}
 									>
 										Próxima
-										<ChevronRight className="h-4 w-4" />
+										<ChevronRight className="size-4" />
 									</Button>
 								</div>
 							)}
@@ -348,7 +348,7 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteBrandMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir a marca <strong>{deleteState.item?.name}</strong>?

@@ -199,7 +199,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<Search className="h-5 w-5" />
+						<Search className="size-5" />
 						Buscar Menor Preço
 					</DialogTitle>
 					<DialogDescription>
@@ -209,7 +209,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 
 				{loading ? (
 					<div className="flex items-center justify-center py-12">
-						<Loader2 className="h-8 w-8 animate-spin text-primary" />
+						<Loader2 className="size-8 animate-spin text-primary" />
 						<span className="ml-2">Buscando preços...</span>
 					</div>
 				) : searchData ? (
@@ -251,7 +251,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 													<div className="flex justify-between items-start">
 														<div className="flex-1">
 															<div className="flex items-center gap-2">
-																<Store className="h-4 w-4 text-muted-foreground" />
+																<Store className="size-4 text-muted-foreground" />
 																<h5 className="font-medium">{priceInfo.marketName}</h5>
 																{index === 0 && (
 																	<Badge variant="default" className="ml-2">
@@ -332,12 +332,12 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 										>
 											{searching || notaParanaLoading ? (
 												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+													<Loader2 className="mr-2 size-4 animate-spin" />
 													Buscando...
 												</>
 											) : (
 												<>
-													<Search className="mr-2 h-4 w-4" />
+													<Search className="mr-2 size-4" />
 													Buscar Novamente
 												</>
 											)}
@@ -347,7 +347,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 
 								{searching || notaParanaLoading ? (
 									<div className="flex items-center justify-center py-12">
-										<Loader2 className="h-8 w-8 animate-spin text-primary" />
+										<Loader2 className="size-8 animate-spin text-primary" />
 										<span className="ml-2">Buscando no Nota Paraná...</span>
 									</div>
 								) : notaParanaProdutos.length > 0 ? (
@@ -381,7 +381,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 
 																{/* Estabelecimento */}
 																<div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-																	<Store className="h-4 w-4 flex-shrink-0" />
+																	<Store className="size-4 shrink-0" />
 																	<span className="font-medium">
 																		{produto.estabelecimento.nm_fan || produto.estabelecimento.nm_emp}
 																	</span>
@@ -389,7 +389,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 
 																{/* Endereço */}
 																<div className="flex items-start gap-2 mt-1 text-sm text-muted-foreground">
-																	<MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+																	<MapPin className="size-4 shrink-0 mt-0.5" />
 																	<div>
 																		<div>{endereco.linha1}</div>
 																		<div>{endereco.linha2}</div>

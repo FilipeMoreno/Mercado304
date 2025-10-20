@@ -8,7 +8,7 @@ export default function EditStockLoading() {
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
 				<Button variant="outline" size="sm" disabled>
-					<ArrowLeft className="h-4 w-4 mr-2" />
+					<ArrowLeft className="size-4 mr-2" />
 					Voltar
 				</Button>
 				<div>
@@ -22,7 +22,7 @@ export default function EditStockLoading() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Package className="h-5 w-5" />
+								<Package className="size-5" />
 								Informações do Item
 							</CardTitle>
 							<CardDescription>Edite os detalhes do item no estoque</CardDescription>

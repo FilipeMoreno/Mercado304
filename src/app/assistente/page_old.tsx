@@ -180,19 +180,19 @@ export default function AssistentePage() {
 								onClick={() => setShowHistorySidebar(true)}
 								className="lg:hidden"
 							>
-								<Menu className="h-5 w-5" />
+								<Menu className="size-5" />
 							</Button>
 							
 							<Link href="/" className="hidden lg:block">
 								<Button variant="outline" size="sm" className="gap-2">
-									<ArrowLeft className="h-4 w-4" />
+									<ArrowLeft className="size-4" />
 									Voltar
 								</Button>
 							</Link>
 							
 							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-									<Bot className="h-6 w-6 text-white" />
+								<div className="size-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+									<Bot className="size-6 text-white" />
 								</div>
 								<div>
 									<h1 className="text-2xl font-bold text-gray-900">Zé, o Assistente</h1>
@@ -211,7 +211,7 @@ export default function AssistentePage() {
 								onClick={() => setShowHistorySidebar(true)}
 								className="hidden lg:flex gap-2"
 							>
-								<History className="h-4 w-4" />
+								<History className="size-4" />
 								Histórico
 							</Button>
 
@@ -222,7 +222,7 @@ export default function AssistentePage() {
 								onClick={handleNewChat}
 								className="gap-2"
 							>
-								<Plus className="h-4 w-4" />
+								<Plus className="size-4" />
 								Novo Chat
 							</Button>
 
@@ -235,12 +235,12 @@ export default function AssistentePage() {
 							>
 								{isExpanded ? (
 									<>
-										<Minimize2 className="h-4 w-4" />
+										<Minimize2 className="size-4" />
 										<span className="hidden sm:inline">Compacto</span>
 									</>
 								) : (
 									<>
-										<Maximize2 className="h-4 w-4" />
+										<Maximize2 className="size-4" />
 										<span className="hidden sm:inline">Expandir</span>
 									</>
 								)}
@@ -251,10 +251,10 @@ export default function AssistentePage() {
 
 				{/* Chat Container */}
 				<div className="flex-1 flex flex-col">
-					<Card className="flex-1 m-4 shadow-xl border-0 bg-white/80 backdrop-blur-sm flex flex-col">
-						<CardHeader className="border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg flex-shrink-0">
+					<Card className="flex-1 m-4 shadow-xl border-0 bg-white/80 backdrop-blur-xs flex flex-col">
+						<CardHeader className="border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg shrink-0">
 							<CardTitle className="flex items-center gap-2">
-								<Bot className="h-5 w-5" />
+								<Bot className="size-5" />
 								Conversa com o Zé
 								{sessions.length > 0 && (
 									<span className="text-xs bg-white/20 px-2 py-1 rounded-full">
@@ -318,7 +318,7 @@ export default function AssistentePage() {
 							</ScrollArea>
 
 							{/* Input Form */}
-							<div className="p-6 border-t bg-gray-50/50 flex-shrink-0">
+							<div className="p-6 border-t bg-gray-50/50 shrink-0">
 								<form onSubmit={handleSendMessage} className="flex gap-4">
 									<Input
 										value={input}
@@ -334,14 +334,14 @@ export default function AssistentePage() {
 										className="h-12 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
 										title="Tirar foto ou enviar da galeria"
 									>
-										<Camera className="h-4 w-4" />
+										<Camera className="size-4" />
 									</Button>
 									<Button
 										type="submit"
 										disabled={isLoading || !input.trim()}
 										className="h-12 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
 									>
-										<Send className="h-4 w-4 mr-2" />
+										<Send className="size-4 mr-2" />
 										Enviar
 									</Button>
 								</form>
@@ -358,9 +358,9 @@ export default function AssistentePage() {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.1 }}
 						>
-							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+							<Card className="bg-white/70 backdrop-blur-xs border-0 shadow-md hover:shadow-lg transition-shadow-sm">
 								<CardContent className="p-4 text-center">
-									<Bot className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+									<Bot className="size-8 text-blue-600 mx-auto mb-2" />
 									<p className="text-sm text-gray-700 font-medium">Peça para criar listas de compras</p>
 								</CardContent>
 							</Card>
@@ -371,9 +371,9 @@ export default function AssistentePage() {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.2 }}
 						>
-							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+							<Card className="bg-white/70 backdrop-blur-xs border-0 shadow-md hover:shadow-lg transition-shadow-sm">
 								<CardContent className="p-4 text-center">
-									<Bot className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+									<Bot className="size-8 text-indigo-600 mx-auto mb-2" />
 									<p className="text-sm text-gray-700 font-medium">Compare preços entre mercados</p>
 								</CardContent>
 							</Card>
@@ -384,9 +384,9 @@ export default function AssistentePage() {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.3 }}
 						>
-							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-shadow">
+							<Card className="bg-white/70 backdrop-blur-xs border-0 shadow-md hover:shadow-lg transition-shadow-sm">
 								<CardContent className="p-4 text-center">
-									<Bot className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+									<Bot className="size-8 text-purple-600 mx-auto mb-2" />
 									<p className="text-sm text-gray-700 font-medium">Calcule seu churrasco perfeito</p>
 								</CardContent>
 							</Card>
@@ -417,7 +417,7 @@ export default function AssistentePage() {
 									size="icon"
 									onClick={() => setShowPhotoCapture(false)}
 								>
-									<X className="h-4 w-4" />
+									<X className="size-4" />
 								</Button>
 							</div>
 							<div className="p-4">

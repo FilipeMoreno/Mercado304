@@ -115,7 +115,7 @@ export default function ProductKitsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Package className="h-8 w-8 text-primary" />
+            <Package className="size-8 text-primary" />
             Kits e Combos
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -124,7 +124,7 @@ export default function ProductKitsPage() {
         </div>
 
         <Button size="lg" onClick={handleCreateNew}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="size-4 mr-2" />
           Novo Kit
         </Button>
       </div>
@@ -138,7 +138,7 @@ export default function ProductKitsPage() {
                 <p className="text-sm text-muted-foreground">Total de Kits</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
-              <Package className="h-8 w-8 text-muted-foreground" />
+              <Package className="size-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -150,7 +150,7 @@ export default function ProductKitsPage() {
                 <p className="text-sm text-muted-foreground">Kits Ativos</p>
                 <p className="text-2xl font-bold text-green-600">{stats.active}</p>
               </div>
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="size-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -162,7 +162,7 @@ export default function ProductKitsPage() {
                 <p className="text-sm text-muted-foreground">Kits Inativos</p>
                 <p className="text-2xl font-bold text-orange-600">{stats.inactive}</p>
               </div>
-              <XCircle className="h-8 w-8 text-orange-600" />
+              <XCircle className="size-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
@@ -174,7 +174,7 @@ export default function ProductKitsPage() {
                 <p className="text-sm text-muted-foreground">Total Produtos</p>
                 <p className="text-2xl font-bold">{stats.totalProducts}</p>
               </div>
-              <Box className="h-8 w-8 text-muted-foreground" />
+              <Box className="size-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -187,7 +187,7 @@ export default function ProductKitsPage() {
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Buscar kits por nome, descrição ou produtos..."
@@ -201,7 +201,7 @@ export default function ProductKitsPage() {
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="size-4 mr-2" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -214,7 +214,7 @@ export default function ProductKitsPage() {
             {/* Clear Filters */}
             {hasActiveFilters && (
               <Button variant="ghost" size="icon" onClick={clearFilters}>
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             )}
           </div>
@@ -251,7 +251,7 @@ export default function ProductKitsPage() {
         <Card className="border-destructive">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+              <AlertCircle className="size-5 text-destructive" />
               <div className="flex-1">
                 <p className="font-semibold text-destructive">Erro ao carregar kits</p>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -274,7 +274,7 @@ export default function ProductKitsPage() {
         <Card>
           <CardContent className="p-12">
             <div className="text-center">
-              <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <Package className="size-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">
                 {hasActiveFilters ? "Nenhum kit encontrado" : "Nenhum kit cadastrado"}
               </h3>
@@ -285,12 +285,12 @@ export default function ProductKitsPage() {
               </p>
               {hasActiveFilters ? (
                 <Button variant="outline" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="size-4 mr-2" />
                   Limpar Filtros
                 </Button>
               ) : (
                 <Button onClick={handleCreateNew}>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="size-4 mr-2" />
                   Criar Primeiro Kit
                 </Button>
               )}

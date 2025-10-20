@@ -118,11 +118,11 @@ export function BiometricLockSettings() {
 
 	if (loading) {
 		return (
-			<Card className="border-0 shadow-sm">
+			<Card className="border-0 shadow-xs">
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="p-2 rounded-full bg-blue-100 dark:bg-blue-950">
-							<Fingerprint className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+							<Fingerprint className="size-6 text-blue-600 dark:text-blue-400" />
 						</div>
 						<div>
 							<CardTitle>Bloqueio Biométrico</CardTitle>
@@ -132,7 +132,7 @@ export function BiometricLockSettings() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center justify-center py-8">
-						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+						<Loader2 className="size-8 animate-spin text-muted-foreground" />
 					</div>
 				</CardContent>
 			</Card>
@@ -141,11 +141,11 @@ export function BiometricLockSettings() {
 
 	if (!available) {
 		return (
-			<Card className="border-0 shadow-sm">
+			<Card className="border-0 shadow-xs">
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
-							<Fingerprint className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+							<Fingerprint className="size-6 text-gray-600 dark:text-gray-400" />
 						</div>
 						<div>
 							<CardTitle>Bloqueio Biométrico</CardTitle>
@@ -155,7 +155,7 @@ export function BiometricLockSettings() {
 				</CardHeader>
 				<CardContent>
 					<Alert>
-						<Info className="h-4 w-4" />
+						<Info className="size-4" />
 						<AlertDescription>
 							Seu dispositivo não suporta autenticação biométrica ou a funcionalidade não está disponível no navegador
 							atual. Para usar esta função, acesse através de um dispositivo com suporte a biometria (impressão digital,
@@ -168,12 +168,12 @@ export function BiometricLockSettings() {
 	}
 
 	return (
-		<Card className="border-0 shadow-sm">
+		<Card className="border-0 shadow-xs">
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<div className="p-2 rounded-full bg-blue-100 dark:bg-blue-950">
-							<Fingerprint className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+							<Fingerprint className="size-6 text-blue-600 dark:text-blue-400" />
 						</div>
 						<div>
 							<CardTitle>Bloqueio Biométrico</CardTitle>
@@ -192,7 +192,7 @@ export function BiometricLockSettings() {
 				{/* Status da biometria */}
 				{!hasCredential && (
 					<Alert>
-						<Info className="h-4 w-4" />
+						<Info className="size-4" />
 						<AlertDescription>Configure a biometria para começar a usar o bloqueio do aplicativo.</AlertDescription>
 					</Alert>
 				)}
@@ -203,12 +203,12 @@ export function BiometricLockSettings() {
 						<Button onClick={handleRegisterBiometric} disabled={isRegistering} className="flex-1" size="lg">
 							{isRegistering ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Configurando...
 								</>
 							) : (
 								<>
-									<Fingerprint className="mr-2 h-4 w-4" />
+									<Fingerprint className="mr-2 size-4" />
 									Configurar Biometria
 								</>
 							)}
@@ -221,7 +221,7 @@ export function BiometricLockSettings() {
 					<>
 						<div className="flex items-center justify-between space-x-4 p-4 bg-muted/50 rounded-lg">
 							<div className="flex items-start gap-3 flex-1">
-								<Lock className="h-5 w-5 mt-0.5 text-blue-600 dark:text-blue-400" />
+								<Lock className="size-5 mt-0.5 text-blue-600 dark:text-blue-400" />
 								<div className="flex-1">
 									<Label htmlFor={biometricEnabledId} className="font-medium cursor-pointer">
 										Ativar Bloqueio Biométrico
@@ -238,7 +238,7 @@ export function BiometricLockSettings() {
 								{/* Bloquear ao fechar */}
 								<div className="flex items-center justify-between space-x-4 p-4 border rounded-lg">
 									<div className="flex items-start gap-3 flex-1">
-										<Smartphone className="h-5 w-5 mt-0.5 text-muted-foreground" />
+										<Smartphone className="size-5 mt-0.5 text-muted-foreground" />
 										<div className="flex-1">
 											<Label htmlFor={lockOnCloseId} className="font-medium cursor-pointer">
 												Bloquear ao Fechar App
@@ -254,7 +254,7 @@ export function BiometricLockSettings() {
 								{/* Tempo de inatividade */}
 								<div className="space-y-4 p-4 border rounded-lg">
 									<div className="flex items-start gap-3">
-										<Timer className="h-5 w-5 mt-0.5 text-muted-foreground" />
+										<Timer className="size-5 mt-0.5 text-muted-foreground" />
 										<div className="flex-1">
 											<Label className="font-medium">Bloqueio por Inatividade</Label>
 											<p className="text-sm text-muted-foreground mt-1">Tempo sem atividade antes de bloquear o app</p>
@@ -306,7 +306,7 @@ export function BiometricLockSettings() {
 				{/* Informação adicional */}
 				{hasCredential && (
 					<Alert>
-						<Info className="h-4 w-4" />
+						<Info className="size-4" />
 						<AlertDescription className="text-xs">
 							O bloqueio biométrico utiliza a mesma tecnologia das Passkeys. Seus dados biométricos nunca saem do seu
 							dispositivo.

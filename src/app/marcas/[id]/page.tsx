@@ -127,7 +127,7 @@ export default function MarcaDetalhesPage() {
 					<Skeleton className="h-9 w-20" />
 					<div className="flex-1">
 						<div className="flex items-center gap-3">
-							<Skeleton className="h-10 w-10 rounded" />
+							<Skeleton className="size-10 rounded-sm" />
 							<div>
 								<Skeleton className="h-8 w-64 mb-2" />
 								<Skeleton className="h-6 w-40" />
@@ -178,12 +178,12 @@ export default function MarcaDetalhesPage() {
 	if (!brand) {
 		return (
 			<div className="text-center py-12">
-				<Factory className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+				<Factory className="size-16 mx-auto mb-4 text-gray-400" />
 				<h2 className="text-2xl font-semibold mb-2">Marca não encontrada</h2>
 				<p className="text-gray-600 mb-4">Esta marca não existe ou foi excluída.</p>
 				<Link href="/marcas">
 					<Button>
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar para Marcas
 					</Button>
 				</Link>
@@ -203,14 +203,14 @@ export default function MarcaDetalhesPage() {
 			>
 				<Link href="/marcas">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
 				<div className="flex-1">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/10 rounded-lg">
-							<Factory className="h-8 w-8 text-primary" />
+							<Factory className="size-8 text-primary" />
 						</div>
 						<div>
 							<h1 className="text-2xl md:text-3xl font-bold">{brand.name}</h1>
@@ -224,7 +224,7 @@ export default function MarcaDetalhesPage() {
 				<div className="flex gap-2">
 					<Link href={`/marcas/${brandId}/editar`}>
 						<Button variant="outline" size="sm">
-							<Edit className="h-4 w-4 mr-2" />
+							<Edit className="size-4 mr-2" />
 							Editar
 						</Button>
 					</Link>
@@ -239,7 +239,7 @@ export default function MarcaDetalhesPage() {
 								: "Excluir marca"
 						}
 					>
-						<Trash2 className="h-4 w-4 mr-2" />
+						<Trash2 className="size-4 mr-2" />
 						Excluir
 					</Button>
 				</div>
@@ -256,7 +256,7 @@ export default function MarcaDetalhesPage() {
 					<CardHeader className="pb-3">
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-sm font-medium">Produtos</CardTitle>
-							<Package className="h-4 w-4 text-muted-foreground" />
+							<Package className="size-4 text-muted-foreground" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -269,7 +269,7 @@ export default function MarcaDetalhesPage() {
 					<CardHeader className="pb-3">
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-sm font-medium">Compras</CardTitle>
-							<ShoppingCart className="h-4 w-4 text-muted-foreground" />
+							<ShoppingCart className="size-4 text-muted-foreground" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -282,7 +282,7 @@ export default function MarcaDetalhesPage() {
 					<CardHeader className="pb-3">
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
-							<DollarSign className="h-4 w-4 text-muted-foreground" />
+							<DollarSign className="size-4 text-muted-foreground" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -295,7 +295,7 @@ export default function MarcaDetalhesPage() {
 					<CardHeader className="pb-3">
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-sm font-medium">Preço Médio</CardTitle>
-							<BarChart3 className="h-4 w-4 text-muted-foreground" />
+							<BarChart3 className="size-4 text-muted-foreground" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -309,19 +309,19 @@ export default function MarcaDetalhesPage() {
 			<Tabs defaultValue="products" className="w-full">
 				<TabsList className="grid w-full grid-cols-4">
 					<TabsTrigger value="products">
-						<Package className="h-4 w-4 mr-2" />
+						<Package className="size-4 mr-2" />
 						Produtos
 					</TabsTrigger>
 					<TabsTrigger value="stats">
-						<BarChart3 className="h-4 w-4 mr-2" />
+						<BarChart3 className="size-4 mr-2" />
 						Estatísticas
 					</TabsTrigger>
 					<TabsTrigger value="markets">
-						<Store className="h-4 w-4 mr-2" />
+						<Store className="size-4 mr-2" />
 						Mercados
 					</TabsTrigger>
 					<TabsTrigger value="insights">
-						<TrendingUp className="h-4 w-4 mr-2" />
+						<TrendingUp className="size-4 mr-2" />
 						Insights
 					</TabsTrigger>
 				</TabsList>
@@ -331,7 +331,7 @@ export default function MarcaDetalhesPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Package className="h-5 w-5" />
+								<Package className="size-5" />
 								Produtos da Marca
 							</CardTitle>
 							<CardDescription>Todos os produtos associados a {brand.name}</CardDescription>
@@ -341,7 +341,7 @@ export default function MarcaDetalhesPage() {
 								<Empty className="border border-dashed py-12">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<Package className="h-6 w-6" />
+											<Package className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhum produto desta marca</EmptyTitle>
 										<EmptyDescription>
@@ -351,7 +351,7 @@ export default function MarcaDetalhesPage() {
 									<EmptyContent>
 										<Link href="/produtos/novo">
 											<Button>
-												<Package className="h-4 w-4 mr-2" />
+												<Package className="size-4 mr-2" />
 												Adicionar Produto
 											</Button>
 										</Link>
@@ -367,10 +367,10 @@ export default function MarcaDetalhesPage() {
 											whileHover={{ scale: 1.02 }}
 											transition={{ duration: 0.2 }}
 										>
-											<Card className="hover:shadow-md transition-shadow h-full">
+											<Card className="hover:shadow-md transition-shadow-sm h-full">
 												<CardHeader className="pb-3">
 													<CardTitle className="text-lg flex items-center gap-2">
-														<Package className="h-5 w-5" />
+														<Package className="size-5" />
 														{product.name}
 													</CardTitle>
 													<CardDescription className="space-y-1">
@@ -386,7 +386,7 @@ export default function MarcaDetalhesPage() {
 												<CardContent className="pt-0">
 													<Link href={`/produtos/${product.id}`}>
 														<Button variant="outline" size="sm" className="w-full">
-															<BarChart3 className="h-4 w-4 mr-2" />
+															<BarChart3 className="size-4 mr-2" />
 															Ver Detalhes
 														</Button>
 													</Link>
@@ -408,7 +408,7 @@ export default function MarcaDetalhesPage() {
 								<Empty className="border border-dashed">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<BarChart3 className="h-6 w-6" />
+											<BarChart3 className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Sem estatísticas disponíveis</EmptyTitle>
 										<EmptyDescription>
@@ -424,7 +424,7 @@ export default function MarcaDetalhesPage() {
 							<Card>
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
-										<ShoppingCart className="h-5 w-5" />
+										<ShoppingCart className="size-5" />
 										Produtos Mais Comprados
 									</CardTitle>
 									<CardDescription>Top produtos desta marca por quantidade</CardDescription>
@@ -434,7 +434,7 @@ export default function MarcaDetalhesPage() {
 										{stats.topProducts.slice(0, 5).map((product, index) => (
 											<div key={product.productId} className="flex items-center justify-between p-3 border rounded-lg">
 												<div className="flex items-center gap-3">
-													<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">
+													<div className="size-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center">
 														{index + 1}
 													</div>
 													<div>
@@ -459,7 +459,7 @@ export default function MarcaDetalhesPage() {
 								<Card>
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
-											<Calendar className="h-5 w-5" />
+											<Calendar className="size-5" />
 											Tendência Mensal
 										</CardTitle>
 										<CardDescription>Gastos com produtos {brand.name} nos últimos meses</CardDescription>
@@ -489,7 +489,7 @@ export default function MarcaDetalhesPage() {
 												return (
 													<div key={month.month} className="flex items-center justify-between p-3 border rounded-lg">
 														<div className="flex items-center gap-3">
-															<Calendar className="h-5 w-5 text-muted-foreground" />
+															<Calendar className="size-5 text-muted-foreground" />
 															<div>
 																<div className="font-medium">{month.month}</div>
 																<div className="text-sm text-muted-foreground">{month.purchases} compras</div>
@@ -530,7 +530,7 @@ export default function MarcaDetalhesPage() {
 								<Empty className="border border-dashed">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<Store className="h-6 w-6" />
+											<Store className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Sem dados de mercados</EmptyTitle>
 										<EmptyDescription>
@@ -544,7 +544,7 @@ export default function MarcaDetalhesPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Store className="h-5 w-5" />
+									<Store className="size-5" />
 									Comparação de Mercados
 								</CardTitle>
 								<CardDescription>Onde você mais compra produtos {brand.name}</CardDescription>
@@ -607,7 +607,7 @@ export default function MarcaDetalhesPage() {
 								<Empty className="border border-dashed">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<TrendingUp className="h-6 w-6" />
+											<TrendingUp className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Sem insights disponíveis</EmptyTitle>
 										<EmptyDescription>
@@ -626,7 +626,7 @@ export default function MarcaDetalhesPage() {
 									<Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
 										<CardHeader>
 											<CardTitle className="text-base flex items-center gap-2">
-												<DollarSign className="h-4 w-4 text-green-600" />
+												<DollarSign className="size-4 text-green-600" />
 												Economia Potencial
 											</CardTitle>
 										</CardHeader>
@@ -668,7 +668,7 @@ export default function MarcaDetalhesPage() {
 									<Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
 										<CardHeader>
 											<CardTitle className="text-base flex items-center gap-2">
-												<ShoppingCart className="h-4 w-4 text-blue-600" />
+												<ShoppingCart className="size-4 text-blue-600" />
 												Frequência de Compra
 											</CardTitle>
 										</CardHeader>
@@ -695,7 +695,7 @@ export default function MarcaDetalhesPage() {
 							<Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
-										<TrendingUp className="h-5 w-5 text-purple-600" />
+										<TrendingUp className="size-5 text-purple-600" />
 										Recomendações
 									</CardTitle>
 								</CardHeader>
@@ -703,7 +703,7 @@ export default function MarcaDetalhesPage() {
 									<div className="space-y-3">
 										{stats.marketComparison && stats.marketComparison.length > 0 && (
 											<div className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border">
-												<div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center flex-shrink-0">
+												<div className="size-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0">
 													💡
 												</div>
 												<div>
@@ -725,7 +725,7 @@ export default function MarcaDetalhesPage() {
 
 										{stats.topProducts && stats.topProducts.length > 0 && (
 											<div className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border">
-												<div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
+												<div className="size-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
 													📊
 												</div>
 												<div>
@@ -740,7 +740,7 @@ export default function MarcaDetalhesPage() {
 
 										{stats.monthlyTrend && stats.monthlyTrend.length >= 2 && (
 											<div className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border">
-												<div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0">
+												<div className="size-8 rounded-full bg-orange-600 text-white flex items-center justify-center shrink-0">
 													📈
 												</div>
 												<div>

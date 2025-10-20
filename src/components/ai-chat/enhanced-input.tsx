@@ -39,44 +39,44 @@ const quickSuggestions = [
 	{
 		id: "add-photo",
 		text: "Adicionar fotos e arquivos",
-		icon: <Paperclip className="h-4 w-4" />,
+		icon: <Paperclip className="size-4" />,
 		action: "photo"
 	},
 	{
 		id: "create-list",
 		text: "Criar lista de compras",
 		command: "Crie uma lista de compras para a semana",
-		icon: <List className="h-4 w-4" />
+		icon: <List className="size-4" />
 	},
 	{
 		id: "compare-prices",
 		text: "Comparar preços",
 		command: "Compare os preços dos produtos que mais compro",
-		icon: <TrendingDown className="h-4 w-4" />
+		icon: <TrendingDown className="size-4" />
 	},
 	{
 		id: "calculate-churrasco",
 		text: "Calcular churrasco",
 		command: "Calcule as quantidades para um churrasco de 10 pessoas",
-		icon: <Calculator className="h-4 w-4" />
+		icon: <Calculator className="size-4" />
 	},
 	{
 		id: "search-products",
 		text: "Buscar produtos",
 		command: "Busque produtos em promoção no mercado",
-		icon: <Search className="h-4 w-4" />
+		icon: <Search className="size-4" />
 	},
 	{
 		id: "stock-alerts",
 		text: "Alertas de estoque",
 		command: "Configure alertas para produtos em falta",
-		icon: <AlertTriangle className="h-4 w-4" />
+		icon: <AlertTriangle className="size-4" />
 	},
 	{
 		id: "expense-analysis",
 		text: "Análise de gastos",
 		command: "Analise meus gastos do último mês",
-		icon: <BarChart3 className="h-4 w-4" />
+		icon: <BarChart3 className="size-4" />
 	}
 ]
 
@@ -276,9 +276,9 @@ export function EnhancedInput({
 					size="icon"
 					onClick={onPhotoCapture}
 					disabled={disabled}
-					className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+					className="shrink-0 size-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
 				>
-					<Plus className="h-4 w-4" />
+					<Plus className="size-4" />
 				</Button>
 
 				{/* Área de entrada: troca por visual de onda quando gravando/ouvindo */}
@@ -322,7 +322,7 @@ export function EnhancedInput({
 						onTouchStart={handleMouseDown}
 						onTouchEnd={handleMouseUp}
 						disabled={disabled}
-						className={`flex-shrink-0 h-8 w-8 rounded-lg transition-colors relative ${isListening || isRecording
+						className={`shrink-0 h-8 w-8 rounded-lg transition-colors relative ${isListening || isRecording
 							? 'text-red-600 hover:text-red-700 bg-red-100 dark:bg-red-950/30'
 							: 'text-muted-foreground hover:text-foreground hover:bg-muted'
 							}`}
@@ -335,11 +335,11 @@ export function EnhancedInput({
 						}
 					>
 						{isRecording ? (
-							<Send className="h-4 w-4" />
+							<Send className="size-4" />
 						) : isListening ? (
-							<MicOff className="h-4 w-4" />
+							<MicOff className="size-4" />
 						) : (
-							<Mic className="h-4 w-4" />
+							<Mic className="size-4" />
 						)}
 
 						{/* Indicador de gravação */}
@@ -354,9 +354,9 @@ export function EnhancedInput({
 					type="submit"
 					disabled={!value.trim() || disabled || isLoading}
 					size="icon"
-					className="flex-shrink-0 h-8 w-8 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+					className="shrink-0 size-8 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
 				>
-					<ArrowUp className="h-4 w-4" />
+					<ArrowUp className="size-4" />
 				</Button>
 			</div>
 

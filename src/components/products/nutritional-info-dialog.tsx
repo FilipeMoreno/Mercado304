@@ -114,7 +114,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 					disabled={isSubmitting || isAnalyzing}
 					className="flex-1"
 				>
-					<QrCode className="h-4 w-4 mr-2" />
+					<QrCode className="size-4 mr-2" />
 					Scanner de Rótulo
 				</Button>
 				<Button
@@ -123,7 +123,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 					className="flex-1 opacity-50"
 					title="Em breve: Análise com IA"
 				>
-					<Sparkles className="h-4 w-4 mr-2" />
+					<Sparkles className="size-4 mr-2" />
 					Análise com IA
 				</Button>
 			</div>
@@ -131,7 +131,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 			{isAnalyzing && (
 				<div className="text-center py-4 mb-6">
 					<div className="inline-flex items-center gap-2 text-blue-600">
-						<Sparkles className="h-4 w-4 animate-spin" />
+						<Sparkles className="size-4 animate-spin" />
 						<span>Analisando rótulo nutricional...</span>
 					</div>
 				</div>

@@ -83,8 +83,8 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 			className="flex items-center gap-3 p-4 bg-accent rounded-lg border relative"
 		>
 			{/* Avatar do Zé */}
-			<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-				<Bot className="h-4 w-4 text-white" />
+			<div className="size-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shrink-0">
+				<Bot className="size-4 text-white" />
 			</div>
 
 			{/* Indicador de status */}
@@ -98,9 +98,9 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 						rotate: { duration: 2, repeat: Infinity, ease: "linear" },
 						scale: { duration: 1, repeat: Infinity }
 					}}
-					className={`${currentStatus.color} flex-shrink-0`}
+					className={`${currentStatus.color} shrink-0`}
 				>
-					<IconComponent className="h-4 w-4" />
+					<IconComponent className="size-4" />
 				</motion.div>
 
 				<motion.span

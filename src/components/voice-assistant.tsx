@@ -311,7 +311,7 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<MessageCircle className="h-5 w-5 text-gray-400" />
+						<MessageCircle className="size-5 text-gray-400" />
 						Assistente Zé
 					</CardTitle>
 				</CardHeader>
@@ -327,7 +327,7 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 			<CardHeader>
 				<CardTitle className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<MessageCircle className="h-5 w-5 text-blue-500" />
+						<MessageCircle className="size-5 text-blue-500" />
 						Assistente Zé
 						{(isListening || isSpeaking) && (
 							<Badge variant={isListening ? "default" : "secondary"}>{isListening ? "Ouvindo..." : "Falando..."}</Badge>
@@ -349,19 +349,19 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 					>
 						{isListening ? (
 							<>
-								<MicOff className="h-4 w-4 mr-2" />
+								<MicOff className="size-4 mr-2" />
 								Parar
 							</>
 						) : (
 							<>
-								<Mic className="h-4 w-4 mr-2" />
+								<Mic className="size-4 mr-2" />
 								Falar
 							</>
 						)}
 					</Button>
 
 					<Button onClick={isSpeaking ? stopSpeaking : undefined} variant="outline" disabled={!isSpeaking}>
-						{isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+						{isSpeaking ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
 					</Button>
 				</div>
 
@@ -390,11 +390,11 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 									<div
 										className={`flex items-center gap-2 ${message.type === "user" ? "flex-row-reverse" : "flex-row"}`}
 									>
-										<div className="flex-shrink-0">
+										<div className="shrink-0">
 											{message.type === "user" ? (
-												<User className="h-4 w-4 text-blue-500" />
+												<User className="size-4 text-blue-500" />
 											) : (
-												<MessageCircle className="h-4 w-4 text-green-500" />
+												<MessageCircle className="size-4 text-green-500" />
 											)}
 										</div>
 										<div

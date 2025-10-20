@@ -37,7 +37,7 @@ export default async function PrecosPage() {
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 				<div className="flex items-center gap-4">
-					<DollarSign className="h-8 w-8 text-green-600" />
+					<DollarSign className="size-8 text-green-600" />
 					<div>
 						<h1 className="text-2xl sm:text-3xl font-bold">
 							Registro de Preços

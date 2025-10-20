@@ -52,7 +52,7 @@ export default function NovaMarcaPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/marcas">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
@@ -86,11 +86,11 @@ export default function NovaMarcaPage() {
 								disabled={createBrandMutation.isPending || !formData.name.trim()}
 								className="flex-1"
 							>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{createBrandMutation.isPending ? "Criando..." : "Criar Marca"}
 							</Button>
 							<Button type="button" variant="outline" onClick={handleCancel} disabled={createBrandMutation.isPending}>
-								<X className="h-4 w-4 mr-2" />
+								<X className="size-4 mr-2" />
 								Cancelar
 							</Button>
 						</div>

@@ -42,7 +42,7 @@ export function ShoppingListHeader({
 			<div className="flex items-center gap-4">
 				<Link href="/lista">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 md:mr-2" />
+						<ArrowLeft className="size-4 md:mr-2" />
 						<span className="hidden md:inline">Voltar</span>
 					</Button>
 				</Link>
@@ -60,7 +60,7 @@ export function ShoppingListHeader({
 			<div className="flex items-center gap-2 justify-end md:justify-start flex-wrap">
 				{/* Botões Principais sempre visíveis */}
 				<Button variant="default" size="sm" onClick={onStartShopping} className="flex-1 md:flex-initial">
-					<ShoppingCart className="h-4 w-4 mr-2" />
+					<ShoppingCart className="size-4 mr-2" />
 					Iniciar Compras
 				</Button>
 
@@ -71,7 +71,7 @@ export function ShoppingListHeader({
 						onClick={onRegisterPurchase}
 						className="flex-1 md:flex-initial"
 					>
-						<Receipt className="h-4 w-4 mr-2" />
+						<Receipt className="size-4 mr-2" />
 						Registrar Compra
 					</Button>
 				)}
@@ -79,21 +79,21 @@ export function ShoppingListHeader({
 				{/* Botões para Desktop (md e acima) */}
 				<div className="hidden md:flex gap-2">
 					<Button variant="outline" size="sm" onClick={onOpenOptimizedRoute}>
-						<DollarSign className="h-4 w-4 mr-2" />
+						<DollarSign className="size-4 mr-2" />
 						Otimizar Roteiro
 					</Button>
 					<Link href={`/comparacao?lista=${listId}`}>
 						<Button variant="outline" size="sm">
-							<DollarSign className="h-4 w-4 mr-2" />
+							<DollarSign className="size-4 mr-2" />
 							Comparar Preços
 						</Button>
 					</Link>
 					<Button variant="outline" size="sm" onClick={onEditList}>
-						<Edit className="h-4 w-4 mr-2" />
+						<Edit className="size-4 mr-2" />
 						Editar
 					</Button>
 					<Button variant="destructive" size="sm" onClick={onDeleteList}>
-						<Trash2 className="h-4 w-4 mr-2" />
+						<Trash2 className="size-4 mr-2" />
 						Excluir
 					</Button>
 				</div>
@@ -103,36 +103,36 @@ export function ShoppingListHeader({
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" size="icon">
-								<MoreVertical className="h-4 w-4" />
+								<MoreVertical className="size-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							{onRegisterPurchase && totalItems > 0 && (
 								<>
 									<DropdownMenuItem onClick={onRegisterPurchase}>
-										<Receipt className="h-4 w-4 mr-2" />
+										<Receipt className="size-4 mr-2" />
 										<span>Registrar Compra</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
 								</>
 							)}
 							<DropdownMenuItem onClick={onOpenOptimizedRoute}>
-								<DollarSign className="h-4 w-4 mr-2" />
+								<DollarSign className="size-4 mr-2" />
 								<span>Otimizar Roteiro</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
 								<Link href={`/comparacao?lista=${listId}`}>
-									<DollarSign className="h-4 w-4 mr-2" />
+									<DollarSign className="size-4 mr-2" />
 									<span>Comparar Preços</span>
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={onEditList}>
-								<Edit className="h-4 w-4 mr-2" />
+								<Edit className="size-4 mr-2" />
 								<span>Editar</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={onDeleteList} className="text-red-600">
-								<Trash2 className="h-4 w-4 mr-2" />
+								<Trash2 className="size-4 mr-2" />
 								<span>Excluir</span>
 							</DropdownMenuItem>
 						</DropdownMenuContent>

@@ -68,7 +68,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 		<Card>
 			<CardHeader>
 				<div className="flex items-center gap-2">
-					<Plus className="h-5 w-5 text-orange-500" />
+					<Plus className="size-5 text-orange-500" />
 					<CardTitle className="text-lg">Adicionar Item Temporário</CardTitle>
 				</div>
 				<CardDescription>Adicione um produto que não está cadastrado no sistema</CardDescription>
@@ -161,7 +161,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 									placeholder="Ex: 7891234567890"
 								/>
 								<Button type="button" variant="outline" size="icon">
-									<Barcode className="h-4 w-4" />
+									<Barcode className="size-4" />
 								</Button>
 							</div>
 						</div>
@@ -217,7 +217,7 @@ export function TemporaryItemForm({ onAddItem, onCancel }: TemporaryItemFormProp
 					{/* Botões */}
 					<div className="flex gap-2 pt-4">
 						<Button type="submit" className="flex-1">
-							<Plus className="h-4 w-4 mr-2" />
+							<Plus className="size-4 mr-2" />
 							Adicionar à Lista
 						</Button>
 						<Button type="button" variant="outline" onClick={onCancel}>

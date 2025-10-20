@@ -9,7 +9,7 @@ export default function MarcaDetalhesSkeleton() {
 				<Skeleton className="h-9 w-20" />
 				<div className="flex-1">
 					<div className="flex items-center gap-3">
-						<Skeleton className="h-10 w-10 rounded-lg" />
+						<Skeleton className="size-10 rounded-lg" />
 						<div>
 							<Skeleton className="h-8 md:h-9 w-64 mb-2" />
 							<Skeleton className="h-5 w-40" />
@@ -29,7 +29,7 @@ export default function MarcaDetalhesSkeleton() {
 						<CardHeader className="pb-3">
 							<div className="flex items-center justify-between">
 								<Skeleton className="h-4 w-20" />
-								<Skeleton className="h-4 w-4" />
+								<Skeleton className="size-4" />
 							</div>
 						</CardHeader>
 						<CardContent>
@@ -53,7 +53,7 @@ export default function MarcaDetalhesSkeleton() {
 				<Card>
 					<CardHeader>
 						<div className="flex items-center gap-2">
-							<Skeleton className="h-5 w-5" />
+							<Skeleton className="size-5" />
 							<Skeleton className="h-6 w-48" />
 						</div>
 						<Skeleton className="h-4 w-64 mt-2" />
@@ -64,7 +64,7 @@ export default function MarcaDetalhesSkeleton() {
 								<Card key={i}>
 									<CardHeader className="pb-3">
 										<div className="flex items-center gap-2">
-											<Skeleton className="h-5 w-5" />
+											<Skeleton className="size-5" />
 											<Skeleton className="h-6 w-32" />
 										</div>
 										<div className="space-y-1 mt-2">

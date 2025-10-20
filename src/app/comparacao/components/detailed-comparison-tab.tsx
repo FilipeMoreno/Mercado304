@@ -155,7 +155,7 @@ export function DetailedComparisonTab({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Search className="h-5 w-5" />
+						<Search className="size-5" />
 						Comparar Listas e Mercados
 					</CardTitle>
 				</CardHeader>
@@ -215,7 +215,7 @@ export function DetailedComparisonTab({
 							disabled={loadingDetailed || selectedMarketIds.length < 2 || !detailedListId || selectedItemIds.length === 0}
 							className="w-full sm:w-auto"
 						>
-							{loadingDetailed ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comparar Detalhadamente"}
+							{loadingDetailed ? <Loader2 className="size-4 animate-spin" /> : "Comparar Detalhadamente"}
 						</Button>
 					</div>
 				</CardContent>
@@ -235,7 +235,7 @@ export function DetailedComparisonTab({
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<ShoppingCart className="h-5 w-5" />
+							<ShoppingCart className="size-5" />
 							{detailedComparison.listName}
 						</CardTitle>
 					</CardHeader>

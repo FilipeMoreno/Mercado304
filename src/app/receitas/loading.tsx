@@ -35,7 +35,7 @@ export default function Loading() {
 									<Skeleton className="h-4 w-full" />
 									<div className="flex gap-2 pt-2">
 										<Skeleton className="h-8 w-20" />
-										<Skeleton className="h-8 w-8" />
+										<Skeleton className="size-8" />
 									</div>
 								</CardContent>
 							</Card>

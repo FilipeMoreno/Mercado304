@@ -24,7 +24,7 @@ export default function ComparisonSkeleton() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Skeleton className="h-5 w-5 rounded-full" />
+								<Skeleton className="size-5 rounded-full" />
 								<Skeleton className="h-6 w-48" />
 							</CardTitle>
 						</CardHeader>
@@ -61,7 +61,7 @@ export default function ComparisonSkeleton() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Skeleton className="h-5 w-5 rounded-full" />
+								<Skeleton className="size-5 rounded-full" />
 								<Skeleton className="h-6 w-56" />
 							</CardTitle>
 						</CardHeader>
@@ -98,7 +98,7 @@ export default function ComparisonSkeleton() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Skeleton className="h-5 w-5 rounded-full" />
+								<Skeleton className="size-5 rounded-full" />
 								<Skeleton className="h-6 w-60" />
 							</CardTitle>
 						</CardHeader>

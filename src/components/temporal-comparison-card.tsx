@@ -42,16 +42,16 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Calendar className="h-5 w-5" />
+						<Calendar className="size-5" />
 						Comparação Mensal
 					</CardTitle>
 					<CardDescription>Mês atual vs mês anterior</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4 animate-pulse">
-						<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-						<div className="h-4 bg-gray-200 rounded w-1/2"></div>
-						<div className="h-4 bg-gray-200 rounded w-2/3"></div>
+						<div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
+						<div className="h-4 bg-gray-200 rounded-sm w-1/2"></div>
+						<div className="h-4 bg-gray-200 rounded-sm w-2/3"></div>
 					</div>
 				</CardContent>
 			</Card>
@@ -63,7 +63,7 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Calendar className="h-5 w-5" />
+						<Calendar className="size-5" />
 						Comparação Mensal
 					</CardTitle>
 					<CardDescription>Mês atual vs mês anterior</CardDescription>
@@ -95,7 +95,7 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Calendar className="h-5 w-5" />
+					<Calendar className="size-5" />
 					Comparação Mensal
 				</CardTitle>
 				<CardDescription>Mês atual vs mês anterior</CardDescription>
@@ -105,7 +105,7 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 					<div className="text-center space-y-1">
 						<div className="flex items-center justify-center gap-1">
-							<DollarSign className="h-4 w-4 text-gray-500" />
+							<DollarSign className="size-4 text-gray-500" />
 							<span className="text-sm text-gray-600">Gastos</span>
 						</div>
 						<div className="text-lg font-bold">R$ {(temporalData.currentMonth?.spent || 0).toFixed(2)}</div>
@@ -117,7 +117,7 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 
 					<div className="text-center space-y-1">
 						<div className="flex items-center justify-center gap-1">
-							<ShoppingCart className="h-4 w-4 text-gray-500" />
+							<ShoppingCart className="size-4 text-gray-500" />
 							<span className="text-sm text-gray-600">Compras</span>
 						</div>
 						<div className="text-lg font-bold">{temporalData.currentMonth?.purchases || 0}</div>
@@ -129,7 +129,7 @@ export function TemporalComparisonCard({ temporalData, loading }: TemporalCompar
 
 					<div className="text-center space-y-1">
 						<div className="flex items-center justify-center gap-1">
-							<TrendingUp className="h-4 w-4 text-gray-500" />
+							<TrendingUp className="size-4 text-gray-500" />
 							<span className="text-sm text-gray-600">Ticket Médio</span>
 						</div>
 						<div className="text-lg font-bold">R$ {(temporalData.currentMonth?.avgTicket || 0).toFixed(2)}</div>

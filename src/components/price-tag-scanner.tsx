@@ -176,7 +176,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				<div className="space-y-4 p-4">
 					<div className="space-y-2">
 						<div className="flex items-center gap-2">
-							<Tag className="h-5 w-5 text-primary" />
+							<Tag className="size-5 text-primary" />
 							<h2 className="text-xl font-semibold">Múltiplos Preços Detectados</h2>
 						</div>
 						<p className="text-sm text-muted-foreground">
@@ -240,7 +240,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 											</div>
 											<div className="text-xs text-muted-foreground">{option.condition}</div>
 										</div>
-										<Check className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+										<Check className="size-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
 									</div>
 								</Button>
 							))}
@@ -259,7 +259,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 					{/* Botões de ação */}
 					<div className="flex gap-2 justify-end pt-2">
 						<Button variant="outline" onClick={resetAndRetry} disabled={isProcessing}>
-							<X className="h-4 w-4 mr-2" />
+							<X className="size-4 mr-2" />
 							Cancelar e tirar outra foto
 						</Button>
 					</div>
@@ -271,8 +271,8 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				<ResponsiveDialog open={true} onOpenChange={() => {}}>
 					<div className="flex flex-col items-center justify-center p-8 space-y-4">
 						<div className="relative">
-							<div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
-							<Tag className="h-8 w-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+							<div className="animate-spin rounded-full size-16 border-b-2 border-primary"></div>
+							<Tag className="size-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 						</div>
 						<div className="space-y-2 text-center">
 							<h3 className="text-lg font-semibold">Processando Etiqueta</h3>

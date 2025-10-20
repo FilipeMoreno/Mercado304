@@ -88,7 +88,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
 				<Button variant="outline" size="sm" onClick={() => router.back()}>
-					<ArrowLeft className="h-4 w-4 mr-2" />
+					<ArrowLeft className="size-4 mr-2" />
 					Voltar
 				</Button>
 				<div>
@@ -102,7 +102,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Package className="h-5 w-5" />
+								<Package className="size-5" />
 								Informações do Item
 							</CardTitle>
 							<CardDescription>Edite os detalhes do item no estoque</CardDescription>
@@ -232,7 +232,7 @@ export function EditStockClient({ stockItem, products }: EditStockClientProps) {
 
 								<div className="flex gap-2 pt-4">
 									<Button type="submit" disabled={saving} className="flex-1">
-										<Save className="h-4 w-4 mr-2" />
+										<Save className="size-4 mr-2" />
 										{saving ? "Salvando..." : "Salvar Alterações"}
 									</Button>
 									<Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>

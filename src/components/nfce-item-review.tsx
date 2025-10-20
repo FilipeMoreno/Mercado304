@@ -403,7 +403,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 							<CardDescription>Associe os itens da nota fiscal aos seus produtos cadastrados.</CardDescription>
 						</div>
 						<Button variant="outline" size="sm" onClick={() => setIsBarcodeScannerOpen(true)} className="gap-2">
-							<Camera className="h-4 w-4" />
+							<Camera className="size-4" />
 							Escanear Códigos
 						</Button>
 					</div>
@@ -430,7 +430,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 								</div>
 								<div className="flex flex-col sm:flex-row gap-2">
 									{/* --- CORREÇÃO DE LAYOUT E LÓGICA AQUI --- */}
-									<div className="flex-grow">
+									<div className="grow">
 										<Label>Associar ao Produto</Label>
 										{selectStyle === "dialog" ? (
 											<ProductSelectDialog
@@ -478,7 +478,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 											className="w-full sm:w-auto"
 											onClick={() => openCreateProductDialog(index)}
 										>
-											<PlusCircle className="mr-2 h-4 w-4" />
+											<PlusCircle className="mr-2 size-4" />
 											Novo
 										</Button>
 										<Button
@@ -487,7 +487,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 											onClick={() => handleRemoveItem(index)}
 											title="Remover item"
 										>
-											<Trash2 className="h-4 w-4" />
+											<Trash2 className="size-4" />
 										</Button>
 									</div>
 								</div>

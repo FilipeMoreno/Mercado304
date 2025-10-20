@@ -145,7 +145,7 @@ export function RecipeSearch({
 										disabled={!useAI}
 										className="border-blue-300 text-blue-700 hover:bg-blue-100"
 									>
-										<Sparkles className="h-4 w-4 mr-2" />
+										<Sparkles className="size-4 mr-2" />
 										Me Surpreenda
 									</Button>
 								</DialogTrigger>
@@ -173,7 +173,7 @@ export function RecipeSearch({
 										</div>
 										<div className="flex gap-2">
 											<Button onClick={handleSurpriseMe} className="flex-1">
-												<Sparkles className="h-4 w-4 mr-2" />
+												<Sparkles className="size-4 mr-2" />
 												Gerar Receitas Surpresa
 											</Button>
 											<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
@@ -188,7 +188,7 @@ export function RecipeSearch({
 
 					{/* Botão Me Surpreenda para página dedicada */}
 					{hideNormalSearch && (
-						<div className="flex justify-center p-6 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl border border-yellow-200 shadow-sm">
+						<div className="flex justify-center p-6 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl border border-yellow-200 shadow-xs">
 							<Dialog open={showSurpriseSettings} onOpenChange={setShowSurpriseSettings}>
 								<DialogTrigger asChild>
 									<Button
@@ -196,7 +196,7 @@ export function RecipeSearch({
 										size="lg"
 										className="border-yellow-300 text-yellow-700 hover:bg-yellow-100 hover:border-yellow-400 px-8 py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
 									>
-										<Sparkles className="h-5 w-5 mr-3" />
+										<Sparkles className="size-5 mr-3" />
 										Me Surpreenda com Receitas Criativas!
 									</Button>
 								</DialogTrigger>
@@ -224,7 +224,7 @@ export function RecipeSearch({
 										</div>
 										<div className="flex gap-2">
 											<Button onClick={handleSurpriseMe} className="flex-1">
-												<Sparkles className="h-4 w-4 mr-2" />
+												<Sparkles className="size-4 mr-2" />
 												Gerar Receitas Surpresa
 											</Button>
 											<Button variant="outline" onClick={() => setShowSurpriseSettings(false)}>
@@ -241,7 +241,7 @@ export function RecipeSearch({
 					<div className="space-y-2">
 						<Label className="text-sm font-semibold text-gray-700">O que você quer cozinhar?</Label>
 						<div className="relative">
-							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 size-5 text-gray-400" />
 							<Input
 								placeholder={useAI ? "Ex: massa com frango e legumes..." : "Buscar receitas por nome ou descrição..."}
 								value={searchTerm}
@@ -275,7 +275,7 @@ export function RecipeSearch({
 										<button
 											key={ingredient}
 											type="button"
-											className="w-full px-4 py-3 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+											className="w-full px-4 py-3 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-hidden border-b border-gray-100 last:border-b-0 transition-colors duration-150"
 											onClick={() => handleAddIngredient(ingredient)}
 										>
 											<span className="text-gray-700 font-medium">{ingredient}</span>
@@ -317,7 +317,7 @@ export function RecipeSearch({
 							onClick={handleSearch}
 							className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
 						>
-							{!useAI && <Search className="h-5 w-5 mr-2" />}
+							{!useAI && <Search className="size-5 mr-2" />}
 							{useAI ? "✨ Gerar com IA" : "🔍 Buscar Receitas"}
 						</Button>
 						{(searchTerm || selectedIngredients.length > 0) && (
@@ -326,7 +326,7 @@ export function RecipeSearch({
 								onClick={handleClearSearch}
 								className="h-12 px-6 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
 							>
-								<X className="h-4 w-4 mr-2" />
+								<X className="size-4 mr-2" />
 								Limpar
 							</Button>
 						)}

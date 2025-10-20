@@ -100,7 +100,7 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2 flex-1">
-            <Package className="h-5 w-5 text-primary flex-shrink-0" />
+            <Package className="size-5 text-primary shrink-0" />
             <div className="flex-1 min-w-0">
               <CardTitle className="text-lg line-clamp-1">
                 {kit.kitProduct.name}
@@ -113,7 +113,7 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
             </div>
           </div>
 
-          <Badge variant={kit.isActive ? "default" : "secondary"} className="ml-2 flex-shrink-0">
+          <Badge variant={kit.isActive ? "default" : "secondary"} className="ml-2 shrink-0">
             {kit.isActive ? "Ativo" : "Inativo"}
           </Badge>
         </div>
@@ -136,7 +136,7 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
                   <span className="truncate">{item.product.name}</span>
                 </div>
                 {item.product.brand && (
-                  <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
+                  <Badge variant="outline" className="text-xs ml-2 shrink-0">
                     {item.product.brand.name}
                   </Badge>
                 )}
@@ -208,19 +208,19 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
           onClick={handleViewDetails}
           className="flex-1"
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="size-4 mr-2" />
           Ver Detalhes
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="lg">
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleEdit}>
-              <Edit className="h-4 w-4 mr-2" />
+              <Edit className="size-4 mr-2" />
               Editar Kit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -228,7 +228,7 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
               onClick={() => onDelete?.(kit)}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="size-4 mr-2" />
               Excluir Kit
             </DropdownMenuItem>
           </DropdownMenuContent>

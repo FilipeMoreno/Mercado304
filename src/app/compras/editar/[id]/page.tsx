@@ -270,13 +270,13 @@ export default function EditarCompraPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/compras">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
 				<div>
 					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<Edit className="h-8 w-8" />
+						<Edit className="size-8" />
 						Editar Compra
 					</h1>
 					<p className="text-gray-600 mt-2">Modifique os dados da compra</p>
@@ -520,7 +520,7 @@ export default function EditarCompraPage() {
 												onClick={() => removeItem(index)}
 												disabled={items.length <= 1}
 											>
-												<Trash2 className="h-4 w-4" />
+												<Trash2 className="size-4" />
 											</Button>
 										</div>
 									</div>
@@ -583,11 +583,11 @@ export default function EditarCompraPage() {
 						</div>
 						<div className="flex gap-4 mt-6">
 							<Button type="button" onClick={addItem} variant="outline">
-								<Plus className="h-4 w-4 mr-2" />
+								<Plus className="size-4 mr-2" />
 								Adicionar Item
 							</Button>
 							<Button type="submit" disabled={loading} className="flex-1">
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{loading ? "Salvando..." : "Salvar Alterações"}
 							</Button>
 							<Link href="/compras">

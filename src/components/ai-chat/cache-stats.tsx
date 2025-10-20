@@ -32,14 +32,14 @@ export function CacheStats() {
 			<CardHeader className="pb-3">
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-sm flex items-center gap-2">
-						<Zap className="h-4 w-4 text-primary" />
+						<Zap className="size-4 text-primary" />
 						Cache Inteligente
 					</CardTitle>
 					<Button
 						variant="ghost"
 						size="sm"
 						onClick={() => setIsVisible(false)}
-						className="h-6 w-6 p-0"
+						className="size-6 p-0"
 					>
 						×
 					</Button>

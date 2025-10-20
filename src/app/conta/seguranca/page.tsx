@@ -14,7 +14,7 @@ export default function SecurityPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <Loader2 className="size-12 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
@@ -29,7 +29,7 @@ export default function SecurityPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b bg-background/95 backdrop-blur-xs supports-[backdrop-filter]:bg-background/60">
         <div className="container max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             <Button
@@ -38,7 +38,7 @@ export default function SecurityPage() {
               onClick={() => router.push("/conta")}
               className="rounded-full"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="size-5" />
             </Button>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Segurança</h1>

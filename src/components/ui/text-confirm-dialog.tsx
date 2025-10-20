@@ -55,7 +55,7 @@ export function TextConfirmDialog({
 			<div className="space-y-4">
 				{/* Warning Message */}
 				<div className="flex items-start gap-3 p-4 bg-destructive/10 dark:bg-destructive/20 border border-destructive/20 dark:border-destructive/30 rounded-lg">
-					<AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+					<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
 					<div className="flex-1">
 						<p className="text-sm font-medium text-destructive dark:text-red-400">{description}</p>
 					</div>

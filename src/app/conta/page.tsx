@@ -115,7 +115,7 @@ export default function ContaPage() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center space-y-4">
-					<Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+					<Loader2 className="size-12 animate-spin mx-auto text-primary" />
 					<p className="text-muted-foreground">Carregando...</p>
 				</div>
 			</div>
@@ -125,7 +125,7 @@ export default function ContaPage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
 			{/* Header Minimalista */}
-			<div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+			<div className="border-b bg-background/95 backdrop-blur-xs supports-[backdrop-filter]:bg-background/60">
 				<div className="container max-w-6xl mx-auto px-4 py-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
@@ -135,7 +135,7 @@ export default function ContaPage() {
 								onClick={() => router.back()}
 								className="rounded-full"
 							>
-								<ArrowLeft className="h-5 w-5" />
+								<ArrowLeft className="size-5" />
 							</Button>
 							<div>
 								<h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
@@ -151,7 +151,7 @@ export default function ContaPage() {
 				{/* Perfil Section */}
 				<div className="space-y-6">
 					{/* Card de Perfil Minimalista */}
-					<Card className="border-0 shadow-sm">
+					<Card className="border-0 shadow-xs">
 						<CardContent className="pt-6">
 							<div className="flex flex-col md:flex-row gap-8">
 								{/* Avatar Section */}
@@ -166,10 +166,10 @@ export default function ContaPage() {
 										<Button
 											size="icon"
 											variant="secondary"
-											className="absolute bottom-0 right-0 h-10 w-10 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+											className="absolute bottom-0 right-0 size-10 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
 											disabled
 										>
-											<Camera className="h-5 w-5" />
+											<Camera className="size-5" />
 										</Button>
 									</div>
 									<Badge variant="secondary" className="px-3 py-1">
@@ -192,7 +192,7 @@ export default function ContaPage() {
 									<div>
 										<h2 className="text-2xl font-bold mb-1">{session.user?.name}</h2>
 										<p className="text-muted-foreground flex items-center gap-2">
-											<Mail className="h-4 w-4" />
+											<Mail className="size-4" />
 											{session.user?.email}
 										</p>
 									</div>
@@ -233,9 +233,9 @@ export default function ContaPage() {
 														title="O email não pode ser alterado"
 													/>
 													{session?.user?.emailVerified ? (
-														<CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+														<CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-green-500" />
 													) : (
-														<AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
+														<AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-orange-500" />
 													)}
 												</div>
 												{session?.user?.emailVerified ? (
@@ -261,12 +261,12 @@ export default function ContaPage() {
 											<Button type="submit" disabled={isUpdatingProfile} size="lg" className="px-8">
 												{isUpdatingProfile ? (
 													<>
-														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														<Loader2 className="mr-2 size-4 animate-spin" />
 														Salvando...
 													</>
 												) : (
 													<>
-														<Save className="mr-2 h-4 w-4" />
+														<Save className="mr-2 size-4" />
 														Salvar Alterações
 													</>
 												)}
@@ -279,12 +279,12 @@ export default function ContaPage() {
 					</Card>
 
 					{/* Card de Segurança com Link */}
-					<Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+					<Card className="border-0 shadow-xs hover:shadow-md transition-shadow-sm">
 						<CardHeader>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
 									<div className="p-2 rounded-full bg-blue-100 dark:bg-blue-950">
-										<Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+										<Shield className="size-6 text-blue-600 dark:text-blue-400" />
 									</div>
 									<div>
 										<CardTitle>Segurança</CardTitle>
@@ -295,7 +295,7 @@ export default function ContaPage() {
 								</div>
 								<Link href="/conta/seguranca">
 									<Button variant="ghost" size="icon">
-										<ArrowRight className="h-5 w-5" />
+										<ArrowRight className="size-5" />
 									</Button>
 								</Link>
 							</div>
@@ -303,7 +303,7 @@ export default function ContaPage() {
 						<CardContent>
 							<Link href="/conta/seguranca">
 								<Button className="w-full" size="lg">
-									<Shield className="mr-2 h-4 w-4" />
+									<Shield className="mr-2 size-4" />
 									Acessar Configurações de Segurança
 								</Button>
 							</Link>
@@ -311,11 +311,11 @@ export default function ContaPage() {
 					</Card>
 
 					{/* Card de Preferências de Interface */}
-					<Card className="border-0 shadow-sm">
+					<Card className="border-0 shadow-xs">
 						<CardHeader>
 							<div className="flex items-center gap-3">
 								<div className="p-2 rounded-full bg-purple-100 dark:bg-purple-950">
-									<Layout className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+									<Layout className="size-6 text-purple-600 dark:text-purple-400" />
 								</div>
 								<div>
 									<CardTitle>Preferências de Interface</CardTitle>
@@ -377,11 +377,11 @@ export default function ContaPage() {
 				{/* Zona de Perigo */}
 				<div className="space-y-6">
 					{/* Zona de Perigo Minimalista */}
-					<Card className="border-0 shadow-sm overflow-hidden">
+					<Card className="border-0 shadow-xs overflow-hidden">
 						<div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 p-6 border-b border-red-200 dark:border-red-900">
 							<div className="flex items-center gap-3">
 								<div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
-									<AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+									<AlertCircle className="size-6 text-red-600 dark:text-red-400" />
 								</div>
 								<div>
 									<h3 className="text-lg font-semibold text-red-900 dark:text-red-100">Zona de Perigo</h3>
@@ -402,7 +402,7 @@ export default function ContaPage() {
 								<AlertDialog>
 									<AlertDialogTrigger asChild>
 										<Button variant="destructive" className="w-full sm:w-auto">
-											<Trash2 className="mr-2 h-4 w-4" />
+											<Trash2 className="mr-2 size-4" />
 											Excluir Minha Conta
 										</Button>
 									</AlertDialogTrigger>
@@ -438,12 +438,12 @@ export default function ContaPage() {
 											>
 												{isDeletingAccount ? (
 													<>
-														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														<Loader2 className="mr-2 size-4 animate-spin" />
 														Excluindo...
 													</>
 												) : (
 													<>
-														<Trash2 className="mr-2 h-4 w-4" />
+														<Trash2 className="mr-2 size-4" />
 														Excluir Permanentemente
 													</>
 												)}

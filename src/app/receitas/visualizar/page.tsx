@@ -115,8 +115,8 @@ export default function VisualizarReceitaPage() {
 				className="space-y-4"
 			>
 				<div className="flex items-center justify-between">
-					<Button variant="outline" size="sm" onClick={() => router.back()} className="flex-shrink-0">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+					<Button variant="outline" size="sm" onClick={() => router.back()} className="shrink-0">
+						<ArrowLeft className="size-4 mr-2" />
 						<span className="hidden sm:inline">Voltar</span>
 						<span className="sm:hidden">Voltar</span>
 					</Button>
@@ -235,7 +235,7 @@ export default function VisualizarReceitaPage() {
 													>
 														{isNumberedStep ? (
 															<>
-																<div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+																<div className="shrink-0 size-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
 																	{index + 1}
 																</div>
 																<div className="flex-1">
@@ -246,7 +246,7 @@ export default function VisualizarReceitaPage() {
 															</>
 														) : (
 															<>
-																<div className="flex-shrink-0 w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">
+																<div className="shrink-0 size-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">
 																	{index + 1}
 																</div>
 																<div className="flex-1">
@@ -273,7 +273,7 @@ export default function VisualizarReceitaPage() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-center gap-2">
-								<Clock className="h-5 w-5 text-primary" />
+								<Clock className="size-5 text-primary" />
 								<div>
 									<p className="font-semibold">{recipe.tempo_preparo || recipe.cookingTime || "Não especificado"}</p>
 									<p className="text-sm text-gray-500">Tempo de Preparo</p>
@@ -302,7 +302,7 @@ export default function VisualizarReceitaPage() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Button className="w-full" onClick={handleSaveRecipe} disabled={loading}>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{loading ? "A salvar..." : "Salvar Receita"}
 							</Button>
 						</CardContent>

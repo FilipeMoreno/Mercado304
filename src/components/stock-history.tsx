@@ -119,19 +119,19 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 	const getMovementIcon = (type: string) => {
 		switch (type) {
 			case "ENTRADA":
-				return <TrendingUp className="h-4 w-4" />
+				return <TrendingUp className="size-4" />
 			case "SAIDA":
-				return <TrendingDown className="h-4 w-4" />
+				return <TrendingDown className="size-4" />
 			case "AJUSTE":
-				return <ArrowUpDown className="h-4 w-4" />
+				return <ArrowUpDown className="size-4" />
 			case "VENCIMENTO":
-				return <Calendar className="h-4 w-4" />
+				return <Calendar className="size-4" />
 			case "PERDA":
-				return <AlertTriangle className="h-4 w-4" />
+				return <AlertTriangle className="size-4" />
 			case "DESPERDICIO":
-				return <Trash2 className="h-4 w-4" />
+				return <Trash2 className="size-4" />
 			default:
-				return <Package className="h-4 w-4" />
+				return <Package className="size-4" />
 		}
 	}
 
@@ -159,7 +159,7 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center gap-2 mb-6">
-				<History className="h-5 w-5" />
+				<History className="size-5" />
 				<h2 className="text-2xl font-bold">Histórico de Movimentações</h2>
 				{productName && <span className="text-lg text-gray-600">- {productName}</span>}
 			</div>
@@ -225,11 +225,11 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 							})
 						}
 					>
-						<Filter className="h-4 w-4 mr-1" />
+						<Filter className="size-4 mr-1" />
 						Limpar
 					</Button>
 					<Button variant="outline" size="sm" onClick={exportHistory}>
-						<Download className="h-4 w-4 mr-1" />
+						<Download className="size-4 mr-1" />
 						Exportar
 					</Button>
 				</div>
@@ -280,12 +280,12 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 			<div className="flex-1 overflow-auto space-y-3">
 				{loading ? (
 					<div className="flex items-center justify-center py-8">
-						<RefreshCw className="h-6 w-6 animate-spin mr-2" />
+						<RefreshCw className="size-6 animate-spin mr-2" />
 						Carregando histórico...
 					</div>
 				) : movements.length === 0 ? (
 					<div className="text-center py-8 text-gray-500">
-						<History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+						<History className="size-12 mx-auto mb-4 text-gray-300" />
 						<p>Nenhum movimento encontrado</p>
 					</div>
 				) : (

@@ -53,7 +53,7 @@ export function QuickBrandForm({ onClose, onBrandCreated }: QuickBrandFormProps)
 		<DialogContent className="max-w-md">
 			<DialogHeader>
 				<DialogTitle className="flex items-center gap-2">
-					<Tag className="h-5 w-5" />
+					<Tag className="size-5" />
 					Adicionar Marca Rápida
 				</DialogTitle>
 			</DialogHeader>
@@ -70,7 +70,7 @@ export function QuickBrandForm({ onClose, onBrandCreated }: QuickBrandFormProps)
 				</div>
 				<div className="flex gap-2 pt-4">
 					<Button onClick={createBrand} disabled={saving} className="flex-1">
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{saving ? "Criando..." : "Criar e Usar"}
 					</Button>
 					<Button type="button" variant="outline" onClick={onClose}>

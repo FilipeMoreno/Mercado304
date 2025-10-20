@@ -259,17 +259,17 @@ export default function EditarProdutoPage() {
 		return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
-					<div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-					<div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+					<div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
+					<div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 				</div>
 				<Card>
 					<CardHeader>
-						<div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+						<div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
 							{Array.from({ length: 8 }).map((_, i) => (
-								<div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+								<div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 							))}
 						</div>
 					</CardContent>
@@ -300,7 +300,7 @@ export default function EditarProdutoPage() {
 				<div>
 					<Link href={`/produtos/${productId}`}>
 						<Button variant="outline" size="sm" className="w-full sm:w-auto">
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar para detalhes
 						</Button>
 					</Link>
@@ -501,12 +501,12 @@ export default function EditarProdutoPage() {
 								>
 									{isScanning ? (
 										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											<Loader2 className="mr-2 size-4 animate-spin" />
 											Aguarde...
 										</>
 									) : (
 										<>
-											<ScanLine className="mr-2 h-4 w-4" />
+											<ScanLine className="mr-2 size-4" />
 											Escanear Rótulo
 										</>
 									)}
@@ -520,7 +520,7 @@ export default function EditarProdutoPage() {
 
 				<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={saving}>
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{saving ? "Salvando..." : "Salvar Alterações"}
 					</Button>
 					<Link href={`/produtos/${productId}`}>

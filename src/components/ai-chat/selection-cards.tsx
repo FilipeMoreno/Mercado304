@@ -20,8 +20,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			case "products":
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-green-100 rounded-lg text-green-600 flex-shrink-0">
-							<Package className="h-4 w-4" />
+						<div className="p-2 bg-green-100 rounded-lg text-green-600 shrink-0">
+							<Package className="size-4" />
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-2 mb-1">
@@ -57,7 +57,7 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 							</div>
 						</div>
 						{option.currentPrice && (
-							<div className="text-right flex-shrink-0">
+							<div className="text-right shrink-0">
 								<div className="text-lg font-bold text-green-600">R$ {option.currentPrice.toFixed(2)}</div>
 								{option.marketName && <div className="text-xs text-gray-500">{option.marketName}</div>}
 							</div>
@@ -67,8 +67,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			case "markets":
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-blue-100 rounded-lg text-blue-600 flex-shrink-0">
-							<Store className="h-4 w-4" />
+						<div className="p-2 bg-blue-100 rounded-lg text-blue-600 shrink-0">
+							<Store className="size-4" />
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="font-semibold text-gray-900 truncate">{option.name}</div>
@@ -89,8 +89,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			case "categories":
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-purple-100 rounded-lg text-purple-600 flex-shrink-0">
-							{option.icon ? <span className="text-lg">{option.icon}</span> : <Tag className="h-4 w-4" />}
+						<div className="p-2 bg-purple-100 rounded-lg text-purple-600 shrink-0">
+							{option.icon ? <span className="text-lg">{option.icon}</span> : <Tag className="size-4" />}
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-2">
@@ -104,8 +104,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			case "brands":
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-orange-100 rounded-lg text-orange-600 flex-shrink-0">
-							<Star className="h-4 w-4" />
+						<div className="p-2 bg-orange-100 rounded-lg text-orange-600 shrink-0">
+							<Star className="size-4" />
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="font-semibold text-gray-900 truncate">{option.name}</div>
@@ -120,8 +120,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			case "shopping-lists":
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-indigo-100 rounded-lg text-indigo-600 flex-shrink-0">
-							<List className="h-4 w-4" />
+						<div className="p-2 bg-indigo-100 rounded-lg text-indigo-600 shrink-0">
+							<List className="size-4" />
 						</div>
 						<div className="flex-1 min-w-0">
 							<div className="font-semibold text-gray-900 truncate">{option.name}</div>
@@ -146,8 +146,8 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 			default:
 				return (
 					<div className="flex items-center gap-3 w-full">
-						<div className="p-2 bg-gray-100 rounded-lg text-gray-600 flex-shrink-0">
-							<Package className="h-4 w-4" />
+						<div className="p-2 bg-gray-100 rounded-lg text-gray-600 shrink-0">
+							<Package className="size-4" />
 						</div>
 						<span className="font-semibold text-gray-900 truncate">{option.name}</span>
 					</div>
@@ -158,17 +158,17 @@ export function SelectionCard({ type, options, searchTerm, context, onSelect }: 
 	const getTypeIcon = () => {
 		switch (type) {
 			case "products":
-				return <Package className="h-4 w-4" />
+				return <Package className="size-4" />
 			case "markets":
-				return <Store className="h-4 w-4" />
+				return <Store className="size-4" />
 			case "categories":
-				return <Tag className="h-4 w-4" />
+				return <Tag className="size-4" />
 			case "brands":
-				return <Star className="h-4 w-4" />
+				return <Star className="size-4" />
 			case "shopping-lists":
-				return <List className="h-4 w-4" />
+				return <List className="size-4" />
 			default:
-				return <Package className="h-4 w-4" />
+				return <Package className="size-4" />
 		}
 	}
 

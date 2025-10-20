@@ -23,7 +23,7 @@ export function ProductEmptyState({
 			<Empty className="border border-dashed py-12">
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Package className="h-6 w-6" />
+						<Package className="size-6" />
 					</EmptyMedia>
 					<EmptyTitle>Nenhum produto cadastrado</EmptyTitle>
 					<EmptyDescription>Comece adicionando seu primeiro produto</EmptyDescription>
@@ -31,7 +31,7 @@ export function ProductEmptyState({
 				<EmptyContent>
 					<Link href="/produtos/novo">
 						<Button>
-							<Plus className="mr-2 h-4 w-4" />
+							<Plus className="mr-2 size-4" />
 							Cadastrar Primeiro Produto
 						</Button>
 					</Link>
@@ -45,7 +45,7 @@ export function ProductEmptyState({
 			<Empty className="border border-dashed py-12">
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Package className="h-6 w-6" />
+						<Package className="size-6" />
 					</EmptyMedia>
 					<EmptyTitle>Nenhum produto encontrado</EmptyTitle>
 					<EmptyDescription>Tente ajustar os filtros de busca</EmptyDescription>
@@ -58,7 +58,7 @@ export function ProductEmptyState({
 							onClearFilters()
 						}}
 					>
-						<Filter className="h-4 w-4 mr-2" />
+						<Filter className="size-4 mr-2" />
 						Limpar Filtros
 					</Button>
 				</EmptyContent>

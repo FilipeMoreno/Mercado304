@@ -165,7 +165,7 @@ export default function EditProductKitPage() {
 			<div className="container mx-auto py-8 px-4 max-w-4xl">
 				<div className="space-y-6">
 					<div className="flex items-center gap-3">
-						<Skeleton className="h-10 w-10" />
+						<Skeleton className="size-10" />
 						<Skeleton className="h-10 w-64" />
 					</div>
 					<Card>
@@ -190,7 +190,7 @@ export default function EditProductKitPage() {
 				<Card className="border-destructive">
 					<CardContent className="p-6">
 						<div className="flex items-center gap-3">
-							<AlertCircle className="h-8 w-8 text-destructive" />
+							<AlertCircle className="size-8 text-destructive" />
 							<div>
 								<h3 className="font-semibold text-destructive">Erro ao carregar kit</h3>
 								<p className="text-sm text-muted-foreground mt-1">
@@ -199,7 +199,7 @@ export default function EditProductKitPage() {
 							</div>
 						</div>
 						<Button variant="outline" className="mt-4" onClick={() => router.push("/produtos/kits")}>
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar para Kits
 						</Button>
 					</CardContent>
@@ -215,11 +215,11 @@ export default function EditProductKitPage() {
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<Button type="button" variant="ghost" size="icon" onClick={handleCancel}>
-							<ArrowLeft className="h-5 w-5" />
+							<ArrowLeft className="size-5" />
 						</Button>
 						<div>
 							<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-								<Package className="h-8 w-8 text-primary" />
+								<Package className="size-8 text-primary" />
 								Editar Kit
 							</h1>
 							<p className="text-muted-foreground mt-1">Atualize as informações do kit</p>
@@ -229,12 +229,12 @@ export default function EditProductKitPage() {
 					<Button type="submit" disabled={!isFormValid || isSubmitting || !hasChanges()} size="lg">
 						{isSubmitting ? (
 							<>
-								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+								<Loader2 className="size-4 mr-2 animate-spin" />
 								Salvando...
 							</>
 						) : (
 							<>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								Salvar Alterações
 							</>
 						)}
@@ -423,12 +423,12 @@ export default function EditProductKitPage() {
 						<Button type="submit" disabled={!isFormValid || isSubmitting || !hasChanges()}>
 							{isSubmitting ? (
 								<>
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+									<Loader2 className="size-4 mr-2 animate-spin" />
 									Salvando...
 								</>
 							) : (
 								<>
-									<Save className="h-4 w-4 mr-2" />
+									<Save className="size-4 mr-2" />
 									Salvar Alterações
 								</>
 							)}

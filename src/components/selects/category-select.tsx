@@ -84,7 +84,7 @@ export function CategorySelect({
 	}
 
 	if (isLoading && categories.length === 0) {
-		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse ${className}`} />
 	}
 
 	return (

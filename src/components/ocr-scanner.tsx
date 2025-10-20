@@ -317,7 +317,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
 				<Card className="w-80">
 					<CardContent className="p-6 text-center">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+						<div className="animate-spin rounded-full size-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
 						<p>Carregando OCR...</p>
 						<p className="text-xs text-gray-500 mt-2">Iniciando reconhecimento de texto</p>
 					</CardContent>
@@ -331,7 +331,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			{/* Header */}
 			<div className="absolute top-4 left-4 right-4 flex justify-between items-center text-white z-10">
 				<div className="flex items-center gap-2">
-					<FileText className="h-5 w-5" />
+					<FileText className="size-5" />
 					<span className="font-medium">{config.title}</span>
 					{ocrReady && (
 						<Badge variant="secondary" className="bg-green-500/20 text-green-300">
@@ -340,7 +340,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 					)}
 				</div>
 				<Button variant="ghost" size="icon" onClick={onClose} className="text-white">
-					<CameraOff className="h-5 w-5" />
+					<CameraOff className="size-5" />
 				</Button>
 			</div>
 
@@ -354,10 +354,10 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 						{/* Overlay de scanning */}
 						<div className="absolute inset-0 flex items-center justify-center">
 							<div className="w-72 h-56 border-2 border-blue-400/50 rounded-lg relative">
-								<div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-blue-400"></div>
-								<div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-400"></div>
-								<div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-400"></div>
-								<div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-400"></div>
+								<div className="absolute top-0 left-0 size-6 border-t-2 border-l-2 border-blue-400"></div>
+								<div className="absolute top-0 right-0 size-6 border-t-2 border-r-2 border-blue-400"></div>
+								<div className="absolute bottom-0 left-0 size-6 border-b-2 border-l-2 border-blue-400"></div>
+								<div className="absolute bottom-0 right-0 size-6 border-b-2 border-r-2 border-blue-400"></div>
 
 								{/* Indicador de OCR */}
 								<div className="absolute top-2 left-2">
@@ -382,7 +382,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 				) : (
 					<div className="w-full h-full flex items-center justify-center text-white">
 						<div className="text-center">
-							<CameraOff className="h-12 w-12 mx-auto mb-4 opacity-50" />
+							<CameraOff className="size-12 mx-auto mb-4 opacity-50" />
 							<p>Câmera não disponível</p>
 							<p className="text-sm opacity-70">Use o upload de imagem</p>
 						</div>
@@ -400,7 +400,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 								disabled={isProcessing || !ocrReady}
 								className="bg-blue-600 hover:bg-blue-700"
 							>
-								{isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eye className="h-4 w-4 mr-2" />}
+								{isProcessing ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Eye className="size-4 mr-2" />}
 								Extrair Texto
 							</Button>
 
@@ -411,7 +411,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 									onClick={switchCamera}
 									className="bg-black/50 border-white/30 text-white"
 								>
-									<RotateCcw className="h-4 w-4" />
+									<RotateCcw className="size-4" />
 								</Button>
 							)}
 						</>
@@ -423,7 +423,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 						disabled={isProcessing || !ocrReady}
 						className="bg-black/50 border-white/30 text-white"
 					>
-						<Upload className="h-4 w-4 mr-2" />
+						<Upload className="size-4 mr-2" />
 						Upload
 					</Button>
 
@@ -449,7 +449,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 						<CardHeader>
 							<CardTitle className="text-white text-sm flex items-center justify-between">
 								<span className="flex items-center gap-2">
-									<FileText className="h-4 w-4 text-blue-400" />
+									<FileText className="size-4 text-blue-400" />
 									Texto Extraído
 								</span>
 								<div className="flex gap-1">
@@ -457,7 +457,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 										variant="ghost"
 										size="sm"
 										onClick={copyToClipboard}
-										className="text-white hover:bg-white/20 h-8 w-8 p-0"
+										className="text-white hover:bg-white/20 size-8 p-0"
 									>
 										<Copy className="h-3 w-3" />
 									</Button>
@@ -465,7 +465,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 										variant="ghost"
 										size="sm"
 										onClick={downloadText}
-										className="text-white hover:bg-white/20 h-8 w-8 p-0"
+										className="text-white hover:bg-white/20 size-8 p-0"
 									>
 										<Download className="h-3 w-3" />
 									</Button>

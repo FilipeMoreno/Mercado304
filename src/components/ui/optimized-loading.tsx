@@ -11,7 +11,7 @@ export const ProductCardSkeleton = memo(() => (
 			<div className="space-y-3">
 				<div className="flex items-start justify-between">
 					<Skeleton className="h-4 w-3/4" />
-					<Skeleton className="h-6 w-6 rounded" />
+					<Skeleton className="size-6 rounded-sm" />
 				</div>
 				<div className="space-y-2">
 					<Skeleton className="h-3 w-1/2" />
@@ -47,7 +47,7 @@ export const CategoryCardSkeleton = memo(() => (
 	<Card className="h-full">
 		<CardHeader className="pb-3">
 			<div className="flex items-center gap-2">
-				<Skeleton className="h-8 w-8 rounded" />
+				<Skeleton className="size-8 rounded-sm" />
 				<Skeleton className="h-6 w-3/4" />
 			</div>
 		</CardHeader>

@@ -57,7 +57,7 @@ export function AudioRecorderPopup({
                 onClick={onClose}
                 disabled={isRecording}
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </div>
 

@@ -59,7 +59,7 @@ const getBaseTemplate = (title: string, content: string) => `
             margin: 0 auto;
             background-color: var(--card-background);
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow-sm: 0 4px 12px rgba(0,0,0,0.05);
             overflow: hidden;
         }
         .header {

@@ -211,7 +211,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Apple className="h-5 w-5 text-green-600" />
+					<Apple className="size-5 text-green-600" />
 					Informações Nutricionais
 				</CardTitle>
 				<CardDescription>Preencha os valores nutricionais do produto.</CardDescription>
@@ -286,7 +286,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 												variant="ghost"
 												size="sm"
 												onClick={() => removeOptionalField(field.key)}
-												className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+												className="size-6 p-0 text-gray-400 hover:text-red-500"
 											>
 												<X className="h-3 w-3" />
 											</Button>
@@ -319,7 +319,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 								className="w-full"
 							/>
 							<Button type="button" variant="outline" onClick={addOptionalFields} disabled={fieldsToAdd.length === 0}>
-								<Plus className="h-4 w-4 mr-2" />
+								<Plus className="size-4 mr-2" />
 								Adicionar
 							</Button>
 						</div>
@@ -331,7 +331,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 					<Card className="border-red-200 bg-red-50/50">
 						<CardHeader className="pb-4">
 							<CardTitle className="flex items-center gap-2 text-sm text-red-800">
-								<AlertTriangle className="h-4 w-4" />
+								<AlertTriangle className="size-4" />
 								ALÉRGICOS: CONTÉM
 							</CardTitle>
 						</CardHeader>
@@ -347,7 +347,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 											size="sm"
 											onClick={() => handleAllergenChange(allergen, "contains")}
 										>
-											{isSelected && <Check className="mr-2 h-4 w-4" />}
+											{isSelected && <Check className="mr-2 size-4" />}
 											{allergen}
 										</Button>
 									)
@@ -359,7 +359,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 					<Card className="border-orange-200 bg-orange-50/50">
 						<CardHeader className="pb-4">
 							<CardTitle className="flex items-center gap-2 text-sm text-orange-800">
-								<AlertTriangle className="h-4 w-4" />
+								<AlertTriangle className="size-4" />
 								ALÉRGICOS: PODE CONTER
 							</CardTitle>
 						</CardHeader>
@@ -379,7 +379,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 											)}
 											onClick={() => handleAllergenChange(allergen, "mayContain")}
 										>
-											{isSelected && <Check className="mr-2 h-4 w-4" />}
+											{isSelected && <Check className="mr-2 size-4" />}
 											{allergen}
 										</Button>
 									)

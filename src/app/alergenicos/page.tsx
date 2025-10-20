@@ -71,14 +71,14 @@ export default function AllergenicosPage() {
 						href="/"
 						className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
 					>
-						<ArrowLeft className="h-4 w-4" />
+						<ArrowLeft className="size-4" />
 						Voltar
 					</Link>
 
 					<div className="space-y-3">
 						<div className="flex items-center gap-3">
-							<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
-								<AlertTriangle className="h-6 w-6 text-white" />
+							<div className="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
+								<AlertTriangle className="size-6 text-white" />
 							</div>
 							<div>
 								<h1 className="text-4xl font-bold tracking-tight">Guia de Alergênicos</h1>
@@ -93,8 +93,8 @@ export default function AllergenicosPage() {
 					<Card className="border-2 border-blue-200 dark:border-blue-800">
 						<CardContent className="pt-6">
 							<div className="flex items-center gap-3">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
-									<Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+								<div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
+									<Info className="size-5 text-blue-600 dark:text-blue-400" />
 								</div>
 								<div>
 									<p className="font-semibold">O que são alergênicos?</p>
@@ -107,8 +107,8 @@ export default function AllergenicosPage() {
 					<Card className="border-2 border-green-200 dark:border-green-800">
 						<CardContent className="pt-6">
 							<div className="flex items-center gap-3">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50">
-									<Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+								<div className="flex size-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50">
+									<Shield className="size-5 text-green-600 dark:text-green-400" />
 								</div>
 								<div>
 									<p className="font-semibold">Por que informar?</p>
@@ -121,8 +121,8 @@ export default function AllergenicosPage() {
 					<Card className="border-2 border-purple-200 dark:border-purple-800">
 						<CardContent className="pt-6">
 							<div className="flex items-center gap-3">
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
-									<CheckCircle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+								<div className="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
+									<CheckCircle className="size-5 text-purple-600 dark:text-purple-400" />
 								</div>
 								<div>
 									<p className="font-semibold">Como identificar?</p>
@@ -163,7 +163,7 @@ export default function AllergenicosPage() {
 													key={allergen.name}
 													className="flex items-start gap-3 p-4 rounded-lg border-2 bg-card hover:bg-muted/50 transition-colors"
 												>
-													<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted flex-shrink-0">
+													<div className="flex size-12 items-center justify-center rounded-xl bg-muted shrink-0">
 														<allergen.icon size={24} variant="outline" className="text-foreground" />
 													</div>
 													<div className="space-y-1 min-w-0">
@@ -228,13 +228,13 @@ export default function AllergenicosPage() {
 									<h3 className="font-semibold text-lg">Legenda de Avisos</h3>
 									<div className="grid gap-3 sm:grid-cols-2">
 										<div className="flex items-center gap-3 p-3 rounded-lg border-2 border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/50">
-											<Badge variant="destructive" className="flex-shrink-0">
+											<Badge variant="destructive" className="shrink-0">
 												⚠️ Contém
 											</Badge>
 											<p className="text-sm text-red-700 dark:text-red-300">Produto CONTÉM o alergênico</p>
 										</div>
 										<div className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-950/50">
-											<Badge variant="secondary" className="flex-shrink-0">
+											<Badge variant="secondary" className="shrink-0">
 												⚡ Pode conter
 											</Badge>
 											<p className="text-sm text-yellow-700 dark:text-yellow-300">
@@ -309,7 +309,7 @@ export default function AllergenicosPage() {
 						<Card className="border-2 border-amber-200 dark:border-amber-800">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-									<AlertTriangle className="h-5 w-5" />
+									<AlertTriangle className="size-5" />
 									Contaminação Cruzada
 								</CardTitle>
 							</CardHeader>
@@ -351,7 +351,7 @@ export default function AllergenicosPage() {
 										{ id: "tip6", text: "Consulte regularmente um alergologista para acompanhamento" },
 									].map((tip) => (
 										<div key={tip.id} className="flex items-start gap-3">
-											<CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+											<CheckCircle className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
 											<p className="text-sm leading-relaxed">{tip.text}</p>
 										</div>
 									))}

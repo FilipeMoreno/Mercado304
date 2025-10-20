@@ -118,7 +118,7 @@ export function QuickProductDialog({
 
 				<div className="flex gap-2 pt-4">
 					<Button onClick={onCreateProduct} disabled={saving} className="flex-1">
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{saving ? "Criando..." : "Criar e Usar"}
 					</Button>
 					<Button type="button" variant="outline" onClick={onClose}>

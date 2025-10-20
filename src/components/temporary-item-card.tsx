@@ -189,7 +189,7 @@ export function TemporaryItemCard({ item, onUpdateItem, onDeleteItem, onConvertT
 						{onConvertToProduct && (
 							<Dialog open={showConvertDialog} onOpenChange={setShowConvertDialog}>
 								<DialogTrigger asChild>
-									<Button variant="outline" size="sm" className="h-8 w-8 p-0">
+									<Button variant="outline" size="sm" className="size-8 p-0">
 										<Package className="h-3 w-3" />
 									</Button>
 								</DialogTrigger>
@@ -251,7 +251,7 @@ export function TemporaryItemCard({ item, onUpdateItem, onDeleteItem, onConvertT
 
 										<div className="flex gap-2">
 											<Button onClick={handleConvertToProduct} className="flex-1">
-												<ArrowRight className="h-4 w-4 mr-2" />
+												<ArrowRight className="size-4 mr-2" />
 												Converter
 											</Button>
 											<Button variant="outline" onClick={() => setShowConvertDialog(false)}>
@@ -263,7 +263,7 @@ export function TemporaryItemCard({ item, onUpdateItem, onDeleteItem, onConvertT
 							</Dialog>
 						)}
 
-						<Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="h-8 w-8 p-0">
+						<Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="size-8 p-0">
 							<Edit className="h-3 w-3" />
 						</Button>
 
@@ -271,7 +271,7 @@ export function TemporaryItemCard({ item, onUpdateItem, onDeleteItem, onConvertT
 							variant="outline"
 							size="sm"
 							onClick={() => onDeleteItem(item.id)}
-							className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+							className="size-8 p-0 text-red-600 hover:text-red-700"
 						>
 							<Trash2 className="h-3 w-3" />
 						</Button>

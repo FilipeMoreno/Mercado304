@@ -10,14 +10,14 @@ export function DashboardSkeleton() {
 					<Skeleton className="h-8 md:h-9 w-64 mb-2" />
 					<Skeleton className="h-4 md:h-5 w-80 md:w-96" />
 				</div>
-				<Skeleton className="h-10 w-10 rounded-md" />
+				<Skeleton className="size-10 rounded-md" />
 			</div>
 
 			{/* Card de Resumo AI */}
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-48" />
 					</div>
 				</CardHeader>
@@ -25,7 +25,7 @@ export function DashboardSkeleton() {
 					<div className="space-y-3">
 						<Skeleton className="h-4 w-full" />
 						<Skeleton className="h-4 w-5/6" />
-						<Skeleton className="h-4 w-4/5" />
+						<Skeleton className="size-4/5" />
 					</div>
 				</CardContent>
 			</Card>
@@ -33,10 +33,10 @@ export function DashboardSkeleton() {
 			{/* Cards de Estatísticas Principais (5 cards) */}
 			<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
 				{Array.from({ length: 5 }).map((_, i) => (
-					<Card key={i} className="shadow-sm">
+					<Card key={i} className="shadow-xs">
 						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-4 w-4" />
+							<Skeleton className="size-4" />
 						</CardHeader>
 						<CardContent>
 							<Skeleton className="h-8 w-16 mb-1" />
@@ -59,7 +59,7 @@ export function DashboardSkeleton() {
 			{/* Alertas de Reposição e Expiração */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Alertas de Reposição */}
-				<Card className="shadow-sm">
+				<Card className="shadow-xs">
 					<CardHeader>
 						<Skeleton className="h-6 w-44 mb-2" />
 						<Skeleton className="h-4 w-56" />
@@ -69,7 +69,7 @@ export function DashboardSkeleton() {
 							{Array.from({ length: 3 }).map((_, i) => (
 								<div key={i} className="flex items-center justify-between p-3 border rounded-lg">
 									<div className="flex items-center gap-3">
-										<Skeleton className="h-8 w-8 rounded-full" />
+										<Skeleton className="size-8 rounded-full" />
 										<div>
 											<Skeleton className="h-4 w-32 mb-1" />
 											<Skeleton className="h-3 w-20" />
@@ -83,7 +83,7 @@ export function DashboardSkeleton() {
 				</Card>
 
 				{/* Alertas de Expiração */}
-				<Card className="shadow-sm">
+				<Card className="shadow-xs">
 					<CardHeader>
 						<Skeleton className="h-6 w-40 mb-2" />
 						<Skeleton className="h-4 w-48" />
@@ -93,7 +93,7 @@ export function DashboardSkeleton() {
 							{Array.from({ length: 3 }).map((_, i) => (
 								<div key={i} className="flex items-center justify-between p-3 border rounded-lg">
 									<div className="flex items-center gap-3">
-										<Skeleton className="h-8 w-8 rounded-full" />
+										<Skeleton className="size-8 rounded-full" />
 										<div>
 											<Skeleton className="h-4 w-28 mb-1" />
 											<Skeleton className="h-3 w-16" />
@@ -111,7 +111,7 @@ export function DashboardSkeleton() {
 			<Card className="md:col-span-2">
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-48" />
 					</div>
 					<Skeleton className="h-4 w-64 mt-2" />
@@ -132,10 +132,10 @@ export function DashboardSkeleton() {
 			{/* Cards de Análise (Savings, Temporal, Nutrition) */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
 				{Array.from({ length: 3 }).map((_, i) => (
-					<Card key={i} className="shadow-sm">
+					<Card key={i} className="shadow-xs">
 						<CardHeader>
 							<div className="flex items-center gap-2">
-								<Skeleton className="h-5 w-5" />
+								<Skeleton className="size-5" />
 								<Skeleton className="h-6 w-32" />
 							</div>
 							<Skeleton className="h-4 w-full mt-2" />
@@ -152,10 +152,10 @@ export function DashboardSkeleton() {
 			</div>
 
 			{/* Card de Estatísticas de Descontos */}
-			<Card className="shadow-sm">
+			<Card className="shadow-xs">
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-52" />
 					</div>
 					<Skeleton className="h-4 w-64 mt-2" />
@@ -164,7 +164,7 @@ export function DashboardSkeleton() {
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{Array.from({ length: 3 }).map((_, i) => (
 							<div key={i} className="text-center p-4 border rounded-lg">
-								<Skeleton className="h-8 w-8 mx-auto mb-2" />
+								<Skeleton className="size-8 mx-auto mb-2" />
 								<Skeleton className="h-4 w-24 mx-auto mb-1" />
 								<Skeleton className="h-6 w-20 mx-auto" />
 							</div>
@@ -174,10 +174,10 @@ export function DashboardSkeleton() {
 			</Card>
 
 			{/* Estatísticas de Métodos de Pagamento */}
-			<Card className="shadow-sm">
+			<Card className="shadow-xs">
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-64" />
 					</div>
 					<Skeleton className="h-4 w-56 mt-2" />
@@ -186,7 +186,7 @@ export function DashboardSkeleton() {
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						{Array.from({ length: 4 }).map((_, i) => (
 							<div key={i} className="text-center space-y-2">
-								<Skeleton className="h-8 w-8 mx-auto" />
+								<Skeleton className="size-8 mx-auto" />
 								<Skeleton className="h-4 w-16 mx-auto" />
 								<Skeleton className="h-6 w-20 mx-auto" />
 								<Skeleton className="h-3 w-12 mx-auto" />
@@ -197,10 +197,10 @@ export function DashboardSkeleton() {
 			</Card>
 
 			{/* Gastos por Categoria */}
-			<Card className="shadow-sm">
+			<Card className="shadow-xs">
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-44" />
 					</div>
 					<Skeleton className="h-4 w-72 mt-2" />
@@ -210,7 +210,7 @@ export function DashboardSkeleton() {
 						{Array.from({ length: 8 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-6 w-6 rounded-full" />
+									<Skeleton className="size-6 rounded-full" />
 									<div>
 										<Skeleton className="h-4 w-32 mb-1" />
 										<Skeleton className="h-3 w-40" />
@@ -229,7 +229,7 @@ export function DashboardSkeleton() {
 			{/* Produtos e Mercados */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Produtos Mais Comprados */}
-				<Card className="shadow-sm">
+				<Card className="shadow-xs">
 					<CardHeader>
 						<CardTitle>
 							<Skeleton className="h-6 w-48" />
@@ -243,7 +243,7 @@ export function DashboardSkeleton() {
 							{Array.from({ length: 5 }).map((_, i) => (
 								<div key={i} className="flex items-center justify-between">
 									<div className="flex items-center gap-3">
-										<Skeleton className="h-6 w-6 rounded-full" />
+										<Skeleton className="size-6 rounded-full" />
 										<div>
 											<Skeleton className="h-4 w-32 mb-1" />
 											<Skeleton className="h-3 w-24" />
@@ -260,7 +260,7 @@ export function DashboardSkeleton() {
 				</Card>
 
 				{/* Comparação de Mercados */}
-				<Card className="shadow-sm">
+				<Card className="shadow-xs">
 					<CardHeader>
 						<CardTitle>
 							<Skeleton className="h-6 w-44" />
@@ -274,7 +274,7 @@ export function DashboardSkeleton() {
 							{Array.from({ length: 5 }).map((_, i) => (
 								<div key={i} className="flex items-center justify-between">
 									<div className="flex items-center gap-3">
-										<Skeleton className="h-6 w-6 rounded-full" />
+										<Skeleton className="size-6 rounded-full" />
 										<div>
 											<div className="flex items-center gap-2 mb-1">
 												<Skeleton className="h-4 w-24" />
@@ -295,7 +295,7 @@ export function DashboardSkeleton() {
 			</div>
 
 			{/* Compras Recentes */}
-			<Card className="shadow-sm">
+			<Card className="shadow-xs">
 				<CardHeader>
 					<CardTitle>
 						<Skeleton className="h-6 w-36" />
@@ -309,7 +309,7 @@ export function DashboardSkeleton() {
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between p-3 border rounded-lg">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-5 w-5" />
+									<Skeleton className="size-5" />
 									<div>
 										<Skeleton className="h-4 w-32 mb-1" />
 										<Skeleton className="h-3 w-40" />

@@ -19,8 +19,8 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 		<Card className="group hover:shadow-lg transition-all duration-200 h-full flex flex-col">
 			<CardHeader className="pb-3">
 				<div className="flex items-center gap-3 mb-2">
-					<div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-sm">
-						<Package className="h-5 w-5 text-orange-600" />
+					<div className="size-8 rounded-xl bg-orange-100 flex items-center justify-center shadow-xs">
+						<Package className="size-5 text-orange-600" />
 					</div>
 					<div className="flex-1 min-w-0">
 						<TooltipProvider>
@@ -75,25 +75,25 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 				<div className="flex gap-2 mt-auto">
 					<Link href={`/produtos/${product.id}`} className="flex-1">
 						<Button variant="outline" className="w-full justify-center">
-							<BarChart3 className="h-4 w-4 mr-2" />
+							<BarChart3 className="size-4 mr-2" />
 							Ver Detalhes
 						</Button>
 					</Link>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="outline" size="icon">
-								<MoreHorizontal className="h-4 w-4" />
+								<MoreHorizontal className="size-4" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem asChild>
 								<Link href={`/produtos/${product.id}/editar`} className="flex items-center">
-									<Edit className="h-4 w-4 mr-2" />
+									<Edit className="size-4 mr-2" />
 									Editar
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => onDelete?.(product)} className="text-red-600 focus:text-red-600">
-								<Trash2 className="h-4 w-4 mr-2" />
+								<Trash2 className="size-4 mr-2" />
 								Excluir
 							</DropdownMenuItem>
 						</DropdownMenuContent>

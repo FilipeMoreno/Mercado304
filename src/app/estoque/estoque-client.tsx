@@ -218,7 +218,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 			<div className="flex flex-row gap-4">
 				<div className="flex-1">
 					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
 						<Input
 							placeholder="Buscar produtos..."
 							value={state.search}
@@ -269,7 +269,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 										id="includeExpired"
 										checked={state.includeExpired === "true"}
 										onChange={(e) => updateSingleValue("includeExpired", e.target.checked.toString())}
-										className="rounded"
+										className="rounded-sm"
 									/>
 									<label htmlFor="includeExpired" className="text-sm">
 										Incluir vencidos
@@ -279,7 +279,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 						}
 					/>
 					<Button onClick={() => setShowAddDialog(true)}>
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className="mr-2 size-4" />
 						Adicionar
 					</Button>
 					<Button 
@@ -288,7 +288,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 						disabled={stockItems.length === 0}
 						title="Resetar todo o estoque"
 					>
-						<RotateCcw className="mr-2 h-4 w-4" />
+						<RotateCcw className="mr-2 size-4" />
 						<span className="hidden sm:inline">Resetar</span>
 					</Button>
 				</div>
@@ -398,7 +398,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 										setIsQuantityExceeding(false)
 									}
 								}}
-								className={`w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+								className={`w-full mt-1 px-3 py-2 border rounded-md focus:outline-hidden focus:ring-2 ${
 									isQuantityExceeding 
 										? "border-red-500 focus:ring-red-500 bg-red-50" 
 										: "border-gray-300 focus:ring-blue-500"
@@ -464,7 +464,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteStockMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<div className="space-y-2">
 					<p className="text-sm text-gray-700">
@@ -485,12 +485,12 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				confirmText="Sim, Usar Mesmo Assim"
 				cancelText="Cancelar"
 				confirmVariant="destructive"
-				icon={<AlertTriangle className="h-8 w-8 text-orange-500" />}
+				icon={<AlertTriangle className="size-8 text-orange-500" />}
 			>
 				<div className="space-y-3">
 					<div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
 						<div className="flex items-start gap-3">
-							<AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+							<AlertTriangle className="size-5 text-orange-600 mt-0.5 shrink-0" />
 							<div className="space-y-2">
 								<p className="text-sm font-medium text-orange-800">
 									Quantidade a ser usada: <strong>{consumedQuantity && parseFloat(consumedQuantity)} {selectedItem?.product.unit}</strong>

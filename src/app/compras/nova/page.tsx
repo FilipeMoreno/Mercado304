@@ -429,12 +429,12 @@ export default function NovaCompraPage() {
 	return (
 		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
 			{/* Header fixo para mobile */}
-			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+			<div className="sticky top-0 z-10 bg-white border-b shadow-xs md:relative md:shadow-none md:border-none">
 				<div className="px-4 py-4 md:px-0">
 					<div className="flex items-center gap-4">
 						<Link href="/compras">
 							<Button variant="outline" size="sm">
-								<ArrowLeft className="h-4 w-4 mr-2" />
+								<ArrowLeft className="size-4 mr-2" />
 								<span className="hidden sm:inline">Voltar</span>
 							</Button>
 						</Link>
@@ -535,7 +535,7 @@ export default function NovaCompraPage() {
 							<CardHeader>
 								<div className="flex justify-between items-center">
 									<CardTitle className="flex items-center gap-2">
-										<Package className="h-5 w-5" />
+										<Package className="size-5" />
 										Itens da Compra
 									</CardTitle>
 								</div>
@@ -550,7 +550,7 @@ export default function NovaCompraPage() {
 												initial={{ opacity: 0, y: 20 }}
 												animate={{ opacity: 1, y: 0 }}
 												transition={{ delay: 0.3 + index * 0.05 }}
-												className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
+												className="space-y-4 p-4 border rounded-lg bg-white shadow-xs"
 											>
 												{/* Número do item */}
 												<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
@@ -703,7 +703,7 @@ export default function NovaCompraPage() {
 													<div className="pt-4 border-t space-y-4">
 														<div className="flex justify-between items-center">
 															<Label className="flex items-center gap-2 font-medium">
-																<Box className="h-4 w-4" />
+																<Box className="size-4" />
 																Gestão de Estoque
 															</Label>
 															{item.addToStock && (
@@ -718,7 +718,7 @@ export default function NovaCompraPage() {
 																		})
 																	}
 																>
-																	<Settings2 className="h-4 w-4 mr-2" />
+																	<Settings2 className="size-4 mr-2" />
 																	<span className="hidden sm:inline">Detalhar Estoque</span>
 																	<span className="sm:hidden">Detalhar</span>
 																</Button>
@@ -741,7 +741,7 @@ export default function NovaCompraPage() {
 												<div className="flex justify-end pt-2">
 													{items.length > 1 && (
 														<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
-															<Trash2 className="h-4 w-4 mr-1" />
+															<Trash2 className="size-4 mr-1" />
 															Remover
 														</Button>
 													)}
@@ -802,11 +802,11 @@ export default function NovaCompraPage() {
 									<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
-											<Plus className="h-4 w-4 mr-2" />
+											<Plus className="size-4 mr-2" />
 											Adicionar Item
 										</Button>
 										<Button type="submit" disabled={loading}>
-											<Save className="h-4 w-4 mr-2" />
+											<Save className="size-4 mr-2" />
 											{loading ? "Salvando..." : "Salvar Compra"}
 										</Button>
 										<Link href="/compras">
@@ -828,7 +828,7 @@ export default function NovaCompraPage() {
 					<div className="flex items-center justify-between gap-3">
 						{/* Botão de adicionar item */}
 						<Button type="button" onClick={addItem} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
-							<Plus className="h-5 w-5 mr-2" />
+							<Plus className="size-5 mr-2" />
 							Adicionar Item
 						</Button>
 
@@ -842,7 +842,7 @@ export default function NovaCompraPage() {
 					{/* Botões de ação */}
 					<div className="flex gap-2 mt-3">
 						<Button type="submit" disabled={loading} onClick={handleSubmit} className="flex-1" size="lg">
-							<Save className="h-4 w-4 mr-2" />
+							<Save className="size-4 mr-2" />
 							{loading ? "Salvando..." : "Salvar Compra"}
 						</Button>
 						<Link href="/compras" className="flex-1">

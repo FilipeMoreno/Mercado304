@@ -48,7 +48,7 @@ export function DeleteItemDialog({ isOpen, onClose, deleteItemConfirm, onDelete,
 			cancelText="Cancelar"
 			confirmVariant="destructive"
 			isLoading={deleting}
-			icon={<Trash2 className="h-8 w-8 text-red-500" />}
+			icon={<Trash2 className="size-8 text-red-500" />}
 		>
 			<div className="space-y-4">
 				<p>

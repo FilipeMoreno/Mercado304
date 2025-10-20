@@ -9,7 +9,7 @@ export default function CategoriaDetalhesSkeleton() {
 				<Skeleton className="h-9 w-20" />
 				<div className="flex-1">
 					<div className="flex items-center gap-3">
-						<Skeleton className="h-8 w-8 rounded-full" />
+						<Skeleton className="size-8 rounded-full" />
 						<div>
 							<Skeleton className="h-8 w-64 mb-2" />
 							<Skeleton className="h-5 w-80" />
@@ -38,7 +38,7 @@ export default function CategoriaDetalhesSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-48" />
 					</div>
 					<Skeleton className="h-4 w-64" />
@@ -49,7 +49,7 @@ export default function CategoriaDetalhesSkeleton() {
 							<Card key={i}>
 								<CardHeader>
 									<div className="flex items-center gap-2">
-										<Skeleton className="h-5 w-5" />
+										<Skeleton className="size-5" />
 										<Skeleton className="h-6 w-32" />
 									</div>
 									<div className="space-y-1 mt-2">

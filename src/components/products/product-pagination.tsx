@@ -16,7 +16,7 @@ export function ProductPagination({ currentPage, totalPages, onPageChange }: Pro
 	return (
 		<div className="flex justify-center items-center gap-2 pt-6">
 			<Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
-				<ChevronLeft className="h-4 w-4" />
+				<ChevronLeft className="size-4" />
 				Anterior
 			</Button>
 
@@ -30,7 +30,7 @@ export function ProductPagination({ currentPage, totalPages, onPageChange }: Pro
 								variant={currentPage === page ? "default" : "outline"}
 								size="sm"
 								onClick={() => onPageChange(page)}
-								className="w-8 h-8 p-0"
+								className="size-8 p-0"
 							>
 								{page}
 							</Button>
@@ -45,7 +45,7 @@ export function ProductPagination({ currentPage, totalPages, onPageChange }: Pro
 				disabled={currentPage === totalPages}
 			>
 				Próxima
-				<ChevronRight className="h-4 w-4" />
+				<ChevronRight className="size-4" />
 			</Button>
 		</div>
 	)

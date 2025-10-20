@@ -92,7 +92,7 @@ export function ResponsiveMultiSelect({
                 {option.label}
                 <button
                   type="button"
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="ml-1 rounded-full outline-hidden ring-offset-background focus:ring-2 focus:ring-ring-3 focus:ring-offset-2"
                   onClick={(e) => handleUnselect(e, option.value)}
                   aria-label={`Remover ${option.label}`}
                 >
@@ -110,14 +110,14 @@ export function ResponsiveMultiSelect({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              className="size-6 text-muted-foreground hover:text-foreground"
               onClick={handleClear}
               aria-label="Limpar seleção"
             >
-              <XCircle className="h-4 w-4" />
+              <XCircle className="size-4" />
             </Button>
           )}
-          <Search className="h-4 w-4 shrink-0 opacity-50" />
+          <Search className="size-4 shrink-0 opacity-50" />
         </div>
       </Button>
 
@@ -132,7 +132,7 @@ export function ResponsiveMultiSelect({
         <div className="space-y-4">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               ref={inputRef}
               type="text"
@@ -149,7 +149,7 @@ export function ResponsiveMultiSelect({
                 onClick={() => setSearchTerm("")}
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             )}
           </div>
@@ -182,11 +182,11 @@ export function ResponsiveMultiSelect({
                 <div className="space-y-2 p-2">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-                      <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                      <Skeleton className="size-5 rounded-full shrink-0" />
                       <div className="flex-1">
                         <Skeleton className="h-4 w-full" />
                       </div>
-                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="size-4 shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -202,7 +202,7 @@ export function ResponsiveMultiSelect({
                     onClick={() => handleSelect(option.value)}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors",
-                      "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring-3",
                       selected.includes(option.value) && "bg-accent",
                     )}
                   >

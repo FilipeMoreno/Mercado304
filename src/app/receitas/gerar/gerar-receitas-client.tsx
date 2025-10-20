@@ -281,7 +281,7 @@ export function GerarReceitasClient() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<ChefHat className="h-5 w-5" />
+						<ChefHat className="size-5" />
 						Receitas Geradas pela IA
 					</CardTitle>
 					<CardDescription>
@@ -297,7 +297,7 @@ export function GerarReceitasClient() {
 						<RecipeCardsSkeleton count={3} />
 					) : filteredRecipes.length === 0 ? (
 						<div className="text-center py-12 text-gray-500">
-							<ChefHat className="h-12 w-12 mx-auto mb-4" />
+							<ChefHat className="size-12 mx-auto mb-4" />
 							{aiRecipes.length === 0 ? (
 								<>
 									<p className="text-lg font-medium mb-2">Pronto para criar receitas incríveis!</p>
@@ -445,7 +445,7 @@ export function GerarReceitasClient() {
 												onClick={() => viewRecipe(recipe)}
 												className="flex-1 h-10 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200"
 											>
-												<Eye className="h-4 w-4 mr-2" />
+												<Eye className="size-4 mr-2" />
 												Ver Receita
 											</Button>
 											<Button
@@ -454,7 +454,7 @@ export function GerarReceitasClient() {
 												onClick={() => saveRecipe(recipe)}
 												className="h-10 bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
 											>
-												<Save className="h-4 w-4 mr-2" />
+												<Save className="size-4 mr-2" />
 												Salvar
 											</Button>
 											{recipe.ingredientes_faltantes && recipe.ingredientes_faltantes.length > 0 && (
@@ -465,7 +465,7 @@ export function GerarReceitasClient() {
 													className="h-10 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
 													title="Adicionar ingredientes faltantes à lista de compras"
 												>
-													<ShoppingCart className="h-4 w-4" />
+													<ShoppingCart className="size-4" />
 												</Button>
 											)}
 										</div>

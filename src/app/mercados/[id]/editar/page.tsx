@@ -75,24 +75,24 @@ export default function EditarMercadoPage() {
 		return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
-					<div className="h-9 w-20 bg-gray-200 rounded animate-pulse" />
+					<div className="h-9 w-20 bg-gray-200 rounded-sm animate-pulse" />
 					<div>
-						<div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
-						<div className="h-5 w-64 bg-gray-200 rounded animate-pulse" />
+						<div className="h-8 w-48 bg-gray-200 rounded-sm animate-pulse mb-2" />
+						<div className="h-5 w-64 bg-gray-200 rounded-sm animate-pulse" />
 					</div>
 				</div>
 				<Card>
 					<CardHeader>
-						<div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+						<div className="h-6 w-48 bg-gray-200 rounded-sm animate-pulse" />
 					</CardHeader>
 					<CardContent className="space-y-6">
 						<div className="space-y-2">
-							<div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-							<div className="h-10 w-full bg-gray-200 rounded animate-pulse" />
+							<div className="h-4 w-32 bg-gray-200 rounded-sm animate-pulse" />
+							<div className="h-10 w-full bg-gray-200 rounded-sm animate-pulse" />
 						</div>
 						<div className="space-y-2">
-							<div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-							<div className="h-20 w-full bg-gray-200 rounded animate-pulse" />
+							<div className="h-4 w-24 bg-gray-200 rounded-sm animate-pulse" />
+							<div className="h-20 w-full bg-gray-200 rounded-sm animate-pulse" />
 						</div>
 					</CardContent>
 				</Card>
@@ -106,7 +106,7 @@ export default function EditarMercadoPage() {
 				<div className="flex items-center gap-4">
 					<Link href="/mercados">
 						<Button variant="outline" size="sm">
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar
 						</Button>
 					</Link>
@@ -124,7 +124,7 @@ export default function EditarMercadoPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/mercados">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
@@ -181,11 +181,11 @@ export default function EditarMercadoPage() {
 								disabled={updateMarketMutation.isPending || !formData.name.trim()}
 								className="flex-1"
 							>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="size-4 mr-2" />
 								{updateMarketMutation.isPending ? "Atualizando..." : "Atualizar Mercado"}
 							</Button>
 							<Button type="button" variant="outline" onClick={handleCancel} disabled={updateMarketMutation.isPending}>
-								<X className="h-4 w-4 mr-2" />
+								<X className="size-4 mr-2" />
 								Cancelar
 							</Button>
 						</div>

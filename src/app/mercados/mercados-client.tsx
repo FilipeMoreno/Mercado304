@@ -123,7 +123,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<Store className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<Store className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar mercados</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -140,7 +140,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				className="flex items-center gap-2 mb-6"
 			>
 				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 					<Input placeholder="Buscar mercados..." value={searchValue} onChange={handleSearchChange} className="pl-10" />
 				</div>
 				<div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 						onClearFilters={clearFilters}
 					/>
 					<Button onClick={() => router.push("/mercados/novo")} className="bg-green-600 hover:bg-green-700 text-white">
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						<span className="hidden sm:inline">Novo Mercado</span>
 						<span className="sm:hidden">Novo</span>
 					</Button>
@@ -166,7 +166,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Store className="h-6 w-6" />
+										<Store className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhum mercado encontrado</EmptyTitle>
 									<EmptyDescription>Nenhum mercado corresponde aos filtros aplicados</EmptyDescription>
@@ -188,7 +188,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<Store className="h-6 w-6" />
+										<Store className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhum mercado cadastrado</EmptyTitle>
 									<EmptyDescription>Comece adicionando seu primeiro mercado</EmptyDescription>
@@ -196,7 +196,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 								<EmptyContent>
 									<Link href="/mercados/novo">
 										<Button>
-											<Plus className="mr-2 h-4 w-4" />
+											<Plus className="mr-2 size-4" />
 											Cadastrar Primeiro Mercado
 										</Button>
 									</Link>
@@ -243,7 +243,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 										onClick={() => handlePageChange((state.page as number) - 1)}
 										disabled={state.page === 1}
 									>
-										<ChevronLeft className="h-4 w-4" />
+										<ChevronLeft className="size-4" />
 										Anterior
 									</Button>
 
@@ -261,7 +261,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 														variant={state.page === page ? "default" : "outline"}
 														size="sm"
 														onClick={() => handlePageChange(page)}
-														className="w-8 h-8 p-0"
+														className="size-8 p-0"
 													>
 														{page}
 													</Button>
@@ -276,7 +276,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 										disabled={state.page === totalPages}
 									>
 										Próxima
-										<ChevronRight className="h-4 w-4" />
+										<ChevronRight className="size-4" />
 									</Button>
 								</div>
 							)}
@@ -296,7 +296,7 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteMarketMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir o mercado <strong>{deleteState.item?.name}</strong>?

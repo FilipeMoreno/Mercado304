@@ -37,7 +37,7 @@ export function StockPagination({ totalPages, currentPage, onPageChange }: Stock
 						variant={currentPage === page ? "default" : "outline"}
 						size="sm"
 						onClick={() => onPageChange(page)}
-						className="w-8 h-8 p-0"
+						className="size-8 p-0"
 					>
 						{page}
 					</Button>

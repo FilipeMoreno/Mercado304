@@ -131,7 +131,7 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 			<Card className="border-primary/50">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Zap className="h-5 w-5 text-primary" />
+						<Zap className="size-5 text-primary" />
 						Registro Rápido de Preços
 					</CardTitle>
 					<CardDescription>Registre os preços do kit e produtos individuais para análise instantânea</CardDescription>
@@ -204,7 +204,7 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 
 					<div className="flex gap-2 pt-4">
 						<Button onClick={handleQuickAnalysis} disabled={!allFieldsFilled || isAnalyzing} className="flex-1">
-							<DollarSign className="h-4 w-4 mr-2" />
+							<DollarSign className="size-4 mr-2" />
 							{isAnalyzing ? "Analisando..." : "Analisar e Registrar"}
 						</Button>
 						{analysisResult && (
@@ -223,12 +223,12 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 						<CardTitle className="flex items-center gap-2">
 							{analysisResult.worthIt ? (
 								<>
-									<Check className="h-5 w-5 text-green-500" />
+									<Check className="size-5 text-green-500" />
 									<span className="text-green-700 dark:text-green-400">Vale a pena comprar o kit!</span>
 								</>
 							) : (
 								<>
-									<X className="h-5 w-5 text-yellow-500" />
+									<X className="size-5 text-yellow-500" />
 									<span className="text-yellow-700 dark:text-yellow-400">Melhor comprar separado</span>
 								</>
 							)}
@@ -254,9 +254,9 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
 										{analysisResult.savings > 0 ? (
-											<TrendingDown className="h-5 w-5 text-green-500" />
+											<TrendingDown className="size-5 text-green-500" />
 										) : (
-											<TrendingUp className="h-5 w-5 text-red-500" />
+											<TrendingUp className="size-5 text-red-500" />
 										)}
 										<span className="font-semibold">{analysisResult.savings > 0 ? "Economia" : "Diferença"}</span>
 									</div>

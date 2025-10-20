@@ -80,15 +80,15 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 	const getStatusIcon = () => {
 		switch (progress.status) {
 			case "creating":
-				return <Database className="h-5 w-5 text-blue-600 animate-pulse" />
+				return <Database className="size-5 text-blue-600 animate-pulse" />
 			case "uploading":
-				return <Upload className="h-5 w-5 text-purple-600 animate-pulse" />
+				return <Upload className="size-5 text-purple-600 animate-pulse" />
 			case "completed":
-				return <CheckCircle className="h-5 w-5 text-green-600" />
+				return <CheckCircle className="size-5 text-green-600" />
 			case "error":
-				return <AlertCircle className="h-5 w-5 text-red-600" />
+				return <AlertCircle className="size-5 text-red-600" />
 			default:
-				return <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+				return <Loader2 className="size-5 animate-spin text-blue-600" />
 		}
 	}
 
@@ -121,7 +121,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 	if (progress.status === "error") {
 		return (
 			<Alert variant="destructive" className="mb-6">
-				<AlertCircle className="h-4 w-4" />
+				<AlertCircle className="size-4" />
 				<AlertTitle>Erro ao criar backup</AlertTitle>
 				<AlertDescription>
 					{progress.error || "Ocorreu um erro desconhecido ao criar o backup."}
@@ -157,7 +157,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 				<div className="grid grid-cols-2 gap-4">
 					{progress.elapsedTime !== undefined && (
 						<div className="flex items-center gap-2 text-sm">
-							<Clock className="h-4 w-4 text-muted-foreground" />
+							<Clock className="size-4 text-muted-foreground" />
 							<div>
 								<p className="text-muted-foreground">Tempo Percorrido</p>
 								<p className="font-medium">{formatTime(progress.elapsedTime)}</p>
@@ -167,7 +167,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 
 					{progress.estimatedTime !== undefined && progress.status !== "completed" && (
 						<div className="flex items-center gap-2 text-sm">
-							<Clock className="h-4 w-4 text-muted-foreground" />
+							<Clock className="size-4 text-muted-foreground" />
 							<div>
 								<p className="text-muted-foreground">Tempo Estimado</p>
 								<p className="font-medium">{formatTime(progress.estimatedTime)}</p>
@@ -179,7 +179,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 				{/* Informações do Backup (quando completo) */}
 				{progress.status === "completed" && progress.backupInfo && (
 					<Alert className="bg-green-50 border-green-200">
-						<CheckCircle className="h-4 w-4 text-green-600" />
+						<CheckCircle className="size-4 text-green-600" />
 						<AlertTitle className="text-green-800">Backup Criado com Sucesso!</AlertTitle>
 						<AlertDescription className="text-green-700">
 							<div className="mt-2 space-y-1">
@@ -198,7 +198,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 				{/* Status atual detalhado */}
 				{progress.status === "creating" && (
 					<div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-						<Loader2 className="h-4 w-4 mt-0.5 animate-spin text-blue-600" />
+						<Loader2 className="size-4 mt-0.5 animate-spin text-blue-600" />
 						<div className="text-sm">
 							<p className="font-medium text-blue-900">Exportando Dados</p>
 							<p className="text-blue-700">
@@ -210,7 +210,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 
 				{progress.status === "uploading" && (
 					<div className="flex items-start gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
-						<Upload className="h-4 w-4 mt-0.5 animate-pulse text-purple-600" />
+						<Upload className="size-4 mt-0.5 animate-pulse text-purple-600" />
 						<div className="text-sm">
 							<p className="font-medium text-purple-900">Enviando para Cloud</p>
 							<p className="text-purple-700">

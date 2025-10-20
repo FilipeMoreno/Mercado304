@@ -121,9 +121,9 @@ export default function NutricaoClient() {
 	}
 
 	const getHealthScoreIcon = (score: number) => {
-		if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />
-		if (score >= 60) return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-		return <AlertTriangle className="h-4 w-4 text-red-600" />
+		if (score >= 80) return <CheckCircle2 className="size-4 text-green-600" />
+		if (score >= 60) return <AlertTriangle className="size-4 text-yellow-600" />
+		return <AlertTriangle className="size-4 text-red-600" />
 	}
 
 	if (loading) {
@@ -132,22 +132,22 @@ export default function NutricaoClient() {
 				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 					<Card key="skeleton-1">
 						<CardContent className="p-6">
-							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 						</CardContent>
 					</Card>
 					<Card key="skeleton-2">
 						<CardContent className="p-6">
-							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 						</CardContent>
 					</Card>
 					<Card key="skeleton-3">
 						<CardContent className="p-6">
-							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 						</CardContent>
 					</Card>
 					<Card key="skeleton-4">
 						<CardContent className="p-6">
-							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+							<div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
 						</CardContent>
 					</Card>
 				</div>
@@ -160,7 +160,7 @@ export default function NutricaoClient() {
 			<Empty className="border border-dashed py-12">
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Apple className="h-6 w-6" />
+						<Apple className="size-6" />
 					</EmptyMedia>
 					<EmptyTitle>Nenhum dado nutricional encontrado</EmptyTitle>
 					<EmptyDescription>
@@ -225,7 +225,7 @@ export default function NutricaoClient() {
 				</Select>
 
 				<Button variant="outline" size="icon" onClick={fetchAnalysis}>
-					<RefreshCw className="h-4 w-4" />
+					<RefreshCw className="size-4" />
 				</Button>
 			</div>
 
@@ -235,7 +235,7 @@ export default function NutricaoClient() {
 					<CardContent className="p-4 sm:p-6">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-								<Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+								<Zap className="size-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
 							</div>
 							<div>
 								<p className="text-lg sm:text-2xl font-bold">{Math.round(analysis.totals.calories).toLocaleString()}</p>
@@ -249,7 +249,7 @@ export default function NutricaoClient() {
 					<CardContent className="p-4 sm:p-6">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-								<Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+								<Activity className="size-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
 							</div>
 							<div>
 								<p className="text-lg sm:text-2xl font-bold">{Math.round(analysis.totals.proteins)}g</p>
@@ -263,7 +263,7 @@ export default function NutricaoClient() {
 					<CardContent className="p-4 sm:p-6">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-								<TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 dark:text-orange-400" />
+								<TrendingUp className="size-4 sm:h-5 sm:w-5 text-orange-600 dark:text-orange-400" />
 							</div>
 							<div>
 								<p className="text-lg sm:text-2xl font-bold">{Math.round(analysis.totals.carbohydrates)}g</p>
@@ -277,7 +277,7 @@ export default function NutricaoClient() {
 					<CardContent className="p-4 sm:p-6">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-								<AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
+								<AlertTriangle className="size-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
 							</div>
 							<div>
 								<p className="text-lg sm:text-2xl font-bold">{Math.round(analysis.totals.sodium)}mg</p>
@@ -331,7 +331,7 @@ export default function NutricaoClient() {
 								<div key={item.name} className="space-y-2">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
-											<IconComponent className="h-4 w-4" style={{ color: item.color }} />
+											<IconComponent className="size-4" style={{ color: item.color }} />
 											<span className="text-sm font-medium">{item.name}</span>
 										</div>
 										<span className="text-sm text-gray-600">{Math.round(item.percentage)}%</span>
@@ -400,7 +400,7 @@ export default function NutricaoClient() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-green-600">
-							<CheckCircle2 className="h-5 w-5" />
+							<CheckCircle2 className="size-5" />
 							Produtos Mais Saudáveis
 						</CardTitle>
 						<CardDescription>Top 5 produtos com melhor score nutricional</CardDescription>
@@ -412,7 +412,7 @@ export default function NutricaoClient() {
 								className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
 							>
 								<div className="flex items-center gap-3">
-									<div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+									<div className="size-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
 										{index + 1}
 									</div>
 									<div>
@@ -434,7 +434,7 @@ export default function NutricaoClient() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-red-600">
-							<AlertTriangle className="h-5 w-5" />
+							<AlertTriangle className="size-5" />
 							Produtos Menos Saudáveis
 						</CardTitle>
 						<CardDescription>Top 5 produtos que precisam de atenção</CardDescription>
@@ -446,7 +446,7 @@ export default function NutricaoClient() {
 								className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
 							>
 								<div className="flex items-center gap-3">
-									<div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+									<div className="size-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
 										{index + 1}
 									</div>
 									<div>
@@ -470,7 +470,7 @@ export default function NutricaoClient() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Shield className="h-5 w-5 text-orange-500" />
+							<Shield className="size-5 text-orange-500" />
 							Alérgenos Mais Comuns
 						</CardTitle>
 						<CardDescription>Alérgenos presentes nos produtos consumidos</CardDescription>

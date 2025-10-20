@@ -236,7 +236,7 @@ export function StockForm({ initialData, products, onSubmit, onCancel }: StockFo
 				<Button type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<>
-							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+							<div className="animate-spin rounded-full size-4 border-b-2 border-white mr-2" />
 							{initialData ? "Atualizando..." : "Adicionando..."}
 						</>
 					) : initialData ? (

@@ -9,7 +9,7 @@ export function ProductDetailsSkeleton() {
 				<Skeleton className="h-9 w-20" />
 				<div className="flex-1">
 					<div className="flex items-center gap-3">
-						<Skeleton className="h-8 w-8" />
+						<Skeleton className="size-8" />
 						<div>
 							<Skeleton className="h-8 w-64 mb-2" />
 							<div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function ProductDetailsSkeleton() {
 					<Card key={i}>
 						<CardContent className="p-4">
 							<div className="flex items-center gap-3">
-								<Skeleton className="h-10 w-10 rounded-lg" />
+								<Skeleton className="size-10 rounded-lg" />
 								<div>
 									<Skeleton className="h-6 w-12 mb-1" />
 									<Skeleton className="h-4 w-24" />
@@ -47,7 +47,7 @@ export function ProductDetailsSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-32" />
 					</div>
 				</CardHeader>
@@ -55,7 +55,7 @@ export function ProductDetailsSkeleton() {
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{Array.from({ length: 3 }).map((_, i) => (
 							<div key={i} className="flex items-center gap-3">
-								<Skeleton className="h-10 w-10 rounded-lg" />
+								<Skeleton className="size-10 rounded-lg" />
 								<div>
 									<Skeleton className="h-6 w-12 mb-1" />
 									<Skeleton className="h-4 w-20" />
@@ -93,7 +93,7 @@ export function ProductDetailsSkeleton() {
 				<Card>
 					<CardHeader>
 						<div className="flex items-center gap-2">
-							<Skeleton className="h-5 w-5" />
+							<Skeleton className="size-5" />
 							<Skeleton className="h-6 w-48" />
 						</div>
 						<Skeleton className="h-4 w-40" />
@@ -108,7 +108,7 @@ export function ProductDetailsSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-48" />
 					</div>
 					<Skeleton className="h-4 w-56" />
@@ -130,7 +130,7 @@ export function ProductDetailsSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5" />
+						<Skeleton className="size-5" />
 						<Skeleton className="h-6 w-32" />
 					</div>
 					<Skeleton className="h-4 w-48" />
@@ -140,7 +140,7 @@ export function ProductDetailsSkeleton() {
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between p-3 border rounded-lg">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-4 w-4" />
+									<Skeleton className="size-4" />
 									<div>
 										<Skeleton className="h-4 w-24 mb-1" />
 										<Skeleton className="h-3 w-32" />

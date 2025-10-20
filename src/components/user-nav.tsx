@@ -72,7 +72,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 			<DropdownMenuContent className="w-56" align="end" side="right" forceMount>
 				<DropdownMenuLabel className="flex flex-col space-y-1">
 					<div className="flex items-center gap-2">
-						<Avatar className="h-8 w-8">
+						<Avatar className="size-8">
 							<AvatarImage src={user?.image || undefined} alt={user?.name || "User"} />
 							<AvatarFallback>{getInitials(user?.name || "U")}</AvatarFallback>
 						</Avatar>
@@ -86,7 +86,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 				<DropdownMenuGroup>
 					<DropdownMenuItem asChild>
 						<Link href="/conta">
-							<User className="mr-2 h-4 w-4" />
+							<User className="mr-2 size-4" />
 							<span>Conta</span>
 						</Link>
 					</DropdownMenuItem>
@@ -94,7 +94,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 				<DropdownMenuSub>
 					<DropdownMenuSubTrigger>
 						<div className="flex items-center">
-							<Sun className="mr-4 h-4 w-4" />
+							<Sun className="mr-4 size-4" />
 							<span>Tema</span>
 						</div>
 					</DropdownMenuSubTrigger>
@@ -115,7 +115,7 @@ export function UserNav({ collapsed }: UserNavProps) {
 				</DropdownMenuSub>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={() => signOut()}>
-					<LogOut className="mr-2 h-4 w-4" />
+					<LogOut className="mr-2 size-4" />
 					<span>Sair</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

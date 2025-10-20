@@ -291,18 +291,18 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 				<CardHeader>
 					<CardTitle className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<Receipt className="h-5 w-5" />
+							<Receipt className="size-5" />
 							Parser de Nota Fiscal
 						</div>
 						<div className="flex items-center gap-2">
 							{parsedReceipt && (
 								<Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
-									{isEditing ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+									{isEditing ? <X className="size-4" /> : <Edit className="size-4" />}
 									{isEditing ? "Cancelar" : "Editar"}
 								</Button>
 							)}
 							<Button variant="outline" size="sm" onClick={onClose}>
-								<X className="h-4 w-4" />
+								<X className="size-4" />
 							</Button>
 						</div>
 					</CardTitle>
@@ -310,11 +310,11 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 				<CardContent className="space-y-6">
 					{!parsedReceipt ? (
 						<div className="text-center py-8">
-							<Receipt className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+							<Receipt className="size-16 mx-auto mb-4 text-gray-400" />
 							<h3 className="text-lg font-semibold mb-2">Digitalizar Nota Fiscal</h3>
 							<p className="text-gray-600 mb-4">Use a câmera ou faça upload de uma imagem da nota fiscal</p>
 							<Button onClick={() => setShowOCR(true)} size="lg">
-								<Receipt className="h-4 w-4 mr-2" />
+								<Receipt className="size-4 mr-2" />
 								Iniciar Scanner OCR
 							</Button>
 						</div>
@@ -403,7 +403,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 														<Badge variant="secondary">R$ {item.totalPrice.toFixed(2)}</Badge>
 													</div>
 													<div className="col-span-1">
-														<Button variant="ghost" size="sm" onClick={() => removeItem(index)} className="h-8 w-8 p-0">
+														<Button variant="ghost" size="sm" onClick={() => removeItem(index)} className="size-8 p-0">
 															<Trash2 className="h-3 w-3" />
 														</Button>
 													</div>
@@ -468,11 +468,11 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 							{/* Action buttons */}
 							<div className="flex gap-3 justify-end">
 								<Button variant="outline" onClick={() => setShowOCR(true)}>
-									<Receipt className="h-4 w-4 mr-2" />
+									<Receipt className="size-4 mr-2" />
 									Escanear Novamente
 								</Button>
 								<Button onClick={handleSave}>
-									<Save className="h-4 w-4 mr-2" />
+									<Save className="size-4 mr-2" />
 									Salvar Compra
 								</Button>
 							</div>

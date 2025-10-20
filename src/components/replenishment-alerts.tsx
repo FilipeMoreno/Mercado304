@@ -80,7 +80,7 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Brain className="h-5 w-5" />
+						<Brain className="size-5" />
 						Alertas Inteligentes
 					</CardTitle>
 					<CardDescription>Predições baseadas no seu histórico</CardDescription>
@@ -88,7 +88,7 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 				<CardContent>
 					<div className="space-y-3 animate-pulse">
 						{[1, 2, 3].map((i) => (
-							<div key={i} className="h-20 bg-gray-200 rounded"></div>
+							<div key={i} className="h-20 bg-gray-200 rounded-sm"></div>
 						))}
 					</div>
 				</CardContent>
@@ -101,14 +101,14 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Brain className="h-5 w-5" />
+						<Brain className="size-5" />
 						Alertas Inteligentes
 					</CardTitle>
 					<CardDescription>Predições baseadas no seu histórico</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="text-center py-8 space-y-3">
-						<TrendingUp className="h-12 w-12 text-gray-400 mx-auto" />
+						<TrendingUp className="size-12 text-gray-400 mx-auto" />
 						<p className="text-gray-500">Continue comprando para que eu possa aprender seus padrões!</p>
 						<p className="text-xs text-gray-400">{data?.stats.totalProductsAnalyzed || 0} produtos analisados</p>
 					</div>
@@ -121,7 +121,7 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Brain className="h-5 w-5" />
+					<Brain className="size-5" />
 					Alertas Inteligentes
 					<Badge variant="secondary" className="ml-2">
 						{data.replenishmentAlerts.length}
@@ -180,9 +180,9 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 							</Button>
 						</div>
 
-						<div className="bg-gray-50 rounded p-3 space-y-2">
+						<div className="bg-gray-50 rounded-sm p-3 space-y-2">
 							<div className="flex items-center gap-2 text-sm">
-								<AlertCircle className="h-4 w-4 text-orange-500" />
+								<AlertCircle className="size-4 text-orange-500" />
 								<span className="font-medium">Predição:</span>
 							</div>
 
@@ -204,7 +204,7 @@ export function ReplenishmentAlerts({ data, loading, onAddToShoppingList }: Repl
 							</div>
 
 							{alert.consumption.urgency >= 80 && (
-								<div className="text-xs text-red-600 font-medium bg-red-50 p-2 rounded">
+								<div className="text-xs text-red-600 font-medium bg-red-50 p-2 rounded-sm">
 									⚠️ Produto pode estar acabando!
 								</div>
 							)}

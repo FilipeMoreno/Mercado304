@@ -427,12 +427,12 @@ export default function NovaListaPage() {
 	return (
 		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
 			{/* Header fixo para mobile */}
-			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+			<div className="sticky top-0 z-10 bg-white border-b shadow-xs md:relative md:shadow-none md:border-none">
 				<div className="px-4 py-4 md:px-0">
 					<div className="flex items-center gap-4">
 						<Link href="/lista">
 							<Button variant="outline" size="sm">
-								<ArrowLeft className="h-4 w-4 mr-2" />
+								<ArrowLeft className="size-4 mr-2" />
 								<span className="hidden sm:inline">Voltar</span>
 							</Button>
 						</Link>
@@ -453,7 +453,7 @@ export default function NovaListaPage() {
 							<CardHeader>
 								<div className="flex justify-between items-center">
 									<CardTitle className="flex items-center gap-2">
-										<List className="h-5 w-5" />
+										<List className="size-5" />
 										Informações da Lista
 									</CardTitle>
 									<Button
@@ -462,7 +462,7 @@ export default function NovaListaPage() {
 										onClick={() => setShowPhotoCreator(true)}
 										className="flex items-center gap-2"
 									>
-										<Sparkles className="h-4 w-4" />
+										<Sparkles className="size-4" />
 										<span className="hidden sm:inline">Criar com IA</span>
 									</Button>
 								</div>
@@ -488,7 +488,7 @@ export default function NovaListaPage() {
 							<CardHeader>
 								<div className="flex justify-between items-center">
 									<CardTitle className="flex items-center gap-2">
-										<Plus className="h-5 w-5" />
+										<Plus className="size-5" />
 										Itens da Lista
 									</CardTitle>
 								</div>
@@ -501,7 +501,7 @@ export default function NovaListaPage() {
 											initial={{ opacity: 0, y: 20 }}
 											animate={{ opacity: 1, y: 0 }}
 											transition={{ delay: 0.3 + index * 0.05 }}
-											className="space-y-4 p-4 border rounded-lg bg-white shadow-sm"
+											className="space-y-4 p-4 border rounded-lg bg-white shadow-xs"
 										>
 											{/* Número do item */}
 											<div className="text-xs text-gray-500 font-medium">Item {index + 1}</div>
@@ -531,7 +531,7 @@ export default function NovaListaPage() {
 															}}
 															title="Buscar produto cadastrado"
 														>
-															<LinkIcon className="h-4 w-4" />
+															<LinkIcon className="size-4" />
 														</Button>
 													</div>
 													{item.productId && (
@@ -542,7 +542,7 @@ export default function NovaListaPage() {
 															onClick={() => handleUnlinkProduct(index)}
 															title="Desvincular produto"
 														>
-															<X className="h-4 w-4" />
+															<X className="size-4" />
 														</Button>
 													)}
 												</div>
@@ -688,7 +688,7 @@ export default function NovaListaPage() {
 															const parsed = parseFloat(normalized)
 															if (!Number.isNaN(parsed)) {
 																updateItem(index, "estimatedPrice", parsed)
-																// trigger best price check on blur in original; here we can still call on blur
+																// trigger best price check on blur-sm in original; here we can still call on blur-sm
 															} else if (raw === "") {
 																updateItem(index, "estimatedPrice", "")
 															}
@@ -741,14 +741,14 @@ export default function NovaListaPage() {
 														onClick={() => openScanner(index)}
 														title="Escanear código de barras"
 													>
-														<Camera className="h-4 w-4 mr-1" />
+														<Camera className="size-4 mr-1" />
 														<span className="hidden sm:inline">Scanner</span>
 													</Button>
 												</div>
 
 												{items.length > 1 && (
 													<Button type="button" variant="destructive" size="sm" onClick={() => removeItem(index)}>
-														<Trash2 className="h-4 w-4 mr-1" />
+														<Trash2 className="size-4 mr-1" />
 														Remover
 													</Button>
 												)}
@@ -762,7 +762,7 @@ export default function NovaListaPage() {
 									<div className="text-lg font-bold">Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
-											<Plus className="h-4 w-4 mr-2" />
+											<Plus className="size-4 mr-2" />
 											Adicionar Item
 										</Button>
 										<Link href="/lista">
@@ -771,7 +771,7 @@ export default function NovaListaPage() {
 											</Button>
 										</Link>
 										<Button type="submit" disabled={loading}>
-											<Save className="h-4 w-4 mr-2" />
+											<Save className="size-4 mr-2" />
 											{loading ? "Salvando..." : "Salvar Lista"}
 										</Button>
 									</div>
@@ -788,7 +788,7 @@ export default function NovaListaPage() {
 					<div className="flex items-center justify-between gap-3">
 						{/* Botão de adicionar item */}
 						<Button type="button" onClick={addItem} className="flex-1 bg-primary hover:bg-primary/90" size="lg">
-							<Plus className="h-5 w-5 mr-2" />
+							<Plus className="size-5 mr-2" />
 							Adicionar Item
 						</Button>
 
@@ -802,7 +802,7 @@ export default function NovaListaPage() {
 					{/* Botões de ação */}
 					<div className="flex gap-2 mt-3">
 						<Button type="submit" disabled={loading} onClick={handleSubmit} className="flex-1" size="lg">
-							<Save className="h-4 w-4 mr-2" />
+							<Save className="size-4 mr-2" />
 							{loading ? "Salvando..." : "Salvar Lista"}
 						</Button>
 						<Link href="/lista" className="flex-1">

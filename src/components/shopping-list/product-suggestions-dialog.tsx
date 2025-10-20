@@ -131,15 +131,15 @@ export function ProductSuggestionsDialog({
 			{/* Estado inicial - Botão de análise */}
 			{!hasAnalyzed && !isLoading && (
 				<div className="text-center py-8">
-					<div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-4">
-						<Sparkles className="h-8 w-8 text-white" />
+					<div className="mx-auto size-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-4">
+						<Sparkles className="size-8 text-white" />
 					</div>
 					<h3 className="text-lg font-semibold mb-2">Descubra produtos complementares</h3>
 					<p className="text-sm text-muted-foreground mb-6">
 						Nossa IA analisará sua lista atual e sugerirá produtos que combinam com suas compras.
 					</p>
 					<Button onClick={handleAnalyze} size="lg" className="gap-2">
-						<Lightbulb className="h-5 w-5" />
+						<Lightbulb className="size-5" />
 						Analisar Lista e Sugerir Produtos
 					</Button>
 				</div>
@@ -148,7 +148,7 @@ export function ProductSuggestionsDialog({
 			{/* Estado de loading */}
 			{isLoading && (
 				<div className="text-center py-8">
-					<Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+					<Loader2 className="size-12 animate-spin mx-auto mb-4 text-primary" />
 					<p className="text-gray-600">Analisando sua lista...</p>
 					<p className="text-sm text-gray-500">A IA está identificando produtos complementares</p>
 				</div>
@@ -174,12 +174,12 @@ export function ProductSuggestionsDialog({
 						>
 							{selectedSuggestions.size === suggestions.length ? (
 								<>
-									<X className="h-4 w-4 mr-1" />
+									<X className="size-4 mr-1" />
 									Desmarcar Todos
 								</>
 							) : (
 								<>
-									<Check className="h-4 w-4 mr-1" />
+									<Check className="size-4 mr-1" />
 									Selecionar Todos
 								</>
 							)}
@@ -196,13 +196,13 @@ export function ProductSuggestionsDialog({
 									onClick={() => toggleSuggestion(suggestion.id)}
 									className={cn(
 										"p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md",
-										isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-gray-200"
+										isSelected ? "border-primary bg-primary/5 shadow-xs" : "border-gray-200"
 									)}
 								>
 									<div className="flex items-start gap-3">
 										{/* Checkbox visual */}
 										<div className={cn(
-											"mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
+											"mt-1 w-5 h-5 rounded-sm border-2 flex items-center justify-center shrink-0",
 											isSelected ? "bg-primary border-primary" : "border-gray-300"
 										)}>
 											{isSelected && <Check className="h-3 w-3 text-white" />}
@@ -229,7 +229,7 @@ export function ProductSuggestionsDialog({
 
 											{/* Razão da sugestão */}
 											<div className="flex items-start gap-1 mt-2">
-												<Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 flex-shrink-0" />
+												<Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
 												<p className="text-xs text-gray-600">{suggestion.reason}</p>
 											</div>
 
@@ -262,7 +262,7 @@ export function ProductSuggestionsDialog({
 							onClick={handleAddSelected}
 							disabled={selectedSuggestions.size === 0}
 						>
-							<Plus className="h-4 w-4 mr-1" />
+							<Plus className="size-4 mr-1" />
 							Adicionar {selectedSuggestions.size > 0 ? `(${selectedSuggestions.size})` : "Selecionados"}
 						</Button>
 					</div>
@@ -272,8 +272,8 @@ export function ProductSuggestionsDialog({
 			{/* Estado vazio */}
 			{hasAnalyzed && !isLoading && suggestions.length === 0 && (
 				<div className="text-center py-8">
-					<div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-						<Check className="h-8 w-8 text-gray-400" />
+					<div className="mx-auto size-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+						<Check className="size-8 text-gray-400" />
 					</div>
 					<h3 className="text-lg font-semibold mb-2">Lista completa!</h3>
 					<p className="text-sm text-muted-foreground mb-6">

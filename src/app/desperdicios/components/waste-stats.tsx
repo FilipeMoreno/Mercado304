@@ -36,7 +36,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 					<Card key={`stats-skeleton-${i}`}>
 						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-4 w-4" />
+							<Skeleton className="size-4" />
 						</CardHeader>
 						<CardContent>
 							<Skeleton className="h-8 w-16 mb-1" />
@@ -55,7 +55,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 					<Empty>
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<CheckCircle2 className="h-12 w-12 text-green-600" />
+								<CheckCircle2 className="size-12 text-green-600" />
 							</EmptyMedia>
 							<EmptyTitle className="text-green-900 dark:text-green-100">
 								Excelente! Sem desperdícios
@@ -75,7 +75,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">Valor Total Perdido</CardTitle>
-					<TrendingDown className="h-4 w-4 text-red-500" />
+					<TrendingDown className="size-4 text-red-500" />
 				</CardHeader>
 				<CardContent>
 					<div className="text-2xl font-bold text-red-600">R$ {stats.totalValue.toFixed(2)}</div>
@@ -86,7 +86,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">Quantidade Total</CardTitle>
-					<TrendingDown className="h-4 w-4 text-orange-500" />
+					<TrendingDown className="size-4 text-orange-500" />
 				</CardHeader>
 				<CardContent>
 					<div className="text-2xl font-bold text-orange-600">{stats.totalQuantity}</div>
@@ -97,7 +97,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">Total de Registros</CardTitle>
-					<TrendingUp className="h-4 w-4 text-blue-500" />
+					<TrendingUp className="size-4 text-blue-500" />
 				</CardHeader>
 				<CardContent>
 					<div className="text-2xl font-bold text-blue-600">{stats.totalCount}</div>
@@ -108,7 +108,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">Motivo Mais Frequente</CardTitle>
-					<AlertTriangle className="h-4 w-4 text-purple-500" />
+					<AlertTriangle className="size-4 text-purple-500" />
 				</CardHeader>
 				<CardContent>
 					<div className="text-lg font-bold text-purple-600">

@@ -80,7 +80,7 @@ export default function Offline() {
 					<div className="relative">
 						<WifiOff className="h-24 w-24 text-red-500 animate-pulse" />
 						<div className="absolute -bottom-2 -right-2 bg-red-500 text-white rounded-full p-2">
-							<Database className="h-6 w-6" />
+							<Database className="size-6" />
 						</div>
 					</div>
 					<div className="space-y-2">
@@ -93,7 +93,7 @@ export default function Offline() {
 				<Card className="border-2 shadow-lg">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Database className="h-5 w-5 text-blue-600" />
+							<Database className="size-5 text-blue-600" />
 							Dados Disponíveis Offline
 						</CardTitle>
 						<CardDescription>Você ainda pode acessar os dados que foram sincronizados anteriormente</CardDescription>
@@ -114,7 +114,7 @@ export default function Offline() {
 											className="w-full justify-between h-auto py-3 hover:bg-blue-50 hover:border-blue-500"
 										>
 											<div className="flex items-center gap-2">
-												<List className="h-5 w-5 text-blue-600" />
+												<List className="size-5 text-blue-600" />
 												<span>Listas de Compras</span>
 											</div>
 											<Badge variant="secondary">{cachedData.shoppingLists}</Badge>
@@ -129,7 +129,7 @@ export default function Offline() {
 											className="w-full justify-between h-auto py-3 hover:bg-green-50 hover:border-green-500"
 										>
 											<div className="flex items-center gap-2">
-												<Package className="h-5 w-5 text-green-600" />
+												<Package className="size-5 text-green-600" />
 												<span>Estoque</span>
 											</div>
 											<Badge variant="secondary">{cachedData.stock}</Badge>
@@ -144,7 +144,7 @@ export default function Offline() {
 											className="w-full justify-between h-auto py-3 hover:bg-purple-50 hover:border-purple-500"
 										>
 											<div className="flex items-center gap-2">
-												<Package className="h-5 w-5 text-purple-600" />
+												<Package className="size-5 text-purple-600" />
 												<span>Produtos</span>
 											</div>
 											<Badge variant="secondary">{cachedData.products}</Badge>
@@ -159,7 +159,7 @@ export default function Offline() {
 											className="w-full justify-between h-auto py-3 hover:bg-orange-50 hover:border-orange-500"
 										>
 											<div className="flex items-center gap-2">
-												<ShoppingCart className="h-5 w-5 text-orange-600" />
+												<ShoppingCart className="size-5 text-orange-600" />
 												<span>Compras</span>
 											</div>
 											<Badge variant="secondary">{cachedData.purchases}</Badge>
@@ -209,7 +209,7 @@ export default function Offline() {
 				<div className="flex flex-col sm:flex-row gap-3">
 					<Link href="/" className="flex-1">
 						<Button className="w-full" variant="outline">
-							<ArrowLeft className="mr-2 h-4 w-4" />
+							<ArrowLeft className="mr-2 size-4" />
 							Voltar ao Início
 						</Button>
 					</Link>

@@ -191,8 +191,8 @@ export function MobileModal({
 								</div>
 
 								{showCloseButton && (
-									<Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
-										<X className="h-4 w-4" />
+									<Button variant="ghost" size="icon" onClick={onClose} className="size-8 rounded-full">
+										<X className="size-4" />
 									</Button>
 								)}
 							</div>

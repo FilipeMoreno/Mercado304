@@ -135,7 +135,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Timer className="h-5 w-5 text-blue-500" />
+					<Timer className="size-5 text-blue-500" />
 					Cronômetro de Cozinha
 				</CardTitle>
 				{suggestedTime && <p className="text-sm text-gray-500">Tempo sugerido: {suggestedTime}</p>}
@@ -186,18 +186,18 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 				<div className="flex gap-2">
 					{!isRunning ? (
 						<Button onClick={startTimer} className="flex-1" disabled={timeLeft === 0 && minutes === 0 && seconds === 0}>
-							<Play className="h-4 w-4 mr-2" />
+							<Play className="size-4 mr-2" />
 							Iniciar
 						</Button>
 					) : (
 						<Button onClick={pauseTimer} variant="outline" className="flex-1">
-							<Pause className="h-4 w-4 mr-2" />
+							<Pause className="size-4 mr-2" />
 							Pausar
 						</Button>
 					)}
 
 					<Button onClick={resetTimer} variant="outline" disabled={timeLeft === 0 && !isRunning}>
-						<RotateCcw className="h-4 w-4 mr-2" />
+						<RotateCcw className="size-4 mr-2" />
 						Reset
 					</Button>
 				</div>

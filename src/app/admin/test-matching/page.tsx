@@ -114,12 +114,12 @@ export default function TestMatchingPage() {
 						<Button onClick={handleTest} disabled={loading || !barcode.trim()}>
 							{loading ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Testando...
 								</>
 							) : (
 								<>
-									<Search className="mr-2 h-4 w-4" />
+									<Search className="mr-2 size-4" />
 									Testar
 								</>
 							)}
@@ -131,7 +131,7 @@ export default function TestMatchingPage() {
 			{result && (
 				<div className="space-y-4">
 					<Alert>
-						<AlertCircle className="h-4 w-4" />
+						<AlertCircle className="size-4" />
 						<AlertTitle>Resultados do Teste</AlertTitle>
 						<AlertDescription>
 							Código de barras: <strong>{result.barcode}</strong> • {result.totalMercadosCadastrados} mercados cadastrados •{" "}
@@ -174,7 +174,7 @@ export default function TestMatchingPage() {
 					<Card className="border-blue-200 bg-blue-50/50">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2 text-blue-900">
-								<Bug className="h-5 w-5" />
+								<Bug className="size-5" />
 								Debug - Configuração da Busca
 							</CardTitle>
 						</CardHeader>
@@ -219,7 +219,7 @@ export default function TestMatchingPage() {
 								</div>
 
 								{/* Parâmetros da API */}
-								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-white rounded border">
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-white rounded-sm border">
 									<div>
 										<div className="text-xs text-muted-foreground mb-1">Localização</div>
 										<div className="text-sm font-mono">{LOCAL_PADRAO}</div>
@@ -245,7 +245,7 @@ export default function TestMatchingPage() {
 					{result.estatisticas.matches > 0 && (
 						<div className="space-y-4">
 							<h2 className="text-2xl font-bold flex items-center gap-2">
-								<CheckCircle className="h-6 w-6 text-green-600" />
+								<CheckCircle className="size-6 text-green-600" />
 								Matches Perfeitos ({result.estatisticas.matches})
 							</h2>
 							{result.resultados.matches.map((match) => (
@@ -257,7 +257,7 @@ export default function TestMatchingPage() {
 										<div className="flex items-start justify-between">
 											<div>
 												<CardTitle className="flex items-center gap-2">
-													<CheckCircle className="h-5 w-5 text-green-600" />
+													<CheckCircle className="size-5 text-green-600" />
 													{match.mercadoCadastrado}
 												</CardTitle>
 												<CardDescription className="mt-2">
@@ -342,11 +342,11 @@ export default function TestMatchingPage() {
 					{result.estatisticas.possiveisMatches > 0 && (
 						<div className="space-y-4">
 							<h2 className="text-2xl font-bold flex items-center gap-2">
-								<AlertCircle className="h-6 w-6 text-yellow-600" />
+								<AlertCircle className="size-6 text-yellow-600" />
 								Possíveis Matches - Precisa Ajuste ({result.estatisticas.possiveisMatches})
 							</h2>
 							<Alert>
-								<AlertCircle className="h-4 w-4" />
+								<AlertCircle className="size-4" />
 								<AlertDescription>
 									Estes mercados têm match de nome mas faltam dados de endereço ou o endereço não corresponde.
 								</AlertDescription>
@@ -360,7 +360,7 @@ export default function TestMatchingPage() {
 										<div className="flex items-start justify-between">
 											<div>
 												<CardTitle className="flex items-center gap-2">
-													<AlertCircle className="h-5 w-5 text-yellow-600" />
+													<AlertCircle className="size-5 text-yellow-600" />
 													{match.mercadoCadastrado}
 												</CardTitle>
 												<CardDescription className="mt-2">
@@ -418,7 +418,7 @@ export default function TestMatchingPage() {
 
 											{/* Match de Endereço - Problema */}
 											<Alert variant="destructive">
-												<AlertCircle className="h-4 w-4" />
+												<AlertCircle className="size-4" />
 												<AlertDescription>
 													<strong>Problema:</strong> {!match.enderecoCadastrado ? "Endereço não cadastrado" : `Apenas ${match.detalhesMatch.totalMatchesEndereco}/3 matches de endereço`}
 													<br />
@@ -431,7 +431,7 @@ export default function TestMatchingPage() {
 							))}
 							{result.estatisticas.possiveisMatches > 5 && (
 								<Alert>
-									<AlertCircle className="h-4 w-4" />
+									<AlertCircle className="size-4" />
 									<AlertDescription>
 										Exibindo apenas os primeiros 5 de {result.estatisticas.possiveisMatches} possíveis matches.
 									</AlertDescription>
@@ -447,7 +447,7 @@ export default function TestMatchingPage() {
 								❌ Sem Match - Não Serão Sincronizados ({result.estatisticas.semMatch})
 							</h2>
 							<Alert variant="destructive">
-								<AlertCircle className="h-4 w-4" />
+								<AlertCircle className="size-4" />
 								<AlertTitle>Atenção!</AlertTitle>
 								<AlertDescription>
 									Estes mercados NÃO serão incluídos na sincronização automática de preços. 
@@ -463,7 +463,7 @@ export default function TestMatchingPage() {
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
 												<CardTitle className="flex items-center gap-2">
-													<AlertCircle className="h-5 w-5 text-red-600" />
+													<AlertCircle className="size-5 text-red-600" />
 													{match.mercadoCadastrado}
 												</CardTitle>
 												<CardDescription className="mt-2">
@@ -487,7 +487,7 @@ export default function TestMatchingPage() {
 									<CardContent>
 										<div className="space-y-4">
 											{/* Dados Cadastrados */}
-											<div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded">
+											<div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-sm">
 												<div>
 													<div className="text-sm font-medium mb-1">Razão Social Cadastrada</div>
 													<div className="text-sm text-muted-foreground">{match.razaoSocialCadastrada}</div>
@@ -525,7 +525,7 @@ export default function TestMatchingPage() {
 
 											{/* Recomendações */}
 											<Alert>
-												<AlertCircle className="h-4 w-4" />
+												<AlertCircle className="size-4" />
 												<AlertTitle>Como resolver:</AlertTitle>
 												<AlertDescription className="space-y-1">
 													{!match.razaoSocialCadastrada || match.razaoSocialCadastrada === "Não informada" ? (

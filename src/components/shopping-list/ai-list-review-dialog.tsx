@@ -265,7 +265,7 @@ export function AIListReviewDialog({
 								size="sm"
 								className="border-purple-300 text-purple-700 hover:bg-purple-100"
 							>
-								<Lightbulb className="h-4 w-4 mr-1" />
+								<Lightbulb className="size-4 mr-1" />
 								Sugerir Produtos
 							</Button>
 						</div>
@@ -289,7 +289,7 @@ export function AIListReviewDialog({
 									size="sm"
 									className="border-blue-300 text-blue-700 hover:bg-blue-100"
 								>
-									<PlusCircle className="h-4 w-4 mr-1" />
+									<PlusCircle className="size-4 mr-1" />
 									Marcar Todos como Temporários
 								</Button>
 							</div>
@@ -334,7 +334,7 @@ export function AIListReviewDialog({
 									onClick={() => handleRemoveItem(index)}
 									title="Remover item"
 								>
-									<Trash2 className="h-4 w-4" />
+									<Trash2 className="size-4" />
 								</Button>
 							</div>
 
@@ -386,7 +386,7 @@ export function AIListReviewDialog({
 											variant="outline"
 											onClick={() => openCreateProductDialog(index)}
 										>
-											<PlusCircle className="h-4 w-4 mr-1" />
+											<PlusCircle className="size-4 mr-1" />
 											Novo
 										</Button>
 									</div>
@@ -414,12 +414,12 @@ export function AIListReviewDialog({
 									>
 										{item.isTemporary ? (
 											<>
-												<X className="h-4 w-4 mr-1" />
+												<X className="size-4 mr-1" />
 												Cancelar Temporário
 											</>
 										) : (
 											<>
-												<PlusCircle className="h-4 w-4 mr-1" />
+												<PlusCircle className="size-4 mr-1" />
 												Criar Temporário
 											</>
 										)}

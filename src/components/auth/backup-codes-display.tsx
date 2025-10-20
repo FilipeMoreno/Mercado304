@@ -93,8 +93,8 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 	return (
 		<Card className="w-full">
 			<CardHeader className="text-center">
-				<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-					<Shield className="h-6 w-6 text-green-600" />
+				<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-green-100">
+					<Shield className="size-6 text-green-600" />
 				</div>
 				<CardTitle>{title || "Códigos de Backup Gerados"}</CardTitle>
 				<CardDescription>{description || "Seus novos códigos de backup foram gerados com sucesso"}</CardDescription>
@@ -102,7 +102,7 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 
 			<CardContent className="space-y-6">
 				<Alert className="border-red-200 bg-red-50">
-					<Shield className="h-4 w-4 text-red-600" />
+					<Shield className="size-4 text-red-600" />
 					<AlertDescription className="text-red-800">
 						<div className="space-y-2">
 							<p className="font-medium">⚠️ Instruções Importantes:</p>
@@ -124,12 +124,12 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 							<Button size="sm" variant="outline" onClick={() => setShowCodes(!showCodes)}>
 								{showCodes ? (
 									<>
-										<EyeOff className="h-4 w-4 mr-1" />
+										<EyeOff className="size-4 mr-1" />
 										Ocultar
 									</>
 								) : (
 									<>
-										<Eye className="h-4 w-4 mr-1" />
+										<Eye className="size-4 mr-1" />
 										Mostrar
 									</>
 								)}
@@ -154,7 +154,7 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 
 					{showCodes && (
 						<Alert className="bg-green-50 border-green-200">
-							<CheckCircle className="h-4 w-4 text-green-600" />
+							<CheckCircle className="size-4 text-green-600" />
 							<AlertDescription className="text-green-800">
 								<strong>Códigos visíveis!</strong> Certifique-se de que ninguém mais está vendo sua tela. Clique em
 								qualquer código para copiá-lo.
@@ -167,12 +167,12 @@ export function BackupCodesDisplay({ codes, onComplete, title, description }: Ba
 			<CardFooter className="flex flex-col space-y-3">
 				<div className="grid grid-cols-3 gap-2 w-full">
 					<Button variant="outline" onClick={copyAllCodes} className="flex items-center justify-center">
-						<Copy className="h-4 w-4 mr-2" />
+						<Copy className="size-4 mr-2" />
 						Copiar Todos
 					</Button>
 
 					<Button variant="outline" onClick={downloadCodes} className="flex items-center justify-center">
-						<Download className="h-4 w-4 mr-2" />
+						<Download className="size-4 mr-2" />
 						Baixar
 					</Button>
 

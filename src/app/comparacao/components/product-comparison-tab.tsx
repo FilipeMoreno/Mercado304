@@ -87,7 +87,7 @@ export function ProductComparisonTab({
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Search className="h-5 w-5" />
+						<Search className="size-5" />
 						Comparar Produto
 					</CardTitle>
 				</CardHeader>
@@ -114,7 +114,7 @@ export function ProductComparisonTab({
 						</div>
 						<div className="flex items-end">
 							<Button onClick={compareProduct} disabled={loadingProduct} className="w-full sm:w-auto">
-								{loadingProduct ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comparar"}
+								{loadingProduct ? <Loader2 className="size-4 animate-spin" /> : "Comparar"}
 							</Button>
 						</div>
 					</div>
@@ -125,7 +125,7 @@ export function ProductComparisonTab({
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 flex-wrap">
-							<Target className="h-5 w-5" />
+							<Target className="size-5" />
 							<span className="break-words">{productComparison.productName}</span>
 							{productComparison.brandName && (
 								<Badge variant="secondary" className="text-xs">
@@ -139,7 +139,7 @@ export function ProductComparisonTab({
 							<Empty>
 								<EmptyHeader>
 									<EmptyMedia>
-										<Target className="h-12 w-12 text-gray-400" />
+										<Target className="size-12 text-gray-400" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhum preço encontrado</EmptyTitle>
 									<EmptyDescription>
@@ -176,7 +176,7 @@ export function ProductComparisonTab({
 													<div className="text-sm text-gray-600 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
 														{market.location && (
 															<div className="flex items-center gap-1">
-																<MapPin className="h-3 w-3 flex-shrink-0" />
+																<MapPin className="h-3 w-3 shrink-0" />
 																<span className="truncate">{market.location}</span>
 															</div>
 														)}
@@ -185,7 +185,7 @@ export function ProductComparisonTab({
 														</span>
 													</div>
 												</div>
-												<div className="text-right flex-shrink-0">
+												<div className="text-right shrink-0">
 													<div className="text-lg sm:text-xl font-bold">
 														R$ {market.currentPrice.toFixed(2)}
 														<span className="text-sm font-normal text-gray-500">/{productComparison.unit}</span>

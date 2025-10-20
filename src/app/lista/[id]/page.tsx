@@ -625,10 +625,10 @@ export default function ListaDetalhesPage() {
 		return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
-					<div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
-					<div className="animate-pulse h-8 w-60 bg-gray-200 rounded"></div>
+					<div className="animate-pulse h-8 w-20 bg-gray-200 rounded-sm"></div>
+					<div className="animate-pulse h-8 w-60 bg-gray-200 rounded-sm"></div>
 				</div>
-				<div className="animate-pulse h-40 bg-gray-200 rounded"></div>
+				<div className="animate-pulse h-40 bg-gray-200 rounded-sm"></div>
 			</div>
 		)
 	}
@@ -671,7 +671,7 @@ export default function ListaDetalhesPage() {
 	return (
 		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
 			{/* Header fixo para mobile */}
-			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+			<div className="sticky top-0 z-10 bg-white border-b shadow-xs md:relative md:shadow-none md:border-none">
 				<div className="px-4 py-4 md:px-0">
 					<ShoppingListHeader
 						listName={list.name}
@@ -699,7 +699,7 @@ export default function ListaDetalhesPage() {
 						<CardHeader>
 							<div className="flex justify-between items-center">
 								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5" />
+									<Package className="size-5" />
 									Itens da Lista
 								</CardTitle>
 								<div className="flex gap-2">
@@ -713,12 +713,12 @@ export default function ListaDetalhesPage() {
 										>
 											{showCompletedItems ? (
 												<>
-													<EyeOff className="h-4 w-4" />
+													<EyeOff className="size-4" />
 													<span className="hidden sm:inline">Ocultar Concluídos</span>
 												</>
 											) : (
 												<>
-													<Eye className="h-4 w-4" />
+													<Eye className="size-4" />
 													<span className="hidden sm:inline">Mostrar Concluídos</span>
 												</>
 											)}
@@ -728,7 +728,7 @@ export default function ListaDetalhesPage() {
 										</Button>
 									)}
 									<Button onClick={() => setShowAddItem(true)} size="sm" className="hidden md:flex">
-										<Plus className="h-4 w-4 mr-2" />
+										<Plus className="size-4 mr-2" />
 										Adicionar Item
 									</Button>
 								</div>
@@ -739,7 +739,7 @@ export default function ListaDetalhesPage() {
 								<Empty className="border border-dashed py-10">
 									<EmptyHeader>
 										<EmptyMedia variant="icon">
-											<Package className="h-6 w-6" />
+											<Package className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Lista vazia</EmptyTitle>
 										<EmptyDescription>Adicione itens para começar suas compras</EmptyDescription>
@@ -747,7 +747,7 @@ export default function ListaDetalhesPage() {
 									<EmptyContent>
 										<div className="flex gap-2 justify-center">
 											<Button onClick={() => setShowAddItem(true)} size="sm">
-												<Plus className="h-4 w-4 mr-1" />
+												<Plus className="size-4 mr-1" />
 												Adicionar Item
 											</Button>
 										</div>
@@ -799,7 +799,7 @@ export default function ListaDetalhesPage() {
 						className="w-full bg-primary hover:bg-primary/90"
 						size="lg"
 					>
-						<Plus className="h-5 w-5 mr-2" />
+						<Plus className="size-5 mr-2" />
 						Adicionar Item
 					</Button>
 				</div>

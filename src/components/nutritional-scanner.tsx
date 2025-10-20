@@ -163,7 +163,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 		<>
 			<DialogHeader>
 				<DialogTitle className="flex items-center gap-2">
-					<ScanLine className="h-5 w-5" />
+					<ScanLine className="size-5" />
 					Escanear Rótulo Nutricional
 				</DialogTitle>
 			</DialogHeader>
@@ -185,7 +185,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 									ease: "easeInOut",
 								}}
 							/>
-							<Loader2 className="h-8 w-8 animate-spin text-white mb-4" />
+							<Loader2 className="size-8 animate-spin text-white mb-4" />
 							<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
 						</div>
 					</div>
@@ -196,7 +196,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 						<canvas ref={canvasRef} className="hidden"></canvas>
 						<div className="absolute inset-0 border-4 border-dashed border-white/50 rounded-lg m-4"></div>
 						{error && (
-							<p className="absolute bottom-4 left-4 right-4 text-center text-white bg-red-800/80 p-2 rounded">
+							<p className="absolute bottom-4 left-4 right-4 text-center text-white bg-red-800/80 p-2 rounded-sm">
 								{error}
 							</p>
 						)}
@@ -206,11 +206,11 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 			<div className="flex gap-2 mt-4">
 				<Button onClick={takePictureAndProcess} className="flex-1" disabled={isProcessing || !!error}>
-					<Camera className="mr-2 h-4 w-4" />
+					<Camera className="mr-2 size-4" />
 					{isProcessing ? "Aguarde..." : "Capturar"}
 				</Button>
 				<Button onClick={triggerFileUpload} variant="outline" className="flex-1" disabled={isProcessing}>
-					<Upload className="mr-2 h-4 w-4" />
+					<Upload className="mr-2 size-4" />
 					Carregar
 				</Button>
 			</div>

@@ -121,7 +121,7 @@ export function ProductSelect({
 	}
 
 	if (isLoading && products.length === 0) {
-		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
+		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse ${className}`} />
 	}
 
 	return (
@@ -156,7 +156,7 @@ export function ProductSelect({
 						className="shrink-0"
 						title="Escanear código de barras"
 					>
-						<Camera className="h-4 w-4" />
+						<Camera className="size-4" />
 					</Button>
 				)}
 			</div>

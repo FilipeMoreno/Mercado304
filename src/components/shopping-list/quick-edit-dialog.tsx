@@ -257,7 +257,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 								}}
 								title="Buscar produto cadastrado"
 							>
-								<LinkIcon className="h-4 w-4" />
+								<LinkIcon className="size-4" />
 							</Button>
 						</div>
 						{productId && (
@@ -268,7 +268,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 								onClick={handleUnlinkProduct}
 								title="Desvincular produto"
 							>
-								<X className="h-4 w-4" />
+								<X className="size-4" />
 							</Button>
 						)}
 					</div>
@@ -338,9 +338,9 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							size="icon"
 							onClick={handleQuantityDecrement}
 							disabled={parseFloat(quantity) <= 0.001}
-							className="h-12 w-12"
+							className="size-12"
 						>
-							<Minus className="h-4 w-4" />
+							<Minus className="size-4" />
 						</Button>
 						<div className="flex-1 text-center">
 							<Input
@@ -354,8 +354,8 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 							/>
 							<p className="text-sm text-gray-500 mt-1">{productUnit}</p>
 						</div>
-						<Button type="button" variant="outline" size="icon" onClick={handleQuantityIncrement} className="h-12 w-12">
-							<Plus className="h-4 w-4" />
+						<Button type="button" variant="outline" size="icon" onClick={handleQuantityIncrement} className="size-12">
+							<Plus className="size-4" />
 						</Button>
 					</div>
 				</div>
@@ -400,7 +400,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 						}}
 						className="w-full"
 					>
-						<Trash2 className="h-4 w-4 mr-2" />
+						<Trash2 className="size-4 mr-2" />
 						Remover Item
 					</Button>
 					<p className="text-xs text-center text-gray-500 mt-3">💡 As alterações são salvas automaticamente</p>

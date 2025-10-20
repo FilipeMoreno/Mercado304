@@ -26,7 +26,7 @@ export function OcrDebugDialog({ isOpen, rawText, onConfirm, onCancel }: OcrDebu
 			<DialogContent className="max-w-2xl">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<FileText className="h-5 w-5" />
+						<FileText className="size-5" />
 						Debug: Texto Extraído do Rótulo
 					</DialogTitle>
 					<DialogDescription>
@@ -39,11 +39,11 @@ export function OcrDebugDialog({ isOpen, rawText, onConfirm, onCancel }: OcrDebu
 				</div>
 				<DialogFooter>
 					<Button variant="outline" onClick={onCancel}>
-						<X className="mr-2 h-4 w-4" />
+						<X className="mr-2 size-4" />
 						Cancelar
 					</Button>
 					<Button onClick={onConfirm}>
-						<Check className="mr-2 h-4 w-4" />
+						<Check className="mr-2 size-4" />
 						Confirmar e Preencher Formulário
 					</Button>
 				</DialogFooter>

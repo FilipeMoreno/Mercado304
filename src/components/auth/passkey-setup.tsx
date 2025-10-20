@@ -169,8 +169,8 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
-					<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-						<Fingerprint className="h-6 w-6 text-blue-600" />
+					<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-blue-100">
+						<Fingerprint className="size-6 text-blue-600" />
 					</div>
 					<CardTitle>Configurar Passkeys</CardTitle>
 					<CardDescription>Use sua impressão digital, Face ID ou chave de segurança para fazer login</CardDescription>
@@ -188,7 +188,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 
 					<div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
 						<div className="flex items-center space-x-3">
-							<Shield className="h-5 w-5 text-blue-600" />
+							<Shield className="size-5 text-blue-600" />
 							<div>
 								<h4 className="font-medium text-blue-900">Maior Segurança</h4>
 								<p className="text-sm text-blue-700">Passkeys são mais seguros que senhas e códigos SMS</p>
@@ -237,14 +237,14 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 									onClick={() => setShowPassword(!showPassword)}
 									disabled={isLoading}
 								>
-									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 								</Button>
 							</div>
 						</div>
 					</CardContent>
 					<CardFooter className="flex flex-col gap-2">
 						<Button type="submit" disabled={isLoading} className="w-full">
-							{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Continuar"}
+							{isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : "Continuar"}
 						</Button>
 						<Button variant="outline" onClick={() => setStep("setup")} className="w-full">
 							Voltar
@@ -280,7 +280,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 
 					<div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
 						<div className="flex items-start space-x-3">
-							<Smartphone className="h-5 w-5 text-amber-600 mt-0.5" />
+							<Smartphone className="size-5 text-amber-600 mt-0.5" />
 							<div>
 								<h4 className="font-medium text-amber-900">Atenção</h4>
 								<p className="text-sm text-amber-800">
@@ -297,7 +297,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 					<Button onClick={registerPasskey} disabled={isLoading || !credentialName.trim()} className="flex-1">
 						{isLoading ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								Registrando...
 							</>
 						) : (
@@ -313,8 +313,8 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
-					<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-						<Fingerprint className="h-6 w-6 text-green-600" />
+					<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-green-100">
+						<Fingerprint className="size-6 text-green-600" />
 					</div>
 					<CardTitle>Passkeys Configurados</CardTitle>
 					<CardDescription>Gerencie seus passkeys registrados</CardDescription>
@@ -322,11 +322,11 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 				<CardContent className="space-y-4">
 					{isLoading && credentials.length === 0 ? (
 						<div className="text-center py-6">
-							<Loader2 className="h-8 w-8 text-muted-foreground mx-auto mb-2 animate-spin" />
+							<Loader2 className="size-8 text-muted-foreground mx-auto mb-2 animate-spin" />
 						</div>
 					) : credentials.length === 0 ? (
 						<div className="text-center py-6">
-							<Fingerprint className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+							<Fingerprint className="size-8 text-muted-foreground mx-auto mb-2" />
 							<p className="text-sm text-muted-foreground">Nenhum passkey registrado ainda</p>
 						</div>
 					) : (
@@ -340,7 +340,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 										</div>
 									</div>
 									<Button size="sm" variant="outline" onClick={() => deletePasskey(credential.id)} disabled={isLoading}>
-										<Trash2 className="h-4 w-4" />
+										<Trash2 className="size-4" />
 									</Button>
 								</div>
 							))}

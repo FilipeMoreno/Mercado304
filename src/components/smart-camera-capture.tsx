@@ -343,11 +343,11 @@ export function SmartCameraCapture({
 
 						<div className="flex gap-2 justify-end">
 							<Button variant="outline" onClick={retakePhoto} disabled={isProcessing}>
-								<RotateCw className="w-4 h-4 mr-2" />
+								<RotateCw className="size-4 mr-2" />
 								Tirar Outra
 							</Button>
 							<Button onClick={confirmCapture} disabled={isProcessing}>
-								<Camera className="w-4 h-4 mr-2" />
+								<Camera className="size-4 mr-2" />
 								Usar Esta Foto
 							</Button>
 						</div>
@@ -363,7 +363,7 @@ export function SmartCameraCapture({
 									className="h-24 flex-col gap-2"
 									onClick={() => setCaptureMethod("native")}
 								>
-									<Smartphone className="w-8 h-8" />
+									<Smartphone className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Câmera Nativa</div>
 										<div className="text-xs text-muted-foreground">Abre a câmera do dispositivo</div>
@@ -376,7 +376,7 @@ export function SmartCameraCapture({
 									className="h-24 flex-col gap-2"
 									onClick={() => setCaptureMethod("web")}
 								>
-									<Monitor className="w-8 h-8" />
+									<Monitor className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Câmera Web</div>
 										<div className="text-xs text-muted-foreground">Usa a câmera do navegador</div>
@@ -389,7 +389,7 @@ export function SmartCameraCapture({
 									className="h-24 flex-col gap-2"
 									onClick={() => setCaptureMethod("upload")}
 								>
-									<Upload className="w-8 h-8" />
+									<Upload className="size-8" />
 									<div className="text-center">
 										<div className="font-semibold">Fazer Upload</div>
 										<div className="text-xs text-muted-foreground">Selecionar da galeria</div>
@@ -402,7 +402,7 @@ export function SmartCameraCapture({
 						{captureMethod === "native" && (
 							<div className="space-y-4">
 								<div className="text-center p-8 border-2 border-dashed rounded-lg">
-									<Camera className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+									<Camera className="size-16 mx-auto mb-4 text-muted-foreground" />
 									<p className="text-sm text-muted-foreground mb-4">
 										Clique no botão para abrir a câmera do seu dispositivo
 									</p>
@@ -415,7 +415,7 @@ export function SmartCameraCapture({
 										className="hidden"
 									/>
 									<Button size="lg" onClick={() => nativeInputRef.current?.click()} disabled={isProcessing}>
-										<Camera className="w-5 h-5 mr-2" />
+										<Camera className="size-5 mr-2" />
 										Abrir Câmera
 									</Button>
 								</div>
@@ -435,12 +435,12 @@ export function SmartCameraCapture({
 									<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
 										{devices.length > 1 && (
 											<Button variant="secondary" size="icon" onClick={switchCamera}>
-												<FlipHorizontal className="w-4 h-4" />
+												<FlipHorizontal className="size-4" />
 											</Button>
 										)}
 
 										<Button variant="secondary" size="icon" onClick={toggleFlash}>
-											{flashEnabled ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+											{flashEnabled ? <Zap className="size-4 fill-current" /> : <ZapOff className="size-4" />}
 										</Button>
 									</div>
 								</div>
@@ -453,7 +453,7 @@ export function SmartCameraCapture({
 									</Button>
 
 									<Button onClick={captureFromWebCamera}>
-										<Camera className="w-4 h-4 mr-2" />
+										<Camera className="size-4 mr-2" />
 										Capturar
 									</Button>
 								</div>
@@ -464,11 +464,11 @@ export function SmartCameraCapture({
 						{captureMethod === "upload" && (
 							<div className="space-y-4">
 								<div className="text-center p-8 border-2 border-dashed rounded-lg">
-									<ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+									<ImageIcon className="size-16 mx-auto mb-4 text-muted-foreground" />
 									<p className="text-sm text-muted-foreground mb-4">Selecione uma imagem da sua galeria</p>
 									<input ref={uploadInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
 									<Button size="lg" onClick={() => uploadInputRef.current?.click()} disabled={isProcessing}>
-										<Upload className="w-5 h-5 mr-2" />
+										<Upload className="size-5 mr-2" />
 										Selecionar Imagem
 									</Button>
 								</div>

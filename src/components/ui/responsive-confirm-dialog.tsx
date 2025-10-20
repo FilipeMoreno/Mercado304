@@ -56,7 +56,7 @@ export function ResponsiveConfirmDialog({
 			<div className="space-y-4">
 				{/* Icon para mobile */}
 				{icon && (
-					<div className="flex items-center justify-center w-16 h-16 mx-auto bg-gray-100 rounded-full sm:hidden">
+					<div className="flex items-center justify-center size-16 mx-auto bg-gray-100 rounded-full sm:hidden">
 						{icon}
 					</div>
 				)}

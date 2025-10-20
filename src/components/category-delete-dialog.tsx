@@ -150,7 +150,7 @@ export function CategoryDeleteDialog({
 				{/* Warning se não tem produtos */}
 				{!hasProducts && (
 					<div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-						<AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+						<AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
 						<div className="flex-1">
 							<p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
 								Esta categoria não possui produtos associados e será excluída permanentemente.
@@ -162,7 +162,7 @@ export function CategoryDeleteDialog({
 				{/* Info de produtos */}
 				{hasProducts && (
 					<div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-						<Package className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+						<Package className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
 						<div className="flex-1">
 							<p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
 								Esta categoria possui <strong>{products.length}</strong> {products.length === 1 ? "produto" : "produtos"} associado{products.length === 1 ? "" : "s"}.
@@ -266,7 +266,7 @@ export function CategoryDeleteDialog({
 												)}
 											</div>
 											<div className="flex items-center gap-2 w-full sm:w-auto">
-												<ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+												<ArrowRight className="size-4 text-muted-foreground shrink-0" />
 												<div className="flex-1 sm:w-[200px]">
 													<CategorySelectDialog
 														value={individualTransfers[product.id] || ""}
@@ -275,7 +275,7 @@ export function CategoryDeleteDialog({
 													/>
 												</div>
 												{individualTransfers[product.id] && (
-													<CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+													<CheckCircle2 className="size-4 text-green-600 shrink-0" />
 												)}
 											</div>
 										</div>
@@ -298,7 +298,7 @@ export function CategoryDeleteDialog({
 
 				{/* Warning final */}
 				<div className="flex items-start gap-3 p-4 bg-destructive/10 dark:bg-destructive/20 border border-destructive/20 dark:border-destructive/30 rounded-lg">
-					<AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+					<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
 					<div className="flex-1">
 						<p className="text-sm font-medium text-destructive dark:text-red-400">
 							A categoria "{category?.name}" será excluída permanentemente.

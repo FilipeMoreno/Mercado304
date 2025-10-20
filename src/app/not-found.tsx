@@ -9,7 +9,7 @@ export default function NotFound() {
 			<Empty className="border border-dashed py-16">
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Frown className="h-8 w-8" />
+						<Frown className="size-8" />
 					</EmptyMedia>
 					<EmptyTitle className="text-4xl font-bold mb-2">404</EmptyTitle>
 					<EmptyTitle>Página não encontrada</EmptyTitle>

@@ -213,7 +213,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<Package className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<Package className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar produtos</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -227,7 +227,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 			<div className="sticky top-0 z-10 bg-white dark:bg-gray-900 dark:border-gray-800 pb-4 mb-6">
 				<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2">
 					<div className="relative flex-1">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 						<Input
 							placeholder="Nome, código ou escaneie..."
 							value={searchValue}
@@ -238,10 +238,10 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							variant="ghost"
 							size="sm"
 							onClick={handleOpenScanner}
-							className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+							className="absolute right-1 top-1/2 transform -translate-y-1/2 size-8 p-0 hover:bg-gray-100"
 							title="Escanear código de barras"
 						>
-							<QrCode className="h-4 w-4 text-gray-500" />
+							<QrCode className="size-4 text-gray-500" />
 						</Button>
 					</div>
 					<div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 							onClick={() => router.push("/produtos/novo")}
 							className="bg-green-600 hover:bg-green-700 text-white"
 						>
-							<Plus className="h-4 w-4 mr-2" />
+							<Plus className="size-4 mr-2" />
 							<span className="hidden sm:inline">Novo Produto</span>
 							<span className="sm:hidden">Novo</span>
 						</Button>
@@ -280,7 +280,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 									<Card>
 										<CardContent className="p-4">
 											<div className="flex items-center gap-2 mb-2">
-												<Skeleton className="h-5 w-5" />
+												<Skeleton className="size-5" />
 												<Skeleton className="h-6 w-28" />
 											</div>
 											<div className="space-y-1">
@@ -339,7 +339,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deleteProductMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir o produto <strong>{deleteState.item?.name}</strong>?

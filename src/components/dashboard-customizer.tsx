@@ -270,7 +270,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="outline" size="icon" disabled>
-							<Settings className="h-4 w-4" />
+							<Settings className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>
@@ -287,7 +287,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button variant="outline" size="icon" onClick={() => setIsOpen(true)}>
-							<Settings className="h-4 w-4" />
+							<Settings className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>
@@ -366,19 +366,19 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									<SelectContent>
 										<SelectItem value="grid">
 											<div className="flex items-center gap-2">
-												<Grid3X3 className="h-4 w-4" />
+												<Grid3X3 className="size-4" />
 												Grade
 											</div>
 										</SelectItem>
 										<SelectItem value="list">
 											<div className="flex items-center gap-2">
-												<List className="h-4 w-4" />
+												<List className="size-4" />
 												Lista
 											</div>
 										</SelectItem>
 										<SelectItem value="compact">
 											<div className="flex items-center gap-2">
-												<Maximize2 className="h-4 w-4" />
+												<Maximize2 className="size-4" />
 												Compacto
 											</div>
 										</SelectItem>
@@ -458,7 +458,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 																onClick={() => toggleCardVisibility(cardId)}
 																className="ml-2"
 															>
-																{isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+																{isHidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 															</Button>
 														</div>
 													)}
@@ -509,7 +509,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 								disabled={resetPreferences.isPending}
 								className="flex items-center gap-2"
 							>
-								<RotateCcw className="h-4 w-4" />
+								<RotateCcw className="size-4" />
 								Restaurar Padrões
 							</Button>
 							
@@ -529,7 +529,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 						</div>
 
 						<Button variant="outline" onClick={() => setIsOpen(false)}>
-							<X className="h-4 w-4 mr-2" />
+							<X className="size-4 mr-2" />
 							Fechar
 						</Button>
 					</div>

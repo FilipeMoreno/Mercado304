@@ -125,7 +125,7 @@ export function ReauthDialog({
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-950">
-              <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Shield className="size-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <DialogTitle>{title}</DialogTitle>
@@ -137,7 +137,7 @@ export function ReauthDialog({
         <div className="space-y-4 py-4">
           {!hasPassword ? (
             <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <Shield className="size-4 text-blue-600 dark:text-blue-400" />
               <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Conta OAuth detectada:</strong> Para sua segurança, você precisará reautenticar
                 com o Google para realizar esta operação.
@@ -147,7 +147,7 @@ export function ReauthDialog({
             <div className="space-y-2">
               <Label htmlFor="password">Senha Atual</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -170,7 +170,7 @@ export function ReauthDialog({
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </Button>
               </div>
             </div>
@@ -178,7 +178,7 @@ export function ReauthDialog({
 
           {!hasPassword && (
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="size-4" />
               <AlertDescription className="text-xs">
                 Você será redirecionado para o Google. Após autenticar, retornará automaticamente para
                 completar a operação.
@@ -197,14 +197,14 @@ export function ReauthDialog({
           >
             {isLoading || isReauthenticating ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 {isReauthenticating ? "Redirecionando..." : "Processando..."}
               </>
             ) : hasPassword ? (
               "Confirmar"
             ) : (
               <>
-                <Shield className="mr-2 h-4 w-4" />
+                <Shield className="mr-2 size-4" />
                 Reautenticar com Google
               </>
             )}

@@ -192,7 +192,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 			<div className="space-y-4 px-1 sm:px-0">
 				{loading ? (
 					<div className="flex flex-col items-center justify-center py-12 gap-3">
-						<Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+						<Loader2 className="size-8 animate-spin text-blue-600" />
 						<span className="text-base sm:text-lg">Calculando melhor roteiro...</span>
 					</div>
 				) : routeData ? (
@@ -202,7 +202,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 							<CardContent className="pt-4 sm:pt-6">
 								<div className="space-y-3">
 									<div className="flex items-center gap-2">
-										<Home className="h-5 w-5 text-blue-600" />
+										<Home className="size-5 text-blue-600" />
 										<Label htmlFor={addressInputId} className="text-sm sm:text-base font-semibold text-blue-900">
 											Seu Endereço
 										</Label>
@@ -224,12 +224,12 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 										>
 											{isCalculatingRoute ? (
 												<>
-													<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+													<Loader2 className="size-4 mr-2 animate-spin" />
 													Calculando...
 												</>
 											) : (
 												<>
-													<Car className="h-4 w-4 mr-2" />
+													<Car className="size-4 mr-2" />
 													Calcular Rota
 												</>
 											)}
@@ -314,7 +314,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 							<Card>
 								<CardContent className="pt-4 sm:pt-6">
 									<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-										<Store className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+										<Store className="size-4 sm:h-5 sm:w-5 text-blue-600" />
 										<div>
 											<div className="text-xl sm:text-2xl font-bold">{routeData.summary.totalMarkets}</div>
 											<div className="text-xs sm:text-sm text-gray-600">Mercados</div>
@@ -326,7 +326,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 							<Card>
 								<CardContent className="pt-4 sm:pt-6">
 									<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-										<Package className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+										<Package className="size-4 sm:h-5 sm:w-5 text-green-600" />
 										<div>
 											<div className="text-xl sm:text-2xl font-bold">{selectedSummary.totalItems}</div>
 											<div className="text-xs sm:text-sm text-gray-600">Itens</div>
@@ -338,7 +338,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 							<Card>
 								<CardContent className="pt-4 sm:pt-6">
 									<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-										<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+										<DollarSign className="size-4 sm:h-5 sm:w-5 text-purple-600" />
 										<div>
 											<div className="text-lg sm:text-xl md:text-2xl font-bold">
 												R$ {selectedSummary.totalCost.toFixed(2)}
@@ -352,7 +352,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 							<Card>
 								<CardContent className="pt-4 sm:pt-6">
 									<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-										<TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+										<TrendingDown className="size-4 sm:h-5 sm:w-5 text-green-600" />
 										<div>
 											<div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">
 												R$ {selectedSummary.totalSavings.toFixed(2)}
@@ -370,7 +370,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 								<CardContent className="pt-4 sm:pt-6">
 									<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
 										<div className="flex items-center gap-2">
-											<Car className="h-5 w-5 text-purple-600" />
+											<Car className="size-5 text-purple-600" />
 											<div>
 												<p className="text-xs sm:text-sm text-gray-600">Distância Total</p>
 												<p className="text-lg sm:text-xl font-bold text-purple-900">
@@ -379,7 +379,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 											</div>
 										</div>
 										<div className="flex items-center gap-2">
-											<Clock className="h-5 w-5 text-purple-600" />
+											<Clock className="size-5 text-purple-600" />
 											<div>
 												<p className="text-xs sm:text-sm text-gray-600">Tempo Estimado</p>
 												<p className="text-lg sm:text-xl font-bold text-purple-900">
@@ -396,7 +396,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 						<Card className="bg-blue-50 border-blue-200">
 							<CardContent className="pt-4 sm:pt-6">
 								<div className="flex items-start gap-3">
-									<Navigation className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5" />
+									<Navigation className="size-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5" />
 									<div>
 										<h3 className="font-semibold text-sm sm:text-base text-blue-900">Como funciona</h3>
 										<p className="text-blue-700 text-xs sm:text-sm mt-1">
@@ -413,7 +413,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 						{/* Lista de Mercados Otimizados */}
 						<div className="space-y-3 sm:space-y-4">
 							<h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-								<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+								<MapPin className="size-4 sm:h-5 sm:w-5" />
 								{hasCalculatedRoute ? "Roteiro Otimizado" : "Roteiro Sugerido"}
 							</h3>
 
@@ -431,7 +431,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 												<div className="flex items-start gap-2 sm:gap-3 flex-1">
 													<div
 														className={`
-															w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0
+															w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shrink-0
 															${selectedMarkets.includes(market.marketId) ? "bg-blue-600" : "bg-gray-400"}
 														`}
 													>
@@ -465,7 +465,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 													variant={selectedMarkets.includes(market.marketId) ? "default" : "outline"}
 													size="sm"
 													onClick={() => toggleMarketSelection(market.marketId)}
-													className="flex-shrink-0 text-xs sm:text-sm"
+													className="shrink-0 text-xs sm:text-sm"
 												>
 													{selectedMarkets.includes(market.marketId) ? (
 														<>
@@ -512,7 +512,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 															{item.quantity} un × R$ {item.bestPrice.toFixed(2)}
 														</div>
 													</div>
-													<div className="text-right flex-shrink-0">
+													<div className="text-right shrink-0">
 														<div className="font-medium text-xs sm:text-sm">R$ {item.estimatedTotal.toFixed(2)}</div>
 														{item.savings && item.savings > 0 && (
 															<div className="text-xs text-green-600">-R$ {item.savings.toFixed(2)}</div>

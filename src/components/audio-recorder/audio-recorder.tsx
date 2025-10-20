@@ -169,7 +169,7 @@ export function AudioRecorder({
               className="text-red-500 hover:text-red-700 hover:bg-red-50"
               disabled={disabled}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="size-4" />
             </Button>
           )}
 
@@ -183,9 +183,9 @@ export function AudioRecorder({
               disabled={disabled}
             >
               {isPlaying ? (
-                <Pause className="h-4 w-4" />
+                <Pause className="size-4" />
               ) : (
-                <Play className="h-4 w-4" />
+                <Play className="size-4" />
               )}
             </Button>
           )}
@@ -210,7 +210,7 @@ export function AudioRecorder({
                 : "bg-purple-500 hover:bg-purple-600 text-white"
             )}
           >
-            <Mic className="h-5 w-5" />
+            <Mic className="size-5" />
           </Button>
 
           {/* Send Button */}
@@ -218,9 +218,9 @@ export function AudioRecorder({
             <Button
               onClick={sendRecording}
               disabled={disabled}
-              className="bg-green-500 hover:bg-green-600 text-white rounded-full w-12 h-12"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-full size-12"
             >
-              <Send className="h-5 w-5" />
+              <Send className="size-5" />
             </Button>
           )}
         </div>

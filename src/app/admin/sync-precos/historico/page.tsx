@@ -148,7 +148,7 @@ export default function SyncHistoricoPage() {
 				<div className="flex items-center gap-4 mb-4">
 					<Link href="/admin/sync-precos">
 						<Button variant="ghost" size="sm">
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar
 						</Button>
 					</Link>
@@ -262,7 +262,7 @@ export default function SyncHistoricoPage() {
 						</>
 					) : (
 						<div className="text-center py-12">
-							<AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+							<AlertCircle className="size-12 mx-auto text-muted-foreground mb-4" />
 							<h3 className="text-lg font-semibold mb-2">Nenhuma sincronização encontrada</h3>
 							<p className="text-muted-foreground mb-4">Ainda não há sincronizações realizadas no sistema.</p>
 							<Link href="/admin/sync-precos">

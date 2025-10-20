@@ -104,9 +104,9 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 						<div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/20 blur-2xl" />
 						<div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50">
 							{error ? (
-								<ShieldAlert className="h-12 w-12 text-white" />
+								<ShieldAlert className="size-12 text-white" />
 							) : (
-								<Fingerprint className="h-12 w-12 text-white" />
+								<Fingerprint className="size-12 text-white" />
 							)}
 						</div>
 					</div>
@@ -142,12 +142,12 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 					>
 						{isAuthenticating ? (
 							<>
-								<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+								<div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
 								Autenticando...
 							</>
 						) : (
 							<>
-								<Fingerprint className="mr-2 h-5 w-5" />
+								<Fingerprint className="mr-2 size-5" />
 								{error ? "Tentar Novamente" : "Desbloquear"}
 							</>
 						)}
@@ -159,7 +159,7 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 						size="lg"
 						className="w-full text-gray-400 hover:text-white hover:bg-white/10"
 					>
-						<Lock className="mr-2 h-4 w-4" />
+						<Lock className="mr-2 size-4" />
 						Fazer Logout
 					</Button>
 				</div>

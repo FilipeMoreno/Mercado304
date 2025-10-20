@@ -83,7 +83,7 @@ export default function VerifyRequestPage() {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				<div className="text-center">
-					<Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+					<Loader2 className="size-8 animate-spin mx-auto mb-4" />
 					<p className="text-muted-foreground">Verificando autenticação...</p>
 				</div>
 			</div>
@@ -100,15 +100,15 @@ export default function VerifyRequestPage() {
 			<div className="w-full">
 				<div className="flex flex-col space-y-2 text-center mb-6">
 					<div className="flex items-center justify-center mb-4">
-						<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+						<ShoppingCart className="mr-2 size-8 text-blue-600" />
 						<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 					</div>
 				</div>
 
 				<Card className="w-full">
 					<CardHeader className="text-center">
-						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-							<Mail className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+							<Mail className="size-6 text-orange-600 dark:text-orange-400" />
 						</div>
 						<CardTitle>⚠️ Verificação Obrigatória</CardTitle>
 						<CardDescription>
@@ -118,7 +118,7 @@ export default function VerifyRequestPage() {
 					</CardHeader>
 					<CardContent className="space-y-6">
 						<Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
-							<Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+							<Clock className="size-4 text-orange-600 dark:text-orange-400" />
 							<AlertDescription className="text-orange-900 dark:text-orange-100">
 								<strong>🔒 Acesso bloqueado</strong>
 								<p className="mt-1 text-sm">
@@ -128,7 +128,7 @@ export default function VerifyRequestPage() {
 						</Alert>
 
 						<Alert className="flex items-center justify-center">
-							<CheckCircle className="h-4 w-4" />
+							<CheckCircle className="size-4" />
 							<AlertDescription>
 								<strong>Email enviado para:</strong> {session.user.email}
 							</AlertDescription>
@@ -156,17 +156,17 @@ export default function VerifyRequestPage() {
 							>
 								{isResending ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Reenviando...
 									</>
 								) : cooldown > 0 ? (
 									<>
-										<Clock className="mr-2 h-4 w-4" />
+										<Clock className="mr-2 size-4" />
 										Aguarde {cooldown}s para reenviar
 									</>
 								) : (
 									<>
-										<RefreshCw className="mr-2 h-4 w-4" />
+										<RefreshCw className="mr-2 size-4" />
 										Reenviar email
 									</>
 								)}

@@ -29,37 +29,37 @@ const suggestions = [
 		id: "create-weekly-list",
 		text: "Criar lista semanal",
 		command: "Crie uma lista de compras para a semana",
-		icon: <List className="h-4 w-4" />
+		icon: <List className="size-4" />
 	},
 	{
 		id: "compare-prices",
 		text: "Comparar preços",
 		command: "Compare os preços dos produtos que mais compro",
-		icon: <TrendingDown className="h-4 w-4" />
+		icon: <TrendingDown className="size-4" />
 	},
 	{
 		id: "calculate-churrasco",
 		text: "Calcular churrasco",
 		command: "Calcule as quantidades para um churrasco de 10 pessoas",
-		icon: <Calculator className="h-4 w-4" />
+		icon: <Calculator className="size-4" />
 	},
 	{
 		id: "search-products",
 		text: "Buscar produtos",
 		command: "Busque produtos em promoção no mercado",
-		icon: <Search className="h-4 w-4" />
+		icon: <Search className="size-4" />
 	},
 	{
 		id: "stock-alerts",
 		text: "Alertas de estoque",
 		command: "Configure alertas para produtos em falta",
-		icon: <AlertTriangle className="h-4 w-4" />
+		icon: <AlertTriangle className="size-4" />
 	},
 	{
 		id: "expense-analysis",
 		text: "Análise de gastos",
 		command: "Analise meus gastos do último mês",
-		icon: <BarChart3 className="h-4 w-4" />
+		icon: <BarChart3 className="size-4" />
 	}
 ]
 
@@ -87,7 +87,7 @@ export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages 
 			>
 				<CarouselContent className="-ml-1">
 					{suggestions.map((suggestion, index) => (
-						<CarouselItem key={suggestion.id} className="pl-1 basis-[140px] flex-shrink-0">
+						<CarouselItem key={suggestion.id} className="pl-1 basis-[140px] shrink-0">
 							<motion.div
 								initial={{ opacity: 0, x: 20 }}
 								animate={{ opacity: 1, x: 0 }}
@@ -113,8 +113,8 @@ export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages 
 						</CarouselItem>
 					))}
 				</CarouselContent>
-				<CarouselPrevious className="hidden sm:flex -left-8 h-6 w-6 text-muted-foreground hover:text-foreground" />
-				<CarouselNext className="hidden sm:flex -right-8 h-6 w-6 text-muted-foreground hover:text-foreground" />
+				<CarouselPrevious className="hidden sm:flex -left-8 size-6 text-muted-foreground hover:text-foreground" />
+				<CarouselNext className="hidden sm:flex -right-8 size-6 text-muted-foreground hover:text-foreground" />
 			</Carousel>
 		</div>
 	)

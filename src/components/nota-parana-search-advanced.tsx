@@ -302,12 +302,12 @@ export function NotaParanaSearchAdvanced() {
 								<Button onClick={handleBuscarCategorias} disabled={loading || !termo.trim()}>
 									{loading ? (
 										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											<Loader2 className="mr-2 size-4 animate-spin" />
 											Buscando...
 										</>
 									) : (
 										<>
-											<Search className="mr-2 h-4 w-4" />
+											<Search className="mr-2 size-4" />
 											Buscar
 										</>
 									)}
@@ -376,12 +376,12 @@ export function NotaParanaSearchAdvanced() {
 							>
 								{loading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Carregando produtos...
 									</>
 								) : (
 									<>
-										<ShoppingBag className="mr-2 h-4 w-4" />
+										<ShoppingBag className="mr-2 size-4" />
 										Ver Produtos ({categoriasSelecionadas.length}{" "}
 										{categoriasSelecionadas.length === 1 ? "categoria" : "categorias"})
 									</>
@@ -419,7 +419,7 @@ export function NotaParanaSearchAdvanced() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Filter className="h-5 w-5" />
+								<Filter className="size-5" />
 								Filtros e Ordenação
 							</CardTitle>
 						</CardHeader>
@@ -563,7 +563,7 @@ export function NotaParanaSearchAdvanced() {
 
 													{/* Estabelecimento */}
 													<div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-														<Store className="h-4 w-4 flex-shrink-0" />
+														<Store className="size-4 shrink-0" />
 														<span className="font-medium">
 															{produto.estabelecimento.nm_fan || produto.estabelecimento.nm_emp}
 														</span>
@@ -571,7 +571,7 @@ export function NotaParanaSearchAdvanced() {
 
 													{/* Endereço */}
 													<div className="flex items-start gap-2 mt-1 text-sm text-muted-foreground">
-														<MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+														<MapPin className="size-4 shrink-0 mt-0.5" />
 														<div>
 															<div>{endereco.linha1}</div>
 															<div>{endereco.linha2}</div>

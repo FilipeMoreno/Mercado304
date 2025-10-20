@@ -116,7 +116,7 @@ export default function RegistrarCompraListaPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Carregando lista...</p>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function RegistrarCompraListaPage() {
         <div className="flex items-center gap-4">
           <Link href={`/lista/${listId}`}>
             <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="size-4 mr-2" />
               Voltar
             </Button>
           </Link>
@@ -140,7 +140,7 @@ export default function RegistrarCompraListaPage() {
 
         <Card>
           <CardContent className="py-10 text-center">
-            <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <Package className="size-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
               Esta lista está vazia. Adicione itens antes de registrar uma compra.
             </p>
@@ -160,7 +160,7 @@ export default function RegistrarCompraListaPage() {
       <div className="flex items-center gap-4">
         <Link href={`/lista/${listId}`}>
           <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="size-4 mr-2" />
             Voltar
           </Button>
         </Link>

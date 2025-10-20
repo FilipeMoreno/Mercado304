@@ -27,7 +27,7 @@ interface SwipeableCardProps {
 
 const defaultLeftActions: SwipeAction[] = [
 	{
-		icon: <Archive className="h-5 w-5" />,
+		icon: <Archive className="size-5" />,
 		color: "text-blue-600",
 		background: "bg-blue-100",
 		action: () => console.log("Archive"),
@@ -37,14 +37,14 @@ const defaultLeftActions: SwipeAction[] = [
 
 const defaultRightActions: SwipeAction[] = [
 	{
-		icon: <Edit3 className="h-5 w-5" />,
+		icon: <Edit3 className="size-5" />,
 		color: "text-green-600",
 		background: "bg-green-100",
 		action: () => console.log("Edit"),
 		threshold: 80,
 	},
 	{
-		icon: <Trash2 className="h-5 w-5" />,
+		icon: <Trash2 className="size-5" />,
 		color: "text-red-600",
 		background: "bg-red-100",
 		action: () => console.log("Delete"),
@@ -217,7 +217,7 @@ export function SwipeableCard({
 			>
 				<Card
 					className={cn(
-						"relative overflow-hidden transition-shadow duration-200",
+						"relative overflow-hidden transition-shadow-sm duration-200",
 						isDragging && "shadow-lg",
 						className,
 					)}
@@ -231,7 +231,7 @@ export function SwipeableCard({
 							animate={{ opacity: 0.3 }}
 							className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
 						>
-							<MoreHorizontal className="h-6 w-6 text-gray-400" />
+							<MoreHorizontal className="size-6 text-gray-400" />
 						</motion.div>
 					)}
 				</Card>

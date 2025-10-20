@@ -317,7 +317,7 @@ export default function AdminSyncPrecosPage() {
 							<h1 className="text-3xl font-bold">Sincronização de Preços - Nota Paraná</h1>
 							<Link href="/admin/sync-precos/historico">
 								<Button variant="outline" size="sm">
-									<History className="h-4 w-4 mr-2" />
+									<History className="size-4 mr-2" />
 									Histórico
 								</Button>
 							</Link>
@@ -329,14 +329,14 @@ export default function AdminSyncPrecosPage() {
 					{currentJob && (
 						<div className="flex items-center gap-2">
 							{getStatusBadge(currentJob.status)}
-							{polling && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+							{polling && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
 						</div>
 					)}
 				</div>
 
 				{/* Switch de Debug Mode */}
 				<div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg border">
-					<Bug className="h-5 w-5 text-muted-foreground" />
+					<Bug className="size-5 text-muted-foreground" />
 					<div className="flex-1">
 						<Label htmlFor={debugSwitchId} className="text-sm font-medium cursor-pointer">
 							Modo Debug
@@ -359,17 +359,17 @@ export default function AdminSyncPrecosPage() {
 							<Button onClick={handleStartSync} disabled={!canStart || loading} size="lg" className="w-full">
 								{loading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Carregando...
 									</>
 								) : isRunning ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Sincronizando...
 									</>
 								) : (
 									<>
-										<Play className="mr-2 h-4 w-4" />
+										<Play className="mr-2 size-4" />
 										Iniciar Sincronização
 									</>
 								)}
@@ -378,7 +378,7 @@ export default function AdminSyncPrecosPage() {
 							{isRunning && (
 								<>
 									<Button onClick={handleCancelSync} variant="destructive" size="lg" className="w-full">
-										<Ban className="mr-2 h-4 w-4" />
+										<Ban className="mr-2 size-4" />
 										Cancelar Sincronização
 									</Button>
 
@@ -409,7 +409,7 @@ export default function AdminSyncPrecosPage() {
 							)}
 
 							<Alert>
-								<AlertCircle className="h-4 w-4" />
+								<AlertCircle className="size-4" />
 								<AlertTitle>🚀 Processamento Paralelo</AlertTitle>
 								<AlertDescription className="text-xs">
 									A sincronização processa múltiplos produtos simultaneamente (5 por vez) para maior velocidade. Você
@@ -427,25 +427,25 @@ export default function AdminSyncPrecosPage() {
 							<CardContent>
 								<div className="space-y-3 text-sm">
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs">
 											1
 										</div>
 										<p className="text-muted-foreground">Busca mercados com razão social</p>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs">
 											2
 										</div>
 										<p className="text-muted-foreground">Busca produtos com código de barras</p>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs">
 											3
 										</div>
 										<p className="text-muted-foreground">Busca preços na API do Nota Paraná</p>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 text-xs">
 											4
 										</div>
 										<p className="text-muted-foreground">Registra preços no banco de dados</p>
@@ -597,7 +597,7 @@ export default function AdminSyncPrecosPage() {
 																		{mercado.itens.map((item, idx) => (
 																			<div
 																				key={`${item.produto}-${idx}`}
-																				className="flex justify-between items-center p-3 bg-muted/50 rounded text-sm"
+																				className="flex justify-between items-center p-3 bg-muted/50 rounded-sm text-sm"
 																			>
 																				<div className="flex-1">
 																					<div className="font-medium">{item.produto}</div>
@@ -630,7 +630,7 @@ export default function AdminSyncPrecosPage() {
 									<CardHeader>
 										<CardTitle className="flex items-center justify-between">
 											<span className="flex items-center gap-2">
-												<AlertCircle className="h-5 w-5 text-orange-600" />
+												<AlertCircle className="size-5 text-orange-600" />
 												Produtos Não Encontrados
 											</span>
 											<Badge variant="outline" className="border-orange-600 text-orange-600">
@@ -654,12 +654,12 @@ export default function AdminSyncPrecosPage() {
 										</Button>
 
 										{showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados) && (
-											<ScrollArea className="h-[300px] border rounded p-4">
+											<ScrollArea className="h-[300px] border rounded-sm p-4">
 												<div className="space-y-2">
 													{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
 														<div
 															key={produto.id}
-															className="flex justify-between items-center p-3 bg-background rounded text-sm"
+															className="flex justify-between items-center p-3 bg-background rounded-sm text-sm"
 														>
 															<div>
 																<div className="font-medium">{produto.nome}</div>
@@ -690,7 +690,7 @@ export default function AdminSyncPrecosPage() {
 							<Card>
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
-										<FileText className="h-5 w-5" />
+										<FileText className="size-5" />
 										{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}
 										<Badge variant="outline" className="ml-auto">
 											{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0} / 500
@@ -703,7 +703,7 @@ export default function AdminSyncPrecosPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<ScrollArea className="h-[300px] w-full rounded border p-4">
+									<ScrollArea className="h-[300px] w-full rounded-sm border p-4">
 										<div className="space-y-1 font-mono text-xs whitespace-pre-wrap break-all">
 											{Array.isArray(currentJob.logs) && currentJob.logs.length > 0 ? (
 												currentJob.logs
@@ -744,7 +744,7 @@ export default function AdminSyncPrecosPage() {
 							{/* Erros */}
 							{Array.isArray(currentJob.erros) && currentJob.erros.length > 0 && (
 								<Alert variant="destructive">
-									<AlertCircle className="h-4 w-4" />
+									<AlertCircle className="size-4" />
 									<AlertTitle>Erros Encontrados ({currentJob.erros.length})</AlertTitle>
 									<AlertDescription>
 										<ul className="list-disc list-inside space-y-1 mt-2 text-sm">
@@ -796,7 +796,7 @@ export default function AdminSyncPrecosPage() {
 							</CardHeader>
 							<CardContent>
 								<Alert>
-									<AlertCircle className="h-4 w-4" />
+									<AlertCircle className="size-4" />
 									<AlertTitle>Requisitos</AlertTitle>
 									<AlertDescription>
 										<ul className="list-disc list-inside space-y-1 mt-2 text-sm">

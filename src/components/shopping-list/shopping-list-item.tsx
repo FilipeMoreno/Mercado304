@@ -69,7 +69,7 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 				className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${item.isChecked ? "bg-green-500 border-green-500 text-white" : "border-gray-300 hover:border-green-400"
 					}`}
 			>
-				{item.isChecked && <Check className="h-4 w-4" />}
+				{item.isChecked && <Check className="size-4" />}
 			</button>
 
 			<button
@@ -90,7 +90,7 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 					)}
 					{/* Badge se não estiver vinculado a produto */}
 					{!item.product && (
-						<span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+						<span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-sm">
 							Texto livre
 						</span>
 					)}

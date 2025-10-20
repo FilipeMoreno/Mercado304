@@ -81,7 +81,7 @@ export function AllergenIconsDemo() {
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
 								{allergens.map(({ name, icon: Icon, key }) => (
 									<div key={key} className="flex flex-col items-center gap-2 group">
-										<div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted/50 transition-all group-hover:bg-muted group-hover:scale-110">
+										<div className="flex size-16 items-center justify-center rounded-xl bg-muted/50 transition-all group-hover:bg-muted group-hover:scale-110">
 											<Icon size={32} variant="outline" className="text-foreground" />
 										</div>
 										<span className="text-xs text-center font-medium">{name}</span>
@@ -183,7 +183,7 @@ export function AllergenIconsDemo() {
 				<CardHeader>
 					<CardTitle>Uso Programático</CardTitle>
 					<CardDescription>
-						Use o componente <code className="text-xs bg-muted px-1 py-0.5 rounded">AllergenIcon</code> para renderizar
+						Use o componente <code className="text-xs bg-muted px-1 py-0.5 rounded-sm">AllergenIcon</code> para renderizar
 						ícones dinamicamente
 					</CardDescription>
 				</CardHeader>
@@ -211,10 +211,10 @@ export function AllergenIconsDemo() {
 				<CardContent className="space-y-2">
 					<p className="text-sm">
 						Para usar em produção, importe o componente{" "}
-						<code className="bg-muted px-1 py-0.5 rounded">AllergenIcons</code> que já vem com o layout completo e
+						<code className="bg-muted px-1 py-0.5 rounded-sm">AllergenIcons</code> que já vem com o layout completo e
 						estilizado.
 					</p>
-					<pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+					<pre className="bg-muted p-3 rounded-sm text-xs overflow-x-auto">
 						<code>{`import { AllergenIcons } from "@/components/allergen-icons"\n\n<AllergenIcons nutritionalInfo={nutritionalInfo} />`}</code>
 					</pre>
 				</CardContent>

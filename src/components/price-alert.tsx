@@ -51,9 +51,9 @@ export function PriceAlert({ alertData, loading, onClose }: PriceAlertProps) {
 		<Alert className={`border-l-4 ${isWarning ? "border-l-yellow-500 bg-yellow-50" : "border-l-red-500 bg-red-50"}`}>
 			<div className="flex items-start gap-3">
 				{isWarning ? (
-					<TrendingDown className="h-5 w-5 text-yellow-600 mt-0.5" />
+					<TrendingDown className="size-5 text-yellow-600 mt-0.5" />
 				) : (
-					<AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+					<AlertTriangle className="size-5 text-red-600 mt-0.5" />
 				)}
 
 				<div className="flex-1 space-y-2">
@@ -62,7 +62,7 @@ export function PriceAlert({ alertData, loading, onClose }: PriceAlertProps) {
 					{alertData.details && isWarning && (
 						<div className="space-y-2">
 							<div className="flex items-center gap-2 text-sm">
-								<MapPin className="h-4 w-4 text-yellow-600" />
+								<MapPin className="size-4 text-yellow-600" />
 								<span className="font-medium">{alertData.details.suggestedMarket?.name}</span>
 								<Badge variant="secondary" className="text-xs">
 									R$ {alertData.details.suggestedPrice?.toFixed(2)}
@@ -109,7 +109,7 @@ export function PriceAlert({ alertData, loading, onClose }: PriceAlertProps) {
 			</div>
 			{onClose && (
 				<Button variant="ghost" size="icon" className="absolute top-2 right-2 h-auto w-auto" onClick={onClose}>
-					<X className="h-4 w-4" />
+					<X className="size-4" />
 				</Button>
 			)}
 		</Alert>

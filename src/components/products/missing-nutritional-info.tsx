@@ -35,7 +35,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 		// TODO: Implementar análise da imagem
 	}
 	return (
-		<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+		<Card className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 			<CardContent className="flex-1 flex flex-col p-4">
 				<div className="flex-1">
 					<div className="flex items-start justify-between mb-3">
@@ -57,7 +57,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 								</div>
 							)}
 						</div>
-						<AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+						<AlertTriangle className="size-4 text-amber-500 shrink-0" />
 					</div>
 				</div>
 
@@ -68,16 +68,16 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 						className="w-full"
 						onClick={() => setIsDialogOpen(true)}
 					>
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						Adicionar Info Nutricional
 					</Button>
 
 					{/* Dialog do Scanner - Independente */}
 					<Dialog open={showScanner} onOpenChange={setShowScanner}>
 						<DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-							<DialogHeader className="flex-shrink-0">
+							<DialogHeader className="shrink-0">
 								<DialogTitle className="flex items-center gap-2">
-									<QrCode className="h-5 w-5" />
+									<QrCode className="size-5" />
 									Scanner de Rótulo Nutricional
 								</DialogTitle>
 								<DialogDescription>
@@ -94,7 +94,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 									/>
 								</div>
 
-								<div className="flex justify-center pt-4 flex-shrink-0">
+								<div className="flex justify-center pt-4 shrink-0">
 									<Button
 										variant="outline"
 										onClick={() => setShowScanner(false)}
@@ -138,7 +138,7 @@ function EmptyNutritionalState() {
 			animate={{ opacity: 1, scale: 1 }}
 			transition={{ duration: 0.3 }}
 		>
-			<Apple className="h-16 w-16 text-green-500 mb-4" />
+			<Apple className="size-16 text-green-500 mb-4" />
 			<h3 className="text-lg font-semibold text-muted-foreground mb-2">
 				Todos os alimentos têm informações nutricionais!
 			</h3>
@@ -174,10 +174,10 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<div>
-						<div className="h-6 bg-muted rounded animate-pulse w-64 mb-2" />
-						<div className="h-4 bg-muted rounded animate-pulse w-48" />
+						<div className="h-6 bg-muted rounded-sm animate-pulse w-64 mb-2" />
+						<div className="h-4 bg-muted rounded-sm animate-pulse w-48" />
 					</div>
-					<div className="h-6 bg-muted rounded animate-pulse w-20" />
+					<div className="h-6 bg-muted rounded-sm animate-pulse w-20" />
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 					{Array.from({ length: 8 }).map((_, index) => (
@@ -208,7 +208,7 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-xl font-semibold flex items-center gap-2">
-						<AlertTriangle className="h-5 w-5 text-amber-500" />
+						<AlertTriangle className="size-5 text-amber-500" />
 						Produtos sem Informação Nutricional
 					</h2>
 					<p className="text-sm text-muted-foreground mt-1">

@@ -136,7 +136,7 @@ export function ResponsiveSelectDialog({
               <span className="text-muted-foreground">{placeholder}</span>
             )}
           </span>
-          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <Search className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       )}
 
@@ -151,7 +151,7 @@ export function ResponsiveSelectDialog({
         <div className="space-y-4">
           {/* Search Input */}
           <div className="relative" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
             <Input
               ref={inputRef}
               type="text"
@@ -172,7 +172,7 @@ export function ResponsiveSelectDialog({
                 onClick={() => setSearchTerm("")}
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             )}
           </div>
@@ -184,12 +184,12 @@ export function ResponsiveSelectDialog({
                 <div className="space-y-2 p-2">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={`skeleton-${i}`} className="flex items-center gap-3 px-3 py-2.5">
-                      <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                      <Skeleton className="size-5 rounded-full shrink-0" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-3 w-3/4" />
                       </div>
-                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="size-4 shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -204,7 +204,7 @@ export function ResponsiveSelectDialog({
                       onClick={handleCreateNew}
                       className="gap-2"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="size-4" />
                       {createNewText} "{searchTerm}"
                     </Button>
                   )}
@@ -218,7 +218,7 @@ export function ResponsiveSelectDialog({
                       onClick={() => handleSelect(option.id)}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors",
-                        "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring-3",
                         value === option.id && "bg-accent",
                       )}
                     >
@@ -242,12 +242,12 @@ export function ResponsiveSelectDialog({
                     <div className="space-y-2 p-2 border-t pt-2">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <div key={`loading-${i}`} className="flex items-center gap-3 px-3 py-2.5">
-                          <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                          <Skeleton className="size-5 rounded-full shrink-0" />
                           <div className="flex-1 space-y-2">
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-3 w-2/3" />
                           </div>
-                          <Skeleton className="h-4 w-4 shrink-0" />
+                          <Skeleton className="size-4 shrink-0" />
                         </div>
                       ))}
                     </div>
@@ -262,7 +262,7 @@ export function ResponsiveSelectDialog({
                         onClick={handleCreateNew}
                         className="w-full gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="size-4" />
                         {createNewText} "{searchTerm}"
                       </Button>
                     </div>

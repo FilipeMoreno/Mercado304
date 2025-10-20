@@ -65,12 +65,12 @@ export function TrustedDevices() {
   function getDeviceIcon(userAgent: string) {
     const ua = userAgent.toLowerCase()
     if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) {
-      return <Smartphone className="h-5 w-5" />
+      return <Smartphone className="size-5" />
     }
     if (ua.includes("tablet") || ua.includes("ipad")) {
-      return <Tablet className="h-5 w-5" />
+      return <Tablet className="size-5" />
     }
-    return <Monitor className="h-5 w-5" />
+    return <Monitor className="size-5" />
   }
 
   function getDeviceName(userAgent: string) {
@@ -110,7 +110,7 @@ export function TrustedDevices() {
       <CardContent>
         {devices.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <Monitor className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <Monitor className="size-12 mx-auto mb-4 opacity-50" />
             <p>Nenhum dispositivo confiável cadastrado</p>
             <p className="text-sm mt-2">
               Marque "Confiar neste dispositivo" ao fazer login com 2FA para não precisar inserir o código por 60 dias
@@ -153,9 +153,9 @@ export function TrustedDevices() {
                   disabled={removingId === device.id}
                 >
                   {removingId === device.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="size-4 text-destructive" />
                   )}
                 </Button>
               </div>

@@ -124,7 +124,7 @@ export function AddItemDialog({
 								}}
 								title="Buscar produto cadastrado"
 							>
-								<LinkIcon className="h-4 w-4" />
+								<LinkIcon className="size-4" />
 							</Button>
 						</div>
 						{newItem.productId && (
@@ -135,7 +135,7 @@ export function AddItemDialog({
 								onClick={handleUnlinkProduct}
 								title="Desvincular produto"
 							>
-								<X className="h-4 w-4" />
+								<X className="size-4" />
 							</Button>
 						)}
 					</div>
@@ -279,7 +279,7 @@ export function AddItemDialog({
 							className="w-full justify-between"
 						>
 							<span>Informações Adicionais (opcional)</span>
-							{showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+							{showAdvanced ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
 						</Button>
 
 						{showAdvanced && (
@@ -336,7 +336,7 @@ export function AddItemDialog({
 						disabled={adding || !newItem.productName.trim()}
 						className="flex-1"
 					>
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{adding ? "Adicionando..." : "Adicionar"}
 					</Button>
 					<Button type="button" variant="outline" onClick={onClose}>

@@ -40,10 +40,10 @@ interface ChurrascoCalculation {
 }
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
-  Carnes: <Drumstick className="h-5 w-5 text-red-500" />,
-  Bebidas: <Beer className="h-5 w-5 text-yellow-500" />,
-  Acompanhamentos: <Utensils className="h-5 w-5 text-orange-500" />,
-  Outros: <Flame className="h-5 w-5 text-gray-500" />,
+  Carnes: <Drumstick className="size-5 text-red-500" />,
+  Bebidas: <Beer className="size-5 text-yellow-500" />,
+  Acompanhamentos: <Utensils className="size-5 text-orange-500" />,
+  Outros: <Flame className="size-5 text-gray-500" />,
 }
 
 export default function ChurrascoDetailsPage() {
@@ -107,10 +107,10 @@ export default function ChurrascoDetailsPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="size-5" />
           </Button>
           <div className="flex items-center gap-4 flex-1">
-            <Flame className="h-8 w-8 text-orange-600" />
+            <Flame className="size-8 text-orange-600" />
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold">Detalhes do Churrasco</h1>
               <p className="text-gray-600 mt-2 text-sm sm:text-base">Carregando...</p>
@@ -121,7 +121,7 @@ export default function ChurrascoDetailsPage() {
         <Card>
           <CardContent className="p-12 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Carregando detalhes do churrasco...</p>
             </div>
           </CardContent>
@@ -142,10 +142,10 @@ export default function ChurrascoDetailsPage() {
         className="flex flex-col sm:flex-row sm:items-start gap-4"
       >
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="shrink-0">
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="size-5" />
         </Button>
         <div className="flex items-center gap-4 flex-1">
-          <Flame className="h-8 w-8 text-orange-600" />
+          <Flame className="size-8 text-orange-600" />
           <div className="flex-1">
             <motion.h1
               initial={{ opacity: 0, x: -20 }}
@@ -182,7 +182,7 @@ export default function ChurrascoDetailsPage() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Adultos</p>
                 <p className="text-lg sm:text-2xl font-bold">{calculation.adults}</p>
               </div>
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <Users className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -194,7 +194,7 @@ export default function ChurrascoDetailsPage() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Crianças</p>
                 <p className="text-lg sm:text-2xl font-bold">{calculation.children}</p>
               </div>
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <Users className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -206,7 +206,7 @@ export default function ChurrascoDetailsPage() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Bebem Álcool</p>
                 <p className="text-lg sm:text-2xl font-bold">{calculation.drinkers}</p>
               </div>
-              <Beer className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <Beer className="size-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -229,7 +229,7 @@ export default function ChurrascoDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
+                <Sparkles className="size-5" />
                 Lista de Compras
               </CardTitle>
               <CardDescription>Itens calculados com inteligência artificial</CardDescription>
@@ -264,7 +264,7 @@ export default function ChurrascoDetailsPage() {
 
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <Sparkles className="size-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
                   <div>
                     <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">Dica do Chef</h4>
                     <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
@@ -276,7 +276,7 @@ export default function ChurrascoDetailsPage() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button onClick={handleCreateList} disabled={creatingList} className="flex-1" size="lg">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  <ShoppingCart className="mr-2 size-4" />
                   <span className="hidden sm:inline">
                     {creatingList ? "Criando lista..." : "Criar Lista de Compras"}
                   </span>

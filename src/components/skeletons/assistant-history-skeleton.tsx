@@ -8,7 +8,7 @@ export function AssistantHistorySkeleton() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
+          <MessageSquare className="size-5" />
           Histórico de Conversas
         </CardTitle>
         <CardDescription>Carregando conversas...</CardDescription>
@@ -27,8 +27,8 @@ export function AssistantHistorySkeleton() {
                   <Skeleton className="h-3 w-64" />
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Skeleton className="h-8 w-8" />
-                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="size-8" />
+                  <Skeleton className="size-8" />
                 </div>
               </div>
             </div>

@@ -21,7 +21,7 @@ function EmptyState() {
 			animate={{ opacity: 1, scale: 1 }}
 			transition={{ duration: 0.3 }}
 		>
-			<Package className="h-16 w-16 text-muted-foreground mb-4" />
+			<Package className="size-16 text-muted-foreground mb-4" />
 			<h3 className="text-lg font-semibold text-muted-foreground mb-2">
 				Nenhum produto encontrado
 			</h3>

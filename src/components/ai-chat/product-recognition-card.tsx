@@ -36,7 +36,7 @@ export function ProductRecognitionCard({
 			<Card className="w-full">
 				<CardHeader className="pb-3">
 					<CardTitle className="flex items-center gap-2 text-lg">
-						<Package className="h-5 w-5 text-blue-600" />
+						<Package className="size-5 text-blue-600" />
 						Produto Identificado
 					</CardTitle>
 				</CardHeader>
@@ -54,7 +54,7 @@ export function ProductRecognitionCard({
 							/>
 							<div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
 								<div className="bg-white/90 rounded-full p-2">
-									<Search className="h-4 w-4 text-gray-700" />
+									<Search className="size-4 text-gray-700" />
 								</div>
 							</div>
 						</div>
@@ -104,7 +104,7 @@ export function ProductRecognitionCard({
 				<div className="flex flex-col gap-2 pt-2">
 					{onAddToList && (
 						<Button onClick={onAddToList} className="w-full">
-							<ShoppingCart className="h-4 w-4 mr-2" />
+							<ShoppingCart className="size-4 mr-2" />
 							Adicionar à Lista
 						</Button>
 					)}
@@ -112,13 +112,13 @@ export function ProductRecognitionCard({
 					<div className="flex gap-2">
 						{onSearchProduct && (
 							<Button variant="outline" onClick={onSearchProduct} className="flex-1">
-								<Search className="h-4 w-4 mr-2" />
+								<Search className="size-4 mr-2" />
 								Buscar Preços
 							</Button>
 						)}
 						{onViewDetails && (
 							<Button variant="outline" onClick={onViewDetails} className="flex-1">
-								<ExternalLink className="h-4 w-4 mr-2" />
+								<ExternalLink className="size-4 mr-2" />
 								Ver Detalhes
 							</Button>
 						)}

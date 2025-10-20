@@ -142,11 +142,11 @@ export function StockEntryDialog({
 			</div>
 			<div className="flex gap-2 pt-4 mt-4">
 				<Button variant="outline" onClick={applyToAll} disabled={entries.length <= 1}>
-					<Copy className="mr-2 h-4 w-4" />
+					<Copy className="mr-2 size-4" />
 					Aplicar a Todos
 				</Button>
 				<Button onClick={handleSave}>
-					<Save className="mr-2 h-4 w-4" />
+					<Save className="mr-2 size-4" />
 					Salvar Detalhes
 				</Button>
 			</div>

@@ -354,11 +354,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	const getDeviceIcon = (deviceType: string) => {
 		const type = deviceType?.toLowerCase() || ""
 		if (type.includes("mobile") || type.includes("phone")) {
-			return <Phone className="h-4 w-4" />
+			return <Phone className="size-4" />
 		} else if (type.includes("desktop") || type.includes("laptop")) {
-			return <Laptop className="h-4 w-4" />
+			return <Laptop className="size-4" />
 		}
-		return <Monitor className="h-4 w-4" />
+		return <Monitor className="size-4" />
 	}
 
 	const formatDate = (dateString: string | Date) => {
@@ -637,8 +637,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						<div className="text-center space-y-4">
 							<div className="flex justify-center">
 								<div className="relative">
-									<Shield className="h-16 w-16 text-blue-600 animate-pulse" />
-									<Loader2 className="h-8 w-8 animate-spin text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+									<Shield className="size-16 text-blue-600 animate-pulse" />
+									<Loader2 className="size-8 animate-spin text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 								</div>
 							</div>
 							<div>
@@ -657,7 +657,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showTwoFactorSetup) {
 		return (
 			<div className="flex items-center justify-center p-4">
-				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+				<Suspense fallback={<Loader2 className="size-8 animate-spin" />}>
 					<TwoFactorSetup
 						onComplete={() => {
 							setShowTwoFactorSetup(false)
@@ -672,7 +672,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showPasskeySetup) {
 		return (
 			<div className="min-h-screen flex items-center justify-center p-4">
-				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+				<Suspense fallback={<Loader2 className="size-8 animate-spin" />}>
 					<PasskeySetup
 						onComplete={() => {
 							setShowPasskeySetup(false)
@@ -687,7 +687,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 	if (showBackupCodesDisplay) {
 		return (
 			<div className="flex items-center justify-center p-4">
-				<Suspense fallback={<Loader2 className="h-8 w-8 animate-spin" />}>
+				<Suspense fallback={<Loader2 className="size-8 animate-spin" />}>
 					<BackupCodesDisplay
 						codes={generatedBackupCodes}
 						onComplete={() => {
@@ -707,8 +707,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 			{/* Alert Minimalista */}
 			<div className="rounded-lg border-0 bg-primary/5 p-4">
 				<div className="flex gap-3">
-					<div className="flex-shrink-0">
-						<Shield className="h-5 w-5 text-primary" />
+					<div className="shrink-0">
+						<Shield className="size-5 text-primary" />
 					</div>
 					<p className="text-sm text-muted-foreground">
 						Para maior segurança da sua conta, recomendamos habilitar tanto a autenticação de dois fatores quanto os
@@ -735,16 +735,16 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						Sessões
 					</TabsTrigger>
 					<TabsTrigger value="notifications" className="rounded-md px-4">
-						<Bell className="h-4 w-4 mr-1" />
+						<Bell className="size-4 mr-1" />
 						Notificações
 					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="password">
-					<Card className="shadow-sm">
+					<Card className="shadow-xs">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Shield className="h-5 w-5" />
+								<Shield className="size-5" />
 								Alterar Senha
 							</CardTitle>
 							<CardDescription>Altere sua senha e mantenha sua conta segura</CardDescription>
@@ -754,7 +754,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								<div className="p-6 bg-primary/5 rounded-lg">
 									<div className="flex items-center gap-3">
 										<div className="p-2 rounded-full bg-primary/10">
-											<Mail className="h-5 w-5 text-primary" />
+											<Mail className="size-5 text-primary" />
 										</div>
 										<div>
 											<h3 className="font-semibold">Conta Google</h3>
@@ -787,7 +787,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												onClick={() => setShowCurrentPassword(!showCurrentPassword)}
 												disabled={isChangingPassword}
 											>
-												{showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+												{showCurrentPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 											</Button>
 										</div>
 									</div>
@@ -812,7 +812,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												onClick={() => setShowNewPassword(!showNewPassword)}
 												disabled={isChangingPassword}
 											>
-												{showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+												{showNewPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 											</Button>
 										</div>
 										{newPassword && (
@@ -859,7 +859,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 												onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 												disabled={isChangingPassword}
 											>
-												{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+												{showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 											</Button>
 										</div>
 										{confirmPassword && newPassword !== confirmPassword && (
@@ -870,12 +870,12 @@ export function SecurityTab({ session }: SecurityTabProps) {
 									<Button type="submit" disabled={isChangingPassword}>
 										{isChangingPassword ? (
 											<>
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<Loader2 className="mr-2 size-4 animate-spin" />
 												Alterando...
 											</>
 										) : (
 											<>
-												<Key className="mr-2 h-4 w-4" />
+												<Key className="mr-2 size-4" />
 												Alterar Senha
 											</>
 										)}
@@ -891,21 +891,21 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						<div className="grid gap-6 md:grid-cols-2">
 							{/* Skeleton Cards */}
 							{[1, 2, 3].map((i) => (
-								<Card key={i} className="shadow-sm">
+								<Card key={i} className="shadow-xs">
 									<CardHeader>
 										<div className="flex items-center space-x-3">
 											<div className="h-9 w-9 bg-muted rounded-full animate-pulse"></div>
 											<div className="flex-1 space-y-2">
-												<div className="h-5 bg-muted rounded w-2/3 animate-pulse"></div>
-												<div className="h-4 bg-muted rounded w-1/3 animate-pulse"></div>
+												<div className="h-5 bg-muted rounded-sm w-2/3 animate-pulse"></div>
+												<div className="h-4 bg-muted rounded-sm w-1/3 animate-pulse"></div>
 											</div>
 										</div>
 									</CardHeader>
 									<CardContent>
-										<div className="h-4 bg-muted rounded w-full animate-pulse"></div>
+										<div className="h-4 bg-muted rounded-sm w-full animate-pulse"></div>
 									</CardContent>
 									<CardFooter>
-										<div className="h-10 bg-muted rounded w-full animate-pulse"></div>
+										<div className="h-10 bg-muted rounded-sm w-full animate-pulse"></div>
 									</CardFooter>
 								</Card>
 							))}
@@ -913,16 +913,16 @@ export function SecurityTab({ session }: SecurityTabProps) {
 					) : (
 						<div className="grid gap-6 md:grid-cols-2">
 							{/* Two-Factor Authentication Card */}
-							<Card className="shadow-sm">
+							<Card className="shadow-xs">
 								<CardHeader>
 									<div className="flex items-center space-x-3">
 										<div
 											className={`p-2 rounded-full ${twoFactorTotpEnabled || twoFactorEmailEnabled ? "bg-green-500/10" : "bg-orange-100"}`}
 										>
 											{twoFactorTotpEnabled || twoFactorEmailEnabled ? (
-												<ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+												<ShieldCheck className="size-5 text-green-600 dark:text-green-400" />
 											) : (
-												<Shield className="h-5 w-5 text-orange-600" />
+												<Shield className="size-5 text-orange-600" />
 											)}
 										</div>
 										<div className="flex-1">
@@ -955,7 +955,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										variant={twoFactorTotpEnabled || twoFactorEmailEnabled ? "outline" : "default"}
 										className="w-full"
 									>
-										<Settings className="mr-2 h-4 w-4" />
+										<Settings className="mr-2 size-4" />
 										{twoFactorTotpEnabled || twoFactorEmailEnabled ? "Gerenciar 2FA" : "Configurar 2FA"}
 									</Button>
 								</CardFooter>
@@ -963,11 +963,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 							{/* Vincular Conta Google Card - só aparece se o usuário tem senha e não tem Google */}
 							{!isLoadingAccountInfo && hasPassword && !hasGoogleAccount && (
-								<Card className="shadow-sm border-dashed">
+								<Card className="shadow-xs border-dashed">
 									<CardHeader>
 										<div className="flex items-center space-x-3">
 											<div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
-												<svg className="h-5 w-5" viewBox="0 0 24 24">
+												<svg className="size-5" viewBox="0 0 24 24">
 													<path
 														fill="#4285F4"
 														d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -1010,12 +1010,12 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										>
 											{isLinkingGoogle ? (
 												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+													<Loader2 className="mr-2 size-4 animate-spin" />
 													Conectando...
 												</>
 											) : (
 												<>
-													<svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+													<svg className="mr-2 size-4" viewBox="0 0 24 24">
 														<path
 															fill="currentColor"
 															d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -1042,7 +1042,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							)}
 
 							{/* Passkeys Card */}
-							<Card className="shadow-sm">
+							<Card className="shadow-xs">
 								<CardHeader>
 									<div className="flex items-center space-x-3">
 										<div className={`p-2 rounded-full ${passkeyCount > 0 ? "bg-primary/10" : "bg-gray-100"}`}>
@@ -1103,22 +1103,22 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							<div className="space-y-4">
 								<div className="flex items-center justify-between">
 									<span className="text-sm">Senha forte</span>
-									<ShieldCheck className="h-4 w-4 text-green-500" />
+									<ShieldCheck className="size-4 text-green-500" />
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm">Autenticação de dois fatores</span>
 									{twoFactorTotpEnabled || twoFactorEmailEnabled ? (
-										<ShieldCheck className="h-4 w-4 text-green-500" />
+										<ShieldCheck className="size-4 text-green-500" />
 									) : (
-										<AlertTriangle className="h-4 w-4 text-orange-500" />
+										<AlertTriangle className="size-4 text-orange-500" />
 									)}
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm">Passkeys configurados</span>
 									{passkeyCount > 0 ? (
-										<ShieldCheck className="h-4 w-4 text-green-500" />
+										<ShieldCheck className="size-4 text-green-500" />
 									) : (
-										<AlertTriangle className="h-4 w-4 text-orange-500" />
+										<AlertTriangle className="size-4 text-orange-500" />
 									)}
 								</div>
 
@@ -1160,7 +1160,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 				<TabsContent value="two-factor">
 					<div className="space-y-6">
-						<Card className="shadow-sm">
+						<Card className="shadow-xs">
 							<CardHeader>
 								<CardTitle>Autenticação de Dois Fatores (2FA)</CardTitle>
 								<CardDescription>Configure e gerencie os métodos de autenticação de dois fatores</CardDescription>
@@ -1208,7 +1208,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 
 								{/* Backup Codes - Only show if any 2FA is enabled */}
 								{(twoFactorTotpEnabled || twoFactorEmailEnabled) && (
-									<Card className="shadow-sm">
+									<Card className="shadow-xs">
 										<CardHeader>
 											<CardTitle className="text-base">Códigos de Backup</CardTitle>
 											<CardDescription>10 códigos de uso único para emergências</CardDescription>
@@ -1221,7 +1221,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										<CardFooter>
 											<div className="flex space-x-2">
 												<Button variant="outline" size="sm" onClick={generateNewBackupCodes}>
-													<RefreshCw className="mr-2 h-4 w-4" />
+													<RefreshCw className="mr-2 size-4" />
 													Gerar Novos Códigos
 												</Button>
 											</div>
@@ -1232,7 +1232,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 								{/* Setup Instructions - Only show if no 2FA is enabled */}
 								{!twoFactorTotpEnabled && !twoFactorEmailEnabled && (
 									<Alert>
-										<Shield className="h-4 w-4" />
+										<Shield className="size-4" />
 										<AlertDescription>
 											Para maior segurança, recomendamos ativar pelo menos um método de autenticação de dois fatores. O
 											aplicativo authenticator é mais seguro que o email.
@@ -1248,7 +1248,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 					{isLoadingPasskeys ? (
 						<PasskeysListSkeleton />
 					) : (
-						<Card className="shadow-sm">
+						<Card className="shadow-xs">
 							<CardHeader>
 								<div className="flex items-center justify-between">
 									<div>
@@ -1256,7 +1256,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										<CardDescription>Gerencie seus passkeys para autenticação sem senha</CardDescription>
 									</div>
 									<Button onClick={() => setShowPasskeySetup(true)} size="sm">
-										<Fingerprint className="h-4 w-4 mr-2" />
+										<Fingerprint className="size-4 mr-2" />
 										Adicionar Passkey
 									</Button>
 								</div>
@@ -1264,13 +1264,13 @@ export function SecurityTab({ session }: SecurityTabProps) {
 							<CardContent>
 								{passkeyCount === 0 ? (
 									<div className="text-center py-8">
-										<Fingerprint className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+										<Fingerprint className="size-12 text-muted-foreground mx-auto mb-4" />
 										<h3 className="font-medium mb-2">Nenhum passkey configurado</h3>
 										<p className="text-sm text-muted-foreground mb-4">
 											Configure passkeys para fazer login usando biometria ou chaves de segurança
 										</p>
 										<Button onClick={() => setShowPasskeySetup(true)}>
-											<Fingerprint className="h-4 w-4 mr-2" />
+											<Fingerprint className="size-4 mr-2" />
 											Configurar Primeiro Passkey
 										</Button>
 									</div>
@@ -1279,7 +1279,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										<div className="p-4 bg-primary/5 rounded-lg">
 											<div className="flex items-center gap-3">
 												<div className="p-2 rounded-full bg-primary/10">
-													<Fingerprint className="h-5 w-5 text-primary" />
+													<Fingerprint className="size-5 text-primary" />
 												</div>
 												<div>
 													<h4 className="font-semibold text-sm">
@@ -1332,12 +1332,12 @@ export function SecurityTab({ session }: SecurityTabProps) {
 														>
 															{deletePasskeyMutation.isPending ? (
 																<>
-																	<Loader2 className="h-4 w-4 animate-spin mr-1" />
+																	<Loader2 className="size-4 animate-spin mr-1" />
 																	Excluindo...
 																</>
 															) : (
 																<>
-																	<Trash2 className="h-4 w-4 mr-1" />
+																	<Trash2 className="size-4 mr-1" />
 																	Excluir
 																</>
 															)}
@@ -1351,7 +1351,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 											<div className="mt-4 p-4 bg-green-500/5 rounded-lg">
 												<div className="flex items-center gap-3">
 													<div className="p-2 rounded-full bg-green-500/10">
-														<CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+														<CheckCircle className="size-5 text-green-600 dark:text-green-400" />
 													</div>
 													<div>
 														<h4 className="font-semibold text-sm">Múltiplos passkeys configurados</h4>
@@ -1373,10 +1373,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 				<TabsContent value="sessions">
 					<div className="space-y-6">
 						{/* Active Sessions */}
-						<Card className="shadow-sm">
+						<Card className="shadow-xs">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Shield className="h-5 w-5" />
+									<Shield className="size-5" />
 									Sessões Ativas
 								</CardTitle>
 								<CardDescription>Gerencie onde você está conectado</CardDescription>
@@ -1393,7 +1393,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 											>
 												<div className="flex items-center space-x-3">
 													<div className="p-2 rounded-full bg-primary/10">
-														<Smartphone className="h-4 w-4 text-primary" />
+														<Smartphone className="size-4 text-primary" />
 													</div>
 													<div className="flex-1">
 														<div className="flex items-center space-x-2">
@@ -1419,7 +1419,7 @@ export function SecurityTab({ session }: SecurityTabProps) {
 														onClick={() => terminateSessionMutation.mutate(session.id)}
 														disabled={terminateSessionMutation.isPending}
 													>
-														<LogOut className="h-4 w-4 mr-1" />
+														<LogOut className="size-4 mr-1" />
 														Encerrar
 													</Button>
 												)}
@@ -1443,12 +1443,12 @@ export function SecurityTab({ session }: SecurityTabProps) {
 										>
 											{terminateAllSessionsMutation.isPending ? (
 												<>
-													<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+													<Loader2 className="size-4 mr-2 animate-spin" />
 													Encerrando...
 												</>
 											) : (
 												<>
-													<LogOut className="h-4 w-4 mr-2" />
+													<LogOut className="size-4 mr-2" />
 													Encerrar Todas as Outras
 												</>
 											)}
@@ -1459,10 +1459,10 @@ export function SecurityTab({ session }: SecurityTabProps) {
 						</Card>
 
 						{/* Login History */}
-						<Card className="shadow-sm">
+						<Card className="shadow-xs">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<History className="h-5 w-5" />
+									<History className="size-5" />
 									Histórico de Login
 								</CardTitle>
 								<CardDescription>Últimas tentativas de acesso à sua conta</CardDescription>
@@ -1472,11 +1472,11 @@ export function SecurityTab({ session }: SecurityTabProps) {
 									<div className="space-y-3">
 										{[1, 2, 3].map((i) => (
 											<div key={i} className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-												<div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+												<div className="size-10 rounded-full bg-muted animate-pulse" />
 												<div className="flex-1 space-y-2">
-													<div className="h-4 bg-muted rounded animate-pulse w-32" />
-													<div className="h-3 bg-muted rounded animate-pulse w-48" />
-													<div className="h-3 bg-muted rounded animate-pulse w-24" />
+													<div className="h-4 bg-muted rounded-sm animate-pulse w-32" />
+													<div className="h-3 bg-muted rounded-sm animate-pulse w-48" />
+													<div className="h-3 bg-muted rounded-sm animate-pulse w-24" />
 												</div>
 											</div>
 										))}
@@ -1487,9 +1487,9 @@ export function SecurityTab({ session }: SecurityTabProps) {
 											<div key={entry.id} className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 border-0">
 												<div className={`p-2 rounded-full ${entry.success ? "bg-green-500/10" : "bg-red-500/10"}`}>
 													{entry.success ? (
-														<CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+														<CheckCircle className="size-4 text-green-600 dark:text-green-400" />
 													) : (
-														<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+														<AlertTriangle className="size-4 text-red-600 dark:text-red-400" />
 													)}
 												</div>
 												<div className="flex-1">
@@ -1521,15 +1521,15 @@ export function SecurityTab({ session }: SecurityTabProps) {
 									{[1, 2, 3].map((i) => (
 										<div key={i} className="flex items-start justify-between p-4 border rounded-lg">
 											<div className="flex items-start gap-3 flex-1">
-												<div className="h-5 w-5 mt-1 rounded bg-muted animate-pulse" />
+												<div className="size-5 mt-1 rounded-sm bg-muted animate-pulse" />
 												<div className="flex-1 space-y-2">
-													<div className="h-4 bg-muted rounded animate-pulse w-48" />
-													<div className="h-3 bg-muted rounded animate-pulse w-32" />
-													<div className="h-3 bg-muted rounded animate-pulse w-40" />
-													<div className="h-3 bg-muted rounded animate-pulse w-36" />
+													<div className="h-4 bg-muted rounded-sm animate-pulse w-48" />
+													<div className="h-3 bg-muted rounded-sm animate-pulse w-32" />
+													<div className="h-3 bg-muted rounded-sm animate-pulse w-40" />
+													<div className="h-3 bg-muted rounded-sm animate-pulse w-36" />
 												</div>
 											</div>
-											<div className="h-8 w-8 rounded bg-muted animate-pulse" />
+											<div className="size-8 rounded-sm bg-muted animate-pulse" />
 										</div>
 									))}
 								</div>

@@ -109,7 +109,7 @@ export function MobileNavigation({
 				<div onClick={handleOpen}>{trigger}</div>
 			) : (
 				<Button variant="outline" size="icon" onClick={handleOpen} className={className}>
-					<Menu className="h-4 w-4" />
+					<Menu className="size-4" />
 				</Button>
 			)}
 
@@ -179,8 +179,8 @@ export function MobileNavigation({
 										))}
 									</div>
 
-									<Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8">
-										<X className="h-4 w-4" />
+									<Button variant="ghost" size="icon" onClick={handleClose} className="size-8">
+										<X className="size-4" />
 									</Button>
 								</div>
 							</div>

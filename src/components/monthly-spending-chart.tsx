@@ -37,14 +37,14 @@ export function MonthlySpendingChart({ data, loading }: MonthlySpendingChartProp
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<BarChart3 className="h-5 w-5" />
+						<BarChart3 className="size-5" />
 						Evolução de Gastos Mensais
 					</CardTitle>
 					<CardDescription>Histórico de gastos dos últimos 12 meses</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="text-center py-8 text-gray-500">
-						<BarChart3 className="h-12 w-12 mx-auto mb-4" />
+						<BarChart3 className="size-12 mx-auto mb-4" />
 						<p>Dados insuficientes para gerar o gráfico</p>
 					</div>
 				</CardContent>
@@ -63,10 +63,10 @@ export function MonthlySpendingChart({ data, loading }: MonthlySpendingChartProp
 	}
 
 	return (
-		<Card className="shadow-sm hover:shadow-lg transition-shadow md:col-span-2">
+		<Card className="shadow-xs hover:shadow-lg transition-shadow-sm md:col-span-2">
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<BarChart3 className="h-5 w-5" />
+					<BarChart3 className="size-5" />
 					Evolução de Gastos Mensais
 				</CardTitle>
 				<CardDescription>Total gasto por mês nos últimos 12 meses</CardDescription>

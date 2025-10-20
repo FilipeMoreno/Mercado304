@@ -81,7 +81,7 @@ export function ChatInput({
 						backgroundColor: isFocused ? '#ffffff' : '#f9fafb'
 					}}
 					transition={{ duration: 0.2 }}
-					className="flex items-end gap-2 p-3 border rounded-2xl shadow-sm"
+					className="flex items-end gap-2 p-3 border rounded-2xl shadow-xs"
 				>
 					{/* Botão de Anexo/Câmera */}
 					<div className="flex items-center gap-1">
@@ -91,10 +91,10 @@ export function ChatInput({
 							size="icon"
 							onClick={onPhotoCapture}
 							disabled={disabled || isLoading}
-							className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex-shrink-0"
+							className="size-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0"
 							title="Capturar foto"
 						>
-							<Camera className="h-4 w-4" />
+							<Camera className="size-4" />
 						</Button>
 
 						{showVoiceButton && (
@@ -104,7 +104,7 @@ export function ChatInput({
 								size="icon"
 								onClick={isListening ? onVoiceStop : onVoiceStart}
 								disabled={disabled || isLoading}
-								className={`h-8 w-8 flex-shrink-0 transition-colors ${
+								className={`h-8 w-8 shrink-0 transition-colors ${
 									isListening 
 										? 'text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100' 
 										: 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
@@ -112,9 +112,9 @@ export function ChatInput({
 								title={isListening ? "Parar gravação" : "Gravar áudio"}
 							>
 								{isListening ? (
-									<MicOff className="h-4 w-4 animate-pulse" />
+									<MicOff className="size-4 animate-pulse" />
 								) : (
-									<Mic className="h-4 w-4" />
+									<Mic className="size-4" />
 								)}
 							</Button>
 						)}
@@ -160,16 +160,16 @@ export function ChatInput({
 						type="submit"
 						disabled={!canSubmit}
 						size="icon"
-						className={`h-8 w-8 flex-shrink-0 transition-all duration-200 ${
+						className={`h-8 w-8 shrink-0 transition-all duration-200 ${
 							canSubmit
-								? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+								? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
 								: 'bg-gray-200 text-gray-400 cursor-not-allowed'
 						}`}
 					>
 						{isLoading ? (
-							<Loader2 className="h-4 w-4 animate-spin" />
+							<Loader2 className="size-4 animate-spin" />
 						) : (
-							<ArrowUp className="h-4 w-4" />
+							<ArrowUp className="size-4" />
 						)}
 					</Button>
 				</motion.div>

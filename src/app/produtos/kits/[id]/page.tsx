@@ -51,7 +51,7 @@ export default function KitDetailsPage() {
 				<Card className="border-destructive">
 					<CardContent className="p-6">
 						<div className="flex items-center gap-3">
-							<AlertCircle className="h-8 w-8 text-destructive" />
+							<AlertCircle className="size-8 text-destructive" />
 							<div>
 								<h3 className="font-semibold text-destructive">Erro ao carregar kit</h3>
 								<p className="text-sm text-muted-foreground mt-1">
@@ -60,7 +60,7 @@ export default function KitDetailsPage() {
 							</div>
 						</div>
 						<Button variant="outline" className="mt-4" onClick={() => router.push("/produtos/kits")}>
-							<ArrowLeft className="h-4 w-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Voltar para Kits
 						</Button>
 					</CardContent>
@@ -78,11 +78,11 @@ export default function KitDetailsPage() {
 				<div className="flex items-start justify-between">
 					<div className="flex items-start gap-3">
 						<Button variant="ghost" size="icon" onClick={() => router.push("/produtos/kits")}>
-							<ArrowLeft className="h-5 w-5" />
+							<ArrowLeft className="size-5" />
 						</Button>
 						<div>
 							<div className="flex items-center gap-2">
-								<Package2 className="h-8 w-8 text-primary" />
+								<Package2 className="size-8 text-primary" />
 								<h1 className="text-3xl font-bold tracking-tight">{kit.kitProduct.name}</h1>
 								<Badge variant={kit.isActive ? "default" : "secondary"}>{kit.isActive ? "Ativo" : "Inativo"}</Badge>
 							</div>
@@ -91,7 +91,7 @@ export default function KitDetailsPage() {
 					</div>
 
 					<Button variant="outline" onClick={() => router.push(`/produtos/kits/${kitId}/editar`)}>
-						<Edit className="h-4 w-4 mr-2" />
+						<Edit className="size-4 mr-2" />
 						Editar
 					</Button>
 				</div>
@@ -100,19 +100,19 @@ export default function KitDetailsPage() {
 				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 					<TabsList className="grid w-full grid-cols-4">
 						<TabsTrigger value="details">
-							<Package2 className="h-4 w-4 mr-2" />
+							<Package2 className="size-4 mr-2" />
 							Detalhes
 						</TabsTrigger>
 						<TabsTrigger value="stock">
-							<TrendingUp className="h-4 w-4 mr-2" />
+							<TrendingUp className="size-4 mr-2" />
 							Estoque
 						</TabsTrigger>
 						<TabsTrigger value="nutrition">
-							<Apple className="h-4 w-4 mr-2" />
+							<Apple className="size-4 mr-2" />
 							Nutrição
 						</TabsTrigger>
 						<TabsTrigger value="price">
-							<DollarSign className="h-4 w-4 mr-2" />
+							<DollarSign className="size-4 mr-2" />
 							Preço
 						</TabsTrigger>
 					</TabsList>
@@ -376,7 +376,7 @@ export default function KitDetailsPage() {
 															{item.product.nutritionalInfo ? (
 																<div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
 																	{item.product.nutritionalInfo.calories && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Calorias:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.calories * item.quantity).toFixed(0)} kcal
@@ -384,7 +384,7 @@ export default function KitDetailsPage() {
 																		</div>
 																	)}
 																	{item.product.nutritionalInfo.proteins && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Proteínas:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.proteins * item.quantity).toFixed(1)}g
@@ -392,7 +392,7 @@ export default function KitDetailsPage() {
 																		</div>
 																	)}
 																	{item.product.nutritionalInfo.carbohydrates && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Carboidratos:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.carbohydrates * item.quantity).toFixed(1)}g
@@ -400,7 +400,7 @@ export default function KitDetailsPage() {
 																		</div>
 																	)}
 																	{item.product.nutritionalInfo.totalFat && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Gorduras:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.totalFat * item.quantity).toFixed(1)}g
@@ -408,7 +408,7 @@ export default function KitDetailsPage() {
 																		</div>
 																	)}
 																	{item.product.nutritionalInfo.fiber && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Fibras:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.fiber * item.quantity).toFixed(1)}g
@@ -416,7 +416,7 @@ export default function KitDetailsPage() {
 																		</div>
 																	)}
 																	{item.product.nutritionalInfo.sodium && (
-																		<div className="flex justify-between p-2 bg-secondary/20 rounded">
+																		<div className="flex justify-between p-2 bg-secondary/20 rounded-sm">
 																			<span className="text-muted-foreground">Sódio:</span>
 																			<span className="font-medium">
 																				{(item.product.nutritionalInfo.sodium * item.quantity).toFixed(0)}mg
@@ -498,7 +498,7 @@ export default function KitDetailsPage() {
 																	)}
 																</div>
 															</div>
-															<DollarSign className="h-16 w-16 text-green-500/30" />
+															<DollarSign className="size-16 text-green-500/30" />
 														</div>
 													</CardContent>
 												</Card>
@@ -518,7 +518,7 @@ export default function KitDetailsPage() {
 																R$ {priceData.data.totalPrice.toFixed(2)}
 															</p>
 														</div>
-														<DollarSign className="h-16 w-16 text-primary/50" />
+														<DollarSign className="size-16 text-primary/50" />
 													</div>
 
 													{/* Comparação se houver preço do kit registrado */}

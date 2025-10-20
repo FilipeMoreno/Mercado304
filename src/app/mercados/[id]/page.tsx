@@ -186,10 +186,10 @@ export default function MarketDetailsPage() {
 		return (
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
-					<div className="h-9 w-20 bg-gray-200 rounded animate-pulse" />
+					<div className="h-9 w-20 bg-gray-200 rounded-sm animate-pulse" />
 					<div>
-						<div className="h-9 w-48 bg-gray-200 rounded animate-pulse mb-2" />
-						<div className="h-5 w-80 bg-gray-200 rounded animate-pulse" />
+						<div className="h-9 w-48 bg-gray-200 rounded-sm animate-pulse mb-2" />
+						<div className="h-5 w-80 bg-gray-200 rounded-sm animate-pulse" />
 					</div>
 				</div>
 
@@ -197,8 +197,8 @@ export default function MarketDetailsPage() {
 					{Array.from({ length: 4 }).map((_, i) => (
 						<Card key={i}>
 							<CardHeader>
-								<div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-								<div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+								<div className="h-4 w-20 bg-gray-200 rounded-sm animate-pulse" />
+								<div className="h-8 w-16 bg-gray-200 rounded-sm animate-pulse" />
 							</CardHeader>
 						</Card>
 					))}
@@ -219,13 +219,13 @@ export default function MarketDetailsPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/mercados">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
 				<div>
 					<h1 className="text-3xl font-bold flex items-center gap-2">
-						<Store className="h-8 w-8" />
+						<Store className="size-8" />
 						{data.market.name}
 					</h1>
 					{data.market.legalName && (
@@ -233,7 +233,7 @@ export default function MarketDetailsPage() {
 					)}
 					{data.market.location && (
 						<p className="text-gray-600 mt-2 flex items-center gap-1">
-							<MapPin className="h-4 w-4" />
+							<MapPin className="size-4" />
 							{data.market.location}
 						</p>
 					)}
@@ -244,11 +244,11 @@ export default function MarketDetailsPage() {
 			<Tabs defaultValue="overview" className="space-y-6">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="overview" className="flex items-center gap-2">
-						<BarChart3 className="h-4 w-4" />
+						<BarChart3 className="size-4" />
 						Overview
 					</TabsTrigger>
 					<TabsTrigger value="history" className="flex items-center gap-2">
-						<History className="h-4 w-4" />
+						<History className="size-4" />
 						Histórico ({allPurchases.length})
 					</TabsTrigger>
 				</TabsList>
@@ -260,7 +260,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">Total de Compras</CardTitle>
-								<ShoppingCart className="h-4 w-4 text-muted-foreground" />
+								<ShoppingCart className="size-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">{data.stats.totalPurchases}</div>
@@ -271,7 +271,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
-								<DollarSign className="h-4 w-4 text-muted-foreground" />
+								<DollarSign className="size-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">R$ {data.stats.totalSpent.toFixed(2)}</div>
@@ -282,7 +282,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
-								<TrendingUp className="h-4 w-4 text-muted-foreground" />
+								<TrendingUp className="size-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">R$ {data.stats.averageTicket.toFixed(2)}</div>
@@ -293,7 +293,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">Última Compra</CardTitle>
-								<Calendar className="h-4 w-4 text-muted-foreground" />
+								<Calendar className="size-4 text-muted-foreground" />
 							</CardHeader>
 							<CardContent>
 								<div className="text-2xl font-bold">
@@ -314,7 +314,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<BarChart3 className="h-5 w-5" />
+									<BarChart3 className="size-5" />
 									Evolução Mensal
 								</CardTitle>
 								<CardDescription>Gasto médio por compra nos últimos 6 meses</CardDescription>
@@ -348,7 +348,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5" />
+									<Package className="size-5" />
 									Produtos Mais Comprados
 								</CardTitle>
 								<CardDescription>Top 5 produtos por frequência</CardDescription>
@@ -380,7 +380,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<ShoppingCart className="h-5 w-5" />
+									<ShoppingCart className="size-5" />
 									Compras Recentes
 								</CardTitle>
 								<CardDescription>Últimas 5 compras realizadas neste mercado</CardDescription>
@@ -411,7 +411,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5" />
+									<Package className="size-5" />
 									Análise de Produtos
 								</CardTitle>
 								<CardDescription>Produtos mais comprados com valores</CardDescription>
@@ -421,7 +421,7 @@ export default function MarketDetailsPage() {
 									{data.topProducts.slice(0, 5).map((item, index) => (
 										<div key={item.productId} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
 											<div className="flex items-center gap-3">
-												<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+												<div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
 													{index + 1}
 												</div>
 												<div>
@@ -447,7 +447,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Users className="h-5 w-5" />
+									<Users className="size-5" />
 									Comparação com Outros Mercados
 								</CardTitle>
 								<CardDescription>Preço médio unitário nos últimos 3 meses</CardDescription>
@@ -504,7 +504,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<Package className="h-5 w-5" />
+									<Package className="size-5" />
 									Gastos por Categoria
 								</CardTitle>
 								<CardDescription>Distribuição de gastos por categoria neste mercado</CardDescription>
@@ -517,7 +517,7 @@ export default function MarketDetailsPage() {
 										return (
 											<div key={category.categoryId} className="flex items-center justify-between">
 												<div className="flex items-center gap-3">
-													<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+													<div className="size-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
 														{index + 1}
 													</div>
 													<div>
@@ -544,7 +544,7 @@ export default function MarketDetailsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<TrendingUp className="h-5 w-5" />
+									<TrendingUp className="size-5" />
 									Distribuição de Gastos
 								</CardTitle>
 								<CardDescription>Valor gasto por categoria de produto</CardDescription>
@@ -581,7 +581,7 @@ export default function MarketDetailsPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<TrendingUp className="h-5 w-5" />
+								<TrendingUp className="size-5" />
 								Insights e Análises
 							</CardTitle>
 						</CardHeader>
@@ -613,17 +613,17 @@ export default function MarketDetailsPage() {
 									<h4 className="font-semibold">Recomendações</h4>
 									<div className="space-y-2 text-sm">
 										{data.stats.averageTicket > 100 && (
-											<div className="p-2 bg-blue-50 rounded text-blue-800">
+											<div className="p-2 bg-blue-50 rounded-sm text-blue-800">
 												💡 Seu ticket médio é alto. Considere comparar preços com outros mercados.
 											</div>
 										)}
 										{data.topProducts.length > 0 && data.topProducts[0]._count.productId > 5 && (
-											<div className="p-2 bg-green-50 rounded text-green-800">
+											<div className="p-2 bg-green-50 rounded-sm text-green-800">
 												🎯 Você tem produtos frequentes. Considere criar uma lista de compras padrão.
 											</div>
 										)}
 										{data.stats.totalPurchases < 3 && (
-											<div className="p-2 bg-yellow-50 rounded text-yellow-800">
+											<div className="p-2 bg-yellow-50 rounded-sm text-yellow-800">
 												📊 Poucas compras registradas. Continue usando para melhores insights.
 											</div>
 										)}
@@ -642,14 +642,14 @@ export default function MarketDetailsPage() {
 							<div className="flex gap-4">
 								<Link href="/compras/nova">
 									<Button>
-										<Plus className="h-4 w-4 mr-2" />
+										<Plus className="size-4 mr-2" />
 										Nova Compra neste Mercado
 									</Button>
 								</Link>
 								{data.topProducts.length > 0 && (
 									<Link href="/lista/nova">
 										<Button variant="outline">
-											<Package className="h-4 w-4 mr-2" />
+											<Package className="size-4 mr-2" />
 											Lista com Produtos Favoritos
 										</Button>
 									</Link>
@@ -665,7 +665,7 @@ export default function MarketDetailsPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Filter className="h-5 w-5" />
+								<Filter className="size-5" />
 								Filtros
 							</CardTitle>
 						</CardHeader>
@@ -674,7 +674,7 @@ export default function MarketDetailsPage() {
 								<div className="space-y-2">
 									<Label htmlFor="search">Buscar por produto</Label>
 									<div className="relative">
-										<Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+										<Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
 										<Input
 											id="search"
 											placeholder="Nome do produto..."
@@ -721,7 +721,7 @@ export default function MarketDetailsPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<History className="h-5 w-5" />
+								<History className="size-5" />
 								Histórico Completo ({Array.isArray(filteredPurchases) ? filteredPurchases.length : 0} compras)
 							</CardTitle>
 							<CardDescription>Todas as compras realizadas neste mercado</CardDescription>
@@ -791,14 +791,14 @@ export default function MarketDetailsPage() {
 															return (
 																<div
 																	key={item.id || `${purchase.id}-item-${index}`}
-																	className={`flex justify-between items-center p-2 rounded text-sm ${
+																	className={`flex justify-between items-center p-2 rounded-sm text-sm ${
 																		itemHasDiscount ? "bg-green-50 border border-green-200" : "bg-gray-50"
 																	}`}
 																>
 																	<div className="flex-1 min-w-0">
 																		<div className="flex items-center gap-1 flex-wrap">
 																			<span className="font-medium">{item.product?.name || item.productName}</span>
-																			{itemHasDiscount && <Tag className="h-3 w-3 text-green-600 flex-shrink-0" />}
+																			{itemHasDiscount && <Tag className="h-3 w-3 text-green-600 shrink-0" />}
 																		</div>
 																		{(item.product?.brand?.name || item.brandName) && (
 																			<span className="text-gray-500 text-xs">
@@ -807,7 +807,7 @@ export default function MarketDetailsPage() {
 																		)}
 																		{!item.product && <span className="text-red-500 text-xs">(produto removido)</span>}
 																	</div>
-																	<div className="text-right flex-shrink-0 ml-2">
+																	<div className="text-right shrink-0 ml-2">
 																		<div className="font-medium">
 																			{item.quantity} {item.product?.unit || item.productUnit}
 																		</div>
@@ -869,7 +869,7 @@ export default function MarketDetailsPage() {
 
 								{(!Array.isArray(filteredPurchases) || filteredPurchases.length === 0) && (
 									<div className="text-center py-12">
-										<History className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+										<History className="size-12 mx-auto text-gray-400 mb-4" />
 										<h3 className="text-lg font-medium mb-2">
 											{searchTerm || dateFilter !== "all" ? "Nenhuma compra encontrada" : "Nenhuma compra realizada"}
 										</h3>

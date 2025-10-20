@@ -91,7 +91,7 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 						<Empty>
 							<EmptyHeader>
 								<EmptyMedia variant="icon">
-									<Search className="h-12 w-12" />
+									<Search className="size-12" />
 								</EmptyMedia>
 								<EmptyTitle>Nenhum desperdício encontrado</EmptyTitle>
 								<EmptyDescription>
@@ -116,7 +116,7 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 					<Empty>
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<Trash2 className="h-12 w-12" />
+								<Trash2 className="size-12" />
 							</EmptyMedia>
 							<EmptyTitle>Nenhum desperdício registrado</EmptyTitle>
 							<EmptyDescription>
@@ -132,13 +132,13 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 								<div className="flex flex-col sm:flex-row gap-3 justify-center">
 									{onCreateNew && (
 										<Button onClick={onCreateNew} size="lg">
-											<Plus className="h-4 w-4 mr-2" />
+											<Plus className="size-4 mr-2" />
 											Registrar Primeiro Desperdício
 										</Button>
 									)}
 									<Link href="/estoque">
 										<Button variant="outline" size="lg">
-											<Package className="h-4 w-4 mr-2" />
+											<Package className="size-4 mr-2" />
 											Ir para Estoque
 										</Button>
 									</Link>
@@ -165,28 +165,28 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{records.map((record: WasteRecord) => (
-				<Card key={record.id} className="hover:shadow-md transition-shadow">
+				<Card key={record.id} className="hover:shadow-md transition-shadow-sm">
 					<CardContent className="p-4">
 						<div className="space-y-3">
 							<div className="flex items-start justify-between">
 								<h3 className="font-semibold text-base text-gray-900 line-clamp-2">{record.productName}</h3>
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-											<MoreHorizontal className="h-4 w-4" />
+										<Button variant="ghost" size="sm" className="size-8 p-0">
+											<MoreHorizontal className="size-4" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
 										<DropdownMenuItem onClick={() => onViewDetails(record)}>
-											<Eye className="mr-2 h-4 w-4" />
+											<Eye className="mr-2 size-4" />
 											Ver Detalhes
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onEdit(record)}>
-											<Edit className="mr-2 h-4 w-4" />
+											<Edit className="mr-2 size-4" />
 											Editar
 										</DropdownMenuItem>
 										<DropdownMenuItem onClick={() => onDelete(record)} className="text-red-600">
-											<Trash2 className="mr-2 h-4 w-4" />
+											<Trash2 className="mr-2 size-4" />
 											Remover
 										</DropdownMenuItem>
 									</DropdownMenuContent>

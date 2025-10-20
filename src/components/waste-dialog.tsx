@@ -134,7 +134,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 				{/* Informações do produto */}
 				<div className="p-3 bg-gray-50 rounded-lg space-y-2">
 					<div className="flex items-center gap-2">
-						<Package className="h-4 w-4 text-gray-500" />
+						<Package className="size-4 text-gray-500" />
 						<span className="font-medium">{stockItem.product.name}</span>
 					</div>
 					{stockItem.product.brand && (
@@ -230,7 +230,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 				{calculatedWasteValue > 0 && (
 					<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
 						<div className="flex items-center gap-2 text-red-600">
-							<DollarSign className="h-4 w-4" />
+							<DollarSign className="size-4" />
 							<span className="font-medium">Valor do desperdício: R$ {calculatedWasteValue.toFixed(2)}</span>
 						</div>
 						<p className="text-xs text-red-500 mt-1">Este valor será contabilizado nas estatísticas de desperdício</p>
@@ -239,7 +239,7 @@ export function WasteDialog({ stockItem, open, onOpenChange, onSuccess }: WasteD
 
 				{/* Alerta */}
 				<div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-					<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+					<AlertTriangle className="size-4 text-yellow-600 mt-0.5 shrink-0" />
 					<div className="text-sm text-yellow-800">
 						<p className="font-medium">Atenção!</p>
 						<p>Este item será removido do estoque e registrado como desperdício. Esta ação não pode ser desfeita.</p>

@@ -70,9 +70,9 @@ export function ListItemsSelector({
 						className="h-auto p-1"
 					>
 						{isExpanded ? (
-							<ChevronUp className="h-4 w-4" />
+							<ChevronUp className="size-4" />
 						) : (
-							<ChevronDown className="h-4 w-4" />
+							<ChevronDown className="size-4" />
 						)}
 					</Button>
 				</CardTitle>
@@ -127,7 +127,7 @@ export function ListItemsSelector({
 										</div>
 									</div>
 									{isSelected && (
-										<Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+										<Check className="size-4 text-blue-600 shrink-0" />
 									)}
 								</div>
 							)

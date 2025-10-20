@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
 	return (
 		<div className="flex flex-col space-y-2 text-center mb-6">
 			<div className="flex items-center justify-center mb-4">
-				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<ShoppingCart className="mr-2 size-8 text-blue-600" />
 				<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 			</div>
 			<Card>
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
 								<div className="relative">
-									<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+									<Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
 									<Input
 										id="email"
 										type="email"
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
 							<Button type="submit" className="w-full" disabled={isLoading}>
 								{isLoading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Enviando...
 									</>
 								) : (
@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
 							<Button type="submit" className="w-full" disabled={isLoading || otp.length !== 6}>
 								{isLoading ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Alterando senha...
 									</>
 								) : (

@@ -204,7 +204,7 @@ export default function TwoFactorPage() {
 	return (
 		<div className="flex flex-col space-y-2 text-center mb-6">
 			<div className="flex items-center justify-center mb-4">
-				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<ShoppingCart className="mr-2 size-8 text-blue-600" />
 				<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 			</div>
 			<Card>
@@ -225,9 +225,9 @@ export default function TwoFactorPage() {
 								{mode === "totp" && "Código de 6 dígitos"}
 							</Label>
 							<div className="relative">
-								{mode === "backup" && <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />}
-								{mode === "email" && <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />}
-								{mode === "totp" && <ShieldCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />}
+								{mode === "backup" && <Key className="absolute left-3 top-3 size-4 text-muted-foreground" />}
+								{mode === "email" && <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />}
+								{mode === "totp" && <ShieldCheck className="absolute left-3 top-3 size-4 text-muted-foreground" />}
 								<Input
 									id="2fa-code"
 									type="text"
@@ -252,7 +252,7 @@ export default function TwoFactorPage() {
 								checked={trustDevice}
 								onChange={(e) => setTrustDevice(e.target.checked)}
 								disabled={isLoading}
-								className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+								className="size-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
 							/>
 							<label htmlFor="trustDevice" className="text-sm text-muted-foreground cursor-pointer">
 								Confiar neste dispositivo por 60 dias
@@ -262,7 +262,7 @@ export default function TwoFactorPage() {
 						<Button type="submit" className="w-full" disabled={isLoading || code.length < 6}>
 							{isLoading ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Verificando...
 								</>
 							) : (
@@ -288,17 +288,17 @@ export default function TwoFactorPage() {
 						>
 							{isSendingEmail ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Reenviando...
 								</>
 							) : cooldown > 0 ? (
 								<>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Reenviar código em {cooldown}s
 								</>
 							) : (
 								<>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Reenviar código
 								</>
 							)}
@@ -314,17 +314,17 @@ export default function TwoFactorPage() {
 						>
 							{isSendingEmail ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Enviando...
 								</>
 							) : cooldown > 0 ? (
 								<>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Aguarde {cooldown}s para enviar
 								</>
 							) : (
 								<>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Receber código por email
 								</>
 							)}

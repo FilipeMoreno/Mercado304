@@ -223,8 +223,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
-					<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-						<Shield className="h-6 w-6 text-blue-600" />
+					<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-blue-100">
+						<Shield className="size-6 text-blue-600" />
 					</div>
 					<CardTitle>Configurar Autenticação de Dois Fatores</CardTitle>
 					<CardDescription>Adicione uma camada extra de segurança à sua conta com TOTP</CardDescription>
@@ -252,7 +252,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					<Button onClick={handleInitialSetup} disabled={isLoading || hasPassword === null} className="w-full">
 						{isLoading || hasPassword === null ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								{hasPassword === null ? "Verificando..." : "Aguarde..."}
 							</>
 						) : (
@@ -293,14 +293,14 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 									onClick={() => setShowPassword(!showPassword)}
 									disabled={isLoading}
 								>
-									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 								</Button>
 							</div>
 						</div>
 					</CardContent>
 					<CardFooter className="flex flex-col gap-2">
 						<Button type="submit" disabled={isLoading} className="w-full">
-							{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Continuar"}
+							{isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : "Continuar"}
 						</Button>
 						<Button variant="outline" onClick={() => setStep("setup")} className="w-full">
 							Voltar
@@ -321,7 +321,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 				<CardContent className="space-y-4">
 					<div className="flex justify-center">
 						<div className="rounded-lg bg-white p-4">
-							{qrCodeUrl ? <QRCodeSVG value={qrCodeUrl} size={200} /> : <Loader2 className="h-12 w-12 animate-spin" />}
+							{qrCodeUrl ? <QRCodeSVG value={qrCodeUrl} size={200} /> : <Loader2 className="size-12 animate-spin" />}
 						</div>
 					</div>
 
@@ -330,7 +330,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 						<div className="flex items-center space-x-2">
 							<Input value={totpSecret} readOnly className="text-xs font-mono" />
 							<Button size="sm" variant="outline" onClick={() => copyToClipboard(totpSecret)}>
-								<Copy className="h-4 w-4" />
+								<Copy className="size-4" />
 							</Button>
 						</div>
 					</div>
@@ -361,7 +361,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 					>
 						{isLoading ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								Verificando...
 							</>
 						) : (
@@ -377,8 +377,8 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 		return (
 			<Card className="w-full">
 				<CardHeader className="text-center">
-					<div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-						<ShieldCheck className="h-6 w-6 text-green-600" />
+					<div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-green-100">
+						<ShieldCheck className="size-6 text-green-600" />
 					</div>
 					<CardTitle>Códigos de Backup</CardTitle>
 					<CardDescription>
@@ -389,7 +389,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 				<CardContent className="space-y-4">
 					<div className="rounded-lg bg-red-50 border border-red-200 p-4">
 						<div className="flex items-center space-x-2 mb-2">
-							<Shield className="h-4 w-4 text-red-600" />
+							<Shield className="size-4 text-red-600" />
 							<span className="font-medium text-red-800">Importante:</span>
 						</div>
 						<ul className="text-sm text-red-700 space-y-1">
@@ -404,13 +404,13 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 							<Label>Códigos de backup</Label>
 							<div className="flex space-x-2">
 								<Button size="sm" variant="outline" onClick={() => setShowBackupCodes(!showBackupCodes)}>
-									{showBackupCodes ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									{showBackupCodes ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 								</Button>
 								<Button size="sm" variant="outline" onClick={copyAllBackupCodes}>
-									<Copy className="h-4 w-4" />
+									<Copy className="size-4" />
 								</Button>
 								<Button size="sm" variant="outline" onClick={downloadBackupCodes}>
-									<Download className="h-4 w-4" />
+									<Download className="size-4" />
 								</Button>
 							</div>
 						</div>

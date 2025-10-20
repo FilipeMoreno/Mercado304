@@ -151,7 +151,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 										onClick={handleCameraCapture}
 										className="flex items-center gap-2"
 									>
-										<Camera className="h-4 w-4" />
+										<Camera className="size-4" />
 										Tirar Foto
 									</Button>
 									<Button
@@ -159,7 +159,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 										onClick={() => document.getElementById('file-upload')?.click()}
 										className="flex items-center gap-2"
 									>
-										<FileImage className="h-4 w-4" />
+										<FileImage className="size-4" />
 										Selecionar Imagem
 									</Button>
 								</div>
@@ -192,7 +192,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 									}}
 									className="absolute top-2 right-2"
 								>
-									<X className="h-4 w-4" />
+									<X className="size-4" />
 								</Button>
 							</div>
 
@@ -201,7 +201,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 								<Card>
 									<CardContent className="flex items-center justify-center py-8">
 										<div className="text-center">
-											<Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+											<Loader2 className="size-8 animate-spin mx-auto mb-2" />
 											<p className="text-gray-600">Analisando imagem com IA...</p>
 											<p className="text-sm text-gray-500">Isso pode levar alguns segundos</p>
 										</div>

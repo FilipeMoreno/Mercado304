@@ -392,13 +392,13 @@ export default function CleanAssistentePage() {
 					<motion.div
 						initial={{ opacity: 0, y: -20 }}
 						animate={{ opacity: 1, y: 0 }}
-						className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10"
+						className="border-b bg-background/80 backdrop-blur-xs sticky top-0 z-10"
 					>
 						<div className="w-full mx-auto px-4 py-3 flex items-center justify-between">
 							<div className="flex items-center gap-3">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-										<Bot className="h-4 w-4 text-white" />
+									<div className="size-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+										<Bot className="size-4 text-white" />
 									</div>
 									<div>
 										<h1 className="font-semibold text-gray-900">Zé</h1>
@@ -418,7 +418,7 @@ export default function CleanAssistentePage() {
 									onClick={handleNewChat}
 									className="gap-2"
 								>
-									<Plus className="h-4 w-4" />
+									<Plus className="size-4" />
 									Novo
 								</Button>
 
@@ -429,7 +429,7 @@ export default function CleanAssistentePage() {
 									onClick={() => setShowHistorySidebar(!showHistorySidebar)}
 									className="md:hidden"
 								>
-									<Menu className="h-5 w-5" />
+									<Menu className="size-5" />
 								</Button>
 							</div>
 						</div>
@@ -448,8 +448,8 @@ export default function CleanAssistentePage() {
 							>
 								{/* Logo e Título */}
 								<div className="mb-8">
-									<div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-										<Bot className="h-8 w-8 text-white" />
+									<div className="size-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+										<Bot className="size-8 text-white" />
 									</div>
 									<h1 className="text-4xl font-bold text-foreground mb-2">
 										Olá, eu sou o Zé!
@@ -479,10 +479,10 @@ export default function CleanAssistentePage() {
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.1 }}
-										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-xs transition-all flex flex-col items-center justify-center"
 									>
-										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
-											<Bot className="h-4 w-4 text-primary" />
+										<div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Bot className="size-4 text-primary" />
 										</div>
 										<h3 className="font-semibold text-foreground mb-1">Listas Inteligentes</h3>
 										<p className="text-sm text-muted-foreground">Crio listas de compras personalizadas para você</p>
@@ -492,10 +492,10 @@ export default function CleanAssistentePage() {
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.2 }}
-										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-xs transition-all flex flex-col items-center justify-center"
 									>
-										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
-											<Camera className="h-4 w-4 text-primary" />
+										<div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Camera className="size-4 text-primary" />
 										</div>
 										<h3 className="font-semibold text-foreground mb-1">Reconhecimento</h3>
 										<p className="text-sm text-muted-foreground">Analiso produtos por foto e código de barras</p>
@@ -505,10 +505,10 @@ export default function CleanAssistentePage() {
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.3 }}
-										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-sm transition-all flex flex-col items-center justify-center"
+										className="p-4 rounded-xl bg-accent border hover:bg-accent/80 hover:shadow-xs transition-all flex flex-col items-center justify-center"
 									>
-										<div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
-											<Settings className="h-4 w-4 text-primary" />
+										<div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+											<Settings className="size-4 text-primary" />
 										</div>
 										<h3 className="font-semibold text-foreground mb-1">Comparação</h3>
 										<p className="text-sm text-muted-foreground">Comparo preços e encontro as melhores ofertas</p>
@@ -573,7 +573,7 @@ export default function CleanAssistentePage() {
 					)}
 
 					{/* Input Area - Sempre visível */}
-					<div className="border-t bg-background flex-shrink-0">
+					<div className="border-t bg-background shrink-0">
 						<div className="w-full max-w-4xl mx-auto px-4 py-4">
 							<EnhancedInput
 								value={input}
@@ -637,7 +637,7 @@ export default function CleanAssistentePage() {
 									size="icon"
 									onClick={() => setShowHistorySidebar(false)}
 								>
-									<X className="h-4 w-4" />
+									<X className="size-4" />
 								</Button>
 							</div>
 							<div className="h-full overflow-y-auto">
@@ -684,7 +684,7 @@ export default function CleanAssistentePage() {
 									size="icon"
 									onClick={() => setShowPhotoCapture(false)}
 								>
-									<X className="h-4 w-4" />
+									<X className="size-4" />
 								</Button>
 							</div>
 							<div className="p-4">

@@ -16,7 +16,7 @@ export function CategoriesSkeleton() {
 					<Skeleton className="h-10 w-full" />
 				</div>
 				<div className="flex gap-2">
-					<Skeleton className="h-10 w-10" />
+					<Skeleton className="size-10" />
 					<Skeleton className="h-10 w-24" />
 					<Skeleton className="h-10 w-36" />
 				</div>
@@ -31,16 +31,16 @@ export function CategoriesSkeleton() {
 			{/* Grid de Categorias */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				{Array.from({ length: 9 }).map((_, i) => (
-					<Card key={i} className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+					<Card key={i} className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 						<CardHeader className="pb-3">
 							<div className="flex items-start justify-between">
 								<div className="flex-1">
 									<div className="flex items-center gap-2 mb-2">
-										<Skeleton className="h-6 w-6" />
+										<Skeleton className="size-6" />
 										<Skeleton className="h-6 w-3/4" />
 									</div>
 								</div>
-								<Skeleton className="h-8 w-8" />
+								<Skeleton className="size-8" />
 							</div>
 						</CardHeader>
 						<CardContent className="pt-0">
@@ -55,7 +55,7 @@ export function CategoriesSkeleton() {
 				<Skeleton className="h-8 w-20" />
 				<div className="flex gap-1">
 					{Array.from({ length: 3 }).map((_, i) => (
-						<Skeleton key={i} className="h-8 w-8" />
+						<Skeleton key={i} className="size-8" />
 					))}
 				</div>
 				<Skeleton className="h-8 w-20" />

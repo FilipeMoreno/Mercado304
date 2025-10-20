@@ -107,7 +107,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Sparkles className="h-5 w-5 text-blue-500" />
+					<Sparkles className="size-5 text-blue-500" />
 					Lista Inteligente
 				</CardTitle>
 				<CardDescription>Gere uma lista de compras automaticamente baseada no seu histórico</CardDescription>
@@ -116,7 +116,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 				{!generatedList ? (
 					<div className="space-y-4">
 						<div className="text-center space-y-3">
-							<Sparkles className="h-12 w-12 text-blue-500 mx-auto" />
+							<Sparkles className="size-12 text-blue-500 mx-auto" />
 							<p className="text-sm text-gray-600">
 								A IA pode gerar uma lista personalizada baseada nos seus padrões de compra
 							</p>
@@ -129,7 +129,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 								variant="outline"
 								className="h-auto py-4 flex flex-col gap-2"
 							>
-								<Clock className="h-5 w-5" />
+								<Clock className="size-5" />
 								<div className="text-center">
 									<div className="font-medium">Lista Semanal</div>
 									<div className="text-xs text-gray-500">Essenciais da semana</div>
@@ -142,7 +142,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 								variant="outline"
 								className="h-auto py-4 flex flex-col gap-2"
 							>
-								<Package className="h-5 w-5" />
+								<Package className="size-5" />
 								<div className="text-center">
 									<div className="font-medium">Lista Mensal</div>
 									<div className="text-xs text-gray-500">Estoque completo</div>
@@ -153,7 +153,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 						{generating && (
 							<div className="text-center py-4">
 								<div className="inline-flex items-center gap-2 text-blue-600">
-									<div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+									<div className="size-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
 									<span className="text-sm">Analisando seus padrões...</span>
 								</div>
 							</div>
@@ -178,15 +178,15 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 							{generatedList.itemsByCategory &&
 								Object.entries(generatedList.itemsByCategory).map(([category, items]) => (
 									<div key={category} className="space-y-2">
-										<h5 className="font-medium text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded">{category}</h5>
+										<h5 className="font-medium text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-sm">{category}</h5>
 
 										{(items as AutoListItem[]).map((item) => (
-											<div key={item.productId} className="flex items-center gap-3 p-2 border rounded">
+											<div key={item.productId} className="flex items-center gap-3 p-2 border rounded-sm">
 												<input
 													type="checkbox"
 													checked={selectedItems.has(item.productId)}
 													onChange={() => toggleItem(item.productId)}
-													className="rounded"
+													className="rounded-sm"
 												/>
 
 												<div className="flex-1">
@@ -215,7 +215,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 							<div className="space-y-2">
 								<h5 className="font-medium text-sm">Sugestões Extras</h5>
 								{generatedList.suggestions.map((suggestion, index) => (
-									<div key={index} className="bg-blue-50 border border-blue-200 rounded p-3">
+									<div key={index} className="bg-blue-50 border border-blue-200 rounded-sm p-3">
 										<div className="font-medium text-sm text-blue-800">{suggestion.title}</div>
 										<div className="text-xs text-blue-600">{suggestion.description}</div>
 									</div>
@@ -227,12 +227,12 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 							<Button onClick={handleCreateList} disabled={selectedItems.size === 0 || creating} className="flex-1">
 								{creating ? (
 									<div className="flex items-center gap-2">
-										<div className="h-4 w-4 border border-white border-t-transparent rounded-full animate-spin"></div>
+										<div className="size-4 border border-white border-t-transparent rounded-full animate-spin"></div>
 										Criando Lista...
 									</div>
 								) : (
 									<div className="flex items-center gap-2">
-										<Check className="h-4 w-4" />
+										<Check className="size-4" />
 										Criar Lista ({selectedItems.size} itens)
 									</div>
 								)}

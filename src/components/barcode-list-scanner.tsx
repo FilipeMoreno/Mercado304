@@ -195,7 +195,7 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 				{isProcessing && (
 					<div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
 						<div className="text-center space-y-3">
-							<Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
+							<Loader2 className="size-12 animate-spin text-blue-500 mx-auto" />
 							<div>
 								<p className="font-semibold">Processando imagem...</p>
 								<p className="text-sm text-muted-foreground">Extraindo códigos de barras</p>
@@ -209,12 +209,12 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 					<div className="flex gap-2">
 						{isCameraActive ? (
 							<Button onClick={takePicture} className="flex-1 gap-2">
-								<Camera className="h-4 w-4" />
+								<Camera className="size-4" />
 								Capturar Foto
 							</Button>
 						) : (
 							<Button onClick={initializeCamera} variant="outline" className="flex-1 gap-2">
-								<Camera className="h-4 w-4" />
+								<Camera className="size-4" />
 								Ativar Câmera
 							</Button>
 						)}
@@ -224,7 +224,7 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 							variant="outline"
 							className="flex-1 gap-2"
 						>
-							<Upload className="h-4 w-4" />
+							<Upload className="size-4" />
 							Fazer Upload
 						</Button>
 						<input

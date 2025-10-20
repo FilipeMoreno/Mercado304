@@ -137,7 +137,7 @@ export default function BackupPage() {
 		return (
 			<div className="container mx-auto py-8 px-4">
 				<div className="flex items-center justify-center h-64">
-					<Loader2 className="h-8 w-8 animate-spin text-primary" />
+					<Loader2 className="size-8 animate-spin text-primary" />
 				</div>
 			</div>
 		)
@@ -147,7 +147,7 @@ export default function BackupPage() {
 		<div className="container mx-auto py-8 px-4 max-w-6xl">
 			<div className="mb-8">
 				<h1 className="text-3xl font-bold flex items-center gap-2">
-					<Database className="h-8 w-8" />
+					<Database className="size-8" />
 					Backups do Banco de Dados
 				</h1>
 				<p className="text-muted-foreground mt-2">
@@ -157,7 +157,7 @@ export default function BackupPage() {
 
 			{/* Informações sobre o Backup Automático */}
 			<Alert className="mb-6">
-				<Clock className="h-4 w-4" />
+				<Clock className="size-4" />
 				<AlertTitle>Backup Automático Configurado</AlertTitle>
 				<AlertDescription>
 					O sistema cria backups automáticos <strong>todos os dias às 3h da manhã (horário do servidor)</strong>.
@@ -180,12 +180,12 @@ export default function BackupPage() {
 						<Button onClick={createBackup} disabled={creating} size="lg">
 							{creating ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<Loader2 className="mr-2 size-4 animate-spin" />
 									Criando Backup...
 								</>
 							) : (
 								<>
-									<Plus className="mr-2 h-4 w-4" />
+									<Plus className="mr-2 size-4" />
 									Criar Backup Manual
 								</>
 							)}
@@ -240,7 +240,7 @@ export default function BackupPage() {
 			{/* Lista de Backups */}
 			{backups.length === 0 && !loading ? (
 				<Alert>
-					<AlertCircle className="h-4 w-4" />
+					<AlertCircle className="size-4" />
 					<AlertTitle>Nenhum backup encontrado</AlertTitle>
 					<AlertDescription>
 						{creating
@@ -257,7 +257,7 @@ export default function BackupPage() {
 								<div className="flex items-start justify-between">
 									<div className="flex-1">
 										<CardTitle className="text-lg flex items-center gap-2">
-											<Database className="h-5 w-5 text-blue-600" />
+											<Database className="size-5 text-blue-600" />
 											{backup.fileName}
 										</CardTitle>
 										<CardDescription className="mt-2 space-y-1">
@@ -275,7 +275,7 @@ export default function BackupPage() {
 							<CardContent>
 								<div className="flex gap-2">
 									<Button variant="outline" size="sm" onClick={() => downloadBackup(backup.key, backup.fileName)}>
-										<Download className="h-4 w-4 mr-2" />
+										<Download className="size-4 mr-2" />
 										Baixar
 									</Button>
 									<Button
@@ -287,12 +287,12 @@ export default function BackupPage() {
 									>
 										{deleting === backup.key ? (
 											<>
-												<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+												<Loader2 className="size-4 mr-2 animate-spin" />
 												Deletando...
 											</>
 										) : (
 											<>
-												<Trash2 className="h-4 w-4 mr-2" />
+												<Trash2 className="size-4 mr-2" />
 												Deletar
 											</>
 										)}
@@ -306,7 +306,7 @@ export default function BackupPage() {
 
 			{/* Informações Importantes */}
 			<Alert className="mt-6">
-				<CheckCircle className="h-4 w-4" />
+				<CheckCircle className="size-4" />
 				<AlertTitle>Informações Importantes</AlertTitle>
 				<AlertDescription className="space-y-2">
 					<p>

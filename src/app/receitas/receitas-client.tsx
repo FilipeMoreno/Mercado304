@@ -89,7 +89,7 @@ export function ReceitasClient() {
 				{/* Controles */}
 				<div className="flex w-full gap-3">
 					<div className="relative flex-1 sm:flex-none sm:w-80">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 						<Input
 							placeholder="Buscar receitas..."
 							value={searchTerm}
@@ -101,7 +101,7 @@ export function ReceitasClient() {
 						onClick={() => router.push("/receitas/gerar")}
 						className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 w-full sm:w-auto"
 					>
-						<Sparkles className="h-4 w-4 mr-2" />
+						<Sparkles className="size-4 mr-2" />
 						<span className="hidden sm:inline">Gerar Receitas</span>
 						<span className="sm:hidden">Gerar</span>
 					</Button>
@@ -131,7 +131,7 @@ export function ReceitasClient() {
 					onClick={() => router.push("/receitas/gerar")}
 					className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 w-full sm:w-auto"
 				>
-					<Sparkles className="h-4 w-4 mr-2" />
+					<Sparkles className="size-4 mr-2" />
 					<span className="hidden sm:inline">Gerar Receitas</span>
 					<span className="sm:hidden">Gerar</span>
 				</Button>
@@ -156,7 +156,7 @@ export function ReceitasClient() {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<ChefHat className="h-6 w-6" />
+										<ChefHat className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma receita encontrada</EmptyTitle>
 									<EmptyDescription>Tente ajustar os termos de pesquisa.</EmptyDescription>
@@ -166,7 +166,7 @@ export function ReceitasClient() {
 							<Empty className="border border-dashed py-12">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
-										<ChefHat className="h-6 w-6" />
+										<ChefHat className="size-6" />
 									</EmptyMedia>
 									<EmptyTitle>Nenhuma receita salva</EmptyTitle>
 									<EmptyDescription>
@@ -178,7 +178,7 @@ export function ReceitasClient() {
 										onClick={() => router.push("/receitas/gerar")}
 										className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
 									>
-										<Sparkles className="h-4 w-4 mr-2" />
+										<Sparkles className="size-4 mr-2" />
 										Gerar Primeira Receita
 									</Button>
 								</EmptyContent>
@@ -187,11 +187,11 @@ export function ReceitasClient() {
 					) : (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{recipes?.map((recipe) => (
-								<Card key={recipe.id} className="hover:shadow-md transition-shadow">
+								<Card key={recipe.id} className="hover:shadow-md transition-shadow-sm">
 									<CardHeader>
 										<CardTitle className="text-lg">{recipe.name}</CardTitle>
 										<CardDescription className="flex items-center gap-1">
-											<span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{recipe.mealType}</span>
+											<span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-sm">{recipe.mealType}</span>
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
@@ -205,13 +205,13 @@ export function ReceitasClient() {
 													{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
 														<span
 															key={`${recipe.id}-ingredient-${index}`}
-															className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded"
+															className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded-sm"
 														>
 															{ingredient}
 														</span>
 													))}
 													{recipe.ingredients.length > 3 && (
-														<span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+														<span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-sm">
 															+{recipe.ingredients.length - 3} mais
 														</span>
 													)}
@@ -221,11 +221,11 @@ export function ReceitasClient() {
 
 										<div className="flex gap-2">
 											<Button variant="outline" size="sm" onClick={() => viewRecipe(recipe)} className="flex-1">
-												<Eye className="h-4 w-4 mr-1" />
+												<Eye className="size-4 mr-1" />
 												Ver Receita
 											</Button>
 											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(recipe)}>
-												<Trash2 className="h-4 w-4" />
+												<Trash2 className="size-4" />
 											</Button>
 										</div>
 									</CardContent>
@@ -248,7 +248,7 @@ export function ReceitasClient() {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={isDeleting}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir a receita <strong>{deletingRecipe?.name}</strong>?

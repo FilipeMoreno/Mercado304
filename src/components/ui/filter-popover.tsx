@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface FilterOption {
 	value: string
@@ -32,7 +32,7 @@ export function FilterPopover({
 	hasActiveFilters = false,
 }: FilterPopoverProps) {
 	const [open, setOpen] = useState(false)
-	const { isMobile } = useMobile()
+	const isMobile = useIsMobile()
 
 	const handleClearFilters = () => {
 		onClearFilters?.()
@@ -87,7 +87,7 @@ export function FilterPopover({
 					onClick={() => setOpen(true)}
 					className={`${hasActiveFilters ? "border-blue-500 text-blue-600" : ""}`}
 				>
-					<Filter className="h-4 w-4" />
+					<Filter className="size-4" />
 					{hasActiveFilters && <div className="w-2 h-2 bg-blue-500 rounded-full ml-2" />}
 				</Button>
 				<ResponsiveDialog
@@ -108,7 +108,7 @@ export function FilterPopover({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button variant="outline" className={`${hasActiveFilters ? "border-blue-500 text-blue-600" : ""}`}>
-					<Filter className="h-4 w-4" />
+					<Filter className="size-4" />
 					{hasActiveFilters && <div className="w-2 h-2 bg-blue-500 rounded-full ml-2" />}
 				</Button>
 			</PopoverTrigger>

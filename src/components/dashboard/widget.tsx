@@ -25,7 +25,7 @@ export function Widget({ id, children }: WidgetProps) {
 		<div ref={setNodeRef} style={style} {...attributes}>
 			<Card className="relative">
 				<Button variant="ghost" size="icon" className="absolute top-2 right-2 cursor-grab" {...listeners}>
-					<GripVertical className="h-4 w-4" />
+					<GripVertical className="size-4" />
 				</Button>
 				{children}
 			</Card>

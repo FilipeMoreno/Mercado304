@@ -60,12 +60,12 @@ export function RelatedProductsCard({ productId, onAddProduct, onClose }: Relate
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between">
 					<CardTitle className="flex items-center gap-2 text-sm">
-						<Loader2 className="h-4 w-4 animate-spin" />
+						<Loader2 className="size-4 animate-spin" />
 						Buscando sugestões...
 					</CardTitle>
 					{onClose && (
 						<Button variant="ghost" size="icon" className="h-auto w-auto" onClick={onClose}>
-							<X className="h-4 w-4" />
+							<X className="size-4" />
 						</Button>
 					)}
 				</CardHeader>
@@ -89,14 +89,14 @@ export function RelatedProductsCard({ productId, onAddProduct, onClose }: Relate
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 				<div>
 					<CardTitle className="flex items-center gap-2 text-sm">
-						<Tag className="h-4 w-4" />
+						<Tag className="size-4" />
 						Comprados Juntos
 					</CardTitle>
 					<CardDescription>Clientes que compraram este item também compraram:</CardDescription>
 				</div>
 				{onClose && (
 					<Button variant="ghost" size="icon" className="h-auto w-auto" onClick={onClose}>
-						<X className="h-4 w-4" />
+						<X className="size-4" />
 					</Button>
 				)}
 			</CardHeader>
@@ -106,7 +106,7 @@ export function RelatedProductsCard({ productId, onAddProduct, onClose }: Relate
 						<TooltipProvider key={product.id}>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button variant="outline" className="flex-shrink-0" onClick={() => onAddProduct(product.id)}>
+									<Button variant="outline" className="shrink-0" onClick={() => onAddProduct(product.id)}>
 										<ListPlus className="h-3 w-3 mr-1" />
 										{product.name}
 									</Button>

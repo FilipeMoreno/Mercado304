@@ -66,7 +66,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 			<Card className={className}>
 				<CardContent className="p-6">
 					<div className="text-center">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+						<div className="animate-spin rounded-full size-8 border-b-2 border-primary mx-auto"></div>
 						<p className="text-muted-foreground mt-2">Analisando preços...</p>
 					</div>
 				</CardContent>
@@ -79,7 +79,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 			<Card className={className}>
 				<CardContent className="p-6">
 					<div className="text-center text-muted-foreground">
-						<Activity className="h-8 w-8 mx-auto mb-2" />
+						<Activity className="size-8 mx-auto mb-2" />
 						<p>Registre alguns preços para ver análises</p>
 					</div>
 				</CardContent>
@@ -90,11 +90,11 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 	const getTrendIcon = (trend: string) => {
 		switch (trend) {
 			case "up":
-				return <TrendingUp className="h-4 w-4 text-red-500" />
+				return <TrendingUp className="size-4 text-red-500" />
 			case "down":
-				return <TrendingDown className="h-4 w-4 text-green-500" />
+				return <TrendingDown className="size-4 text-green-500" />
 			default:
-				return <Minus className="h-4 w-4 text-muted-foreground" />
+				return <Minus className="size-4 text-muted-foreground" />
 		}
 	}
 
@@ -112,11 +112,11 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 	const getInsightIcon = (type: string) => {
 		switch (type) {
 			case "warning":
-				return <AlertTriangle className="h-4 w-4 text-orange-500" />
+				return <AlertTriangle className="size-4 text-orange-500" />
 			case "success":
-				return <CheckCircle className="h-4 w-4 text-green-500" />
+				return <CheckCircle className="size-4 text-green-500" />
 			default:
-				return <Info className="h-4 w-4 text-blue-500" />
+				return <Info className="size-4 text-blue-500" />
 		}
 	}
 
@@ -124,9 +124,9 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 		<Card className={className}>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Activity className="h-5 w-5" />
+					<Activity className="size-5" />
 					Análise de Preços
-					<Button variant="ghost" size="icon" onClick={loadAnalysis} disabled={loading} className="ml-auto h-6 w-6">
+					<Button variant="ghost" size="icon" onClick={loadAnalysis} disabled={loading} className="ml-auto size-6">
 						<RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
 					</Button>
 				</CardTitle>
@@ -193,7 +193,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 						<div className="grid grid-cols-1 gap-2">
 							{analysis.trends.mostCommonMarket && (
 								<div className="flex items-center gap-2 text-sm">
-									<Store className="h-4 w-4 text-muted-foreground" />
+									<Store className="size-4 text-muted-foreground" />
 									<span className="font-medium">{analysis.trends.mostCommonMarket}</span>
 									<Badge variant="outline" className="text-xs">
 										Mercado
@@ -202,7 +202,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 							)}
 							{analysis.trends.mostCommonProduct && (
 								<div className="flex items-center gap-2 text-sm">
-									<Package className="h-4 w-4 text-muted-foreground" />
+									<Package className="size-4 text-muted-foreground" />
 									<span className="font-medium">{analysis.trends.mostCommonProduct}</span>
 									<Badge variant="outline" className="text-xs">
 										Produto
@@ -218,7 +218,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 					<h4 className="font-medium text-sm">Faixa de Preços</h4>
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-green-600 font-medium">R$ {analysis.trends.minPrice?.toFixed(2)}</span>
-						<div className="flex-1 mx-2 h-2 bg-gradient-to-r from-green-200 via-yellow-200 to-red-200 rounded"></div>
+						<div className="flex-1 mx-2 h-2 bg-gradient-to-r from-green-200 via-yellow-200 to-red-200 rounded-sm"></div>
 						<span className="text-red-600 font-medium">R$ {analysis.trends.maxPrice?.toFixed(2)}</span>
 					</div>
 				</div>

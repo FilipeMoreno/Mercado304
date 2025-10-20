@@ -16,7 +16,7 @@ export function ChurrascometroSkeleton() {
 						<Skeleton className="h-6 w-24" />
 						<div className="space-y-2">
 							<Skeleton className="h-5 w-full" />
-							<Skeleton className="h-5 w-5/6" />
+							<Skeleton className="size-5/6" />
 							<Skeleton className="h-5 w-full" />
 						</div>
 					</div>
@@ -25,7 +25,7 @@ export function ChurrascometroSkeleton() {
 						<Skeleton className="h-6 w-28" />
 						<div className="space-y-2">
 							<Skeleton className="h-5 w-full" />
-							<Skeleton className="h-5 w-5/6" />
+							<Skeleton className="size-5/6" />
 						</div>
 					</div>
 				</div>

@@ -195,7 +195,7 @@ export function ProductPhotoCapture({
               onClick={() => setCaptureMode('camera')}
               className="text-white"
             >
-              <Camera className="w-4 h-4" />
+              <Camera className="size-4" />
             </Button>
             <Button
               variant={captureMode === 'upload' ? 'default' : 'ghost'}
@@ -203,7 +203,7 @@ export function ProductPhotoCapture({
               onClick={() => setCaptureMode('upload')}
               className="text-white"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="size-4" />
             </Button>
           </div>
           
@@ -214,7 +214,7 @@ export function ProductPhotoCapture({
             className="text-white"
             disabled={isProcessing}
           >
-            <X className="w-5 h-5" />
+            <X className="size-5" />
           </Button>
         </div>
       </div>
@@ -236,17 +236,17 @@ export function ProductPhotoCapture({
               {/* Overlay de foco */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-64 h-64 border-2 border-white/50 rounded-lg">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+                  <div className="absolute top-0 left-0 size-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                  <div className="absolute top-0 right-0 size-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                  <div className="absolute bottom-0 left-0 size-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                  <div className="absolute bottom-0 right-0 size-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
                 </div>
               </div>
 
               {isProcessing && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-white text-center">
-                    <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <div className="animate-spin size-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
                     <p>Analisando produto...</p>
                   </div>
                 </div>
@@ -265,9 +265,9 @@ export function ProductPhotoCapture({
                   disabled={isProcessing}
                 >
                   {flashEnabled ? (
-                    <Zap className="w-6 h-6" />
+                    <Zap className="size-6" />
                   ) : (
-                    <ZapOff className="w-6 h-6" />
+                    <ZapOff className="size-6" />
                   )}
                 </Button>
 
@@ -276,9 +276,9 @@ export function ProductPhotoCapture({
                   size="lg"
                   onClick={capturePhoto}
                   disabled={!stream || isProcessing}
-                  className="w-16 h-16 rounded-full bg-white text-black hover:bg-gray-200"
+                  className="size-16 rounded-full bg-white text-black hover:bg-gray-200"
                 >
-                  <Camera className="w-8 h-8" />
+                  <Camera className="size-8" />
                 </Button>
 
                 {/* Trocar câmera */}
@@ -289,7 +289,7 @@ export function ProductPhotoCapture({
                   className="text-white"
                   disabled={devices.length <= 1 || isProcessing}
                 >
-                  <RotateCcw className="w-6 h-6" />
+                  <RotateCcw className="size-6" />
                 </Button>
               </div>
             </div>
@@ -310,7 +310,7 @@ export function ProductPhotoCapture({
                     {isProcessing && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                         <div className="text-white text-center">
-                          <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
+                          <div className="animate-spin size-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
                           <p>Analisando produto...</p>
                         </div>
                       </div>

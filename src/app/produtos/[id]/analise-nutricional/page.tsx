@@ -117,7 +117,7 @@ export default function AnaliseNutricionalPage() {
 			<div className="space-y-4">
 				<Link href={`/produtos/${productId}`}>
 					<Button variant="outline" size="lg">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar para Produto
 					</Button>
 				</Link>
@@ -148,7 +148,7 @@ export default function AnaliseNutricionalPage() {
 						<Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border-orange-200 dark:border-orange-800">
 							<CardContent className="p-4">
 								<div className="flex items-center gap-2 mb-1">
-									<Flame className="h-4 w-4 text-orange-600" />
+									<Flame className="size-4 text-orange-600" />
 									<p className="text-sm font-medium text-orange-700 dark:text-orange-300">Calorias Totais</p>
 								</div>
 								<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
@@ -162,7 +162,7 @@ export default function AnaliseNutricionalPage() {
 						<Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
 							<CardContent className="p-4">
 								<div className="flex items-center gap-2 mb-1">
-									<Apple className="h-4 w-4 text-green-600" />
+									<Apple className="size-4 text-green-600" />
 									<p className="text-sm font-medium text-green-700 dark:text-green-300">Proteína Média</p>
 								</div>
 								<p className="text-2xl font-bold text-green-900 dark:text-green-100">
@@ -176,7 +176,7 @@ export default function AnaliseNutricionalPage() {
 						<Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950 dark:to-amber-950 border-yellow-200 dark:border-yellow-800">
 							<CardContent className="p-4">
 								<div className="flex items-center gap-2 mb-1">
-									<Package className="h-4 w-4 text-yellow-600" />
+									<Package className="size-4 text-yellow-600" />
 									<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Carboidratos Médios</p>
 								</div>
 								<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
@@ -190,7 +190,7 @@ export default function AnaliseNutricionalPage() {
 						<Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border-purple-200 dark:border-purple-800">
 							<CardContent className="p-4">
 								<div className="flex items-center gap-2 mb-1">
-									<Leaf className="h-4 w-4 text-purple-600" />
+									<Leaf className="size-4 text-purple-600" />
 									<p className="text-sm font-medium text-purple-700 dark:text-purple-300">Gordura Média</p>
 								</div>
 								<p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
@@ -206,19 +206,19 @@ export default function AnaliseNutricionalPage() {
 			<Tabs defaultValue="nutritional" className="space-y-6">
 				<TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
 					<TabsTrigger value="nutritional">
-						<BookOpen className="h-4 w-4 mr-2" />
+						<BookOpen className="size-4 mr-2" />
 						Nutrientes
 					</TabsTrigger>
 					<TabsTrigger value="health">
-						<Heart className="h-4 w-4 mr-2" />
+						<Heart className="size-4 mr-2" />
 						Benefícios e Riscos
 					</TabsTrigger>
 					<TabsTrigger value="shopping">
-						<ShoppingBag className="h-4 w-4 mr-2" />
+						<ShoppingBag className="size-4 mr-2" />
 						Dicas de Compras
 					</TabsTrigger>
 					<TabsTrigger value="storage">
-						<ThermometerSnowflake className="h-4 w-4 mr-2" />
+						<ThermometerSnowflake className="size-4 mr-2" />
 						Armazenamento
 					</TabsTrigger>
 				</TabsList>
@@ -228,7 +228,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Lightbulb className="h-5 w-5 text-yellow-600" />
+								<Lightbulb className="size-5 text-yellow-600" />
 								Dados Nutricionais e Conselhos
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -240,9 +240,9 @@ export default function AnaliseNutricionalPage() {
 						<CardContent className="space-y-4">
 							{aiAnalysis.nutritionalAdvice.map((advice, index) => (
 								<div key={index} className="flex gap-3 p-4 rounded-lg bg-muted/50">
-									<div className="flex-shrink-0 mt-1">
-										<div className="h-8 w-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-											<Lightbulb className="h-4 w-4 text-yellow-600" />
+									<div className="shrink-0 mt-1">
+										<div className="size-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+											<Lightbulb className="size-4 text-yellow-600" />
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed">{advice}</p>
@@ -258,7 +258,7 @@ export default function AnaliseNutricionalPage() {
 					<Card className="border-green-200 dark:border-green-800">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Heart className="h-5 w-5 text-green-600" />
+								<Heart className="size-5 text-green-600" />
 								Benefícios para a Saúde
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -270,9 +270,9 @@ export default function AnaliseNutricionalPage() {
 						<CardContent className="space-y-3">
 							{aiAnalysis.healthBenefits.map((benefit, index) => (
 								<div key={index} className="flex gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
-									<div className="flex-shrink-0 mt-1">
-										<div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-											<Heart className="h-4 w-4 text-green-600" />
+									<div className="shrink-0 mt-1">
+										<div className="size-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+											<Heart className="size-4 text-green-600" />
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed">{benefit}</p>
@@ -286,7 +286,7 @@ export default function AnaliseNutricionalPage() {
 						<Card className="border-red-200 dark:border-red-800">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<ShieldAlert className="h-5 w-5 text-red-600" />
+									<ShieldAlert className="size-5 text-red-600" />
 									Riscos para a Saúde
 									<Badge variant="secondary" className="ml-auto">
 										<Sparkles className="h-3 w-3 mr-1" />
@@ -298,9 +298,9 @@ export default function AnaliseNutricionalPage() {
 							<CardContent className="space-y-3">
 								{aiAnalysis.healthRisks.map((risk, index) => (
 									<div key={index} className="flex gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-										<div className="flex-shrink-0 mt-1">
-											<div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
-												<AlertTriangle className="h-4 w-4 text-red-600" />
+										<div className="shrink-0 mt-1">
+											<div className="size-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+												<AlertTriangle className="size-4 text-red-600" />
 											</div>
 										</div>
 										<p className="text-sm leading-relaxed">{risk}</p>
@@ -317,7 +317,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Store className="h-5 w-5 text-blue-600" />
+								<Store className="size-5 text-blue-600" />
 								Melhores Produtos Similares
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -330,8 +330,8 @@ export default function AnaliseNutricionalPage() {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 								{aiAnalysis.similarProducts.map((product, index) => (
 									<div key={index} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-										<div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-											<Package className="h-5 w-5 text-blue-600" />
+										<div className="size-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+											<Package className="size-5 text-blue-600" />
 										</div>
 										<p className="text-sm font-medium">{product}</p>
 									</div>
@@ -344,7 +344,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<ShoppingBag className="h-5 w-5 text-purple-600" />
+								<ShoppingBag className="size-5 text-purple-600" />
 								Como Escolher
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -356,9 +356,9 @@ export default function AnaliseNutricionalPage() {
 						<CardContent className="space-y-3">
 							{aiAnalysis.buyingTips.map((tip, index) => (
 								<div key={index} className="flex gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800">
-									<div className="flex-shrink-0 mt-1">
-										<div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-											<ShoppingBag className="h-4 w-4 text-purple-600" />
+									<div className="shrink-0 mt-1">
+										<div className="size-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+											<ShoppingBag className="size-4 text-purple-600" />
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed">{tip}</p>
@@ -374,7 +374,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<ThermometerSnowflake className="h-5 w-5 text-cyan-600" />
+								<ThermometerSnowflake className="size-5 text-cyan-600" />
 								Como Armazenar
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -386,9 +386,9 @@ export default function AnaliseNutricionalPage() {
 						<CardContent className="space-y-3">
 							{aiAnalysis.storageTips.map((tip, index) => (
 								<div key={index} className="flex gap-3 p-4 rounded-lg bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800">
-									<div className="flex-shrink-0 mt-1">
-										<div className="h-8 w-8 rounded-full bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
-											<Package className="h-4 w-4 text-cyan-600" />
+									<div className="shrink-0 mt-1">
+										<div className="size-8 rounded-full bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
+											<Package className="size-4 text-cyan-600" />
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed">{tip}</p>
@@ -401,7 +401,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Clock className="h-5 w-5 text-orange-600" />
+								<Clock className="size-5 text-orange-600" />
 								Quanto Tempo Dura
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -412,9 +412,9 @@ export default function AnaliseNutricionalPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="flex gap-3 p-4 rounded-lg bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800">
-								<div className="flex-shrink-0 mt-1">
-									<div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-										<Clock className="h-5 w-5 text-orange-600" />
+								<div className="shrink-0 mt-1">
+									<div className="size-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+										<Clock className="size-5 text-orange-600" />
 									</div>
 								</div>
 								<p className="text-lg font-medium leading-relaxed">{aiAnalysis.shelfLife}</p>
@@ -426,7 +426,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<ChefHat className="h-5 w-5 text-pink-600" />
+								<ChefHat className="size-5 text-pink-600" />
 								O que fazer com os restos de comida
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
@@ -438,9 +438,9 @@ export default function AnaliseNutricionalPage() {
 						<CardContent className="space-y-3">
 							{aiAnalysis.leftoversIdeas.map((idea, index) => (
 								<div key={index} className="flex gap-3 p-4 rounded-lg bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800">
-									<div className="flex-shrink-0 mt-1">
-										<div className="h-8 w-8 rounded-full bg-pink-100 dark:bg-pink-900 flex items-center justify-center">
-											<ChefHat className="h-4 w-4 text-pink-600" />
+									<div className="shrink-0 mt-1">
+										<div className="size-8 rounded-full bg-pink-100 dark:bg-pink-900 flex items-center justify-center">
+											<ChefHat className="size-4 text-pink-600" />
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed">{idea}</p>
@@ -455,9 +455,9 @@ export default function AnaliseNutricionalPage() {
 			<Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950">
 				<CardContent className="p-6">
 					<div className="flex gap-4">
-						<div className="flex-shrink-0">
-							<div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-								<Info className="h-5 w-5 text-amber-600" />
+						<div className="shrink-0">
+							<div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+								<Info className="size-5 text-amber-600" />
 							</div>
 						</div>
 						<div className="space-y-2">

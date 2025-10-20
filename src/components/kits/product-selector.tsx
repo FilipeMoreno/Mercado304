@@ -159,7 +159,7 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds 
 										</Button>
 
 										<Button variant="ghost" size="sm" onClick={() => handleRemoveProduct(product.productId)}>
-											<X className="h-4 w-4" />
+											<X className="size-4" />
 										</Button>
 									</div>
 								</div>
@@ -173,7 +173,7 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds 
 			{selectStyle === "dialog" ? (
 				<>
 					<Button type="button" variant="outline" className="w-full" onClick={() => setOpen(true)}>
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						Adicionar Produto
 					</Button>
 
@@ -197,19 +197,19 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds 
 				<Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
 						<Button type="button" variant="outline" className="w-full">
-							<Plus className="h-4 w-4 mr-2" />
+							<Plus className="size-4 mr-2" />
 							Adicionar Produto
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent className="w-[400px] p-0" align="start">
 						<Command>
 							<div className="flex items-center border-b px-3">
-								<Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+								<Search className="mr-2 size-4 shrink-0 opacity-50" />
 								<input
 									placeholder="Buscar produtos..."
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+									className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
 								/>
 							</div>
 

@@ -85,7 +85,7 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<CalendarDays className="h-5 w-5" />
+						<CalendarDays className="size-5" />
 						Análise por Dia da Semana
 					</CardTitle>
 					<CardDescription>Melhor dia para comprar este produto</CardDescription>
@@ -113,7 +113,7 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<CalendarDays className="h-5 w-5" />
+					<CalendarDays className="size-5" />
 					Análise por Dia da Semana
 				</CardTitle>
 				<CardDescription>Melhor dia para comprar este produto</CardDescription>

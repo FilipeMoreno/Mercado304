@@ -41,7 +41,7 @@ export function RecipeGenerationSkeleton() {
 			<Card>
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Skeleton className="h-5 w-5 rounded" />
+						<Skeleton className="size-5 rounded-sm" />
 						<Skeleton className="h-6 w-48" />
 					</div>
 					<Skeleton className="h-4 w-64" />
@@ -51,9 +51,9 @@ export function RecipeGenerationSkeleton() {
 					<div className="text-center py-12">
 						<div className="flex justify-center mb-4">
 							<div className="relative">
-								<Skeleton className="h-16 w-16 rounded-full" />
+								<Skeleton className="size-16 rounded-full" />
 								<div className="absolute inset-0 flex items-center justify-center">
-									<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+									<div className="animate-spin rounded-full size-8 border-b-2 border-yellow-500"></div>
 								</div>
 							</div>
 						</div>
@@ -73,8 +73,8 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 			<div className="text-center py-8">
 				<div className="flex justify-center mb-4">
 					<div className="relative">
-						<div className="h-16 w-16 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 flex items-center justify-center">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+						<div className="size-16 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 flex items-center justify-center">
+							<div className="animate-spin rounded-full size-8 border-b-2 border-yellow-500"></div>
 						</div>
 					</div>
 				</div>
@@ -95,7 +95,7 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 			{/* Recipe cards skeleton */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				{Array.from({ length: count }).map((_, i) => (
-					<Card key={i} className="hover:shadow-md transition-shadow opacity-50">
+					<Card key={i} className="hover:shadow-md transition-shadow-sm opacity-50">
 						<CardHeader>
 							<Skeleton className="h-5 w-3/4" />
 							<Skeleton className="h-4 w-20" />
@@ -107,10 +107,10 @@ export function RecipeCardsSkeleton({ count = 3 }: { count?: number }) {
 							<div className="mb-3">
 								<Skeleton className="h-3 w-20 mb-1" />
 								<div className="flex flex-wrap gap-1">
-									<Skeleton className="h-6 w-16 rounded" />
-									<Skeleton className="h-6 w-20 rounded" />
-									<Skeleton className="h-6 w-14 rounded" />
-									<Skeleton className="h-6 w-12 rounded" />
+									<Skeleton className="h-6 w-16 rounded-sm" />
+									<Skeleton className="h-6 w-20 rounded-sm" />
+									<Skeleton className="h-6 w-14 rounded-sm" />
+									<Skeleton className="h-6 w-12 rounded-sm" />
 								</div>
 							</div>
 

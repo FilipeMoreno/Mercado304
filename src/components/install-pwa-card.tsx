@@ -127,7 +127,7 @@ export function InstallPWACard() {
 							</button>
 						)}
 						<div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
-							<Download className="h-5 w-5 text-primary" />
+							<Download className="size-5 text-primary" />
 						</div>
 						<div>
 							<CardTitle className="text-lg">Instale o App Mercado304</CardTitle>
@@ -138,10 +138,10 @@ export function InstallPWACard() {
 						variant="ghost"
 						size="icon"
 						onClick={handleDismiss}
-						className="h-8 w-8 -mt-1 -mr-1"
+						className="size-8 -mt-1 -mr-1"
 						title="Dispensar"
 					>
-						<X className="h-4 w-4" />
+						<X className="size-4" />
 					</Button>
 				</div>
 			</CardHeader>
@@ -185,7 +185,7 @@ export function InstallPWACard() {
 							className="w-full bg-primary hover:bg-primary/90"
 							size="lg"
 						>
-							<Download className="mr-2 h-5 w-5" />
+							<Download className="mr-2 size-5" />
 							Instalar Agora com 1 Clique
 						</Button>
 					)}
@@ -195,7 +195,7 @@ export function InstallPWACard() {
 						<>
 						<div className="text-sm">
 							<p className="font-medium mb-2 flex items-center gap-2">
-								{platform === "ios" ? <Smartphone className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+								{platform === "ios" ? <Smartphone className="size-4" /> : <Monitor className="size-4" />}
 								Como instalar:
 							</p>
 							{platform === "ios" ? (

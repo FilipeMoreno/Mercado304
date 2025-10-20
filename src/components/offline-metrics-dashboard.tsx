@@ -169,11 +169,11 @@ export function OfflineMetricsDashboard() {
 				{["total", "size", "hitrate", "sync"].map((key) => (
 					<Card key={key} className="animate-pulse">
 						<CardHeader className="pb-2">
-							<div className="h-4 bg-gray-200 rounded w-24" />
+							<div className="h-4 bg-gray-200 rounded-sm w-24" />
 						</CardHeader>
 						<CardContent>
-							<div className="h-8 bg-gray-200 rounded w-16 mb-2" />
-							<div className="h-3 bg-gray-200 rounded w-32" />
+							<div className="h-8 bg-gray-200 rounded-sm w-16 mb-2" />
+							<div className="h-3 bg-gray-200 rounded-sm w-32" />
 						</CardContent>
 					</Card>
 				))}
@@ -188,7 +188,7 @@ export function OfflineMetricsDashboard() {
 				<Card>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<Database className="h-4 w-4 text-blue-600" />
+							<Database className="size-4 text-blue-600" />
 							Total de Itens
 						</CardTitle>
 					</CardHeader>
@@ -201,7 +201,7 @@ export function OfflineMetricsDashboard() {
 				<Card>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<HardDrive className="h-4 w-4 text-purple-600" />
+							<HardDrive className="size-4 text-purple-600" />
 							Tamanho do Cache
 						</CardTitle>
 					</CardHeader>
@@ -214,7 +214,7 @@ export function OfflineMetricsDashboard() {
 				<Card>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<Zap className="h-4 w-4 text-yellow-600" />
+							<Zap className="size-4 text-yellow-600" />
 							Taxa de Hit
 						</CardTitle>
 					</CardHeader>
@@ -228,7 +228,7 @@ export function OfflineMetricsDashboard() {
 				<Card>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<RefreshCw className="h-4 w-4 text-green-600" />
+							<RefreshCw className="size-4 text-green-600" />
 							Última Sincronização
 						</CardTitle>
 					</CardHeader>
@@ -257,11 +257,11 @@ export function OfflineMetricsDashboard() {
 						</div>
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" onClick={handleRefresh}>
-								<RefreshCw className="h-4 w-4 mr-2" />
+								<RefreshCw className="size-4 mr-2" />
 								Atualizar
 							</Button>
 							<Button variant="destructive" size="sm" onClick={handleClearCache}>
-								<Trash2 className="h-4 w-4 mr-2" />
+								<Trash2 className="size-4 mr-2" />
 								Limpar Cache
 							</Button>
 						</div>
@@ -286,7 +286,7 @@ export function OfflineMetricsDashboard() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<TrendingUp className="h-5 w-5 text-green-600" />
+						<TrendingUp className="size-5 text-green-600" />
 						Dicas de Performance
 					</CardTitle>
 				</CardHeader>

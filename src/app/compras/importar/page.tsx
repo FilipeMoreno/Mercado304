@@ -283,9 +283,9 @@ export default function ImportarCompraPage() {
 							<motion.div
 								animate={{ rotate: 360 }}
 								transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-								className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center"
+								className="mx-auto size-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center"
 							>
-								<Loader2 className="h-8 w-8 text-white" />
+								<Loader2 className="size-8 text-white" />
 							</motion.div>
 							<div>
 								<h2 className="text-xl font-semibold text-foreground">Processando Nota Fiscal</h2>
@@ -327,7 +327,7 @@ export default function ImportarCompraPage() {
 												transition={{ delay: i * 0.1 }}
 											>
 												<div className="flex items-center space-x-3">
-													<Skeleton className="h-12 w-12 rounded-lg" />
+													<Skeleton className="size-12 rounded-lg" />
 													<div>
 														<Skeleton className="h-5 w-40 mb-2" />
 														<Skeleton className="h-4 w-24" />
@@ -359,8 +359,8 @@ export default function ImportarCompraPage() {
 					>
 						{/* Header */}
 						<div className="text-center space-y-2">
-							<div className="mx-auto w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-								<ShoppingCart className="h-6 w-6 text-green-600" />
+							<div className="mx-auto size-12 bg-green-100 rounded-xl flex items-center justify-center">
+								<ShoppingCart className="size-6 text-green-600" />
 							</div>
 							<h2 className="text-xl font-semibold">Revisar Compra</h2>
 							<p className="text-muted-foreground">Confirme os dados da sua compra antes de salvar</p>
@@ -451,8 +451,8 @@ export default function ImportarCompraPage() {
 									onClick={() => setIsScannerOpen(true)}
 								>
 									<CardContent className="p-6 text-center space-y-4">
-										<div className="mx-auto w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-											<QrCode className="h-6 w-6 text-blue-600" />
+										<div className="mx-auto size-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+											<QrCode className="size-6 text-blue-600" />
 										</div>
 										<div>
 											<h3 className="font-semibold text-lg mb-2">Escanear QR Code</h3>
@@ -467,7 +467,7 @@ export default function ImportarCompraPage() {
 												setIsScannerOpen(true)
 											}}
 										>
-											<Scan className="h-4 w-4 mr-2" />
+											<Scan className="size-4 mr-2" />
 											Iniciar Scanner
 										</Button>
 									</CardContent>
@@ -480,8 +480,8 @@ export default function ImportarCompraPage() {
 									onClick={() => setIsFiscalReceiptScannerOpen(true)}
 								>
 									<CardContent className="p-6 text-center space-y-4">
-										<div className="mx-auto w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-											<Camera className="h-6 w-6 text-green-600" />
+										<div className="mx-auto size-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+											<Camera className="size-6 text-green-600" />
 										</div>
 										<div>
 											<h3 className="font-semibold text-lg mb-2">Fotografar Cupom</h3>
@@ -497,7 +497,7 @@ export default function ImportarCompraPage() {
 												setIsFiscalReceiptScannerOpen(true)
 											}}
 										>
-											<Camera className="h-4 w-4 mr-2" />
+											<Camera className="size-4 mr-2" />
 											Fotografar
 										</Button>
 									</CardContent>
@@ -510,26 +510,26 @@ export default function ImportarCompraPage() {
 							<Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-100">
 								<CardContent className="p-6">
 									<div className="flex items-center gap-3 mb-4">
-										<ShoppingCart className="h-5 w-5 text-blue-600" />
+										<ShoppingCart className="size-5 text-blue-600" />
 										<h3 className="font-semibold text-blue-900">O que acontece após importar?</h3>
 									</div>
 									<div className="grid sm:grid-cols-3 gap-4 text-sm">
 										<div className="flex items-start gap-2">
-											<div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+											<div className="w-2 h-2 bg-blue-500 rounded-full mt-2 shrink-0" />
 											<div>
 												<p className="font-medium text-blue-800">Produtos Identificados</p>
 												<p className="text-blue-600">Reconhecemos automaticamente os produtos da sua compra</p>
 											</div>
 										</div>
 										<div className="flex items-start gap-2">
-											<div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+											<div className="w-2 h-2 bg-purple-500 rounded-full mt-2 shrink-0" />
 											<div>
 												<p className="font-medium text-purple-800">Estoque Atualizado</p>
 												<p className="text-purple-600">Seus produtos são adicionados automaticamente ao estoque</p>
 											</div>
 										</div>
 										<div className="flex items-start gap-2">
-											<div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+											<div className="w-2 h-2 bg-green-500 rounded-full mt-2 shrink-0" />
 											<div>
 												<p className="font-medium text-green-800">Histórico Salvo</p>
 												<p className="text-green-600">Mantemos o registro completo da sua compra</p>
@@ -546,7 +546,7 @@ export default function ImportarCompraPage() {
 								<Card className="border-dashed border-2 border-amber-200 bg-amber-50/50">
 									<CardContent className="p-6 space-y-4">
 										<div className="flex items-center gap-2">
-											<TestTube2 className="h-5 w-5 text-amber-600" />
+											<TestTube2 className="size-5 text-amber-600" />
 											<h4 className="font-semibold text-amber-800">Modo Desenvolvedor</h4>
 										</div>
 										<p className="text-sm text-amber-700">
@@ -568,7 +568,7 @@ export default function ImportarCompraPage() {
 												className="w-full bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-200"
 												onClick={handleManualSubmit}
 											>
-												<Upload className="h-4 w-4 mr-2" />
+												<Upload className="size-4 mr-2" />
 												Importar Manualmente
 											</Button>
 										</div>
@@ -588,7 +588,7 @@ export default function ImportarCompraPage() {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-2xl font-bold flex items-center gap-2">
-							<Receipt className="h-6 w-6 text-blue-600" />
+							<Receipt className="size-6 text-blue-600" />
 							Importar Compra
 						</h1>
 						<p className="text-sm text-muted-foreground mt-1">

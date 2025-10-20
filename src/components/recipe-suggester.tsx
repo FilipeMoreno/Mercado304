@@ -65,7 +65,7 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 	return (
 		<>
 			<Button onClick={handleSuggestRecipes} variant="outline">
-				<Utensils className="h-4 w-4 mr-2" />
+				<Utensils className="size-4 mr-2" />
 				{buttonText}
 			</Button>
 
@@ -73,7 +73,7 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 				<DialogContent className="max-w-2xl">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<Lightbulb className="h-5 w-5 text-yellow-500" />
+							<Lightbulb className="size-5 text-yellow-500" />
 							Sugestões do Chefe Virtual
 						</DialogTitle>
 						<DialogDescription>Clique em uma receita para ver os detalhes completos.</DialogDescription>
@@ -81,7 +81,7 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 					<div className="max-h-[60vh] overflow-y-auto pr-4">
 						{loading ? (
 							<div className="flex flex-col items-center justify-center h-48">
-								<Loader2 className="h-8 w-8 animate-spin text-primary" />
+								<Loader2 className="size-8 animate-spin text-primary" />
 								<p className="mt-4 text-muted-foreground">Buscando receitas criativas...</p>
 							</div>
 						) : suggestions.length > 0 ? (
@@ -89,7 +89,7 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 								{suggestions.map((sug, index) => (
 									<div
 										key={index}
-										className="p-4 border rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+										className="p-4 border rounded-lg cursor-pointer hover:shadow-md transition-shadow-sm"
 										onClick={() => viewRecipe(sug)}
 									>
 										<div className="flex justify-between items-start">
@@ -104,7 +104,7 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 											<p className="text-xs font-semibold">Ingredientes Principais:</p>
 											<div className="flex flex-wrap gap-1 mt-1">
 												{sug.ingredientes.slice(0, 3).map((ing) => (
-													<span key={ing} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
+													<span key={ing} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-sm">
 														{ing.split(" de ")[1] || ing}
 													</span>
 												))}

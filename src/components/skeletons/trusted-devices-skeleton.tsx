@@ -18,7 +18,7 @@ export function TrustedDevicesSkeleton() {
               className="flex items-start justify-between p-4 border rounded-lg"
             >
               <div className="flex items-start gap-3 flex-1">
-                <Skeleton className="h-5 w-5 mt-1" />
+                <Skeleton className="size-5 mt-1" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-48" />
                   <Skeleton className="h-3 w-32" />
@@ -26,7 +26,7 @@ export function TrustedDevicesSkeleton() {
                   <Skeleton className="h-3 w-36" />
                 </div>
               </div>
-              <Skeleton className="h-8 w-8" />
+              <Skeleton className="size-8" />
             </div>
           ))}
         </div>

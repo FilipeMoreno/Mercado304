@@ -30,7 +30,7 @@ export function StockSkeleton() {
 					<Skeleton className="h-10 w-full" />
 				</div>
 				<div className="flex gap-2">
-					<Skeleton className="h-10 w-10" />
+					<Skeleton className="size-10" />
 					<Skeleton className="h-10 w-24" />
 					<Skeleton className="h-10 w-36" />
 				</div>
@@ -76,8 +76,8 @@ export function StockSkeleton() {
 									<Skeleton className="h-4 w-1/2" />
 								</div>
 								<div className="flex gap-1">
-									<Skeleton className="h-8 w-8" />
-									<Skeleton className="h-8 w-8" />
+									<Skeleton className="size-8" />
+									<Skeleton className="size-8" />
 								</div>
 							</div>
 						</CardHeader>
@@ -104,7 +104,7 @@ export function StockSkeleton() {
 				<Skeleton className="h-8 w-20" />
 				<div className="flex gap-1">
 					{Array.from({ length: 3 }).map((_, i) => (
-						<Skeleton key={i} className="h-8 w-8" />
+						<Skeleton key={i} className="size-8" />
 					))}
 				</div>
 				<Skeleton className="h-8 w-20" />

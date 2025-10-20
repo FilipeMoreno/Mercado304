@@ -65,7 +65,7 @@ export function DiscountStatsCard({ discountStats, isLoading }: DiscountStatsCar
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Percent className="h-5 w-5 text-green-600" />
+            <Percent className="size-5 text-green-600" />
             Estatísticas de Descontos
           </CardTitle>
           <CardDescription>
@@ -92,12 +92,12 @@ export function DiscountStatsCard({ discountStats, isLoading }: DiscountStatsCar
           {/* Estatísticas Detalhadas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2 flex-wrap">
-              <TrendingDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <TrendingDown className="size-4 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">Média por desconto:</span>
               <span className="font-medium dark:text-gray-200">{formatCurrency(discountStats.averageDiscount)}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Percent className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Percent className="size-4 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">com desconto:</span>
               <span className="font-medium dark:text-gray-200">{formatPercentage(discountStats.discountPercentage)}</span>
             </div>
@@ -107,7 +107,7 @@ export function DiscountStatsCard({ discountStats, isLoading }: DiscountStatsCar
           {discountStats.topDiscountMarkets.length > 0 && (
             <div>
               <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <Store className="h-4 w-4" />
+                <Store className="size-4" />
                 Mercados com Mais Descontos
               </h4>
               <div className="space-y-2">
@@ -132,7 +132,7 @@ export function DiscountStatsCard({ discountStats, isLoading }: DiscountStatsCar
           {discountStats.monthlyDiscounts.length > 0 && (
             <div>
               <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+                <Calendar className="size-4" />
                 Descontos por Mês
               </h4>
               <div className="space-y-2">

@@ -13,7 +13,7 @@ export default function ChurrascoPage() {
 				className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
 			>
 				<div className="flex items-center gap-4">
-					<Flame className="h-8 w-8 text-orange-600" />
+					<Flame className="size-8 text-orange-600" />
 					<div>
 						<motion.h1
 							initial={{ opacity: 0, x: -20 }}

@@ -191,7 +191,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		return (
 			<Card>
 				<CardContent className="text-center py-12">
-					<ShoppingCart className="h-12 w-12 mx-auto text-red-400 mb-4" />
+					<ShoppingCart className="size-12 mx-auto text-red-400 mb-4" />
 					<h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar compras</h3>
 					<p className="text-gray-600 mb-4">Ocorreu um erro ao buscar os dados. Tente recarregar a página.</p>
 				</CardContent>
@@ -265,7 +265,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				className="flex items-center gap-2 mb-6"
 			>
 				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 					<Input
 						placeholder="Buscar produtos..."
 						value={state.search as string}
@@ -286,7 +286,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						}}
 					/>
 					<Button onClick={() => router.push("/compras/nova")} className="bg-green-600 hover:bg-green-700 text-white">
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						<span className="hidden sm:inline">Nova Compra</span>
 						<span className="sm:hidden">Nova</span>
 					</Button>
@@ -298,7 +298,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 					<Empty className="border border-dashed py-12">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<ShoppingCart className="h-6 w-6" />
+								<ShoppingCart className="size-6" />
 							</EmptyMedia>
 							<EmptyTitle>{hasActiveFilters ? "Nenhuma compra encontrada" : "Nenhuma compra cadastrada"}</EmptyTitle>
 							<EmptyDescription>
@@ -315,7 +315,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											updateSingleValue("page", 1)
 										}}
 									>
-										<Filter className="h-4 w-4 mr-2" />
+										<Filter className="size-4 mr-2" />
 										Limpar Filtros
 									</Button>
 								)}
@@ -323,7 +323,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 									onClick={() => router.push("/compras/nova")}
 									className="bg-green-600 hover:bg-green-700 text-white"
 								>
-									<Plus className="h-4 w-4 mr-2" />
+									<Plus className="size-4 mr-2" />
 									Nova Compra
 								</Button>
 							</div>
@@ -355,13 +355,13 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 										transition={{ delay: index * 0.05 }}
 										className="h-full"
 									>
-										<Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+										<Card className="h-full flex flex-col hover:shadow-md transition-shadow-sm">
 											<CardHeader className="flex-1 pb-3">
 												<div className="flex flex-col gap-3">
 													{/* Cabeçalho */}
 													<div className="flex justify-between items-start">
 														<CardTitle className="flex items-center gap-2 text-base md:text-lg">
-															<ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
+															<ShoppingCart className="size-4 md:h-5 md:w-5" />
 															{purchase.market?.name}
 														</CardTitle>
 														<div className="text-right">
@@ -400,19 +400,19 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 														className="flex-1"
 														onClick={() => viewPurchaseDetails(purchase)}
 													>
-														<Eye className="h-4 w-4 mr-2" />
+														<Eye className="size-4 mr-2" />
 														Ver Detalhes
 													</Button>
 													<DropdownMenu>
 														<DropdownMenuTrigger asChild>
 															<Button variant="outline" size="sm">
-																<MoreVertical className="h-4 w-4" />
+																<MoreVertical className="size-4" />
 															</Button>
 														</DropdownMenuTrigger>
 														<DropdownMenuContent align="end">
 															<DropdownMenuItem asChild>
 																<Link href={`/compras/editar/${purchase.id}`} className="cursor-pointer">
-																	<Edit className="h-4 w-4 mr-2" />
+																	<Edit className="size-4 mr-2" />
 																	Editar
 																</Link>
 															</DropdownMenuItem>
@@ -421,7 +421,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 																onClick={() => openDeleteConfirm(purchase)}
 																className="text-destructive focus:text-destructive cursor-pointer"
 															>
-																<Trash2 className="h-4 w-4 mr-2" />
+																<Trash2 className="size-4 mr-2" />
 																Excluir
 															</DropdownMenuItem>
 														</DropdownMenuContent>
@@ -442,7 +442,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 									onClick={() => handlePageChange((state.page as number) - 1)}
 									disabled={state.page === 1}
 								>
-									<ChevronLeft className="h-4 w-4" />
+									<ChevronLeft className="size-4" />
 									Anterior
 								</Button>
 								<div className="flex gap-1">
@@ -457,7 +457,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 													variant={state.page === page ? "default" : "outline"}
 													size="sm"
 													onClick={() => handlePageChange(page)}
-													className="w-8 h-8 p-0"
+													className="size-8 p-0"
 												>
 													{page}
 												</Button>
@@ -471,7 +471,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 									disabled={state.page === totalPages}
 								>
 									Próxima
-									<ChevronRight className="h-4 w-4" />
+									<ChevronRight className="size-4" />
 								</Button>
 							</div>
 						)}
@@ -488,8 +488,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				{detailsLoading ? (
 					<div className="space-y-4">
 						<div className="animate-pulse space-y-2">
-							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-							<div className="h-4 bg-gray-200 rounded w-1/2"></div>
+							<div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
+							<div className="h-4 bg-gray-200 rounded-sm w-1/2"></div>
 						</div>
 					</div>
 				) : purchaseDetails && !detailsLoading ? (
@@ -511,7 +511,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							<h4 className="font-medium mb-3">Itens da Compra</h4>
 							<div className="space-y-2 max-h-60 overflow-y-auto">
 								{purchaseDetails.items?.map((item: any, index: number) => (
-									<div key={item.id ?? `${index}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+									<div key={item.id ?? `${index}`} className="flex justify-between items-center p-2 bg-gray-50 rounded-sm">
 										<div>
 											<p className="font-medium">
 												{item.product?.name || item.productName}
@@ -572,7 +572,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				cancelText="Cancelar"
 				confirmVariant="destructive"
 				isLoading={deletePurchaseMutation.isPending}
-				icon={<Trash2 className="h-8 w-8 text-red-500" />}
+				icon={<Trash2 className="size-8 text-red-500" />}
 			>
 				<p className="text-lg font-medium">
 					Tem certeza que deseja excluir esta compra de <strong>{deleteState.item?.market?.name}</strong>?

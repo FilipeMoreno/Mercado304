@@ -29,19 +29,19 @@ export function SecurityNotifications() {
 	const getNotificationIcon = (type: string) => {
 		switch (type) {
 			case "new_device":
-				return <Smartphone className="h-5 w-5 text-blue-500" />
+				return <Smartphone className="size-5 text-blue-500" />
 			case "password_changed":
-				return <Shield className="h-5 w-5 text-green-500" />
+				return <Shield className="size-5 text-green-500" />
 			case "2fa_disabled":
-				return <AlertTriangle className="h-5 w-5 text-orange-500" />
+				return <AlertTriangle className="size-5 text-orange-500" />
 			case "suspicious_login":
-				return <AlertTriangle className="h-5 w-5 text-red-500" />
+				return <AlertTriangle className="size-5 text-red-500" />
 			case "account_locked":
-				return <Lock className="h-5 w-5 text-red-600" />
+				return <Lock className="size-5 text-red-600" />
 			case "account_unlocked":
-				return <Unlock className="h-5 w-5 text-green-600" />
+				return <Unlock className="size-5 text-green-600" />
 			default:
-				return <Bell className="h-5 w-5 text-gray-500" />
+				return <Bell className="size-5 text-gray-500" />
 		}
 	}
 
@@ -77,7 +77,7 @@ export function SecurityNotifications() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Bell className="h-5 w-5" />
+						<Bell className="size-5" />
 						Notificações de Segurança
 					</CardTitle>
 				</CardHeader>
@@ -85,10 +85,10 @@ export function SecurityNotifications() {
 					<div className="space-y-3">
 						{[1, 2, 3].map((i) => (
 							<div key={i} className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-								<div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+								<div className="size-10 rounded-full bg-muted animate-pulse" />
 								<div className="flex-1 space-y-2">
-									<div className="h-4 bg-muted rounded animate-pulse w-32" />
-									<div className="h-3 bg-muted rounded animate-pulse w-48" />
+									<div className="h-4 bg-muted rounded-sm animate-pulse w-32" />
+									<div className="h-3 bg-muted rounded-sm animate-pulse w-48" />
 								</div>
 							</div>
 						))}
@@ -104,7 +104,7 @@ export function SecurityNotifications() {
 				<div className="flex items-center justify-between">
 					<div>
 						<CardTitle className="flex items-center gap-2">
-							<Bell className="h-5 w-5" />
+							<Bell className="size-5" />
 							Notificações de Segurança
 							{unreadCount > 0 && (
 								<Badge variant="destructive" className="ml-2">
@@ -123,7 +123,7 @@ export function SecurityNotifications() {
 									onClick={() => markAllAsReadMutation.mutate()}
 									disabled={markAllAsReadMutation.isPending}
 								>
-									<CheckCheck className="h-4 w-4 mr-1" />
+									<CheckCheck className="size-4 mr-1" />
 									Marcar todas como lidas
 								</Button>
 							)}
@@ -135,7 +135,7 @@ export function SecurityNotifications() {
 									disabled={deleteAllReadMutation.isPending}
 									className="text-red-600 hover:text-red-700"
 								>
-									<Trash2 className="h-4 w-4 mr-1" />
+									<Trash2 className="size-4 mr-1" />
 									Limpar lidas
 								</Button>
 							)}
@@ -146,7 +146,7 @@ export function SecurityNotifications() {
 			<CardContent>
 				{notifications.length === 0 ? (
 					<div className="text-center py-8">
-						<Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+						<Bell className="size-12 mx-auto text-muted-foreground/50 mb-3" />
 						<p className="text-muted-foreground">Nenhuma notificação de segurança</p>
 						<p className="text-sm text-muted-foreground mt-1">
 							Você será notificado sobre eventos importantes da sua conta

@@ -33,7 +33,7 @@ const LupaHeader = ({ className }: { className?: string }) => (
 			strokeWidth="3"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="h-7 w-7 flex-shrink-0"
+			className="h-7 w-7 shrink-0"
 		>
 			<circle cx="11" cy="11" r="8" />
 			<line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -127,7 +127,7 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 			<div className="inline-flex flex-col font-sans">
 				<div className="flex items-stretch">
 					<LupaHeader className="border-r-0" />
-					<NutrientBlock nutrient={warnings[0]} className="flex-grow" />
+					<NutrientBlock nutrient={warnings[0]} className="grow" />
 				</div>
 				{warnings.slice(1).map((warning) => (
 					<NutrientBlock key={warning} nutrient={warning} className="-mt-[2px]" />

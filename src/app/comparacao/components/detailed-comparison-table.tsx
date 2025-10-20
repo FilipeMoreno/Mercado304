@@ -107,14 +107,14 @@ export function DetailedComparisonTable({ detailedComparison }: DetailedComparis
 							{productItem.comparison.map((comp) => {
 								const market = detailedComparison.markets.find(m => m.id === comp.marketId)
 								return (
-									<div key={comp.marketId} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+									<div key={comp.marketId} className="flex justify-between items-center p-2 bg-gray-50 rounded-sm">
 										<div className="flex-1 min-w-0">
 											<div className="font-medium text-sm truncate">{market?.name}</div>
 											{market?.location && (
 												<div className="text-xs text-gray-500 truncate">{market.location}</div>
 											)}
 										</div>
-										<div className="text-right flex-shrink-0 ml-2">
+										<div className="text-right shrink-0 ml-2">
 											{comp.price !== null ? (
 												<div className="flex flex-col">
 													<span

@@ -192,17 +192,17 @@ function SyncStatusIndicator({ collapsed }: { collapsed: boolean }) {
 			>
 				{!isOnline ? (
 					<div className="relative">
-						<WifiOff className="h-5 w-5" />
+						<WifiOff className="size-5" />
 						{syncQueueCount > 0 && (
-							<div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+							<div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full size-4 flex items-center justify-center">
 								{syncQueueCount}
 							</div>
 						)}
 					</div>
 				) : (
 					<div className="relative">
-						<RefreshCw className="h-5 w-5 animate-spin" />
-						<div className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+						<RefreshCw className="size-5 animate-spin" />
+						<div className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] rounded-full size-4 flex items-center justify-center">
 							{syncQueueCount}
 						</div>
 					</div>
@@ -223,12 +223,12 @@ function SyncStatusIndicator({ collapsed }: { collapsed: boolean }) {
 					<div className="flex items-center gap-2">
 						{!isOnline ? (
 							<>
-								<CloudOff className="h-4 w-4 text-red-600" />
+								<CloudOff className="size-4 text-red-600" />
 								<span className="text-xs font-medium text-red-900">Modo Offline</span>
 							</>
 						) : (
 							<>
-								<RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
+								<RefreshCw className="size-4 text-blue-600 animate-spin" />
 								<span className="text-xs font-medium text-blue-900">Sincronizando</span>
 							</>
 						)}
@@ -367,13 +367,13 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 				<div className="flex items-center justify-between">
 					{!collapsed && (
 						<div className="flex items-center justify-center">
-							<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+							<ShoppingCart className="mr-2 size-8 text-blue-600" />
 							<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 						</div>
 					)}
 					{onToggleCollapse && (
 						<Button variant="ghost" size="icon" onClick={onToggleCollapse} className="ml-auto">
-							{collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+							{collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
 						</Button>
 					)}
 				</div>
@@ -409,7 +409,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 										isActive || isSubItemActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
 									)}
 								>
-									<Icon className="h-5 w-5 mr-3" />
+									<Icon className="size-5 mr-3" />
 									{item.name}
 									<ChevronRight className={cn("h-4 w-4 ml-auto transition-transform", isExpanded && "rotate-90")} />
 								</Button>
@@ -439,7 +439,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 																	: "hover:bg-muted",
 															)}
 														>
-															<SubIcon className="h-4 w-4 mr-3" />
+															<SubIcon className="size-4 mr-3" />
 															{subItem.name}
 															<ChevronRight
 																className={cn("h-3 w-3 ml-auto transition-transform", isSubExpanded && "rotate-90")}
@@ -486,7 +486,7 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 															isSubActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted",
 														)}
 													>
-														<SubIcon className="h-4 w-4 mr-3" />
+														<SubIcon className="size-4 mr-3" />
 														{subItem.name}
 													</Button>
 												</Link>
@@ -565,7 +565,7 @@ export function Sidebar() {
 						size="icon"
 						className="fixed top-4 left-4 z-50 md:hidden bg-white dark:bg-gray-900 shadow-md border border-gray-200 dark:border-gray-800"
 					>
-						<Menu className="h-4 w-4" />
+						<Menu className="size-4" />
 					</Button>
 				</SheetTrigger>
 				<SheetContent side="left" className="p-0 w-64">

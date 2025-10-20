@@ -25,7 +25,7 @@ export default async function VerifyEmailPage(
 		return (
 			<div className="flex flex-col space-y-2 text-center mb-6">
 				<div className="flex items-center justify-center mb-4">
-					<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+					<ShoppingCart className="mr-2 size-8 text-blue-600" />
 					<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 				</div>
 				<Card>
@@ -42,7 +42,7 @@ export default async function VerifyEmailPage(
 		return (
 			<div className="flex flex-col space-y-2 text-center mb-6">
 				<div className="flex items-center justify-center mb-4">
-					<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+					<ShoppingCart className="mr-2 size-8 text-blue-600" />
 					<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 				</div>
 				<Card>
@@ -67,7 +67,7 @@ export default async function VerifyEmailPage(
     return (
 		<div className="flex flex-col space-y-2 text-center mb-6">
 			<div className="flex items-center justify-center mb-4">
-				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />
+				<ShoppingCart className="mr-2 size-8 text-blue-600" />
 				<h1 className="text-2xl font-semibold text-blue-600">Mercado304</h1>
 			</div>
 			<Card>

@@ -64,7 +64,7 @@ export function MultiSelect({
 								<Badge key={option.value} variant="secondary" className="whitespace-nowrap">
 									{option.label}
 									<button
-										className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+										className="ml-1 rounded-full outline-hidden ring-offset-background focus:ring-2 focus:ring-ring-3 focus:ring-offset-2"
 										onClick={(e) => handleUnselect(e, option.value)}
 										aria-label={`Remover ${option.label}`}
 									>
@@ -81,14 +81,14 @@ export function MultiSelect({
 							<Button
 								variant="ghost"
 								size="icon"
-								className="h-6 w-6 text-muted-foreground hover:text-foreground"
+								className="size-6 text-muted-foreground hover:text-foreground"
 								onClick={handleClear}
 								aria-label="Limpar seleção"
 							>
-								<XCircle className="h-4 w-4" />
+								<XCircle className="size-4" />
 							</Button>
 						)}
-						<ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+						<ChevronDown className="size-4 shrink-0 opacity-50" />
 					</div>
 				</Button>
 			</PopoverTrigger>

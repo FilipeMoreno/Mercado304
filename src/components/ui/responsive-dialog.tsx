@@ -4,7 +4,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { ReactNode } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MobileModal } from "@/components/ui/mobile-modal"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ResponsiveDialogProps {
 	open: boolean
@@ -35,11 +35,11 @@ export function ResponsiveDialog({
 	preventScrollClose = true,
 	subtitle,
 }: ResponsiveDialogProps) {
-	const mobile = useMobile()
+	const isMobile = useIsMobile()
 
 	const handleClose = () => onOpenChange(false)
 
-	if (mobile.isTouchDevice) {
+	if (isMobile) {
 		return (
 			<MobileModal
 				isOpen={open}
@@ -68,7 +68,7 @@ export function ResponsiveDialog({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className={`${maxWidthClasses[maxWidth]} ${heightClasses}`}>
-				<DialogHeader className={maxHeight ? "flex-shrink-0" : ""}>
+				<DialogHeader className={maxHeight ? "shrink-0" : ""}>
 					{title ? (
 						<DialogTitle>{title}</DialogTitle>
 					) : (

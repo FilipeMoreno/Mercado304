@@ -258,7 +258,7 @@ export default function NovoProdutoPage() {
 			<div className="flex items-center gap-4">
 				<Link href="/produtos">
 					<Button variant="outline" size="sm">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
@@ -272,7 +272,7 @@ export default function NovoProdutoPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5" />
+							<Package className="size-5" />
 							Informações do Produto
 						</CardTitle>
 					</CardHeader>
@@ -303,7 +303,7 @@ export default function NovoProdutoPage() {
 										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 									/>
 									<Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)}>
-										<Camera className="h-4 w-4" />
+										<Camera className="size-4" />
 									</Button>
 								</div>
 								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
@@ -468,12 +468,12 @@ export default function NovoProdutoPage() {
 								>
 									{isScanning ? (
 										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											<Loader2 className="mr-2 size-4 animate-spin" />
 											Aguarde...
 										</>
 									) : (
 										<>
-											<ScanLine className="mr-2 h-4 w-4" />
+											<ScanLine className="mr-2 size-4" />
 											Escanear Rótulo
 										</>
 									)}
@@ -486,7 +486,7 @@ export default function NovoProdutoPage() {
 
 				<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={loading}>
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{loading ? "Salvando..." : "Salvar Produto"}
 					</Button>
 					<Button

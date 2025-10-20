@@ -82,11 +82,11 @@ export function ProductKitCard({
   const stockStatus = stockInfo ? getStockStatus() : null;
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow">
+    <Card className="w-full hover:shadow-md transition-shadow-sm">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
+            <Package className="size-5 text-primary" />
             <div>
               <CardTitle className="text-lg">
                 {kit.kitProduct.name}
@@ -142,7 +142,7 @@ export function ProductKitCard({
                 disabled={isLoadingStock}
                 className="w-full"
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
+                <ShoppingCart className="size-4 mr-2" />
                 {isLoadingStock ? "Carregando..." : "Ver Disponibilidade"}
               </Button>
             ) : (

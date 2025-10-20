@@ -82,7 +82,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<ShoppingCart className="h-5 w-5" />
+						<ShoppingCart className="size-5" />
 						Comparar Lista de Compras
 					</CardTitle>
 				</CardHeader>
@@ -106,7 +106,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 						</div>
 						<div className="flex items-end">
 							<Button onClick={compareList} disabled={loadingList} className="w-full sm:w-auto">
-								{loadingList ? <Loader2 className="h-4 w-4 animate-spin" /> : "Comparar"}
+								{loadingList ? <Loader2 className="size-4 animate-spin" /> : "Comparar"}
 							</Button>
 						</div>
 					</div>
@@ -118,7 +118,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<ShoppingCart className="h-5 w-5" />
+								<ShoppingCart className="size-5" />
 								{listComparison.listName}
 							</CardTitle>
 						</CardHeader>
@@ -177,7 +177,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 															<div className="text-sm text-gray-600 mt-1 space-y-1">
 																{market.location && (
 																	<div className="flex items-center gap-1">
-																		<MapPin className="h-3 w-3 flex-shrink-0" />
+																		<MapPin className="h-3 w-3 shrink-0" />
 																		<span className="truncate">{market.location}</span>
 																	</div>
 																)}
@@ -186,7 +186,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 																</div>
 															</div>
 														</div>
-														<div className="text-right flex-shrink-0">
+														<div className="text-right shrink-0">
 															<div className="text-lg sm:text-xl font-bold">R$ {market.totalPrice.toFixed(2)}</div>
 															{market.savings > 0 && (
 																<div className="text-sm text-green-600">
@@ -195,9 +195,9 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 															)}
 															<Button variant="ghost" size="icon" className="h-auto w-auto mt-2">
 																{isExpanded ? (
-																	<ChevronUp className="h-4 w-4" />
+																	<ChevronUp className="size-4" />
 																) : (
-																	<ChevronDown className="h-4 w-4" />
+																	<ChevronDown className="size-4" />
 																)}
 															</Button>
 														</div>
@@ -217,9 +217,9 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 																	>
 																		<div className="flex items-center gap-2 flex-1 min-w-0">
 																			{item.available ? (
-																				<ShoppingCart className="h-4 w-4 text-green-500 flex-shrink-0" />
+																				<ShoppingCart className="size-4 text-green-500 shrink-0" />
 																			) : (
-																				<X className="h-4 w-4 text-red-500 flex-shrink-0" />
+																				<X className="size-4 text-red-500 shrink-0" />
 																			)}
 																			<div className="min-w-0 flex-1">
 																				<div className="font-medium truncate">{item.productName}</div>
@@ -230,7 +230,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 																				)}
 																			</div>
 																		</div>
-																		<div className="text-right flex-shrink-0">
+																		<div className="text-right shrink-0">
 																			<div className="font-semibold">
 																				{item.unitPrice ? `R$ ${item.totalPrice.toFixed(2)}` : "Não Encontrado"}
 																			</div>

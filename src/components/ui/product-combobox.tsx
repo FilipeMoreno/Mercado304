@@ -147,7 +147,7 @@ export function ProductCombobox({
 							})()
 							: placeholder}
 					</span>
-					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[60]" sideOffset={4}>
@@ -161,7 +161,7 @@ export function ProductCombobox({
 					>
 						{isLoading && options.length === 0 ? (
 							<div className="py-6 text-center text-sm">
-								<Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+								<Loader2 className="size-4 animate-spin mx-auto mb-2" />
 								<p className="text-muted-foreground">Carregando produtos...</p>
 							</div>
 						) : options.length === 0 ? (
@@ -222,7 +222,7 @@ export function ProductCombobox({
 									))}
 									{isFetchingNextPage && (
 										<div className="py-2 text-center">
-											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
+											<Loader2 className="size-4 animate-spin mx-auto" />
 											<p className="text-xs text-muted-foreground mt-1">Carregando mais produtos...</p>
 										</div>
 									)}

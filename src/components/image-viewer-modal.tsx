@@ -54,7 +54,7 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 							onClick={handleZoomOut}
 							disabled={zoom <= 0.25}
 						>
-							<ZoomOut className="h-4 w-4" />
+							<ZoomOut className="size-4" />
 						</Button>
 						<span className="text-sm font-medium min-w-[60px] text-center">
 							{Math.round(zoom * 100)}%
@@ -65,21 +65,21 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 							onClick={handleZoomIn}
 							disabled={zoom >= 3}
 						>
-							<ZoomIn className="h-4 w-4" />
+							<ZoomIn className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
 							onClick={handleRotate}
 						>
-							<RotateCw className="h-4 w-4" />
+							<RotateCw className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
 							onClick={handleDownload}
 						>
-							<Download className="h-4 w-4" />
+							<Download className="size-4" />
 						</Button>
 						<Button
 							variant="outline"
@@ -94,7 +94,7 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 						size="sm"
 						onClick={onClose}
 					>
-						<X className="h-4 w-4" />
+						<X className="size-4" />
 					</Button>
 				</div>
 

@@ -28,7 +28,7 @@ export function OfflineIndicator() {
 						transition={{ duration: 0.2 }}
 					>
 						<Alert className="shadow-lg border-2 border-blue-500 bg-blue-50">
-							<RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+							<RefreshCw className="size-4 animate-spin text-blue-600" />
 							<AlertTitle className="font-bold text-blue-900">Sincronizando</AlertTitle>
 							<AlertDescription className="space-y-2">
 								<p className="text-sm text-blue-800">{syncQueueCount} ação(ões) na fila de sincronização.</p>
@@ -64,7 +64,7 @@ export function OfflineIndicator() {
 						transition={{ duration: 0.2 }}
 					>
 						<Alert className="shadow-lg border-2 border-green-500 bg-green-50">
-							<Wifi className="h-4 w-4 text-green-600" />
+							<Wifi className="size-4 text-green-600" />
 							<AlertTitle className="font-bold text-green-900">Online</AlertTitle>
 							<AlertDescription className="text-sm text-green-800">
 								Conexão restaurada! Todos os dados estão sincronizados.
@@ -95,7 +95,7 @@ export function OfflineStatusBar() {
 			<div className="flex items-center justify-center gap-2">
 				{!isOnline ? (
 					<>
-						<CloudOff className="h-4 w-4" />
+						<CloudOff className="size-4" />
 						<span>Modo Offline</span>
 						{syncQueueCount > 0 && (
 							<Badge variant="secondary" className="bg-red-800 text-white">
@@ -105,12 +105,12 @@ export function OfflineStatusBar() {
 					</>
 				) : syncQueueCount > 0 ? (
 					<>
-						<RefreshCw className="h-4 w-4 animate-spin" />
+						<RefreshCw className="size-4 animate-spin" />
 						<span>Sincronizando {syncQueueCount} item(s)...</span>
 					</>
 				) : (
 					<>
-						<CheckCircle2 className="h-4 w-4" />
+						<CheckCircle2 className="size-4" />
 						<span>Sincronizado</span>
 					</>
 				)}

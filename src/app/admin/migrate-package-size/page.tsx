@@ -96,7 +96,7 @@ export default function MigratePackageSizePage() {
 		return (
 			<div className="container mx-auto py-8 px-4">
 				<div className="flex items-center justify-center h-64">
-					<Loader2 className="h-8 w-8 animate-spin text-primary" />
+					<Loader2 className="size-8 animate-spin text-primary" />
 				</div>
 			</div>
 		)
@@ -106,7 +106,7 @@ export default function MigratePackageSizePage() {
 		<div className="container mx-auto py-8 px-4 max-w-7xl">
 			<div className="mb-8">
 				<h1 className="text-3xl font-bold flex items-center gap-2">
-					<Package className="h-8 w-8" />
+					<Package className="size-8" />
 					Migração de Peso/Volume dos Produtos
 				</h1>
 				<p className="text-muted-foreground mt-2">
@@ -166,12 +166,12 @@ export default function MigratePackageSizePage() {
 							>
 								{applying ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<Loader2 className="mr-2 size-4 animate-spin" />
 										Aplicando...
 									</>
 								) : (
 									<>
-										<Save className="mr-2 h-4 w-4" />
+										<Save className="mr-2 size-4" />
 										Aplicar Mudanças ({selectedIds.size})
 									</>
 								)}
@@ -192,7 +192,7 @@ export default function MigratePackageSizePage() {
 			{/* Lista de Produtos */}
 			{products.length === 0 ? (
 				<Alert>
-					<CheckCircle className="h-4 w-4" />
+					<CheckCircle className="size-4" />
 					<AlertTitle>Tudo certo!</AlertTitle>
 					<AlertDescription>
 						Todos os produtos já foram analisados. Não há produtos com peso/volume no nome para migrar.
@@ -201,7 +201,7 @@ export default function MigratePackageSizePage() {
 			) : (
 				<div className="space-y-4">
 					<Alert>
-						<AlertCircle className="h-4 w-4" />
+						<AlertCircle className="size-4" />
 						<AlertTitle>Revise as alterações antes de aplicar</AlertTitle>
 						<AlertDescription>
 							Verifique se as propostas estão corretas. Você pode selecionar individualmente quais mudanças aplicar.
@@ -230,7 +230,7 @@ export default function MigratePackageSizePage() {
 											</Badge>
 										</div>
 										<CardDescription>
-											Padrão detectado: <code className="text-xs bg-muted px-1 py-0.5 rounded">{product.pattern}</code>
+											Padrão detectado: <code className="text-xs bg-muted px-1 py-0.5 rounded-sm">{product.pattern}</code>
 										</CardDescription>
 									</div>
 								</div>

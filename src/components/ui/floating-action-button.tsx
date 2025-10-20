@@ -45,7 +45,7 @@ const iconSizeClasses = {
 }
 
 export function FloatingActionButton({
-	icon = <Plus className="h-6 w-6" />,
+	icon = <Plus className="size-6" />,
 	actions = [],
 	onClick,
 	className,

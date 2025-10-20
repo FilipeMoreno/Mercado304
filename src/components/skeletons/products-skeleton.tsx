@@ -16,7 +16,7 @@ export function ProductsSkeleton() {
 					<Skeleton className="h-10 w-full" />
 				</div>
 				<div className="flex gap-2">
-					<Skeleton className="h-10 w-10" />
+					<Skeleton className="size-10" />
 					<Skeleton className="h-10 w-24" />
 					<Skeleton className="h-10 w-36" />
 				</div>
@@ -31,13 +31,13 @@ export function ProductsSkeleton() {
 			{/* Grid de Produtos */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 				{Array.from({ length: 12 }).map((_, i) => (
-					<Card key={i} className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+					<Card key={i} className="h-full flex flex-col hover:shadow-lg transition-shadow-sm duration-200">
 						<CardContent className="flex-1 flex flex-col p-4">
 							<div className="flex-1">
 								{/* Nome do produto e dropdown */}
 								<div className="flex items-start justify-between mb-2">
 									<Skeleton className="h-5 w-3/4 mr-2" />
-									<Skeleton className="h-8 w-8" />
+									<Skeleton className="size-8" />
 								</div>
 
 								{/* Badges para marca e unidade */}
@@ -63,7 +63,7 @@ export function ProductsSkeleton() {
 				<Skeleton className="h-8 w-20" />
 				<div className="flex gap-1">
 					{Array.from({ length: 5 }).map((_, i) => (
-						<Skeleton key={i} className="h-8 w-8" />
+						<Skeleton key={i} className="size-8" />
 					))}
 				</div>
 				<Skeleton className="h-8 w-20" />

@@ -12,7 +12,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
 	return (
 		<div className="flex flex-col h-full items-center justify-center text-center p-6">
-			<AlertTriangle className="h-16 w-16 text-destructive mb-4" />
+			<AlertTriangle className="size-16 text-destructive mb-4" />
 			<h2 className="text-2xl font-bold mb-2">Ocorreu um Erro</h2>
 			<p className="text-muted-foreground mb-6 max-w-md">
 				Algo deu errado e não conseguimos carregar esta parte da aplicação. Você pode tentar novamente ou voltar para a

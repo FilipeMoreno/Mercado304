@@ -80,7 +80,7 @@ export function PriceRecordSkeleton() {
 						<CardContent className="py-8">
 							<div className="space-y-4">
 								<Skeleton className="h-4 w-full" />
-								<Skeleton className="h-4 w-4/5" />
+								<Skeleton className="size-4/5" />
 								<Skeleton className="h-4 w-2/3" />
 							</div>
 						</CardContent>
@@ -113,8 +113,8 @@ export function PriceRecordSkeleton() {
 										</div>
 									</div>
 									<div className="flex gap-2">
-										<Skeleton className="h-8 w-8" />
-										<Skeleton className="h-8 w-8" />
+										<Skeleton className="size-8" />
+										<Skeleton className="size-8" />
 									</div>
 								</div>
 							))}

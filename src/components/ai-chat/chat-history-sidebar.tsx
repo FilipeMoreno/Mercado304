@@ -135,16 +135,16 @@ export function ChatHistorySidebar({
 				<div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
 					<div className="flex items-center justify-between mb-3">
 						<h2 className="text-lg font-semibold flex items-center gap-2">
-							<MessageSquare className="h-5 w-5" />
+							<MessageSquare className="size-5" />
 							Conversas
 						</h2>
 						<Button
 							variant="ghost"
 							size="icon"
 							onClick={onClose}
-							className="text-white hover:bg-white/20 h-8 w-8"
+							className="text-white hover:bg-white/20 size-8"
 						>
-							<X className="h-4 w-4" />
+							<X className="size-4" />
 						</Button>
 					</div>
 
@@ -154,7 +154,7 @@ export function ChatHistorySidebar({
 						className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30"
 						size="sm"
 					>
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						Nova Conversa
 					</Button>
 				</div>
@@ -162,7 +162,7 @@ export function ChatHistorySidebar({
 				{/* Busca */}
 				<div className="p-4 border-b border-gray-200">
 					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
 						<Input
 							placeholder="Buscar conversas..."
 							value={searchTerm}
@@ -177,7 +177,7 @@ export function ChatHistorySidebar({
 					<div className="p-2">
 						{Object.keys(groupedSessions).length === 0 ? (
 							<div className="text-center py-8 text-gray-500">
-								<MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+								<MessageSquare className="size-12 mx-auto mb-3 text-gray-300" />
 								<p className="text-sm">
 									{searchTerm ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
 								</p>
@@ -243,7 +243,7 @@ export function ChatHistorySidebar({
 														<Button
 															variant="ghost"
 															size="icon"
-															className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+															className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
 															onClick={(e) => e.stopPropagation()}
 														>
 															<MoreVertical className="h-3 w-3" />
@@ -256,7 +256,7 @@ export function ChatHistorySidebar({
 																startEditing(session)
 															}}
 														>
-															<Edit2 className="h-4 w-4 mr-2" />
+															<Edit2 className="size-4 mr-2" />
 															Renomear
 														</DropdownMenuItem>
 														<DropdownMenuSeparator />
@@ -267,7 +267,7 @@ export function ChatHistorySidebar({
 															}}
 															className="text-red-600 focus:text-red-600"
 														>
-															<Trash2 className="h-4 w-4 mr-2" />
+															<Trash2 className="size-4 mr-2" />
 															Excluir
 														</DropdownMenuItem>
 													</DropdownMenuContent>
@@ -297,7 +297,7 @@ export function ChatHistorySidebar({
 							onClick={onClearAll}
 							className="w-full text-red-600 border-red-200 hover:bg-red-50"
 						>
-							<Archive className="h-4 w-4 mr-2" />
+							<Archive className="size-4 mr-2" />
 							Limpar Histórico
 						</Button>
 					</div>

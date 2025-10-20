@@ -107,11 +107,11 @@ export default function NewProductKitPage() {
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<Button type="button" variant="ghost" size="icon" onClick={handleCancel}>
-							<ArrowLeft className="h-5 w-5" />
+							<ArrowLeft className="size-5" />
 						</Button>
 						<div>
 							<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-								<Package className="h-8 w-8 text-primary" />
+								<Package className="size-8 text-primary" />
 								Criar Novo Kit/Combo
 							</h1>
 							<p className="text-muted-foreground mt-1">Cadastre um combo promocional que o mercado oferece</p>
@@ -119,7 +119,7 @@ export default function NewProductKitPage() {
 					</div>
 
 					<Button type="submit" disabled={!isFormValid || isSubmitting} size="lg">
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{isSubmitting ? "Salvando..." : "Salvar Kit"}
 					</Button>
 				</div>
@@ -280,7 +280,7 @@ export default function NewProductKitPage() {
 						Cancelar
 					</Button>
 					<Button type="submit" disabled={!isFormValid || isSubmitting}>
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{isSubmitting ? "Salvando..." : "Salvar Kit"}
 					</Button>
 				</div>

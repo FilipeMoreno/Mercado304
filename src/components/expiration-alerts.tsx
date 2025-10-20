@@ -82,7 +82,7 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<AlertTriangle className="h-5 w-5" />
+						<AlertTriangle className="size-5" />
 						Alertas de Validade
 					</CardTitle>
 					<CardDescription>Produtos vencendo ou com estoque baixo</CardDescription>
@@ -90,7 +90,7 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 				<CardContent>
 					<div className="space-y-3 animate-pulse">
 						{[1, 2, 3].map((i) => (
-							<div key={i} className="h-16 bg-gray-200 rounded"></div>
+							<div key={i} className="h-16 bg-gray-200 rounded-sm"></div>
 						))}
 					</div>
 				</CardContent>
@@ -109,14 +109,14 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<CheckCircle className="h-5 w-5 text-green-600" />
+						<CheckCircle className="size-5 text-green-600" />
 						Estoque em Ordem
 					</CardTitle>
 					<CardDescription>Nenhum alerta de validade ou estoque</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="text-center py-8 space-y-3">
-						<Package className="h-12 w-12 text-green-400 mx-auto" />
+						<Package className="size-12 text-green-400 mx-auto" />
 						<p className="text-green-600 font-medium">
 							Todos os produtos estão dentro da validade e com estoque adequado!
 						</p>
@@ -167,15 +167,15 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 	const getAlertIcon = (alertType: string) => {
 		switch (alertType) {
 			case "expired":
-				return <AlertTriangle className="h-4 w-4 text-red-600" />
+				return <AlertTriangle className="size-4 text-red-600" />
 			case "today":
-				return <Calendar className="h-4 w-4 text-orange-600" />
+				return <Calendar className="size-4 text-orange-600" />
 			case "soon":
-				return <Clock className="h-4 w-4 text-yellow-600" />
+				return <Clock className="size-4 text-yellow-600" />
 			case "lowStock":
-				return <Package className="h-4 w-4 text-blue-600" />
+				return <Package className="size-4 text-blue-600" />
 			default:
-				return <AlertTriangle className="h-4 w-4 text-gray-600" />
+				return <AlertTriangle className="size-4 text-gray-600" />
 		}
 	}
 
@@ -202,7 +202,7 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<AlertTriangle className="h-5 w-5" />
+					<AlertTriangle className="size-5" />
 					Alertas de Validade e Estoque
 					<Badge variant="destructive" className="ml-2">
 						{data.stats.expired + data.stats.expiringToday + data.stats.expiringSoon + data.stats.lowStock}
@@ -262,7 +262,7 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 					<div className="pt-4 border-t space-y-2">
 						<h4 className="font-medium text-sm">Ações Sugeridas</h4>
 						{data.actionSuggestions.slice(0, 3).map((suggestion, index) => (
-							<div key={index} className="bg-blue-50 border border-blue-200 rounded p-3">
+							<div key={index} className="bg-blue-50 border border-blue-200 rounded-sm p-3">
 								<div className="flex items-center justify-between">
 									<div>
 										<div className="font-medium text-sm text-blue-800">{suggestion.title}</div>

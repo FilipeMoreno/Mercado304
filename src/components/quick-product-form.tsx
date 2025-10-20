@@ -79,7 +79,7 @@ export function QuickProductForm({ onClose, onProductCreated, onOpenBrandForm }:
 		<DialogContent className="max-w-md">
 			<DialogHeader>
 				<DialogTitle className="flex items-center gap-2">
-					<Zap className="h-5 w-5" />
+					<Zap className="size-5" />
 					Adicionar Produto Rápido
 				</DialogTitle>
 			</DialogHeader>
@@ -161,7 +161,7 @@ export function QuickProductForm({ onClose, onProductCreated, onOpenBrandForm }:
 
 				<div className="flex gap-2 pt-4">
 					<Button onClick={createQuickProduct} disabled={savingQuickProduct} className="flex-1">
-						<Save className="h-4 w-4 mr-2" />
+						<Save className="size-4 mr-2" />
 						{savingQuickProduct ? "Criando..." : "Criar e Usar"}
 					</Button>
 					<Button type="button" variant="outline" onClick={onClose}>

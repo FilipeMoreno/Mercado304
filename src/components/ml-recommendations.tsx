@@ -358,7 +358,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Brain className="h-5 w-5 animate-pulse" />
+						<Brain className="size-5 animate-pulse" />
 						Analisando Padrões com IA
 					</CardTitle>
 				</CardHeader>
@@ -387,7 +387,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Brain className="h-5 w-5 text-purple-500" />
+						<Brain className="size-5 text-purple-500" />
 						Recomendações IA
 						<Badge variant="secondary" className="bg-purple-100 text-purple-700">
 							ML Powered
@@ -397,7 +397,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{recommendations.map((rec, index) => (
-							<Card key={index} className="p-4 hover:shadow-md transition-shadow">
+							<Card key={index} className="p-4 hover:shadow-md transition-shadow-sm">
 								<div className="space-y-3">
 									<div className="flex items-start justify-between">
 										<div className="flex-1">
@@ -438,7 +438,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Target className="h-5 w-5 text-blue-500" />
+								<Target className="size-5 text-blue-500" />
 								Mercados Preferidos
 							</CardTitle>
 						</CardHeader>
@@ -464,7 +464,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<BarChart3 className="h-5 w-5 text-orange-500" />
+								<BarChart3 className="size-5 text-orange-500" />
 								Categorias Favoritas
 							</CardTitle>
 						</CardHeader>
@@ -498,7 +498,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Clock className="h-5 w-5 text-green-500" />
+								<Clock className="size-5 text-green-500" />
 								Frequência de Compras
 							</CardTitle>
 						</CardHeader>
@@ -528,7 +528,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<Lightbulb className="h-5 w-5 text-yellow-500" />
+								<Lightbulb className="size-5 text-yellow-500" />
 								Insights Financeiros
 							</CardTitle>
 						</CardHeader>
