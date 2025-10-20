@@ -27,8 +27,9 @@ function normalizePaymentMethod(method: string): any {
 	return mapping[normalizedMethod] || "MONEY"
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const purchase = await prisma.purchase.findUnique({
 			where: { id: params.id },
 			include: {
@@ -56,8 +57,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const body = await request.json()
 		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0 } = body
 
@@ -144,8 +146,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		await prisma.purchase.delete({
 			where: { id: params.id },
 		})

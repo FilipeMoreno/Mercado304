@@ -3,7 +3,7 @@ import API_BASE_URL from "@/lib/api"
 import { EditStockClient } from "./edit-stock-client"
 
 interface EditStockPageProps {
-	params: { id: string }
+	params: Promise<{ id: string }>
 }
 
 async function fetchStockItem(id: string) {
@@ -24,12 +24,13 @@ async function fetchProducts() {
 	return products
 }
 
-export default async function EditStockPage({ params }: EditStockPageProps) {
-	const [stockItem, products] = await Promise.all([fetchStockItem(params.id), fetchProducts()])
+export default async function EditStockPage(props: EditStockPageProps) {
+    const params = await props.params;
+    const [stockItem, products] = await Promise.all([fetchStockItem(params.id), fetchProducts()])
 
-	if (!stockItem) {
+    if (!stockItem) {
 		notFound()
 	}
 
-	return <EditStockClient stockItem={stockItem} products={products || []} />
+    return <EditStockClient stockItem={stockItem} products={products || []} />
 }

@@ -96,19 +96,17 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
-  },
   env: {
     OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    }
   }
 }
 

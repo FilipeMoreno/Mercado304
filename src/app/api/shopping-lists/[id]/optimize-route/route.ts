@@ -5,8 +5,9 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-	try {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const listId = params.id
 
 		// Buscar a lista com itens e suas relações

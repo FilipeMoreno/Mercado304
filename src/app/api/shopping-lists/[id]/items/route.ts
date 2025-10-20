@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const listId = params.id
 
 		if (!listId) {
@@ -40,8 +41,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const listId = params.id
 		const body = await request.json()
 		const {

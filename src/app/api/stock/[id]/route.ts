@@ -2,8 +2,9 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // GET - Buscar item específico do estoque
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const { id } = params
 
 		const stockItem = await prisma.stockItem.findUnique({
@@ -30,8 +31,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 }
 
 // PUT - Atualizar item do estoque
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const { id } = params
 		const data = await request.json()
 		
@@ -141,8 +143,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // DELETE - Remover item do estoque
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const { id } = params
 
 		// Verificar se item existe

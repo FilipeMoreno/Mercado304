@@ -3,11 +3,9 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
-export async function POST(
-	request: NextRequest,
-	{ params }: { params: { id: string } }
-) {
-	try {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const session = await auth.api.getSession({
 			headers: await headers(),
 		})

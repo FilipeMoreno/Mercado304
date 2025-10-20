@@ -5,22 +5,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 
-export default async function VerifyEmailPage({
-	searchParams,
-}: {
-	searchParams: { [key: string]: string | string[] | undefined }
-}) {
-	const token = searchParams.token as string
+export default async function VerifyEmailPage(
+    props: {
+        searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+    }
+) {
+    const searchParams = await props.searchParams;
+    const token = searchParams.token as string
 
-	if (!token) {
+    if (!token) {
 		return redirect("/auth/signin")
 	}
 
-	const verificationToken = await prisma.verification.findFirst({
+    const verificationToken = await prisma.verification.findFirst({
 		where: { value: token },
 	})
 
-	if (!verificationToken) {
+    if (!verificationToken) {
 		return (
 			<div className="flex flex-col space-y-2 text-center mb-6">
 				<div className="flex items-center justify-center mb-4">
@@ -37,7 +38,7 @@ export default async function VerifyEmailPage({
 		)
 	}
 
-	if (new Date() > verificationToken.expiresAt) {
+    if (new Date() > verificationToken.expiresAt) {
 		return (
 			<div className="flex flex-col space-y-2 text-center mb-6">
 				<div className="flex items-center justify-center mb-4">
@@ -54,16 +55,16 @@ export default async function VerifyEmailPage({
 		)
 	}
 
-	await prisma.user.update({
+    await prisma.user.update({
 		where: { email: verificationToken.identifier },
 		data: { emailVerified: true },
 	})
 
-	await prisma.verification.delete({
+    await prisma.verification.delete({
 		where: { id: verificationToken.id },
 	})
 
-	return (
+    return (
 		<div className="flex flex-col space-y-2 text-center mb-6">
 			<div className="flex items-center justify-center mb-4">
 				<ShoppingCart className="mr-2 h-8 w-8 text-blue-600" />

@@ -1,17 +1,19 @@
-"use client"
+"use client";
+import { use } from "react";
 
 import { motion } from "framer-motion"
 import { EstoqueClient } from "./estoque-client"
 
 interface EstoquePageProps {
-	searchParams: {
+	searchParams: Promise<{
 		location?: string
 		search?: string
-	}
+	}>
 }
 
-export default function EstoquePage({ searchParams }: EstoquePageProps) {
-	return (
+export default function EstoquePage(props: EstoquePageProps) {
+    const searchParams = use(props.searchParams);
+    return (
 		<div className="space-y-6">
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}

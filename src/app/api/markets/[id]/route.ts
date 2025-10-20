@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const market = await prisma.market.findUnique({
 			where: { id: params.id },
 		})
@@ -17,8 +18,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const body = await request.json()
 		const { name, legalName, location } = body
 
@@ -41,8 +43,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-	try {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		await prisma.market.delete({
 			where: { id: params.id },
 		})

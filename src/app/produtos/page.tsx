@@ -1,20 +1,22 @@
-"use client"
+"use client";
+import { use } from "react";
 
 import { motion } from "framer-motion"
 import { ProductsClient } from "./products-client"
 
 interface ProductsPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		category?: string
 		brand?: string
 		sort?: string
 		page?: string
-	}
+	}>
 }
 
-export default function ProdutosPage({ searchParams }: ProductsPageProps) {
-	return (
+export default function ProdutosPage(props: ProductsPageProps) {
+    const searchParams = use(props.searchParams);
+    return (
 		<div className="space-y-6">
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}

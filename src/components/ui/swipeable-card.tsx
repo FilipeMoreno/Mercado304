@@ -66,7 +66,7 @@ export function SwipeableCard({
 	const [isDragging, setIsDragging] = useState(false)
 	const [showActions, setShowActions] = useState(false)
 	const dragRef = useRef<HTMLDivElement>(null)
-	const longPressTimer = useRef<NodeJS.Timeout>()
+	const longPressTimer = useRef<NodeJS.Timeout>(undefined)
 
 	const handleDragStart = () => {
 		if (disabled) return

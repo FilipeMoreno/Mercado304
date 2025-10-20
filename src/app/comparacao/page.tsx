@@ -20,10 +20,11 @@ async function fetchInitialData() {
 	return { lists, markets, products }
 }
 
-export default async function ComparacaoPage({ searchParams }: { searchParams: { lista?: string } }) {
-	const { lists, markets, products } = await fetchInitialData()
+export default async function ComparacaoPage(props: { searchParams: Promise<{ lista?: string }> }) {
+    const searchParams = await props.searchParams;
+    const { lists, markets, products } = await fetchInitialData()
 
-	return (
+    return (
 		<div className="space-y-6">
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}

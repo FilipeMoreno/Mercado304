@@ -4,8 +4,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(_request: Request, { params }: { params: { jobId: string } }) {
-	try {
+export async function POST(_request: Request, props: { params: Promise<{ jobId: string }> }) {
+    const params = await props.params;
+    try {
 		const job = await prisma.syncJob.findUnique({
 			where: { id: params.jobId },
 		})

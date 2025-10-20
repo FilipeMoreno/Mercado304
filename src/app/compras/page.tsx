@@ -1,7 +1,7 @@
 import { PurchasesClient } from "./purchases-client"
 
 interface ComprasPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		market?: string
 		sort?: string
@@ -9,11 +9,12 @@ interface ComprasPageProps {
 		dateFrom?: string
 		dateTo?: string
 		page?: string
-	}
+	}>
 }
 
-export default async function ComprasPage({ searchParams }: ComprasPageProps) {
-	return (
+export default async function ComprasPage(props: ComprasPageProps) {
+    const searchParams = await props.searchParams;
+    return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

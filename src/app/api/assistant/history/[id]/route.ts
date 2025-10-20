@@ -8,7 +8,8 @@ import { prisma } from "@/lib/prisma"
  * GET /api/assistant/history/[id]
  * Busca uma sessão específica do assistente
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -58,7 +59,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  * PUT /api/assistant/history/[id]
  * Atualiza uma sessão existente do assistente
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -121,7 +123,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/assistant/history/[id]
  * Deleta uma sessão do assistente
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

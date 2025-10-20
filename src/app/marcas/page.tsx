@@ -1,15 +1,16 @@
 import { MarcasClient } from "./marcas-client"
 
 interface MarcasPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		sort?: string
 		page?: string
-	}
+	}>
 }
 
-export default function MarcasPage({ searchParams }: MarcasPageProps) {
-	return (
+export default async function MarcasPage(props: MarcasPageProps) {
+    const searchParams = await props.searchParams;
+    return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

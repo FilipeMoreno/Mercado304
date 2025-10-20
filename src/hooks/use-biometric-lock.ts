@@ -38,7 +38,7 @@ export function useBiometricLock() {
 		lastActivity: Date.now(),
 	})
 
-	const activityTimerRef = useRef<NodeJS.Timeout>()
+	const activityTimerRef = useRef<NodeJS.Timeout>(undefined)
 	const visibilityListenerRef = useRef<(() => void) | null>(null)
 
 	// Carrega configuração do localStorage

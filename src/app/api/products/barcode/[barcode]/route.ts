@@ -2,8 +2,9 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { normalizeBarcode } from "@/lib/barcode-utils"
 
-export async function GET(request: Request, { params }: { params: { barcode: string } }) {
-	try {
+export async function GET(request: Request, props: { params: Promise<{ barcode: string }> }) {
+    const params = await props.params;
+    try {
 		const originalBarcode = params.barcode
 		const normalizedBarcode = normalizeBarcode(originalBarcode)
 		

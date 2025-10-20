@@ -5,10 +5,8 @@ import * as productKitService from "@/services/productKitService";
  * GET /api/products/[id]/check-kits
  * Verifica se um produto está vinculado a algum kit
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const checkResult = await productKitService.checkProductInKits(params.id);
 

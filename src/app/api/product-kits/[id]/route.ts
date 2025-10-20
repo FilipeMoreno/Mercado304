@@ -5,10 +5,8 @@ import * as productKitService from "@/services/productKitService";
  * GET /api/product-kits/[id]
  * Busca os detalhes de um kit específico
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const kit = await productKitService.getProductKitWithDetails(params.id);
 
@@ -42,10 +40,8 @@ export async function GET(
  * PUT /api/product-kits/[id]
  * Atualiza um kit (descrição, barcode, brand, category, status e items)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const body = await request.json();
 
@@ -104,10 +100,8 @@ export async function PUT(
  * DELETE /api/product-kits/[id]
  * Exclui um kit (id é o kitProductId)
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // params.id é o kitProductId
     const kitProductId = params.id;

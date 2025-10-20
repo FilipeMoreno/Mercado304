@@ -5,10 +5,8 @@ import * as productKitService from "@/services/productKitService";
  * GET /api/product-kits/[id]/nutrition
  * Calcula as informações nutricionais agregadas de um kit
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const nutritionalInfo = await productKitService.calculateKitNutritionalInfo(
       params.id

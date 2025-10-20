@@ -5,10 +5,8 @@ import * as productKitService from "@/services/productKitService";
  * GET /api/product-kits/[id]/stock
  * Verifica a disponibilidade em estoque de um kit
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const stockInfo = await productKitService.checkKitStockAvailability(
       params.id
@@ -37,10 +35,8 @@ export async function GET(
  * POST /api/product-kits/[id]/stock/consume
  * Remove do estoque os produtos necessários para montar kits
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const body = await request.json();
 

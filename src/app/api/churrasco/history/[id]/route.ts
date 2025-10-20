@@ -8,7 +8,8 @@ import { prisma } from "@/lib/prisma"
  * GET /api/churrasco/history/[id]
  * Busca um cálculo específico do churrascômetro
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

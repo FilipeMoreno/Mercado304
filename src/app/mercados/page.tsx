@@ -1,15 +1,16 @@
 import { MercadosClient } from "./mercados-client"
 
 interface MercadosPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		sort?: string
 		page?: string
-	}
+	}>
 }
 
-export default function MercadosPage({ searchParams }: MercadosPageProps) {
-	return (
+export default async function MercadosPage(props: MercadosPageProps) {
+    const searchParams = await props.searchParams;
+    return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

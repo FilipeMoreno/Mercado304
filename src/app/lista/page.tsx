@@ -1,16 +1,17 @@
 import { ListaClient } from "./lista-client"
 
 interface ListaPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		sort?: string
 		page?: string
 		status?: string
-	}
+	}>
 }
 
-export default function ListaPage({ searchParams }: ListaPageProps) {
-	return (
+export default async function ListaPage(props: ListaPageProps) {
+    const searchParams = await props.searchParams;
+    return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

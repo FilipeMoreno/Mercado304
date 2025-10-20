@@ -1,15 +1,16 @@
 import { CategoriasClient } from "./categorias-client"
 
 interface CategoriasPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		search?: string
 		sort?: string
 		page?: string
-	}
+	}>
 }
 
-export default function CategoriasPage({ searchParams }: CategoriasPageProps) {
-	return (
+export default async function CategoriasPage(props: CategoriasPageProps) {
+    const searchParams = await props.searchParams;
+    return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>
