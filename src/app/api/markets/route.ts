@@ -9,7 +9,8 @@ export async function GET(request: Request) {
 		const searchTerm = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "name-asc"
 		const page = parseInt(searchParams.get("page") || "1", 10)
-		const itemsPerPage = 12
+		const limit = parseInt(searchParams.get("limit") || "12", 10)
+		const itemsPerPage = limit
 
 		const [orderBy, orderDirection] = sort.split("-")
 

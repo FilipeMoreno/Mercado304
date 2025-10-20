@@ -5,8 +5,8 @@ import { PriceRecordClient } from "./price-record-client"
 async function fetchInitialData() {
 	try {
 		const [productsRes, marketsRes] = await Promise.all([
-			fetch(`${API_BASE_URL}/products?limit=1000`, { next: { revalidate: 300 } }), // Cache por 5 minutos
-			fetch(`${API_BASE_URL}/markets`, { next: { revalidate: 300 } }), // Cache por 5 minutos
+			fetch(`${API_BASE_URL}/products?limit=10000`, { next: { revalidate: 300 } }), // Cache por 5 minutos, buscar até 10000 produtos
+			fetch(`${API_BASE_URL}/markets?limit=1000`, { next: { revalidate: 300 } }), // Cache por 5 minutos, buscar até 1000 mercados
 		])
 
 		if (!productsRes.ok || !marketsRes.ok) {
@@ -19,6 +19,9 @@ async function fetchInitialData() {
 		// Extrair arrays dos objetos de resposta
 		const markets = marketsData.markets || []
 		const products = productsData.products || []
+
+		console.log(`[Preços Page] Produtos carregados: ${products.length}`)
+		console.log(`[Preços Page] Mercados carregados: ${markets.length}`)
 
 		return { products, markets }
 	} catch (error) {

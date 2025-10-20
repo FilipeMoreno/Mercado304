@@ -22,7 +22,7 @@ import {
 	Zap,
 } from "lucide-react"
 import type React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -497,6 +497,7 @@ interface PriceRecordClientProps {
 
 export function PriceRecordClient({ initialProducts, initialMarkets }: PriceRecordClientProps) {
 	const { selectStyle } = useUIPreferences()
+	const itemsPerPageId = useId()
 	const products = Array.isArray(initialProducts) ? initialProducts : []
 	const markets = Array.isArray(initialMarkets) ? initialMarkets : []
 
@@ -511,7 +512,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const [currentPage, setCurrentPage] = useState(1)
 	const [totalPages, setTotalPages] = useState(1)
 	const [totalRecords, setTotalRecords] = useState(0)
-	const [itemsPerPage] = useState(20)
+	const [itemsPerPage, setItemsPerPage] = useState(100) // Aumentado de 20 para 100
 
 	// Estados para o formulário
 	const [price, setPrice] = useState("")
@@ -1184,32 +1185,63 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 										))}
 									</div>
 
-									{/* Paginação */}
-									{totalPages > 1 && (
-										<div className="flex items-center justify-between mt-6 pt-6 border-t">
-											<div className="text-sm text-muted-foreground">
-												Página {currentPage} de {totalPages}
+									{/* Informações e Controles de Paginação */}
+									{totalRecords > 0 && (
+										<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-6 pt-6 border-t">
+											<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-sm">
+												<span className="text-muted-foreground">
+													{totalRecords} {totalRecords === 1 ? "registro" : "registros"} no total
+												</span>
+												<div className="flex items-center gap-2">
+													<Label htmlFor={itemsPerPageId} className="text-muted-foreground whitespace-nowrap">
+														Mostrar:
+													</Label>
+													<select
+														id={itemsPerPageId}
+														className="border rounded px-2 py-1 text-sm"
+														value={itemsPerPage}
+														onChange={(e) => {
+															setItemsPerPage(Number(e.target.value))
+															setCurrentPage(1)
+														}}
+													>
+														<option value="20">20</option>
+														<option value="50">50</option>
+														<option value="100">100</option>
+														<option value="200">200</option>
+														<option value="500">500</option>
+													</select>
+													<span className="text-muted-foreground">por página</span>
+												</div>
 											</div>
-											<div className="flex items-center gap-2">
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => handlePageChange(currentPage - 1)}
-													disabled={currentPage === 1 || loading}
-												>
-													<ChevronLeft className="h-4 w-4 mr-1" />
-													Anterior
-												</Button>
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => handlePageChange(currentPage + 1)}
-													disabled={currentPage === totalPages || loading}
-												>
-													Próxima
-													<ChevronRight className="h-4 w-4 ml-1" />
-												</Button>
-											</div>
+
+											{totalPages > 1 && (
+												<div className="flex items-center gap-4">
+													<div className="text-sm text-muted-foreground">
+														Página {currentPage} de {totalPages}
+													</div>
+													<div className="flex items-center gap-2">
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => handlePageChange(currentPage - 1)}
+															disabled={currentPage === 1 || loading}
+														>
+															<ChevronLeft className="h-4 w-4 mr-1" />
+															Anterior
+														</Button>
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => handlePageChange(currentPage + 1)}
+															disabled={currentPage === totalPages || loading}
+														>
+															Próxima
+															<ChevronRight className="h-4 w-4 ml-1" />
+														</Button>
+													</div>
+												</div>
+											)}
 										</div>
 									)}
 								</>

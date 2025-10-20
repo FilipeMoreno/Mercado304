@@ -3,6 +3,7 @@
 import { AlertCircle, ArrowLeft, Ban, CheckCircle, Clock, Loader2, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,13 +49,29 @@ export default function SyncHistoricoPage() {
 		setLoading(true)
 		try {
 			const offset = pageNum * limit
+			console.log(`[Histórico Sync] Buscando página ${pageNum}, limit=${limit}, offset=${offset}`)
+			
 			const response = await fetch(`/api/admin/sync-precos/history?limit=${limit}&offset=${offset}`)
+			
+			console.log(`[Histórico Sync] Status da resposta: ${response.status}`)
+			
 			if (response.ok) {
 				const historyData = await response.json()
+				console.log(`[Histórico Sync] Dados recebidos:`, {
+					total: historyData.total,
+					jobsCount: historyData.jobs?.length || 0,
+					limit: historyData.limit,
+					offset: historyData.offset,
+				})
 				setData(historyData)
+			} else {
+				const errorData = await response.json()
+				console.error("[Histórico Sync] Erro na resposta:", errorData)
+				toast.error(errorData.error || "Erro ao buscar histórico")
 			}
 		} catch (error) {
-			console.error("Erro ao buscar histórico:", error)
+			console.error("[Histórico Sync] Erro ao buscar histórico:", error)
+			toast.error("Erro ao carregar histórico de sincronizações")
 		} finally {
 			setLoading(false)
 		}
@@ -150,8 +167,8 @@ export default function SyncHistoricoPage() {
 				<CardContent>
 					{loading ? (
 						<div className="space-y-2">
-							{[...Array(5)].map((_, i) => (
-								<Skeleton key={i} className="h-16 w-full" />
+							{Array.from({ length: 5 }, () => (
+								<Skeleton key={crypto.randomUUID()} className="h-16 w-full" />
 							))}
 						</div>
 					) : data && data.jobs.length > 0 ? (
