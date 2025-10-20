@@ -18,6 +18,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.14",
     "@ai-sdk/react": "^2.0.44",
+    "@aws-sdk/client-s3": "^3.913.0",
     "@better-fetch/fetch": "^1.1.18",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
