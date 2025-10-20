@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 			)
 		}
 
-		const DATABASE_URL = process.env.PRISMA_DATABASE_URL
+		const DATABASE_URL = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
 		if (!DATABASE_URL) {
 			updateBackupProgress({
 				status: "error",

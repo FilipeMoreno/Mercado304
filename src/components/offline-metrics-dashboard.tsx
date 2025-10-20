@@ -47,10 +47,77 @@ export function OfflineMetricsDashboard() {
 	})
 	const [loading, setLoading] = useState(true)
 
-	const loadMetrics = async () => {
-		try {
-			setLoading(true)
+	useEffect(() => {
+		const loadMetrics = async () => {
+			try {
+				setLoading(true)
 
+				// Buscar tamanho total
+				const size = await offlineDB.getSize()
+
+				// Buscar dados de cada categoria
+				const [products, stock, shoppingLists, purchases, brands, categories, markets] = await Promise.all([
+					offlineDB.get("products-list"),
+					offlineDB.get("stock-list"),
+					offlineDB.get("shopping-lists"),
+					offlineDB.get("purchases-list"),
+					offlineDB.get("brands-list"),
+					offlineDB.get("categories-list"),
+					offlineDB.get("markets-list"),
+				])
+
+				// Calcular tamanho em MB
+				const cacheSize = await getCacheSize()
+
+				// Taxa de hit (simulada - você pode implementar tracking real)
+				const hitRate = 85 + Math.random() * 15 // 85-100%
+
+				// Última sincronização
+				const lastSync = localStorage.getItem("mercado304-last-sync") || "Nunca"
+
+				setMetrics({
+					totalItems: size,
+					cacheSize,
+					hitRate: Math.round(hitRate),
+					lastSync,
+					categories: {
+						products: Array.isArray(products) ? products.length : 0,
+						stock: Array.isArray(stock) ? stock.length : 0,
+						shoppingLists: Array.isArray(shoppingLists) ? shoppingLists.length : 0,
+						purchases: Array.isArray(purchases) ? purchases.length : 0,
+						brands: Array.isArray(brands) ? brands.length : 0,
+						categories: Array.isArray(categories) ? categories.length : 0,
+						markets: Array.isArray(markets) ? markets.length : 0,
+					},
+				})
+			} catch (error) {
+				console.error("Erro ao carregar métricas:", error)
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		loadMetrics()
+		// Recarregar a cada 30 segundos
+		const interval = setInterval(loadMetrics, 30000)
+		return () => clearInterval(interval)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [getCacheSize])
+
+	const handleClearCache = async () => {
+		const result = await clearCache()
+		if (result) {
+			toast.success("Cache limpo com sucesso!")
+			// Recarregar página para atualizar métricas
+			window.location.reload()
+		} else {
+			toast.error("Erro ao limpar cache")
+		}
+	}
+
+	const handleRefresh = async () => {
+		setLoading(true)
+		try {
 			// Buscar tamanho total
 			const size = await offlineDB.getSize()
 
@@ -96,29 +163,11 @@ export function OfflineMetricsDashboard() {
 		}
 	}
 
-	useEffect(() => {
-		loadMetrics()
-		// Recarregar a cada 30 segundos
-		const interval = setInterval(loadMetrics, 30000)
-		return () => clearInterval(interval)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loadMetrics])
-
-	const handleClearCache = async () => {
-		const result = await clearCache()
-		if (result) {
-			toast.success("Cache limpo com sucesso!")
-			loadMetrics()
-		} else {
-			toast.error("Erro ao limpar cache")
-		}
-	}
-
 	if (loading) {
 		return (
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{[...Array(4)].map((_, i) => (
-					<Card key={`skeleton-${i}`} className="animate-pulse">
+				{["total", "size", "hitrate", "sync"].map((key) => (
+					<Card key={key} className="animate-pulse">
 						<CardHeader className="pb-2">
 							<div className="h-4 bg-gray-200 rounded w-24" />
 						</CardHeader>
@@ -207,7 +256,7 @@ export function OfflineMetricsDashboard() {
 							)}
 						</div>
 						<div className="flex gap-2">
-							<Button variant="outline" size="sm" onClick={loadMetrics}>
+							<Button variant="outline" size="sm" onClick={handleRefresh}>
 								<RefreshCw className="h-4 w-4 mr-2" />
 								Atualizar
 							</Button>

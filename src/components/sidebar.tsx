@@ -9,6 +9,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	CloudOff,
+	Database,
 	DollarSign,
 	FileText,
 	FlaskConical,
@@ -27,9 +28,11 @@ import {
 	Sparkles,
 	Store,
 	Tag,
+	TestTube,
 	Trash2,
 	Warehouse,
 	WifiOff,
+	Wrench,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -86,15 +89,6 @@ const navigation = [
 		],
 	},
 	{
-		name: "Receitas",
-		href: "/receitas",
-		icon: ChefHat,
-		subItems: [
-			{ name: "Minhas Receitas", href: "/receitas", icon: ChefHat },
-			{ name: "Gerar Receitas", href: "/receitas/gerar", icon: Sparkles },
-		],
-	},
-	{
 		name: "Análise Nutricional",
 		href: "/nutricao",
 		icon: Apple,
@@ -103,7 +97,23 @@ const navigation = [
 			{ name: "Produtos sem Info", href: "/produtos/nutricao", icon: Package },
 		],
 	},
-	{ name: "Churrascômetro", href: "/churrasco", icon: Beef },
+	{
+		name: "Ferramentas",
+		href: "/receitas",
+		icon: Wrench,
+		subItems: [
+			{
+				name: "Receitas",
+				href: "/receitas",
+				icon: ChefHat,
+				subItems: [
+					{ name: "Minhas Receitas", href: "/receitas", icon: ChefHat },
+					{ name: "Gerar Receitas", href: "/receitas/gerar", icon: Sparkles },
+				],
+			},
+			{ name: "Churrascômetro", href: "/churrasco", icon: Beef },
+		],
+	},
 	{
 		name: "Admin",
 		href: "/admin",
@@ -119,12 +129,16 @@ const navigation = [
 				],
 			},
 			{ name: "Nota Paraná", href: "/admin/nota-parana", icon: FileText },
+			{ name: "Backup", href: "/admin/backup", icon: Database },
 			{ name: "Métricas Offline", href: "/admin/offline-metrics", icon: CloudOff },
 			{
 				name: "Playground",
 				href: "/admin/playground",
 				icon: FlaskConical,
-				subItems: [{ name: "Teste Câmera", href: "/admin/playground/teste-camera", icon: Camera }],
+				subItems: [
+					{ name: "Teste Câmera", href: "/admin/playground/teste-camera", icon: Camera },
+					{ name: "Test Matching", href: "/admin/test-matching", icon: TestTube },
+				],
 			},
 		],
 	},
@@ -276,11 +290,14 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		if (pathname.startsWith("/estoque") || pathname.startsWith("/desperdicios")) {
 			expanded.push("Estoque")
 		}
-		if (pathname.startsWith("/receitas")) {
-			expanded.push("Receitas")
-		}
 		if (pathname.startsWith("/nutricao")) {
 			expanded.push("Análise Nutricional")
+		}
+		if (pathname.startsWith("/receitas") || pathname.startsWith("/churrasco")) {
+			expanded.push("Ferramentas")
+			if (pathname.startsWith("/receitas")) {
+				expanded.push("Receitas")
+			}
 		}
 		if (pathname.startsWith("/admin")) {
 			expanded.push("Admin")
@@ -317,11 +334,14 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 		if (pathname.startsWith("/estoque") || pathname.startsWith("/desperdicios")) {
 			newExpanded.push("Estoque")
 		}
-		if (pathname.startsWith("/receitas")) {
-			newExpanded.push("Receitas")
-		}
 		if (pathname.startsWith("/nutricao")) {
 			newExpanded.push("Análise Nutricional")
+		}
+		if (pathname.startsWith("/receitas") || pathname.startsWith("/churrasco")) {
+			newExpanded.push("Ferramentas")
+			if (pathname.startsWith("/receitas")) {
+				newExpanded.push("Receitas")
+			}
 		}
 		if (pathname.startsWith("/admin")) {
 			newExpanded.push("Admin")

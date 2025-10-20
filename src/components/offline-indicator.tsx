@@ -19,29 +19,6 @@ export function OfflineIndicator() {
 	return (
 		<div className="fixed top-4 right-4 z-50 max-w-md">
 			<AnimatePresence mode="wait">
-				{!isOnline && (
-					<motion.div
-						key="offline"
-						initial={{ opacity: 0, y: -20, scale: 0.95 }}
-						animate={{ opacity: 1, y: 0, scale: 1 }}
-						exit={{ opacity: 0, y: -20, scale: 0.95 }}
-						transition={{ duration: 0.2 }}
-					>
-						<Alert variant="destructive" className="shadow-lg border-2">
-							<WifiOff className="h-4 w-4" />
-							<AlertTitle className="font-bold">Modo Offline</AlertTitle>
-							<AlertDescription className="text-sm">
-								Você está sem conexão. Seus dados serão sincronizados quando voltar online.
-								{syncQueueCount > 0 && (
-									<Badge variant="secondary" className="ml-2 bg-red-100 text-red-800">
-										{syncQueueCount} pendente(s)
-									</Badge>
-								)}
-							</AlertDescription>
-						</Alert>
-					</motion.div>
-				)}
-
 				{isOnline && syncQueueCount > 0 && (
 					<motion.div
 						key="syncing"
