@@ -1,8 +1,9 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { exec } from "node:child_process"
-import { NextResponse } from "next/server"
 import { promisify } from "node:util"
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { NextResponse } from "next/server"
 import { generatePrismaBackup } from "@/lib/backup-utils"
+import { resetBackupProgress, updateBackupProgress } from "../progress/route"
 
 const execAsync = promisify(exec)
 
@@ -28,8 +29,24 @@ export async function POST(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const isManual = searchParams.get("manual") === "true"
 
+		// Resetar e iniciar progresso
+		resetBackupProgress()
+		updateBackupProgress({
+			status: "creating",
+			progress: 0,
+			currentStep: "Inicializando backup...",
+			startTime: Date.now(),
+			estimatedTime: 30000, // 30 segundos estimados inicialmente
+		})
+
 		// Verificar se as variáveis de ambiente estão configuradas
 		if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+			updateBackupProgress({
+				status: "error",
+				progress: 0,
+				currentStep: "Erro: Credenciais do R2 não configuradas",
+				error: "Credenciais do R2 não configuradas",
+			})
 			return NextResponse.json(
 				{
 					success: false,
@@ -41,8 +58,19 @@ export async function POST(request: Request) {
 
 		const DATABASE_URL = process.env.PRISMA_DATABASE_URL
 		if (!DATABASE_URL) {
+			updateBackupProgress({
+				status: "error",
+				progress: 0,
+				currentStep: "Erro: URL do banco de dados não configurada",
+				error: "URL do banco de dados não configurada",
+			})
 			return NextResponse.json({ success: false, error: "URL do banco de dados não configurada" }, { status: 500 })
 		}
+
+		updateBackupProgress({
+			progress: 10,
+			currentStep: "Preparando backup...",
+		})
 
 		// Gerar nome do arquivo de backup
 		const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
@@ -57,6 +85,11 @@ export async function POST(request: Request) {
 
 		try {
 			// Tentar usar pg_dump primeiro
+			updateBackupProgress({
+				progress: 20,
+				currentStep: "Exportando dados do banco (pg_dump)...",
+			})
+
 			const dbUrl = new URL(DATABASE_URL)
 			const host = dbUrl.hostname
 			const port = dbUrl.port || "5432"
@@ -78,15 +111,36 @@ export async function POST(request: Request) {
 
 			backupData = stdout
 			console.log("[Backup] pg_dump bem-sucedido. Tamanho:", (backupData.length / 1024 / 1024).toFixed(2), "MB")
+
+			updateBackupProgress({
+				progress: 60,
+				currentStep: `Backup gerado (${(backupData.length / 1024 / 1024).toFixed(2)} MB)`,
+			})
 		} catch (_error) {
 			console.warn("[Backup] pg_dump não disponível, usando método alternativo (Prisma)...")
 			backupMethod = "prisma"
 
+			updateBackupProgress({
+				progress: 20,
+				currentStep: "Exportando dados via Prisma...",
+			})
+
 			try {
 				backupData = await generatePrismaBackup()
 				console.log("[Backup] Backup via Prisma gerado. Tamanho:", (backupData.length / 1024 / 1024).toFixed(2), "MB")
+
+				updateBackupProgress({
+					progress: 60,
+					currentStep: `Backup gerado via Prisma (${(backupData.length / 1024 / 1024).toFixed(2)} MB)`,
+				})
 			} catch (prismaError) {
 				console.error("[Backup] Erro ao gerar backup via Prisma:", prismaError)
+				updateBackupProgress({
+					status: "error",
+					progress: 0,
+					currentStep: "Erro ao gerar backup",
+					error: prismaError instanceof Error ? prismaError.message : "Erro desconhecido",
+				})
 				return NextResponse.json(
 					{
 						success: false,
@@ -100,6 +154,12 @@ export async function POST(request: Request) {
 
 		// Fazer upload para o R2
 		try {
+			updateBackupProgress({
+				status: "uploading",
+				progress: 70,
+				currentStep: "Enviando backup para Cloudflare R2...",
+			})
+
 			console.log("[Backup] Enviando para R2...")
 			const uploadCommand = new PutObjectCommand({
 				Bucket: R2_BUCKET_NAME,
@@ -116,6 +176,17 @@ export async function POST(request: Request) {
 			await s3Client.send(uploadCommand)
 			console.log("[Backup] Upload concluído com sucesso!")
 
+			updateBackupProgress({
+				status: "completed",
+				progress: 100,
+				currentStep: "Backup concluído com sucesso!",
+				backupInfo: {
+					fileName: backupFileName,
+					size: backupData.length,
+					sizeFormatted: `${(backupData.length / 1024 / 1024).toFixed(2)} MB`,
+				},
+			})
+
 			return NextResponse.json({
 				success: true,
 				message: "Backup criado e enviado para R2 com sucesso",
@@ -131,6 +202,12 @@ export async function POST(request: Request) {
 			})
 		} catch (error) {
 			console.error("[Backup] Erro ao enviar para R2:", error)
+			updateBackupProgress({
+				status: "error",
+				progress: 0,
+				currentStep: "Erro ao enviar backup para R2",
+				error: error instanceof Error ? error.message : "Erro desconhecido",
+			})
 			return NextResponse.json(
 				{
 					success: false,
@@ -142,6 +219,12 @@ export async function POST(request: Request) {
 		}
 	} catch (error) {
 		console.error("[Backup] Erro geral:", error)
+		updateBackupProgress({
+			status: "error",
+			progress: 0,
+			currentStep: "Erro ao criar backup",
+			error: error instanceof Error ? error.message : "Erro desconhecido",
+		})
 		return NextResponse.json(
 			{
 				success: false,

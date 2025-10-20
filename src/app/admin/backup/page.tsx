@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle, Clock, Database, Download, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
+import { BackupProgressCard } from "@/components/admin/BackupProgressCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,12 +30,19 @@ export default function BackupPage() {
 
 			if (data.success) {
 				setBackups(data.backups || [])
+				console.log(`[Backup List] ${data.backups?.length || 0} backups carregados`)
 			} else {
+				console.error("[Backup List] Erro:", data.error, data.details)
 				toast.error(data.error || "Erro ao carregar backups")
+
+				// Mostrar detalhes do erro se disponível
+				if (data.details) {
+					console.error("[Backup List] Detalhes:", data.details)
+				}
 			}
 		} catch (error) {
 			console.error("Erro ao carregar backups:", error)
-			toast.error("Erro ao carregar lista de backups")
+			toast.error("Erro ao carregar lista de backups. Verifique as credenciais do R2.")
 		} finally {
 			setLoading(false)
 		}
@@ -55,16 +63,25 @@ export default function BackupPage() {
 
 			if (data.success) {
 				toast.success("Backup criado com sucesso!")
-				loadBackups()
+				// Não chamar loadBackups aqui, será chamado pelo onComplete do BackupProgressCard
 			} else {
+				console.error("[Backup Create] Erro:", data.error, data.details)
 				toast.error(data.error || "Erro ao criar backup")
+				if (data.details) {
+					console.error("[Backup Create] Detalhes:", data.details)
+				}
+				setCreating(false) // Resetar apenas em caso de erro
 			}
 		} catch (error) {
 			console.error("Erro ao criar backup:", error)
-			toast.error("Erro ao criar backup")
-		} finally {
+			toast.error("Erro ao criar backup. Verifique as credenciais do R2.")
 			setCreating(false)
 		}
+	}
+
+	const handleBackupComplete = () => {
+		setCreating(false)
+		loadBackups()
 	}
 
 	const deleteBackup = async (key: string, fileName: string) => {
@@ -149,6 +166,9 @@ export default function BackupPage() {
 				</AlertDescription>
 			</Alert>
 
+			{/* Card de Progresso do Backup */}
+			<BackupProgressCard isCreating={creating} onComplete={handleBackupComplete} />
+
 			{/* Ações */}
 			<Card className="mb-6">
 				<CardHeader>
@@ -157,7 +177,7 @@ export default function BackupPage() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex gap-4">
-						<Button onClick={createBackup} disabled={creating}>
+						<Button onClick={createBackup} disabled={creating} size="lg">
 							{creating ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -170,11 +190,16 @@ export default function BackupPage() {
 								</>
 							)}
 						</Button>
-						<Button variant="outline" onClick={loadBackups} disabled={loading || creating}>
+						<Button variant="outline" onClick={loadBackups} disabled={loading || creating} size="lg">
 							<RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
 							Atualizar Lista
 						</Button>
 					</div>
+					{creating && (
+						<p className="text-sm text-muted-foreground mt-3">
+							⚠️ Aguarde a conclusão do backup antes de sair desta página.
+						</p>
+					)}
 				</CardContent>
 			</Card>
 
@@ -213,15 +238,17 @@ export default function BackupPage() {
 			</div>
 
 			{/* Lista de Backups */}
-			{backups.length === 0 ? (
+			{backups.length === 0 && !loading ? (
 				<Alert>
 					<AlertCircle className="h-4 w-4" />
 					<AlertTitle>Nenhum backup encontrado</AlertTitle>
 					<AlertDescription>
-						Crie seu primeiro backup clicando no botão "Criar Backup Manual" acima.
+						{creating
+							? "Aguarde enquanto o primeiro backup está sendo criado..."
+							: 'Crie seu primeiro backup clicando no botão "Criar Backup Manual" acima. Caso já tenha criado backups, verifique se as credenciais do Cloudflare R2 estão configuradas corretamente nas variáveis de ambiente.'}
 					</AlertDescription>
 				</Alert>
-			) : (
+			) : backups.length === 0 ? null : (
 				<div className="space-y-4">
 					<h2 className="text-xl font-semibold">Backups Disponíveis</h2>
 					{backups.map((backup) => (
@@ -247,11 +274,7 @@ export default function BackupPage() {
 							</CardHeader>
 							<CardContent>
 								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => downloadBackup(backup.key, backup.fileName)}
-									>
+									<Button variant="outline" size="sm" onClick={() => downloadBackup(backup.key, backup.fileName)}>
 										<Download className="h-4 w-4 mr-2" />
 										Baixar
 									</Button>
@@ -292,9 +315,7 @@ export default function BackupPage() {
 					<p>
 						• Backups automáticos são criados <strong>diariamente às 3h da manhã</strong>
 					</p>
-					<p>
-						• Para restaurar um backup, baixe o arquivo .sql e execute-o no seu banco de dados PostgreSQL
-					</p>
+					<p>• Para restaurar um backup, baixe o arquivo .sql e execute-o no seu banco de dados PostgreSQL</p>
 					<p>
 						• Recomendamos manter pelo menos os <strong>últimos 7 backups</strong> (uma semana)
 					</p>
@@ -303,4 +324,3 @@ export default function BackupPage() {
 		</div>
 	)
 }
-
