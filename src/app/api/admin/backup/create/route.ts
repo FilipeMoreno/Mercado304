@@ -2,8 +2,8 @@ import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { resetBackupProgress, updateBackupProgress } from "@/lib/backup-progress-state"
 import { generatePrismaBackup } from "@/lib/backup-utils"
-import { resetBackupProgress, updateBackupProgress } from "../progress/route"
 
 const execAsync = promisify(exec)
 
