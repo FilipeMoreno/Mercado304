@@ -8,6 +8,8 @@ import { AuthGuard } from "@/components/auth-guard"
 import { Sidebar } from "@/components/sidebar"
 import { cn } from "@/lib/utils"
 import { AiAssistantChat } from "./ai-assistant-chat"
+import { OfflineIndicator, OfflineStatusBar } from "./offline-indicator"
+import { OfflineSyncManager } from "./offline-sync-manager"
 import { ProactiveAiInsight } from "./proactive-ai-insight"
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +62,9 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 				</main>
 				<ProactiveAiInsight />
 				<AiAssistantChat />
+				<OfflineIndicator />
+				<OfflineStatusBar />
+				<OfflineSyncManager />
 			</div>
 		</AuthGuard>
 	)

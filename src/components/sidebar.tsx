@@ -8,6 +8,7 @@ import {
 	ChefHat,
 	ChevronLeft,
 	ChevronRight,
+	CloudOff,
 	DollarSign,
 	FileText,
 	FlaskConical,
@@ -28,12 +29,16 @@ import {
 	Tag,
 	Trash2,
 	Warehouse,
+	WifiOff,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { useOffline } from "@/hooks/use-offline"
 import { cn } from "@/lib/utils"
 import { APP_VERSION } from "@/lib/version"
 import { UserNav } from "./user-nav"
@@ -114,6 +119,7 @@ const navigation = [
 				],
 			},
 			{ name: "Nota Paraná", href: "/admin/nota-parana", icon: FileText },
+			{ name: "Métricas Offline", href: "/admin/offline-metrics", icon: CloudOff },
 			{
 				name: "Playground",
 				href: "/admin/playground",
@@ -127,6 +133,129 @@ const navigation = [
 interface SidebarProps {
 	collapsed?: boolean
 	onToggleCollapse?: () => void
+}
+
+function SyncStatusIndicator({ collapsed }: { collapsed: boolean }) {
+	const { isOnline, syncQueueCount, processSyncQueue } = useOffline()
+	const [syncProgress, setSyncProgress] = useState(0)
+
+	// Simular progresso de sincronização
+	useEffect(() => {
+		if (syncQueueCount > 0) {
+			const interval = setInterval(() => {
+				setSyncProgress((prev) => {
+					if (prev >= 100) return 0
+					return prev + 10
+				})
+			}, 500)
+			return () => clearInterval(interval)
+		}
+		setSyncProgress(0)
+	}, [syncQueueCount])
+
+	// Não mostrar se estiver online e sem fila
+	if (isOnline && syncQueueCount === 0) {
+		return null
+	}
+
+	if (collapsed) {
+		return (
+			<Button
+				variant="ghost"
+				size="icon"
+				className={cn(
+					"w-full h-10 mb-2",
+					!isOnline
+						? "text-red-500 hover:text-red-600 hover:bg-red-50"
+						: "text-blue-500 hover:text-blue-600 hover:bg-blue-50",
+				)}
+				onClick={() => syncQueueCount > 0 && processSyncQueue()}
+				title={
+					!isOnline
+						? `Modo Offline${syncQueueCount > 0 ? ` - ${syncQueueCount} pendente(s)` : ""}`
+						: `Sincronizando ${syncQueueCount} item(s)`
+				}
+			>
+				{!isOnline ? (
+					<div className="relative">
+						<WifiOff className="h-5 w-5" />
+						{syncQueueCount > 0 && (
+							<div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+								{syncQueueCount}
+							</div>
+						)}
+					</div>
+				) : (
+					<div className="relative">
+						<RefreshCw className="h-5 w-5 animate-spin" />
+						<div className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+							{syncQueueCount}
+						</div>
+					</div>
+				)}
+			</Button>
+		)
+	}
+
+	return (
+		<div className="mb-2 border-t border-border/50 pt-3">
+			<div
+				className={cn(
+					"rounded-lg p-3 transition-colors",
+					!isOnline ? "bg-red-50 border border-red-200" : "bg-blue-50 border border-blue-200",
+				)}
+			>
+				<div className="flex items-center justify-between mb-2">
+					<div className="flex items-center gap-2">
+						{!isOnline ? (
+							<>
+								<CloudOff className="h-4 w-4 text-red-600" />
+								<span className="text-xs font-medium text-red-900">Modo Offline</span>
+							</>
+						) : (
+							<>
+								<RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
+								<span className="text-xs font-medium text-blue-900">Sincronizando</span>
+							</>
+						)}
+					</div>
+					{syncQueueCount > 0 && (
+						<Badge
+							variant="secondary"
+							className={cn(!isOnline ? "bg-red-200 text-red-800" : "bg-blue-200 text-blue-800")}
+						>
+							{syncQueueCount}
+						</Badge>
+					)}
+				</div>
+
+				{syncQueueCount > 0 && (
+					<>
+						<Progress value={isOnline ? syncProgress : 0} className="h-1 mb-2" />
+						<div className="flex items-center justify-between text-[10px]">
+							<span className={cn("text-muted-foreground", !isOnline ? "text-red-700" : "text-blue-700")}>
+								{syncQueueCount} ação(ões) {isOnline ? "sincronizando" : "na fila"}
+							</span>
+							{isOnline && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-5 px-2 text-[10px] text-blue-600 hover:text-blue-700"
+									onClick={() => processSyncQueue()}
+								>
+									Sincronizar
+								</Button>
+							)}
+						</div>
+					</>
+				)}
+
+				{!isOnline && syncQueueCount === 0 && (
+					<p className="text-[10px] text-red-700">Você está offline. Reconecte para sincronizar.</p>
+				)}
+			</div>
+		</div>
+	)
 }
 
 function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
@@ -369,14 +498,15 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 				})}
 			</nav>
 
-		<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
-			<UserNav collapsed={collapsed} />
-			{!collapsed && (
-				<div className="text-center text-xs text-muted-foreground/50 pt-2 border-t border-border/50">
-					v{APP_VERSION}
-				</div>
-			)}
-		</div>
+			<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
+				<SyncStatusIndicator collapsed={collapsed} />
+				<UserNav collapsed={collapsed} />
+				{!collapsed && (
+					<div className="text-center text-xs text-muted-foreground/50 pt-2 border-t border-border/50">
+						v{APP_VERSION}
+					</div>
+				)}
+			</div>
 		</div>
 	)
 }
