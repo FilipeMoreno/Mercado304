@@ -1,7 +1,7 @@
 // src/components/quick-brand-form.tsx
 "use client"
 
-import { Save, Tag, X } from "lucide-react"
+import { Save, Tag } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"

@@ -116,6 +116,7 @@
     "@types/tesseract.js": "^2.0.0",
     "postcss": "^8.5.6",
     "prisma": "^6.17.1",
+    "shadcn": "^3.4.2",
     "tailwindcss": "^4.1.15",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",

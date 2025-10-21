@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
-import { oneTap, passkey, signIn, twoFactor, useSession } from "@/lib/auth-client"
+import { oneTap, signIn, twoFactor, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignInPage() {
@@ -61,7 +61,7 @@ export default function SignInPage() {
 						eventType: "login",
 						method: "one-tap",
 					}),
-				}).catch(err => console.error("Failed to log auth event:", err))
+				}).catch((err) => console.error("Failed to log auth event:", err))
 
 				// Redireciona para a home após autenticação bem-sucedida
 				window.location.href = "/"
@@ -111,7 +111,7 @@ export default function SignInPage() {
 					eventType: "login",
 					method: "email",
 				}),
-			}).catch(err => console.error("Failed to log auth event:", err))
+			}).catch((err) => console.error("Failed to log auth event:", err))
 
 			showAuthSuccess("signin")
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect
@@ -148,20 +148,27 @@ export default function SignInPage() {
 
 			if (result?.error) {
 				// Verifica se é um erro de cancelamento
-				if (result.error.message?.toLowerCase().includes("cancelled") ||
+				if (
+					result.error.message?.toLowerCase().includes("cancelled") ||
 					result.error.message?.toLowerCase().includes("canceled") ||
-					result.error.message?.toLowerCase().includes("abort")) {
+					result.error.message?.toLowerCase().includes("abort")
+				) {
 					// Não mostra erro para cancelamento pelo usuário
 					setIsPasskeyLoading(false)
 					return
 				}
 
 				// Verifica se é erro de passkey não encontrado
-				if ((result.error as any)?.code === "PASSKEY_NOT_FOUND" ||
-					result.error.message?.toLowerCase().includes("passkey not found")) {
-					toast.error("Nenhum passkey encontrado. Faça login com email/senha e configure um passkey nas configurações de segurança.", {
-						duration: 5000
-					})
+				if (
+					(result.error as any)?.code === "PASSKEY_NOT_FOUND" ||
+					result.error.message?.toLowerCase().includes("passkey not found")
+				) {
+					toast.error(
+						"Nenhum passkey encontrado. Faça login com email/senha e configure um passkey nas configurações de segurança.",
+						{
+							duration: 5000,
+						},
+					)
 					setIsPasskeyLoading(false)
 					return
 				}
@@ -182,7 +189,7 @@ export default function SignInPage() {
 					eventType: "login",
 					method: "passkey",
 				}),
-			}).catch(err => console.error("Failed to log auth event:", err))
+			}).catch((err) => console.error("Failed to log auth event:", err))
 
 			showAuthSuccess("signin")
 			// O redirecionamento será gerenciado pelo hook useAuthRedirect
@@ -190,9 +197,11 @@ export default function SignInPage() {
 			const errorMessage = (error as Error).message || "Erro ao fazer login com passkey"
 
 			// Verifica se é um erro de cancelamento
-			if (errorMessage.toLowerCase().includes("cancelled") ||
+			if (
+				errorMessage.toLowerCase().includes("cancelled") ||
 				errorMessage.toLowerCase().includes("canceled") ||
-				errorMessage.toLowerCase().includes("abort")) {
+				errorMessage.toLowerCase().includes("abort")
+			) {
 				// Não mostra erro para cancelamento pelo usuário
 				setIsPasskeyLoading(false)
 				return
@@ -516,7 +525,6 @@ export default function SignInPage() {
 					Criar conta
 				</Link>
 			</p>
-
 		</div>
 	)
 }

@@ -104,14 +104,14 @@ export function BrandCombobox({
 					<span className="truncate flex-1 text-left font-normal">
 						{value && value !== ""
 							? (() => {
-								const selectedBrand = brands.find((b) => b.id === value)
-								if (!selectedBrand) {
-									// Se não encontrou a marca na lista, pode ser uma marca recém-criada
-									// Mostra o nome da marca pendente se disponível
-									return pendingBrandName || "Marca selecionada"
-								}
-								return selectedBrand.name
-							})()
+									const selectedBrand = brands.find((b) => b.id === value)
+									if (!selectedBrand) {
+										// Se não encontrou a marca na lista, pode ser uma marca recém-criada
+										// Mostra o nome da marca pendente se disponível
+										return pendingBrandName || "Marca selecionada"
+									}
+									return selectedBrand.name
+								})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
@@ -162,7 +162,7 @@ export function BrandCombobox({
 												console.log("[BrandCombobox] Item selected:", {
 													optionValue: option.value,
 													currentValue: value,
-													willSet: option.value
+													willSet: option.value,
 												})
 												// Sempre define o valor selecionado, não alterna
 												onValueChange?.(option.value)

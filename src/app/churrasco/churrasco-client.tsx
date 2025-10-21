@@ -1,23 +1,14 @@
 "use client"
 
-import {
-	Beer,
-	Calculator,
-	Clock,
-	History,
-	Loader2,
-	Sparkles,
-	Users,
-} from "lucide-react"
+import { Beer, Calculator, Clock, History, Loader2, Sparkles, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
-import { ChurrascometroSkeleton } from "@/components/skeletons/churrascometro-skeleton"
 import { ChurrascoHistorySkeleton } from "@/components/skeletons/churrasco-history-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -52,7 +43,7 @@ export default function ChurrascoClient() {
 
 	useEffect(() => {
 		loadHistory()
-	}, [])
+	}, [loadHistory])
 
 	const loadHistory = async () => {
 		try {
@@ -78,7 +69,10 @@ export default function ChurrascoClient() {
 		}
 	}
 
-	const saveToHistory = async (newResult: any, calculationData: { adults: number; children: number; drinkers: number; preferences: string }) => {
+	const saveToHistory = async (
+		newResult: any,
+		calculationData: { adults: number; children: number; drinkers: number; preferences: string },
+	) => {
 		try {
 			const response = await fetch("/api/churrasco/history", {
 				method: "POST",
@@ -133,7 +127,6 @@ export default function ChurrascoClient() {
 			setLoading(false)
 		}
 	}
-
 
 	return (
 		<div className="space-y-6">
@@ -279,7 +272,9 @@ export default function ChurrascoClient() {
 									<History className="size-6" />
 								</EmptyMedia>
 								<EmptyTitle>Nenhum cálculo realizado ainda</EmptyTitle>
-								<EmptyDescription>Seus últimos cálculos aparecerão aqui após realizar o primeiro churrasco.</EmptyDescription>
+								<EmptyDescription>
+									Seus últimos cálculos aparecerão aqui após realizar o primeiro churrasco.
+								</EmptyDescription>
 							</EmptyHeader>
 						</Empty>
 					) : (
@@ -315,13 +310,17 @@ export default function ChurrascoClient() {
 															<span className="font-medium">Preferências:</span>{" "}
 															{item.preferences.length > 50
 																? `${item.preferences.substring(0, 50)}...`
-																: item.preferences
-															}
+																: item.preferences}
 														</p>
 													)}
 												</div>
 
-												<Button variant="outline" size="sm" onClick={() => router.push(`/churrasco/${item.id}`)} className="shrink-0">
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => router.push(`/churrasco/${item.id}`)}
+													className="shrink-0"
+												>
 													Ver Detalhes
 												</Button>
 											</div>
@@ -333,7 +332,6 @@ export default function ChurrascoClient() {
 					)}
 				</TabsContent>
 			</Tabs>
-
 		</div>
 	)
 }

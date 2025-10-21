@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { passkey, twoFactor } from "@/lib/auth-client"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { passkey, twoFactor } from "@/lib/auth-client"
 
 // Types
 interface LoginSession {
@@ -114,15 +114,13 @@ export function useDeletePasskey() {
 					metadata: { passkeyId },
 					sendEmail: true, // Flag para enviar email
 				}),
-			}).catch(err => console.error("Failed to log passkey removal:", err))
+			}).catch((err) => console.error("Failed to log passkey removal:", err))
 
 			return passkeyId
 		},
 		onSuccess: (deletedId) => {
 			// Atualizar cache otimisticamente
-			queryClient.setQueryData(securityKeys.passkeys(), (old: any[] = []) =>
-				old.filter((p) => p.id !== deletedId)
-			)
+			queryClient.setQueryData(securityKeys.passkeys(), (old: any[] = []) => old.filter((p) => p.id !== deletedId))
 			toast.success("Passkey excluído com sucesso")
 		},
 		onError: () => {
@@ -152,7 +150,7 @@ export function useTerminateSession() {
 		onSuccess: (sessionId) => {
 			// Atualizar cache removendo a sessão
 			queryClient.setQueryData(securityKeys.sessions(), (old: LoginSession[] = []) =>
-				old.filter((s) => s.id !== sessionId)
+				old.filter((s) => s.id !== sessionId),
 			)
 			toast.success("Sessão encerrada com sucesso")
 		},
@@ -180,9 +178,7 @@ export function useTerminateAllSessions() {
 		},
 		onSuccess: () => {
 			// Atualizar cache mantendo apenas a sessão atual
-			queryClient.setQueryData(securityKeys.sessions(), (old: LoginSession[] = []) =>
-				old.filter((s) => s.isCurrent)
-			)
+			queryClient.setQueryData(securityKeys.sessions(), (old: LoginSession[] = []) => old.filter((s) => s.isCurrent))
 			toast.success("Todas as outras sessões foram encerradas")
 		},
 		onError: (error: Error) => {
@@ -195,12 +191,12 @@ export function useDisableTwoFactor() {
 	return useMutation({
 		mutationFn: async (passwordOrToken: string) => {
 			console.log("useDisableTwoFactor: received", {
-				value: passwordOrToken?.substring(0, 20) + "...",
-				isAuthToken: passwordOrToken?.startsWith("eyJ")
+				value: `${passwordOrToken?.substring(0, 20)}...`,
+				isAuthToken: passwordOrToken?.startsWith("eyJ"),
 			})
 
-			let passwordToUse = passwordOrToken
-			let tempPasswordCreated = false
+			const _passwordToUse = passwordOrToken
+			const _tempPasswordCreated = false
 
 			// Detecta se é um token de reautenticação (base64, começa com "eyJ")
 			const isAuthToken = passwordOrToken?.startsWith("eyJ") || false

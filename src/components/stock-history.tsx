@@ -19,9 +19,8 @@ import * as React from "react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DateInput } from "@/components/ui/date-input"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -75,7 +74,7 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 	const [movements, setMovements] = useState<StockMovement[]>([])
 	const [stats, setStats] = useState<any>(null)
 	const [loading, setLoading] = useState(false)
-	const [open, setOpen] = useState(false)
+	const [open, _setOpen] = useState(false)
 	const [filters, setFilters] = useState({
 		type: "all",
 		startDate: "",
@@ -114,7 +113,7 @@ export function StockHistory({ productId, stockItemId, productName }: StockHisto
 		if (open) {
 			loadHistory()
 		}
-	}, [open, filters])
+	}, [open, loadHistory])
 
 	const getMovementIcon = (type: string) => {
 		switch (type) {

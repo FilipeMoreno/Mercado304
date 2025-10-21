@@ -28,7 +28,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 				setTotalSeconds(parsed)
 			}
 		}
-	}, [suggestedTime])
+	}, [suggestedTime, parseSuggestedTime])
 
 	// Cronômetro principal
 	useEffect(() => {
@@ -53,7 +53,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 				clearInterval(interval)
 			}
 		}
-	}, [isRunning, timeLeft])
+	}, [isRunning, timeLeft, playAlarm])
 
 	const parseSuggestedTime = (timeString: string): number => {
 		const text = timeString.toLowerCase()
@@ -62,20 +62,20 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 		// Extrair horas
 		const hoursMatch = text.match(/(\d+)\s*(hora|hr|h)/)
 		if (hoursMatch) {
-			totalSeconds += parseInt(hoursMatch[1]) * 3600
+			totalSeconds += parseInt(hoursMatch[1], 10) * 3600
 		}
 
 		// Extrair minutos
 		const minutesMatch = text.match(/(\d+)\s*(minuto|min|m)/)
 		if (minutesMatch) {
-			totalSeconds += parseInt(minutesMatch[1]) * 60
+			totalSeconds += parseInt(minutesMatch[1], 10) * 60
 		}
 
 		// Apenas números (assumir minutos)
 		if (totalSeconds === 0) {
 			const numbersMatch = text.match(/(\d+)/)
 			if (numbersMatch) {
-				totalSeconds = parseInt(numbersMatch[1]) * 60
+				totalSeconds = parseInt(numbersMatch[1], 10) * 60
 			}
 		}
 
@@ -162,7 +162,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 							<Input
 								type="number"
 								value={minutes}
-								onChange={(e) => setMinutes(Math.max(0, parseInt(e.target.value) || 0))}
+								onChange={(e) => setMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
 								min="0"
 								max="180"
 								placeholder="0"
@@ -173,7 +173,7 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 							<Input
 								type="number"
 								value={seconds}
-								onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+								onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
 								min="0"
 								max="59"
 								placeholder="0"

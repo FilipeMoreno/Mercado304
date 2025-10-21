@@ -29,11 +29,11 @@ function extractRecipesFromText(text: string, ingredients?: string[]) {
 					prato: pratoMatch[1],
 					descricao: descricaoMatch ? descricaoMatch[1] : "Receita deliciosa",
 					tempo_preparo: tempoMatch ? tempoMatch[1] : "30 minutos",
-					ingredientes: ingredientesMatch ?
-						ingredientesMatch[1].split(',').map(i => i.trim().replace(/"/g, '')) :
-						(ingredients || ["Ingredientes diversos"]),
+					ingredientes: ingredientesMatch
+						? ingredientesMatch[1].split(",").map((i) => i.trim().replace(/"/g, ""))
+						: ingredients || ["Ingredientes diversos"],
 					modo_preparo: modoMatch ? modoMatch[1] : "Siga as instruções básicas de preparo",
-					dica_chef: dicaMatch ? dicaMatch[1] : "Ajuste os temperos ao seu gosto!"
+					dica_chef: dicaMatch ? dicaMatch[1] : "Ajuste os temperos ao seu gosto!",
 				}
 				recipes.push(recipe)
 			}
@@ -51,7 +51,7 @@ function extractRecipesFromText(text: string, ingredients?: string[]) {
 			tempo_preparo: "30 minutos",
 			ingredientes: ingredients || ["Ingredientes diversos"],
 			modo_preparo: "Receita personalizada baseada nos ingredientes disponíveis. Ajuste os temperos ao seu gosto!",
-			dica_chef: "Ajuste os temperos ao seu gosto!"
+			dica_chef: "Ajuste os temperos ao seu gosto!",
 		})
 	}
 
@@ -138,20 +138,20 @@ IMPORTANTE:
 			let cleanedResponse = aiResponse.trim()
 
 			// Se não termina com }, tentar adicionar
-			if (!cleanedResponse.endsWith('}')) {
+			if (!cleanedResponse.endsWith("}")) {
 				// Encontrar o último } válido
-				const lastValidBrace = cleanedResponse.lastIndexOf('}')
+				const lastValidBrace = cleanedResponse.lastIndexOf("}")
 				if (lastValidBrace > 0) {
 					cleanedResponse = cleanedResponse.substring(0, lastValidBrace + 1)
 				} else {
 					// Se não há } válido, tentar adicionar fechamento
-					cleanedResponse += '}'
+					cleanedResponse += "}"
 				}
 			}
 
 			// Se não começa com {, tentar encontrar o primeiro {
-			if (!cleanedResponse.startsWith('{')) {
-				const firstBrace = cleanedResponse.indexOf('{')
+			if (!cleanedResponse.startsWith("{")) {
+				const firstBrace = cleanedResponse.indexOf("{")
 				if (firstBrace > 0) {
 					cleanedResponse = cleanedResponse.substring(firstBrace)
 				}
@@ -186,7 +186,8 @@ IMPORTANTE:
 							descricao: "Receita criada pela IA",
 							tempo_preparo: "30 minutos",
 							ingredientes: ingredients || ["Ingredientes diversos"],
-							modo_preparo: "Receita personalizada baseada nos ingredientes disponíveis. Ajuste os temperos ao seu gosto!",
+							modo_preparo:
+								"Receita personalizada baseada nos ingredientes disponíveis. Ajuste os temperos ao seu gosto!",
 							dica_chef: "Ajuste os temperos ao seu gosto!",
 						},
 					],

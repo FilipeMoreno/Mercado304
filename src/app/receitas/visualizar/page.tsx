@@ -109,11 +109,7 @@ export default function VisualizarReceitaPage() {
 	return (
 		<div className="space-y-6">
 			{/* Header Responsivo */}
-			<motion.div
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="space-y-4"
-			>
+			<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 				<div className="flex items-center justify-between">
 					<Button variant="outline" size="sm" onClick={() => router.back()} className="shrink-0">
 						<ArrowLeft className="size-4 mr-2" />

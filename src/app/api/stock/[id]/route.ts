@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma"
 
 // GET - Buscar item específico do estoque
 export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const { id } = params
 
 		const stockItem = await prisma.stockItem.findUnique({
@@ -32,11 +32,11 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 
 // PUT - Atualizar item do estoque
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const { id } = params
 		const data = await request.json()
-		
+
 		console.log("PUT /api/stock/[id] - Received data:", { id, data })
 
 		const {
@@ -144,8 +144,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 
 // DELETE - Remover item do estoque
 export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const { id } = params
 
 		// Verificar se item existe

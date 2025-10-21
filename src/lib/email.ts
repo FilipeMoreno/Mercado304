@@ -1,11 +1,11 @@
 import { Resend } from "resend"
 import {
 	getEmailVerificationTemplate,
+	getNewSessionTemplate,
 	getPasswordResetTemplate,
+	getSecurityAlertTemplate,
 	getTwoFactorEmailTemplate,
 	getWelcomeEmailTemplate,
-	getSecurityAlertTemplate,
-	getNewSessionTemplate
 } from "./email-templates"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -16,7 +16,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
 		console.log(`[Resend] De: ${process.env.EMAIL_FROM}`)
 		console.log(`[Resend] Para: ${to}`)
 		console.log(`[Resend] Assunto: ${subject}`)
-		console.log(`[Resend] API Key configurada: ${process.env.RESEND_API_KEY ? 'SIM' : 'NÃO'}`)
+		console.log(`[Resend] API Key configurada: ${process.env.RESEND_API_KEY ? "SIM" : "NÃO"}`)
 
 		const result = await resend.emails.send({
 			from: process.env.EMAIL_FROM as string,
@@ -40,20 +40,14 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
 	}
 }
 
-export async function sendVerificationEmail({
-	user,
-	url
-}: {
-	user: { email: string; name?: string };
-	url: string
-}) {
+export async function sendVerificationEmail({ user, url }: { user: { email: string; name?: string }; url: string }) {
 	console.log(`[SendVerificationEmail] Preparando email de verificação para ${user.email}`)
 	console.log(`[SendVerificationEmail] URL de verificação:`, url)
-	console.log(`[SendVerificationEmail] Nome do usuário:`, user.name || 'Não fornecido')
+	console.log(`[SendVerificationEmail] Nome do usuário:`, user.name || "Não fornecido")
 
 	const html = getEmailVerificationTemplate({
 		userName: user.name,
-		url
+		url,
 	})
 
 	console.log(`[SendVerificationEmail] Template HTML gerado (primeiros 200 caracteres):`, html.substring(0, 200))
@@ -65,16 +59,10 @@ export async function sendVerificationEmail({
 	})
 }
 
-export async function sendPasswordResetEmail({
-	user,
-	url
-}: {
-	user: { email: string; name?: string };
-	url: string
-}) {
+export async function sendPasswordResetEmail({ user, url }: { user: { email: string; name?: string }; url: string }) {
 	const html = getPasswordResetTemplate({
 		userName: user.name,
-		url
+		url,
 	})
 
 	return sendEmail({
@@ -84,16 +72,10 @@ export async function sendPasswordResetEmail({
 	})
 }
 
-export async function sendTwoFactorEmail({
-	user,
-	code
-}: {
-	user: { email: string; name?: string };
-	code: string
-}) {
+export async function sendTwoFactorEmail({ user, code }: { user: { email: string; name?: string }; code: string }) {
 	const html = getTwoFactorEmailTemplate({
 		userName: user.name,
-		code
+		code,
 	})
 
 	return sendEmail({
@@ -103,13 +85,9 @@ export async function sendTwoFactorEmail({
 	})
 }
 
-export async function sendWelcomeEmail({
-	user
-}: {
-	user: { email: string; name?: string }
-}) {
+export async function sendWelcomeEmail({ user }: { user: { email: string; name?: string } }) {
 	const html = getWelcomeEmailTemplate({
-		userName: user.name
+		userName: user.name,
 	})
 
 	return sendEmail({
@@ -125,7 +103,7 @@ export async function sendSecurityAlertEmail({
 	device,
 	location,
 	ipAddress,
-	timestamp
+	timestamp,
 }: {
 	user: { email: string; name?: string }
 	action: string
@@ -155,7 +133,7 @@ export async function sendNewSessionEmail({
 	device,
 	location,
 	ipAddress,
-	timestamp
+	timestamp,
 }: {
 	user: { email: string; name?: string }
 	device?: string

@@ -4,8 +4,8 @@ import { getAllProductPrices } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(_request: Request, props: { params: Promise<{ itemId: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const { itemId } = params
 
 		// Buscar o item da lista de compras

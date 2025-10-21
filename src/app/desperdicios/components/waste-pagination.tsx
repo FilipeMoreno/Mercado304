@@ -23,7 +23,7 @@ export function WastePagination({ currentPage, totalPages, onPageChange }: Waste
 			>
 				Anterior
 			</Button>
-			
+
 			<div className="flex items-center gap-1">
 				{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
 					const page = i + 1
@@ -40,7 +40,7 @@ export function WastePagination({ currentPage, totalPages, onPageChange }: Waste
 					)
 				})}
 			</div>
-			
+
 			<Button
 				variant="outline"
 				size="sm"

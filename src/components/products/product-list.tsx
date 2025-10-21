@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Package } from "lucide-react"
 import { ProductCardMemo } from "@/components/memoized"
-import { Product } from "@/types"
+import type { Product } from "@/types"
 
 interface ProductListProps {
 	products: Product[]
@@ -22,9 +22,7 @@ function EmptyState() {
 			transition={{ duration: 0.3 }}
 		>
 			<Package className="size-16 text-muted-foreground mb-4" />
-			<h3 className="text-lg font-semibold text-muted-foreground mb-2">
-				Nenhum produto encontrado
-			</h3>
+			<h3 className="text-lg font-semibold text-muted-foreground mb-2">Nenhum produto encontrado</h3>
 			<p className="text-sm text-muted-foreground max-w-md">
 				Não há produtos cadastrados ainda. Comece adicionando seu primeiro produto.
 			</p>
@@ -63,7 +61,7 @@ export function ProductList({ products, onDelete, onEdit, isLoading = false }: P
 	// Loading state
 	if (isLoading) {
 		return (
-			<div 
+			<div
 				className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
 				role="status"
 				aria-label="Carregando produtos"
@@ -90,16 +88,8 @@ export function ProductList({ products, onDelete, onEdit, isLoading = false }: P
 			aria-label={`Lista de ${products.length} produtos`}
 		>
 			{products.map((product) => (
-				<motion.div
-					key={product.id}
-					variants={itemVariants}
-					role="gridcell"
-				>
-					<ProductCardMemo 
-						product={product} 
-						onDelete={onDelete} 
-						onEdit={onEdit} 
-					/>
+				<motion.div key={product.id} variants={itemVariants} role="gridcell">
+					<ProductCardMemo product={product} onDelete={onDelete} onEdit={onEdit} />
 				</motion.div>
 			))}
 		</motion.div>

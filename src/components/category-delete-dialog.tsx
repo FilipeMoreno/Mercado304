@@ -57,7 +57,7 @@ export function CategoryDeleteDialog({
 	const [newCategoryIcon, setNewCategoryIcon] = useState("📦")
 	const [newCategoryColor, setNewCategoryColor] = useState("#3b82f6")
 	const [individualTransfers, setIndividualTransfers] = useState<Record<string, string>>({})
-	
+
 	const inputId = useId()
 	const hasProducts = products.length > 0
 
@@ -130,11 +130,11 @@ export function CategoryDeleteDialog({
 
 	const canConfirm = () => {
 		if (!hasProducts) return true
-		
+
 		if (mode === "transfer-all") return !!targetCategoryId
 		if (mode === "create-new") return !!newCategoryName.trim()
 		if (mode === "individual") return products.every((p) => individualTransfers[p.id])
-		
+
 		return false
 	}
 
@@ -165,7 +165,8 @@ export function CategoryDeleteDialog({
 						<Package className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
 						<div className="flex-1">
 							<p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
-								Esta categoria possui <strong>{products.length}</strong> {products.length === 1 ? "produto" : "produtos"} associado{products.length === 1 ? "" : "s"}.
+								Esta categoria possui <strong>{products.length}</strong>{" "}
+								{products.length === 1 ? "produto" : "produtos"} associado{products.length === 1 ? "" : "s"}.
 							</p>
 							<p className="text-xs text-blue-700 dark:text-blue-400">
 								Escolha como deseja transferir os produtos antes de excluir a categoria:
@@ -274,9 +275,7 @@ export function CategoryDeleteDialog({
 														placeholder="Escolher categoria"
 													/>
 												</div>
-												{individualTransfers[product.id] && (
-													<CheckCircle2 className="size-4 text-green-600 shrink-0" />
-												)}
+												{individualTransfers[product.id] && <CheckCircle2 className="size-4 text-green-600 shrink-0" />}
 											</div>
 										</div>
 									))}
@@ -303,9 +302,7 @@ export function CategoryDeleteDialog({
 						<p className="text-sm font-medium text-destructive dark:text-red-400">
 							A categoria "{category?.name}" será excluída permanentemente.
 						</p>
-						<p className="text-xs text-destructive/80 dark:text-red-400/80 mt-1">
-							Esta ação não pode ser desfeita.
-						</p>
+						<p className="text-xs text-destructive/80 dark:text-red-400/80 mt-1">Esta ação não pode ser desfeita.</p>
 					</div>
 				</div>
 
@@ -327,11 +324,12 @@ export function CategoryDeleteDialog({
 						disabled={!canConfirm() || isLoading}
 						className="w-full sm:w-auto"
 					>
-						{isLoading ? "Excluindo..." : `Excluir Categoria${hasProducts ? ` e Transferir ${products.length} Produtos` : ""}`}
+						{isLoading
+							? "Excluindo..."
+							: `Excluir Categoria${hasProducts ? ` e Transferir ${products.length} Produtos` : ""}`}
 					</Button>
 				</div>
 			</div>
 		</ResponsiveDialog>
 	)
 }
-

@@ -56,7 +56,7 @@ export const productFunctions = {
 	searchProducts: async ({ search, categoryId, brandId, sortBy = "name", sortOrder = "asc" }: any) => {
 		// Configurar ordenação
 		let orderBy: any = { name: "asc" }
-		
+
 		switch (sortBy) {
 			case "name":
 				orderBy = { name: sortOrder === "desc" ? "desc" : "asc" }
@@ -84,15 +84,15 @@ export const productFunctions = {
 			orderBy,
 			take: 10,
 		})
-		
-		return { 
-			success: true, 
+
+		return {
+			success: true,
 			products,
 			sortInfo: {
 				sortBy,
 				sortOrder,
-				message: `Produtos ordenados por ${sortBy} (${sortOrder})`
-			}
+				message: `Produtos ordenados por ${sortBy} (${sortOrder})`,
+			},
 		}
 	},
 
@@ -191,11 +191,19 @@ export const productFunctions = {
 		}
 	},
 
-	getMostExpensiveProducts: async ({ limit = 10, sortBy = "price", sortOrder = "desc" }: { limit?: number; sortBy?: string; sortOrder?: string } = {}) => {
+	getMostExpensiveProducts: async ({
+		limit = 10,
+		sortBy = "price",
+		sortOrder = "desc",
+	}: {
+		limit?: number
+		sortBy?: string
+		sortOrder?: string
+	} = {}) => {
 		try {
 			// Configurar ordenação
-			let orderBy: any = { unitPrice: 'desc' }
-			
+			let orderBy: any = { unitPrice: "desc" }
+
 			switch (sortBy) {
 				case "price":
 					orderBy = { unitPrice: sortOrder === "asc" ? "asc" : "desc" }
@@ -210,7 +218,7 @@ export const productFunctions = {
 					orderBy = { purchase: { market: { name: sortOrder === "asc" ? "asc" : "desc" } } }
 					break
 				default:
-					orderBy = { unitPrice: 'desc' }
+					orderBy = { unitPrice: "desc" }
 			}
 
 			// Busca os produtos com os preços mais altos baseado nas compras mais recentes
@@ -230,7 +238,7 @@ export const productFunctions = {
 				},
 				orderBy,
 				take: limit,
-				distinct: ['productId'], // Evita produtos duplicados
+				distinct: ["productId"], // Evita produtos duplicados
 			})
 
 			if (expensiveProducts.length === 0) {
@@ -241,12 +249,12 @@ export const productFunctions = {
 			}
 
 			const formattedProducts = expensiveProducts.map((item) => ({
-				product: item.product?.name || 'Produto não encontrado',
-				brand: item.product?.brand?.name || 'Sem marca',
-				category: item.product?.category?.name || 'Sem categoria',
+				product: item.product?.name || "Produto não encontrado",
+				brand: item.product?.brand?.name || "Sem marca",
+				category: item.product?.category?.name || "Sem categoria",
 				price: item.unitPrice,
 				market: item.purchase.market.name,
-				purchaseDate: item.purchase.purchaseDate.toLocaleDateString('pt-BR'),
+				purchaseDate: item.purchase.purchaseDate.toLocaleDateString("pt-BR"),
 			}))
 
 			const mostExpensive = formattedProducts[0]
@@ -259,8 +267,8 @@ export const productFunctions = {
 				sortInfo: {
 					sortBy,
 					sortOrder,
-					message: `Produtos ordenados por ${sortBy} (${sortOrder})`
-				}
+					message: `Produtos ordenados por ${sortBy} (${sortOrder})`,
+				},
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao buscar produtos mais caros: ${error}` }

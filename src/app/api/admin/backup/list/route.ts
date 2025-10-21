@@ -29,7 +29,8 @@ export async function GET() {
 			return NextResponse.json(
 				{
 					success: false,
-					error: "Credenciais do R2 não configuradas. Configure as variáveis de ambiente R2_ACCOUNT_ID, R2_ACCESS_KEY_ID e R2_SECRET_ACCESS_KEY.",
+					error:
+						"Credenciais do R2 não configuradas. Configure as variáveis de ambiente R2_ACCOUNT_ID, R2_ACCESS_KEY_ID e R2_SECRET_ACCESS_KEY.",
 					details: "Verifique a documentação em ENV_VARIABLES.md",
 				},
 				{ status: 500 },
@@ -80,7 +81,7 @@ export async function GET() {
 		})
 	} catch (error) {
 		console.error("[Backup List] Erro ao listar backups:", error)
-		
+
 		// Logs detalhados do erro
 		if (error instanceof Error) {
 			console.error("[Backup List] Mensagem de erro:", error.message)
@@ -89,19 +90,20 @@ export async function GET() {
 
 		// Verificar se é erro de credenciais
 		const errorMessage = error instanceof Error ? error.message : String(error)
-		const isCredentialError = errorMessage.includes("credentials") || 
-		                          errorMessage.includes("access") || 
-		                          errorMessage.includes("forbidden") ||
-		                          errorMessage.includes("unauthorized")
+		const isCredentialError =
+			errorMessage.includes("credentials") ||
+			errorMessage.includes("access") ||
+			errorMessage.includes("forbidden") ||
+			errorMessage.includes("unauthorized")
 
 		return NextResponse.json(
 			{
 				success: false,
-				error: isCredentialError 
+				error: isCredentialError
 					? "Erro de autenticação no R2. Verifique suas credenciais."
 					: "Erro ao listar backups no R2",
 				details: error instanceof Error ? error.message : "Erro desconhecido",
-				hint: isCredentialError 
+				hint: isCredentialError
 					? "Verifique se as variáveis R2_ACCOUNT_ID, R2_ACCESS_KEY_ID e R2_SECRET_ACCESS_KEY estão corretas."
 					: "Verifique os logs do servidor para mais detalhes.",
 			},

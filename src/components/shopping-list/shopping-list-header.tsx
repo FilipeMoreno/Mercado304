@@ -65,12 +65,7 @@ export function ShoppingListHeader({
 				</Button>
 
 				{onRegisterPurchase && totalItems > 0 && (
-					<Button
-						variant="secondary"
-						size="sm"
-						onClick={onRegisterPurchase}
-						className="flex-1 md:flex-initial"
-					>
+					<Button variant="secondary" size="sm" onClick={onRegisterPurchase} className="flex-1 md:flex-initial">
 						<Receipt className="size-4 mr-2" />
 						Registrar Compra
 					</Button>

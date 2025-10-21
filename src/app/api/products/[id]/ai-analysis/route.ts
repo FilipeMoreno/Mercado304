@@ -22,8 +22,8 @@ function calculatePerServing(nutritionalInfo: Record<string, any>, servingSize: 
 }
 
 export async function POST(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const productId = params.id
 		const apiKey = process.env.GEMINI_API_KEY
 		const body = await _request.json()

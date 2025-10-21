@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 		}, {})
 
 		const analysisData = Object.entries(dayAnalysis).map(([day, data]: any) => ({
-			day: dayNames[parseInt(day)],
+			day: dayNames[parseInt(day, 10)],
 			averagePrice: data.prices.reduce((a: number, b: number) => a + b, 0) / data.prices.length,
 			purchaseCount: data.prices.length,
 		}))

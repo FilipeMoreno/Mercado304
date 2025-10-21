@@ -9,17 +9,11 @@ export async function POST(request: NextRequest) {
 		const { imageUrl, marketId } = await request.json()
 
 		if (!imageUrl) {
-			return NextResponse.json(
-				{ success: false, message: "Imagem é obrigatória" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ success: false, message: "Imagem é obrigatória" }, { status: 400 })
 		}
 
 		if (!marketId) {
-			return NextResponse.json(
-				{ success: false, message: "ID do mercado é obrigatório" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ success: false, message: "ID do mercado é obrigatório" }, { status: 400 })
 		}
 
 		// Converter data URL para base64 puro
@@ -122,18 +116,18 @@ Exemplo 2 - Etiqueta com preço único:
 		} catch (parseError) {
 			console.error("Erro ao fazer parse da resposta:", parseError)
 			console.error("Texto recebido:", text)
-			
+
 			// Tentar extrair informações manualmente se o JSON falhar
 			const barcodeMatch = text.match(/\b\d{8,13}\b/)
 			const priceMatch = text.match(/(?:R\$\s*)?(\d+[,.]?\d*)/i)
-			
+
 			extractedData = {
 				barcode: barcodeMatch ? barcodeMatch[0] : null,
 				prices: priceMatch ? [{ value: parseFloat(priceMatch[1].replace(",", ".")), condition: "Normal" }] : [],
 				productName: null,
 				weight: null,
 				confidence: 0.5,
-				rawText: text
+				rawText: text,
 			}
 		}
 
@@ -185,10 +179,9 @@ Exemplo 2 - Etiqueta com preço único:
 			rawText: extractedData.rawText,
 			marketId: marketId,
 		})
-
 	} catch (error) {
 		console.error("Erro ao processar imagem:", error)
-		
+
 		let errorMessage = "Erro interno do servidor"
 		const err = error as { message?: string }
 		if (err.message?.includes("API key")) {
@@ -200,12 +193,12 @@ Exemplo 2 - Etiqueta com preço único:
 		}
 
 		return NextResponse.json(
-			{ 
-				success: false, 
+			{
+				success: false,
 				message: errorMessage,
-				error: process.env.NODE_ENV === "development" ? err.message : undefined
+				error: process.env.NODE_ENV === "development" ? err.message : undefined,
 			},
-			{ status: 500 }
+			{ status: 500 },
 		)
 	}
 }

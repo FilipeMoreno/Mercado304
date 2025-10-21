@@ -100,11 +100,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	}, [state.location, state.search, state.filter, state.includeExpired, currentPage, pageSize])
 
 	// React Query hooks
-	const {
-		data: stockData,
-		isLoading: stockLoading,
-		refetch: refetchStock,
-	} = useStockQuery(stockParams)
+	const { data: stockData, isLoading: stockLoading, refetch: refetchStock } = useStockQuery(stockParams)
 	const { data: productsData, isLoading: productsLoading } = useProductsQuery()
 	const createStockMutation = useCreateStockMutation()
 	const updateStockMutation = useUpdateStockMutation()
@@ -154,7 +150,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const executeProductUse = async () => {
 		if (consumedQuantity && parseFloat(consumedQuantity) > 0 && selectedItem) {
 			const quantityToUse = parseFloat(consumedQuantity)
-			
+
 			try {
 				await updateStockMutation.mutateAsync({
 					id: selectedItem.id,
@@ -235,7 +231,10 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 							<div className="space-y-4">
 								<div>
 									<label className="text-sm font-medium">Localização</label>
-									<Select value={String(state.location)} onValueChange={(value) => updateSingleValue("location", value)}>
+									<Select
+										value={String(state.location)}
+										onValueChange={(value) => updateSingleValue("location", value)}
+									>
 										<SelectTrigger>
 											<SelectValue />
 										</SelectTrigger>
@@ -282,8 +281,8 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 						<Plus className="mr-2 size-4" />
 						Adicionar
 					</Button>
-					<Button 
-						variant="destructive" 
+					<Button
+						variant="destructive"
 						onClick={() => setShowResetDialog(true)}
 						disabled={stockItems.length === 0}
 						title="Resetar todo o estoque"
@@ -328,10 +327,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				</TabsContent>
 
 				<TabsContent value="history" className="space-y-6">
-					<StockHistory 
-						currentPage={historyPage}
-						onPageChange={setHistoryPage}
-					/>
+					<StockHistory currentPage={historyPage} onPageChange={setHistoryPage} />
 				</TabsContent>
 
 				<TabsContent value="recipes" className="space-y-6">
@@ -341,15 +337,16 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 
 			{/* Diálogo de Adicionar */}
 			<ResponsiveDialog open={showAddDialog} onOpenChange={setShowAddDialog} title="Adicionar ao Estoque" maxWidth="md">
-				<StockForm
-					products={products}
-					onSubmit={handleCreateStock}
-					onCancel={() => setShowAddDialog(false)}
-				/>
+				<StockForm products={products} onSubmit={handleCreateStock} onCancel={() => setShowAddDialog(false)} />
 			</ResponsiveDialog>
 
 			{/* Diálogo de Editar */}
-			<ResponsiveDialog open={showEditDialog} onOpenChange={setShowEditDialog} title="Editar Item do Estoque" maxWidth="md">
+			<ResponsiveDialog
+				open={showEditDialog}
+				onOpenChange={setShowEditDialog}
+				title="Editar Item do Estoque"
+				maxWidth="md"
+			>
 				{selectedItem && (
 					<StockForm
 						initialData={selectedItem}
@@ -364,7 +361,12 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 			</ResponsiveDialog>
 
 			{/* Diálogo de Detalhes */}
-			<ResponsiveDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog} title="Detalhes do Item" maxWidth="lg">
+			<ResponsiveDialog
+				open={showDetailsDialog}
+				onOpenChange={setShowDetailsDialog}
+				title="Detalhes do Item"
+				maxWidth="lg"
+			>
 				{selectedItem && <StockDetails item={selectedItem} />}
 			</ResponsiveDialog>
 
@@ -388,7 +390,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 								onChange={(e) => {
 									const value = e.target.value
 									setConsumedQuantity(value)
-									
+
 									// Verificar se a quantidade excede o estoque disponível
 									if (value && selectedItem) {
 										const quantityToUse = parseFloat(value)
@@ -399,8 +401,8 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 									}
 								}}
 								className={`w-full mt-1 px-3 py-2 border rounded-md focus:outline-hidden focus:ring-2 ${
-									isQuantityExceeding 
-										? "border-red-500 focus:ring-red-500 bg-red-50" 
+									isQuantityExceeding
+										? "border-red-500 focus:ring-red-500 bg-red-50"
 										: "border-gray-300 focus:ring-blue-500"
 								}`}
 								placeholder="Digite a quantidade"
@@ -420,7 +422,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 									if (consumedQuantity && parseFloat(consumedQuantity) > 0) {
 										const quantityToUse = parseFloat(consumedQuantity)
 										const availableQuantity = selectedItem.quantity
-										
+
 										// Verificar se a quantidade a ser usada é maior que a disponível
 										if (quantityToUse > availableQuantity) {
 											setShowNegativeStockConfirm(true)
@@ -493,13 +495,24 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 							<AlertTriangle className="size-5 text-orange-600 mt-0.5 shrink-0" />
 							<div className="space-y-2">
 								<p className="text-sm font-medium text-orange-800">
-									Quantidade a ser usada: <strong>{consumedQuantity && parseFloat(consumedQuantity)} {selectedItem?.product.unit}</strong>
+									Quantidade a ser usada:{" "}
+									<strong>
+										{consumedQuantity && parseFloat(consumedQuantity)} {selectedItem?.product.unit}
+									</strong>
 								</p>
 								<p className="text-sm text-orange-700">
-									Estoque disponível: <strong>{selectedItem?.quantity} {selectedItem?.product.unit}</strong>
+									Estoque disponível:{" "}
+									<strong>
+										{selectedItem?.quantity} {selectedItem?.product.unit}
+									</strong>
 								</p>
 								<p className="text-sm text-orange-600">
-									Resultado: <strong>Estoque negativo de {consumedQuantity && parseFloat(consumedQuantity) - (selectedItem?.quantity || 0)} {selectedItem?.product.unit}</strong>
+									Resultado:{" "}
+									<strong>
+										Estoque negativo de{" "}
+										{consumedQuantity && parseFloat(consumedQuantity) - (selectedItem?.quantity || 0)}{" "}
+										{selectedItem?.product.unit}
+									</strong>
 								</p>
 							</div>
 						</div>

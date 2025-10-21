@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { forgetPassword, emailOtp } from "@/lib/auth-client"
+import { forgetPassword } from "@/lib/auth-client"
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("")
@@ -36,7 +36,6 @@ export default function ForgotPasswordPage() {
 		setIsLoading(true)
 
 		try {
-
 			// Usa o plugin emailOTP do Better Auth
 			const result = await forgetPassword.emailOtp({
 				email,
@@ -62,7 +61,6 @@ export default function ForgotPasswordPage() {
 		setIsLoading(true)
 
 		try {
-
 			// Usa a API diretamente para resetar senha com OTP
 			const response = await fetch("/api/auth/reset-password", {
 				method: "POST",
@@ -82,7 +80,7 @@ export default function ForgotPasswordPage() {
 			toast.success("Senha alterada com sucesso!")
 
 			// Aguarda e redireciona
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			await new Promise((resolve) => setTimeout(resolve, 1000))
 			router.push("/auth/signin")
 		} catch (error: any) {
 			console.error("[ForgotPassword] Error:", error)
@@ -102,7 +100,9 @@ export default function ForgotPasswordPage() {
 				<CardHeader className="text-center">
 					<CardTitle>Esqueceu sua senha?</CardTitle>
 					<CardDescription>
-						{codeSent ? "Digite o código enviado para seu email e sua nova senha." : "Digite seu email para receber um código de recuperação."}
+						{codeSent
+							? "Digite o código enviado para seu email e sua nova senha."
+							: "Digite seu email para receber um código de recuperação."}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -183,11 +183,7 @@ export default function ForgotPasswordPage() {
 									onClick={() => handleSendOTP()}
 									disabled={isLoading || cooldown > 0}
 								>
-									{cooldown > 0 ? (
-										`Reenviar em ${cooldown}s`
-									) : (
-										"Reenviar código"
-									)}
+									{cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar código"}
 								</Button>
 								<Button
 									type="button"

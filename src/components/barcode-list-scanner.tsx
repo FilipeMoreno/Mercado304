@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, Loader2, Upload, } from "lucide-react"
+import { Camera, Loader2, Upload } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -219,21 +219,11 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 							</Button>
 						)}
 
-						<Button
-							onClick={() => fileInputRef.current?.click()}
-							variant="outline"
-							className="flex-1 gap-2"
-						>
+						<Button onClick={() => fileInputRef.current?.click()} variant="outline" className="flex-1 gap-2">
 							<Upload className="size-4" />
 							Fazer Upload
 						</Button>
-						<input
-							ref={fileInputRef}
-							type="file"
-							accept="image/*"
-							onChange={handleFileUpload}
-							className="hidden"
-						/>
+						<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 					</div>
 				)}
 
@@ -251,4 +241,3 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 		</ResponsiveDialog>
 	)
 }
-

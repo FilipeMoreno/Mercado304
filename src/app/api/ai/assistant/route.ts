@@ -17,26 +17,26 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 // Função para criar resposta em streaming
 function createStreamResponse(text: string): Response {
 	const encoder = new TextEncoder()
-	
+
 	const stream = new ReadableStream({
 		start(controller) {
 			// Divide o texto em chunks maiores para preservar formatação
 			const sentences = text.split(/(?<=[.!?:])\s+/)
 			let currentIndex = 0
-			
+
 			const sendChunk = () => {
 				if (currentIndex < sentences.length) {
 					let chunk = sentences[currentIndex]
-					
+
 					// Adiciona espaço se não for a última sentença
 					if (currentIndex < sentences.length - 1) {
-						chunk += ' '
+						chunk += " "
 					}
-					
+
 					const data = JSON.stringify({ content: chunk })
 					controller.enqueue(encoder.encode(`data: ${data}\n\n`))
 					currentIndex++
-					
+
 					// Delay maior para chunks maiores
 					setTimeout(sendChunk, 200)
 				} else {
@@ -46,17 +46,17 @@ function createStreamResponse(text: string): Response {
 					controller.close()
 				}
 			}
-			
+
 			sendChunk()
-		}
+		},
 	})
-	
+
 	return new Response(stream, {
 		headers: {
-			'Content-Type': 'text/plain; charset=utf-8',
-			'Cache-Control': 'no-cache',
-			'Connection': 'keep-alive',
-		}
+			"Content-Type": "text/plain; charset=utf-8",
+			"Cache-Control": "no-cache",
+			Connection: "keep-alive",
+		},
 	})
 }
 

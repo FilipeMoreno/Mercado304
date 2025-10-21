@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Package, Plus, } from "lucide-react"
+import { Eye, EyeOff, Package, Plus } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -80,7 +80,7 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const listId = params.id as string
 
 	const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -240,11 +240,11 @@ export default function ListaDetalhesPage() {
 		setList((prev) =>
 			prev
 				? {
-					...prev,
-					items: prev.items.map((item) =>
-						item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
-					),
-				}
+						...prev,
+						items: prev.items.map((item) =>
+							item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
+						),
+					}
 				: null,
 		)
 
@@ -308,9 +308,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
+						}
 					: null,
 			)
 
@@ -337,9 +337,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
+						}
 					: null,
 			)
 		} catch (error) {
@@ -353,9 +353,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+						}
 					: null,
 			)
 			updateItemInServer(itemId, { quantity: newQuantity })
@@ -379,9 +379,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
+						}
 					: null,
 			)
 			updateItemInServer(itemId, { estimatedPrice: newPrice })
@@ -654,11 +654,11 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-								...prev,
-								items: prev.items.map((listItem) =>
-									listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
-								),
-							}
+									...prev,
+									items: prev.items.map((listItem) =>
+										listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
+									),
+								}
 							: null,
 					)
 				}}
@@ -704,7 +704,7 @@ export default function ListaDetalhesPage() {
 								</CardTitle>
 								<div className="flex gap-2">
 									{/* Toggle para mostrar itens concluídos */}
-									{list.items.filter(item => item.isChecked).length > 0 && (
+									{list.items.filter((item) => item.isChecked).length > 0 && (
 										<Button
 											onClick={() => setShowCompletedItems(!showCompletedItems)}
 											variant="outline"
@@ -723,7 +723,7 @@ export default function ListaDetalhesPage() {
 												</>
 											)}
 											<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-												{list.items.filter(item => item.isChecked).length}
+												{list.items.filter((item) => item.isChecked).length}
 											</span>
 										</Button>
 									)}
@@ -756,7 +756,7 @@ export default function ListaDetalhesPage() {
 							) : (
 								<div className="space-y-3">
 									{list.items
-										.filter(item => showCompletedItems || !item.isChecked)
+										.filter((item) => showCompletedItems || !item.isChecked)
 										.map((item, index) => (
 											<motion.div
 												key={item.id}
@@ -794,11 +794,7 @@ export default function ListaDetalhesPage() {
 			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-gray-900 border-t shadow-lg md:hidden">
 				<div className="px-4 py-3">
 					{/* Botão de adicionar item */}
-					<Button
-						onClick={() => setShowAddItem(true)}
-						className="w-full bg-primary hover:bg-primary/90"
-						size="lg"
-					>
+					<Button onClick={() => setShowAddItem(true)} className="w-full bg-primary hover:bg-primary/90" size="lg">
 						<Plus className="size-5 mr-2" />
 						Adicionar Item
 					</Button>
@@ -859,11 +855,11 @@ export default function ListaDetalhesPage() {
 						setList((prev) =>
 							prev
 								? {
-									...prev,
-									items: prev.items.map((item) =>
-										item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
-									),
-								}
+										...prev,
+										items: prev.items.map((item) =>
+											item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
+										),
+									}
 								: null,
 						)
 						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
@@ -910,11 +906,9 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-								...prev,
-								items: prev.items.map((item) =>
-									item.id === itemId ? { ...item, ...updateData } : item
-								),
-							}
+									...prev,
+									items: prev.items.map((item) => (item.id === itemId ? { ...item, ...updateData } : item)),
+								}
 							: null,
 					)
 

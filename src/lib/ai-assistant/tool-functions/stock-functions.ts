@@ -156,7 +156,7 @@ export const stockFunctions = {
 
 			const data = await response.json()
 			return { success: true, historyData: data }
-		} catch (error) {
+		} catch (_error) {
 			return { success: false, error: "Erro interno ao buscar histórico" }
 		}
 	},
@@ -178,7 +178,7 @@ export const stockFunctions = {
 
 			const data = await response.json()
 			return { success: true, wasteData: data }
-		} catch (error) {
+		} catch (_error) {
 			return { success: false, error: "Erro interno ao buscar desperdícios" }
 		}
 	},
@@ -222,7 +222,7 @@ export const stockFunctions = {
 
 			const result = await response.json()
 			return { success: true, wasteRecord: result }
-		} catch (error) {
+		} catch (_error) {
 			return { success: false, error: "Erro interno ao registrar desperdício" }
 		}
 	},

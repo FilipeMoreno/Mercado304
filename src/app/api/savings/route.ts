@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { getAllProductPrices } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {

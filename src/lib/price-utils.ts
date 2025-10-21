@@ -52,10 +52,10 @@ export async function getLatestPrice(productId: string, marketId: string) {
 
 	if (!purchaseItem) {
 		return {
-			price: priceRecord!.price,
-			date: priceRecord!.recordDate,
+			price: priceRecord?.price,
+			date: priceRecord?.recordDate,
 			source: "record" as const,
-			id: priceRecord!.id,
+			id: priceRecord?.id,
 		}
 	}
 

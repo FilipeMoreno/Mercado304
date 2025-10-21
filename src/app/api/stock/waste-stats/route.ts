@@ -1,8 +1,8 @@
-import { endOfMonth, format, startOfMonth, subMonths } from "date-fns"
+import { endOfMonth, startOfMonth, subMonths } from "date-fns"
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
 		const now = new Date()
 		const currentMonthStart = startOfMonth(now)

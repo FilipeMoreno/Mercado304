@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const listId = params.id
 
 		if (!listId) {
@@ -42,8 +42,8 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 }
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const listId = params.id
 		const body = await request.json()
 		const {
@@ -92,16 +92,19 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
 					include: {
 						brand: true,
 						category: true,
-					}
+					},
 				},
 			},
 		})
 
-		return NextResponse.json({
-			...newItem,
-			// Manter compatibilidade com código antigo
-			success: true,
-		}, { status: 201 })
+		return NextResponse.json(
+			{
+				...newItem,
+				// Manter compatibilidade com código antigo
+				success: true,
+			},
+			{ status: 201 },
+		)
 	} catch (error) {
 		console.error("Erro ao adicionar item à lista:", error)
 		return NextResponse.json({ error: "Erro ao adicionar item à lista" }, { status: 500 })

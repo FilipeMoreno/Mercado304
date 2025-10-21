@@ -1,12 +1,7 @@
 // src/app/api/admin/sync-precos/route.ts
 
 import { NextResponse } from "next/server"
-import {
-	LOCAL_PADRAO,
-	NOTA_PARANA_BASE_URL,
-	PERIODO_PADRAO,
-	RAIO_PADRAO,
-} from "@/lib/nota-parana-config"
+import { LOCAL_PADRAO, NOTA_PARANA_BASE_URL, PERIODO_PADRAO, RAIO_PADRAO } from "@/lib/nota-parana-config"
 import { prisma } from "@/lib/prisma"
 
 interface SyncResult {
@@ -102,7 +97,7 @@ export async function POST() {
 
 				// Agrupar produtos por categoria para identificar as top 3
 				const produtosPorCategoria = new Map<number, typeof data.produtos>()
-				
+
 				for (const prod of data.produtos) {
 					const categoria = prod.categoria || 0
 					if (!produtosPorCategoria.has(categoria)) {
@@ -121,93 +116,93 @@ export async function POST() {
 
 				// Para cada estabelecimento encontrado nas top 3 categorias
 				for (const produtoNP of todosProdutos) {
-						const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
-						const enderecoEstabelecimento = produtoNP.estabelecimento
+					const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
+					const enderecoEstabelecimento = produtoNP.estabelecimento
 
-						if (!nomeEstabelecimento) continue
+					if (!nomeEstabelecimento) continue
 
-						// Tentar encontrar mercado correspondente
-						const mercadoMatch = mercados.find((m) => {
-							if (!m.legalName) return false
+					// Tentar encontrar mercado correspondente
+					const mercadoMatch = mercados.find((m) => {
+						if (!m.legalName) return false
 
-							// 1. Comparação por razão social
-							const palavrasMercado = m.legalName.toLowerCase().split(" ")
-							const palavrasEstabelecimento = nomeEstabelecimento.toLowerCase().split(" ")
+						// 1. Comparação por razão social
+						const palavrasMercado = m.legalName.toLowerCase().split(" ")
+						const palavrasEstabelecimento = nomeEstabelecimento.toLowerCase().split(" ")
 
-							// Verifica se pelo menos 2 palavras significativas coincidem
-							let matchesNome = 0
-							for (const palavra of palavrasMercado) {
-								if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
-									matchesNome++
-								}
+						// Verifica se pelo menos 2 palavras significativas coincidem
+						let matchesNome = 0
+						for (const palavra of palavrasMercado) {
+							if (palavra.length > 3 && palavrasEstabelecimento.some((p: string) => p.includes(palavra))) {
+								matchesNome++
 							}
+						}
 
-							// Se não tem match de nome, não é este mercado
-							if (matchesNome < 2) return false
+						// Se não tem match de nome, não é este mercado
+						if (matchesNome < 2) return false
 
-							// 2. Validação por endereço (se o mercado tiver endereço cadastrado)
-							if (m.location) {
-								const enderecoMercado = m.location.toLowerCase()
-								const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
-								const numeroAPI = enderecoEstabelecimento.nr_logr || ""
-								const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
+						// 2. Validação por endereço (se o mercado tiver endereço cadastrado)
+						if (m.location) {
+							const enderecoMercado = m.location.toLowerCase()
+							const ruaAPI = enderecoEstabelecimento.nm_logr?.toLowerCase() || ""
+							const numeroAPI = enderecoEstabelecimento.nr_logr || ""
+							const bairroAPI = enderecoEstabelecimento.bairro?.toLowerCase() || ""
 
-								// Verifica se rua, número ou bairro coincidem
-								const temRua = ruaAPI && enderecoMercado.includes(ruaAPI)
-								const temNumero = numeroAPI && enderecoMercado.includes(numeroAPI)
-								const temBairro = bairroAPI && enderecoMercado.includes(bairroAPI)
+							// Verifica se rua, número ou bairro coincidem
+							const temRua = ruaAPI && enderecoMercado.includes(ruaAPI)
+							const temNumero = numeroAPI && enderecoMercado.includes(numeroAPI)
+							const temBairro = bairroAPI && enderecoMercado.includes(bairroAPI)
 
-								// Precisa ter pelo menos 2 matches de endereço
-								const matchesEndereco = [temRua, temNumero, temBairro].filter(Boolean).length
+							// Precisa ter pelo menos 2 matches de endereço
+							const matchesEndereco = [temRua, temNumero, temBairro].filter(Boolean).length
 
-								// Se tem endereço cadastrado, precisa ter match de endereço
-								if (matchesEndereco < 2) return false
-							}
+							// Se tem endereço cadastrado, precisa ter match de endereço
+							if (matchesEndereco < 2) return false
+						}
 
-							return true
-						})
+						return true
+					})
 
-						if (!mercadoMatch) continue
+					if (!mercadoMatch) continue
 
-						// Calcular preço final
-						const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
+					// Calcular preço final
+					const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
 
-						if (preco <= 0) continue
+					if (preco <= 0) continue
 
-						// Verificar se já existe registro recente (últimas 24h)
-						const dataLimite = new Date()
-						dataLimite.setHours(dataLimite.getHours() - 24)
+					// Verificar se já existe registro recente (últimas 24h)
+					const dataLimite = new Date()
+					dataLimite.setHours(dataLimite.getHours() - 24)
 
-						const registroExistente = await prisma.priceRecord.findFirst({
-							where: {
+					const registroExistente = await prisma.priceRecord.findFirst({
+						where: {
+							productId: produto.id,
+							marketId: mercadoMatch.id,
+							recordDate: {
+								gte: dataLimite,
+							},
+						},
+					})
+
+					// Só registra se não existir ou se o preço for diferente
+					if (!registroExistente || Math.abs(registroExistente.price - preco) > 0.01) {
+						await prisma.priceRecord.create({
+							data: {
 								productId: produto.id,
 								marketId: mercadoMatch.id,
-								recordDate: {
-									gte: dataLimite,
-								},
+								price: preco,
+								recordDate: new Date(produtoNP.datahora),
+								notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
 							},
 						})
 
-						// Só registra se não existir ou se o preço for diferente
-						if (!registroExistente || Math.abs(registroExistente.price - preco) > 0.01) {
-							await prisma.priceRecord.create({
-								data: {
-									productId: produto.id,
-									marketId: mercadoMatch.id,
-									price: preco,
-									recordDate: new Date(produtoNP.datahora),
-									notes: `Sincronizado - Nota Paraná (${produtoNP.tempo})`,
-								},
-							})
+						result.precosRegistrados++
 
-							result.precosRegistrados++
-
-							// Atualizar detalhes do mercado
-							let detalhe = result.detalhes.find((d) => d.mercado === mercadoMatch.name)
-							if (!detalhe) {
-								detalhe = { mercado: mercadoMatch.name, produtos: 0, precos: 0 }
-								result.detalhes.push(detalhe)
-							}
+						// Atualizar detalhes do mercado
+						let detalhe = result.detalhes.find((d) => d.mercado === mercadoMatch.name)
+						if (!detalhe) {
+							detalhe = { mercado: mercadoMatch.name, produtos: 0, precos: 0 }
+							result.detalhes.push(detalhe)
+						}
 						detalhe.produtos++
 						detalhe.precos++
 					}

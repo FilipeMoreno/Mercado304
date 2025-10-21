@@ -14,7 +14,7 @@ export const advancedStockFunctions = {
 			const stockMovements = await prisma.stockMovement.findMany({
 				where: {
 					type: "SAIDA",
-					stockItemId: { in: stockItems.map(item => item.id) }
+					stockItemId: { in: stockItems.map((item) => item.id) },
 				},
 				orderBy: { date: "desc" },
 				take: 100,
@@ -24,7 +24,7 @@ export const advancedStockFunctions = {
 
 			for (const item of stockItems) {
 				// Filtra movimentações para este item
-				const itemMovements = stockMovements.filter(mov => mov.stockItemId === item.id)
+				const itemMovements = stockMovements.filter((mov) => mov.stockItemId === item.id)
 
 				if (itemMovements.length >= 2) {
 					// Calcula consumo médio diário
@@ -32,8 +32,9 @@ export const advancedStockFunctions = {
 					const firstMovement = movements[0]
 					const lastMovement = movements[movements.length - 1]
 
-					const daysDiff = Math.max(1,
-						(lastMovement.date.getTime() - firstMovement.date.getTime()) / (1000 * 60 * 60 * 24)
+					const daysDiff = Math.max(
+						1,
+						(lastMovement.date.getTime() - firstMovement.date.getTime()) / (1000 * 60 * 60 * 24),
 					)
 
 					const totalConsumed = movements.reduce((sum: number, mov: any) => sum + mov.quantity, 0)
@@ -46,12 +47,12 @@ export const advancedStockFunctions = {
 						// Busca preço médio recente
 						const recentPurchase = await prisma.purchase.findFirst({
 							where: {
-								items: { some: { productId: item.productId } }
+								items: { some: { productId: item.productId } },
 							},
 							include: {
 								items: {
 									where: { productId: item.productId },
-									include: { product: true }
+									include: { product: true },
 								},
 								market: true,
 							},
@@ -62,16 +63,16 @@ export const advancedStockFunctions = {
 						const suggestedQuantity = Math.ceil(dailyConsumption * (daysAhead + 7)) // Para mais 1 semana
 
 						suggestions.push({
-							product: item.product?.name || 'Produto não identificado',
-							category: item.product?.category?.name || 'Sem categoria',
+							product: item.product?.name || "Produto não identificado",
+							category: item.product?.category?.name || "Sem categoria",
 							currentStock: item.quantity,
 							dailyConsumption: Math.round(dailyConsumption * 100) / 100,
 							daysUntilEmpty: Math.round(daysUntilEmpty * 10) / 10,
 							suggestedQuantity,
 							estimatedCost: avgPrice * suggestedQuantity,
 							lastPrice: avgPrice,
-							lastMarket: recentPurchase?.market.name || 'Não encontrado',
-							priority: daysUntilEmpty <= 3 ? 'alta' : daysUntilEmpty <= 7 ? 'média' : 'baixa',
+							lastMarket: recentPurchase?.market.name || "Não encontrado",
+							priority: daysUntilEmpty <= 3 ? "alta" : daysUntilEmpty <= 7 ? "média" : "baixa",
 							location: item.location,
 						})
 					}
@@ -81,7 +82,7 @@ export const advancedStockFunctions = {
 			suggestions.sort((a, b) => a.daysUntilEmpty - b.daysUntilEmpty)
 
 			const totalEstimatedCost = suggestions.reduce((sum, item) => sum + item.estimatedCost, 0)
-			const highPriority = suggestions.filter(s => s.priority === 'alta').length
+			const highPriority = suggestions.filter((s) => s.priority === "alta").length
 
 			return {
 				success: true,
@@ -116,34 +117,32 @@ export const advancedStockFunctions = {
 			for (const item of stockItems) {
 				let alertType = null
 				let daysLeft = null
-				let severity = 'info'
+				let severity = "info"
 
 				// Verifica se está com estoque baixo
 				if (item.quantity <= 2) {
-					alertType = 'Estoque crítico'
-					severity = 'critical'
+					alertType = "Estoque crítico"
+					severity = "critical"
 				} else if (item.quantity <= 5) {
-					alertType = 'Estoque baixo'
-					severity = 'warning'
+					alertType = "Estoque baixo"
+					severity = "warning"
 				}
 
 				// Verifica vencimento
 				if (item.expirationDate) {
-					const daysToExpire = Math.ceil(
-						(item.expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-					)
+					const daysToExpire = Math.ceil((item.expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
 					if (daysToExpire <= 0) {
-						alertType = 'Produto vencido'
-						severity = 'critical'
+						alertType = "Produto vencido"
+						severity = "critical"
 						daysLeft = daysToExpire
 					} else if (daysToExpire <= 3) {
-						alertType = 'Vence em breve'
-						severity = 'critical'
+						alertType = "Vence em breve"
+						severity = "critical"
 						daysLeft = daysToExpire
 					} else if (daysToExpire <= daysThreshold) {
-						alertType = alertType || 'Próximo ao vencimento'
-						severity = severity === 'critical' ? 'critical' : 'warning'
+						alertType = alertType || "Próximo ao vencimento"
+						severity = severity === "critical" ? "critical" : "warning"
 						daysLeft = daysToExpire
 					}
 				}
@@ -154,8 +153,9 @@ export const advancedStockFunctions = {
 
 				if (item.movements.length >= 2) {
 					const movements = item.movements
-					const daysDiff = Math.max(1,
-						(movements[0].date.getTime() - movements[movements.length - 1].date.getTime()) / (1000 * 60 * 60 * 24)
+					const daysDiff = Math.max(
+						1,
+						(movements[0].date.getTime() - movements[movements.length - 1].date.getTime()) / (1000 * 60 * 60 * 24),
 					)
 					const totalConsumed = movements.reduce((sum, mov) => sum + mov.quantity, 0)
 					dailyConsumption = totalConsumed / daysDiff
@@ -164,27 +164,25 @@ export const advancedStockFunctions = {
 						daysUntilEmpty = Math.round((item.quantity / dailyConsumption) * 10) / 10
 
 						if (daysUntilEmpty <= daysThreshold && !alertType) {
-							alertType = 'Acabará em breve'
-							severity = daysUntilEmpty <= 3 ? 'critical' : 'warning'
+							alertType = "Acabará em breve"
+							severity = daysUntilEmpty <= 3 ? "critical" : "warning"
 						}
 					}
 				}
 
 				if (alertType) {
 					alerts.push({
-						product: item.product?.name || 'Produto não identificado',
-						category: item.product?.category?.name || 'Sem categoria',
+						product: item.product?.name || "Produto não identificado",
+						category: item.product?.category?.name || "Sem categoria",
 						alertType,
 						severity,
 						currentStock: item.quantity,
 						location: item.location,
-						expirationDate: item.expirationDate?.toLocaleDateString('pt-BR'),
+						expirationDate: item.expirationDate?.toLocaleDateString("pt-BR"),
 						daysToExpire: daysLeft,
 						dailyConsumption: Math.round(dailyConsumption * 100) / 100,
 						daysUntilEmpty,
-						recommendation: severity === 'critical'
-							? 'Ação imediata necessária'
-							: 'Planejar reposição',
+						recommendation: severity === "critical" ? "Ação imediata necessária" : "Planejar reposição",
 					})
 				}
 			}
@@ -192,7 +190,9 @@ export const advancedStockFunctions = {
 			// Ordena por severidade e urgência
 			const severityOrder = { critical: 0, warning: 1, info: 2 }
 			alerts.sort((a, b) => {
-				const severityDiff = severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder]
+				const severityDiff =
+					severityOrder[a.severity as keyof typeof severityOrder] -
+					severityOrder[b.severity as keyof typeof severityOrder]
 				if (severityDiff !== 0) return severityDiff
 
 				if (a.daysToExpire !== null && b.daysToExpire !== null) {
@@ -206,8 +206,8 @@ export const advancedStockFunctions = {
 				return a.currentStock - b.currentStock
 			})
 
-			const criticalAlerts = alerts.filter(a => a.severity === 'critical').length
-			const warningAlerts = alerts.filter(a => a.severity === 'warning').length
+			const criticalAlerts = alerts.filter((a) => a.severity === "critical").length
+			const warningAlerts = alerts.filter((a) => a.severity === "warning").length
 
 			return {
 				success: true,
@@ -248,13 +248,13 @@ export const advancedStockFunctions = {
 			}
 
 			// Analisa padrão de consumo
-			const allMovements = stockItems.flatMap(item => item.movements)
-			const consumptionMovements = allMovements.filter(mov => mov.type === 'SAIDA')
+			const allMovements = stockItems.flatMap((item) => item.movements)
+			const consumptionMovements = allMovements.filter((mov) => mov.type === "SAIDA")
 
 			if (consumptionMovements.length < 3) {
 				return {
 					success: false,
-					message: `Dados insuficientes para análise de "${productName}". Necessário pelo menos 3 movimentações.`
+					message: `Dados insuficientes para análise de "${productName}". Necessário pelo menos 3 movimentações.`,
 				}
 			}
 
@@ -278,7 +278,8 @@ export const advancedStockFunctions = {
 			}
 
 			const avgWeekly = weeklyConsumptions.reduce((a, b) => a + b, 0) / weeklyConsumptions.length
-			const variance = weeklyConsumptions.reduce((sum, val) => sum + Math.pow(val - avgWeekly, 2), 0) / weeklyConsumptions.length
+			const variance =
+				weeklyConsumptions.reduce((sum, val) => sum + (val - avgWeekly) ** 2, 0) / weeklyConsumptions.length
 			const stdDev = Math.sqrt(variance)
 			const variability = (stdDev / avgWeekly) * 100
 
@@ -290,7 +291,7 @@ export const advancedStockFunctions = {
 			const recommendedMaxStock = Math.ceil(monthlyConsumption * 1.2) // 1.2 meses
 			const optimalOrderQuantity = Math.ceil(weeklyConsumption * 2) // 2 semanas
 
-			let recommendation = ''
+			let recommendation = ""
 			if (currentStock < recommendedMinStock) {
 				recommendation = `Estoque baixo! Reabastecer com ${optimalOrderQuantity} unidades.`
 			} else if (currentStock > recommendedMaxStock) {
@@ -320,7 +321,7 @@ export const advancedStockFunctions = {
 				analysis: {
 					totalMovements: consumptionMovements.length,
 					analysisPeriod: Math.round(daysDiff),
-					consumptionTrend: variability < 20 ? 'estável' : variability < 40 ? 'moderada' : 'alta variação',
+					consumptionTrend: variability < 20 ? "estável" : variability < 40 ? "moderada" : "alta variação",
 				},
 			}
 		} catch (error) {
@@ -330,17 +331,17 @@ export const advancedStockFunctions = {
 
 	generateWasteReport: async ({
 		period = 30,
-		includeRecommendations = true
+		includeRecommendations = true,
 	}: {
-		period?: number;
-		includeRecommendations?: boolean;
+		period?: number
+		includeRecommendations?: boolean
 	}) => {
 		try {
 			const startDate = new Date(Date.now() - period * 24 * 60 * 60 * 1000)
 
 			const wasteMovements = await prisma.stockMovement.findMany({
 				where: {
-					type: { in: ['VENCIMENTO', 'PERDA', 'DESPERDICIO'] },
+					type: { in: ["VENCIMENTO", "PERDA", "DESPERDICIO"] },
 					date: { gte: startDate },
 				},
 				include: {
@@ -355,24 +356,24 @@ export const advancedStockFunctions = {
 
 			// Combina dados de movimentações e registros de desperdício
 			const wasteData = [
-				...wasteMovements.map(mov => ({
-					product: mov.stockItem?.product?.name || 'Produto não identificado',
-					category: mov.stockItem?.product?.category?.name || 'Sem categoria',
+				...wasteMovements.map((mov) => ({
+					product: mov.stockItem?.product?.name || "Produto não identificado",
+					category: mov.stockItem?.product?.category?.name || "Sem categoria",
 					quantity: mov.quantity,
 					reason: mov.reason || mov.type,
 					date: mov.date,
 					location: mov.stockItem?.location,
 					estimatedValue: 0, // Será calculado
 				})),
-				...wasteRecords.map(record => ({
+				...wasteRecords.map((record) => ({
 					product: record.productName,
-					category: record.category || 'Sem categoria',
+					category: record.category || "Sem categoria",
 					quantity: record.quantity,
 					reason: record.wasteReason,
 					date: record.wasteDate,
 					location: record.location,
 					estimatedValue: record.totalValue || 0,
-				}))
+				})),
 			]
 
 			// Calcula valores estimados para movimentações sem valor
@@ -382,33 +383,36 @@ export const advancedStockFunctions = {
 						where: {
 							items: {
 								some: {
-									product: { name: { contains: waste.product, mode: "insensitive" } }
-								}
-							}
+									product: { name: { contains: waste.product, mode: "insensitive" } },
+								},
+							},
 						},
 						include: {
 							items: {
 								where: {
-									product: { name: { contains: waste.product, mode: "insensitive" } }
-								}
-							}
+									product: { name: { contains: waste.product, mode: "insensitive" } },
+								},
+							},
 						},
 						orderBy: { purchaseDate: "desc" },
 					})
 
-					if (recentPrice && recentPrice.items[0]) {
+					if (recentPrice?.items[0]) {
 						waste.estimatedValue = recentPrice.items[0].unitPrice * waste.quantity
 					}
 				}
 			}
 
 			// Análise por categoria
-			const categoryWaste: Record<string, {
-				quantity: number;
-				value: number;
-				items: number;
-				reasons: Record<string, number>;
-			}> = {}
+			const categoryWaste: Record<
+				string,
+				{
+					quantity: number
+					value: number
+					items: number
+					reasons: Record<string, number>
+				}
+			> = {}
 
 			let totalQuantity = 0
 			let totalValue = 0
@@ -424,21 +428,23 @@ export const advancedStockFunctions = {
 				categoryWaste[category].value += waste.estimatedValue
 				categoryWaste[category].items++
 
-				const reason = waste.reason || 'Não especificado'
+				const reason = waste.reason || "Não especificado"
 				categoryWaste[category].reasons[reason] = (categoryWaste[category].reasons[reason] || 0) + 1
 
 				totalQuantity += waste.quantity
 				totalValue += waste.estimatedValue
 			}
 
-			const categoryAnalysis = Object.entries(categoryWaste).map(([category, data]) => ({
-				category,
-				quantity: data.quantity,
-				value: data.value,
-				items: data.items,
-				percentage: (data.value / totalValue) * 100,
-				topReason: Object.entries(data.reasons).sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A',
-			})).sort((a, b) => b.value - a.value)
+			const categoryAnalysis = Object.entries(categoryWaste)
+				.map(([category, data]) => ({
+					category,
+					quantity: data.quantity,
+					value: data.value,
+					items: data.items,
+					percentage: (data.value / totalValue) * 100,
+					topReason: Object.entries(data.reasons).sort(([, a], [, b]) => b - a)[0]?.[0] || "N/A",
+				}))
+				.sort((a, b) => b.value - a.value)
 
 			// Recomendações
 			const recommendations = []
@@ -447,25 +453,31 @@ export const advancedStockFunctions = {
 				// Categoria com mais desperdício
 				if (categoryAnalysis.length > 0) {
 					const topCategory = categoryAnalysis[0]
-					recommendations.push(`Foque na categoria "${topCategory.category}" que representa ${topCategory.percentage.toFixed(1)}% do desperdício.`)
+					recommendations.push(
+						`Foque na categoria "${topCategory.category}" que representa ${topCategory.percentage.toFixed(1)}% do desperdício.`,
+					)
 				}
 
 				// Principais motivos
 				const reasonCounts: Record<string, number> = {}
-				wasteData.forEach(waste => {
-					const reason = waste.reason || 'Não especificado'
+				wasteData.forEach((waste) => {
+					const reason = waste.reason || "Não especificado"
 					reasonCounts[reason] = (reasonCounts[reason] || 0) + 1
 				})
 
 				const topReason = Object.entries(reasonCounts).sort(([, a], [, b]) => b - a)[0]
 				if (topReason) {
-					recommendations.push(`Principal causa: "${topReason[0]}" (${topReason[1]} ocorrências). Considere melhorar o controle de validade.`)
+					recommendations.push(
+						`Principal causa: "${topReason[0]}" (${topReason[1]} ocorrências). Considere melhorar o controle de validade.`,
+					)
 				}
 
 				// Valor médio
 				const avgDailyWaste = totalValue / period
 				if (avgDailyWaste > 10) {
-					recommendations.push(`Desperdício médio de R$ ${avgDailyWaste.toFixed(2)}/dia. Considere implementar alertas de vencimento.`)
+					recommendations.push(
+						`Desperdício médio de R$ ${avgDailyWaste.toFixed(2)}/dia. Considere implementar alertas de vencimento.`,
+					)
 				}
 			}
 

@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -7,20 +7,18 @@ import { prisma } from "@/lib/prisma"
  * Verifica se o usuário tem 2FA por email habilitado
  * Usado na página de 2FA durante o login
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
-
 		// Na página de 2FA, pode haver uma sessão parcial
 		// Vamos tentar buscar o usuário pela sessão ou cookie
 		const session = await auth.api.getSession({
 			headers: await headers(),
 		})
 
-
 		if (!session?.user) {
 			return NextResponse.json({
 				enabled: false,
-				reason: "no_session"
+				reason: "no_session",
 			})
 		}
 
@@ -36,13 +34,11 @@ export async function GET(request: NextRequest) {
 			},
 		})
 
-
 		const result = {
 			enabled: user?.twoFactorEmailEnabled || false,
 			totpEnabled: user?.twoFactorEnabled || false,
 			userId: user?.id,
 		}
-
 
 		return NextResponse.json(result)
 	} catch (error: any) {
@@ -54,8 +50,7 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json({
 			enabled: false,
 			reason: "error",
-			error: error.message
+			error: error.message,
 		})
 	}
 }
-

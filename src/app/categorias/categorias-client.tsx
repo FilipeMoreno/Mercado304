@@ -42,7 +42,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 	const debouncedSearch = useDebounce(searchValue, 500)
 	const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
 	const [categoryProducts, setCategoryProducts] = useState<any[]>([])
-	
+
 	const editNameId = React.useId()
 	const editIconId = React.useId()
 	const editColorId = React.useId()
@@ -297,8 +297,8 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: index * 0.05 }}
 									>
-										<CategoryCardMemo 
-											category={category} 
+										<CategoryCardMemo
+											category={category}
 											onDelete={handleOpenDeleteDialog}
 											onEdit={(category) => router.push(`/categorias/${category.id}/editar`)}
 										/>

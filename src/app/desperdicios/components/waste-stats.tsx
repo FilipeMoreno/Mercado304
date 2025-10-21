@@ -57,9 +57,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 							<EmptyMedia variant="icon">
 								<CheckCircle2 className="size-12 text-green-600" />
 							</EmptyMedia>
-							<EmptyTitle className="text-green-900 dark:text-green-100">
-								Excelente! Sem desperdícios
-							</EmptyTitle>
+							<EmptyTitle className="text-green-900 dark:text-green-100">Excelente! Sem desperdícios</EmptyTitle>
 							<EmptyDescription className="text-green-700 dark:text-green-300">
 								Continue assim! Manter o desperdício zerado é ótimo para seu bolso e para o meio ambiente.
 							</EmptyDescription>

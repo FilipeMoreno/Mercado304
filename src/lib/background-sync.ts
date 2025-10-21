@@ -31,7 +31,7 @@ export async function registerBackgroundSync(): Promise<boolean> {
 
 		// Verificar se sync está disponível
 		const registration = await navigator.serviceWorker.ready
-		
+
 		// Type assertion para sync (experimental API)
 		const syncManager = (registration as any).sync
 		if (!syncManager) {
@@ -207,4 +207,3 @@ export function useBackgroundSync() {
 		getStats,
 	}
 }
-

@@ -1,17 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { 
-	Bot, 
-	Search, 
-	Calculator, 
-	ShoppingCart, 
-	BarChart3, 
-	Package,
-	Sparkles,
-	Brain,
-	Zap
-} from "lucide-react"
+import { BarChart3, Bot, Brain, Calculator, Package, Search, ShoppingCart, Sparkles, Zap } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface EnhancedTypingIndicatorProps {
@@ -30,7 +20,7 @@ const statusMessages = [
 	{ icon: Zap, message: "Finalizando...", color: "text-yellow-500" },
 ]
 
-const contextualMessages: Record<string, typeof statusMessages[0]> = {
+const contextualMessages: Record<string, (typeof statusMessages)[0]> = {
 	search: { icon: Search, message: "Buscando produtos...", color: "text-green-500" },
 	price: { icon: Calculator, message: "Comparando preços...", color: "text-orange-500" },
 	list: { icon: ShoppingCart, message: "Criando lista...", color: "text-purple-500" },
@@ -41,7 +31,7 @@ const contextualMessages: Record<string, typeof statusMessages[0]> = {
 }
 
 export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypingIndicatorProps) {
-	const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
+	const [_currentMessageIndex, setCurrentMessageIndex] = useState(0)
 	const [currentStatus, setCurrentStatus] = useState(statusMessages[0])
 
 	useEffect(() => {
@@ -56,7 +46,7 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 			setCurrentStatus({
 				icon: Bot,
 				message: customMessage,
-				color: "text-blue-500"
+				color: "text-blue-500",
 			})
 			return
 		}
@@ -90,13 +80,13 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 			{/* Indicador de status */}
 			<div className="flex items-center gap-2 flex-1">
 				<motion.div
-					animate={{ 
+					animate={{
 						rotate: 360,
-						scale: [1, 1.1, 1]
+						scale: [1, 1.1, 1],
 					}}
-					transition={{ 
+					transition={{
 						rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-						scale: { duration: 1, repeat: Infinity }
+						scale: { duration: 1, repeat: Infinity },
 					}}
 					className={`${currentStatus.color} shrink-0`}
 				>

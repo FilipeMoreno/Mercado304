@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const productId = searchParams.get("productId")
 		const marketId = searchParams.get("marketId")
-		const days = parseInt(searchParams.get("days") || "90")
+		const days = parseInt(searchParams.get("days") || "90", 10)
 
 		// Data de corte
 		const startDate = new Date()

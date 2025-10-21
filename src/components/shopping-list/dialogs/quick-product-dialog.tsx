@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, Save } from "lucide-react"
+import { Save } from "lucide-react"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
@@ -40,12 +40,7 @@ export function QuickProductDialog({
 	const { selectStyle } = useUIPreferences()
 
 	return (
-		<ResponsiveDialog
-			open={isOpen}
-			onOpenChange={onClose}
-			title="Adicionar Produto Rápido"
-			maxWidth="md"
-		>
+		<ResponsiveDialog open={isOpen} onOpenChange={onClose} title="Adicionar Produto Rápido" maxWidth="md">
 			<div className="space-y-4">
 				<div className="space-y-2">
 					<Label htmlFor="quickProductName">Nome do Produto *</Label>

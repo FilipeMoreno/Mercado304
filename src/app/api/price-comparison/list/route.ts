@@ -97,10 +97,10 @@ export async function POST(request: Request) {
 				})
 				.filter((item) => item !== null)
 
-			const availableItems = marketItems.filter((item) => item!.available)
-			const missingItems = marketItems.filter((item) => !item!.available)
+			const availableItems = marketItems.filter((item) => item?.available)
+			const missingItems = marketItems.filter((item) => !item?.available)
 
-			const totalPrice = availableItems.reduce((sum, item) => sum + item!.totalPrice, 0)
+			const totalPrice = availableItems.reduce((sum, item) => sum + item?.totalPrice, 0)
 
 			return {
 				marketId: market.id,

@@ -170,7 +170,8 @@ export const tools: any = [
 			},
 			{
 				name: "getMostExpensiveProducts",
-				description: "Busca os produtos mais caros registrados no sistema baseado nos preços das compras com opções de ordenação.",
+				description:
+					"Busca os produtos mais caros registrados no sistema baseado nos preços das compras com opções de ordenação.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1047,7 +1048,8 @@ export const tools: any = [
 			// Product Recognition
 			{
 				name: "recognizeProductFromPhoto",
-				description: "Analisa uma foto de produto e retorna informações detalhadas, histórico de preços e ações sugeridas.",
+				description:
+					"Analisa uma foto de produto e retorna informações detalhadas, histórico de preços e ações sugeridas.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1139,7 +1141,8 @@ export const tools: any = [
 			// Kits e Combos Promocionais
 			{
 				name: "listProductKits",
-				description: "Lista todos os kits/combos promocionais cadastrados. Kits são combos que os mercados oferecem (ex: Kit 2 Refris).",
+				description:
+					"Lista todos os kits/combos promocionais cadastrados. Kits são combos que os mercados oferecem (ex: Kit 2 Refris).",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1152,7 +1155,8 @@ export const tools: any = [
 			},
 			{
 				name: "createProductKit",
-				description: "Cria um novo kit/combo promocional. Use quando o usuário mencionar combos de mercados (ex: 'Kit 2 Refris Carrefour').",
+				description:
+					"Cria um novo kit/combo promocional. Use quando o usuário mencionar combos de mercados (ex: 'Kit 2 Refris Carrefour').",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1214,7 +1218,8 @@ export const tools: any = [
 			},
 			{
 				name: "checkKitStock",
-				description: "Verifica quantos kits completos podem ser montados com o estoque atual e identifica produto limitante.",
+				description:
+					"Verifica quantos kits completos podem ser montados com o estoque atual e identifica produto limitante.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1228,7 +1233,8 @@ export const tools: any = [
 			},
 			{
 				name: "calculateKitSavings",
-				description: "Calcula a economia ao comprar um kit comparado com produtos separados. Use quando usuário comprar um kit ou perguntar sobre economia.",
+				description:
+					"Calcula a economia ao comprar um kit comparado com produtos separados. Use quando usuário comprar um kit ou perguntar sobre economia.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1272,7 +1278,8 @@ export const tools: any = [
 			},
 			{
 				name: "findSimilarKits",
-				description: "Busca kits similares ao termo fornecido. Use para seleção quando usuário mencionar um kit que pode ter múltiplas opções.",
+				description:
+					"Busca kits similares ao termo fornecido. Use para seleção quando usuário mencionar um kit que pode ter múltiplas opções.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
@@ -1290,7 +1297,8 @@ export const tools: any = [
 			},
 			{
 				name: "quickKitPriceAnalysis",
-				description: "Registra preços rapidamente do kit e produtos individuais e retorna análise instantânea se vale a pena. Use quando usuário estiver no mercado e quiser registrar preços para análise.",
+				description:
+					"Registra preços rapidamente do kit e produtos individuais e retorna análise instantânea se vale a pena. Use quando usuário estiver no mercado e quiser registrar preços para análise.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {

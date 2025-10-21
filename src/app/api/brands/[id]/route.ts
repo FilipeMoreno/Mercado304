@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const brand = await prisma.brand.findUnique({
 			where: { id: params.id },
 		})
@@ -28,14 +28,14 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 				products: products.length,
 			},
 		})
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao buscar marca" }, { status: 500 })
 	}
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const body = await request.json()
 		const { name } = body
 
@@ -58,9 +58,9 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 	}
 }
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		await prisma.brand.delete({
 			where: { id: params.id },
 		})

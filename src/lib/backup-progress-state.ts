@@ -44,4 +44,3 @@ export function resetBackupProgress() {
 		startTime: 0,
 	}
 }
-

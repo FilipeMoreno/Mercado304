@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 interface CacheEntry {
 	query: string
@@ -25,7 +25,7 @@ export function useAiCache() {
 	const [cacheStats, setCacheStats] = useState<CacheStats>({
 		hits: 0,
 		misses: 0,
-		totalQueries: 0
+		totalQueries: 0,
 	})
 
 	// Normalizar query para comparação
@@ -33,19 +33,19 @@ export function useAiCache() {
 		return query
 			.toLowerCase()
 			.trim()
-			.replace(/[^\w\s]/g, '') // Remove pontuação
-			.replace(/\s+/g, ' ') // Normaliza espaços
+			.replace(/[^\w\s]/g, "") // Remove pontuação
+			.replace(/\s+/g, " ") // Normaliza espaços
 	}
 
 	// Calcular similaridade entre queries
 	const calculateSimilarity = (query1: string, query2: string): number => {
-		const words1 = query1.split(' ')
-		const words2 = query2.split(' ')
-		
-		const intersection = words1.filter(word => words2.includes(word))
+		const words1 = query1.split(" ")
+		const words2 = query2.split(" ")
+
+		const intersection = words1.filter((word) => words2.includes(word))
 		const allWords = words1.concat(words2)
 		const union = allWords.filter((word, index) => allWords.indexOf(word) === index)
-		
+
 		return intersection.length / union.length
 	}
 
@@ -58,7 +58,7 @@ export function useAiCache() {
 				return new Map(Object.entries(data))
 			}
 		} catch (error) {
-			console.error('Erro ao carregar cache:', error)
+			console.error("Erro ao carregar cache:", error)
 		}
 		return new Map()
 	}
@@ -69,7 +69,7 @@ export function useAiCache() {
 			const data = Object.fromEntries(cache)
 			localStorage.setItem(CACHE_KEY, JSON.stringify(data))
 		} catch (error) {
-			console.error('Erro ao salvar cache:', error)
+			console.error("Erro ao salvar cache:", error)
 		}
 	}
 
@@ -122,13 +122,13 @@ export function useAiCache() {
 			entry.frequency++
 			cache.set(normalizedQuery, entry)
 			saveCache(cache)
-			
-			setCacheStats(prev => ({
+
+			setCacheStats((prev) => ({
 				...prev,
 				hits: prev.hits + 1,
-				totalQueries: prev.totalQueries + 1
+				totalQueries: prev.totalQueries + 1,
 			}))
-			
+
 			return entry.response
 		}
 
@@ -136,20 +136,20 @@ export function useAiCache() {
 		let similarResponse: string | null = null
 		cache.forEach((entry, cachedQuery) => {
 			if (similarResponse) return // Já encontrou
-			
+
 			const similarity = calculateSimilarity(normalizedQuery, cachedQuery)
 			if (similarity >= 0.8) {
 				entry.lastAccessed = Date.now()
 				entry.frequency++
 				cache.set(cachedQuery, entry)
 				saveCache(cache)
-				
-				setCacheStats(prev => ({
+
+				setCacheStats((prev) => ({
 					...prev,
 					hits: prev.hits + 1,
-					totalQueries: prev.totalQueries + 1
+					totalQueries: prev.totalQueries + 1,
 				}))
-				
+
 				similarResponse = entry.response
 			}
 		})
@@ -158,10 +158,10 @@ export function useAiCache() {
 			return similarResponse
 		}
 
-		setCacheStats(prev => ({
+		setCacheStats((prev) => ({
 			...prev,
 			misses: prev.misses + 1,
-			totalQueries: prev.totalQueries + 1
+			totalQueries: prev.totalQueries + 1,
 		}))
 
 		return null
@@ -189,7 +189,7 @@ export function useAiCache() {
 				response,
 				timestamp: now,
 				frequency: 1,
-				lastAccessed: now
+				lastAccessed: now,
 			})
 		}
 
@@ -202,7 +202,7 @@ export function useAiCache() {
 		const normalizedQuery = normalizeQuery(query)
 		const cache = loadCache()
 		const entry = cache.get(normalizedQuery)
-		
+
 		// Cachear se já foi acessada antes ou se é uma query comum
 		if (entry && entry.frequency >= MIN_FREQUENCY_FOR_CACHE) {
 			return true
@@ -210,14 +210,25 @@ export function useAiCache() {
 
 		// Queries comuns que devem ser sempre cacheadas
 		const commonQueries = [
-			'preço', 'price', 'custo', 'quanto custa',
-			'lista', 'compras', 'shopping',
-			'mercado', 'supermercado', 'onde comprar',
-			'produto', 'item', 'encontrar',
-			'churrasco', 'bbq', 'calcular'
+			"preço",
+			"price",
+			"custo",
+			"quanto custa",
+			"lista",
+			"compras",
+			"shopping",
+			"mercado",
+			"supermercado",
+			"onde comprar",
+			"produto",
+			"item",
+			"encontrar",
+			"churrasco",
+			"bbq",
+			"calcular",
 		]
 
-		return commonQueries.some(common => normalizedQuery.includes(common))
+		return commonQueries.some((common) => normalizedQuery.includes(common))
 	}
 
 	// Limpar cache
@@ -226,22 +237,20 @@ export function useAiCache() {
 			localStorage.removeItem(CACHE_KEY)
 			setCacheStats({ hits: 0, misses: 0, totalQueries: 0 })
 		} catch (error) {
-			console.error('Erro ao limpar cache:', error)
+			console.error("Erro ao limpar cache:", error)
 		}
 	}
 
 	// Obter estatísticas do cache
 	const getCacheInfo = () => {
 		const cache = loadCache()
-		const hitRate = cacheStats.totalQueries > 0 
-			? (cacheStats.hits / cacheStats.totalQueries * 100).toFixed(1)
-			: '0'
+		const hitRate = cacheStats.totalQueries > 0 ? ((cacheStats.hits / cacheStats.totalQueries) * 100).toFixed(1) : "0"
 
 		return {
 			size: cache.size,
 			maxSize: MAX_CACHE_SIZE,
 			hitRate: `${hitRate}%`,
-			stats: cacheStats
+			stats: cacheStats,
 		}
 	}
 
@@ -251,6 +260,6 @@ export function useAiCache() {
 		shouldCache,
 		clearCache,
 		getCacheInfo,
-		cacheStats
+		cacheStats,
 	}
 }

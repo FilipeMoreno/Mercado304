@@ -1,0 +1,50 @@
+import { type ComponentProps, type ReactNode, Suspense } from "react"
+import { OptimizedLoading } from "./optimized-loading"
+
+interface OptimizedSuspenseProps extends Omit<ComponentProps<typeof Suspense>, "fallback"> {
+	fallback?: ReactNode
+	loadingText?: string
+	size?: "sm" | "md" | "lg"
+}
+
+// React 19 optimized Suspense wrapper with better loading states
+export function OptimizedSuspense({
+	children,
+	fallback,
+	loadingText = "Carregando...",
+	size = "md",
+	...props
+}: OptimizedSuspenseProps) {
+	const defaultFallback = fallback || <OptimizedLoading text={loadingText} size={size} />
+
+	return (
+		<Suspense fallback={defaultFallback} {...props}>
+			{children}
+		</Suspense>
+	)
+}
+
+// Specialized Suspense components for different use cases
+export function DataSuspense({ children, ...props }: Omit<OptimizedSuspenseProps, "loadingText">) {
+	return (
+		<OptimizedSuspense loadingText="Carregando dados..." {...props}>
+			{children}
+		</OptimizedSuspense>
+	)
+}
+
+export function PageSuspense({ children, ...props }: Omit<OptimizedSuspenseProps, "loadingText" | "size">) {
+	return (
+		<OptimizedSuspense loadingText="Carregando página..." size="lg" {...props}>
+			{children}
+		</OptimizedSuspense>
+	)
+}
+
+export function ComponentSuspense({ children, ...props }: Omit<OptimizedSuspenseProps, "loadingText" | "size">) {
+	return (
+		<OptimizedSuspense loadingText="Carregando componente..." size="sm" {...props}>
+			{children}
+		</OptimizedSuspense>
+	)
+}

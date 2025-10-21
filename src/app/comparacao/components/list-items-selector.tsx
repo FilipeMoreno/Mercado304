@@ -40,7 +40,7 @@ export function ListItemsSelector({
 
 	const handleItemToggle = (itemId: string) => {
 		if (selectedItemIds.includes(itemId)) {
-			onSelectedItemsChange(selectedItemIds.filter(id => id !== itemId))
+			onSelectedItemsChange(selectedItemIds.filter((id) => id !== itemId))
 		} else {
 			onSelectedItemsChange([...selectedItemIds, itemId])
 		}
@@ -50,11 +50,11 @@ export function ListItemsSelector({
 		if (selectedItemIds.length === listItems.length) {
 			onSelectedItemsChange([])
 		} else {
-			onSelectedItemsChange(listItems.map(item => item.id))
+			onSelectedItemsChange(listItems.map((item) => item.id))
 		}
 	}
 
-	const selectedItems = listItems.filter(item => selectedItemIds.includes(item.id))
+	const selectedItems = listItems.filter((item) => selectedItemIds.includes(item.id))
 	const allSelected = selectedItemIds.length === listItems.length
 	const _someSelected = selectedItemIds.length > 0 && selectedItemIds.length < listItems.length
 
@@ -63,17 +63,8 @@ export function ListItemsSelector({
 			<CardHeader>
 				<CardTitle className="flex items-center justify-between">
 					<span>Selecionar Itens Específicos</span>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => setIsExpanded(!isExpanded)}
-						className="h-auto p-1"
-					>
-						{isExpanded ? (
-							<ChevronUp className="size-4" />
-						) : (
-							<ChevronDown className="size-4" />
-						)}
+					<Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="h-auto p-1">
+						{isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
 					</Button>
 				</CardTitle>
 			</CardHeader>
@@ -81,12 +72,7 @@ export function ListItemsSelector({
 				<CardContent className="space-y-4">
 					<div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
 						<div className="flex items-center space-x-2">
-							<Checkbox
-								id="select-all"
-								checked={allSelected}
-								onCheckedChange={handleSelectAll}
-								disabled={isLoading}
-							/>
+							<Checkbox id="select-all" checked={allSelected} onCheckedChange={handleSelectAll} disabled={isLoading} />
 							<Label htmlFor="select-all" className="font-medium">
 								{allSelected ? "Desmarcar Todos" : "Selecionar Todos"}
 							</Label>
@@ -106,7 +92,7 @@ export function ListItemsSelector({
 									key={item.id}
 									className={cn(
 										"flex items-center space-x-3 p-3 rounded-lg border transition-colors",
-										isSelected ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:bg-gray-50"
+										isSelected ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:bg-gray-50",
 									)}
 								>
 									<Checkbox
@@ -121,14 +107,10 @@ export function ListItemsSelector({
 										</Label>
 										<div className="text-sm text-gray-600 mt-1">
 											Quantidade: {item.quantity} {itemUnit}
-											{item.notes && (
-												<span className="ml-2 text-gray-500">• {item.notes}</span>
-											)}
+											{item.notes && <span className="ml-2 text-gray-500">• {item.notes}</span>}
 										</div>
 									</div>
-									{isSelected && (
-										<Check className="size-4 text-blue-600 shrink-0" />
-									)}
+									{isSelected && <Check className="size-4 text-blue-600 shrink-0" />}
 								</div>
 							)
 						})}
@@ -147,7 +129,9 @@ export function ListItemsSelector({
 											className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200"
 										>
 											<span className="font-medium">{itemName}</span>
-											<span className="text-blue-600">({item.quantity} {itemUnit})</span>
+											<span className="text-blue-600">
+												({item.quantity} {itemUnit})
+											</span>
 										</div>
 									)
 								})}

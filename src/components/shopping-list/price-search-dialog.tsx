@@ -7,13 +7,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useNotaParana } from "@/hooks"
@@ -63,12 +57,12 @@ const PERIODO_PADRAO = 60 // 60 dias
 export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSearchDialogProps) {
 	const [loading, setLoading] = useState(false)
 	const [searchData, setSearchData] = useState<PriceSearchData | null>(null)
-	
+
 	// Estados para Nota Paraná
 	const [notaParanaProdutos, setNotaParanaProdutos] = useState<NotaParanaProduto[]>([])
 	const [searching, setSearching] = useState(false)
 	const [periodo, setPeriodo] = useState<string>(PERIODO_PADRAO.toString())
-	
+
 	const { loading: notaParanaLoading, buscarProdutos } = useNotaParana()
 
 	// Buscar produtos no Nota Paraná
@@ -158,7 +152,6 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 			setNotaParanaProdutos([])
 		}
 	}, [isOpen, itemId, fetchPriceData])
-
 
 	// Formatar data
 	const formatDate = (dateString: string) => {
@@ -274,9 +267,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 															</div>
 														</div>
 														<div className="text-right">
-															<div className="text-2xl font-bold text-primary">
-																{formatPrice(priceInfo.price)}
-															</div>
+															<div className="text-2xl font-bold text-primary">{formatPrice(priceInfo.price)}</div>
 															{searchData.lowestPrice && priceInfo.marketId !== searchData.lowestPrice.marketId && (
 																<div className="text-xs text-muted-foreground mt-1">
 																	+{formatPrice(priceInfo.price - searchData.lowestPrice.price)}
@@ -353,9 +344,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 								) : notaParanaProdutos.length > 0 ? (
 									<div className="space-y-3">
 										<div className="flex items-center justify-between">
-											<h4 className="font-semibold">
-												Resultados do Nota Paraná ({notaParanaProdutos.length})
-											</h4>
+											<h4 className="font-semibold">Resultados do Nota Paraná ({notaParanaProdutos.length})</h4>
 											{notaParanaProdutos.length > 0 && (
 												<div className="text-sm text-muted-foreground">
 													A partir de {formatPrice(calcularPrecoFinal(notaParanaProdutos[0]))}
@@ -368,8 +357,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 											const valorDesconto = parseFloat(produto.valor_desconto)
 											const valorTabela = parseFloat(produto.valor_tabela)
 											const precoFinal = calcularPrecoFinal(produto)
-											const percentualDesconto =
-												valorTabela > 0 ? ((valorDesconto / valorTabela) * 100).toFixed(0) : 0
+											const percentualDesconto = valorTabela > 0 ? ((valorDesconto / valorTabela) * 100).toFixed(0) : 0
 											const endereco = formatarEndereco(produto)
 
 											return (
@@ -404,9 +392,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 
 																{/* Código de barras */}
 																{produto.gtin && (
-																	<div className="mt-2 text-xs text-muted-foreground">
-																		EAN: {produto.gtin}
-																	</div>
+																	<div className="mt-2 text-xs text-muted-foreground">EAN: {produto.gtin}</div>
 																)}
 															</div>
 
@@ -417,9 +403,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 																		<div className="text-xs text-muted-foreground line-through">
 																			{formatPrice(valorTabela)}
 																		</div>
-																		<div className="text-2xl font-bold text-primary">
-																			{formatPrice(precoFinal)}
-																		</div>
+																		<div className="text-2xl font-bold text-primary">{formatPrice(precoFinal)}</div>
 																		<Badge variant="destructive" className="mt-1">
 																			<TrendingDown className="h-3 w-3 mr-1" />-{percentualDesconto}%
 																		</Badge>
@@ -441,17 +425,13 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 										)}
 									</div>
 								) : (
-									<div className="text-center py-8 text-muted-foreground">
-										Nenhum produto encontrado no Nota Paraná
-									</div>
+									<div className="text-center py-8 text-muted-foreground">Nenhum produto encontrado no Nota Paraná</div>
 								)}
 							</div>
 						)}
 					</div>
 				) : (
-					<div className="text-center py-8 text-muted-foreground">
-						Selecione um item para buscar preços
-					</div>
+					<div className="text-center py-8 text-muted-foreground">Selecione um item para buscar preços</div>
 				)}
 
 				<div className="flex justify-end gap-2 pt-4 border-t">
@@ -463,4 +443,3 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 		</Dialog>
 	)
 }
-

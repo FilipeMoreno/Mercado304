@@ -1,16 +1,8 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
-import { 
-	Send, 
-	Camera, 
-	Paperclip, 
-	Mic, 
-	MicOff,
-	ArrowUp,
-	Loader2
-} from "lucide-react"
+import { ArrowUp, Camera, Loader2, Mic, MicOff } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -41,7 +33,7 @@ export function ChatInput({
 	showVoiceButton = false,
 	onVoiceStart,
 	onVoiceStop,
-	isListening = false
+	isListening = false,
 }: ChatInputProps) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [isFocused, setIsFocused] = useState(false)
@@ -49,20 +41,20 @@ export function ChatInput({
 	// Auto-resize textarea
 	useEffect(() => {
 		if (textareaRef.current) {
-			textareaRef.current.style.height = 'auto'
+			textareaRef.current.style.height = "auto"
 			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
 		}
-	}, [value])
+	}, [])
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
 		if (!value.trim() || disabled || isLoading) return
-		
+
 		onSubmit(value.trim())
 	}
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault()
 			handleSubmit(e)
 		}
@@ -77,8 +69,8 @@ export function ChatInput({
 			<form onSubmit={handleSubmit} className="relative">
 				<motion.div
 					animate={{
-						borderColor: isFocused ? '#3b82f6' : '#e5e7eb',
-						backgroundColor: isFocused ? '#ffffff' : '#f9fafb'
+						borderColor: isFocused ? "#3b82f6" : "#e5e7eb",
+						backgroundColor: isFocused ? "#ffffff" : "#f9fafb",
 					}}
 					transition={{ duration: 0.2 }}
 					className="flex items-end gap-2 p-3 border rounded-2xl shadow-xs"
@@ -105,17 +97,13 @@ export function ChatInput({
 								onClick={isListening ? onVoiceStop : onVoiceStart}
 								disabled={disabled || isLoading}
 								className={`h-8 w-8 shrink-0 transition-colors ${
-									isListening 
-										? 'text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100' 
-										: 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+									isListening
+										? "text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100"
+										: "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
 								}`}
 								title={isListening ? "Parar gravação" : "Gravar áudio"}
 							>
-								{isListening ? (
-									<MicOff className="size-4 animate-pulse" />
-								) : (
-									<Mic className="size-4" />
-								)}
+								{isListening ? <MicOff className="size-4 animate-pulse" /> : <Mic className="size-4" />}
 							</Button>
 						)}
 					</div>
@@ -143,11 +131,7 @@ export function ChatInput({
 								animate={{ opacity: 1, scale: 1 }}
 								exit={{ opacity: 0, scale: 0.8 }}
 								className={`absolute bottom-1 right-1 text-xs ${
-									characterCount > maxLength 
-										? 'text-red-500' 
-										: isNearLimit 
-											? 'text-orange-500' 
-											: 'text-gray-400'
+									characterCount > maxLength ? "text-red-500" : isNearLimit ? "text-orange-500" : "text-gray-400"
 								}`}
 							>
 								{characterCount}/{maxLength}
@@ -162,15 +146,11 @@ export function ChatInput({
 						size="icon"
 						className={`h-8 w-8 shrink-0 transition-all duration-200 ${
 							canSubmit
-								? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
-								: 'bg-gray-200 text-gray-400 cursor-not-allowed'
+								? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+								: "bg-gray-200 text-gray-400 cursor-not-allowed"
 						}`}
 					>
-						{isLoading ? (
-							<Loader2 className="size-4 animate-spin" />
-						) : (
-							<ArrowUp className="size-4" />
-						)}
+						{isLoading ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
 					</Button>
 				</motion.div>
 
@@ -180,7 +160,7 @@ export function ChatInput({
 						<span>Enter para enviar</span>
 						<span>Shift+Enter para nova linha</span>
 					</div>
-					
+
 					{isListening && (
 						<motion.div
 							initial={{ opacity: 0, x: 20 }}

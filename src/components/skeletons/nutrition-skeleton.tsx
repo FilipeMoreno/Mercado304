@@ -120,7 +120,10 @@ export function NutritionSkeleton() {
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{Array.from({ length: 5 }).map((_, i) => (
-							<div key={i} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+							<div
+								key={i}
+								className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+							>
 								<div className="flex items-center gap-3">
 									<Skeleton className="size-6 rounded-full" />
 									<div>

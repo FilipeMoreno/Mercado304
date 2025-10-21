@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { useState } from "react"
 import { MissingNutritionalInfo } from "@/components/products/missing-nutritional-info"
-import { Product } from "@/types"
+import type { Product } from "@/types"
 
 async function fetchAllProducts(): Promise<Product[]> {
 	// Primeiro, buscar apenas para saber o total
@@ -20,7 +19,9 @@ async function fetchAllProducts(): Promise<Product[]> {
 	if (totalCount === 0) return []
 
 	// Buscar todos os produtos de uma vez com limite alto
-	const response = await fetch(`/api/products?include=category,brand,nutritionalInfo&limit=${Math.min(totalCount, 1000)}`)
+	const response = await fetch(
+		`/api/products?include=category,brand,nutritionalInfo&limit=${Math.min(totalCount, 1000)}`,
+	)
 	if (!response.ok) {
 		throw new Error("Erro ao carregar produtos")
 	}
@@ -32,14 +33,19 @@ async function fetchAllProducts(): Promise<Product[]> {
 export default function NutritionalInfoPage() {
 	const [refreshKey, setRefreshKey] = useState(0)
 
-	const { data: products = [], isLoading, error, refetch } = useQuery<Product[]>({
+	const {
+		data: products = [],
+		isLoading,
+		error,
+		refetch,
+	} = useQuery<Product[]>({
 		queryKey: ["products", "nutritional-info", refreshKey],
 		queryFn: fetchAllProducts,
 	})
 
-	const handleNutritionalInfoAdded = (productId: string) => {
+	const handleNutritionalInfoAdded = (_productId: string) => {
 		// Forçar refresh dos dados
-		setRefreshKey(prev => prev + 1)
+		setRefreshKey((prev) => prev + 1)
 	}
 
 	if (error) {

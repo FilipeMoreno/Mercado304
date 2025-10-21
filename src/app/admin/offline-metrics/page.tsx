@@ -11,13 +11,10 @@ export default function OfflineMetricsPage() {
 		<div className="space-y-6">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Métricas do Sistema Offline</h1>
-				<p className="text-muted-foreground mt-2">
-					Monitore o desempenho e o uso do cache offline
-				</p>
+				<p className="text-muted-foreground mt-2">Monitore o desempenho e o uso do cache offline</p>
 			</div>
 
 			<OfflineMetricsDashboard />
 		</div>
 	)
 }
-

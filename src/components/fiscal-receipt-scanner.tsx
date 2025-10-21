@@ -13,14 +13,14 @@ interface FiscalReceiptScannerProps {
 }
 
 // Estados de progresso da análise
-type ProcessingStep = 
-	| 'capturing' 
-	| 'reading_image' 
-	| 'extracting_text' 
-	| 'identifying_products' 
-	| 'analyzing_prices' 
-	| 'organizing_data' 
-	| 'finalizing'
+type ProcessingStep =
+	| "capturing"
+	| "reading_image"
+	| "extracting_text"
+	| "identifying_products"
+	| "analyzing_prices"
+	| "organizing_data"
+	| "finalizing"
 
 const processingSteps: Record<ProcessingStep, string> = {
 	capturing: "Capturando imagem...",
@@ -29,7 +29,7 @@ const processingSteps: Record<ProcessingStep, string> = {
 	identifying_products: "Identificando produtos...",
 	analyzing_prices: "Analisando preços e quantidades...",
 	organizing_data: "Organizando dados da compra...",
-	finalizing: "Finalizando análise..."
+	finalizing: "Finalizando análise...",
 }
 
 export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: FiscalReceiptScannerProps) {
@@ -40,7 +40,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 	const [error, setError] = useState<string | null>(null)
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
-	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
+	const [currentStep, setCurrentStep] = useState<ProcessingStep>("capturing")
 
 	const stopCamera = useCallback(() => {
 		if (stream) {
@@ -80,7 +80,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			stopCamera()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen])
+	}, [isOpen, startCamera, stopCamera])
 
 	const processImage = async (dataUrl: string) => {
 		setCapturedImage(dataUrl)
@@ -89,24 +89,24 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 
 		try {
 			// Etapa 1: Lendo imagem
-			setCurrentStep('reading_image')
-			await new Promise(resolve => setTimeout(resolve, 800))
+			setCurrentStep("reading_image")
+			await new Promise((resolve) => setTimeout(resolve, 800))
 
 			// Etapa 2: Extraindo texto
-			setCurrentStep('extracting_text')
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			setCurrentStep("extracting_text")
+			await new Promise((resolve) => setTimeout(resolve, 1000))
 
 			// Etapa 3: Identificando produtos
-			setCurrentStep('identifying_products')
-			await new Promise(resolve => setTimeout(resolve, 1200))
+			setCurrentStep("identifying_products")
+			await new Promise((resolve) => setTimeout(resolve, 1200))
 
 			// Etapa 4: Analisando preços
-			setCurrentStep('analyzing_prices')
-			await new Promise(resolve => setTimeout(resolve, 800))
+			setCurrentStep("analyzing_prices")
+			await new Promise((resolve) => setTimeout(resolve, 800))
 
 			// Etapa 5: Organizando dados
-			setCurrentStep('organizing_data')
-			await new Promise(resolve => setTimeout(resolve, 600))
+			setCurrentStep("organizing_data")
+			await new Promise((resolve) => setTimeout(resolve, 600))
 
 			const response = await fetch("/api/ocr/fiscal-receipt", {
 				method: "POST",
@@ -120,8 +120,8 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			}
 
 			// Etapa 6: Finalizando
-			setCurrentStep('finalizing')
-			await new Promise(resolve => setTimeout(resolve, 500))
+			setCurrentStep("finalizing")
+			await new Promise((resolve) => setTimeout(resolve, 500))
 
 			const result = await response.json()
 			onScanComplete(result)
@@ -130,7 +130,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 		} finally {
 			// Reset do estado quando terminar
 			setIsProcessing(false)
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
 		}
 	}
 
@@ -144,14 +144,14 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
 			const dataUrl = canvas.toDataURL("image/png")
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
 			await processImage(dataUrl)
 		}
 	}
 
 	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
-		if (file && file.type.startsWith('image/')) {
+		if (file?.type.startsWith("image/")) {
 			const reader = new FileReader()
 			reader.onload = async (e) => {
 				const dataUrl = e.target?.result as string
@@ -195,12 +195,12 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 								<Loader2 className="size-8 animate-spin text-white mb-4" />
 								<p className="text-white font-semibold">{processingSteps[currentStep]}</p>
 								<div className="mt-2 text-white/80 text-sm">
-									{currentStep === 'reading_image' && "Processando imagem..."}
-									{currentStep === 'extracting_text' && "Extraindo texto do cupom..."}
-									{currentStep === 'identifying_products' && "Identificando produtos..."}
-									{currentStep === 'analyzing_prices' && "Analisando preços..."}
-									{currentStep === 'organizing_data' && "Organizando informações..."}
-									{currentStep === 'finalizing' && "Quase pronto..."}
+									{currentStep === "reading_image" && "Processando imagem..."}
+									{currentStep === "extracting_text" && "Extraindo texto do cupom..."}
+									{currentStep === "identifying_products" && "Identificando produtos..."}
+									{currentStep === "analyzing_prices" && "Analisando preços..."}
+									{currentStep === "organizing_data" && "Organizando informações..."}
+									{currentStep === "finalizing" && "Quase pronto..."}
 								</div>
 							</div>
 						</div>
@@ -235,13 +235,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 						Carregar
 					</Button>
 				</div>
-				<input
-					ref={fileInputRef}
-					type="file"
-					accept="image/*"
-					onChange={handleFileUpload}
-					className="hidden"
-				/>
+				<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 			</DialogContent>
 		</Dialog>
 	)

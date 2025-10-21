@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const marketId = params.id
 
 		// Verificar se o mercado existe
@@ -129,7 +129,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 				existing.avg_amount = existing.total / existing.count
 			} else {
 				acc.push({
-					month: monthKey + "-01", // Adicionar dia para parsing
+					month: `${monthKey}-01`, // Adicionar dia para parsing
 					total: purchase.totalAmount,
 					count: 1,
 					avg_amount: purchase.totalAmount,
@@ -211,7 +211,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 			icon: cat.icon,
 			color: cat.color,
 			totalSpent: parseFloat(cat.totalSpent || "0"),
-			totalPurchases: parseInt(cat.totalPurchases || "0"),
+			totalPurchases: parseInt(cat.totalPurchases || "0", 10),
 			totalQuantity: parseFloat(cat.totalQuantity || "0"),
 			averagePrice: parseFloat(cat.averagePrice || "0"),
 		}))

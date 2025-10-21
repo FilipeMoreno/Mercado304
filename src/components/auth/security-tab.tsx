@@ -115,8 +115,8 @@ export function SecurityTab({ session }: SecurityTabProps) {
 		passkeyId?: string
 		callback: (password?: string, authToken?: string) => void
 	} | null>(null)
-	const [_operationPassword,_setOperationPasswordd] = useState("")
-	const [_currentOperation,_setCurrentOperationn] = useState<"enable" | "disable" | "backup-codes" | null>(null)
+	const [_operationPassword, _setOperationPasswordd] = useState("")
+	const [_currentOperation, _setCurrentOperationn] = useState<"enable" | "disable" | "backup-codes" | null>(null)
 
 	// Backup codes
 	const [generatedBackupCodes, setGeneratedBackupCodes] = useState<string[]>([])

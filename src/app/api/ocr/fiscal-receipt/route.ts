@@ -5,37 +5,37 @@ import { NextResponse } from "next/server"
 
 // Função auxiliar para converter a imagem de Base64 para o formato da API do Gemini
 function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
-  const match = dataUrl.match(/^data:(.+);base64,(.+)$/)
-  if (!match) {
-    throw new Error("Formato de Data URL inválido")
-  }
-  return {
-    inlineData: { mimeType: match[1], data: match[2] },
-  }
+	const match = dataUrl.match(/^data:(.+);base64,(.+)$/)
+	if (!match) {
+		throw new Error("Formato de Data URL inválido")
+	}
+	return {
+		inlineData: { mimeType: match[1], data: match[2] },
+	}
 }
 
 export async function POST(request: Request) {
-  try {
-    const { imageUrl } = await request.json()
-    const apiKey = process.env.GEMINI_API_KEY
+	try {
+		const { imageUrl } = await request.json()
+		const apiKey = process.env.GEMINI_API_KEY
 
-    if (!apiKey) {
-      console.error("Chave da API do Gemini não configurada.")
-      return NextResponse.json({ error: "Configuração de IA ausente no servidor." }, { status: 500 })
-    }
+		if (!apiKey) {
+			console.error("Chave da API do Gemini não configurada.")
+			return NextResponse.json({ error: "Configuração de IA ausente no servidor." }, { status: 500 })
+		}
 
-    if (!imageUrl) {
-      return NextResponse.json({ error: "Nenhuma imagem fornecida." }, { status: 400 })
-    }
+		if (!imageUrl) {
+			return NextResponse.json({ error: "Nenhuma imagem fornecida." }, { status: 400 })
+		}
 
-    // Inicializa o cliente da IA com a sua chave
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash", // Modelo com capacidade multimodal para análise de imagens
-    })
+		// Inicializa o cliente da IA com a sua chave
+		const genAI = new GoogleGenerativeAI(apiKey)
+		const model = genAI.getGenerativeModel({
+			model: "gemini-2.5-flash", // Modelo com capacidade multimodal para análise de imagens
+		})
 
-    // Prompt específico para cupons fiscais brasileiros
-    const prompt = `
+		// Prompt específico para cupons fiscais brasileiros
+		const prompt = `
       Analise a imagem de um cupom fiscal brasileiro (NFC-e ou CF-e SAT).
       Extraia as seguintes informações e retorne-as ESTRITAMENTE em formato JSON.
       Se um valor não for encontrado na imagem, omita a chave ou use o valor null.
@@ -118,19 +118,19 @@ export async function POST(request: Request) {
       - URLs de consulta são específicas de cada estado (ex: fazenda.pr.gov.br, nfce.fazenda.sp.gov.br)
     `
 
-    const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl)
+		const imagePart = dataUrlToGoogleGenerativeAIContent(imageUrl)
 
-    // Envia o prompt e a imagem para o Gemini
-    const result = await model.generateContent([prompt, imagePart])
-    const responseText = result.response.text()
+		// Envia o prompt e a imagem para o Gemini
+		const result = await model.generateContent([prompt, imagePart])
+		const responseText = result.response.text()
 
-    // O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
-    const jsonString = responseText.replace(/```json\n?|```/g, "").trim()
-    const parsedJson = JSON.parse(jsonString)
+		// O Gemini pode retornar o JSON dentro de um bloco de código. Esta limpeza remove isso.
+		const jsonString = responseText.replace(/```json\n?|```/g, "").trim()
+		const parsedJson = JSON.parse(jsonString)
 
-    return NextResponse.json(parsedJson)
-  } catch (error) {
-    console.error("Erro na chamada da API Gemini para cupom fiscal:", error)
-    return NextResponse.json({ error: "Erro ao processar o cupom fiscal com a IA." }, { status: 500 })
-  }
+		return NextResponse.json(parsedJson)
+	} catch (error) {
+		console.error("Erro na chamada da API Gemini para cupom fiscal:", error)
+		return NextResponse.json({ error: "Erro ao processar o cupom fiscal com a IA." }, { status: 500 })
+	}
 }

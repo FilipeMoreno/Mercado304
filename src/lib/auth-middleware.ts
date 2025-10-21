@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
-import { isAccountLocked, handleFailedLogin, handleSuccessfulLogin, enforceSessionLimit } from "./security-utils"
+import { type NextRequest, NextResponse } from "next/server"
 import { getLocationFromIP } from "./geolocation"
+import { enforceSessionLimit, handleFailedLogin, handleSuccessfulLogin, isAccountLocked } from "./security-utils"
 
 const prisma = new PrismaClient()
 
@@ -32,10 +32,11 @@ export async function authSecurityMiddleware(request: NextRequest, response: Nex
 					if (locked) {
 						return NextResponse.json(
 							{
-								error: "Conta temporariamente bloqueada devido a múltiplas tentativas de login falhadas. Tente novamente mais tarde.",
+								error:
+									"Conta temporariamente bloqueada devido a múltiplas tentativas de login falhadas. Tente novamente mais tarde.",
 								lockedUntil: user.lockedUntil,
 							},
-							{ status: 429 }
+							{ status: 429 },
 						)
 					}
 				}
@@ -51,12 +52,7 @@ export async function authSecurityMiddleware(request: NextRequest, response: Nex
 /**
  * Hook para ser chamado após tentativa de login (sucesso ou falha)
  */
-export async function handleLoginAttempt(
-	email: string,
-	success: boolean,
-	request: NextRequest,
-	loginMethod?: string
-) {
+export async function handleLoginAttempt(email: string, success: boolean, request: NextRequest, loginMethod?: string) {
 	try {
 		const user = await prisma.user.findUnique({
 			where: { email },
@@ -73,7 +69,7 @@ export async function handleLoginAttempt(
 		if (success) {
 			// Login bem-sucedido
 			await handleSuccessfulLogin(user.id, ipAddress, userAgent, location, loginMethod)
-			
+
 			// Aplicar limite de sessões
 			await enforceSessionLimit(user.id)
 		} else {

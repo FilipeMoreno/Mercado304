@@ -5,7 +5,6 @@ import { Combobox } from "@/components/ui/combobox"
 import { AppToasts } from "@/lib/toasts"
 import { createShoppingList } from "@/services/shoppingListService"
 import { useDataStore } from "@/store/useDataStore"
-import { ShoppingList } from "@/types"
 
 interface ShoppingListSelectProps {
 	value?: string
@@ -30,7 +29,7 @@ export function ShoppingListSelect({
 			hasFetched.current = true
 			fetchShoppingLists()
 		}
-	}, [])
+	}, [fetchShoppingLists])
 
 	const handleCreateList = async (name: string) => {
 		try {

@@ -1,7 +1,6 @@
-
 /**
  * Minimal, flat, neutral SVG allergen icons set
- * 
+ *
  * Exports:
  * - default: AllergenIcon ({type, size, variant, className, title})
  * - individual icon components: AlmondIcon, PeanutIcon, OatIcon, HazelnutIcon, CashewIcon,
@@ -222,11 +221,11 @@ export const TriticaleIcon: React.FC<SvgWrapperProps> = (props) => (
 // Icon mapping for easy access
 export const ICON_MAP: Record<string, React.FC<SvgWrapperProps>> = {
 	amendoa: AlmondIcon,
-	"amêndoa": AlmondIcon,
+	amêndoa: AlmondIcon,
 	amendoim: PeanutIcon,
 	aveia: OatIcon,
 	avela: HazelnutIcon,
-	"avelã": HazelnutIcon,
+	avelã: HazelnutIcon,
 	castanhaDeCaju: CashewIcon,
 	"castanha-de-caju": CashewIcon,
 	"castanha de caju": CashewIcon,
@@ -237,19 +236,19 @@ export const ICON_MAP: Record<string, React.FC<SvgWrapperProps>> = {
 	centeio: RyeIcon,
 	cevada: BarleyIcon,
 	crustaceos: CrustaceanIcon,
-	"crustáceos": CrustaceanIcon,
+	crustáceos: CrustaceanIcon,
 	gluten: GlutenIcon,
-	"glúten": GlutenIcon,
+	glúten: GlutenIcon,
 	latex: LatexIcon,
-	"látex": LatexIcon,
+	látex: LatexIcon,
 	leite: MilkIcon,
 	lactose: MilkIcon,
 	macadamia: MacadamiaIcon,
-	"macadâmia": MacadamiaIcon,
+	macadâmia: MacadamiaIcon,
 	nozes: WalnutsIcon,
 	ovos: EggIcon,
 	peca: PecanIcon,
-	"pecã": PecanIcon,
+	pecã: PecanIcon,
 	peixe: FishIcon,
 	pistache: PistachioIcon,
 	soja: SoyIcon,

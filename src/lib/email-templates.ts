@@ -1,19 +1,19 @@
 // src/lib/email-templates.ts
 
 interface EmailTemplateProps {
-    userName?: string;
-    url: string;
-    code?: string;
-    expiresIn?: string;
+	userName?: string
+	url: string
+	code?: string
+	expiresIn?: string
 }
 
 interface TwoFactorTemplateProps {
-    userName?: string;
-    code: string;
+	userName?: string
+	code: string
 }
 
 interface WelcomeTemplateProps {
-    userName?: string;
+	userName?: string
 }
 
 const getBaseTemplate = (title: string, content: string) => `
@@ -153,12 +153,12 @@ const getBaseTemplate = (title: string, content: string) => `
     </div>
 </body>
 </html>
-`;
+`
 
 export function getEmailVerificationTemplate({ userName, url }: EmailTemplateProps) {
-    const content = `
+	const content = `
         <h1 class="title">Verifique seu e-mail</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Obrigado por se registrar! Para ativar sua conta, por favor, confirme seu endereço de e-mail clicando no botão abaixo.</p>
         <div class="button-wrapper">
             <a href="${url}" class="button">Verificar E-mail</a>
@@ -166,14 +166,14 @@ export function getEmailVerificationTemplate({ userName, url }: EmailTemplatePro
         <p class="paragraph">Este link de verificação expira em 24 horas.</p>
         <p class="paragraph">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
         <p class="link">${url}</p>
-    `;
-    return getBaseTemplate("Verificação de E-mail", content);
+    `
+	return getBaseTemplate("Verificação de E-mail", content)
 }
 
 export function getPasswordResetTemplate({ userName, url }: EmailTemplateProps) {
-    const content = `
+	const content = `
         <h1 class="title">Redefinição de Senha</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha.</p>
         <div class="button-wrapper">
             <a href="${url}" class="button" style="background-color: #dc2626; color: #ffffff;">Redefinir Senha</a>
@@ -181,66 +181,66 @@ export function getPasswordResetTemplate({ userName, url }: EmailTemplateProps) 
         <p class="paragraph">Este link para redefinição de senha expira em 1 hora.</p>
         <p class="paragraph">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
         <p class="link">${url}</p>
-    `;
-    return getBaseTemplate("Redefinição de Senha", content);
+    `
+	return getBaseTemplate("Redefinição de Senha", content)
 }
 
 export function getTwoFactorEmailTemplate({ userName, code }: TwoFactorTemplateProps) {
-    const content = `
+	const content = `
         <h1 class="title">Seu Código de Acesso</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Use o código abaixo para concluir seu login. Não o compartilhe com ninguém.</p>
         <div class="code-box">
             <div class="code">${code}</div>
         </div>
         <p class="paragraph">Este código expira em 10 minutos.</p>
-    `;
-    return getBaseTemplate("Código de Verificação", content);
+    `
+	return getBaseTemplate("Código de Verificação", content)
 }
 
 export function getWelcomeEmailTemplate({ userName }: WelcomeTemplateProps) {
-    const startUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
-    const content = `
+	const startUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+	const content = `
         <h1 class="title">🎉 Bem-vindo ao Mercado304!</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Sua conta foi verificada com sucesso! Estamos felizes em ter você conosco. Agora você pode explorar todos os recursos que preparamos para otimizar suas compras.</p>
         <div class="button-wrapper">
             <a href="${startUrl}" class="button">Começar a Usar</a>
         </div>
         <p class="paragraph">Qualquer dúvida, nossa equipe de suporte está à disposição para ajudar.</p>
-    `;
-    return getBaseTemplate("Bem-vindo!", content);
+    `
+	return getBaseTemplate("Bem-vindo!", content)
 }
 
 interface SecurityAlertTemplateProps {
-    userName?: string;
-    action: string;
-    device?: string;
-    location?: string;
-    ipAddress?: string;
-    timestamp?: string;
+	userName?: string
+	action: string
+	device?: string
+	location?: string
+	ipAddress?: string
+	timestamp?: string
 }
 
 export function getSecurityAlertTemplate({
-    userName,
-    action,
-    device,
-    location,
-    ipAddress,
-    timestamp
+	userName,
+	action,
+	device,
+	location,
+	ipAddress,
+	timestamp,
 }: SecurityAlertTemplateProps) {
-    const securityUrl = `${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/conta/seguranca`;
-    const content = `
+	const securityUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/conta/seguranca`
+	const content = `
         <h1 class="title">🔔 Alerta de Segurança</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Detectamos uma alteração importante na segurança da sua conta:</p>
         <div class="code-box">
             <div style="text-align: left; font-size: 14px; line-height: 1.8;">
                 <strong style="color: var(--brand-color);">Ação:</strong> ${action}<br>
-                ${device ? `<strong>Dispositivo:</strong> ${device}<br>` : ''}
-                ${location ? `<strong>Localização:</strong> ${location}<br>` : ''}
-                ${ipAddress ? `<strong>IP:</strong> ${ipAddress}<br>` : ''}
-                ${timestamp ? `<strong>Data/Hora:</strong> ${timestamp}` : ''}
+                ${device ? `<strong>Dispositivo:</strong> ${device}<br>` : ""}
+                ${location ? `<strong>Localização:</strong> ${location}<br>` : ""}
+                ${ipAddress ? `<strong>IP:</strong> ${ipAddress}<br>` : ""}
+                ${timestamp ? `<strong>Data/Hora:</strong> ${timestamp}` : ""}
             </div>
         </div>
         <p class="paragraph">Se você reconhece esta atividade, pode ignorar este email com segurança.</p>
@@ -249,28 +249,28 @@ export function getSecurityAlertTemplate({
             <a href="${securityUrl}" class="button" style="background-color: #dc2626;">Revisar Configurações de Segurança</a>
         </div>
         <p class="paragraph">Recomendamos alterar sua senha imediatamente e verificar suas configurações de segurança.</p>
-    `;
-    return getBaseTemplate("Alerta de Segurança", content);
+    `
+	return getBaseTemplate("Alerta de Segurança", content)
 }
 
 export function getNewSessionTemplate({
-    userName,
-    device,
-    location,
-    ipAddress,
-    timestamp
+	userName,
+	device,
+	location,
+	ipAddress,
+	timestamp,
 }: SecurityAlertTemplateProps) {
-    const securityUrl = `${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/conta/seguranca`;
-    const content = `
+	const securityUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/conta/seguranca`
+	const content = `
         <h1 class="title">🔐 Novo Login Detectado</h1>
-        <p class="paragraph">Olá${userName ? `, ${userName}` : ''},</p>
+        <p class="paragraph">Olá${userName ? `, ${userName}` : ""},</p>
         <p class="paragraph">Um novo login foi realizado na sua conta:</p>
         <div class="code-box">
             <div style="text-align: left; font-size: 14px; line-height: 1.8;">
-                ${device ? `<strong>Dispositivo:</strong> ${device}<br>` : ''}
-                ${location ? `<strong>Localização:</strong> ${location}<br>` : ''}
-                ${ipAddress ? `<strong>IP:</strong> ${ipAddress}<br>` : ''}
-                ${timestamp ? `<strong>Data/Hora:</strong> ${timestamp}` : ''}
+                ${device ? `<strong>Dispositivo:</strong> ${device}<br>` : ""}
+                ${location ? `<strong>Localização:</strong> ${location}<br>` : ""}
+                ${ipAddress ? `<strong>IP:</strong> ${ipAddress}<br>` : ""}
+                ${timestamp ? `<strong>Data/Hora:</strong> ${timestamp}` : ""}
             </div>
         </div>
         <p class="paragraph">Se foi você, tudo certo! Pode ignorar este email.</p>
@@ -279,6 +279,6 @@ export function getNewSessionTemplate({
             <a href="${securityUrl}" class="button" style="background-color: #dc2626;">Proteger Minha Conta</a>
         </div>
         <p class="paragraph">Recomendamos alterar sua senha imediatamente e ativar autenticação de dois fatores.</p>
-    `;
-    return getBaseTemplate("Novo Login Detectado", content);
+    `
+	return getBaseTemplate("Novo Login Detectado", content)
 }

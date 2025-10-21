@@ -70,44 +70,44 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				throw new Error("Erro ao processar imagem")
 			}
 
-		const result = await response.json()
+			const result = await response.json()
 
-		if (result.success && result.barcode) {
-			// Os dados estão diretamente no result, não em result.data
-			const scanResult: ScanResult = {
-				barcode: result.barcode,
-				prices: result.prices,
-				confidence: result.confidence || 0.8,
-				rawText: result.rawText,
-				productName: result.productName,
-				weight: result.weight,
-			}
-
-			// Se houver múltiplos preços, mostrar dialog de seleção
-			if (scanResult.prices && scanResult.prices.length > 1) {
-				setPriceOptions(scanResult.prices)
-				setPendingScanResult(scanResult)
-				setShowPriceSelectionDialog(true)
-			} else {
-				// Se houver apenas um preço ou preço único, retornar direto
-				const price = scanResult.prices?.[0]?.value || scanResult.price
-				if (price) {
-					toast.success("Etiqueta processada com sucesso!")
-					onScan({
-						barcode: scanResult.barcode,
-						price: price,
-						confidence: scanResult.confidence || 0.8,
-					})
-					handleCloseAll()
-				} else {
-					toast.error("Não foi possível identificar o preço na etiqueta")
-					resetAndRetry()
+			if (result.success && result.barcode) {
+				// Os dados estão diretamente no result, não em result.data
+				const scanResult: ScanResult = {
+					barcode: result.barcode,
+					prices: result.prices,
+					confidence: result.confidence || 0.8,
+					rawText: result.rawText,
+					productName: result.productName,
+					weight: result.weight,
 				}
+
+				// Se houver múltiplos preços, mostrar dialog de seleção
+				if (scanResult.prices && scanResult.prices.length > 1) {
+					setPriceOptions(scanResult.prices)
+					setPendingScanResult(scanResult)
+					setShowPriceSelectionDialog(true)
+				} else {
+					// Se houver apenas um preço ou preço único, retornar direto
+					const price = scanResult.prices?.[0]?.value || scanResult.price
+					if (price) {
+						toast.success("Etiqueta processada com sucesso!")
+						onScan({
+							barcode: scanResult.barcode,
+							price: price,
+							confidence: scanResult.confidence || 0.8,
+						})
+						handleCloseAll()
+					} else {
+						toast.error("Não foi possível identificar o preço na etiqueta")
+						resetAndRetry()
+					}
+				}
+			} else {
+				toast.error(result.message || "Não foi possível processar a etiqueta")
+				resetAndRetry()
 			}
-		} else {
-			toast.error(result.message || "Não foi possível processar a etiqueta")
-			resetAndRetry()
-		}
 		} catch (error) {
 			console.error("Erro ao processar imagem:", error)
 			toast.error("Erro ao processar etiqueta. Tente novamente.")
@@ -187,13 +187,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 					{/* Preview da imagem capturada */}
 					{capturedImage && (
 						<div className="relative aspect-video bg-black rounded-lg overflow-hidden border-2 border-border">
-							<Image
-								src={capturedImage}
-								alt="Etiqueta capturada"
-								fill
-								className="object-contain"
-								unoptimized
-							/>
+							<Image src={capturedImage} alt="Etiqueta capturada" fill className="object-contain" unoptimized />
 						</div>
 					)}
 
@@ -276,9 +270,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 						</div>
 						<div className="space-y-2 text-center">
 							<h3 className="text-lg font-semibold">Processando Etiqueta</h3>
-							<p className="text-sm text-muted-foreground">
-								Analisando código de barras e preços com IA...
-							</p>
+							<p className="text-sm text-muted-foreground">Analisando código de barras e preços com IA...</p>
 						</div>
 					</div>
 				</ResponsiveDialog>

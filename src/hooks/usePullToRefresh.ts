@@ -10,7 +10,7 @@ interface UsePullToRefreshOptions {
 
 export function usePullToRefresh({ onRefresh, threshold = 100, isEnabled = true }: UsePullToRefreshOptions) {
 	const [isRefreshing, setIsRefreshing] = useState(false)
-	const [startY, setStartY] = useState(0)
+	const [_startY, setStartY] = useState(0)
 	const [currentY, setCurrentY] = useState(0)
 	const [isPulling, setIsPulling] = useState(false)
 

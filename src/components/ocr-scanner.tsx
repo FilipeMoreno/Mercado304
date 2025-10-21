@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, CameraOff, Copy, Download, Eye, FileText, Loader2, RotateCcw, Upload } from "lucide-react"
+import { CameraOff, Copy, Download, Eye, FileText, Loader2, RotateCcw, Upload } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -185,7 +185,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 		return () => {
 			stopCamera()
 		}
-	}, [isOpen, hasCamera, selectedDevice])
+	}, [isOpen, hasCamera, selectedDevice, stopCamera])
 
 	const stopCamera = () => {
 		if (streamRef.current) {

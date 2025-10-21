@@ -78,7 +78,7 @@ export default function MarcaDetalhesPage() {
 	const deleteBrandMutation = useDeleteBrandMutation()
 
 	const [stats, setStats] = useState<BrandStats | null>(null)
-	const [statsLoading, setStatsLoading] = useState(true)
+	const [_statsLoading, setStatsLoading] = useState(true)
 
 	// Buscar estatísticas da marca
 	useEffect(() => {
@@ -344,9 +344,7 @@ export default function MarcaDetalhesPage() {
 											<Package className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhum produto desta marca</EmptyTitle>
-										<EmptyDescription>
-											Comece adicionando produtos a esta marca na página de produtos.
-										</EmptyDescription>
+										<EmptyDescription>Comece adicionando produtos a esta marca na página de produtos.</EmptyDescription>
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/produtos/novo">
@@ -499,8 +497,9 @@ export default function MarcaDetalhesPage() {
 															<div className="font-medium">R$ {month.spent.toFixed(2)}</div>
 															{prevMonth && showChange && (
 																<div
-																	className={`text-xs flex items-center gap-1 justify-end ${isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
-																		}`}
+																	className={`text-xs flex items-center gap-1 justify-end ${
+																		isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
+																	}`}
 																>
 																	{isIncrease ? (
 																		<TrendingUp className="h-3 w-3" />
@@ -560,15 +559,15 @@ export default function MarcaDetalhesPage() {
 										return (
 											<div
 												key={market.marketId}
-												className={`flex items-center justify-between p-4 border rounded-lg ${isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
-													}`}
+												className={`flex items-center justify-between p-4 border rounded-lg ${
+													isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
+												}`}
 											>
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${isCheapest
-																? "bg-green-600 text-white"
-																: "bg-muted text-muted-foreground"
-															}`}
+														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${
+															isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
+														}`}
 													>
 														{index + 1}
 													</div>
@@ -648,9 +647,7 @@ export default function MarcaDetalhesPage() {
 															<span className="font-semibold">{expensive.marketName}</span>:
 														</p>
 														<div className="flex items-baseline gap-2">
-															<span className="text-3xl font-bold text-green-600">
-																R$ {savings.toFixed(2)}
-															</span>
+															<span className="text-3xl font-bold text-green-600">R$ {savings.toFixed(2)}</span>
 															<span className="text-sm text-muted-foreground">de economia por compra</span>
 														</div>
 														<Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
@@ -679,7 +676,10 @@ export default function MarcaDetalhesPage() {
 													<span className="text-sm text-muted-foreground">itens comprados</span>
 												</div>
 												<p className="text-sm text-muted-foreground">
-													Média de <span className="font-semibold">{(stats.totalQuantity / stats.totalPurchases).toFixed(1)}</span>{" "}
+													Média de{" "}
+													<span className="font-semibold">
+														{(stats.totalQuantity / stats.totalPurchases).toFixed(1)}
+													</span>{" "}
 													itens por compra
 												</p>
 												<Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
@@ -759,9 +759,7 @@ export default function MarcaDetalhesPage() {
 																return (
 																	<>
 																		Você começou a comprar produtos {brand.name} este mês! Total gasto:{" "}
-																		<span className="font-semibold text-blue-600">
-																			R$ {lastMonth.spent.toFixed(2)}
-																		</span>
+																		<span className="font-semibold text-blue-600">R$ {lastMonth.spent.toFixed(2)}</span>
 																	</>
 																)
 															}
@@ -769,8 +767,8 @@ export default function MarcaDetalhesPage() {
 															if (lastMonth.spent === 0 && prevMonth.spent > 0) {
 																return (
 																	<>
-																		Você parou de comprar produtos {brand.name} este mês.{" "}
-																		Mês anterior: R$ {prevMonth.spent.toFixed(2)}
+																		Você parou de comprar produtos {brand.name} este mês. Mês anterior: R${" "}
+																		{prevMonth.spent.toFixed(2)}
 																	</>
 																)
 															}
@@ -781,23 +779,17 @@ export default function MarcaDetalhesPage() {
 															return isIncrease ? (
 																<>
 																	Seus gastos com {brand.name} aumentaram{" "}
-																	<span className="font-semibold text-red-600">
-																		{Math.abs(change).toFixed(1)}%
-																	</span>{" "}
-																	no último mês.
+																	<span className="font-semibold text-red-600">{Math.abs(change).toFixed(1)}%</span> no
+																	último mês.
 																</>
 															) : change < 0 ? (
 																<>
 																	Você economizou{" "}
-																	<span className="font-semibold text-green-600">
-																		{Math.abs(change).toFixed(1)}%
-																	</span>{" "}
+																	<span className="font-semibold text-green-600">{Math.abs(change).toFixed(1)}%</span>{" "}
 																	em {brand.name} no último mês!
 																</>
 															) : (
-																<>
-																	Seus gastos com {brand.name} se mantiveram estáveis no último mês.
-																</>
+																<>Seus gastos com {brand.name} se mantiveram estáveis no último mês.</>
 															)
 														})()}
 													</p>

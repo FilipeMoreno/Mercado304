@@ -13,9 +13,7 @@ export default function NotFound() {
 					</EmptyMedia>
 					<EmptyTitle className="text-4xl font-bold mb-2">404</EmptyTitle>
 					<EmptyTitle>Página não encontrada</EmptyTitle>
-					<EmptyDescription>
-						Desculpe, não conseguimos encontrar a página que procura.
-					</EmptyDescription>
+					<EmptyDescription>Desculpe, não conseguimos encontrar a página que procura.</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>
 					<Link href="/">

@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Edit, LinkIcon, Save, X } from "lucide-react"
+import { Check, LinkIcon, Save, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
@@ -77,13 +77,13 @@ export function EditItemDialog({
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
-				const response = await fetch('/api/products?limit=10000')
+				const response = await fetch("/api/products?limit=10000")
 				if (response.ok) {
 					const data = await response.json()
 					setProducts(data.products || [])
 				}
 			} catch (error) {
-				console.error('Erro ao buscar produtos:', error)
+				console.error("Erro ao buscar produtos:", error)
 			}
 		}
 		fetchProducts()
@@ -103,7 +103,7 @@ export function EditItemDialog({
 			...editItemData,
 			productId: product.id,
 			productName: product.name,
-			productUnit: product.unit || 'unidade',
+			productUnit: product.unit || "unidade",
 		})
 		setOpenProductPopover(false)
 		setOpenProductDialog(false)
@@ -115,16 +115,11 @@ export function EditItemDialog({
 			...editItemData,
 			productId: undefined,
 		})
-		toast.info('Produto desvinculado, permanecerá como texto livre')
+		toast.info("Produto desvinculado, permanecerá como texto livre")
 	}
 
 	return (
-		<ResponsiveDialog
-			open={isOpen}
-			onOpenChange={(open) => !open && onClose()}
-			title="Editar Item"
-			maxWidth="md"
-		>
+		<ResponsiveDialog open={isOpen} onOpenChange={(open) => !open && onClose()} title="Editar Item" maxWidth="md">
 			{editingItem && (
 				<div className="space-y-4">
 					{/* Nome do produto editável */}
@@ -167,11 +162,7 @@ export function EditItemDialog({
 								</Button>
 							)}
 						</div>
-						{editItemData.productId && (
-							<p className="text-xs text-green-600">
-								✓ Vinculado a produto cadastrado
-							</p>
-						)}
+						{editItemData.productId && <p className="text-xs text-green-600">✓ Vinculado a produto cadastrado</p>}
 
 						{/* Dialog ou Popover separado */}
 						{selectStyle === "dialog" ? (
@@ -180,7 +171,7 @@ export function EditItemDialog({
 								onOpenChange={setOpenProductDialog}
 								value={editItemData.productId || ""}
 								onValueChange={(productId) => {
-									const product = products.find(p => p.id === productId)
+									const product = products.find((p) => p.id === productId)
 									if (product) {
 										handleProductSelected(product)
 									}
@@ -216,14 +207,12 @@ export function EditItemDialog({
 													<Check
 														className={cn(
 															"mr-2 h-4 w-4",
-															editItemData.productId === product.id ? "opacity-100" : "opacity-0"
+															editItemData.productId === product.id ? "opacity-100" : "opacity-0",
 														)}
 													/>
 													<div className="flex-1">
 														<div className="font-medium">{product.name}</div>
-														{product.brand && (
-															<div className="text-xs text-muted-foreground">{product.brand.name}</div>
-														)}
+														{product.brand && <div className="text-xs text-muted-foreground">{product.brand.name}</div>}
 													</div>
 												</CommandItem>
 											))}

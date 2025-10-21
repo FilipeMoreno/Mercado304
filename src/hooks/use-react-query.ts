@@ -1172,9 +1172,7 @@ export const useProductKitPriceQuery = (id: string, marketId?: string) => {
 	return useQuery({
 		queryKey: queryKeys.productKits.price(id, marketId),
 		queryFn: () => {
-			const url = marketId
-				? `/api/product-kits/${id}/price?marketId=${marketId}`
-				: `/api/product-kits/${id}/price`
+			const url = marketId ? `/api/product-kits/${id}/price?marketId=${marketId}` : `/api/product-kits/${id}/price`
 			return fetchWithErrorHandling(url)
 		},
 		staleTime: 2 * 60 * 1000,

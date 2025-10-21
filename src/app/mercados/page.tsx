@@ -9,8 +9,8 @@ interface MercadosPageProps {
 }
 
 export default async function MercadosPage(props: MercadosPageProps) {
-    const searchParams = await props.searchParams;
-    return (
+	const searchParams = await props.searchParams
+	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

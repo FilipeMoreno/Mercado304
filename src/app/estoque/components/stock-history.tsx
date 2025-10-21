@@ -2,13 +2,23 @@
 
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { AlertTriangle, ArrowUpDown, Calendar, Download, Filter, History, Package, Trash2, TrendingDown, TrendingUp } from "lucide-react"
+import {
+	AlertTriangle,
+	ArrowUpDown,
+	Calendar,
+	Download,
+	Filter,
+	History,
+	Package,
+	Trash2,
+	TrendingDown,
+	TrendingUp,
+} from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DateInput } from "@/components/ui/date-input"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -30,7 +40,7 @@ interface MovementRecord {
 	notes?: string
 	date: string
 	isWaste?: boolean
-	recordType?: 'movement' | 'waste'
+	recordType?: "movement" | "waste"
 	stockItem: {
 		id: string
 		location: string
@@ -62,7 +72,13 @@ const movementTypeLabels = {
 	DESPERDICIO: "Desperdício",
 }
 
-export function StockHistory({ productId, stockItemId, productName, onPageChange, currentPage = 1 }: StockHistoryProps) {
+export function StockHistory({
+	productId,
+	stockItemId,
+	productName,
+	onPageChange,
+	currentPage = 1,
+}: StockHistoryProps) {
 	const [filters, setFilters] = useState({
 		type: "all",
 		startDate: "",
@@ -297,30 +313,36 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 						{historyRecords.map((movement: MovementRecord) => (
 							<Card
 								key={movement.id}
-								className={`h-56 transition-all hover:shadow-md ${movement.type === 'DESPERDICIO'
+								className={`h-56 transition-all hover:shadow-md ${
+									movement.type === "DESPERDICIO"
 										? "border-red-200 bg-red-50/50 hover:bg-red-50"
-										: movement.type === 'VENCIMENTO'
+										: movement.type === "VENCIMENTO"
 											? "border-orange-200 bg-orange-50/50 hover:bg-orange-50"
 											: "hover:bg-gray-50"
-									}`}
+								}`}
 							>
 								<CardContent className="p-4 h-full flex flex-col">
 									<div className="flex items-start gap-3 mb-3">
-										<div className={`p-2 rounded-lg ${movement.type === 'DESPERDICIO'
-												? "bg-red-100 text-red-600"
-												: movement.type === 'VENCIMENTO'
-													? "bg-orange-100 text-orange-600"
-													: movement.type === 'ENTRADA'
-														? "bg-green-100 text-green-600"
-														: movement.type === 'SAIDA'
-															? "bg-blue-100 text-blue-600"
-															: "bg-gray-100 text-gray-600"
-											}`}>
+										<div
+											className={`p-2 rounded-lg ${
+												movement.type === "DESPERDICIO"
+													? "bg-red-100 text-red-600"
+													: movement.type === "VENCIMENTO"
+														? "bg-orange-100 text-orange-600"
+														: movement.type === "ENTRADA"
+															? "bg-green-100 text-green-600"
+															: movement.type === "SAIDA"
+																? "bg-blue-100 text-blue-600"
+																: "bg-gray-100 text-gray-600"
+											}`}
+										>
 											{getMovementIcon(movement.type)}
 										</div>
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-2 mb-1">
-												<Badge className={`text-xs ${movementTypeColors[movement.type as keyof typeof movementTypeColors]}`}>
+												<Badge
+													className={`text-xs ${movementTypeColors[movement.type as keyof typeof movementTypeColors]}`}
+												>
 													{movementTypeLabels[movement.type as keyof typeof movementTypeLabels]}
 												</Badge>
 											</div>
@@ -328,9 +350,7 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 												{movement.stockItem.product.name}
 											</div>
 											{movement.stockItem.product.brand && (
-												<div className="text-xs text-gray-500 truncate">
-													{movement.stockItem.product.brand.name}
-												</div>
+												<div className="text-xs text-gray-500 truncate">{movement.stockItem.product.brand.name}</div>
 											)}
 										</div>
 									</div>
@@ -340,25 +360,19 @@ export function StockHistory({ productId, stockItemId, productName, onPageChange
 											<span className="text-sm font-medium text-gray-700">
 												{movement.quantity} {movement.stockItem.product.unit}
 											</span>
-											<span className="text-xs text-gray-500">
-												{movement.stockItem.location}
-											</span>
+											<span className="text-xs text-gray-500">{movement.stockItem.location}</span>
 										</div>
 
 										{movement.reason && (
-											<div className="text-xs text-gray-600 bg-gray-100 p-2 rounded-sm">
-												{movement.reason}
-											</div>
+											<div className="text-xs text-gray-600 bg-gray-100 p-2 rounded-sm">{movement.reason}</div>
 										)}
-										{movement.isWaste && movement.recordType === 'waste' && (
+										{movement.isWaste && movement.recordType === "waste" && (
 											<div className="text-xs text-red-600 bg-red-100 p-2 rounded-sm">
 												<strong>Motivo:</strong> {movement.reason}
 											</div>
 										)}
 										{movement.notes && (
-											<div className="text-xs text-gray-500 bg-gray-50 p-2 rounded-sm">
-												{movement.notes}
-											</div>
+											<div className="text-xs text-gray-500 bg-gray-50 p-2 rounded-sm">{movement.notes}</div>
 										)}
 									</div>
 

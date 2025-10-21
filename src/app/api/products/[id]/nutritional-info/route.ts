@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const session = await auth.api.getSession({
 			headers: await headers(),
 		})
@@ -170,9 +170,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 		return NextResponse.json(nutritionalInfo)
 	} catch (error) {
 		console.error("Error saving nutritional info:", error)
-		return NextResponse.json(
-			{ error: "Erro interno do servidor" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }

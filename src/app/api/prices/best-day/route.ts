@@ -114,12 +114,12 @@ export async function POST(request: Request) {
 		// Calcular médias por dia
 		const dayStats = Object.keys(dayAnalysis)
 			.map((dayKey) => {
-				const day = dayAnalysis[parseInt(dayKey) as keyof typeof dayAnalysis]
+				const day = dayAnalysis[parseInt(dayKey, 10) as keyof typeof dayAnalysis]
 				const avgPrice =
 					day.prices.length > 0 ? day.prices.reduce((sum, price) => sum + price, 0) / day.prices.length : 0
 
 				return {
-					day: parseInt(dayKey),
+					day: parseInt(dayKey, 10),
 					name: day.name,
 					avgPrice,
 					count: day.count,
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
 
 		const monthlyStats = Object.keys(monthlyAnalysis)
 			.map((monthKey) => {
-				const month = monthlyAnalysis[parseInt(monthKey)]
+				const month = monthlyAnalysis[parseInt(monthKey, 10)]
 				const monthNames = [
 					"Janeiro",
 					"Fevereiro",
@@ -192,8 +192,8 @@ export async function POST(request: Request) {
 				]
 
 				return {
-					month: parseInt(monthKey),
-					name: monthNames[parseInt(monthKey)],
+					month: parseInt(monthKey, 10),
+					name: monthNames[parseInt(monthKey, 10)],
 					avgPrice: month.prices.reduce((sum, price) => sum + price, 0) / month.prices.length,
 					count: month.count,
 				}

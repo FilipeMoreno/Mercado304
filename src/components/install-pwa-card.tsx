@@ -22,13 +22,14 @@ export function InstallPWACard() {
 	useEffect(() => {
 		// Detectar se já está instalado
 		const checkInstalled = () => {
-			const standalone = window.matchMedia("(display-mode: standalone)").matches || 
+			const standalone =
+				window.matchMedia("(display-mode: standalone)").matches ||
 				(window.navigator as any).standalone === true ||
 				document.referrer.includes("android-app://")
-			
+
 			setIsStandalone(standalone)
 			setIsInstalled(standalone)
-			
+
 			// Debug
 			console.log("[PWA] Display mode:", window.matchMedia("(display-mode: standalone)").matches)
 			console.log("[PWA] Navigator standalone:", (window.navigator as any).standalone)
@@ -45,7 +46,7 @@ export function InstallPWACard() {
 			} else if (/windows|mac|linux/.test(ua)) {
 				setPlatform("desktop")
 			}
-			
+
 			console.log("[PWA] Platform detected:", ua)
 		}
 
@@ -90,11 +91,11 @@ export function InstallPWACard() {
 		try {
 			await deferredPrompt.prompt()
 			const { outcome } = await deferredPrompt.userChoice
-			
+
 			if (outcome === "accepted") {
 				setIsInstalled(true)
 			}
-			
+
 			setDeferredPrompt(null)
 		} catch (error) {
 			console.error("Erro ao instalar PWA:", error)
@@ -134,13 +135,7 @@ export function InstallPWACard() {
 							<CardDescription>Acesse mais rápido e funcione offline</CardDescription>
 						</div>
 					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={handleDismiss}
-						className="size-8 -mt-1 -mr-1"
-						title="Dispensar"
-					>
+					<Button variant="ghost" size="icon" onClick={handleDismiss} className="size-8 -mt-1 -mr-1" title="Dispensar">
 						<X className="size-4" />
 					</Button>
 				</div>
@@ -180,73 +175,85 @@ export function InstallPWACard() {
 				{/* Botão de instalação */}
 				<div className="space-y-3">
 					{deferredPrompt && (
-						<Button
-							onClick={handleInstallClick}
-							className="w-full bg-primary hover:bg-primary/90"
-							size="lg"
-						>
+						<Button onClick={handleInstallClick} className="w-full bg-primary hover:bg-primary/90" size="lg">
 							<Download className="mr-2 size-5" />
 							Instalar Agora com 1 Clique
 						</Button>
 					)}
-					
+
 					{/* Instruções sempre visíveis */}
 					{!deferredPrompt && (
 						<>
-						<div className="text-sm">
-							<p className="font-medium mb-2 flex items-center gap-2">
-								{platform === "ios" ? <Smartphone className="size-4" /> : <Monitor className="size-4" />}
-								Como instalar:
-							</p>
-							{platform === "ios" ? (
-								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">1.</span>
-										<span>Toque no botão de <strong>Compartilhar</strong> 📤 (parte inferior)</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">2.</span>
-										<span>Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong></span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">3.</span>
-										<span>Confirme tocando em <strong>"Adicionar"</strong></span>
-									</li>
-								</ol>
-							) : platform === "android" ? (
-								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">1.</span>
-										<span>Toque no menu <strong>⋮</strong> (3 pontos) do navegador</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">2.</span>
-										<span>Selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar app"</strong></span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">3.</span>
-										<span>Confirme tocando em <strong>"Instalar"</strong></span>
-									</li>
-								</ol>
-							) : (
-								<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">1.</span>
-										<span>Procure o ícone de <strong>instalação (⊕)</strong> na barra de endereço</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="font-bold text-primary">2.</span>
-										<span>Ou abra o menu <strong>(⋮)</strong> e clique em <strong>"Instalar Mercado304"</strong></span>
-									</li>
-								</ol>
-							)}
-						</div>
-						
-						<div className="flex items-center justify-center pt-2">
-							<Badge variant="secondary" className="text-xs">
-								{platform === "ios" ? "📱 iOS/Safari" : platform === "android" ? "🤖 Android/Chrome" : "💻 Desktop"}
-							</Badge>
-						</div>
+							<div className="text-sm">
+								<p className="font-medium mb-2 flex items-center gap-2">
+									{platform === "ios" ? <Smartphone className="size-4" /> : <Monitor className="size-4" />}
+									Como instalar:
+								</p>
+								{platform === "ios" ? (
+									<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">1.</span>
+											<span>
+												Toque no botão de <strong>Compartilhar</strong> 📤 (parte inferior)
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">2.</span>
+											<span>
+												Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong>
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">3.</span>
+											<span>
+												Confirme tocando em <strong>"Adicionar"</strong>
+											</span>
+										</li>
+									</ol>
+								) : platform === "android" ? (
+									<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">1.</span>
+											<span>
+												Toque no menu <strong>⋮</strong> (3 pontos) do navegador
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">2.</span>
+											<span>
+												Selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar app"</strong>
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">3.</span>
+											<span>
+												Confirme tocando em <strong>"Instalar"</strong>
+											</span>
+										</li>
+									</ol>
+								) : (
+									<ol className="space-y-1.5 text-xs text-muted-foreground ml-6">
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">1.</span>
+											<span>
+												Procure o ícone de <strong>instalação (⊕)</strong> na barra de endereço
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<span className="font-bold text-primary">2.</span>
+											<span>
+												Ou abra o menu <strong>(⋮)</strong> e clique em <strong>"Instalar Mercado304"</strong>
+											</span>
+										</li>
+									</ol>
+								)}
+							</div>
+
+							<div className="flex items-center justify-center pt-2">
+								<Badge variant="secondary" className="text-xs">
+									{platform === "ios" ? "📱 iOS/Safari" : platform === "android" ? "🤖 Android/Chrome" : "💻 Desktop"}
+								</Badge>
+							</div>
 						</>
 					)}
 				</div>
@@ -265,4 +272,3 @@ export function InstallPWACard() {
 		</Card>
 	)
 }
-

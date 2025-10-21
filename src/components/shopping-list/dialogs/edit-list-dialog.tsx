@@ -1,6 +1,5 @@
 "use client"
 
-import { Edit } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,12 +25,7 @@ export function EditListDialog({ isOpen, onClose, listName, onSave, saving }: Ed
 	}
 
 	return (
-		<ResponsiveDialog
-			open={isOpen}
-			onOpenChange={(open) => !open && onClose()}
-			title="Editar Lista"
-			maxWidth="md"
-		>
+		<ResponsiveDialog open={isOpen} onOpenChange={(open) => !open && onClose()} title="Editar Lista" maxWidth="md">
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div className="space-y-2">
 					<Label htmlFor="editListName">Nome da Lista *</Label>

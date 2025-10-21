@@ -2,11 +2,7 @@
 
 import { useState } from "react"
 import { toast } from "sonner"
-import type {
-	NotaParanaCategoriaResponse,
-	NotaParanaProduto,
-	NotaParanaProdutosResponse,
-} from "@/types"
+import type { NotaParanaCategoriaResponse, NotaParanaProduto, NotaParanaProdutosResponse } from "@/types"
 
 interface NotaParanaParams {
 	termo: string
@@ -42,7 +38,7 @@ export function useNotaParana() {
 			})
 
 			const response = await fetch(`/api/nota-parana/categorias?${queryParams}`)
-			
+
 			if (!response.ok) {
 				const error = await response.json()
 				throw new Error(error.error || "Erro ao buscar categorias")
@@ -80,7 +76,7 @@ export function useNotaParana() {
 			})
 
 			const response = await fetch(`/api/nota-parana/produtos?${queryParams}`)
-			
+
 			if (!response.ok) {
 				const error = await response.json()
 				throw new Error(error.error || "Erro ao buscar produtos")
@@ -108,10 +104,10 @@ export function useNotaParana() {
 	const buscarCompleto = async (params: NotaParanaParams): Promise<NotaParanaProdutosResponse | null> => {
 		// Detectar se é código de barras
 		const isBarcode = /^\d{8,14}$/.test(params.termo.trim())
-		
+
 		// Primeiro, buscar categorias
 		const categorias = await buscarCategorias(params)
-		
+
 		if (!categorias || categorias.categorias.length === 0) {
 			toast.error("Nenhuma categoria encontrada para este produto")
 			return null
@@ -120,23 +116,23 @@ export function useNotaParana() {
 		// Se for código de barras, buscar produtos de TODAS as categorias
 		if (isBarcode) {
 			const todosProdutos: NotaParanaProduto[] = []
-			
+
 			// Buscar produtos de cada categoria
 			for (const categoria of categorias.categorias) {
 				const resultado = await buscarProdutos({
 					...params,
 					categoria: categoria.id,
 				})
-				
+
 				if (resultado?.produtos) {
 					todosProdutos.push(...resultado.produtos)
 				}
 			}
-			
+
 			// Retornar todos os produtos encontrados
 			if (todosProdutos.length > 0) {
 				// Criar resposta consolidada
-				const precos = todosProdutos.map(p => parseFloat(p.valor_tabela) - parseFloat(p.valor_desconto))
+				const precos = todosProdutos.map((p) => parseFloat(p.valor_tabela) - parseFloat(p.valor_desconto))
 				const resposta: NotaParanaProdutosResponse = {
 					tempo: 0,
 					local: params.local || "",
@@ -144,20 +140,20 @@ export function useNotaParana() {
 					total: todosProdutos.length,
 					precos: {
 						min: Math.min(...precos).toFixed(2),
-						max: Math.max(...precos).toFixed(2)
-					}
+						max: Math.max(...precos).toFixed(2),
+					},
 				}
 				setProdutosData(resposta)
 				return resposta
 			}
-			
+
 			toast.error("Nenhum produto encontrado com este código de barras")
 			return null
 		}
 
 		// Para busca por nome, pegar apenas a categoria principal (comportamento normal)
 		const categoriaPrincipal = categorias.categorias[0]
-		
+
 		// Buscar produtos da categoria principal
 		const produtos = await buscarProdutos({
 			...params,
@@ -182,7 +178,7 @@ export function useNotaParana() {
 		loading: loadingCategorias || loadingProdutos,
 		categoriasData,
 		produtosData,
-		
+
 		// Funções
 		buscarCategorias,
 		buscarProdutos,
@@ -190,4 +186,3 @@ export function useNotaParana() {
 		limparDados,
 	}
 }
-

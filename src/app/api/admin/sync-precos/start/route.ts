@@ -27,10 +27,10 @@ async function retomarJobsInterrompidos() {
 
 		if (jobsInterrompidos.length > 0) {
 			console.log(`[RETOMADA] Encontrados ${jobsInterrompidos.length} jobs interrompidos`)
-			
+
 			for (const job of jobsInterrompidos) {
 				console.log(`[RETOMADA] Retomando job ${job.id}`)
-				
+
 				// Adicionar log de retomada
 				const logsAtuais = (job.logs as string[]) || []
 				await prisma.syncJob.update({
@@ -39,7 +39,7 @@ async function retomarJobsInterrompidos() {
 						logs: [...logsAtuais, `[SERVER] Servidor reiniciado - retomando sincronização`],
 					},
 				})
-				
+
 				// Reiniciar processamento
 				processarSyncJob(job.id).catch(console.error)
 			}
@@ -161,7 +161,13 @@ async function processarSyncJob(jobId: string) {
 		})
 
 		await adicionarLog(jobId, `[SERVER] ${produtos.length} produtos com código de barras encontrados`)
-		await adicionarLog(jobId, `[DEBUG] Primeiros produtos: ${produtos.slice(0, 5).map((p) => p.name).join(", ")}...`)
+		await adicionarLog(
+			jobId,
+			`[DEBUG] Primeiros produtos: ${produtos
+				.slice(0, 5)
+				.map((p) => p.name)
+				.join(", ")}...`,
+		)
 
 		if (produtos.length === 0) {
 			await prisma.syncJob.update({
@@ -210,12 +216,15 @@ async function processarSyncJob(jobId: string) {
 		let produtosProcessados = 0
 
 		// Dividir produtos em batches
-		const batches: typeof produtos[] = []
+		const batches: (typeof produtos)[] = []
 		for (let i = 0; i < produtos.length; i += BATCH_SIZE) {
 			batches.push(produtos.slice(i, i + BATCH_SIZE))
 		}
 
-		await adicionarLog(jobId, `[SERVER] Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${BATCH_SIZE} por vez)`)
+		await adicionarLog(
+			jobId,
+			`[SERVER] Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${BATCH_SIZE} por vez)`,
+		)
 		await adicionarLog(jobId, `[DEBUG] Configuração: BATCH_SIZE=${BATCH_SIZE}, DELAY=${DELAY_BETWEEN_BATCHES}ms`)
 
 		// Processar cada batch em paralelo
@@ -234,8 +243,11 @@ async function processarSyncJob(jobId: string) {
 				return
 			}
 
-			await adicionarLog(jobId, `[DEBUG] Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos EM PARALELO`)
-			
+			await adicionarLog(
+				jobId,
+				`[DEBUG] Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos EM PARALELO`,
+			)
+
 			// Log no console para debug
 			console.log(`[PARALLEL] Iniciando processamento paralelo de ${batch.length} produtos`)
 			const batchStartTime = Date.now()
@@ -258,15 +270,17 @@ async function processarSyncJob(jobId: string) {
 					return result
 				}),
 			)
-			
+
 			const batchElapsed = Date.now() - batchStartTime
-			console.log(`[PARALLEL] Batch ${batchIndex + 1} concluído em ${batchElapsed}ms (${batch.length} produtos em paralelo)`)
+			console.log(
+				`[PARALLEL] Batch ${batchIndex + 1} concluído em ${batchElapsed}ms (${batch.length} produtos em paralelo)`,
+			)
 			await adicionarLog(jobId, `[DEBUG] Batch ${batchIndex + 1} processado em ${(batchElapsed / 1000).toFixed(1)}s`)
 
 			// Consolidar resultados do batch
 			const logsParaAdicionar: string[] = []
 			const logsDebugParaAdicionar: string[] = []
-			
+
 			for (let i = 0; i < batch.length; i++) {
 				const produto = batch[i]
 				const result = batchResults[i]
@@ -274,12 +288,13 @@ async function processarSyncJob(jobId: string) {
 				// Separar logs de debug dos logs normais
 				if (result.debugLogs && result.debugLogs.length > 0) {
 					// Filtrar apenas alguns logs de debug importantes (reduzir volume)
-					const logsDebugImportantes = result.debugLogs.filter((log) => 
-						log.includes("✓ Match encontrado") || 
-						log.includes("✗ Nenhum mercado") ||
-						log.includes("Match Score") ||
-						log.includes("Novo preço!") ||
-						log.includes("Preço atualizado!")
+					const logsDebugImportantes = result.debugLogs.filter(
+						(log) =>
+							log.includes("✓ Match encontrado") ||
+							log.includes("✗ Nenhum mercado") ||
+							log.includes("Match Score") ||
+							log.includes("Novo preço!") ||
+							log.includes("Preço atualizado!"),
 					)
 					logsDebugParaAdicionar.push(...logsDebugImportantes)
 				}
@@ -324,7 +339,7 @@ async function processarSyncJob(jobId: string) {
 
 				produtosProcessados++
 			}
-			
+
 			// Adicionar todos os logs (normais + debug importantes) de uma vez
 			const todosLogs = [...logsParaAdicionar, ...logsDebugParaAdicionar]
 			if (todosLogs.length > 0) {
@@ -339,15 +354,15 @@ async function processarSyncJob(jobId: string) {
 
 			// Atualizar progresso após cada batch
 			const progresso = Math.floor(5 + (produtosProcessados / produtos.length) * 90)
-			
+
 			// Buscar detalhes atuais para fazer merge
 			const currentJob = await prisma.syncJob.findUnique({
 				where: { id: jobId },
 				select: { detalhes: true },
 			})
-			
+
 			const detalhesAtualizados = {
-				...(typeof currentJob?.detalhes === 'object' && currentJob?.detalhes !== null ? currentJob.detalhes : {}),
+				...(typeof currentJob?.detalhes === "object" && currentJob?.detalhes !== null ? currentJob.detalhes : {}),
 				estimativaSegundos: estimatedTimeRemaining,
 				produtosProcessadosAtual: produtosProcessados,
 				produtosTotal: produtos.length,
@@ -358,7 +373,7 @@ async function processarSyncJob(jobId: string) {
 				totalBatches: batches.length,
 				produtosPorBatch: BATCH_SIZE,
 			}
-			
+
 			await prisma.syncJob.update({
 				where: { id: jobId },
 				data: {
@@ -379,9 +394,9 @@ async function processarSyncJob(jobId: string) {
 			where: { id: jobId },
 			select: { detalhes: true },
 		})
-		
+
 		const detalhesFinal = {
-			...(typeof finalJob?.detalhes === 'object' && finalJob?.detalhes !== null ? finalJob.detalhes : {}),
+			...(typeof finalJob?.detalhes === "object" && finalJob?.detalhes !== null ? finalJob.detalhes : {}),
 			mercados: detalhes,
 			produtosNaoEncontrados: produtosNaoEncontrados,
 			produtosProcessadosAtual: produtos.length,
@@ -395,7 +410,7 @@ async function processarSyncJob(jobId: string) {
 				tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
 			},
 		}
-		
+
 		await prisma.syncJob.update({
 			where: { id: jobId },
 			data: {
@@ -466,10 +481,10 @@ async function processarProduto(
 				debugLogs.push(`[API] Nenhum produto encontrado`)
 			} else {
 				encontrouProduto = true
-				
+
 				// 2. Agrupar produtos por categoria para identificar as top 3
 				const produtosPorCategoria = new Map<number, typeof dataInicial.produtos>()
-				
+
 				for (const prod of dataInicial.produtos) {
 					const categoria = prod.categoria || 0
 					if (!produtosPorCategoria.has(categoria)) {
@@ -485,7 +500,7 @@ async function processarProduto(
 
 				debugLogs.push(`[API] ✓ Produto encontrado em ${produtosPorCategoria.size} categoria(s)!`)
 				debugLogs.push(`[API] Processando top ${categoriasOrdenadas.length} categoria(s) com mais registros`)
-				
+
 				// 4. Log das categorias selecionadas
 				for (const [catId, produtos] of categoriasOrdenadas) {
 					debugLogs.push(`[API] Categoria ${catId}: ${produtos.length} estabelecimento(s)`)
@@ -494,9 +509,11 @@ async function processarProduto(
 				// 5. Processar produtos das top 3 categorias
 				const todosProdutos = categoriasOrdenadas.flatMap(([_, produtos]) => produtos)
 				debugLogs.push(`[API] Total de estabelecimentos a processar: ${todosProdutos.length}`)
-			
+
 				// Log de debug da API (será filtrado se debug mode estiver desligado)
-				console.log(`[API] Produto encontrado: ${produto.name} - ${todosProdutos.length} estabelecimentos nas top categorias`)
+				console.log(
+					`[API] Produto encontrado: ${produto.name} - ${todosProdutos.length} estabelecimentos nas top categorias`,
+				)
 
 				// Processar estabelecimentos das top 3 categorias
 				for (const produtoNP of todosProdutos) {
@@ -511,8 +528,12 @@ async function processarProduto(
 					// Log dos dados do estabelecimento da API
 					debugLogs.push(`[DEBUG] ─────────────────────────────────────`)
 					debugLogs.push(`[DEBUG] Estabelecimento API: ${nomeEstabelecimento}`)
-					debugLogs.push(`[DEBUG] Endereço API: ${enderecoEstabelecimento.nm_logr || "N/A"}, ${enderecoEstabelecimento.nr_logr || "S/N"} - ${enderecoEstabelecimento.bairro || "N/A"}`)
-					debugLogs.push(`[DEBUG] Preço API: R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`)
+					debugLogs.push(
+						`[DEBUG] Endereço API: ${enderecoEstabelecimento.nm_logr || "N/A"}, ${enderecoEstabelecimento.nr_logr || "S/N"} - ${enderecoEstabelecimento.bairro || "N/A"}`,
+					)
+					debugLogs.push(
+						`[DEBUG] Preço API: R$ ${(parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)).toFixed(2)}`,
+					)
 					debugLogs.push(`[DEBUG] Data API: ${produtoNP.datahora} (${produtoNP.tempo})`)
 
 					// Encontrar mercado correspondente com logs detalhados
@@ -538,7 +559,7 @@ async function processarProduto(
 
 						const nomeNormalizadoMercado = normalizarNome(m.legalName)
 						const nomeNormalizadoEstabelecimento = normalizarNome(nomeEstabelecimento)
-						
+
 						const palavrasMercado = nomeNormalizadoMercado.split(" ")
 						const palavrasEstabelecimento = nomeNormalizadoEstabelecimento.split(" ")
 
@@ -646,7 +667,9 @@ async function processarProduto(
 							data: produtoNP.datahora,
 						})
 					} else if (Math.abs(registroExistente.price - preco) > 0.01) {
-						debugLogs.push(`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`)
+						debugLogs.push(
+							`[DEBUG] Preço atualizado! De R$ ${registroExistente.price.toFixed(2)} para R$ ${preco.toFixed(2)} (Data API: ${dataFormatada})`,
+						)
 						await prisma.priceRecord.create({
 							data: {
 								productId: produto.id,
@@ -690,17 +713,13 @@ async function adicionarLog(jobId: string, mensagem: string) {
 
 	const logsAtuais = (job?.logs as string[]) || []
 	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
-	
+
 	// Truncar mensagem se muito longa
-	const mensagemTruncada = mensagem.length > MAX_LOG_LENGTH 
-		? `${mensagem.substring(0, MAX_LOG_LENGTH)}...` 
-		: mensagem
-	
+	const mensagemTruncada = mensagem.length > MAX_LOG_LENGTH ? `${mensagem.substring(0, MAX_LOG_LENGTH)}...` : mensagem
+
 	// Manter apenas os últimos MAX_LOGS logs (circular buffer)
 	const novosLogs = [...logsAtuais, `[${timestamp}] ${mensagemTruncada}`]
-	const logsFinais = novosLogs.length > MAX_LOGS 
-		? novosLogs.slice(-MAX_LOGS) 
-		: novosLogs
+	const logsFinais = novosLogs.length > MAX_LOGS ? novosLogs.slice(-MAX_LOGS) : novosLogs
 
 	await prisma.syncJob.update({
 		where: { id: jobId },
@@ -719,20 +738,16 @@ async function adicionarLogsEmLote(jobId: string, mensagens: string[]) {
 
 	const logsAtuais = (job?.logs as string[]) || []
 	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
-	
+
 	// Truncar mensagens longas
 	const novosLogs = mensagens.map((msg) => {
-		const mensagemTruncada = msg.length > MAX_LOG_LENGTH 
-			? `${msg.substring(0, MAX_LOG_LENGTH)}...` 
-			: msg
+		const mensagemTruncada = msg.length > MAX_LOG_LENGTH ? `${msg.substring(0, MAX_LOG_LENGTH)}...` : msg
 		return `[${timestamp}] ${mensagemTruncada}`
 	})
-	
+
 	// Manter apenas os últimos MAX_LOGS logs (circular buffer)
 	const logsCompletos = [...logsAtuais, ...novosLogs]
-	const logsFinais = logsCompletos.length > MAX_LOGS 
-		? logsCompletos.slice(-MAX_LOGS) 
-		: logsCompletos
+	const logsFinais = logsCompletos.length > MAX_LOGS ? logsCompletos.slice(-MAX_LOGS) : logsCompletos
 
 	await prisma.syncJob.update({
 		where: { id: jobId },

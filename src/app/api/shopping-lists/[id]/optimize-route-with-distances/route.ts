@@ -53,8 +53,8 @@ interface RouteWithDistances {
 }
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const listId = params.id
 		const { userAddress, selectedMarketIds } = await request.json()
 
@@ -148,9 +148,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 async function calculateDistances(
 	origin: string,
 	markets: Array<{ id: string; name: string; location?: string | null }>,
-): Promise<
-	Array<{ id: string; name: string; location?: string | null; distanceKm: number; durationMinutes: number }>
-> {
+): Promise<Array<{ id: string; name: string; location?: string | null; distanceKm: number; durationMinutes: number }>> {
 	const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY
 
 	if (!googleMapsApiKey) {
@@ -182,22 +180,24 @@ async function calculateDistances(
 		}
 
 		// Processar resultados
-		const results = data.rows[0].elements.map((element: { status: string; distance?: { value: number }; duration?: { value: number } }, index: number) => {
-			if (element.status === "OK" && element.distance && element.duration) {
-				return {
-					...markets[index],
-					distanceKm: element.distance.value / 1000, // converter metros para km
-					durationMinutes: element.duration.value / 60, // converter segundos para minutos
+		const results = data.rows[0].elements.map(
+			(element: { status: string; distance?: { value: number }; duration?: { value: number } }, index: number) => {
+				if (element.status === "OK" && element.distance && element.duration) {
+					return {
+						...markets[index],
+						distanceKm: element.distance.value / 1000, // converter metros para km
+						durationMinutes: element.duration.value / 60, // converter segundos para minutos
+					}
+				} else {
+					// Fallback para mercados sem resultado válido
+					return {
+						...markets[index],
+						distanceKm: 5, // distância padrão
+						durationMinutes: 15, // tempo padrão
+					}
 				}
-			} else {
-				// Fallback para mercados sem resultado válido
-				return {
-					...markets[index],
-					distanceKm: 5, // distância padrão
-					durationMinutes: 15, // tempo padrão
-				}
-			}
-		})
+			},
+		)
 
 		return results
 	} catch (error) {
@@ -333,18 +333,20 @@ async function generateAIAnalysis(data: {
 
 		return {
 			worthIt: netBenefit > 0,
-			summary: netBenefit > 0 
-				? "Vale a pena! A economia em produtos supera os custos de deslocamento."
-				: "Não compensa. Os custos de deslocamento são maiores que a economia.",
+			summary:
+				netBenefit > 0
+					? "Vale a pena! A economia em produtos supera os custos de deslocamento."
+					: "Não compensa. Os custos de deslocamento são maiores que a economia.",
 			factors: {
 				totalSavings: data.totalSavings,
 				estimatedFuelCost,
 				estimatedTimeCost,
 				netBenefit,
 			},
-			recommendation: netBenefit > 0
-				? "Recomendamos seguir este roteiro para maximizar sua economia."
-				: "Considere comprar tudo em um único mercado mais próximo para economizar tempo e combustível.",
+			recommendation:
+				netBenefit > 0
+					? "Recomendamos seguir este roteiro para maximizar sua economia."
+					: "Considere comprar tudo em um único mercado mais próximo para economizar tempo e combustível.",
 		}
 	}
 
@@ -382,10 +384,13 @@ Forneça sua resposta APENAS no seguinte formato JSON (sem markdown, sem \`\`\`j
 
 		const result = await model.generateContent(prompt)
 		const responseText = result.response.text().trim()
-		
+
 		// Remover markdown se presente
-		const cleanedText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-		
+		const cleanedText = responseText
+			.replace(/```json\n?/g, "")
+			.replace(/```\n?/g, "")
+			.trim()
+
 		const aiResponse = JSON.parse(cleanedText)
 
 		return {
@@ -401,7 +406,7 @@ Forneça sua resposta APENAS no seguinte formato JSON (sem markdown, sem \`\`\`j
 		}
 	} catch (error) {
 		console.error("Erro ao gerar análise de IA:", error)
-		
+
 		// Fallback sem IA
 		const estimatedFuelCost = (data.totalDistanceKm / 10) * 5.5
 		const estimatedTimeCost = (data.totalDurationMinutes / 60) * 30
@@ -409,19 +414,20 @@ Forneça sua resposta APENAS no seguinte formato JSON (sem markdown, sem \`\`\`j
 
 		return {
 			worthIt: netBenefit > 0,
-			summary: netBenefit > 0
-				? "Vale a pena! A economia em produtos supera os custos de deslocamento."
-				: "Não compensa. Os custos de deslocamento são maiores que a economia.",
+			summary:
+				netBenefit > 0
+					? "Vale a pena! A economia em produtos supera os custos de deslocamento."
+					: "Não compensa. Os custos de deslocamento são maiores que a economia.",
 			factors: {
 				totalSavings: data.totalSavings,
 				estimatedFuelCost,
 				estimatedTimeCost,
 				netBenefit,
 			},
-			recommendation: netBenefit > 0
-				? "Recomendamos seguir este roteiro para maximizar sua economia."
-				: "Considere comprar tudo em um único mercado mais próximo para economizar tempo e combustível.",
+			recommendation:
+				netBenefit > 0
+					? "Recomendamos seguir este roteiro para maximizar sua economia."
+					: "Considere comprar tudo em um único mercado mais próximo para economizar tempo e combustível.",
 		}
 	}
 }
-

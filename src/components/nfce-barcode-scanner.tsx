@@ -1,12 +1,12 @@
-'use client';
+"use client"
 
-import React from 'react';
-import { BarcodeScanner } from '@/components/barcode-scanner'; // Importando seu scanner
+import type React from "react"
+import { BarcodeScanner } from "@/components/barcode-scanner" // Importando seu scanner
 
 interface NfceBarcodeScannerProps {
-  isOpen: boolean;
-  onScan: (url: string) => void;
-  onClose: () => void;
+	isOpen: boolean
+	onScan: (url: string) => void
+	onClose: () => void
 }
 
 /**
@@ -16,11 +16,5 @@ interface NfceBarcodeScannerProps {
  * Isso mantém o BarcodeScanner genérico e reutilizável.
  */
 export const NfceBarcodeScanner: React.FC<NfceBarcodeScannerProps> = ({ isOpen, onScan, onClose }) => {
-  return (
-    <BarcodeScanner
-      isOpen={isOpen}
-      onScan={onScan}
-      onClose={onClose}
-    />
-  );
-};
+	return <BarcodeScanner isOpen={isOpen} onScan={onScan} onClose={onClose} />
+}

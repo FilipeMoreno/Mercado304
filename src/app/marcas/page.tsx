@@ -9,8 +9,8 @@ interface MarcasPageProps {
 }
 
 export default async function MarcasPage(props: MarcasPageProps) {
-    const searchParams = await props.searchParams;
-    return (
+	const searchParams = await props.searchParams
+	return (
 		<div className="space-y-6">
 			<div className="flex justify-between items-center">
 				<div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { ChefHat, Lightbulb, Loader2, Utensils } from "lucide-react"
+import { Lightbulb, Loader2, Utensils } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -104,7 +104,10 @@ export function RecipeSuggester({ ingredientList, buttonText = "Sugerir Receitas
 											<p className="text-xs font-semibold">Ingredientes Principais:</p>
 											<div className="flex flex-wrap gap-1 mt-1">
 												{sug.ingredientes.slice(0, 3).map((ing) => (
-													<span key={ing} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-sm">
+													<span
+														key={ing}
+														className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-sm"
+													>
 														{ing.split(" de ")[1] || ing}
 													</span>
 												))}

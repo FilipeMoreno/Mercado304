@@ -2,12 +2,7 @@
 // Endpoint para testar o matching de mercados antes de sincronizar
 
 import { NextResponse } from "next/server"
-import {
-	LOCAL_PADRAO,
-	NOTA_PARANA_BASE_URL,
-	PERIODO_PADRAO,
-	RAIO_PADRAO,
-} from "@/lib/nota-parana-config"
+import { LOCAL_PADRAO, NOTA_PARANA_BASE_URL, PERIODO_PADRAO, RAIO_PADRAO } from "@/lib/nota-parana-config"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
@@ -33,11 +28,14 @@ export async function POST(request: Request) {
 
 		const response = await fetch(url)
 		if (!response.ok) {
-			return NextResponse.json({
-				error: "Erro ao buscar na API do Nota Paraná",
-				barcode,
-				totalMercadosCadastrados: mercados.length,
-			}, { status: response.status })
+			return NextResponse.json(
+				{
+					error: "Erro ao buscar na API do Nota Paraná",
+					barcode,
+					totalMercadosCadastrados: mercados.length,
+				},
+				{ status: response.status },
+			)
 		}
 
 		const data = await response.json()
@@ -53,7 +51,7 @@ export async function POST(request: Request) {
 
 		// Agrupar produtos por categoria para identificar as top 3
 		const produtosPorCategoria = new Map<number, typeof data.produtos>()
-		
+
 		for (const prod of data.produtos) {
 			const categoria = prod.categoria || 0
 			if (!produtosPorCategoria.has(categoria)) {
@@ -139,7 +137,7 @@ export async function POST(request: Request) {
 				if (mercado.legalName) {
 					const nomeNormalizadoMercado = normalizarNome(mercado.legalName)
 					const nomeNormalizadoEstabelecimento = normalizarNome(nomeEst)
-					
+
 					const palavrasMercado = nomeNormalizadoMercado.split(" ")
 					const palavrasEstabelecimento = nomeNormalizadoEstabelecimento.split(" ")
 
@@ -230,9 +228,9 @@ export async function POST(request: Request) {
 		}
 
 		// Separar resultados em matches e não-matches
-		const matches = resultados.filter(r => r.wouldMatch)
-		const possiveisMatches = resultados.filter(r => !r.wouldMatch && r.matchNome)
-		const semMatch = resultados.filter(r => !r.wouldMatch && !r.matchNome)
+		const matches = resultados.filter((r) => r.wouldMatch)
+		const possiveisMatches = resultados.filter((r) => !r.wouldMatch && r.matchNome)
+		const semMatch = resultados.filter((r) => !r.wouldMatch && !r.matchNome)
 
 		return NextResponse.json({
 			barcode,

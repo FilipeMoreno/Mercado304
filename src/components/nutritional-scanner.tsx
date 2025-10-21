@@ -11,14 +11,14 @@ interface NutritionalScannerProps {
 	onClose: () => void
 }
 
-type ProcessingStep = 
-	| 'capturing' 
-	| 'reading_image' 
-	| 'extracting_text' 
-	| 'identifying_nutrition' 
-	| 'analyzing_ingredients' 
-	| 'calculating_values' 
-	| 'finalizing'
+type ProcessingStep =
+	| "capturing"
+	| "reading_image"
+	| "extracting_text"
+	| "identifying_nutrition"
+	| "analyzing_ingredients"
+	| "calculating_values"
+	| "finalizing"
 
 const processingSteps: Record<ProcessingStep, string> = {
 	capturing: "🔍 Capturando imagem...",
@@ -27,7 +27,7 @@ const processingSteps: Record<ProcessingStep, string> = {
 	identifying_nutrition: "🥗 Identificando nutrientes...",
 	analyzing_ingredients: "🧪 Analisando ingredientes...",
 	calculating_values: "📊 Calculando valores nutricionais...",
-	finalizing: "✅ Finalizando análise nutricional..."
+	finalizing: "✅ Finalizando análise nutricional...",
 }
 
 export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScannerProps) {
@@ -38,7 +38,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
-	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
+	const [currentStep, setCurrentStep] = useState<ProcessingStep>("capturing")
 
 	const stopCamera = useCallback(() => {
 		if (stream) {
@@ -74,7 +74,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			stopCamera()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [startCamera, stopCamera])
 
 	const processImage = async (dataUrl: string) => {
 		setCapturedImage(dataUrl)
@@ -83,24 +83,24 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 
 		try {
 			// Etapa 1: Processando imagem
-			setCurrentStep('reading_image')
-			await new Promise(resolve => setTimeout(resolve, 800))
+			setCurrentStep("reading_image")
+			await new Promise((resolve) => setTimeout(resolve, 800))
 
 			// Etapa 2: Extraindo texto
-			setCurrentStep('extracting_text')
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			setCurrentStep("extracting_text")
+			await new Promise((resolve) => setTimeout(resolve, 1000))
 
 			// Etapa 3: Identificando nutrição
-			setCurrentStep('identifying_nutrition')
-			await new Promise(resolve => setTimeout(resolve, 1200))
+			setCurrentStep("identifying_nutrition")
+			await new Promise((resolve) => setTimeout(resolve, 1200))
 
 			// Etapa 4: Analisando ingredientes
-			setCurrentStep('analyzing_ingredients')
-			await new Promise(resolve => setTimeout(resolve, 900))
+			setCurrentStep("analyzing_ingredients")
+			await new Promise((resolve) => setTimeout(resolve, 900))
 
 			// Etapa 5: Calculando valores
-			setCurrentStep('calculating_values')
-			await new Promise(resolve => setTimeout(resolve, 700))
+			setCurrentStep("calculating_values")
+			await new Promise((resolve) => setTimeout(resolve, 700))
 
 			const response = await fetch("/api/ocr/scan", {
 				method: "POST",
@@ -114,8 +114,8 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			}
 
 			// Etapa 6: Finalizando
-			setCurrentStep('finalizing')
-			await new Promise(resolve => setTimeout(resolve, 500))
+			setCurrentStep("finalizing")
+			await new Promise((resolve) => setTimeout(resolve, 500))
 
 			const result = await response.json()
 			onScanComplete(result)
@@ -124,7 +124,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 		} finally {
 			// Reset do estado quando terminar
 			setIsProcessing(false)
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
 		}
 	}
 
@@ -138,14 +138,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
 			const dataUrl = canvas.toDataURL("image/png")
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
 			await processImage(dataUrl)
 		}
 	}
 
 	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
-		if (file && file.type.startsWith('image/')) {
+		if (file?.type.startsWith("image/")) {
 			const reader = new FileReader()
 			reader.onload = async (e) => {
 				const dataUrl = e.target?.result as string
@@ -214,13 +214,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 					Carregar
 				</Button>
 			</div>
-			<input
-				ref={fileInputRef}
-				type="file"
-				accept="image/*"
-				onChange={handleFileUpload}
-				className="hidden"
-			/>
+			<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 		</>
 	)
 }

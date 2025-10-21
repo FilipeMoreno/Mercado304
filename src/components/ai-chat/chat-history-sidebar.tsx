@@ -1,32 +1,21 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { 
-	MessageSquare, 
-	Plus, 
-	Trash2, 
-	Edit2, 
-	Calendar,
-	Search,
-	X,
-	MoreVertical,
-	Archive,
-	Clock
-} from "lucide-react"
-import { useState, useRef, useEffect } from "react"
+import { formatDistanceToNow } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { AnimatePresence, motion } from "framer-motion"
+import { Archive, Calendar, Clock, Edit2, MessageSquare, MoreVertical, Plus, Search, Trash2, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChatSession } from "@/hooks/use-chat-history"
-import { formatDistanceToNow } from "date-fns"
-import { ptBR } from "date-fns/locale"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import type { ChatSession } from "@/hooks/use-chat-history"
 
 interface ChatHistorySidebarProps {
 	sessions: ChatSession[]
@@ -49,7 +38,7 @@ export function ChatHistorySidebar({
 	onRenameSession,
 	onClearAll,
 	isOpen,
-	onClose
+	onClose,
 }: ChatHistorySidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("")
 	const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
@@ -57,38 +46,40 @@ export function ChatHistorySidebar({
 	const editInputRef = useRef<HTMLInputElement>(null)
 
 	// Filtrar sessões baseado na busca
-	const filteredSessions = sessions.filter(session =>
-		session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-		session.messages.some(msg => 
-			msg.content.toLowerCase().includes(searchTerm.toLowerCase())
-		)
+	const filteredSessions = sessions.filter(
+		(session) =>
+			session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			session.messages.some((msg) => msg.content.toLowerCase().includes(searchTerm.toLowerCase())),
 	)
 
 	// Agrupar sessões por data
-	const groupedSessions = filteredSessions.reduce((groups, session) => {
-		const today = new Date()
-		const sessionDate = session.updatedAt
-		
-		let groupKey: string
-		
-		if (sessionDate.toDateString() === today.toDateString()) {
-			groupKey = "Hoje"
-		} else if (sessionDate.toDateString() === new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
-			groupKey = "Ontem"
-		} else if (sessionDate.getTime() > today.getTime() - 7 * 24 * 60 * 60 * 1000) {
-			groupKey = "Esta semana"
-		} else if (sessionDate.getTime() > today.getTime() - 30 * 24 * 60 * 60 * 1000) {
-			groupKey = "Este mês"
-		} else {
-			groupKey = "Mais antigo"
-		}
+	const groupedSessions = filteredSessions.reduce(
+		(groups, session) => {
+			const today = new Date()
+			const sessionDate = session.updatedAt
 
-		if (!groups[groupKey]) {
-			groups[groupKey] = []
-		}
-		groups[groupKey].push(session)
-		return groups
-	}, {} as Record<string, ChatSession[]>)
+			let groupKey: string
+
+			if (sessionDate.toDateString() === today.toDateString()) {
+				groupKey = "Hoje"
+			} else if (sessionDate.toDateString() === new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
+				groupKey = "Ontem"
+			} else if (sessionDate.getTime() > today.getTime() - 7 * 24 * 60 * 60 * 1000) {
+				groupKey = "Esta semana"
+			} else if (sessionDate.getTime() > today.getTime() - 30 * 24 * 60 * 60 * 1000) {
+				groupKey = "Este mês"
+			} else {
+				groupKey = "Mais antigo"
+			}
+
+			if (!groups[groupKey]) {
+				groups[groupKey] = []
+			}
+			groups[groupKey].push(session)
+			return groups
+		},
+		{} as Record<string, ChatSession[]>,
+	)
 
 	// Iniciar edição
 	const startEditing = (session: ChatSession) => {
@@ -138,12 +129,7 @@ export function ChatHistorySidebar({
 							<MessageSquare className="size-5" />
 							Conversas
 						</h2>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={onClose}
-							className="text-white hover:bg-white/20 size-8"
-						>
+						<Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 size-8">
 							<X className="size-4" />
 						</Button>
 					</div>
@@ -178,9 +164,7 @@ export function ChatHistorySidebar({
 						{Object.keys(groupedSessions).length === 0 ? (
 							<div className="text-center py-8 text-gray-500">
 								<MessageSquare className="size-12 mx-auto mb-3 text-gray-300" />
-								<p className="text-sm">
-									{searchTerm ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
-								</p>
+								<p className="text-sm">{searchTerm ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}</p>
 							</div>
 						) : (
 							Object.entries(groupedSessions).map(([group, groupSessions]) => (
@@ -189,16 +173,14 @@ export function ChatHistorySidebar({
 										<Calendar className="h-3 w-3" />
 										{group}
 									</div>
-									
+
 									{groupSessions.map((session) => (
 										<motion.div
 											key={session.id}
 											initial={{ opacity: 0, y: 10 }}
 											animate={{ opacity: 1, y: 0 }}
 											className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 mb-1 ${
-												currentSessionId === session.id
-													? "bg-blue-50 border border-blue-200"
-													: "hover:bg-gray-50"
+												currentSessionId === session.id ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50"
 											}`}
 											onClick={() => onSessionSelect(session.id)}
 										>
@@ -218,22 +200,18 @@ export function ChatHistorySidebar({
 															onClick={(e) => e.stopPropagation()}
 														/>
 													) : (
-														<h3 className="text-sm font-medium text-gray-900 truncate">
-															{session.title}
-														</h3>
+														<h3 className="text-sm font-medium text-gray-900 truncate">{session.title}</h3>
 													)}
-													
+
 													<div className="flex items-center gap-2 mt-1">
 														<Clock className="h-3 w-3 text-gray-400" />
 														<span className="text-xs text-gray-500">
-															{formatDistanceToNow(session.updatedAt, { 
-																addSuffix: true, 
-																locale: ptBR 
+															{formatDistanceToNow(session.updatedAt, {
+																addSuffix: true,
+																locale: ptBR,
 															})}
 														</span>
-														<span className="text-xs text-gray-400">
-															• {session.messages.length} mensagens
-														</span>
+														<span className="text-xs text-gray-400">• {session.messages.length} mensagens</span>
 													</div>
 												</div>
 

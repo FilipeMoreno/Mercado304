@@ -147,7 +147,7 @@ export const shoppingListFunctions = {
 				include: { items: { include: { product: true } } },
 			})
 
-			const purchaseDate = lastPurchase.purchaseDate.toLocaleDateString('pt-BR')
+			const purchaseDate = lastPurchase.purchaseDate.toLocaleDateString("pt-BR")
 			const marketName = lastPurchase.market.name
 
 			return {
@@ -165,7 +165,13 @@ export const shoppingListFunctions = {
 		}
 	},
 
-	mergeDuplicateShoppingLists: async ({ sourceListName, targetListName }: { sourceListName: string; targetListName: string }) => {
+	mergeDuplicateShoppingLists: async ({
+		sourceListName,
+		targetListName,
+	}: {
+		sourceListName: string
+		targetListName: string
+	}) => {
 		try {
 			const sourceList = await prisma.shoppingList.findFirst({
 				where: { name: { contains: sourceListName, mode: "insensitive" } },
@@ -185,14 +191,14 @@ export const shoppingListFunctions = {
 			}
 
 			// Mescla os itens, somando quantidades de produtos duplicados
-			const targetProductIds = new Set(targetList.items.map(item => item.productId))
+			const targetProductIds = new Set(targetList.items.map((item) => item.productId))
 			const itemsToAdd = []
 			const itemsToUpdate = []
 
 			for (const sourceItem of sourceList.items) {
 				if (targetProductIds.has(sourceItem.productId)) {
 					// Produto já existe na lista de destino, somar quantidades
-					const targetItem = targetList.items.find(item => item.productId === sourceItem.productId)
+					const targetItem = targetList.items.find((item) => item.productId === sourceItem.productId)
 					if (targetItem) {
 						itemsToUpdate.push({
 							id: targetItem.id,
@@ -213,11 +219,11 @@ export const shoppingListFunctions = {
 
 			// Executa as operações
 			await Promise.all([
-				...itemsToUpdate.map(item =>
+				...itemsToUpdate.map((item) =>
 					prisma.shoppingListItem.update({
 						where: { id: item.id },
 						data: { quantity: item.quantity },
-					})
+					}),
 				),
 				...(itemsToAdd.length > 0 ? [prisma.shoppingListItem.createMany({ data: itemsToAdd })] : []),
 			])
@@ -268,31 +274,31 @@ export const shoppingListFunctions = {
 					include: {
 						items: {
 							where: { productId: item.productId },
-							include: { product: true }
+							include: { product: true },
 						},
 						market: true,
 					},
 					orderBy: { purchaseDate: "desc" },
 				})
 
-				if (latestPrice && latestPrice.items[0]) {
+				if (latestPrice?.items[0]) {
 					const unitPrice = latestPrice.items[0].unitPrice
 					const itemCost = unitPrice * item.quantity
 					totalCost += itemCost
 					itemsWithPrice++
 
 					itemDetails.push({
-						product: item.product?.name || 'Produto não encontrado',
+						product: item.product?.name || "Produto não encontrado",
 						quantity: item.quantity,
 						unitPrice,
 						totalPrice: itemCost,
 						market: latestPrice.market.name,
-						lastUpdate: latestPrice.purchaseDate.toLocaleDateString('pt-BR'),
+						lastUpdate: latestPrice.purchaseDate.toLocaleDateString("pt-BR"),
 					})
 				} else {
 					itemsWithoutPrice++
 					itemDetails.push({
-						product: item.product?.name || 'Produto não encontrado',
+						product: item.product?.name || "Produto não encontrado",
 						quantity: item.quantity,
 						unitPrice: null,
 						totalPrice: null,
@@ -302,7 +308,7 @@ export const shoppingListFunctions = {
 				}
 			}
 
-			const coverage = itemsWithPrice / list.items.length * 100
+			const coverage = (itemsWithPrice / list.items.length) * 100
 
 			return {
 				success: true,

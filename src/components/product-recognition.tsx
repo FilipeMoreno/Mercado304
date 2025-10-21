@@ -1,6 +1,6 @@
 "use client"
 
-import { Brain, Camera, CameraOff, Eye, Loader2, RotateCcw, Upload } from "lucide-react"
+import { Brain, CameraOff, Eye, Loader2, RotateCcw, Upload } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -24,7 +24,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
-	const modelRef = useRef<any>(null)
+	const _modelRef = useRef<any>(null)
 
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasCamera, setHasCamera] = useState(false)
@@ -120,7 +120,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 		return () => {
 			stopCamera()
 		}
-	}, [isOpen, hasCamera, selectedDevice])
+	}, [isOpen, hasCamera, selectedDevice, stopCamera])
 
 	const stopCamera = () => {
 		if (streamRef.current) {
@@ -133,7 +133,7 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 		}
 	}
 
-	const analyzeImage = async (imageElement: HTMLImageElement | HTMLVideoElement) => {
+	const analyzeImage = async (_imageElement: HTMLImageElement | HTMLVideoElement) => {
 		if (!modelLoaded) {
 			toast.error("Modelo de IA não carregado")
 			return

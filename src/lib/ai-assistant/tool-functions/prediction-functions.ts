@@ -9,16 +9,31 @@ export const predictionFunctions = {
 
 			// Produtos básicos para comparação
 			const basicProducts = [
-				'arroz', 'feijão', 'açúcar', 'sal', 'óleo', 'farinha de trigo',
-				'leite', 'ovos', 'pão', 'manteiga', 'café', 'macarrão',
-				'carne bovina', 'frango', 'banana', 'tomate', 'cebola', 'batata'
+				"arroz",
+				"feijão",
+				"açúcar",
+				"sal",
+				"óleo",
+				"farinha de trigo",
+				"leite",
+				"ovos",
+				"pão",
+				"manteiga",
+				"café",
+				"macarrão",
+				"carne bovina",
+				"frango",
+				"banana",
+				"tomate",
+				"cebola",
+				"batata",
 			]
 
 			const marketComparison: any[] = []
 
 			for (const marketName of marketNames) {
 				const market = await prisma.market.findFirst({
-					where: { name: { contains: marketName, mode: "insensitive" } }
+					where: { name: { contains: marketName, mode: "insensitive" } },
 				})
 
 				if (!market) {
@@ -39,27 +54,27 @@ export const predictionFunctions = {
 							marketId: market.id,
 							items: {
 								some: {
-									product: { name: { contains: productName, mode: "insensitive" } }
-								}
-							}
+									product: { name: { contains: productName, mode: "insensitive" } },
+								},
+							},
 						},
 						include: {
 							items: {
 								where: {
-									product: { name: { contains: productName, mode: "insensitive" } }
+									product: { name: { contains: productName, mode: "insensitive" } },
 								},
-								include: { product: true }
-							}
+								include: { product: true },
+							},
 						},
-						orderBy: { purchaseDate: "desc" }
+						orderBy: { purchaseDate: "desc" },
 					})
 
-					if (recentPurchase && recentPurchase.items[0]) {
+					if (recentPurchase?.items[0]) {
 						const item = recentPurchase.items[0]
 						marketData.products.push({
 							product: item.product?.name || productName,
 							price: item.unitPrice,
-							lastUpdate: recentPurchase.purchaseDate.toLocaleDateString('pt-BR'),
+							lastUpdate: recentPurchase.purchaseDate.toLocaleDateString("pt-BR"),
 							found: true,
 						})
 						marketData.totalBasket += item.unitPrice
@@ -82,47 +97,52 @@ export const predictionFunctions = {
 
 			// Calcula diferenças
 			const cheapestMarket = marketComparison[0]
-			const comparisons = marketComparison.map(market => ({
+			const comparisons = marketComparison.map((market) => ({
 				...market,
 				difference: market.totalBasket - cheapestMarket.totalBasket,
-				percentageDifference: cheapestMarket.totalBasket > 0 
-					? ((market.totalBasket - cheapestMarket.totalBasket) / cheapestMarket.totalBasket) * 100 
-					: 0,
+				percentageDifference:
+					cheapestMarket.totalBasket > 0
+						? ((market.totalBasket - cheapestMarket.totalBasket) / cheapestMarket.totalBasket) * 100
+						: 0,
 				coverage: (market.foundProducts / basicProducts.length) * 100,
 			}))
 
 			// Análise por produto
-			const productAnalysis = basicProducts.map(productName => {
-				const productPrices = marketComparison
-					.map(market => {
-						const product = market.products.find((p: any) => 
-							p.product.toLowerCase().includes(productName.toLowerCase())
-						)
-						return product && product.found ? {
-							market: market.market,
-							price: product.price,
-							lastUpdate: product.lastUpdate,
-						} : null
-					})
-					.filter(Boolean)
+			const productAnalysis = basicProducts
+				.map((productName) => {
+					const productPrices = marketComparison
+						.map((market) => {
+							const product = market.products.find((p: any) =>
+								p.product.toLowerCase().includes(productName.toLowerCase()),
+							)
+							return product?.found
+								? {
+										market: market.market,
+										price: product.price,
+										lastUpdate: product.lastUpdate,
+									}
+								: null
+						})
+						.filter(Boolean)
 
-				if (productPrices.length === 0) return null
+					if (productPrices.length === 0) return null
 
-				const sortedPrices = productPrices.sort((a, b) => (a?.price || 0) - (b?.price || 0))
-				const cheapest = sortedPrices[0]
-				const mostExpensive = sortedPrices[sortedPrices.length - 1]
+					const sortedPrices = productPrices.sort((a, b) => (a?.price || 0) - (b?.price || 0))
+					const cheapest = sortedPrices[0]
+					const mostExpensive = sortedPrices[sortedPrices.length - 1]
 
-				return {
-					product: productName,
-					cheapestMarket: cheapest?.market,
-					cheapestPrice: cheapest?.price,
-					mostExpensiveMarket: mostExpensive?.market,
-					mostExpensivePrice: mostExpensive?.price,
-					priceDifference: (mostExpensive?.price || 0) - (cheapest?.price || 0),
-					marketsWithPrice: productPrices.length,
-					allPrices: productPrices,
-				}
-			}).filter(Boolean)
+					return {
+						product: productName,
+						cheapestMarket: cheapest?.market,
+						cheapestPrice: cheapest?.price,
+						mostExpensiveMarket: mostExpensive?.market,
+						mostExpensivePrice: mostExpensive?.price,
+						priceDifference: (mostExpensive?.price || 0) - (cheapest?.price || 0),
+						marketsWithPrice: productPrices.length,
+						allPrices: productPrices,
+					}
+				})
+				.filter(Boolean)
 
 			return {
 				success: true,
@@ -136,7 +156,7 @@ export const predictionFunctions = {
 					bestOverall: cheapestMarket.market,
 					totalSavings: comparisons[comparisons.length - 1]?.difference || 0,
 					avgCoverage: comparisons.reduce((sum, m) => sum + m.coverage, 0) / comparisons.length,
-				}
+				},
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao comparar cestas: ${error}` }
@@ -149,37 +169,40 @@ export const predictionFunctions = {
 			const recentPurchases = await prisma.purchase.findMany({
 				where: {
 					purchaseDate: {
-						gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-					}
+						gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+					},
 				},
 				include: {
 					items: { include: { product: { include: { category: true } } } },
 					market: true,
 				},
-				orderBy: { purchaseDate: "desc" }
+				orderBy: { purchaseDate: "desc" },
 			})
 
 			if (recentPurchases.length < 3) {
 				return {
 					success: false,
-					message: "Dados insuficientes para previsão. Necessário pelo menos 3 compras nos últimos 90 dias."
+					message: "Dados insuficientes para previsão. Necessário pelo menos 3 compras nos últimos 90 dias.",
 				}
 			}
 
 			// Analisa padrões de compra por produto
-			const productPatterns: Record<string, {
-				purchases: Date[];
-				quantities: number[];
-				avgInterval: number;
-				lastPurchase: Date;
-				avgQuantity: number;
-				category: string;
-			}> = {}
+			const productPatterns: Record<
+				string,
+				{
+					purchases: Date[]
+					quantities: number[]
+					avgInterval: number
+					lastPurchase: Date
+					avgQuantity: number
+					category: string
+				}
+			> = {}
 
 			for (const purchase of recentPurchases) {
 				for (const item of purchase.items) {
-					const productName = item.product?.name || 'Produto não identificado'
-					
+					const productName = item.product?.name || "Produto não identificado"
+
 					if (!productPatterns[productName]) {
 						productPatterns[productName] = {
 							purchases: [],
@@ -187,13 +210,13 @@ export const predictionFunctions = {
 							avgInterval: 0,
 							lastPurchase: new Date(0),
 							avgQuantity: 0,
-							category: item.product?.category?.name || 'Sem categoria',
+							category: item.product?.category?.name || "Sem categoria",
 						}
 					}
 
 					productPatterns[productName].purchases.push(purchase.purchaseDate)
 					productPatterns[productName].quantities.push(item.quantity)
-					
+
 					if (purchase.purchaseDate > productPatterns[productName].lastPurchase) {
 						productPatterns[productName].lastPurchase = purchase.purchaseDate
 					}
@@ -209,56 +232,59 @@ export const predictionFunctions = {
 					// Calcula intervalo médio entre compras
 					const sortedPurchases = pattern.purchases.sort((a, b) => a.getTime() - b.getTime())
 					const intervals = []
-					
+
 					for (let i = 1; i < sortedPurchases.length; i++) {
-						const interval = (sortedPurchases[i].getTime() - sortedPurchases[i-1].getTime()) / (1000 * 60 * 60 * 24)
+						const interval = (sortedPurchases[i].getTime() - sortedPurchases[i - 1].getTime()) / (1000 * 60 * 60 * 24)
 						intervals.push(interval)
 					}
 
 					const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
 					const avgQuantity = pattern.quantities.reduce((a, b) => a + b, 0) / pattern.quantities.length
-					
+
 					// Calcula quando seria a próxima compra
 					const daysSinceLastPurchase = (now.getTime() - pattern.lastPurchase.getTime()) / (1000 * 60 * 60 * 24)
 					const daysUntilNextPurchase = avgInterval - daysSinceLastPurchase
-					
+
 					// Calcula confiança baseada na regularidade
-					const intervalVariance = intervals.reduce((sum, interval) => sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length
+					const intervalVariance =
+						intervals.reduce((sum, interval) => sum + (interval - avgInterval) ** 2, 0) / intervals.length
 					const intervalStdDev = Math.sqrt(intervalVariance)
 					const regularity = Math.max(0, 100 - (intervalStdDev / avgInterval) * 100)
-					
+
 					if (daysUntilNextPurchase <= daysAhead && regularity >= confidence) {
 						// Busca preço mais recente
 						const recentPrice = await prisma.purchase.findFirst({
 							where: {
 								items: {
 									some: {
-										product: { name: { contains: productName, mode: "insensitive" } }
-									}
-								}
+										product: { name: { contains: productName, mode: "insensitive" } },
+									},
+								},
 							},
 							include: {
 								items: {
 									where: {
-										product: { name: { contains: productName, mode: "insensitive" } }
-									}
+										product: { name: { contains: productName, mode: "insensitive" } },
+									},
 								},
 								market: true,
 							},
-							orderBy: { purchaseDate: "desc" }
+							orderBy: { purchaseDate: "desc" },
 						})
 
 						predictions.push({
 							product: productName,
 							category: pattern.category,
-							predictedDate: new Date(now.getTime() + daysUntilNextPurchase * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
+							predictedDate: new Date(now.getTime() + daysUntilNextPurchase * 24 * 60 * 60 * 1000).toLocaleDateString(
+								"pt-BR",
+							),
 							daysUntilPurchase: Math.round(daysUntilNextPurchase * 10) / 10,
 							predictedQuantity: Math.round(avgQuantity),
 							confidence: Math.round(regularity),
 							avgInterval: Math.round(avgInterval),
-							lastPurchase: pattern.lastPurchase.toLocaleDateString('pt-BR'),
+							lastPurchase: pattern.lastPurchase.toLocaleDateString("pt-BR"),
 							estimatedPrice: recentPrice?.items[0]?.unitPrice || 0,
-							lastMarket: recentPrice?.market.name || 'Não encontrado',
+							lastMarket: recentPrice?.market.name || "Não encontrado",
 							totalPurchases: pattern.purchases.length,
 						})
 					}
@@ -267,8 +293,11 @@ export const predictionFunctions = {
 
 			predictions.sort((a, b) => a.daysUntilPurchase - b.daysUntilPurchase)
 
-			const totalEstimatedCost = predictions.reduce((sum, pred) => sum + (pred.estimatedPrice * pred.predictedQuantity), 0)
-			const highConfidencePredictions = predictions.filter(p => p.confidence >= 80).length
+			const totalEstimatedCost = predictions.reduce(
+				(sum, pred) => sum + pred.estimatedPrice * pred.predictedQuantity,
+				0,
+			)
+			const highConfidencePredictions = predictions.filter((p) => p.confidence >= 80).length
 
 			return {
 				success: true,
@@ -280,11 +309,10 @@ export const predictionFunctions = {
 				totalEstimatedCost,
 				predictions,
 				summary: {
-					nextPurchase: predictions[0]?.product || 'Nenhuma previsão',
-					avgConfidence: predictions.length > 0 
-						? predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length 
-						: 0,
-				}
+					nextPurchase: predictions[0]?.product || "Nenhuma previsão",
+					avgConfidence:
+						predictions.length > 0 ? predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length : 0,
+				},
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao prever compras: ${error}` }
@@ -297,12 +325,12 @@ export const predictionFunctions = {
 			const recentPurchases = await prisma.purchase.findMany({
 				where: {
 					purchaseDate: {
-						gte: new Date(Date.now() - basedOnHistory * 24 * 60 * 60 * 1000)
-					}
+						gte: new Date(Date.now() - basedOnHistory * 24 * 60 * 60 * 1000),
+					},
 				},
 				include: {
-					items: { include: { product: { include: { category: true } } } }
-				}
+					items: { include: { product: { include: { category: true } } } },
+				},
 			})
 
 			// Busca compras históricas (últimos 6 meses) para comparação
@@ -310,48 +338,51 @@ export const predictionFunctions = {
 				where: {
 					purchaseDate: {
 						gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
-						lt: new Date(Date.now() - basedOnHistory * 24 * 60 * 60 * 1000)
-					}
+						lt: new Date(Date.now() - basedOnHistory * 24 * 60 * 60 * 1000),
+					},
 				},
 				include: {
-					items: { include: { product: { include: { category: true } } } }
-				}
+					items: { include: { product: { include: { category: true } } } },
+				},
 			})
 
 			// Produtos comprados recentemente
 			const recentProducts = new Set()
 			for (const purchase of recentPurchases) {
 				for (const item of purchase.items) {
-					recentProducts.add(item.product?.name || '')
+					recentProducts.add(item.product?.name || "")
 				}
 			}
 
 			// Analisa produtos frequentes no histórico que não foram comprados recentemente
-			const historicalProductFrequency: Record<string, {
-				count: number;
-				lastPurchase: Date;
-				avgQuantity: number;
-				category: string;
-				totalQuantity: number;
-			}> = {}
+			const historicalProductFrequency: Record<
+				string,
+				{
+					count: number
+					lastPurchase: Date
+					avgQuantity: number
+					category: string
+					totalQuantity: number
+				}
+			> = {}
 
 			for (const purchase of historicalPurchases) {
 				for (const item of purchase.items) {
-					const productName = item.product?.name || 'Produto não identificado'
-					
+					const productName = item.product?.name || "Produto não identificado"
+
 					if (!historicalProductFrequency[productName]) {
 						historicalProductFrequency[productName] = {
 							count: 0,
 							lastPurchase: new Date(0),
 							avgQuantity: 0,
-							category: item.product?.category?.name || 'Sem categoria',
+							category: item.product?.category?.name || "Sem categoria",
 							totalQuantity: 0,
 						}
 					}
 
 					historicalProductFrequency[productName].count++
 					historicalProductFrequency[productName].totalQuantity += item.quantity
-					
+
 					if (purchase.purchaseDate > historicalProductFrequency[productName].lastPurchase) {
 						historicalProductFrequency[productName].lastPurchase = purchase.purchaseDate
 					}
@@ -367,29 +398,29 @@ export const predictionFunctions = {
 				if (data.count >= 3 && !recentProducts.has(productName)) {
 					data.avgQuantity = data.totalQuantity / data.count
 					const daysSinceLastPurchase = (now.getTime() - data.lastPurchase.getTime()) / (1000 * 60 * 60 * 24)
-					
+
 					// Calcula frequência de compra (compras por mês)
 					const monthsInHistory = 6 // 6 meses de histórico
 					const purchaseFrequency = data.count / monthsInHistory
-					
+
 					// Busca preço mais recente
 					const recentPrice = await prisma.purchase.findFirst({
 						where: {
 							items: {
 								some: {
-									product: { name: { contains: productName, mode: "insensitive" } }
-								}
-							}
+									product: { name: { contains: productName, mode: "insensitive" } },
+								},
+							},
 						},
 						include: {
 							items: {
 								where: {
-									product: { name: { contains: productName, mode: "insensitive" } }
-								}
+									product: { name: { contains: productName, mode: "insensitive" } },
+								},
 							},
 							market: true,
 						},
-						orderBy: { purchaseDate: "desc" }
+						orderBy: { purchaseDate: "desc" },
 					})
 
 					forgottenItems.push({
@@ -399,13 +430,14 @@ export const predictionFunctions = {
 						daysSinceLastPurchase: Math.round(daysSinceLastPurchase),
 						avgQuantity: Math.round(data.avgQuantity),
 						totalHistoricalPurchases: data.count,
-						lastPurchase: data.lastPurchase.toLocaleDateString('pt-BR'),
+						lastPurchase: data.lastPurchase.toLocaleDateString("pt-BR"),
 						estimatedPrice: recentPrice?.items[0]?.unitPrice || 0,
-						lastMarket: recentPrice?.market.name || 'Não encontrado',
-						priority: purchaseFrequency > 1 ? 'alta' : purchaseFrequency > 0.5 ? 'média' : 'baixa',
-						reason: daysSinceLastPurchase > 60 
-							? 'Não comprado há muito tempo'
-							: 'Produto frequente ausente nas compras recentes',
+						lastMarket: recentPrice?.market.name || "Não encontrado",
+						priority: purchaseFrequency > 1 ? "alta" : purchaseFrequency > 0.5 ? "média" : "baixa",
+						reason:
+							daysSinceLastPurchase > 60
+								? "Não comprado há muito tempo"
+								: "Produto frequente ausente nas compras recentes",
 					})
 				}
 			}
@@ -422,8 +454,8 @@ export const predictionFunctions = {
 				categoryGroups[item.category].push(item)
 			}
 
-			const totalEstimatedCost = forgottenItems.reduce((sum, item) => sum + (item.estimatedPrice * item.avgQuantity), 0)
-			const highPriorityItems = forgottenItems.filter(item => item.priority === 'alta').length
+			const totalEstimatedCost = forgottenItems.reduce((sum, item) => sum + item.estimatedPrice * item.avgQuantity, 0)
+			const highPriorityItems = forgottenItems.filter((item) => item.priority === "alta").length
 
 			return {
 				success: true,
@@ -435,11 +467,12 @@ export const predictionFunctions = {
 				forgottenItems: forgottenItems.slice(0, 20), // Top 20
 				categoryGroups,
 				summary: {
-					topForgottenItem: forgottenItems[0]?.product || 'Nenhum item esquecido',
-					avgDaysSinceLastPurchase: forgottenItems.length > 0 
-						? forgottenItems.reduce((sum, item) => sum + item.daysSinceLastPurchase, 0) / forgottenItems.length 
-						: 0,
-				}
+					topForgottenItem: forgottenItems[0]?.product || "Nenhum item esquecido",
+					avgDaysSinceLastPurchase:
+						forgottenItems.length > 0
+							? forgottenItems.reduce((sum, item) => sum + item.daysSinceLastPurchase, 0) / forgottenItems.length
+							: 0,
+				},
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao sugerir itens esquecidos: ${error}` }
@@ -457,11 +490,11 @@ export const predictionFunctions = {
 					purchaseDate: {
 						gte: startDate,
 						lt: midPoint,
-					}
+					},
 				},
 				include: {
-					items: { include: { product: { include: { category: true } } } }
-				}
+					items: { include: { product: { include: { category: true } } } },
+				},
 			})
 
 			// Segunda metade do período
@@ -470,17 +503,17 @@ export const predictionFunctions = {
 					purchaseDate: {
 						gte: midPoint,
 						lt: new Date(),
-					}
+					},
 				},
 				include: {
-					items: { include: { product: { include: { category: true } } } }
-				}
+					items: { include: { product: { include: { category: true } } } },
+				},
 			})
 
 			if (firstPeriodPurchases.length === 0 || secondPeriodPurchases.length === 0) {
 				return {
 					success: false,
-					message: `Dados insuficientes para análise. Necessário compras em ambos os períodos de ${period/2} dias.`
+					message: `Dados insuficientes para análise. Necessário compras em ambos os períodos de ${period / 2} dias.`,
 				}
 			}
 
@@ -491,12 +524,12 @@ export const predictionFunctions = {
 			// Primeira metade
 			for (const purchase of firstPeriodPurchases) {
 				for (const item of purchase.items) {
-					const productName = item.product?.name || 'Produto não identificado'
+					const productName = item.product?.name || "Produto não identificado"
 					if (!firstPeriodConsumption[productName]) {
 						firstPeriodConsumption[productName] = {
 							quantity: 0,
 							spending: 0,
-							category: item.product?.category?.name || 'Sem categoria'
+							category: item.product?.category?.name || "Sem categoria",
 						}
 					}
 					firstPeriodConsumption[productName].quantity += item.quantity
@@ -507,12 +540,12 @@ export const predictionFunctions = {
 			// Segunda metade
 			for (const purchase of secondPeriodPurchases) {
 				for (const item of purchase.items) {
-					const productName = item.product?.name || 'Produto não identificado'
+					const productName = item.product?.name || "Produto não identificado"
 					if (!secondPeriodConsumption[productName]) {
 						secondPeriodConsumption[productName] = {
 							quantity: 0,
 							spending: 0,
-							category: item.product?.category?.name || 'Sem categoria'
+							category: item.product?.category?.name || "Sem categoria",
 						}
 					}
 					secondPeriodConsumption[productName].quantity += item.quantity
@@ -522,35 +555,38 @@ export const predictionFunctions = {
 
 			// Detecta mudanças significativas
 			const changes = []
-			const allProducts = new Set([
-				...Object.keys(firstPeriodConsumption),
-				...Object.keys(secondPeriodConsumption)
-			])
+			const allProducts = new Set([...Object.keys(firstPeriodConsumption), ...Object.keys(secondPeriodConsumption)])
 
 			for (const productName of Array.from(allProducts)) {
-				const first = firstPeriodConsumption[productName] || { quantity: 0, spending: 0, category: 'Sem categoria' }
-				const second = secondPeriodConsumption[productName] || { quantity: 0, spending: 0, category: 'Sem categoria' }
+				const first = firstPeriodConsumption[productName] || { quantity: 0, spending: 0, category: "Sem categoria" }
+				const second = secondPeriodConsumption[productName] || { quantity: 0, spending: 0, category: "Sem categoria" }
 
 				// Calcula mudanças percentuais
-				const quantityChange = first.quantity > 0 
-					? ((second.quantity - first.quantity) / first.quantity) * 100
-					: second.quantity > 0 ? 100 : 0
+				const quantityChange =
+					first.quantity > 0
+						? ((second.quantity - first.quantity) / first.quantity) * 100
+						: second.quantity > 0
+							? 100
+							: 0
 
-				const spendingChange = first.spending > 0
-					? ((second.spending - first.spending) / first.spending) * 100
-					: second.spending > 0 ? 100 : 0
+				const spendingChange =
+					first.spending > 0
+						? ((second.spending - first.spending) / first.spending) * 100
+						: second.spending > 0
+							? 100
+							: 0
 
 				// Só considera mudanças significativas (>20% ou produtos novos/removidos)
 				if (Math.abs(quantityChange) > 20 || first.quantity === 0 || second.quantity === 0) {
-					let changeType = ''
+					let changeType = ""
 					if (first.quantity === 0 && second.quantity > 0) {
-						changeType = 'Produto novo'
+						changeType = "Produto novo"
 					} else if (first.quantity > 0 && second.quantity === 0) {
-						changeType = 'Parou de comprar'
+						changeType = "Parou de comprar"
 					} else if (quantityChange > 20) {
-						changeType = 'Aumento significativo'
+						changeType = "Aumento significativo"
 					} else if (quantityChange < -20) {
-						changeType = 'Redução significativa'
+						changeType = "Redução significativa"
 					}
 
 					changes.push({
@@ -567,7 +603,7 @@ export const predictionFunctions = {
 						},
 						quantityChange: Math.round(quantityChange * 10) / 10,
 						spendingChange: Math.round(spendingChange * 10) / 10,
-						significance: Math.abs(quantityChange) > 50 ? 'alta' : Math.abs(quantityChange) > 30 ? 'média' : 'baixa',
+						significance: Math.abs(quantityChange) > 50 ? "alta" : Math.abs(quantityChange) > 30 ? "média" : "baixa",
 					})
 				}
 			}
@@ -590,28 +626,35 @@ export const predictionFunctions = {
 				categoryChanges[category].avgChange = Math.round(categoryChanges[category].avgChange * 10) / 10
 			}
 
-			const totalFirstPeriodSpending = Object.values(firstPeriodConsumption).reduce((sum, item) => sum + item.spending, 0)
-			const totalSecondPeriodSpending = Object.values(secondPeriodConsumption).reduce((sum, item) => sum + item.spending, 0)
-			const overallSpendingChange = totalFirstPeriodSpending > 0 
-				? ((totalSecondPeriodSpending - totalFirstPeriodSpending) / totalFirstPeriodSpending) * 100 
-				: 0
+			const totalFirstPeriodSpending = Object.values(firstPeriodConsumption).reduce(
+				(sum, item) => sum + item.spending,
+				0,
+			)
+			const totalSecondPeriodSpending = Object.values(secondPeriodConsumption).reduce(
+				(sum, item) => sum + item.spending,
+				0,
+			)
+			const overallSpendingChange =
+				totalFirstPeriodSpending > 0
+					? ((totalSecondPeriodSpending - totalFirstPeriodSpending) / totalFirstPeriodSpending) * 100
+					: 0
 
 			return {
 				success: true,
 				message: `Análise de mudanças no consumo dos últimos ${period} dias: ${changes.length} mudanças detectadas`,
 				analysisPeriod: period,
-				periodsCompared: `${period/2} dias cada`,
+				periodsCompared: `${period / 2} dias cada`,
 				changesDetected: changes.length,
-				significantChanges: changes.filter(c => c.significance === 'alta').length,
+				significantChanges: changes.filter((c) => c.significance === "alta").length,
 				overallSpendingChange: Math.round(overallSpendingChange * 10) / 10,
 				changes: changes.slice(0, 15), // Top 15 mudanças
 				categoryChanges,
 				summary: {
-					biggestIncrease: changes.find(c => c.quantityChange > 0)?.product || 'Nenhum',
-					biggestDecrease: changes.find(c => c.quantityChange < 0)?.product || 'Nenhum',
-					newProducts: changes.filter(c => c.changeType === 'Produto novo').length,
-					stoppedBuying: changes.filter(c => c.changeType === 'Parou de comprar').length,
-				}
+					biggestIncrease: changes.find((c) => c.quantityChange > 0)?.product || "Nenhum",
+					biggestDecrease: changes.find((c) => c.quantityChange < 0)?.product || "Nenhum",
+					newProducts: changes.filter((c) => c.changeType === "Produto novo").length,
+					stoppedBuying: changes.filter((c) => c.changeType === "Parou de comprar").length,
+				},
 			}
 		} catch (error) {
 			return { success: false, message: `Erro ao detectar mudanças: ${error}` }

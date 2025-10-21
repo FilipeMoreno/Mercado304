@@ -25,12 +25,12 @@ async function fetchProducts() {
 }
 
 export default async function EditStockPage(props: EditStockPageProps) {
-    const params = await props.params;
-    const [stockItem, products] = await Promise.all([fetchStockItem(params.id), fetchProducts()])
+	const params = await props.params
+	const [stockItem, products] = await Promise.all([fetchStockItem(params.id), fetchProducts()])
 
-    if (!stockItem) {
+	if (!stockItem) {
 		notFound()
 	}
 
-    return <EditStockClient stockItem={stockItem} products={products || []} />
+	return <EditStockClient stockItem={stockItem} products={products || []} />
 }

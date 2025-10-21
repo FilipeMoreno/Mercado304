@@ -1,12 +1,12 @@
 "use client"
 
+import { Camera, FileImage, Loader2, X } from "lucide-react"
 import { useState } from "react"
-import { Camera, FileImage, Loader2, Plus, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
-import { AIListReviewDialog, type AIIdentifiedItem, type FinalListItem } from "./ai-list-review-dialog"
+import { type AIIdentifiedItem, AIListReviewDialog, type FinalListItem } from "./ai-list-review-dialog"
 
 interface PhotoListItem {
 	id: string
@@ -38,10 +38,10 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 
 	const handleCameraCapture = () => {
 		// Para captura de foto, vamos usar o input file com camera
-		const input = document.createElement('input')
-		input.type = 'file'
-		input.accept = 'image/*'
-		input.capture = 'environment'
+		const input = document.createElement("input")
+		input.type = "file"
+		input.accept = "image/*"
+		input.capture = "environment"
 		input.onchange = (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0]
 			if (file) {
@@ -75,7 +75,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 
 			const result = await response.json()
 			setAnalyzedItems(result.items || [])
-			
+
 			if (result.items?.length > 0) {
 				toast.success(`${result.items.length} itens identificados na lista!`)
 				// Abrir dialog de conferência
@@ -143,33 +143,22 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 					{!capturedImage && (
 						<div className="space-y-4">
 							<div className="text-center">
-								<p className="text-gray-600 mb-4">
-									Tire uma foto da sua lista de compras ou selecione uma imagem
-								</p>
+								<p className="text-gray-600 mb-4">Tire uma foto da sua lista de compras ou selecione uma imagem</p>
 								<div className="flex flex-col sm:flex-row gap-3 justify-center">
-									<Button
-										onClick={handleCameraCapture}
-										className="flex items-center gap-2"
-									>
+									<Button onClick={handleCameraCapture} className="flex items-center gap-2">
 										<Camera className="size-4" />
 										Tirar Foto
 									</Button>
 									<Button
 										variant="outline"
-										onClick={() => document.getElementById('file-upload')?.click()}
+										onClick={() => document.getElementById("file-upload")?.click()}
 										className="flex items-center gap-2"
 									>
 										<FileImage className="size-4" />
 										Selecionar Imagem
 									</Button>
 								</div>
-								<input
-									id="file-upload"
-									type="file"
-									accept="image/*"
-									onChange={handleFileUpload}
-									className="hidden"
-								/>
+								<input id="file-upload" type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 							</div>
 						</div>
 					)}
@@ -222,10 +211,7 @@ export function PhotoListCreator({ isOpen, onClose, onCreateList }: PhotoListCre
 									>
 										Nova Foto
 									</Button>
-									<Button
-										onClick={() => setShowReviewDialog(true)}
-										className="flex-2"
-									>
+									<Button onClick={() => setShowReviewDialog(true)} className="flex-2">
 										Conferir Itens ({analyzedItems.length})
 									</Button>
 								</div>

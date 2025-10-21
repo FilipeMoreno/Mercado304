@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, Edit, MapPin, Receipt, Save, ShoppingCart, Trash2, X } from "lucide-react"
+import { Edit, Receipt, Save, Trash2, X } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { OCRScanner } from "@/components/ocr-scanner"
@@ -60,9 +60,9 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 
 		// Patterns para extração
 		const datePattern = /(\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}-\d{1,2}-\d{2,4})/
-		const timePattern = /(\d{1,2}:\d{2})/
+		const _timePattern = /(\d{1,2}:\d{2})/
 		const pricePattern = /R?\$?\s*(\d+[,.]\d{2})/
-		const itemPattern = /^(.+?)\s+(\d+[,.]\d{2})\s*$/
+		const _itemPattern = /^(.+?)\s+(\d+[,.]\d{2})\s*$/
 		const totalPattern = /(?:total|soma|valor)[\s:]*R?\$?\s*(\d+[,.]\d{2})/i
 		const subtotalPattern = /(?:subtotal|sub-total)[\s:]*R?\$?\s*(\d+[,.]\d{2})/i
 		const taxPattern = /(?:imposto|taxa|tax)[\s:]*R?\$?\s*(\d+[,.]\d{2})/i

@@ -1,15 +1,15 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
+import { headers } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
 import { getRequestInfo } from "@/lib/auth-logger"
 import { sendSecurityAlertEmail } from "@/lib/email"
 import { getLocationFromIP } from "@/lib/geolocation"
+import { prisma } from "@/lib/prisma"
+import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
 
 // Enable Email 2FA
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers(),
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 				method: "email",
 				via: "email-2fa",
 			},
-		}).catch(err => console.error("Failed to log 2FA email enable event:", err))
+		}).catch((err) => console.error("Failed to log 2FA email enable event:", err))
 
 		// Envia email de notificação
 		const location = await getLocationFromIP(ipAddress)
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
 			device: userAgent,
 			location,
 			ipAddress,
-			timestamp: new Date().toLocaleString('pt-BR'),
-		}).catch(err => console.error("Failed to send security alert:", err))
+			timestamp: new Date().toLocaleString("pt-BR"),
+		}).catch((err) => console.error("Failed to send security alert:", err))
 
 		return NextResponse.json({
 			success: true,
@@ -91,7 +91,6 @@ export async function DELETE(request: NextRequest) {
 				if (ageInMs > 10 * 60 * 1000) {
 					return NextResponse.json({ error: "Token expirado" }, { status: 401 })
 				}
-
 			} catch (error) {
 				console.error("[DisableEmail2FA] Error validating token:", error)
 				return NextResponse.json({ error: "Token inválido" }, { status: 401 })
@@ -114,7 +113,6 @@ export async function DELETE(request: NextRequest) {
 			if (!isPasswordValid) {
 				return NextResponse.json({ error: "Senha incorreta" }, { status: 401 })
 			}
-
 		} else {
 			return NextResponse.json({ error: "Senha ou token de reautenticação necessário" }, { status: 400 })
 		}
@@ -138,7 +136,7 @@ export async function DELETE(request: NextRequest) {
 				method: password ? "password" : "oauth-reauth",
 				via: "email-2fa",
 			},
-		}).catch(err => console.error("Failed to log 2FA email disable event:", err))
+		}).catch((err) => console.error("Failed to log 2FA email disable event:", err))
 
 		// Envia email de notificação
 		const location = await getLocationFromIP(ipAddress)
@@ -151,8 +149,8 @@ export async function DELETE(request: NextRequest) {
 			device: userAgent,
 			location,
 			ipAddress,
-			timestamp: new Date().toLocaleString('pt-BR'),
-		}).catch(err => console.error("Failed to send security alert:", err))
+			timestamp: new Date().toLocaleString("pt-BR"),
+		}).catch((err) => console.error("Failed to send security alert:", err))
 
 		return NextResponse.json({
 			success: true,
@@ -165,7 +163,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Check Email 2FA Status
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
 		const session = await auth.api.getSession({
 			headers: await headers(),

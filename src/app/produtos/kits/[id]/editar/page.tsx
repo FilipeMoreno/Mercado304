@@ -54,13 +54,18 @@ export default function EditProductKitPage() {
 			setKitCategoryId(kit.categoryId || "")
 			setIsActive(kit.isActive)
 			setSelectedProducts(
-				kit.items.map((item: { product: { id: string; name: string; unit: string; brand?: { name: string } }; quantity: number }) => ({
-					productId: item.product.id,
-					productName: item.product.name,
-					quantity: item.quantity,
-					unit: item.product.unit,
-					brand: item.product.brand?.name,
-				})),
+				kit.items.map(
+					(item: {
+						product: { id: string; name: string; unit: string; brand?: { name: string } }
+						quantity: number
+					}) => ({
+						productId: item.product.id,
+						productName: item.product.name,
+						quantity: item.quantity,
+						unit: item.product.unit,
+						brand: item.product.brand?.name,
+					}),
+				),
 			)
 			setIsInitialized(true)
 		}

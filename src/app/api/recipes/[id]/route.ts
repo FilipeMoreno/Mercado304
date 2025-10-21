@@ -4,9 +4,9 @@ import { NextResponse } from "next/server"
 import { handleApiError } from "@/lib/api-utils"
 import { prisma } from "@/lib/prisma"
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		await prisma.recipe.delete({
 			where: { id: params.id },
 		})

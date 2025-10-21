@@ -29,7 +29,7 @@ function analyzeProductName(name: string): { proposedName: string; packageSize: 
 	for (const pattern of PATTERNS) {
 		const regex = new RegExp(pattern.regex.source, pattern.regex.flags)
 		const matches = Array.from(name.matchAll(regex))
-		
+
 		if (matches.length > 0) {
 			const match = matches[matches.length - 1]
 			const value = match[1].replace(",", ".")
@@ -49,11 +49,8 @@ function analyzeProductName(name: string): { proposedName: string; packageSize: 
 	if (!bestMatch) return null
 
 	const packageSize = `${bestMatch.value}${bestMatch.unit}`
-	let proposedName = name
-		.replace(bestMatch.matchText, "")
-		.replace(/\s+/g, " ")
-		.trim()
-	
+	let proposedName = name.replace(bestMatch.matchText, "").replace(/\s+/g, " ").trim()
+
 	proposedName = proposedName.replace(/[\s\-_|]+$/, "").trim()
 
 	return {
@@ -67,10 +64,7 @@ export async function POST(request: Request) {
 		const { productIds } = await request.json()
 
 		if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-			return NextResponse.json(
-				{ error: "IDs de produtos são obrigatórios" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ error: "IDs de produtos são obrigatórios" }, { status: 400 })
 		}
 
 		// Buscar os produtos
@@ -88,7 +82,7 @@ export async function POST(request: Request) {
 		const results = []
 		for (const product of products) {
 			const analysis = analyzeProductName(product.name)
-			
+
 			if (analysis) {
 				await prisma.product.update({
 					where: { id: product.id },
@@ -115,10 +109,6 @@ export async function POST(request: Request) {
 		})
 	} catch (error) {
 		console.error("Erro ao aplicar mudanças:", error)
-		return NextResponse.json(
-			{ error: "Erro ao aplicar mudanças" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro ao aplicar mudanças" }, { status: 500 })
 	}
 }
-

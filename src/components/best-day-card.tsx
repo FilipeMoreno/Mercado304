@@ -1,7 +1,7 @@
 "use client"
 
-import { BarChart3, Calendar, Clock, DollarSign, Lightbulb, Search, Target, TrendingDown } from "lucide-react"
-import React, { useState } from "react"
+import { BarChart3, Calendar, Clock, Lightbulb, Search, Target, TrendingDown } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,7 @@ export function BestDayCard({ className }: { className?: string }) {
 				setAnalysis(null)
 				setInsights([])
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro ao conectar com o servidor")
 			setRecommendation(null)
 			setAnalysis(null)
@@ -62,7 +62,7 @@ export function BestDayCard({ className }: { className?: string }) {
 		}
 	}
 
-	const getDayOfWeekName = (dayNumber: number) => {
+	const _getDayOfWeekName = (dayNumber: number) => {
 		const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
 		return days[dayNumber]
 	}

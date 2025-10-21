@@ -52,7 +52,7 @@ export default function MigratePackageSizePage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ productIds }),
 			})
-			
+
 			if (response.ok) {
 				// Recarregar análise
 				await analyzeProducts()
@@ -79,16 +79,20 @@ export default function MigratePackageSizePage() {
 		if (selectedIds.size === products.length) {
 			setSelectedIds(new Set())
 		} else {
-			setSelectedIds(new Set(products.map(p => p.id)))
+			setSelectedIds(new Set(products.map((p) => p.id)))
 		}
 	}
 
 	const getConfidenceColor = (confidence: string) => {
 		switch (confidence) {
-			case "high": return "bg-green-100 text-green-800 border-green-300"
-			case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-300"
-			case "low": return "bg-red-100 text-red-800 border-red-300"
-			default: return "bg-gray-100 text-gray-800 border-gray-300"
+			case "high":
+				return "bg-green-100 text-green-800 border-green-300"
+			case "medium":
+				return "bg-yellow-100 text-yellow-800 border-yellow-300"
+			case "low":
+				return "bg-red-100 text-red-800 border-red-300"
+			default:
+				return "bg-gray-100 text-gray-800 border-gray-300"
 		}
 	}
 
@@ -153,11 +157,7 @@ export default function MigratePackageSizePage() {
 					</CardHeader>
 					<CardContent>
 						<div className="flex items-center gap-4">
-							<Button
-								variant="outline"
-								onClick={selectAll}
-								disabled={applying}
-							>
+							<Button variant="outline" onClick={selectAll} disabled={applying}>
 								{selectedIds.size === products.length ? "Desselecionar Todos" : "Selecionar Todos"}
 							</Button>
 							<Button
@@ -176,11 +176,7 @@ export default function MigratePackageSizePage() {
 									</>
 								)}
 							</Button>
-							<Button
-								variant="ghost"
-								onClick={analyzeProducts}
-								disabled={analyzing || applying}
-							>
+							<Button variant="ghost" onClick={analyzeProducts} disabled={analyzing || applying}>
 								<RefreshCw className={`mr-2 h-4 w-4 ${analyzing ? "animate-spin" : ""}`} />
 								Reanalisar
 							</Button>
@@ -230,7 +226,8 @@ export default function MigratePackageSizePage() {
 											</Badge>
 										</div>
 										<CardDescription>
-											Padrão detectado: <code className="text-xs bg-muted px-1 py-0.5 rounded-sm">{product.pattern}</code>
+											Padrão detectado:{" "}
+											<code className="text-xs bg-muted px-1 py-0.5 rounded-sm">{product.pattern}</code>
 										</CardDescription>
 									</div>
 								</div>
@@ -252,9 +249,7 @@ export default function MigratePackageSizePage() {
 									{/* Package Size */}
 									<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
 										<div className="text-sm font-medium text-blue-900 mb-2">Peso/Volume</div>
-										<div className="text-base font-mono font-bold text-blue-900">
-											{product.packageSize || "-"}
-										</div>
+										<div className="text-base font-mono font-bold text-blue-900">{product.packageSize || "-"}</div>
 									</div>
 								</div>
 							</CardContent>
@@ -265,4 +260,3 @@ export default function MigratePackageSizePage() {
 		</div>
 	)
 }
-

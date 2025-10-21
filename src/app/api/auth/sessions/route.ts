@@ -2,8 +2,6 @@ import { headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { getLocationFromIP } from "@/lib/geolocation"
-import { getDeviceInfo } from "@/lib/auth-middleware"
-import { logSecurityEvent, SecurityEventType } from "@/lib/security-utils"
 
 // Função para extrair informações do User Agent
 function getUserAgentInfo(userAgent: string): string {
@@ -78,7 +76,7 @@ export async function GET(request: NextRequest) {
 				userAgent: session.userAgent,
 				createdAt: new Date(session.createdAt),
 				expiresAt: new Date(session.expiresAt),
-			}))
+			})),
 		)
 
 		return NextResponse.json(sessions)
@@ -134,10 +132,13 @@ export async function DELETE(request: NextRequest) {
 					where: { userId: userId },
 				})
 				await prisma.$disconnect()
-				return NextResponse.json({
-					message: "Todas as sessões foram encerradas",
-					warning: "Sessão atual não foi identificada no banco, todas as sessões foram removidas"
-				}, { status: 200 })
+				return NextResponse.json(
+					{
+						message: "Todas as sessões foram encerradas",
+						warning: "Sessão atual não foi identificada no banco, todas as sessões foram removidas",
+					},
+					{ status: 200 },
+				)
 			}
 
 			// Deletar todas as sessões EXCETO a atual

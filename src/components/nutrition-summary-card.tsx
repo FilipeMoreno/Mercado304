@@ -175,13 +175,19 @@ export function NutritionSummaryCard() {
 					<div className="space-y-1">
 						<div className="flex items-center justify-between text-xs">
 							<span>Rica em Fibras</span>
-							<Badge variant="secondary" className="bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 text-xs">
+							<Badge
+								variant="secondary"
+								className="bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 text-xs"
+							>
 								{Math.round(summary.qualityIndicators.highFiberPercentage)}%
 							</Badge>
 						</div>
 						<div className="flex items-center justify-between text-xs">
 							<span>Rica em Proteínas</span>
-							<Badge variant="secondary" className="bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-xs">
+							<Badge
+								variant="secondary"
+								className="bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-xs"
+							>
 								{Math.round(summary.qualityIndicators.highProteinPercentage)}%
 							</Badge>
 						</div>

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -82,7 +82,7 @@ INSTRUÇÕES IMPORTANTES:
 7. Mantenha o texto original encontrado na imagem
 
 Produtos existentes no sistema para referência:
-${existingProducts.map(p => p.name).join(", ")}
+${existingProducts.map((p) => p.name).join(", ")}
 
 Retorne APENAS o JSON, sem explicações adicionais.
 `
@@ -108,35 +108,30 @@ Retorne APENAS o JSON, sem explicações adicionais.
 		} catch (parseError) {
 			console.error("Erro ao fazer parse da resposta da IA:", parseError)
 			console.error("Resposta original:", text)
-			return NextResponse.json(
-				{ error: "Erro ao processar resposta da IA" },
-				{ status: 500 }
-			)
+			return NextResponse.json({ error: "Erro ao processar resposta da IA" }, { status: 500 })
 		}
 
 		// Fazer matching com produtos existentes
-		const itemsWithMatching: ProcessedItem[] = analysisResult.items.map((item: {
-			id?: string
-			name: string
-			quantity?: number
-			originalText?: string
-		}): ProcessedItem => {
-			const matchedProduct = existingProducts.find(product =>
-				product.name.toLowerCase().includes(item.name.toLowerCase()) ||
-				item.name.toLowerCase().includes(product.name.toLowerCase())
-			)
+		const itemsWithMatching: ProcessedItem[] = analysisResult.items.map(
+			(item: { id?: string; name: string; quantity?: number; originalText?: string }): ProcessedItem => {
+				const matchedProduct = existingProducts.find(
+					(product) =>
+						product.name.toLowerCase().includes(item.name.toLowerCase()) ||
+						item.name.toLowerCase().includes(product.name.toLowerCase()),
+				)
 
-			return {
-				id: item.id || crypto.randomUUID(),
-				name: item.name,
-				quantity: item.quantity || 1,
-				originalText: item.originalText || item.name,
-				isMatched: !!matchedProduct,
-				matchedProductId: matchedProduct?.id,
-				matchedProductName: matchedProduct?.name,
-				confidence: matchedProduct ? 0.8 : 0.0,
-			}
-		})
+				return {
+					id: item.id || crypto.randomUUID(),
+					name: item.name,
+					quantity: item.quantity || 1,
+					originalText: item.originalText || item.name,
+					isMatched: !!matchedProduct,
+					matchedProductId: matchedProduct?.id,
+					matchedProductName: matchedProduct?.name,
+					confidence: matchedProduct ? 0.8 : 0.0,
+				}
+			},
+		)
 
 		return NextResponse.json({
 			items: itemsWithMatching,
@@ -145,9 +140,6 @@ Retorne APENAS o JSON, sem explicações adicionais.
 		})
 	} catch (error) {
 		console.error("Erro ao analisar lista de compras:", error)
-		return NextResponse.json(
-			{ error: "Erro interno do servidor" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }

@@ -24,6 +24,7 @@ import { useId, useMemo, useState } from "react"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DateInput } from "@/components/ui/date-input"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -35,7 +36,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DateInput } from "@/components/ui/date-input"
 // removed unused imports
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -343,8 +343,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{purchases.map((purchase: any, index: number) => {
 								// Calcular desconto total real (itens + desconto total da compra)
-								const itemsDiscount = purchase.items?.reduce((sum: number, item: any) =>
-									sum + (item.totalDiscount || 0), 0) || 0
+								const itemsDiscount =
+									purchase.items?.reduce((sum: number, item: any) => sum + (item.totalDiscount || 0), 0) || 0
 								const totalDiscount = itemsDiscount + (purchase.totalDiscount || 0)
 
 								return (
@@ -387,7 +387,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 															{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 														</div>
 														<div className="text-xs md:text-sm font-medium text-muted-foreground">
-															{purchase.items?.length || 0} {purchase.items?.length === 1 ? 'item' : 'itens'}
+															{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
 														</div>
 													</CardDescription>
 												</div>
@@ -511,7 +511,10 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							<h4 className="font-medium mb-3">Itens da Compra</h4>
 							<div className="space-y-2 max-h-60 overflow-y-auto">
 								{purchaseDetails.items?.map((item: any, index: number) => (
-									<div key={item.id ?? `${index}`} className="flex justify-between items-center p-2 bg-gray-50 rounded-sm">
+									<div
+										key={item.id ?? `${index}`}
+										className="flex justify-between items-center p-2 bg-gray-50 rounded-sm"
+									>
 										<div>
 											<p className="font-medium">
 												{item.product?.name || item.productName}
@@ -520,18 +523,14 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											<p className="text-sm text-gray-600">
 												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
 												{item.unitDiscount && item.unitDiscount > 0 && (
-													<span className="text-red-600 ml-1">
-														(-R$ {item.unitDiscount.toFixed(2)})
-													</span>
+													<span className="text-red-600 ml-1">(-R$ {item.unitDiscount.toFixed(2)})</span>
 												)}
 											</p>
 										</div>
 										<div className="text-right">
 											<p className="font-medium">R$ {(item.finalPrice || item.totalPrice).toFixed(2)}</p>
 											{item.totalDiscount && item.totalDiscount > 0 && (
-												<p className="text-xs text-red-600">
-													Desconto: -R$ {item.totalDiscount.toFixed(2)}
-												</p>
+												<p className="text-xs text-red-600">Desconto: -R$ {item.totalDiscount.toFixed(2)}</p>
 											)}
 										</div>
 									</div>
@@ -582,4 +581,3 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		</>
 	)
 }
-

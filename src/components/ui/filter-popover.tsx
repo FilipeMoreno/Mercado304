@@ -44,12 +44,7 @@ export function FilterPopover({
 			<div className="flex items-center justify-between">
 				<h4 className="font-medium">Filtros</h4>
 				{hasActiveFilters && (
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={handleClearFilters}
-						className="text-gray-500 hover:text-gray-700"
-					>
+					<Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-gray-500 hover:text-gray-700">
 						<X className="h-3 w-3 mr-1" />
 						Limpar
 					</Button>
@@ -90,13 +85,7 @@ export function FilterPopover({
 					<Filter className="size-4" />
 					{hasActiveFilters && <div className="w-2 h-2 bg-blue-500 rounded-full ml-2" />}
 				</Button>
-				<ResponsiveDialog
-					open={open}
-					onOpenChange={setOpen}
-					title="Filtros"
-					maxWidth="md"
-					maxHeight={true}
-				>
+				<ResponsiveDialog open={open} onOpenChange={setOpen} title="Filtros" maxWidth="md" maxHeight={true}>
 					{filterContent}
 				</ResponsiveDialog>
 			</>

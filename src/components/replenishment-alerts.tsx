@@ -2,7 +2,7 @@
 
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { AlertCircle, Brain, Clock, Plus, ShoppingCart, TrendingUp } from "lucide-react"
+import { AlertCircle, Brain, Clock, Plus, TrendingUp } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

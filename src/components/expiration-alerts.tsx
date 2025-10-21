@@ -186,9 +186,7 @@ export function ExpirationAlerts({ data, loading, onRefresh }: ExpirationAlertsP
 			case "today":
 				return "Vence hoje!"
 			case "soon": {
-				const daysLeft = Math.ceil(
-					(new Date(item.expirationDate).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000),
-				)
+				const daysLeft = Math.ceil((new Date(item.expirationDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
 				return `Vence em ${daysLeft} dia${daysLeft > 1 ? "s" : ""}`
 			}
 			case "lowStock":

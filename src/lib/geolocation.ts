@@ -75,7 +75,7 @@ async function fetchLocationFromAPIs(ip: string): Promise<string> {
 				return formatLocation(data.city, data.regionName, data.country)
 			}
 		}
-	} catch (error) {
+	} catch (_error) {
 		console.warn("ip-api.com falhou, tentando próxima API")
 	}
 
@@ -91,7 +91,7 @@ async function fetchLocationFromAPIs(ip: string): Promise<string> {
 				return formatLocation(data.city, data.region, data.country_name)
 			}
 		}
-	} catch (error) {
+	} catch (_error) {
 		console.warn("ipapi.co falhou, tentando próxima API")
 	}
 
@@ -107,7 +107,7 @@ async function fetchLocationFromAPIs(ip: string): Promise<string> {
 				return formatLocation(data.city, data.region, data.country)
 			}
 		}
-	} catch (error) {
+	} catch (_error) {
 		console.warn("ipwhois.app falhou")
 	}
 
@@ -121,7 +121,7 @@ async function fetchLocationFromAPIs(ip: string): Promise<string> {
 			const data = await response.json()
 			return formatLocation(data.city, data.region_name, data.country_name)
 		}
-	} catch (error) {
+	} catch (_error) {
 		console.warn("ip-api.io falhou")
 	}
 
@@ -177,12 +177,15 @@ export async function getUserLocationStats(userId: string) {
 	})
 
 	// Contar localizações únicas
-	const locationCounts = audits.reduce((acc, audit) => {
-		if (audit.location) {
-			acc[audit.location] = (acc[audit.location] || 0) + 1
-		}
-		return acc
-	}, {} as Record<string, number>)
+	const locationCounts = audits.reduce(
+		(acc, audit) => {
+			if (audit.location) {
+				acc[audit.location] = (acc[audit.location] || 0) + 1
+			}
+			return acc
+		},
+		{} as Record<string, number>,
+	)
 
 	// Ordenar por frequência
 	const sortedLocations = Object.entries(locationCounts)

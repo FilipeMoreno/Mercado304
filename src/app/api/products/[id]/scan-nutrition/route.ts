@@ -5,8 +5,8 @@ import { parseOcrText } from "@/lib/gemini-parser"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const productId = params.id
 		const { text } = await request.json()
 
@@ -31,9 +31,9 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
 	}
 }
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const productId = params.id
 
 		const nutritionalInfo = await prisma.nutritionalInfo.findUnique({
@@ -59,9 +59,9 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 	}
 }
 
-export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const productId = params.id
 
 		await prisma.nutritionalInfo.delete({

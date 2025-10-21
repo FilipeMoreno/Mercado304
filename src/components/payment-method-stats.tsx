@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowDownRight, ArrowUpRight, CreditCard, DollarSign, PieChart, TrendingUp, Wallet } from "lucide-react"
+import { ArrowUpRight, CreditCard, DollarSign, PieChart, TrendingUp, Wallet } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,10 +33,6 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 		}
 	} | null>(null)
 
-	useEffect(() => {
-		fetchPaymentStats()
-	}, [dateFrom, dateTo])
-
 	const fetchPaymentStats = async () => {
 		setLoading(true)
 		try {
@@ -55,6 +51,10 @@ export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps
 			setLoading(false)
 		}
 	}
+
+	useEffect(() => {
+		fetchPaymentStats()
+	}, [dateFrom, dateTo])
 
 	if (loading) {
 		return (

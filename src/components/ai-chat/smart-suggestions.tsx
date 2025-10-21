@@ -1,21 +1,21 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { 
-	ShoppingCart, 
-	TrendingDown, 
-	Calculator, 
-	Search, 
-	Package, 
+import { AnimatePresence, motion } from "framer-motion"
+import {
 	BarChart3,
-	Clock,
-	Sparkles,
+	Calculator,
 	Camera,
-	List
+	Clock,
+	List,
+	Package,
+	Search,
+	ShoppingCart,
+	Sparkles,
+	TrendingDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Message } from "@/hooks/use-ai-chat"
+import type { Message } from "@/hooks/use-ai-chat"
 
 interface SmartSuggestionsProps {
 	onSuggestionClick: (suggestion: string) => void
@@ -39,7 +39,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Crie uma lista de compras para a semana",
 		icon: <List className="size-4" />,
 		category: "lista",
-		priority: 10
+		priority: 10,
 	},
 	{
 		id: "compare-prices",
@@ -47,7 +47,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Compare os preços dos produtos que mais compro",
 		icon: <TrendingDown className="size-4" />,
 		category: "precos",
-		priority: 9
+		priority: 9,
 	},
 	{
 		id: "churrasco-calculator",
@@ -55,7 +55,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Quero fazer um churrasco",
 		icon: <Calculator className="size-4" />,
 		category: "geral",
-		priority: 8
+		priority: 8,
 	},
 	{
 		id: "search-products",
@@ -63,7 +63,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Mostre produtos em promoção",
 		icon: <Search className="size-4" />,
 		category: "produtos",
-		priority: 7
+		priority: 7,
 	},
 	{
 		id: "stock-alerts",
@@ -71,7 +71,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Verifique meu estoque e produtos vencendo",
 		icon: <Package className="size-4" />,
 		category: "analise",
-		priority: 6
+		priority: 6,
 	},
 	{
 		id: "spending-analysis",
@@ -79,7 +79,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Analise meus gastos do mês",
 		icon: <BarChart3 className="size-4" />,
 		category: "analise",
-		priority: 5
+		priority: 5,
 	},
 	{
 		id: "recent-purchases",
@@ -87,7 +87,7 @@ const baseSuggestions: Suggestion[] = [
 		command: "Mostre minhas compras recentes",
 		icon: <Clock className="size-4" />,
 		category: "geral",
-		priority: 4
+		priority: 4,
 	},
 	{
 		id: "scan-product",
@@ -95,8 +95,8 @@ const baseSuggestions: Suggestion[] = [
 		command: "Vou escanear um produto",
 		icon: <Camera className="size-4" />,
 		category: "produtos",
-		priority: 3
-	}
+		priority: 3,
+	},
 ]
 
 export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: SmartSuggestionsProps) {
@@ -106,9 +106,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 		const contextualSuggestions: Suggestion[] = []
 
 		// Se mencionou churrasco recentemente
-		const mentionedChurrasco = lastMessages.some(msg => 
-			msg.content.toLowerCase().includes("churrasco")
-		)
+		const mentionedChurrasco = lastMessages.some((msg) => msg.content.toLowerCase().includes("churrasco"))
 		if (mentionedChurrasco) {
 			contextualSuggestions.push({
 				id: "churrasco-list",
@@ -116,17 +114,17 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				command: "Crie uma lista completa para churrasco",
 				icon: <Sparkles className="size-4" />,
 				category: "lista",
-				priority: 15
+				priority: 15,
 			})
 		}
 
 		// Se mencionou produtos específicos
-		const mentionedProducts = lastMessages.some(msg => 
-			msg.role === "user" && (
-				msg.content.toLowerCase().includes("leite") ||
-				msg.content.toLowerCase().includes("arroz") ||
-				msg.content.toLowerCase().includes("açúcar")
-			)
+		const mentionedProducts = lastMessages.some(
+			(msg) =>
+				msg.role === "user" &&
+				(msg.content.toLowerCase().includes("leite") ||
+					msg.content.toLowerCase().includes("arroz") ||
+					msg.content.toLowerCase().includes("açúcar")),
 		)
 		if (mentionedProducts) {
 			contextualSuggestions.push({
@@ -135,13 +133,13 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				command: "Mostre produtos similares com melhor preço",
 				icon: <Search className="size-4" />,
 				category: "produtos",
-				priority: 12
+				priority: 12,
 			})
 		}
 
 		// Se criou lista recentemente
-		const createdList = lastMessages.some(msg => 
-			msg.role === "assistant" && msg.content.toLowerCase().includes("lista criada")
+		const createdList = lastMessages.some(
+			(msg) => msg.role === "assistant" && msg.content.toLowerCase().includes("lista criada"),
 		)
 		if (createdList) {
 			contextualSuggestions.push({
@@ -150,7 +148,7 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				command: "Adicione mais itens à lista",
 				icon: <ShoppingCart className="size-4" />,
 				category: "lista",
-				priority: 14
+				priority: 14,
 			})
 		}
 
@@ -161,12 +159,10 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 	const getAllSuggestions = (): Suggestion[] => {
 		const contextual = getContextualSuggestions()
 		const combined = [...contextual, ...baseSuggestions]
-		
+
 		// Remover duplicatas e ordenar por prioridade
-		const unique = combined.filter((suggestion, index, self) => 
-			index === self.findIndex(s => s.id === suggestion.id)
-		)
-		
+		const unique = combined.filter((suggestion, index, self) => index === self.findIndex((s) => s.id === suggestion.id))
+
 		return unique.sort((a, b) => b.priority - a.priority).slice(0, 6)
 	}
 
@@ -189,20 +185,18 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 				<Card className="p-4 bg-muted/50 border-border">
 					<div className="flex items-center gap-2 mb-3">
 						<Sparkles className="size-4 text-primary" />
-						<span className="text-sm font-medium text-foreground">
-							Sugestões para você
-						</span>
+						<span className="text-sm font-medium text-foreground">Sugestões para você</span>
 					</div>
-					
+
 					<div className="grid grid-cols-2 gap-2">
 						{suggestions.map((suggestion, index) => (
 							<motion.div
 								key={suggestion.id}
 								initial={{ opacity: 0, scale: 0.9 }}
 								animate={{ opacity: 1, scale: 1 }}
-								transition={{ 
-									duration: 0.2, 
-									delay: index * 0.05 
+								transition={{
+									duration: 0.2,
+									delay: index * 0.05,
 								}}
 							>
 								<Button
@@ -212,12 +206,8 @@ export function SmartSuggestions({ onSuggestionClick, messages, isLoading }: Sma
 									className="w-full justify-start h-auto p-3 text-left hover:bg-muted hover:text-foreground transition-all duration-200"
 								>
 									<div className="flex items-center gap-2 w-full">
-										<div className="text-primary shrink-0">
-											{suggestion.icon}
-										</div>
-										<span className="text-xs font-medium truncate text-foreground">
-											{suggestion.text}
-										</span>
+										<div className="text-primary shrink-0">{suggestion.icon}</div>
+										<span className="text-xs font-medium truncate text-foreground">{suggestion.text}</span>
 									</div>
 								</Button>
 							</motion.div>

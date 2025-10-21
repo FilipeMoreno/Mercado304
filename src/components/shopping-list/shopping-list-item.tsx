@@ -44,7 +44,14 @@ interface ShoppingListItemProps {
 	onSearchPrice?: (item: ShoppingListItem) => void
 }
 
-export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, onQuickEdit, onSearchPrice }: ShoppingListItemProps) {
+export function ShoppingListItemComponent({
+	item,
+	onToggle,
+	onEdit,
+	onDelete,
+	onQuickEdit,
+	onSearchPrice,
+}: ShoppingListItemProps) {
 	const totalPrice = item.quantity * (item.estimatedPrice || 0)
 
 	const handleItemClick = () => {
@@ -57,8 +64,11 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 
 	return (
 		<div
-			className={`flex items-center gap-4 p-4 border rounded-lg transition-all duration-200 ${item.isChecked ? "bg-green-50 dark:bg-green-950/20 border-green-200" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
-				}`}
+			className={`flex items-center gap-4 p-4 border rounded-lg transition-all duration-200 ${
+				item.isChecked
+					? "bg-green-50 dark:bg-green-950/20 border-green-200"
+					: "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
+			}`}
 		>
 			<button
 				type="button"
@@ -66,8 +76,9 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 					e.stopPropagation()
 					onToggle(item.id, item.isChecked)
 				}}
-				className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${item.isChecked ? "bg-green-500 border-green-500 text-white" : "border-gray-300 hover:border-green-400"
-					}`}
+				className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+					item.isChecked ? "bg-green-500 border-green-500 text-white" : "border-gray-300 hover:border-green-400"
+				}`}
 			>
 				{item.isChecked && <Check className="size-4" />}
 			</button>
@@ -78,30 +89,25 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 				onClick={handleItemClick}
 			>
 				<div
-					className={`font-medium transition-all duration-200 ${item.isChecked ? "line-through text-gray-500" : "text-gray-900"
-						}`}
+					className={`font-medium transition-all duration-200 ${
+						item.isChecked ? "line-through text-gray-500" : "text-gray-900"
+					}`}
 				>
 					{item.product?.name || item.productName}
 					{/* Mostra marca do produto cadastrado ou marca em texto livre */}
 					{(item.product?.brand?.name || item.brand) && (
-						<span className="text-gray-500 font-normal ml-2">
-							- {item.product?.brand?.name || item.brand}
-						</span>
+						<span className="text-gray-500 font-normal ml-2">- {item.product?.brand?.name || item.brand}</span>
 					)}
 					{/* Badge se não estiver vinculado a produto */}
 					{!item.product && (
-						<span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-sm">
-							Texto livre
-						</span>
+						<span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-sm">Texto livre</span>
 					)}
 				</div>
 				<div className="text-sm text-gray-600 space-y-0.5">
 					<div>
 						{item.quantity} {item.product?.unit || item.productUnit || "unidades"}
 						{item.product?.packageSize && (
-							<span className="ml-2 text-blue-600 font-semibold">
-								📦 {item.product.packageSize}
-							</span>
+							<span className="ml-2 text-blue-600 font-semibold">📦 {item.product.packageSize}</span>
 						)}
 						{item.estimatedPrice && (
 							<span className="ml-2">
@@ -118,11 +124,7 @@ export function ShoppingListItemComponent({ item, onToggle, onEdit, onDelete, on
 						</div>
 					)}
 					{/* Mostra notas se houver */}
-					{item.notes && (
-						<div className="text-xs text-gray-500 italic">
-							💬 {item.notes}
-						</div>
-					)}
+					{item.notes && <div className="text-xs text-gray-500 italic">💬 {item.notes}</div>}
 				</div>
 			</button>
 

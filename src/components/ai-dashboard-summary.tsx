@@ -1,6 +1,6 @@
 "use client"
 
-import { Sparkles, Lightbulb } from "lucide-react"
+import { Lightbulb, Sparkles } from "lucide-react"
 import { useEffect, useState } from "react"
 import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 

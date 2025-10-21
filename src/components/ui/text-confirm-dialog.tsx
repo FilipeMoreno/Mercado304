@@ -36,7 +36,7 @@ export function TextConfirmDialog({
 
 	const handleConfirm = async () => {
 		if (!isConfirmMatch) return
-		
+
 		try {
 			await onConfirm()
 			handleClose()
@@ -103,4 +103,3 @@ export function TextConfirmDialog({
 		</ResponsiveDialog>
 	)
 }
-

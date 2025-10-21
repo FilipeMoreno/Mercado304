@@ -79,23 +79,28 @@ export function GerarReceitasClient() {
 				const data = await response.json()
 				console.log("🧑‍🍳 Dados da API:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: {
-						prato: string
-						refeicao: string
-						descricao: string
-						ingredientes: string[]
-						[key: string]: unknown
-					}, index: number) => {
-						console.log(`🍽️ Receita ${index + 1}:`, recipe)
-						return {
-							id: `ai-${Date.now()}-${index}`,
-							name: recipe.prato,
-							mealType: recipe.refeicao,
-							description: recipe.descricao,
-							ingredients: recipe.ingredientes || [],
-							...recipe,
-						}
-					}) || []
+					data.sugestoes?.map(
+						(
+							recipe: {
+								prato: string
+								refeicao: string
+								descricao: string
+								ingredientes: string[]
+								[key: string]: unknown
+							},
+							index: number,
+						) => {
+							console.log(`🍽️ Receita ${index + 1}:`, recipe)
+							return {
+								id: `ai-${Date.now()}-${index}`,
+								name: recipe.prato,
+								mealType: recipe.refeicao,
+								description: recipe.descricao,
+								ingredients: recipe.ingredientes || [],
+								...recipe,
+							}
+						},
+					) || []
 
 				saveRecipesToStorage(formattedRecipes)
 				toast.success(`${formattedRecipes.length} receitas geradas pela IA!`)
@@ -125,23 +130,28 @@ export function GerarReceitasClient() {
 				const data = await response.json()
 				console.log("🎉 Dados da API Surprise:", data)
 				const formattedRecipes =
-					data.sugestoes?.map((recipe: {
-						prato: string
-						refeicao: string
-						descricao: string
-						ingredientes: string[]
-						[key: string]: unknown
-					}, index: number) => {
-						console.log(`🌟 Receita surpresa ${index + 1}:`, recipe)
-						return {
-							id: `surprise-${Date.now()}-${index}`,
-							name: recipe.prato,
-							mealType: recipe.refeicao,
-							description: recipe.descricao,
-							ingredients: recipe.ingredientes || [],
-							...recipe,
-						}
-					}) || []
+					data.sugestoes?.map(
+						(
+							recipe: {
+								prato: string
+								refeicao: string
+								descricao: string
+								ingredientes: string[]
+								[key: string]: unknown
+							},
+							index: number,
+						) => {
+							console.log(`🌟 Receita surpresa ${index + 1}:`, recipe)
+							return {
+								id: `surprise-${Date.now()}-${index}`,
+								name: recipe.prato,
+								mealType: recipe.refeicao,
+								description: recipe.descricao,
+								ingredients: recipe.ingredientes || [],
+								...recipe,
+							}
+						},
+					) || []
 
 				saveRecipesToStorage(formattedRecipes)
 				toast.success(`Surprise! ${formattedRecipes.length} receitas criativas geradas! ✨`)

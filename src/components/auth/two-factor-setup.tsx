@@ -33,7 +33,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 	// Verifica se o usuário tem senha ao montar o componente
 	useEffect(() => {
 		checkHasPassword()
-	}, [])
+	}, [checkHasPassword])
 
 	const checkHasPassword = async () => {
 		try {

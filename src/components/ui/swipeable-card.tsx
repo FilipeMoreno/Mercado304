@@ -124,7 +124,7 @@ export function SwipeableCard({
 		}
 	}
 
-	const getActiveActions = () => {
+	const _getActiveActions = () => {
 		if (dragX > 0) return leftActions
 		if (dragX < 0) return rightActions
 		return []

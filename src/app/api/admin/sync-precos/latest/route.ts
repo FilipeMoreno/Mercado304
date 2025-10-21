@@ -22,4 +22,3 @@ export async function GET() {
 		return NextResponse.json({ error: "Erro ao buscar último job" }, { status: 500 })
 	}
 }
-

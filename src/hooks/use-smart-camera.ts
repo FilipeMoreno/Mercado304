@@ -37,7 +37,7 @@ export function useSmartCamera(options: UseSmartCameraOptions = {}) {
 				}
 			}
 		},
-		[options.onCapture],
+		[options.onCapture, options],
 	)
 
 	const clear = useCallback(() => {

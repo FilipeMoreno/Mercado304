@@ -38,7 +38,7 @@ export function handleApiError(error: unknown): NextResponse {
 
 	// Para todos os outros erros, usamos um erro genérico
 	console.error("[Unhandled API Error]", error)
-	const genericError = ERROR_CODES["GEN_001"]
+	const genericError = ERROR_CODES.GEN_001
 	return NextResponse.json(
 		{
 			error: {

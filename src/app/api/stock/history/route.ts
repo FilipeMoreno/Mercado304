@@ -101,10 +101,10 @@ export async function GET(request: NextRequest) {
 		// Se o filtro inclui VENCIMENTO ou DESPERDICIO, buscar também registros de desperdício
 		let wasteRecords: any[] = []
 		let wasteTotal = 0
-		
+
 		if (type === "VENCIMENTO" || type === "DESPERDICIO" || type === "all") {
 			const wasteWhereConditions: Record<string, any> = {}
-			
+
 			if (search) {
 				wasteWhereConditions.OR = [
 					{
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
 				wasteWhereConditions.wasteReason = "EXPIRED"
 			} else if (type === "DESPERDICIO") {
 				wasteWhereConditions.wasteReason = {
-					not: "EXPIRED"
+					not: "EXPIRED",
 				}
 			}
 
@@ -236,7 +236,7 @@ export async function GET(request: NextRequest) {
 					movementCount: item._count.id,
 					totalQuantity: item._sum.quantity,
 				}
-			})
+			}),
 		)
 
 		// Localizações mais utilizadas
@@ -265,37 +265,37 @@ export async function GET(request: NextRequest) {
 					location: stockItem?.location || "Localização não encontrada",
 					movementCount: item._count.id,
 				}
-			})
+			}),
 		)
 
 		// Combinar e ordenar registros de movimento e desperdício
 		const combinedRecords = [
-			...historyRecords.map(record => ({
+			...historyRecords.map((record) => ({
 				...record,
 				isWaste: false,
-				recordType: 'movement'
+				recordType: "movement",
 			})),
-			...wasteRecords.map(record => ({
+			...wasteRecords.map((record) => ({
 				id: record.id,
-				type: record.wasteReason === 'EXPIRED' ? 'VENCIMENTO' : 'DESPERDICIO',
+				type: record.wasteReason === "EXPIRED" ? "VENCIMENTO" : "DESPERDICIO",
 				quantity: record.quantity,
 				reason: record.wasteReason,
 				notes: record.notes,
 				date: record.wasteDate,
 				stockItem: {
-					id: record.stockItemId || 'unknown',
+					id: record.stockItemId || "unknown",
 					location: record.location,
 					product: {
-						id: record.productId || 'unknown',
+						id: record.productId || "unknown",
 						name: record.productName,
 						unit: record.unit,
 						brand: record.brand ? { name: record.brand } : undefined,
 						category: record.category ? { name: record.category } : undefined,
-					}
+					},
 				},
 				isWaste: true,
-				recordType: 'waste'
-			}))
+				recordType: "waste",
+			})),
 		].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
 		return NextResponse.json({

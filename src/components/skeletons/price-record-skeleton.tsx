@@ -100,7 +100,7 @@ export function PriceRecordSkeleton() {
 								<Skeleton className="h-10 w-full max-w-md" />
 								<Skeleton className="h-10 w-24" />
 							</div>
-							
+
 							{/* Lista de registros */}
 							{Array.from({ length: 5 }).map((_, i) => (
 								<div key={i} className="flex items-center justify-between p-4 border rounded-lg">

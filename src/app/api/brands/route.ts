@@ -7,8 +7,8 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const searchTerm = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "name"
-		const page = parseInt(searchParams.get("page") || "1")
-		const itemsPerPage = parseInt(searchParams.get("limit") || "12")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const itemsPerPage = parseInt(searchParams.get("limit") || "12", 10)
 
 		const [orderBy, orderDirection] = sort.split("-").length === 2 ? sort.split("-") : [sort, "asc"]
 

@@ -108,7 +108,10 @@ export function useOptimizedThrottle<T extends (...args: any[]) => any>(callback
 }
 
 // Hook para intersection observer otimizado
-export function useIntersectionObserver(elementRef: React.RefObject<Element | null>, options: IntersectionObserverInit = {}) {
+export function useIntersectionObserver(
+	elementRef: React.RefObject<Element | null>,
+	options: IntersectionObserverInit = {},
+) {
 	const [isIntersecting, setIsIntersecting] = useState(false)
 
 	useEffect(() => {

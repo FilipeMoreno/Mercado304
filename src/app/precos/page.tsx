@@ -39,12 +39,8 @@ export default async function PrecosPage() {
 				<div className="flex items-center gap-4">
 					<DollarSign className="size-8 text-green-600" />
 					<div>
-						<h1 className="text-2xl sm:text-3xl font-bold">
-							Registro de Preços
-						</h1>
-						<p className="text-gray-600 mt-2 text-sm sm:text-base">
-							Registre e acompanhe os preços dos produtos
-						</p>
+						<h1 className="text-2xl sm:text-3xl font-bold">Registro de Preços</h1>
+						<p className="text-gray-600 mt-2 text-sm sm:text-base">Registre e acompanhe os preços dos produtos</p>
 					</div>
 				</div>
 			</div>

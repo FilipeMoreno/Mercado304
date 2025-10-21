@@ -17,10 +17,10 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ResponsiveSelectDialog, type SelectOption } from "@/components/ui/responsive-select-dialog"
+import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { useCreateShoppingListMutation, useUIPreferences } from "@/hooks"
-import { cn } from "@/lib/utils"
 import { TempStorage } from "@/lib/temp-storage"
+import { cn } from "@/lib/utils"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 interface ShoppingListItem {
@@ -56,7 +56,7 @@ export default function NovaListaPage() {
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const id = useId()
 	const { selectStyle } = useUIPreferences()
-	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
@@ -71,7 +71,14 @@ export default function NovaListaPage() {
 	const [listName, setListName] = useState("")
 
 	const [items, setItems] = useState<ShoppingListItem[]>([
-		{ productId: undefined, productName: "", productUnit: "unidade", quantity: 1, estimatedPrice: "", priceAlert: undefined },
+		{
+			productId: undefined,
+			productName: "",
+			productUnit: "unidade",
+			quantity: 1,
+			estimatedPrice: "",
+			priceAlert: undefined,
+		},
 	])
 
 	// Inputs control arrays to allow empty typing and specific decimals
@@ -116,7 +123,7 @@ export default function NovaListaPage() {
 			return newItems
 		})
 		// Fecha o popover
-		setOpenPopovers(prev => prev.filter(i => i !== index))
+		setOpenPopovers((prev) => prev.filter((i) => i !== index))
 		toast.success(`Produto vinculado: "${product.name}"`)
 	}
 
@@ -182,7 +189,17 @@ export default function NovaListaPage() {
 	}, [fetchData])
 
 	const addItem = () => {
-		setItems([...items, { productId: undefined, productName: "", productUnit: "unidade", quantity: 1, estimatedPrice: "", priceAlert: undefined }])
+		setItems([
+			...items,
+			{
+				productId: undefined,
+				productName: "",
+				productUnit: "unidade",
+				quantity: 1,
+				estimatedPrice: "",
+				priceAlert: undefined,
+			},
+		])
 		setCheckingPrices([...checkingPrices, false])
 		setRelatedProductsVisibility([...relatedProductsVisibility, true])
 		setPriceAlertVisibility([...priceAlertVisibility, true])
@@ -236,15 +253,18 @@ export default function NovaListaPage() {
 			return
 		}
 
-		const product = products.find(p => p.id === productId)
-		setItems([...items, {
-			productId,
-			productName: product?.name || "",
-			productUnit: (product as any)?.unit || "unidade",
-			quantity: 1,
-			estimatedPrice: "",
-			priceAlert: undefined
-		}])
+		const product = products.find((p) => p.id === productId)
+		setItems([
+			...items,
+			{
+				productId,
+				productName: product?.name || "",
+				productUnit: (product as any)?.unit || "unidade",
+				quantity: 1,
+				estimatedPrice: "",
+				priceAlert: undefined,
+			},
+		])
 		toast.success("Produto adicionado à lista!")
 	}
 
@@ -296,12 +316,12 @@ export default function NovaListaPage() {
 
 		const validItems = items
 			.filter((item) => {
-				const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity
-				return item.productName.trim() && qty > 0 && !isNaN(qty)
+				const qty = typeof item.quantity === "string" ? parseFloat(item.quantity) : item.quantity
+				return item.productName.trim() && qty > 0 && !Number.isNaN(qty)
 			})
 			.map((item) => ({
 				...item,
-				quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
+				quantity: typeof item.quantity === "string" ? parseFloat(item.quantity) : item.quantity,
 				estimatedPrice: parseFloat(String(item.estimatedPrice)) || null,
 			}))
 
@@ -365,7 +385,7 @@ export default function NovaListaPage() {
 	const calculateTotal = () => {
 		return items.reduce((sum, item) => {
 			const price = parseFloat(String(item.estimatedPrice)) || 0
-			const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity
+			const quantity = typeof item.quantity === "string" ? parseFloat(item.quantity) || 0 : item.quantity
 			return sum + quantity * price
 		}, 0)
 	}
@@ -386,7 +406,7 @@ export default function NovaListaPage() {
 					}
 				} else {
 					// Item com produto associado
-					const product = products.find(p => p.id === finalItem.productId)
+					const product = products.find((p) => p.id === finalItem.productId)
 					return {
 						productId: finalItem.productId,
 						productName: product?.name || "",
@@ -405,7 +425,7 @@ export default function NovaListaPage() {
 			setCheckingPrices(new Array(convertedItems.length).fill(false))
 			setRelatedProductsVisibility(new Array(convertedItems.length).fill(true))
 			setPriceAlertVisibility(new Array(convertedItems.length).fill(true))
-			setQuantityInputs(convertedItems.map(item => String(item.quantity)))
+			setQuantityInputs(convertedItems.map((item) => String(item.quantity)))
 			setPriceInputs(new Array(convertedItems.length).fill("0.00"))
 
 			// Sugerir nome da lista se não tiver
@@ -524,9 +544,9 @@ export default function NovaListaPage() {
 															className="absolute right-0 top-0 h-full px-3 hover:bg-accent"
 															onClick={() => {
 																if (selectStyle === "dialog") {
-																	setOpenDialogs(prev => [...prev, index])
+																	setOpenDialogs((prev) => [...prev, index])
 																} else {
-																	setOpenPopovers(prev => [...prev, index])
+																	setOpenPopovers((prev) => [...prev, index])
 																}
 															}}
 															title="Buscar produto cadastrado"
@@ -546,11 +566,7 @@ export default function NovaListaPage() {
 														</Button>
 													)}
 												</div>
-												{item.productId && (
-													<p className="text-xs text-green-600">
-														✓ Vinculado a produto cadastrado
-													</p>
-												)}
+												{item.productId && <p className="text-xs text-green-600">✓ Vinculado a produto cadastrado</p>}
 
 												{/* Dialogs/Popovers separados do input */}
 												{selectStyle === "dialog" ? (
@@ -558,15 +574,15 @@ export default function NovaListaPage() {
 														open={openDialogs.includes(index)}
 														onOpenChange={(open) => {
 															if (!open) {
-																setOpenDialogs(prev => prev.filter(i => i !== index))
+																setOpenDialogs((prev) => prev.filter((i) => i !== index))
 															}
 														}}
 														value={item.productId || ""}
 														onValueChange={(productId) => {
-															const product = products.find(p => p.id === productId)
+															const product = products.find((p) => p.id === productId)
 															if (product) {
 																handleProductSelected(index, product)
-																setOpenDialogs(prev => prev.filter(i => i !== index))
+																setOpenDialogs((prev) => prev.filter((i) => i !== index))
 															}
 														}}
 														options={products.map((product) => ({
@@ -586,9 +602,9 @@ export default function NovaListaPage() {
 														open={openPopovers.includes(index)}
 														onOpenChange={(open) => {
 															if (open) {
-																setOpenPopovers(prev => [...prev, index])
+																setOpenPopovers((prev) => [...prev, index])
 															} else {
-																setOpenPopovers(prev => prev.filter(i => i !== index))
+																setOpenPopovers((prev) => prev.filter((i) => i !== index))
 															}
 														}}
 													>
@@ -609,13 +625,15 @@ export default function NovaListaPage() {
 																			<Check
 																				className={cn(
 																					"mr-2 h-4 w-4",
-																					item.productId === product.id ? "opacity-100" : "opacity-0"
+																					item.productId === product.id ? "opacity-100" : "opacity-0",
 																				)}
 																			/>
 																			<div className="flex-1">
 																				<div className="font-medium">{product.name}</div>
 																				{(product as any).brand && (
-																					<div className="text-xs text-muted-foreground">{(product as any).brand.name}</div>
+																					<div className="text-xs text-muted-foreground">
+																						{(product as any).brand.name}
+																					</div>
 																				)}
 																			</div>
 																		</CommandItem>
@@ -636,7 +654,9 @@ export default function NovaListaPage() {
 														inputMode="decimal"
 														step="0.001"
 														min="0"
-														value={quantityInputs[index] ?? (items[index]?.quantity ? String(items[index].quantity) : "")}
+														value={
+															quantityInputs[index] ?? (items[index]?.quantity ? String(items[index].quantity) : "")
+														}
 														onChange={(e) => {
 															const raw = e.target.value
 															setQuantityInputs((prev) => {
@@ -652,7 +672,7 @@ export default function NovaListaPage() {
 															}
 
 															// Normalizar vírgula para ponto
-															const normalized = raw.replace(',', '.')
+															const normalized = raw.replace(",", ".")
 
 															// Validar se é um número válido (incluindo decimais)
 															const numberRegex = /^\d*\.?\d*$/
@@ -676,7 +696,10 @@ export default function NovaListaPage() {
 														inputMode="decimal"
 														step="0.01"
 														min="0"
-														value={priceInputs[index] ?? (items[index]?.estimatedPrice ? String(items[index].estimatedPrice) : "")}
+														value={
+															priceInputs[index] ??
+															(items[index]?.estimatedPrice ? String(items[index].estimatedPrice) : "")
+														}
 														onChange={(e) => {
 															const raw = e.target.value
 															setPriceInputs((prev) => {
@@ -684,7 +707,7 @@ export default function NovaListaPage() {
 																next[index] = raw
 																return next
 															})
-															const normalized = raw.replace(',', '.')
+															const normalized = raw.replace(",", ".")
 															const parsed = parseFloat(normalized)
 															if (!Number.isNaN(parsed)) {
 																updateItem(index, "estimatedPrice", parsed)
@@ -701,7 +724,7 @@ export default function NovaListaPage() {
 												<div className="space-y-2 md:block">
 													<Label>Total</Label>
 													<Input
-														value={`R$ ${((typeof items[index].quantity === 'string' ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
+														value={`R$ ${((typeof items[index].quantity === "string" ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
 														disabled
 														className="bg-gray-50 text-center font-semibold"
 													/>
@@ -759,7 +782,9 @@ export default function NovaListaPage() {
 
 								{/* Total e botões de ação - apenas no desktop */}
 								<div className="hidden md:flex justify-between items-center pt-4 border-t">
-									<div className="text-lg font-bold">Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}</div>
+									<div className="text-lg font-bold">
+										Total Estimado ({items.length} itens): R$ {calculateTotal().toFixed(2)}
+									</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="size-4 mr-2" />

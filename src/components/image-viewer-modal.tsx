@@ -1,6 +1,6 @@
 "use client"
 
-import { X, ZoomIn, ZoomOut, RotateCw, Download } from "lucide-react"
+import { Download, RotateCw, X, ZoomIn, ZoomOut } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -17,19 +17,19 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 	const [rotation, setRotation] = useState(0)
 
 	const handleZoomIn = () => {
-		setZoom(prev => Math.min(prev + 0.25, 3))
+		setZoom((prev) => Math.min(prev + 0.25, 3))
 	}
 
 	const handleZoomOut = () => {
-		setZoom(prev => Math.max(prev - 0.25, 0.25))
+		setZoom((prev) => Math.max(prev - 0.25, 0.25))
 	}
 
 	const handleRotate = () => {
-		setRotation(prev => (prev + 90) % 360)
+		setRotation((prev) => (prev + 90) % 360)
 	}
 
 	const handleDownload = () => {
-		const link = document.createElement('a')
+		const link = document.createElement("a")
 		link.href = imageUrl
 		link.download = `imagem-${Date.now()}.jpg`
 		document.body.appendChild(link)
@@ -48,52 +48,24 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 				{/* Header com controles */}
 				<div className="flex items-center justify-between p-4 border-b bg-background">
 					<div className="flex items-center gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleZoomOut}
-							disabled={zoom <= 0.25}
-						>
+						<Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoom <= 0.25}>
 							<ZoomOut className="size-4" />
 						</Button>
-						<span className="text-sm font-medium min-w-[60px] text-center">
-							{Math.round(zoom * 100)}%
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleZoomIn}
-							disabled={zoom >= 3}
-						>
+						<span className="text-sm font-medium min-w-[60px] text-center">{Math.round(zoom * 100)}%</span>
+						<Button variant="outline" size="sm" onClick={handleZoomIn} disabled={zoom >= 3}>
 							<ZoomIn className="size-4" />
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleRotate}
-						>
+						<Button variant="outline" size="sm" onClick={handleRotate}>
 							<RotateCw className="size-4" />
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleDownload}
-						>
+						<Button variant="outline" size="sm" onClick={handleDownload}>
 							<Download className="size-4" />
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={resetTransforms}
-						>
+						<Button variant="outline" size="sm" onClick={resetTransforms}>
 							Reset
 						</Button>
 					</div>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={onClose}
-					>
+					<Button variant="ghost" size="sm" onClick={onClose}>
 						<X className="size-4" />
 					</Button>
 				</div>
@@ -107,11 +79,12 @@ export function ImageViewerModal({ isOpen, onClose, imageUrl, alt = "Imagem" }: 
 							className="max-w-full max-h-full object-contain transition-transform duration-200"
 							style={{
 								transform: `scale(${zoom}) rotate(${rotation}deg)`,
-								transformOrigin: 'center'
+								transformOrigin: "center",
 							}}
 							onClick={(e) => {
 								// Zoom in/out ao clicar na imagem
-								if (e.detail === 2) { // Double click
+								if (e.detail === 2) {
+									// Double click
 									setZoom(zoom === 1 ? 2 : 1)
 								}
 							}}

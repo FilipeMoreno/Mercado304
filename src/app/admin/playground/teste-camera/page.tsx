@@ -102,8 +102,8 @@ export default function TesteCameraPage() {
 									<h3 className="font-semibold">Câmera Nativa</h3>
 								</div>
 								<p className="text-sm text-muted-foreground">
-									Usa <code className="text-xs bg-muted px-1 rounded-sm">input[capture]</code> para abrir a câmera nativa
-									do dispositivo. Mais eficiente em mobile.
+									Usa <code className="text-xs bg-muted px-1 rounded-sm">input[capture]</code> para abrir a câmera
+									nativa do dispositivo. Mais eficiente em mobile.
 								</p>
 								<Badge variant="outline" className="text-xs">
 									📱 Mobile

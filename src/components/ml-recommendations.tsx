@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart3, Brain, Clock, Lightbulb, ShoppingCart, Star, Target, TrendingUp } from "lucide-react"
+import { BarChart3, Brain, Clock, Lightbulb, ShoppingCart, Target, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -332,7 +332,7 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 
 			return () => clearInterval(interval)
 		}
-	}, [data])
+	}, [data, analyzeShoppingPatterns, generateRecommendations])
 
 	const getConfidenceColor = (confidence: number) => {
 		if (confidence >= 85) return "bg-green-500"

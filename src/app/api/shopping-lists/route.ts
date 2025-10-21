@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const searchTerm = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "date-desc"
-		const page = parseInt(searchParams.get("page") || "1")
+		const page = parseInt(searchParams.get("page") || "1", 10)
 		const itemsPerPage = 12
 		const status = searchParams.get("status") || "all"
 
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 		])
 
 		return NextResponse.json({ lists, totalCount })
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao buscar listas" }, { status: 500 })
 	}
 }

@@ -1,6 +1,5 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { AppToasts } from "@/lib/toasts"
 
 interface MutationOptions {

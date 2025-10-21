@@ -151,7 +151,12 @@ export default function EditarCategoriaPage() {
 								<Save className="size-4 mr-2" />
 								{updateCategoryMutation.isPending ? "Atualizando..." : "Atualizar Categoria"}
 							</Button>
-							<Button type="button" variant="outline" onClick={handleCancel} disabled={updateCategoryMutation.isPending}>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleCancel}
+								disabled={updateCategoryMutation.isPending}
+							>
 								<X className="size-4 mr-2" />
 								Cancelar
 							</Button>

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -50,10 +50,10 @@ export async function POST(request: NextRequest) {
 		const prompt = `Você é um assistente de compras inteligente. Analise a lista de compras abaixo e sugira produtos que o usuário pode ter esquecido de adicionar.
 
 LISTA ATUAL:
-${items.map((item: any) => `- ${item.name || item.tempName} (quantidade: ${item.quantity})`).join('\n')}
+${items.map((item: any) => `- ${item.name || item.tempName} (quantidade: ${item.quantity})`).join("\n")}
 
 PRODUTOS DISPONÍVEIS NO SISTEMA:
-${existingProducts.map(p => `${p.name} (${p.category?.name || 'Sem categoria'})`).join(', ')}
+${existingProducts.map((p) => `${p.name} (${p.category?.name || "Sem categoria"})`).join(", ")}
 
 INSTRUÇÕES:
 1. Analise os itens da lista e identifique padrões de compra
@@ -97,17 +97,15 @@ Retorne APENAS o JSON, sem explicações adicionais.`
 		} catch (parseError) {
 			console.error("Erro ao fazer parse da resposta da IA:", parseError)
 			console.error("Resposta original:", text)
-			return NextResponse.json(
-				{ error: "Erro ao processar resposta da IA" },
-				{ status: 500 }
-			)
+			return NextResponse.json({ error: "Erro ao processar resposta da IA" }, { status: 500 })
 		}
 
 		// Fazer matching das sugestões com produtos existentes
 		const suggestionsWithMatching = analysisResult.suggestions.map((suggestion: SuggestedProduct) => {
-			const matchedProduct = existingProducts.find(product =>
-				product.name.toLowerCase().includes(suggestion.name.toLowerCase()) ||
-				suggestion.name.toLowerCase().includes(product.name.toLowerCase())
+			const matchedProduct = existingProducts.find(
+				(product) =>
+					product.name.toLowerCase().includes(suggestion.name.toLowerCase()) ||
+					suggestion.name.toLowerCase().includes(product.name.toLowerCase()),
 			)
 
 			return {
@@ -128,9 +126,6 @@ Retorne APENAS o JSON, sem explicações adicionais.`
 		})
 	} catch (error) {
 		console.error("Erro ao sugerir produtos:", error)
-		return NextResponse.json(
-			{ error: "Erro interno do servidor" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }

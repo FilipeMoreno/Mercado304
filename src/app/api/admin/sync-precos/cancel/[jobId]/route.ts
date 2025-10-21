@@ -5,8 +5,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(_request: Request, props: { params: Promise<{ jobId: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const job = await prisma.syncJob.findUnique({
 			where: { id: params.jobId },
 		})
@@ -17,10 +17,7 @@ export async function POST(_request: Request, props: { params: Promise<{ jobId: 
 
 		// Só pode cancelar jobs que estão pending ou running
 		if (job.status !== "pending" && job.status !== "running") {
-			return NextResponse.json(
-				{ error: "Job não pode ser cancelado (já concluído ou falhou)" },
-				{ status: 400 },
-			)
+			return NextResponse.json({ error: "Job não pode ser cancelado (já concluído ou falhou)" }, { status: 400 })
 		}
 
 		// Atualizar status para cancelled
@@ -43,4 +40,3 @@ export async function POST(_request: Request, props: { params: Promise<{ jobId: 
 		return NextResponse.json({ error: "Erro ao cancelar sincronização" }, { status: 500 })
 	}
 }
-

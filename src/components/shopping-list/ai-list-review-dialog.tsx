@@ -1,22 +1,21 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import type { Brand, Category, Product } from "@prisma/client"
 import { Check, Lightbulb, PlusCircle, Trash2, X } from "lucide-react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { QuickBrandForm } from "@/components/quick-brand-form"
+import { QuickProductForm } from "@/components/quick-product-form"
 import { ProductSelect } from "@/components/selects/product-select"
 import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
-import { QuickProductForm } from "@/components/quick-product-form"
-import { QuickBrandForm } from "@/components/quick-brand-form"
-import { Dialog } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
 import { useUIPreferences } from "@/hooks"
-import { Brand, Category, Product } from "@prisma/client"
-import { ProductSuggestionsDialog, type ProductSuggestion } from "./product-suggestions-dialog"
+import { cn } from "@/lib/utils"
+import { type ProductSuggestion, ProductSuggestionsDialog } from "./product-suggestions-dialog"
 
 // Interface para itens identificados pela IA
 export interface AIIdentifiedItem {
@@ -62,7 +61,7 @@ export function AIListReviewDialog({
 	onClose,
 	items,
 	onConfirm,
-	isSubmitting = false
+	isSubmitting = false,
 }: AIListReviewDialogProps) {
 	const { selectStyle } = useUIPreferences()
 	const [processedItems, setProcessedItems] = useState<ProcessedAIItem[]>([])
@@ -74,15 +73,17 @@ export function AIListReviewDialog({
 	// Inicializar itens processados quando o dialog abrir
 	useEffect(() => {
 		if (isOpen && items.length > 0) {
-			const processed = items.map((item): ProcessedAIItem => ({
-				id: item.id,
-				originalName: item.name,
-				quantity: item.quantity,
-				productId: item.matchedProductId || "",
-				productName: item.matchedProductName || "",
-				isAssociated: item.isMatched || false,
-				isTemporary: false
-			}))
+			const processed = items.map(
+				(item): ProcessedAIItem => ({
+					id: item.id,
+					originalName: item.name,
+					quantity: item.quantity,
+					productId: item.matchedProductId || "",
+					productName: item.matchedProductName || "",
+					isAssociated: item.isMatched || false,
+					isTemporary: false,
+				}),
+			)
 			setProcessedItems(processed)
 		}
 	}, [isOpen, items])
@@ -157,7 +158,7 @@ export function AIListReviewDialog({
 		const newItems = [...processedItems]
 		let markedCount = 0
 
-		newItems.forEach(item => {
+		newItems.forEach((item) => {
 			if (!item.isAssociated && !item.isTemporary) {
 				item.isTemporary = true
 				item.isAssociated = true
@@ -174,15 +175,17 @@ export function AIListReviewDialog({
 	}
 
 	const handleAddSuggestions = (suggestions: ProductSuggestion[]) => {
-		const newItems = suggestions.map((suggestion): ProcessedAIItem => ({
-			id: crypto.randomUUID(),
-			originalName: suggestion.matchedProductName || suggestion.name,
-			quantity: 1,
-			productId: suggestion.matchedProductId || "",
-			productName: suggestion.matchedProductName || "",
-			isAssociated: suggestion.isMatched,
-			isTemporary: !suggestion.isMatched
-		}))
+		const newItems = suggestions.map(
+			(suggestion): ProcessedAIItem => ({
+				id: crypto.randomUUID(),
+				originalName: suggestion.matchedProductName || suggestion.name,
+				quantity: 1,
+				productId: suggestion.matchedProductId || "",
+				productName: suggestion.matchedProductName || "",
+				isAssociated: suggestion.isMatched,
+				isTemporary: !suggestion.isMatched,
+			}),
+		)
 
 		setProcessedItems([...processedItems, ...newItems])
 		setIsSuggestionsDialogOpen(false)
@@ -190,12 +193,12 @@ export function AIListReviewDialog({
 
 	const handleSubmit = () => {
 		const finalItems: FinalListItem[] = processedItems
-			.filter(item => item.isAssociated && item.quantity > 0)
-			.map(item => ({
+			.filter((item) => item.isAssociated && item.quantity > 0)
+			.map((item) => ({
 				productId: item.isTemporary ? undefined : item.productId,
 				tempName: item.isTemporary ? item.originalName : undefined,
 				quantity: item.quantity,
-				isTemporary: item.isTemporary
+				isTemporary: item.isTemporary,
 			}))
 
 		if (finalItems.length === 0) {
@@ -214,8 +217,8 @@ export function AIListReviewDialog({
 		onClose()
 	}
 
-	const associatedItemsCount = processedItems.filter(item => item.isAssociated).length
-	const temporaryItemsCount = processedItems.filter(item => item.isTemporary).length
+	const associatedItemsCount = processedItems.filter((item) => item.isAssociated).length
+	const temporaryItemsCount = processedItems.filter((item) => item.isTemporary).length
 
 	return (
 		<>
@@ -232,10 +235,7 @@ export function AIListReviewDialog({
 
 			<Dialog open={isCreateBrandDialogOpen} onOpenChange={setIsCreateBrandDialogOpen}>
 				{isCreateBrandDialogOpen && (
-					<QuickBrandForm
-						onClose={() => setIsCreateBrandDialogOpen(false)}
-						onBrandCreated={handleBrandCreated}
-					/>
+					<QuickBrandForm onClose={() => setIsCreateBrandDialogOpen(false)} onBrandCreated={handleBrandCreated} />
 				)}
 			</Dialog>
 
@@ -252,12 +252,8 @@ export function AIListReviewDialog({
 					<div className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium text-purple-900">
-									Sugestões Inteligentes
-								</p>
-								<p className="text-xs text-purple-700">
-									A IA pode sugerir produtos complementares
-								</p>
+								<p className="text-sm font-medium text-purple-900">Sugestões Inteligentes</p>
+								<p className="text-xs text-purple-700">A IA pode sugerir produtos complementares</p>
 							</div>
 							<Button
 								onClick={() => setIsSuggestionsDialogOpen(true)}
@@ -272,15 +268,14 @@ export function AIListReviewDialog({
 					</div>
 
 					{/* Marcar todos como temporários */}
-					{processedItems.some(item => !item.isAssociated && !item.isTemporary) && (
+					{processedItems.some((item) => !item.isAssociated && !item.isTemporary) && (
 						<div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="text-sm font-medium text-blue-900">
-										Ação Rápida
-									</p>
+									<p className="text-sm font-medium text-blue-900">Ação Rápida</p>
 									<p className="text-xs text-blue-700">
-										{processedItems.filter(item => !item.isAssociated && !item.isTemporary).length} itens ainda não processados
+										{processedItems.filter((item) => !item.isAssociated && !item.isTemporary).length} itens ainda não
+										processados
 									</p>
 								</div>
 								<Button
@@ -305,15 +300,14 @@ export function AIListReviewDialog({
 								"p-4 border rounded-lg space-y-4 transition-all",
 								item.isAssociated && !item.isTemporary ? "border-green-500 bg-green-500/5" : "",
 								item.isTemporary ? "border-blue-500 bg-blue-500/5" : "",
-								!item.isAssociated ? "border-gray-300" : ""
+								!item.isAssociated ? "border-gray-300" : "",
 							)}
 						>
 							{/* Cabeçalho do item */}
 							<div className="flex items-center justify-between">
 								<div>
 									<p className="text-sm font-semibold text-muted-foreground">
-										Item identificado:{" "}
-										<span className="font-bold text-primary">{item.originalName}</span>
+										Item identificado: <span className="font-bold text-primary">{item.originalName}</span>
 									</p>
 									{item.isAssociated && !item.isTemporary && (
 										<div className="flex items-center gap-1 text-green-600 text-sm mt-1">
@@ -328,12 +322,7 @@ export function AIListReviewDialog({
 										</div>
 									)}
 								</div>
-								<Button
-									variant="destructive"
-									size="sm"
-									onClick={() => handleRemoveItem(index)}
-									title="Remover item"
-								>
+								<Button variant="destructive" size="sm" onClick={() => handleRemoveItem(index)} title="Remover item">
 									<Trash2 className="size-4" />
 								</Button>
 							</div>
@@ -350,11 +339,11 @@ export function AIListReviewDialog({
 													onValueChange={(value) => {
 														if (value) {
 															fetch(`/api/products/${value}`)
-																.then(res => res.json())
-																.then(product => {
+																.then((res) => res.json())
+																.then((product) => {
 																	handleProductChange(index, product)
 																})
-																.catch(err => {
+																.catch((err) => {
 																	console.error("Erro ao buscar produto:", err)
 																})
 														} else {
@@ -368,11 +357,11 @@ export function AIListReviewDialog({
 													onValueChange={(value) => {
 														if (value) {
 															fetch(`/api/products/${value}`)
-																.then(res => res.json())
-																.then(product => {
+																.then((res) => res.json())
+																.then((product) => {
 																	handleProductChange(index, product)
 																})
-																.catch(err => {
+																.catch((err) => {
 																	console.error("Erro ao buscar produto:", err)
 																})
 														} else {
@@ -382,10 +371,7 @@ export function AIListReviewDialog({
 												/>
 											)}
 										</div>
-										<Button
-											variant="outline"
-											onClick={() => openCreateProductDialog(index)}
-										>
+										<Button variant="outline" onClick={() => openCreateProductDialog(index)}>
 											<PlusCircle className="size-4 mr-1" />
 											Novo
 										</Button>
@@ -434,7 +420,9 @@ export function AIListReviewDialog({
 				<div className="border-t pt-4 mt-6">
 					<div className="flex justify-between items-center mb-4">
 						<div className="text-sm text-muted-foreground space-y-1">
-							<div>{associatedItemsCount} de {processedItems.length} itens processados</div>
+							<div>
+								{associatedItemsCount} de {processedItems.length} itens processados
+							</div>
 							{temporaryItemsCount > 0 && (
 								<div className="text-blue-600">{temporaryItemsCount} serão criados como temporários</div>
 							)}
@@ -442,17 +430,10 @@ export function AIListReviewDialog({
 					</div>
 
 					<div className="flex gap-3 justify-end">
-						<Button
-							variant="outline"
-							onClick={handleClose}
-							disabled={isSubmitting}
-						>
+						<Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
 							Cancelar
 						</Button>
-						<Button
-							onClick={handleSubmit}
-							disabled={isSubmitting || associatedItemsCount === 0}
-						>
+						<Button onClick={handleSubmit} disabled={isSubmitting || associatedItemsCount === 0}>
 							{isSubmitting ? "Criando Lista..." : `Criar Lista (${associatedItemsCount} itens)`}
 						</Button>
 					</div>

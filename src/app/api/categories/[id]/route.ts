@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const category = await prisma.category.findUnique({
 			where: { id: params.id },
 			include: {
@@ -32,8 +32,8 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const body = await request.json()
 		const { name, icon, color } = body
 
@@ -59,8 +59,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 }
 
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const body = await request.json().catch(() => ({}))
 		const { transferData } = body
 
@@ -142,11 +142,11 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
 			where: { id: params.id },
 		})
 
-		return NextResponse.json({ 
+		return NextResponse.json({
 			success: true,
-			message: hasProducts 
+			message: hasProducts
 				? `Categoria excluída e ${category._count.products} produtos transferidos com sucesso!`
-				: "Categoria excluída com sucesso!"
+				: "Categoria excluída com sucesso!",
 		})
 	} catch (error: any) {
 		console.error("[DeleteCategory] Erro:", error)

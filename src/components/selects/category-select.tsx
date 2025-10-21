@@ -1,10 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { CategoryCombobox } from "@/components/ui/category-combobox"
 import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
-import type { Category } from "@/types"
 
 interface CategorySelectProps {
 	value?: string
@@ -45,7 +44,10 @@ export function CategorySelect({
 	const handleValueChange = useCallback(
 		(newValue: string) => {
 			console.log("[CategorySelect] Value changed:", newValue)
-			console.log("[CategorySelect] Categories available:", categories.map(c => ({ id: c.id, name: c.name })))
+			console.log(
+				"[CategorySelect] Categories available:",
+				categories.map((c) => ({ id: c.id, name: c.name })),
+			)
 			onValueChange?.(newValue)
 			if (newValue) {
 				setSearch("")
@@ -77,7 +79,6 @@ export function CategorySelect({
 			setTimeout(() => {
 				setPendingCategoryName(null)
 			}, 3000)
-
 		} catch (error) {
 			console.error("Error creating category:", error)
 		}

@@ -3,9 +3,9 @@ import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/waste/[id] - Buscar registro específico
-export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const session = await getSession()
 
 		if (!session?.user) {
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
 // PUT /api/waste/[id] - Atualizar registro
 export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const session = await getSession()
 
 		if (!session?.user) {
@@ -93,9 +93,9 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 }
 
 // DELETE /api/waste/[id] - Remover registro
-export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const session = await getSession()
 
 		if (!session?.user) {

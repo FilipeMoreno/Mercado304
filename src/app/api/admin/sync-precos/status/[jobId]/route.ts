@@ -5,8 +5,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(_request: Request, props: { params: Promise<{ jobId: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const job = await prisma.syncJob.findUnique({
 			where: { id: params.jobId },
 		})
@@ -21,4 +21,3 @@ export async function GET(_request: Request, props: { params: Promise<{ jobId: s
 		return NextResponse.json({ error: "Erro ao buscar status" }, { status: 500 })
 	}
 }
-

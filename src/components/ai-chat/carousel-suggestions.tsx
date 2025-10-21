@@ -1,22 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import {
-	TrendingDown,
-	Calculator,
-	Search,
-	BarChart3,
-	List,
-	AlertTriangle
-} from "lucide-react"
+import { AlertTriangle, BarChart3, Calculator, List, Search, TrendingDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-	Carousel,
-	CarouselContent,
-	CarouselItem,
-	CarouselNext,
-	CarouselPrevious,
-} from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 
 interface CarouselSuggestionsProps {
 	onSuggestionClick: (suggestion: string) => void
@@ -29,38 +16,38 @@ const suggestions = [
 		id: "create-weekly-list",
 		text: "Criar lista semanal",
 		command: "Crie uma lista de compras para a semana",
-		icon: <List className="size-4" />
+		icon: <List className="size-4" />,
 	},
 	{
 		id: "compare-prices",
 		text: "Comparar preços",
 		command: "Compare os preços dos produtos que mais compro",
-		icon: <TrendingDown className="size-4" />
+		icon: <TrendingDown className="size-4" />,
 	},
 	{
 		id: "calculate-churrasco",
 		text: "Calcular churrasco",
 		command: "Calcule as quantidades para um churrasco de 10 pessoas",
-		icon: <Calculator className="size-4" />
+		icon: <Calculator className="size-4" />,
 	},
 	{
 		id: "search-products",
 		text: "Buscar produtos",
 		command: "Busque produtos em promoção no mercado",
-		icon: <Search className="size-4" />
+		icon: <Search className="size-4" />,
 	},
 	{
 		id: "stock-alerts",
 		text: "Alertas de estoque",
 		command: "Configure alertas para produtos em falta",
-		icon: <AlertTriangle className="size-4" />
+		icon: <AlertTriangle className="size-4" />,
 	},
 	{
 		id: "expense-analysis",
 		text: "Análise de gastos",
 		command: "Analise meus gastos do último mês",
-		icon: <BarChart3 className="size-4" />
-	}
+		icon: <BarChart3 className="size-4" />,
+	},
 ]
 
 export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages = false }: CarouselSuggestionsProps) {
@@ -69,9 +56,7 @@ export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages 
 	return (
 		<div className="mb-4">
 			<div className="flex items-center justify-between mb-3">
-				<span className="text-sm font-medium text-foreground">
-					Sugestões para você
-				</span>
+				<span className="text-sm font-medium text-foreground">Sugestões para você</span>
 			</div>
 
 			<Carousel
@@ -93,7 +78,7 @@ export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages 
 								animate={{ opacity: 1, x: 0 }}
 								transition={{
 									duration: 0.2,
-									delay: index * 0.05
+									delay: index * 0.05,
 								}}
 							>
 								<Button
@@ -102,12 +87,8 @@ export function CarouselSuggestions({ onSuggestionClick, isLoading, hasMessages 
 									onClick={() => onSuggestionClick(suggestion.command)}
 									className="h-auto p-3 text-left hover:bg-muted hover:text-foreground transition-all duration-200 bg-accent/50 w-[130px] flex-col gap-2"
 								>
-									<div className="text-primary">
-										{suggestion.icon}
-									</div>
-									<span className="text-xs font-medium text-center text-foreground">
-										{suggestion.text}
-									</span>
+									<div className="text-primary">{suggestion.icon}</div>
+									<span className="text-xs font-medium text-center text-foreground">{suggestion.text}</span>
 								</Button>
 							</motion.div>
 						</CarouselItem>

@@ -123,9 +123,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 			<Alert variant="destructive" className="mb-6">
 				<AlertCircle className="size-4" />
 				<AlertTitle>Erro ao criar backup</AlertTitle>
-				<AlertDescription>
-					{progress.error || "Ocorreu um erro desconhecido ao criar o backup."}
-				</AlertDescription>
+				<AlertDescription>{progress.error || "Ocorreu um erro desconhecido ao criar o backup."}</AlertDescription>
 			</Alert>
 		)
 	}
@@ -201,9 +199,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 						<Loader2 className="size-4 mt-0.5 animate-spin text-blue-600" />
 						<div className="text-sm">
 							<p className="font-medium text-blue-900">Exportando Dados</p>
-							<p className="text-blue-700">
-								Aguarde enquanto os dados do banco de dados são exportados...
-							</p>
+							<p className="text-blue-700">Aguarde enquanto os dados do banco de dados são exportados...</p>
 						</div>
 					</div>
 				)}
@@ -213,9 +209,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 						<Upload className="size-4 mt-0.5 animate-pulse text-purple-600" />
 						<div className="text-sm">
 							<p className="font-medium text-purple-900">Enviando para Cloud</p>
-							<p className="text-purple-700">
-								Fazendo upload do backup para o Cloudflare R2...
-							</p>
+							<p className="text-purple-700">Fazendo upload do backup para o Cloudflare R2...</p>
 						</div>
 					</div>
 				)}
@@ -223,4 +217,3 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 		</Card>
 	)
 }
-

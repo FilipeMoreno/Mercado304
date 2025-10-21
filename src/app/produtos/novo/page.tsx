@@ -168,7 +168,7 @@ export default function NovoProdutoPage() {
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
 				hasExpiration: formData.hasExpiration,
 				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : undefined,
-				nutritionalInfo: hasNutritionalData ? nutritionalData as NutritionalInfo : undefined,
+				nutritionalInfo: hasNutritionalData ? (nutritionalData as NutritionalInfo) : undefined,
 			}
 			const newProduct = await createProductMutation.mutateAsync(dataToSubmit)
 			AppToasts.success("Produto criado com sucesso!")
@@ -346,9 +346,7 @@ export default function NovoProdutoPage() {
 										onChange={handleChange}
 										placeholder="Ex: 2L, 500g, 1kg"
 									/>
-									<p className="text-xs text-gray-500">
-										Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)
-									</p>
+									<p className="text-xs text-gray-500">Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)</p>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>

@@ -183,8 +183,8 @@ export function AllergenIconsDemo() {
 				<CardHeader>
 					<CardTitle>Uso Programático</CardTitle>
 					<CardDescription>
-						Use o componente <code className="text-xs bg-muted px-1 py-0.5 rounded-sm">AllergenIcon</code> para renderizar
-						ícones dinamicamente
+						Use o componente <code className="text-xs bg-muted px-1 py-0.5 rounded-sm">AllergenIcon</code> para
+						renderizar ícones dinamicamente
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

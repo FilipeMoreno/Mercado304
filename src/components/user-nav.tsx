@@ -15,7 +15,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { signIn, signOut, useSession } from "@/lib/auth-client"
+import { signOut, useSession } from "@/lib/auth-client"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"

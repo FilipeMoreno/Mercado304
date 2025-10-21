@@ -322,8 +322,8 @@ export function NotaParanaSearchAdvanced() {
 										</Badge>
 									)}
 									<Badge variant={isAlimento ? "secondary" : "outline"} className="flex items-center gap-1">
-										{isAlimento ? "🍎" : "🧹"} {isAlimento ? "Alimento" : "Não alimento"} - {getCategoriasParaBusca(termo).length}{" "}
-										categorias
+										{isAlimento ? "🍎" : "🧹"} {isAlimento ? "Alimento" : "Não alimento"} -{" "}
+										{getCategoriasParaBusca(termo).length} categorias
 									</Badge>
 								</div>
 							)}

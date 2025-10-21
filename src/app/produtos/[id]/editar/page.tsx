@@ -367,9 +367,7 @@ export default function EditarProdutoPage() {
 										onChange={handleChange}
 										placeholder="Ex: 2L, 500g, 1kg"
 									/>
-									<p className="text-xs text-gray-500">
-										Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)
-									</p>
+									<p className="text-xs text-gray-500">Peso ou volume da embalagem (ex: 2L, 500g, 1kg, 250ml)</p>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="unit">Unidade de Medida</Label>

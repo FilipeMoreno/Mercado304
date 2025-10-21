@@ -6,23 +6,23 @@ const PATTERNS = [
 	// Litros
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*l(?:itros?)?\b/gi, unit: "L", confidence: "high" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*lt?\b/gi, unit: "L", confidence: "medium" },
-	
+
 	// Mililitros
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*ml\b/gi, unit: "ml", confidence: "high" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*mililitros?\b/gi, unit: "ml", confidence: "medium" },
-	
+
 	// Quilogramas
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*kg\b/gi, unit: "kg", confidence: "high" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*quilos?\b/gi, unit: "kg", confidence: "medium" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*kilos?\b/gi, unit: "kg", confidence: "medium" },
-	
+
 	// Gramas
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*g\b/gi, unit: "g", confidence: "high" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*gr(?:amas?)?\b/gi, unit: "g", confidence: "medium" },
-	
+
 	// Miligramas
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*mg\b/gi, unit: "mg", confidence: "high" },
-	
+
 	// Unidades especiais
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*cx\b/gi, unit: "cx", confidence: "low" },
 	{ regex: /\b(\d+(?:[.,]\d+)?)\s*pct\b/gi, unit: "pct", confidence: "low" },
@@ -52,7 +52,7 @@ function analyzeProductName(name: string): ProductAnalysis | null {
 	for (const pattern of PATTERNS) {
 		const regex = new RegExp(pattern.regex.source, pattern.regex.flags)
 		const matches = Array.from(name.matchAll(regex))
-		
+
 		if (matches.length > 0) {
 			// Pegar a última ocorrência (geralmente o peso/volume está no final)
 			const match = matches[matches.length - 1]
@@ -78,13 +78,13 @@ function analyzeProductName(name: string): ProductAnalysis | null {
 
 	// Montar packageSize
 	const packageSize = `${bestMatch.value}${bestMatch.unit}`
-	
+
 	// Remover o peso/volume do nome
 	let proposedName = name
 		.replace(bestMatch.matchText, "")
 		.replace(/\s+/g, " ") // Remover espaços extras
 		.trim()
-	
+
 	// Limpar caracteres isolados no final (como - ou |)
 	proposedName = proposedName.replace(/[\s\-_|]+$/, "").trim()
 
@@ -125,7 +125,7 @@ export async function GET() {
 
 		// Analisar cada produto
 		const analyzed: ProductAnalysis[] = []
-		
+
 		for (const product of products) {
 			const analysis = analyzeProductName(product.name)
 			if (analysis) {
@@ -149,10 +149,6 @@ export async function GET() {
 		})
 	} catch (error) {
 		console.error("Erro ao analisar produtos:", error)
-		return NextResponse.json(
-			{ error: "Erro ao analisar produtos" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro ao analisar produtos" }, { status: 500 })
 	}
 }
-

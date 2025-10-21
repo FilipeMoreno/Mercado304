@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Apple, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"

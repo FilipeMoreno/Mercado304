@@ -151,10 +151,7 @@ export async function DELETE(request: Request) {
 		const id = searchParams.get("id")
 
 		if (!id) {
-			return NextResponse.json(
-				{ success: false, error: "ID do registro é obrigatório" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ success: false, error: "ID do registro é obrigatório" }, { status: 400 })
 		}
 
 		await prisma.priceRecord.delete({
@@ -176,16 +173,13 @@ export async function PATCH(request: Request) {
 		const { id, price, notes } = await request.json()
 
 		if (!id) {
-			return NextResponse.json(
-				{ success: false, error: "ID do registro é obrigatório" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ success: false, error: "ID do registro é obrigatório" }, { status: 400 })
 		}
 
 		if (price !== undefined && (typeof price !== "number" || price < 0)) {
 			return NextResponse.json(
 				{ success: false, error: "Preço deve ser um número válido maior ou igual a zero" },
-				{ status: 400 }
+				{ status: 400 },
 			)
 		}
 

@@ -25,7 +25,7 @@ export default function TwoFactorPage() {
 	// Inicializa como true OPTIMISTIC se encontrar email no storage
 	// Isso evita flash - assume que se está fazendo 2FA e tem email salvo, provavelmente tem 2FA email ativo
 	const [hasEmailEnabled, setHasEmailEnabled] = useState(() => {
-		if (typeof window !== 'undefined') {
+		if (typeof window !== "undefined") {
 			const hasStoredEmail =
 				sessionStorage.getItem("2fa_user_email") ||
 				localStorage.getItem("2fa_user_email_temp") ||
@@ -52,7 +52,8 @@ export default function TwoFactorPage() {
 		const checkEmail2FA = async () => {
 			try {
 				// Tenta múltiplas fontes de email primeiro
-				let userEmail = sessionStorage.getItem("2fa_user_email") ||
+				const userEmail =
+					sessionStorage.getItem("2fa_user_email") ||
 					localStorage.getItem("2fa_user_email_temp") ||
 					localStorage.getItem("lastUserEmail")
 
@@ -91,7 +92,8 @@ export default function TwoFactorPage() {
 		setIsSendingEmail(true)
 		try {
 			// Pega o email salvo no storage
-			const userEmail = sessionStorage.getItem("2fa_user_email") ||
+			const userEmail =
+				sessionStorage.getItem("2fa_user_email") ||
 				localStorage.getItem("2fa_user_email_temp") ||
 				localStorage.getItem("lastUserEmail")
 
@@ -133,7 +135,7 @@ export default function TwoFactorPage() {
 				}
 				result = await twoFactor.verifyBackupCode({
 					code,
-					trustDevice
+					trustDevice,
 				})
 			} else if (mode === "email") {
 				// Verificar código recebido por email usando Better Auth emailOTP
@@ -144,7 +146,8 @@ export default function TwoFactorPage() {
 				}
 
 				// Pega o email do storage
-				const userEmail = sessionStorage.getItem("2fa_user_email") ||
+				const userEmail =
+					sessionStorage.getItem("2fa_user_email") ||
 					localStorage.getItem("2fa_user_email_temp") ||
 					localStorage.getItem("lastUserEmail")
 
@@ -183,7 +186,7 @@ export default function TwoFactorPage() {
 				}
 				result = await twoFactor.verifyTotp({
 					code,
-					trustDevice
+					trustDevice,
 				})
 			}
 
@@ -275,7 +278,8 @@ export default function TwoFactorPage() {
 					{/* Debug info - remover depois */}
 					{process.env.NODE_ENV === "development" && (
 						<div className="text-xs text-muted-foreground mb-2">
-							Debug: mode={mode}, hasEmailEnabled={hasEmailEnabled.toString()}, emailCodeSent={emailCodeSent.toString()}, cooldown={cooldown}
+							Debug: mode={mode}, hasEmailEnabled={hasEmailEnabled.toString()}, emailCodeSent={emailCodeSent.toString()}
+							, cooldown={cooldown}
 						</div>
 					)}
 

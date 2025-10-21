@@ -26,13 +26,13 @@ export function normalizeBarcode(barcode: string): string {
 	if (!barcode) return barcode
 
 	// Remove espaços e caracteres não numéricos
-	const cleaned = barcode.trim().replace(/\D/g, '')
+	const cleaned = barcode.trim().replace(/\D/g, "")
 
 	// Se não for um código de barras válido, retorna como está
 	if (!isBarcode(cleaned)) return barcode
 
 	// Remove TODOS os zeros do início usando regex
-	const normalized = cleaned.replace(/^0+/, '')
+	const normalized = cleaned.replace(/^0+/, "")
 
 	// Se ficou vazio ou muito curto após remover todos os zeros, retorna o original
 	// (pode ser um código que é só zeros ou realmente precisa começar com 0)

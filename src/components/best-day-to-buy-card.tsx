@@ -1,12 +1,11 @@
 "use client"
 
 import { CalendarDays, Sparkles } from "lucide-react"
-import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "./ui/skeleton"
 
 interface BestDayAnalysis {
 	dayOfWeek: number
@@ -59,7 +58,7 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 		if (productId) {
 			fetchData()
 		}
-	}, [productId])
+	}, [productId, fetchAiAnalysis])
 
 	const fetchAiAnalysis = async () => {
 		setLoadingAi(true)

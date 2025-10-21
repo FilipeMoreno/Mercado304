@@ -1,20 +1,21 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import {
-	Plus,
+	AlertTriangle,
+	ArrowUp,
+	BarChart3,
+	Calculator,
+	List,
 	Mic,
 	MicOff,
-	ArrowUp,
-	Paperclip, List,
-	Calculator,
+	Paperclip,
+	Plus,
 	Search,
-	BarChart3,
-	AlertTriangle,
+	Send,
 	TrendingDown,
-	Send
 } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { MicrophoneWaveform } from "@/components/ui/waveform"
@@ -40,44 +41,44 @@ const quickSuggestions = [
 		id: "add-photo",
 		text: "Adicionar fotos e arquivos",
 		icon: <Paperclip className="size-4" />,
-		action: "photo"
+		action: "photo",
 	},
 	{
 		id: "create-list",
 		text: "Criar lista de compras",
 		command: "Crie uma lista de compras para a semana",
-		icon: <List className="size-4" />
+		icon: <List className="size-4" />,
 	},
 	{
 		id: "compare-prices",
 		text: "Comparar preços",
 		command: "Compare os preços dos produtos que mais compro",
-		icon: <TrendingDown className="size-4" />
+		icon: <TrendingDown className="size-4" />,
 	},
 	{
 		id: "calculate-churrasco",
 		text: "Calcular churrasco",
 		command: "Calcule as quantidades para um churrasco de 10 pessoas",
-		icon: <Calculator className="size-4" />
+		icon: <Calculator className="size-4" />,
 	},
 	{
 		id: "search-products",
 		text: "Buscar produtos",
 		command: "Busque produtos em promoção no mercado",
-		icon: <Search className="size-4" />
+		icon: <Search className="size-4" />,
 	},
 	{
 		id: "stock-alerts",
 		text: "Alertas de estoque",
 		command: "Configure alertas para produtos em falta",
-		icon: <AlertTriangle className="size-4" />
+		icon: <AlertTriangle className="size-4" />,
 	},
 	{
 		id: "expense-analysis",
 		text: "Análise de gastos",
 		command: "Analise meus gastos do último mês",
-		icon: <BarChart3 className="size-4" />
-	}
+		icon: <BarChart3 className="size-4" />,
+	},
 ]
 
 export function EnhancedInput({
@@ -93,12 +94,12 @@ export function EnhancedInput({
 	isListening = false,
 	onStartListening,
 	onStopListening,
-	isVoiceSupported = false
+	isVoiceSupported = false,
 }: EnhancedInputProps) {
 	const [showSuggestions, setShowSuggestions] = useState(false)
 	const [isFocused, setIsFocused] = useState(false)
 	const [isRecording, setIsRecording] = useState(false)
-	const [recordingMode, setRecordingMode] = useState<'text' | 'audio'>('text')
+	const [recordingMode, setRecordingMode] = useState<"text" | "audio">("text")
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null)
 	const audioChunksRef = useRef<Blob[]>([])
@@ -114,28 +115,34 @@ export function EnhancedInput({
 		}
 	}, [value])
 
-	const handleSuggestionSelect = useCallback((suggestion: typeof quickSuggestions[0]) => {
-		if (suggestion.action === "photo") {
-			onPhotoCapture()
-		} else if (suggestion.command) {
-			onChange(suggestion.command)
-			onSuggestionClick(suggestion.command)
-		}
-		setShowSuggestions(false)
-	}, [onChange, onPhotoCapture, onSuggestionClick])
-
-	const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault()
-			if (showSuggestions) {
-				setShowSuggestions(false)
-				return
+	const handleSuggestionSelect = useCallback(
+		(suggestion: (typeof quickSuggestions)[0]) => {
+			if (suggestion.action === "photo") {
+				onPhotoCapture()
+			} else if (suggestion.command) {
+				onChange(suggestion.command)
+				onSuggestionClick(suggestion.command)
 			}
-			onSubmit(e as any)
-		} else if (e.key === 'Escape') {
 			setShowSuggestions(false)
-		}
-	}, [onSubmit, showSuggestions])
+		},
+		[onChange, onPhotoCapture, onSuggestionClick],
+	)
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault()
+				if (showSuggestions) {
+					setShowSuggestions(false)
+					return
+				}
+				onSubmit(e as any)
+			} else if (e.key === "Escape") {
+				setShowSuggestions(false)
+			}
+		},
+		[onSubmit, showSuggestions],
+	)
 
 	const handleVoiceToggle = useCallback(() => {
 		if (isListening) {
@@ -160,17 +167,17 @@ export function EnhancedInput({
 			}
 
 			mediaRecorder.onstop = () => {
-				const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' })
+				const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" })
 				if (onAudioRecording) {
 					onAudioRecording(audioBlob)
 				}
-				stream.getTracks().forEach(track => track.stop())
+				stream.getTracks().forEach((track) => track.stop())
 			}
 
 			mediaRecorder.start()
 			setIsRecording(true)
 		} catch (error) {
-			console.error('Erro ao iniciar gravação:', error)
+			console.error("Erro ao iniciar gravação:", error)
 		}
 	}, [onAudioRecording])
 
@@ -179,7 +186,6 @@ export function EnhancedInput({
 		if (mediaRecorderRef.current && isRecording) {
 			mediaRecorderRef.current.stop()
 			setIsRecording(false)
-
 		}
 	}, [isRecording])
 
@@ -190,7 +196,7 @@ export function EnhancedInput({
 		// Iniciar timer para detectar se é um clique longo
 		pressTimerRef.current = setTimeout(() => {
 			// Clique longo - iniciar gravação de áudio
-			setRecordingMode('audio')
+			setRecordingMode("audio")
 			startAudioRecording()
 		}, 500) // 500ms para detectar clique longo
 	}, [disabled, startAudioRecording])
@@ -204,7 +210,7 @@ export function EnhancedInput({
 		if (isRecording) {
 			// Parar gravação de áudio
 			stopAudioRecording()
-		} else if (recordingMode === 'text') {
+		} else if (recordingMode === "text") {
 			// Clique curto - toggle speech-to-text
 			handleVoiceToggle()
 		}
@@ -252,12 +258,8 @@ export function EnhancedInput({
 									onClick={() => handleSuggestionSelect(suggestion)}
 									className="w-full justify-start gap-3 h-auto p-3 text-left hover:bg-muted"
 								>
-									<div className="text-muted-foreground">
-										{suggestion.icon}
-									</div>
-									<span className="text-sm text-foreground">
-										{suggestion.text}
-									</span>
+									<div className="text-muted-foreground">{suggestion.icon}</div>
+									<span className="text-sm text-foreground">{suggestion.text}</span>
 								</Button>
 							))}
 						</div>
@@ -266,9 +268,11 @@ export function EnhancedInput({
 			</AnimatePresence>
 
 			{/* Input Container */}
-			<div className={`flex items-end gap-2 p-3 border rounded-2xl bg-muted transition-all ${isFocused ? 'bg-background border-primary' : 'border-input'
-				} ${isListening ? 'border-red-300 bg-red-50 dark:bg-red-950/20' : ''}`}>
-
+			<div
+				className={`flex items-end gap-2 p-3 border rounded-2xl bg-muted transition-all ${
+					isFocused ? "bg-background border-primary" : "border-input"
+				} ${isListening ? "border-red-300 bg-red-50 dark:bg-red-950/20" : ""}`}
+			>
 				{/* Botão Plus */}
 				<Button
 					type="button"
@@ -282,7 +286,7 @@ export function EnhancedInput({
 				</Button>
 
 				{/* Área de entrada: troca por visual de onda quando gravando/ouvindo */}
-				{(isRecording || isListening) ? (
+				{isRecording || isListening ? (
 					<div className="flex-1 h-12 rounded-md bg-background/60 border border-dashed border-primary/40 flex items-center px-3">
 						<MicrophoneWaveform
 							active={true}
@@ -322,16 +326,17 @@ export function EnhancedInput({
 						onTouchStart={handleMouseDown}
 						onTouchEnd={handleMouseUp}
 						disabled={disabled}
-						className={`shrink-0 h-8 w-8 rounded-lg transition-colors relative ${isListening || isRecording
-							? 'text-red-600 hover:text-red-700 bg-red-100 dark:bg-red-950/30'
-							: 'text-muted-foreground hover:text-foreground hover:bg-muted'
-							}`}
+						className={`shrink-0 h-8 w-8 rounded-lg transition-colors relative ${
+							isListening || isRecording
+								? "text-red-600 hover:text-red-700 bg-red-100 dark:bg-red-950/30"
+								: "text-muted-foreground hover:text-foreground hover:bg-muted"
+						}`}
 						title={
 							isRecording
-								? 'Gravando áudio... Solte para enviar'
+								? "Gravando áudio... Solte para enviar"
 								: isListening
-									? 'Ouvindo... Clique para parar'
-									: 'Clique para falar • Segure para gravar áudio'
+									? "Ouvindo... Clique para parar"
+									: "Clique para falar • Segure para gravar áudio"
 						}
 					>
 						{isRecording ? (
@@ -343,9 +348,7 @@ export function EnhancedInput({
 						)}
 
 						{/* Indicador de gravação */}
-						{isRecording && (
-							<div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-						)}
+						{isRecording && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />}
 					</Button>
 				)}
 
@@ -364,11 +367,7 @@ export function EnhancedInput({
 			<div className="flex items-center justify-center mt-2">
 				<p className="text-xs text-muted-foreground">
 					Digite "/" para sugestões • Pressione Enter para enviar •
-					{isVoiceSupported && (
-						<span className="ml-1">
-							Clique no microfone para falar • Segure para gravar áudio
-						</span>
-					)}
+					{isVoiceSupported && <span className="ml-1">Clique no microfone para falar • Segure para gravar áudio</span>}
 				</p>
 			</div>
 		</div>

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { passkey, useSession } from "@/lib/auth-client"
-import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
+import { handleAuthError } from "@/lib/auth-errors"
 
 interface PasskeySetupProps {
 	onComplete?: () => void
@@ -40,8 +40,8 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 				// Converte a string de data para um objeto Date
 				setCredentials(
 					result.data.map((p: any) => ({
-						id: p.id || '',
-						name: p.name || 'Passkey',
+						id: p.id || "",
+						name: p.name || "Passkey",
 						createdAt: new Date(p.createdAt || Date.now()),
 					})),
 				)
@@ -107,7 +107,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 					metadata: { name: credentialName },
 					sendEmail: true, // Flag para enviar email
 				}),
-			}).catch(err => console.error("Failed to log passkey creation:", err))
+			}).catch((err) => console.error("Failed to log passkey creation:", err))
 
 			toast.success("Passkey registrado com sucesso!")
 

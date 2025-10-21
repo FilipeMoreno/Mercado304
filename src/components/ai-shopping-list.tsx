@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Clock, Package, ShoppingCart, Sparkles, Wand2 } from "lucide-react"
+import { Check, Clock, Package, Sparkles } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -82,7 +82,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 		try {
 			const selectedProducts: any[] = []
 
-			Object.entries(generatedList.itemsByCategory).forEach(([category, items]) => {
+			Object.entries(generatedList.itemsByCategory).forEach(([_category, items]) => {
 				;(items as AutoListItem[]).forEach((item) => {
 					if (selectedItems.has(item.productId)) {
 						selectedProducts.push({
@@ -211,7 +211,7 @@ export function AiShoppingList({ onGenerateList, onCreateShoppingList }: AiShopp
 								))}
 						</div>
 
-						{generatedList && generatedList.suggestions && generatedList.suggestions.length > 0 && (
+						{generatedList?.suggestions && generatedList.suggestions.length > 0 && (
 							<div className="space-y-2">
 								<h5 className="font-medium text-sm">Sugestões Extras</h5>
 								{generatedList.suggestions.map((suggestion, index) => (

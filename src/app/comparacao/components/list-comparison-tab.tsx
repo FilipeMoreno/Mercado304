@@ -158,7 +158,7 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 													)}
 													onClick={() => setExpandedMarket(isExpanded ? null : market.marketId)}
 													onKeyDown={(e) => {
-														if (e.key === 'Enter' || e.key === ' ') {
+														if (e.key === "Enter" || e.key === " ") {
 															e.preventDefault()
 															setExpandedMarket(isExpanded ? null : market.marketId)
 														}
@@ -189,16 +189,10 @@ export function ListComparisonTab({ selectedListId, onListChange }: ListComparis
 														<div className="text-right shrink-0">
 															<div className="text-lg sm:text-xl font-bold">R$ {market.totalPrice.toFixed(2)}</div>
 															{market.savings > 0 && (
-																<div className="text-sm text-green-600">
-																	Economiza R$ {market.savings.toFixed(2)}
-																</div>
+																<div className="text-sm text-green-600">Economiza R$ {market.savings.toFixed(2)}</div>
 															)}
 															<Button variant="ghost" size="icon" className="h-auto w-auto mt-2">
-																{isExpanded ? (
-																	<ChevronUp className="size-4" />
-																) : (
-																	<ChevronDown className="size-4" />
-																)}
+																{isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
 															</Button>
 														</div>
 													</div>

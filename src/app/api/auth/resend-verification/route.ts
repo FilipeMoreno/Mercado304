@@ -18,10 +18,13 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "Erro ao reenviar email" }, { status: 400 })
 		}
 
-		return NextResponse.json({ 
-			message: "Email de verificação reenviado com sucesso",
-			success: true 
-		}, { status: 200 })
+		return NextResponse.json(
+			{
+				message: "Email de verificação reenviado com sucesso",
+				success: true,
+			},
+			{ status: 200 },
+		)
 	} catch (error: unknown) {
 		console.error("Erro ao reenviar email de verificação:", error)
 		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

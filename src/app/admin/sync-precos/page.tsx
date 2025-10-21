@@ -141,7 +141,7 @@ export default function AdminSyncPrecosPage() {
 				await fetchLatestJob()
 			}
 		}
-		
+
 		loadInitialJob()
 	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
 
@@ -697,8 +697,8 @@ export default function AdminSyncPrecosPage() {
 										</Badge>
 									</CardTitle>
 									<CardDescription>
-										{debugMode 
-											? "Modo debug ativo: exibindo logs do servidor, API e processamento detalhado" 
+										{debugMode
+											? "Modo debug ativo: exibindo logs do servidor, API e processamento detalhado"
 											: "Últimos 500 logs essenciais (ative debug para mais detalhes)"}
 									</CardDescription>
 								</CardHeader>
@@ -714,7 +714,11 @@ export default function AdminSyncPrecosPage() {
 														}
 														// No modo normal, oculta apenas logs com prefixos de debug
 														const logLower = log.toLowerCase()
-														return !logLower.includes("[debug]") && !logLower.includes("[api]") && !logLower.includes("[server]")
+														return (
+															!logLower.includes("[debug]") &&
+															!logLower.includes("[api]") &&
+															!logLower.includes("[server]")
+														)
 													})
 													.map((log) => {
 														// Colorir baseado no tipo de log

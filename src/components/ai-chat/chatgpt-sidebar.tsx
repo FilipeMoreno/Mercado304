@@ -1,35 +1,30 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { isThisMonth, isThisWeek, isToday, isYesterday } from "date-fns"
 import { motion } from "framer-motion"
-import { useTheme } from "@/lib/theme"
 import {
-	Plus,
-	Search,
-	MessageSquare,
-	MoreHorizontal,
-	Edit3,
-	Trash2,
+	Archive,
+	Bot,
 	Check,
-	X,
 	ChevronLeft,
 	ChevronRight,
-	Bot,
+	Edit3,
+	MessageSquare,
+	MoreHorizontal,
 	Pin,
+	Plus,
+	Search,
 	Share,
-	Archive
+	Trash2,
+	X,
 } from "lucide-react"
-import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useTheme } from "@/lib/theme"
 
 interface ChatSession {
 	id: string
@@ -88,35 +83,39 @@ export function ChatGPTSidebar({
 	}, [editingId])
 
 	// Filtrar sessões baseado na busca
-	const filteredSessions = sessions.filter(session =>
-		session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-		(session.lastMessage && session.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
+	const filteredSessions = sessions.filter(
+		(session) =>
+			session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			session.lastMessage?.toLowerCase().includes(searchTerm.toLowerCase()),
 	)
 
 	// Separar sessões fixadas e normais
-	const pinnedSessions = filteredSessions.filter(session => session.isPinned && !session.isArchived)
-	const normalSessions = filteredSessions.filter(session => !session.isPinned && !session.isArchived)
+	const pinnedSessions = filteredSessions.filter((session) => session.isPinned && !session.isArchived)
+	const normalSessions = filteredSessions.filter((session) => !session.isPinned && !session.isArchived)
 
 	// Agrupar sessões normais por data
-	const groupedSessions = normalSessions.reduce((groups, session) => {
-		let groupName = "Mais antigo"
+	const groupedSessions = normalSessions.reduce(
+		(groups, session) => {
+			let groupName = "Mais antigo"
 
-		if (isToday(session.updatedAt)) {
-			groupName = "Hoje"
-		} else if (isYesterday(session.updatedAt)) {
-			groupName = "Ontem"
-		} else if (isThisWeek(session.updatedAt)) {
-			groupName = "Esta semana"
-		} else if (isThisMonth(session.updatedAt)) {
-			groupName = "Este mês"
-		}
+			if (isToday(session.updatedAt)) {
+				groupName = "Hoje"
+			} else if (isYesterday(session.updatedAt)) {
+				groupName = "Ontem"
+			} else if (isThisWeek(session.updatedAt)) {
+				groupName = "Esta semana"
+			} else if (isThisMonth(session.updatedAt)) {
+				groupName = "Este mês"
+			}
 
-		if (!groups[groupName]) {
-			groups[groupName] = []
-		}
-		groups[groupName].push(session)
-		return groups
-	}, {} as Record<string, ChatSession[]>)
+			if (!groups[groupName]) {
+				groups[groupName] = []
+			}
+			groups[groupName].push(session)
+			return groups
+		},
+		{} as Record<string, ChatSession[]>,
+	)
 
 	const handleStartEdit = (session: ChatSession) => {
 		setEditingId(session.id)
@@ -137,9 +136,9 @@ export function ChatGPTSidebar({
 	}
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
+		if (e.key === "Enter") {
 			handleSaveEdit()
-		} else if (e.key === 'Escape') {
+		} else if (e.key === "Escape") {
 			handleCancelEdit()
 		}
 	}
@@ -185,10 +184,11 @@ export function ChatGPTSidebar({
 								onClick={() => onSessionSelect(session.id)}
 								variant="ghost"
 								size="icon"
-								className={`w-full h-10 ${currentSessionId === session.id
-									? 'bg-primary/10 text-primary'
-									: 'text-muted-foreground hover:bg-muted'
-									}`}
+								className={`w-full h-10 ${
+									currentSessionId === session.id
+										? "bg-primary/10 text-primary"
+										: "text-muted-foreground hover:bg-muted"
+								}`}
 								title={session.title}
 							>
 								<MessageSquare className="size-4" />
@@ -204,7 +204,7 @@ export function ChatGPTSidebar({
 		<motion.div
 			initial={{ width: 60 }}
 			animate={{ width: 260 }}
-			className={`sticky top-0 h-screen bg-accent border-r flex flex-col ${isMobile ? 'w-full' : ''}`}
+			className={`sticky top-0 h-screen bg-accent border-r flex flex-col ${isMobile ? "w-full" : ""}`}
 		>
 			{/* Header */}
 			<div className="p-4 border-b">
@@ -262,10 +262,9 @@ export function ChatGPTSidebar({
 								{pinnedSessions.map((session) => (
 									<div
 										key={session.id}
-										className={`group relative rounded-xl transition-colors ${currentSessionId === session.id
-											? 'bg-primary/10 text-primary'
-											: 'hover:bg-muted'
-											}`}
+										className={`group relative rounded-xl transition-colors ${
+											currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+										}`}
 									>
 										{editingId === session.id ? (
 											/* Modo de Edição */
@@ -305,13 +304,9 @@ export function ChatGPTSidebar({
 											>
 												<Pin className="size-4 text-primary shrink-0" />
 												<div className="flex-1 min-w-0">
-													<div className="text-sm truncate">
-														{session.title}
-													</div>
+													<div className="text-sm truncate">{session.title}</div>
 													{session.lastMessage && (
-														<div className="text-xs text-muted-foreground truncate">
-															{session.lastMessage}
-														</div>
+														<div className="text-xs text-muted-foreground truncate">{session.lastMessage}</div>
 													)}
 												</div>
 
@@ -328,10 +323,7 @@ export function ChatGPTSidebar({
 																<MoreHorizontal className="h-3 w-3" />
 															</Button>
 														</DropdownMenuTrigger>
-														<DropdownMenuContent
-															align="end"
-															className="bg-popover border-border"
-														>
+														<DropdownMenuContent align="end" className="bg-popover border-border">
 															{onShareSession && (
 																<DropdownMenuItem
 																	onClick={(e) => {
@@ -412,10 +404,9 @@ export function ChatGPTSidebar({
 								{groupSessions.map((session) => (
 									<div
 										key={session.id}
-										className={`group relative rounded-xl transition-colors ${currentSessionId === session.id
-											? 'bg-primary/10 text-primary'
-											: 'hover:bg-muted'
-											}`}
+										className={`group relative rounded-xl transition-colors ${
+											currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+										}`}
 									>
 										{editingId === session.id ? (
 											/* Modo de Edição */
@@ -455,13 +446,9 @@ export function ChatGPTSidebar({
 											>
 												<MessageSquare className="size-4 text-muted-foreground shrink-0" />
 												<div className="flex-1 min-w-0">
-													<div className="text-sm truncate">
-														{session.title}
-													</div>
+													<div className="text-sm truncate">{session.title}</div>
 													{session.lastMessage && (
-														<div className="text-xs text-muted-foreground truncate">
-															{session.lastMessage}
-														</div>
+														<div className="text-xs text-muted-foreground truncate">{session.lastMessage}</div>
 													)}
 												</div>
 
@@ -478,10 +465,7 @@ export function ChatGPTSidebar({
 																<MoreHorizontal className="h-3 w-3" />
 															</Button>
 														</DropdownMenuTrigger>
-														<DropdownMenuContent
-															align="end"
-															className="bg-popover border-border"
-														>
+														<DropdownMenuContent align="end" className="bg-popover border-border">
 															{onShareSession && (
 																<DropdownMenuItem
 																	onClick={(e) => {
@@ -513,7 +497,7 @@ export function ChatGPTSidebar({
 																	className="text-popover-foreground hover:bg-accent"
 																>
 																	<Pin className="size-4 mr-2" />
-																	{session.isPinned ? 'Desafixar' : 'Fixar'}
+																	{session.isPinned ? "Desafixar" : "Fixar"}
 																</DropdownMenuItem>
 															)}
 															{onArchiveSession && (
@@ -553,7 +537,7 @@ export function ChatGPTSidebar({
 						<div className="text-center py-8">
 							<MessageSquare className="size-8 text-muted-foreground mx-auto mb-2" />
 							<p className="text-muted-foreground text-sm">
-								{searchTerm ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}
+								{searchTerm ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
 							</p>
 						</div>
 					)}
@@ -592,9 +576,7 @@ function ClearAllConversationsButton({ onConfirm }: { onConfirm: () => void }) {
 				maxWidth="sm"
 			>
 				<div className="space-y-4">
-					<p className="text-sm text-muted-foreground">
-						Essa ação não pode ser desfeita. Confirme para continuar.
-					</p>
+					<p className="text-sm text-muted-foreground">Essa ação não pode ser desfeita. Confirme para continuar.</p>
 					<div className="flex flex-col sm:flex-row gap-2 justify-end">
 						<Button variant="outline" onClick={() => setOpen(false)}>
 							Cancelar

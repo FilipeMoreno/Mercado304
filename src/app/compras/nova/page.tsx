@@ -364,7 +364,7 @@ export default function NovaCompraPage() {
 	}
 
 	const calculateTotalDiscounts = () => {
-		const itemDiscounts = items.reduce((sum, item) => sum + (item.quantity * (item.unitDiscount || 0)), 0)
+		const itemDiscounts = items.reduce((sum, item) => sum + item.quantity * (item.unitDiscount || 0), 0)
 		return itemDiscounts + (formData.totalDiscount || 0)
 	}
 
@@ -601,7 +601,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "quantity", parsed)
@@ -628,7 +628,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "unitPrice", parsed)
@@ -655,7 +655,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "unitDiscount", parsed)
@@ -765,12 +765,12 @@ export default function NovaCompraPage() {
 												onChange={(e) => {
 													const raw = e.target.value
 													setTotalDiscountInput(raw)
-													const normalized = raw.replace(',', '.')
+													const normalized = raw.replace(",", ".")
 													const parsed = parseFloat(normalized)
 													if (!Number.isNaN(parsed)) {
-														setFormData(prev => ({ ...prev, totalDiscount: parsed }))
+														setFormData((prev) => ({ ...prev, totalDiscount: parsed }))
 													} else if (raw === "") {
-														setFormData(prev => ({ ...prev, totalDiscount: 0 }))
+														setFormData((prev) => ({ ...prev, totalDiscount: 0 }))
 													}
 												}}
 												placeholder="0,00"
@@ -799,7 +799,10 @@ export default function NovaCompraPage() {
 
 								{/* Total e botões de ação - apenas no desktop */}
 								<div className="hidden md:flex justify-between items-center pt-4 border-t">
-									<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
+									<div className="text-lg font-bold">
+										Total da Compra ({items.length} itens): R${" "}
+										{(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}
+									</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="size-4 mr-2" />
@@ -835,7 +838,9 @@ export default function NovaCompraPage() {
 						{/* Total da compra */}
 						<div className="text-center min-w-[120px]">
 							<div className="text-sm text-gray-600">Total</div>
-							<div className="text-lg font-bold text-primary">R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
+							<div className="text-lg font-bold text-primary">
+								R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}
+							</div>
 						</div>
 					</div>
 

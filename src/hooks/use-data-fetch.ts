@@ -32,7 +32,7 @@ export function useDataFetch<T>(url: string, initialData: T) {
 
 	useEffect(() => {
 		fetchData()
-	}, [url])
+	}, [fetchData])
 
 	return {
 		data,

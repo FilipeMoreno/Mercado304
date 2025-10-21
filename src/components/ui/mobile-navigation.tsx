@@ -167,7 +167,7 @@ export function MobileNavigation({
 								<div className="flex items-center gap-2">
 									{/* Snap Point Controls */}
 									<div className="flex gap-1">
-										{snapPoints.map((point, index) => (
+										{snapPoints.map((point, _index) => (
 											<button
 												key={point}
 												onClick={() => setCurrentSnapPoint(point)}

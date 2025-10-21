@@ -226,9 +226,9 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: index * 0.05 }}
 									>
-										<MarketCardMemo 
-											market={market} 
-											onDelete={openDeleteConfirm} 
+										<MarketCardMemo
+											market={market}
+											onDelete={openDeleteConfirm}
 											onEdit={(market) => router.push(`/mercados/${market.id}/editar`)}
 										/>
 									</motion.div>

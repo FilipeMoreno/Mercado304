@@ -1,10 +1,9 @@
-import { ptBR } from "date-fns/locale"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const productId = params.id
 
 		// Verificar se o produto existe
@@ -136,7 +135,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
 		// Coletar todas as semanas
 		priceHistoryByMarket.forEach((marketData) => {
-			marketData.data.forEach((weekData: any, weekKey: string) => {
+			marketData.data.forEach((_weekData: any, weekKey: string) => {
 				allWeeks.add(weekKey)
 			})
 		})
@@ -148,7 +147,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 				const dataPoint: any = { week: "" }
 				let hasData = false
 
-				priceHistoryByMarket.forEach((marketData, marketId) => {
+				priceHistoryByMarket.forEach((marketData, _marketId) => {
 					if (marketData.data.has(weekKey)) {
 						const weekData = marketData.data.get(weekKey)
 						const averagePrice =

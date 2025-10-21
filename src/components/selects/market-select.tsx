@@ -45,7 +45,6 @@ export function MarketSelect({
 			setTimeout(() => {
 				setPendingMarketName(null)
 			}, 3000)
-
 		} catch (error) {
 			console.error("Error creating market:", error)
 		}

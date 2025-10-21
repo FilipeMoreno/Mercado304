@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState, useRef } from "react"
-import { Message } from "./use-ai-chat"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { Message } from "./use-ai-chat"
 
 export interface ChatSession {
 	id: string
@@ -55,96 +55,110 @@ export function useChatHistory() {
 	}, [])
 
 	// Criar nova sessão
-	const createNewSession = useCallback((initialMessage?: Message) => {
-		const newSession: ChatSession = {
-			id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-			title: initialMessage?.content.slice(0, 50) || "Nova conversa",
-			messages: initialMessage ? [
-				{
-					role: "assistant",
-					content: "Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
-				},
-				initialMessage
-			] : [
-				{
-					role: "assistant",
-					content: "Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
-				}
-			],
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		}
+	const createNewSession = useCallback(
+		(initialMessage?: Message) => {
+			const newSession: ChatSession = {
+				id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+				title: initialMessage?.content.slice(0, 50) || "Nova conversa",
+				messages: initialMessage
+					? [
+							{
+								role: "assistant",
+								content:
+									"Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
+							},
+							initialMessage,
+						]
+					: [
+							{
+								role: "assistant",
+								content:
+									"Olá, eu sou o Zé! Estou aqui para te ajudar a economizar e organizar suas compras. O que vamos fazer hoje?",
+							},
+						],
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			}
 
-		setSessions(prev => {
-			const newSessions = [newSession, ...prev].slice(0, MAX_SESSIONS)
-			sessionsRef.current = newSessions
-			saveToStorage(newSessions)
-			return newSessions
-		})
+			setSessions((prev) => {
+				const newSessions = [newSession, ...prev].slice(0, MAX_SESSIONS)
+				sessionsRef.current = newSessions
+				saveToStorage(newSessions)
+				return newSessions
+			})
 
-		setCurrentSessionId(newSession.id)
-		return newSession
-	}, [saveToStorage])
+			setCurrentSessionId(newSession.id)
+			return newSession
+		},
+		[saveToStorage],
+	)
 
 	// Atualizar sessão existente
-	const updateSession = useCallback((sessionId: string, messages: Message[]) => {
-		setSessions(prev => {
-			const newSessions = prev.map(session => {
-				if (session.id === sessionId) {
-					// Gerar título baseado na primeira mensagem do usuário
-					const firstUserMessage = messages.find(msg => msg.role === "user")
-					const title = firstUserMessage?.content.slice(0, 50) || session.title
+	const updateSession = useCallback(
+		(sessionId: string, messages: Message[]) => {
+			setSessions((prev) => {
+				const newSessions = prev.map((session) => {
+					if (session.id === sessionId) {
+						// Gerar título baseado na primeira mensagem do usuário
+						const firstUserMessage = messages.find((msg) => msg.role === "user")
+						const title = firstUserMessage?.content.slice(0, 50) || session.title
 
-					return {
-						...session,
-						title,
-						messages,
-						updatedAt: new Date(),
+						return {
+							...session,
+							title,
+							messages,
+							updatedAt: new Date(),
+						}
 					}
-				}
-				return session
+					return session
+				})
+				sessionsRef.current = newSessions
+				saveToStorage(newSessions)
+				return newSessions
 			})
-			sessionsRef.current = newSessions
-			saveToStorage(newSessions)
-			return newSessions
-		})
-	}, [saveToStorage])
+		},
+		[saveToStorage],
+	)
 
 	// Carregar sessão específica
 	const loadSession = useCallback((sessionId: string) => {
 		setCurrentSessionId(sessionId)
 		// Usar o ref para evitar dependência circular
-		return sessionsRef.current.find(s => s.id === sessionId) || null
+		return sessionsRef.current.find((s) => s.id === sessionId) || null
 	}, [])
 
 	// Deletar sessão
-	const deleteSession = useCallback((sessionId: string) => {
-		setSessions(prev => {
-			const newSessions = prev.filter(s => s.id !== sessionId)
-			sessionsRef.current = newSessions
-			saveToStorage(newSessions)
-			return newSessions
-		})
+	const deleteSession = useCallback(
+		(sessionId: string) => {
+			setSessions((prev) => {
+				const newSessions = prev.filter((s) => s.id !== sessionId)
+				sessionsRef.current = newSessions
+				saveToStorage(newSessions)
+				return newSessions
+			})
 
-		// Se a sessão deletada era a atual, limpar
-		if (currentSessionId === sessionId) {
-			setCurrentSessionId(null)
-		}
-	}, [currentSessionId, saveToStorage])
+			// Se a sessão deletada era a atual, limpar
+			if (currentSessionId === sessionId) {
+				setCurrentSessionId(null)
+			}
+		},
+		[currentSessionId, saveToStorage],
+	)
 
 	// Renomear sessão
-	const renameSession = useCallback((sessionId: string, newTitle: string) => {
-		setSessions(prev => {
-			const newSessions = prev.map(session => 
-				session.id === sessionId 
-					? { ...session, title: newTitle, updatedAt: new Date() }
-					: session
-			)
-			sessionsRef.current = newSessions
-			saveToStorage(newSessions)
-			return newSessions
-		})
-	}, [saveToStorage])
+	const renameSession = useCallback(
+		(sessionId: string, newTitle: string) => {
+			setSessions((prev) => {
+				const newSessions = prev.map((session) =>
+					session.id === sessionId ? { ...session, title: newTitle, updatedAt: new Date() } : session,
+				)
+				sessionsRef.current = newSessions
+				saveToStorage(newSessions)
+				return newSessions
+			})
+		},
+		[saveToStorage],
+	)
 
 	// Limpar todo o histórico
 	const clearAllHistory = useCallback(() => {
@@ -157,7 +171,7 @@ export function useChatHistory() {
 	// Obter sessão atual
 	const getCurrentSession = useCallback(() => {
 		if (!currentSessionId) return null
-		return sessions.find(s => s.id === currentSessionId) || null
+		return sessions.find((s) => s.id === currentSessionId) || null
 	}, [currentSessionId, sessions])
 
 	// Obter sessões ordenadas por data

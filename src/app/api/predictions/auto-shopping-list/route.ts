@@ -60,9 +60,7 @@ export async function POST(request: Request) {
 				const totalQuantity = purchases.reduce((sum: number, p: any) => sum + p.quantity, 0)
 				const avgQuantityPerPurchase = totalQuantity / purchases.length
 				const lastPurchaseDate = new Date(purchases[purchases.length - 1].date)
-				const daysSinceLastPurchase = Math.floor(
-					(new Date().getTime() - lastPurchaseDate.getTime()) / (1000 * 60 * 60 * 24),
-				)
+				const daysSinceLastPurchase = Math.floor((Date.now() - lastPurchaseDate.getTime()) / (1000 * 60 * 60 * 24))
 
 				return {
 					productId: product.product.id,

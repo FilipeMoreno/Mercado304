@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState } from "react"
 import { Check, Lightbulb, Loader2, Plus, Sparkles, X } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ResponsiveFormDialog } from "@/components/ui/responsive-form-dialog"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 export interface ProductSuggestion {
@@ -85,12 +85,12 @@ export function ProductSuggestionsDialog({
 		if (selectedSuggestions.size === suggestions.length) {
 			setSelectedSuggestions(new Set())
 		} else {
-			setSelectedSuggestions(new Set(suggestions.map(s => s.id)))
+			setSelectedSuggestions(new Set(suggestions.map((s) => s.id)))
 		}
 	}
 
 	const handleAddSelected = () => {
-		const selectedItems = suggestions.filter(s => selectedSuggestions.has(s.id))
+		const selectedItems = suggestions.filter((s) => selectedSuggestions.has(s.id))
 		if (selectedItems.length === 0) {
 			toast.error("Selecione pelo menos um produto")
 			return
@@ -160,18 +160,10 @@ export function ProductSuggestionsDialog({
 					{/* Cabeçalho com ações */}
 					<div className="flex items-center justify-between mb-4 pb-3 border-b">
 						<div>
-							<p className="text-sm font-medium">
-								{suggestions.length} produtos sugeridos
-							</p>
-							<p className="text-xs text-muted-foreground">
-								{selectedSuggestions.size} selecionados
-							</p>
+							<p className="text-sm font-medium">{suggestions.length} produtos sugeridos</p>
+							<p className="text-xs text-muted-foreground">{selectedSuggestions.size} selecionados</p>
 						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleSelectAll}
-						>
+						<Button variant="outline" size="sm" onClick={handleSelectAll}>
 							{selectedSuggestions.size === suggestions.length ? (
 								<>
 									<X className="size-4 mr-1" />
@@ -196,15 +188,17 @@ export function ProductSuggestionsDialog({
 									onClick={() => toggleSuggestion(suggestion.id)}
 									className={cn(
 										"p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md",
-										isSelected ? "border-primary bg-primary/5 shadow-xs" : "border-gray-200"
+										isSelected ? "border-primary bg-primary/5 shadow-xs" : "border-gray-200",
 									)}
 								>
 									<div className="flex items-start gap-3">
 										{/* Checkbox visual */}
-										<div className={cn(
-											"mt-1 w-5 h-5 rounded-sm border-2 flex items-center justify-center shrink-0",
-											isSelected ? "bg-primary border-primary" : "border-gray-300"
-										)}>
+										<div
+											className={cn(
+												"mt-1 w-5 h-5 rounded-sm border-2 flex items-center justify-center shrink-0",
+												isSelected ? "bg-primary border-primary" : "border-gray-300",
+											)}
+										>
 											{isSelected && <Check className="h-3 w-3 text-white" />}
 										</div>
 
@@ -212,17 +206,10 @@ export function ProductSuggestionsDialog({
 										<div className="flex-1 min-w-0">
 											<div className="flex items-start justify-between gap-2 mb-1">
 												<div className="flex-1">
-													<h4 className="font-semibold text-sm">
-														{suggestion.matchedProductName || suggestion.name}
-													</h4>
-													<p className="text-xs text-muted-foreground">
-														{suggestion.category}
-													</p>
+													<h4 className="font-semibold text-sm">{suggestion.matchedProductName || suggestion.name}</h4>
+													<p className="text-xs text-muted-foreground">{suggestion.category}</p>
 												</div>
-												<Badge
-													variant="outline"
-													className={cn("text-xs", getConfidenceColor(suggestion.confidence))}
-												>
+												<Badge variant="outline" className={cn("text-xs", getConfidenceColor(suggestion.confidence))}>
 													{getConfidenceLabel(suggestion.confidence)}
 												</Badge>
 											</div>
@@ -258,10 +245,7 @@ export function ProductSuggestionsDialog({
 						<Button variant="outline" onClick={handleClose}>
 							Cancelar
 						</Button>
-						<Button
-							onClick={handleAddSelected}
-							disabled={selectedSuggestions.size === 0}
-						>
+						<Button onClick={handleAddSelected} disabled={selectedSuggestions.size === 0}>
 							<Plus className="size-4 mr-1" />
 							Adicionar {selectedSuggestions.size > 0 ? `(${selectedSuggestions.size})` : "Selecionados"}
 						</Button>

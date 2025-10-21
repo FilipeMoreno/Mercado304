@@ -1,9 +1,10 @@
-const withPWA = require('next-pwa')({
+import withPWA from 'next-pwa';
+
+const pwaConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-  // Configurações adicionais para melhor compatibilidade
   scope: '/',
   sw: 'sw.js',
   publicExcludes: ['!manifest.json', '!sw.js', '!workbox-*.js'],
@@ -92,22 +93,110 @@ const withPWA = require('next-pwa')({
       },
     },
   ],
-})
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Next.js 15 stable optimizations
+  experimental: {
+    // Enable modern bundling optimizations
+    optimizePackageImports: ['lucide-react', 'date-fns', 'framer-motion'],
+    // Enable modern ESM externals
+    esmExternals: true,
+  },
+
+  // Turbopack configuration
+  turbopack: {
+    root: '.',
+  },
+
+  // Server external packages (moved from experimental)
+  serverExternalPackages: ['@prisma/client'],
+
+  // Environment variables
   env: {
     OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY
   },
-  turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    }
-  }
-}
 
-module.exports = withPWA(nextConfig)
+  // Optimize bundle analysis
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          // Separate vendor chunks for better caching
+          framework: {
+            chunks: 'all',
+            name: 'framework',
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            priority: 40,
+            enforce: true,
+          },
+          lib: {
+            test(module) {
+              return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier());
+            },
+            name(module) {
+              const hash = require('crypto').createHash('sha1');
+              hash.update(module.identifier());
+              return hash.digest('hex').substring(0, 8);
+            },
+            priority: 30,
+            minChunks: 1,
+            reuseExistingChunk: true,
+          },
+        },
+      };
+    }
+
+    return config;
+  },
+
+  // Image optimization for better performance
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // Reduce JavaScript bundle size
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // Headers for better performance and security
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=60, stale-while-revalidate=300',
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default pwaConfig(nextConfig);

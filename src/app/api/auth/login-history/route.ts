@@ -1,11 +1,10 @@
 import { headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import { getLocationFromIP } from "@/lib/geolocation"
-import { getDeviceInfo } from "@/lib/auth-middleware"
+import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
 	try {
 		// Primeiro, obter o usuário atual
 		const session = await auth.api.getSession({
@@ -50,12 +49,12 @@ export async function GET(request: NextRequest) {
 					userAgent: session.userAgent,
 					loginMethod: user?.lastLoginMethod || "Não disponível",
 					sessionDuration: session.expiresAt
-						? Math.floor(
+						? `${Math.floor(
 								(new Date(session.expiresAt).getTime() - new Date(session.createdAt).getTime()) / (1000 * 60 * 60 * 24),
-						  ) + " dias"
+							)} dias`
 						: "Indefinido",
 				}
-			})
+			}),
 		)
 
 		return NextResponse.json(loginHistory)

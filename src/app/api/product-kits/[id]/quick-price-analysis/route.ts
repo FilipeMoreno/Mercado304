@@ -6,8 +6,8 @@ import * as productKitService from "@/services/productKitService"
  * Registra preços rapidamente e retorna análise se compensa comprar o kit
  */
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const body = await request.json()
 		const { marketId, kitPrice, itemPrices } = body
 

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
 		const brandId = params.id
 
 		// Buscar a marca primeiro para validar
@@ -181,4 +181,3 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 		return NextResponse.json({ error: "Erro ao buscar estatísticas da marca" }, { status: 500 })
 	}
 }
-

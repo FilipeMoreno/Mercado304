@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 					error: "Erro ao criar backup",
 					details: error,
 				},
-				{ status: 500 }
+				{ status: 500 },
 			)
 		}
 
@@ -60,8 +60,7 @@ export async function GET(request: Request) {
 				error: "Erro ao executar backup automático",
 				details: error instanceof Error ? error.message : "Erro desconhecido",
 			},
-			{ status: 500 }
+			{ status: 500 },
 		)
 	}
 }
-

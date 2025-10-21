@@ -104,14 +104,14 @@ export function CategoryCombobox({
 					<span className="truncate flex-1 text-left font-normal">
 						{value && value !== ""
 							? (() => {
-								const selectedCategory = categories.find((c) => c.id === value)
-								if (!selectedCategory) {
-									// Se não encontrou a categoria na lista, pode ser uma categoria recém-criada
-									// Mostra o nome da categoria pendente se disponível
-									return pendingCategoryName ? `📦 ${pendingCategoryName}` : "Categoria selecionada"
-								}
-								return `${selectedCategory.icon || "📦"} ${selectedCategory.name}`
-							})()
+									const selectedCategory = categories.find((c) => c.id === value)
+									if (!selectedCategory) {
+										// Se não encontrou a categoria na lista, pode ser uma categoria recém-criada
+										// Mostra o nome da categoria pendente se disponível
+										return pendingCategoryName ? `📦 ${pendingCategoryName}` : "Categoria selecionada"
+									}
+									return `${selectedCategory.icon || "📦"} ${selectedCategory.name}`
+								})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
@@ -162,7 +162,7 @@ export function CategoryCombobox({
 												console.log("[CategoryCombobox] Item selected:", {
 													optionValue: option.value,
 													currentValue: value,
-													willSet: option.value
+													willSet: option.value,
 												})
 												// Sempre define o valor selecionado, não alterna
 												onValueChange?.(option.value)

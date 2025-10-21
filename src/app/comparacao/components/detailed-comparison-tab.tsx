@@ -212,7 +212,9 @@ export function DetailedComparisonTab({
 					<div className="flex justify-end">
 						<Button
 							onClick={compareDetailedList}
-							disabled={loadingDetailed || selectedMarketIds.length < 2 || !detailedListId || selectedItemIds.length === 0}
+							disabled={
+								loadingDetailed || selectedMarketIds.length < 2 || !detailedListId || selectedItemIds.length === 0
+							}
 							className="w-full sm:w-auto"
 						>
 							{loadingDetailed ? <Loader2 className="size-4 animate-spin" /> : "Comparar Detalhadamente"}

@@ -31,9 +31,9 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 					exit={{ opacity: 0 }}
 					transition={{ duration: 0.4, ease: "easeOut" }}
 					className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
-					style={{ 
+					style={{
 						// Força o background para cobrir a splash nativa do PWA
-						backgroundColor: 'var(--background)',
+						backgroundColor: "var(--background)",
 					}}
 				>
 					{/* Subtle Grid Pattern */}
@@ -123,9 +123,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
 							<h1 className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
 								Mercado304
 							</h1>
-							<p className="text-sm font-medium text-muted-foreground md:text-base">
-								Gestão Inteligente de Compras
-							</p>
+							<p className="text-sm font-medium text-muted-foreground md:text-base">Gestão Inteligente de Compras</p>
 						</motion.div>
 
 						{/* Loading Dots */}

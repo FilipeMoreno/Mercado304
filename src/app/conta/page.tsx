@@ -1,11 +1,23 @@
 "use client"
 
-import { AlertCircle, ArrowLeft, ArrowRight, Camera, CheckCircle, Layout, Loader2, Mail, Save, Shield, Trash2, User } from "lucide-react"
+import {
+	AlertCircle,
+	ArrowLeft,
+	ArrowRight,
+	Camera,
+	CheckCircle,
+	Layout,
+	Loader2,
+	Mail,
+	Save,
+	Shield,
+	Trash2,
+	User,
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useUIPreferences } from "@/hooks"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,9 +35,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { useUIPreferences } from "@/hooks"
 import { signOut, useSession } from "@/lib/auth-client"
 
 export default function ContaPage() {
@@ -129,12 +141,7 @@ export default function ContaPage() {
 				<div className="container max-w-6xl mx-auto px-4 py-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => router.back()}
-								className="rounded-full"
-							>
+							<Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
 								<ArrowLeft className="size-5" />
 							</Button>
 							<div>
@@ -288,9 +295,7 @@ export default function ContaPage() {
 									</div>
 									<div>
 										<CardTitle>Segurança</CardTitle>
-										<CardDescription>
-											Gerencie autenticação, sessões e configurações de segurança
-										</CardDescription>
+										<CardDescription>Gerencie autenticação, sessões e configurações de segurança</CardDescription>
 									</div>
 								</div>
 								<Link href="/conta/seguranca">
@@ -319,9 +324,7 @@ export default function ContaPage() {
 								</div>
 								<div>
 									<CardTitle>Preferências de Interface</CardTitle>
-									<CardDescription>
-										Personalize a forma como você interage com os seletores
-									</CardDescription>
+									<CardDescription>Personalize a forma como você interage com os seletores</CardDescription>
 								</div>
 							</div>
 						</CardHeader>
@@ -338,7 +341,9 @@ export default function ContaPage() {
 									value={selectStyle}
 									onValueChange={(value: "traditional" | "dialog") => {
 										setSelectStyle(value)
-										toast.success(`Preferência salva! ${value === "dialog" ? "Dialogs responsivos" : "Selects tradicionais"} serão usados.`)
+										toast.success(
+											`Preferência salva! ${value === "dialog" ? "Dialogs responsivos" : "Selects tradicionais"} serão usados.`,
+										)
 									}}
 									disabled={!isLoaded}
 									className="space-y-3"
@@ -350,8 +355,8 @@ export default function ContaPage() {
 												Dialogs Responsivos (Recomendado)
 											</Label>
 											<p className="text-sm text-muted-foreground mt-1">
-												Interface moderna com dialogs full-screen em dispositivos móveis e busca integrada.
-												Ideal para telas sensíveis ao toque.
+												Interface moderna com dialogs full-screen em dispositivos móveis e busca integrada. Ideal para
+												telas sensíveis ao toque.
 											</p>
 										</div>
 									</div>
@@ -363,8 +368,7 @@ export default function ContaPage() {
 												Selects Tradicionais
 											</Label>
 											<p className="text-sm text-muted-foreground mt-1">
-												Dropdowns compactos que abrem na posição do elemento.
-												Mais familiar para usuários de desktop.
+												Dropdowns compactos que abrem na posição do elemento. Mais familiar para usuários de desktop.
 											</p>
 										</div>
 									</div>
@@ -395,7 +399,8 @@ export default function ContaPage() {
 								<div>
 									<h4 className="font-medium text-foreground mb-2">Excluir Conta Permanentemente</h4>
 									<p className="text-sm text-muted-foreground mb-6">
-										Esta ação não pode ser desfeita. Todos os seus dados, incluindo compras, listas e histórico serão permanentemente removidos de nossos servidores.
+										Esta ação não pode ser desfeita. Todos os seus dados, incluindo compras, listas e histórico serão
+										permanentemente removidos de nossos servidores.
 									</p>
 								</div>
 

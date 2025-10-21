@@ -1,14 +1,8 @@
 "use client"
 
-import { Bot, RefreshCw, Copy, ThumbsUp, ThumbsDown, MoreHorizontal } from "lucide-react"
+import { Bot, Copy, RefreshCw, ThumbsDown, ThumbsUp } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { ProductRecognitionCard } from "./product-recognition-card"
 
 interface ChatMessageProps {
@@ -23,25 +17,35 @@ interface ChatMessageProps {
 	onAddMessage?: (message: { role: "user" | "assistant"; content: string }) => void
 }
 
-export function ChatMessage({ role, content, isError, isStreaming, onRetry, canRetry, imagePreview, productData, onAddMessage }: ChatMessageProps) {
+export function ChatMessage({
+	role,
+	content,
+	isError,
+	isStreaming,
+	onRetry,
+	canRetry,
+	imagePreview,
+	productData,
+	onAddMessage,
+}: ChatMessageProps) {
 	const handleCopyMessage = async () => {
 		try {
 			await navigator.clipboard.writeText(content)
 			// TODO: Mostrar toast de sucesso
-			console.log('Mensagem copiada para clipboard')
+			console.log("Mensagem copiada para clipboard")
 		} catch (error) {
-			console.error('Erro ao copiar mensagem:', error)
+			console.error("Erro ao copiar mensagem:", error)
 		}
 	}
 
 	const handleThumbsUp = () => {
 		// TODO: Implementar avaliação positiva
-		console.log('Avaliação positiva para mensagem:', content.substring(0, 50))
+		console.log("Avaliação positiva para mensagem:", content.substring(0, 50))
 	}
 
 	const handleThumbsDown = () => {
 		// TODO: Implementar avaliação negativa
-		console.log('Avaliação negativa para mensagem:', content.substring(0, 50))
+		console.log("Avaliação negativa para mensagem:", content.substring(0, 50))
 	}
 	// Se é um card de produto reconhecido
 	if (content === "product-recognition-card" && productData) {
@@ -52,7 +56,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					if (onAddMessage) {
 						onAddMessage({
 							role: "assistant",
-							content: `❌ Não foi possível identificar o produto para adicionar à lista.`
+							content: `❌ Não foi possível identificar o produto para adicionar à lista.`,
 						})
 					}
 					return
@@ -95,7 +99,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `✅ **${productData.name}** foi adicionado à lista "${targetList.name}" com sucesso!`
+						content: `✅ **${productData.name}** foi adicionado à lista "${targetList.name}" com sucesso!`,
 					})
 				}
 			} catch (error) {
@@ -104,7 +108,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `❌ Erro ao adicionar **${productData?.name || 'produto'}** à lista. Tente novamente.`
+						content: `❌ Erro ao adicionar **${productData?.name || "produto"}** à lista. Tente novamente.`,
 					})
 				}
 			}
@@ -117,14 +121,16 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					if (onAddMessage) {
 						onAddMessage({
 							role: "assistant",
-							content: `❌ Não foi possível identificar o produto para buscar preços.`
+							content: `❌ Não foi possível identificar o produto para buscar preços.`,
 						})
 					}
 					return
 				}
 
 				// Buscar preços do produto
-				const response = await fetch(`/api/price-comparison/product?productName=${encodeURIComponent(productData.name)}`)
+				const response = await fetch(
+					`/api/price-comparison/product?productName=${encodeURIComponent(productData.name)}`,
+				)
 
 				if (!response.ok) {
 					throw new Error("Produto não encontrado")
@@ -142,7 +148,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					if (onAddMessage) {
 						onAddMessage({
 							role: "assistant",
-							content: `📊 Não encontrei preços registrados para **${productData.name}**. Que tal registrar o primeiro preço?`
+							content: `📊 Não encontrei preços registrados para **${productData.name}**. Que tal registrar o primeiro preço?`,
 						})
 					}
 					return
@@ -152,25 +158,24 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				let priceMessage = `📊 **Últimos preços de ${productData.name}:**\n\n`
 
 				recentPrices.forEach((market: any, index: number) => {
-					const date = new Date(market.lastUpdate).toLocaleDateString('pt-BR')
+					const date = new Date(market.lastUpdate).toLocaleDateString("pt-BR")
 					const emoji = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "📍"
 					priceMessage += `${emoji} **${market.marketName}** - R$ ${market.currentPrice.toFixed(2)}\n`
-					priceMessage += `   📅 ${date} • ${market.location || 'Localização não informada'}\n\n`
+					priceMessage += `   📅 ${date} • ${market.location || "Localização não informada"}\n\n`
 				})
 
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: priceMessage
+						content: priceMessage,
 					})
 				}
-
 			} catch (error) {
 				console.error("Erro ao buscar preços:", error)
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `❌ Não consegui encontrar preços para **${productData?.name || 'produto'}**. O produto pode não estar registrado no sistema.`
+						content: `❌ Não consegui encontrar preços para **${productData?.name || "produto"}**. O produto pode não estar registrado no sistema.`,
 					})
 				}
 			}
@@ -183,7 +188,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					if (onAddMessage) {
 						onAddMessage({
 							role: "assistant",
-							content: `❌ Não foi possível identificar o produto para buscar detalhes.`
+							content: `❌ Não foi possível identificar o produto para buscar detalhes.`,
 						})
 					}
 					return
@@ -210,7 +215,7 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 					if (onAddMessage) {
 						onAddMessage({
 							role: "assistant",
-							content: `🔍 **${productData.name}** não está registrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
+							content: `🔍 **${productData.name}** não está registrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`,
 						})
 					}
 					return
@@ -240,26 +245,25 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 				// Adicionar estatísticas se disponíveis
 				if (productDetails.stats) {
 					detailsMessage += `\n📊 **Estatísticas:**\n`
-					detailsMessage += `• Preço médio: R$ ${productDetails.stats.averagePrice?.toFixed(2) || 'N/A'}\n`
-					detailsMessage += `• Menor preço: R$ ${productDetails.stats.lowestPrice?.toFixed(2) || 'N/A'}\n`
-					detailsMessage += `• Maior preço: R$ ${productDetails.stats.highestPrice?.toFixed(2) || 'N/A'}\n`
+					detailsMessage += `• Preço médio: R$ ${productDetails.stats.averagePrice?.toFixed(2) || "N/A"}\n`
+					detailsMessage += `• Menor preço: R$ ${productDetails.stats.lowestPrice?.toFixed(2) || "N/A"}\n`
+					detailsMessage += `• Maior preço: R$ ${productDetails.stats.highestPrice?.toFixed(2) || "N/A"}\n`
 					detailsMessage += `• Total de compras: ${productDetails.stats.totalPurchases || 0}\n`
 				}
 
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: detailsMessage
+						content: detailsMessage,
 					})
 				}
-
 			} catch (error) {
 				console.error("Erro ao buscar detalhes:", error)
 				// Produto não encontrado - oferecer opção de cadastro
 				if (onAddMessage) {
 					onAddMessage({
 						role: "assistant",
-						content: `🔍 **${productData?.name || 'Produto'}** não foi encontrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`
+						content: `🔍 **${productData?.name || "Produto"}** não foi encontrado no sistema.\n\n📝 Gostaria de cadastrar este produto? Posso ajudar você a criar um registro completo com categoria, marca e outras informações.`,
 					})
 				}
 			}
@@ -283,42 +287,43 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 
 	return (
 		<div className={`group flex gap-2 ${role === "user" ? "justify-end" : ""}`}>
-			{role === "assistant" && (
-				<Bot className={`h-6 w-6 shrink-0 ${isError ? "text-red-500" : "text-blue-700"}`} />
-			)}
+			{role === "assistant" && <Bot className={`h-6 w-6 shrink-0 ${isError ? "text-red-500" : "text-blue-700"}`} />}
 			<div className={`max-w-[80%] ${role === "user" ? "flex justify-end" : ""}`}>
 				<div className="flex flex-col gap-2">
 					{/* Preview da imagem para mensagens do usuário */}
 					{role === "user" && imagePreview && (
 						<div className="w-32 h-32 rounded-lg overflow-hidden border">
-							<img
-								src={imagePreview}
-								alt="Imagem enviada"
-								className="w-full h-full object-cover"
-							/>
+							<img src={imagePreview} alt="Imagem enviada" className="w-full h-full object-cover" />
 						</div>
 					)}
 
 					<div
-						className={`rounded-lg px-3 py-2 text-sm ${role === "user"
+						className={`rounded-lg px-3 py-2 text-sm ${
+							role === "user"
 								? "bg-primary text-primary-foreground"
 								: isError
 									? "bg-red-50 text-red-700 border border-red-200"
 									: "bg-muted"
-							}`}
+						}`}
 					>
 						{role === "assistant" ? (
 							content === "product-recognition-card" && productData ? (
-								<ProductRecognitionCard
-									product={productData}
-									imagePreview={productData.imagePreview}
-								/>
+								<ProductRecognitionCard product={productData} imagePreview={productData.imagePreview} />
 							) : isStreaming && !content ? (
 								<div className="flex items-center gap-2">
 									<div className="flex gap-1">
-										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-										<div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+										<div
+											className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+											style={{ animationDelay: "0ms" }}
+										></div>
+										<div
+											className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+											style={{ animationDelay: "150ms" }}
+										></div>
+										<div
+											className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+											style={{ animationDelay: "300ms" }}
+										></div>
 									</div>
 									<span className="text-xs text-muted-foreground">gerando resposta...</span>
 								</div>
@@ -326,7 +331,9 @@ export function ChatMessage({ role, content, isError, isStreaming, onRetry, canR
 								<div className="prose prose-sm max-w-none break-words overflow-wrap-anywhere hyphens-auto">
 									<ReactMarkdown
 										components={{
-											p: ({ children }) => <p className="my-1 last:mb-0 break-words overflow-wrap-anywhere">{children}</p>,
+											p: ({ children }) => (
+												<p className="my-1 last:mb-0 break-words overflow-wrap-anywhere">{children}</p>
+											),
 											ul: ({ children }) => <ul className="my-1 ml-4 list-disc last:mb-0">{children}</ul>,
 											ol: ({ children }) => <ol className="my-1 ml-4 list-decimal last:mb-0">{children}</ol>,
 											li: ({ children }) => <li className="my-0 break-words overflow-wrap-anywhere">{children}</li>,

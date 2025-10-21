@@ -160,8 +160,9 @@ export function ProductComparisonTab({
 										return (
 											<div
 												key={market.marketId}
-												className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-colors gap-3 ${isBest ? "bg-green-50 border-green-200" : isWorst ? "bg-red-50 border-red-200" : "bg-gray-50"
-													}`}
+												className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-colors gap-3 ${
+													isBest ? "bg-green-50 border-green-200" : isWorst ? "bg-red-50 border-red-200" : "bg-gray-50"
+												}`}
 											>
 												<div className="flex-1 min-w-0">
 													<div className="flex items-center gap-2 flex-wrap">

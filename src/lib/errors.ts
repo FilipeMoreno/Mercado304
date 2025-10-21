@@ -47,7 +47,7 @@ export class AppError extends Error {
 
 	constructor(errorCode: keyof typeof ERROR_CODES, message?: string) {
 		// Busca a mensagem e o statusCode do nosso dicionário
-		const errorDetails = ERROR_CODES[errorCode] || ERROR_CODES["GEN_001"]
+		const errorDetails = ERROR_CODES[errorCode] || ERROR_CODES.GEN_001
 
 		// Usa a mensagem personalizada se for fornecida, senão usa a padrão
 		super(message || errorDetails.message)

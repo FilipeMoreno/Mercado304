@@ -3,9 +3,7 @@
 import {
 	Activity,
 	AlertTriangle,
-	Calendar,
 	CheckCircle,
-	DollarSign,
 	Info,
 	Minus,
 	Package,
@@ -14,7 +12,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,7 +48,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 			} else {
 				toast.error("Erro ao carregar análise de preços")
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro ao conectar com o servidor")
 		} finally {
 			setLoading(false)
@@ -59,7 +57,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 
 	useEffect(() => {
 		loadAnalysis()
-	}, [productId, marketId])
+	}, [loadAnalysis])
 
 	if (loading) {
 		return (

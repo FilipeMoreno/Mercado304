@@ -2,7 +2,7 @@
 
 import { Check, Eye, EyeOff, Loader2, Lock, Mail, ShoppingCart, User } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -232,8 +232,9 @@ export default function SignUpPage() {
 									{passwordRequirements.map((req, index) => (
 										<div key={index} className="flex items-center space-x-2">
 											<div
-												className={`w-4 h-4 rounded-full flex items-center justify-center ${req.regex.test(password) ? "bg-green-500" : "bg-gray-300"
-													}`}
+												className={`w-4 h-4 rounded-full flex items-center justify-center ${
+													req.regex.test(password) ? "bg-green-500" : "bg-gray-300"
+												}`}
 											>
 												{req.regex.test(password) && <Check className="w-2 h-2 text-white" />}
 											</div>

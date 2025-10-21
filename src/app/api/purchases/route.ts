@@ -36,8 +36,8 @@ export async function GET(request: Request) {
 		const sort = searchParams.get("sort") || "date-desc"
 		const dateFrom = searchParams.get("dateFrom")
 		const dateTo = searchParams.get("dateTo")
-		const page = parseInt(searchParams.get("page") || "1")
-		const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "12")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "12", 10)
 
 		const where: any = {}
 		if (marketId && marketId !== "all") {
@@ -145,102 +145,105 @@ export async function POST(request: Request) {
 			include: {
 				brand: true,
 				category: true,
-			}
+			},
 		})
 
-		const purchase = await prisma.$transaction(async (tx) => {
-			// Criar a compra diretamente com os itens
-			const newPurchase = await tx.purchase.create({
-				data: {
-					marketId,
-					totalAmount,
-					totalDiscount,
-					finalAmount,
-					purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-					paymentMethod: normalizePaymentMethod(paymentMethod || "MONEY"),
-					items: {
-						create: items.map((item: any) => {
-							const product = products.find((p) => p.id === item.productId)
-							const itemTotal = item.quantity * item.unitPrice
-							const itemDiscount = item.quantity * (item.unitDiscount || 0)
-							return {
-								productId: item.productId || null,
-								quantity: item.quantity,
-								unitPrice: item.unitPrice,
-								unitDiscount: item.unitDiscount || 0,
-								totalPrice: itemTotal,
-								totalDiscount: itemDiscount,
-								finalPrice: itemTotal - itemDiscount,
-								// Se tem produto vinculado, usa dados do produto. Senão, usa o que foi digitado
-								productName: product?.name || item.productName,
-								productUnit: product?.unit || item.productUnit || "unidade",
-								productCategory: product?.category?.name || item.category || null,
-								brandName: product?.brand?.name || item.brand || null,
-							}
-						}),
-					},
-				},
-				include: {
-					items: true,
-					market: true
-				},
-			})
-
-			// Criar entradas de estoque apenas para itens vinculados a produtos que tem controle de estoque
-			const stockCreationPromises = items
-				.filter((item: any) => {
-					if (!item.productId || !item.addToStock) return false
-					const product = products.find((p) => p.id === item.productId)
-					return product && product.hasStock
-				})
-				.flatMap((item: any) => {
-					const product = products.find((p) => p.id === item.productId)!
-					const entriesToCreate =
-						item.stockEntries && item.stockEntries.length > 0
-							? item.stockEntries
-							: [
-								{
+		const purchase = await prisma.$transaction(
+			async (tx) => {
+				// Criar a compra diretamente com os itens
+				const newPurchase = await tx.purchase.create({
+					data: {
+						marketId,
+						totalAmount,
+						totalDiscount,
+						finalAmount,
+						purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+						paymentMethod: normalizePaymentMethod(paymentMethod || "MONEY"),
+						items: {
+							create: items.map((item: any) => {
+								const product = products.find((p) => p.id === item.productId)
+								const itemTotal = item.quantity * item.unitPrice
+								const itemDiscount = item.quantity * (item.unitDiscount || 0)
+								return {
+									productId: item.productId || null,
 									quantity: item.quantity,
-									location: "Despensa",
-									expirationDate: item.expirationDate,
+									unitPrice: item.unitPrice,
+									unitDiscount: item.unitDiscount || 0,
+									totalPrice: itemTotal,
+									totalDiscount: itemDiscount,
+									finalPrice: itemTotal - itemDiscount,
+									// Se tem produto vinculado, usa dados do produto. Senão, usa o que foi digitado
+									productName: product?.name || item.productName,
+									productUnit: product?.unit || item.productUnit || "unidade",
+									productCategory: product?.category?.name || item.category || null,
+									brandName: product?.brand?.name || item.brand || null,
+								}
+							}),
+						},
+					},
+					include: {
+						items: true,
+						market: true,
+					},
+				})
+
+				// Criar entradas de estoque apenas para itens vinculados a produtos que tem controle de estoque
+				const stockCreationPromises = items
+					.filter((item: any) => {
+						if (!item.productId || !item.addToStock) return false
+						const product = products.find((p) => p.id === item.productId)
+						return product?.hasStock
+					})
+					.flatMap((item: any) => {
+						const product = products.find((p) => p.id === item.productId)!
+						const entriesToCreate =
+							item.stockEntries && item.stockEntries.length > 0
+								? item.stockEntries
+								: [
+										{
+											quantity: item.quantity,
+											location: "Despensa",
+											expirationDate: item.expirationDate,
+										},
+									]
+
+						return entriesToCreate.map(async (entry: any) => {
+							const stockItem = await tx.stockItem.create({
+								data: {
+									productId: item.productId,
+									quantity: entry.quantity || 1,
+									unitCost: item.unitPrice,
+									location: entry.location || "Despensa",
+									expirationDate: entry.expirationDate ? new Date(entry.expirationDate) : null,
+									notes: entry.notes || `Compra #${newPurchase.id.substring(0, 8)}`,
+									isLowStock: product.hasStock && product.minStock ? (entry.quantity || 1) <= product.minStock : false,
 								},
-							]
+							})
 
-					return entriesToCreate.map(async (entry: any) => {
-						const stockItem = await tx.stockItem.create({
-							data: {
-								productId: item.productId,
-								quantity: entry.quantity || 1,
-								unitCost: item.unitPrice,
-								location: entry.location || "Despensa",
-								expirationDate: entry.expirationDate ? new Date(entry.expirationDate) : null,
-								notes: entry.notes || `Compra #${newPurchase.id.substring(0, 8)}`,
-								isLowStock: product.hasStock && product.minStock ? (entry.quantity || 1) <= product.minStock : false,
-							},
-						})
-
-						return tx.stockMovement.create({
-							data: {
-								stockItemId: stockItem.id,
-								purchaseItemId: newPurchase.items.find((pi) => pi.productId === item.productId)?.id,
-								type: "ENTRADA",
-								quantity: entry.quantity || 1,
-								reason: "Registro de compra",
-							},
+							return tx.stockMovement.create({
+								data: {
+									stockItemId: stockItem.id,
+									purchaseItemId: newPurchase.items.find((pi) => pi.productId === item.productId)?.id,
+									type: "ENTRADA",
+									quantity: entry.quantity || 1,
+									reason: "Registro de compra",
+								},
+							})
 						})
 					})
+
+				await Promise.all(stockCreationPromises)
+
+				return tx.purchase.findUnique({
+					where: { id: newPurchase.id },
+					include: { market: true, items: { include: { product: true } } },
 				})
-
-			await Promise.all(stockCreationPromises)
-
-			return tx.purchase.findUnique({
-				where: { id: newPurchase.id },
-				include: { market: true, items: { include: { product: true } } },
-			})
-		}, {
-			maxWait: 10000, // 10 segundos de espera máxima
-			timeout: 15000, // 15 segundos de timeout
-		})
+			},
+			{
+				maxWait: 10000, // 10 segundos de espera máxima
+				timeout: 15000, // 15 segundos de timeout
+			},
+		)
 
 		return NextResponse.json(purchase, { status: 201 })
 	} catch (error) {

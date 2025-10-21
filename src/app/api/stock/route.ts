@@ -130,7 +130,7 @@ export async function POST(request: Request) {
 		const data = await request.json()
 		console.log(data)
 		const { productId, quantity, expirationDate, location = "Despensa", unitCost, notes } = data.data
-		
+
 		console.log(quantity)
 
 		const product = await prisma.product.findUnique({

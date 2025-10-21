@@ -112,8 +112,8 @@ export default function VerifyRequestPage() {
 						</div>
 						<CardTitle>⚠️ Verificação Obrigatória</CardTitle>
 						<CardDescription>
-							Você deve verificar seu email antes de acessar o sistema.
-							Enviamos um link de verificação para sua caixa de entrada.
+							Você deve verificar seu email antes de acessar o sistema. Enviamos um link de verificação para sua caixa
+							de entrada.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">

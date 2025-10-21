@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { toolFunctions } from "./tool-functions/index"
 
 // Função para lidar com seleções do usuário
-export async function handleSelection(selectionData: any, history: any[]) {
+export async function handleSelection(selectionData: any, _history: any[]) {
 	const { type, selectedOption, originalContext, searchTerm } = selectionData
 
 	// Baseado no contexto original, executa a ação apropriada

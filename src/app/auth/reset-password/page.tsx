@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
 			} else {
 				toast.error("Erro ao alterar a senha.")
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Erro ao alterar a senha.")
 		} finally {
 			setIsLoading(false)

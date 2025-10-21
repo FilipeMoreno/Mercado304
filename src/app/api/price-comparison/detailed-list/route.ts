@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 		// Filtrar itens se itemIds for fornecido
 		let itemsToProcess = shoppingList.items
 		if (itemIds && Array.isArray(itemIds) && itemIds.length > 0) {
-			itemsToProcess = shoppingList.items.filter(item => itemIds.includes(item.id))
+			itemsToProcess = shoppingList.items.filter((item) => itemIds.includes(item.id))
 		}
 
 		// --- CORREÇÃO APLICADA AQUI ---

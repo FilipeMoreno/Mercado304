@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 		])
 
 		console.log(`[Sync History] Encontrados: ${jobs.length} jobs de ${total} total`)
-		
+
 		if (jobs.length > 0) {
 			console.log(`[Sync History] Primeiro job:`, {
 				id: jobs[0].id,
@@ -47,12 +47,11 @@ export async function GET(request: Request) {
 			console.error("[Sync History] Stack:", error.stack)
 		}
 		return NextResponse.json(
-			{ 
+			{
 				error: "Erro ao buscar histórico",
-				details: error instanceof Error ? error.message : "Erro desconhecido"
-			}, 
-			{ status: 500 }
+				details: error instanceof Error ? error.message : "Erro desconhecido",
+			},
+			{ status: 500 },
 		)
 	}
 }
-

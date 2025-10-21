@@ -153,10 +153,7 @@ export const CATEGORIAS_NAO_ALIMENTOS = [
  * Todas as categorias para busca completa
  * Usar quando não souber o tipo de produto
  */
-export const CATEGORIAS_BUSCA_COMPLETA = [
-	...CATEGORIAS_ALIMENTOS,
-	...CATEGORIAS_NAO_ALIMENTOS,
-] as const
+export const CATEGORIAS_BUSCA_COMPLETA = [...CATEGORIAS_ALIMENTOS, ...CATEGORIAS_NAO_ALIMENTOS] as const
 
 /**
  * Categorias para busca de ALIMENTOS
@@ -167,20 +164,20 @@ export const CATEGORIAS_BUSCA_ALIMENTOS = [
 	// Bebidas e Chocolates
 	55, // Bebidas
 	63, // Chocolates / Alimentos e bebidas
-	
+
 	// Carnes e Proteínas
 	1, // Carnes e peixes
 	58, // Carne bovina
 	59, // Carne suína
 	61, // Peixes e crustáceos
 	10, // Preparação de carnes
-	
+
 	// Alimentos Básicos
 	2, // Leite e derivados
 	4, // Hortifruti
 	5, // Cafés e chás
 	6, // Cereais
-	
+
 	// Preparados e Massas
 	7, // Farinhas
 	9, // Ceras e gorduras
@@ -188,7 +185,7 @@ export const CATEGORIAS_BUSCA_ALIMENTOS = [
 	12, // Conservas
 	13, // Preparos alimentícios
 	54, // Massas
-	
+
 	// Outros
 	8, // Produtos vegetais
 	14, // Alimentos animais
@@ -206,13 +203,13 @@ export const CATEGORIAS_BUSCA_NAO_ALIMENTOS = [
 	22, // Produtos de limpeza
 	62, // Higiene e limpeza
 	19, // Medicamentos
-	
+
 	// Utilidades Domésticas
 	38, // Utensílios
 	40, // Metais
 	27, // Borrachas
 	30, // Cestaria e palhas
-	
+
 	// Vestuário e Acessórios
 	36, // Vestuário
 	37, // Calçados
@@ -220,18 +217,18 @@ export const CATEGORIAS_BUSCA_NAO_ALIMENTOS = [
 	28, // Couros e peles
 	41, // Metais preciosos e bijuterias
 	48, // Produtos ópticos
-	
+
 	// Eletrônicos e Ferramentas
 	43, // Máquinas e elétricos
 	42, // Ferramentas
-	
+
 	// Construção e Materiais
 	26, // Plásticos
 	29, // Madeira
 	31, // Celulose
 	32, // Papéis
 	39, // Pedras e cerâmicas
-	
+
 	// Outros
 	15, // Tabacaria
 	16, // Derivados minerais
@@ -276,7 +273,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"mortadela",
 	"salame",
 	"ostra",
-	
+
 	// Laticínios
 	"leite",
 	"queijo",
@@ -286,7 +283,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"requeijao",
 	"requeijão",
 	"cream cheese",
-	
+
 	// Hortifruti
 	"banana",
 	"maça",
@@ -300,7 +297,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"melancia",
 	"abacaxi",
 	"morango",
-	
+
 	// Bebidas
 	"coca",
 	"pepsi",
@@ -317,7 +314,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"gin",
 	"energetico",
 	"energético",
-	
+
 	// Massas e Grãos
 	"macarrao",
 	"macarrão",
@@ -334,7 +331,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"aveia",
 	"granola",
 	"pipoca",
-	
+
 	// Preparos
 	"molho",
 	"tempero",
@@ -348,7 +345,7 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"ketchup",
 	"maionese",
 	"mostarda",
-	
+
 	// Doces e Chocolates
 	"chocolate",
 	"achocolatado",
@@ -357,20 +354,20 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
 	"bolo",
 	"biscoito",
 	"bolacha",
-	
+
 	// Café e Chá
 	"cafe",
 	"café",
 	"cha",
 	"chá",
 	"capuccino",
-	
+
 	// Conservas
 	"extrato",
 	"geleia",
 	"compota",
 	"conserva",
-	
+
 	// Pães
 	"pao",
 	"pão",
@@ -383,12 +380,12 @@ export const PALAVRAS_CHAVE_ALIMENTOS = [
  */
 export function isProvavelmenteAlimento(termo: string): boolean {
 	const termoLower = termo.toLowerCase().trim()
-	
+
 	// Se for código de barras, não tem como saber - usa alimentos por padrão
 	if (BARCODE_REGEX.test(termoLower)) {
 		return true // Padrão: alimentos (mais comum em supermercado)
 	}
-	
+
 	// Verifica se contém alguma palavra-chave de alimentos
 	return PALAVRAS_CHAVE_ALIMENTOS.some((palavra) => termoLower.includes(palavra))
 }
@@ -401,4 +398,3 @@ export function isProvavelmenteAlimento(termo: string): boolean {
 export function getCategoriasParaBusca(termo: string): readonly number[] {
 	return isProvavelmenteAlimento(termo) ? CATEGORIAS_BUSCA_ALIMENTOS : CATEGORIAS_BUSCA_NAO_ALIMENTOS
 }
-

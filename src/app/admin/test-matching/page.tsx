@@ -7,12 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import {
-	LOCAL_PADRAO,
-	PERIODO_PADRAO,
-	RAIO_PADRAO,
-	TODAS_CATEGORIAS,
-} from "@/lib/nota-parana-config"
+import { LOCAL_PADRAO, PERIODO_PADRAO, RAIO_PADRAO, TODAS_CATEGORIAS } from "@/lib/nota-parana-config"
 
 interface MatchResult {
 	mercadoCadastrado: string
@@ -134,8 +129,9 @@ export default function TestMatchingPage() {
 						<AlertCircle className="size-4" />
 						<AlertTitle>Resultados do Teste</AlertTitle>
 						<AlertDescription>
-							Código de barras: <strong>{result.barcode}</strong> • {result.totalMercadosCadastrados} mercados cadastrados •{" "}
-							{result.totalEstabelecimentosAPI} estabelecimentos da API • {result.estatisticas.matches} matches perfeitos
+							Código de barras: <strong>{result.barcode}</strong> • {result.totalMercadosCadastrados} mercados
+							cadastrados • {result.totalEstabelecimentosAPI} estabelecimentos da API • {result.estatisticas.matches}{" "}
+							matches perfeitos
 						</AlertDescription>
 					</Alert>
 
@@ -182,13 +178,12 @@ export default function TestMatchingPage() {
 							<div className="space-y-4">
 								{/* Top 3 Categorias */}
 								<div>
-									<div className="text-sm font-medium text-blue-900 mb-2">
-										Top 3 Categorias (usadas pela API)
-									</div>
+									<div className="text-sm font-medium text-blue-900 mb-2">Top 3 Categorias (usadas pela API)</div>
 									<div className="flex flex-wrap gap-2">
 										{result.topCategorias.map((cat) => (
 											<Badge key={cat.categoria} variant="default" className="text-sm">
-												{TODAS_CATEGORIAS[cat.categoria] || `Categoria ${cat.categoria}`}: {cat.quantidade} estabelecimento(s)
+												{TODAS_CATEGORIAS[cat.categoria] || `Categoria ${cat.categoria}`}: {cat.quantidade}{" "}
+												estabelecimento(s)
 											</Badge>
 										))}
 									</div>
@@ -204,9 +199,9 @@ export default function TestMatchingPage() {
 									</div>
 									<div className="flex flex-wrap gap-2">
 										{result.categoriasEncontradas.map((catId) => (
-											<Badge 
-												key={catId} 
-												variant={result.topCategorias.some(t => t.categoria === catId) ? "default" : "secondary"}
+											<Badge
+												key={catId}
+												variant={result.topCategorias.some((t) => t.categoria === catId) ? "default" : "secondary"}
 												className="text-xs"
 											>
 												{catId}: {TODAS_CATEGORIAS[catId] || "Desconhecida"}
@@ -295,7 +290,8 @@ export default function TestMatchingPage() {
 											<div className="flex items-center gap-2">
 												<span className="text-sm font-medium">Match de Nome:</span>
 												<Badge variant="default">
-													✅ {match.detalhesMatch.totalMatchesNome} palavras coincidem: {match.detalhesMatch.palavrasMatch.join(", ")}
+													✅ {match.detalhesMatch.totalMatchesNome} palavras coincidem:{" "}
+													{match.detalhesMatch.palavrasMatch.join(", ")}
 												</Badge>
 											</div>
 
@@ -303,7 +299,9 @@ export default function TestMatchingPage() {
 											<div className="grid grid-cols-2 gap-4">
 												<div>
 													<div className="text-sm font-medium mb-1">Endereço (Cadastrado)</div>
-													<div className="text-sm text-muted-foreground">{match.enderecoCadastrado || "Não cadastrado"}</div>
+													<div className="text-sm text-muted-foreground">
+														{match.enderecoCadastrado || "Não cadastrado"}
+													</div>
 												</div>
 												<div>
 													<div className="text-sm font-medium mb-1">Endereço (API)</div>
@@ -325,9 +323,7 @@ export default function TestMatchingPage() {
 														<Badge variant={match.detalhesMatch.temBairro ? "default" : "secondary"}>
 															{match.detalhesMatch.temBairro ? "✅" : "❌"} Bairro
 														</Badge>
-														<Badge variant="outline">
-															{match.detalhesMatch.totalMatchesEndereco}/3 matches
-														</Badge>
+														<Badge variant="outline">{match.detalhesMatch.totalMatchesEndereco}/3 matches</Badge>
 													</div>
 												</div>
 											)}
@@ -400,7 +396,8 @@ export default function TestMatchingPage() {
 											<div className="flex items-center gap-2">
 												<span className="text-sm font-medium">Match de Nome:</span>
 												<Badge variant="default">
-													✅ {match.detalhesMatch.totalMatchesNome} palavras: {match.detalhesMatch.palavrasMatch.join(", ")}
+													✅ {match.detalhesMatch.totalMatchesNome} palavras:{" "}
+													{match.detalhesMatch.palavrasMatch.join(", ")}
 												</Badge>
 											</div>
 
@@ -408,7 +405,9 @@ export default function TestMatchingPage() {
 											<div className="grid grid-cols-2 gap-4">
 												<div>
 													<div className="text-sm font-medium mb-1">Endereço (Cadastrado)</div>
-													<div className="text-sm text-muted-foreground">{match.enderecoCadastrado || "Não cadastrado"}</div>
+													<div className="text-sm text-muted-foreground">
+														{match.enderecoCadastrado || "Não cadastrado"}
+													</div>
 												</div>
 												<div>
 													<div className="text-sm font-medium mb-1">Endereço (API)</div>
@@ -420,9 +419,15 @@ export default function TestMatchingPage() {
 											<Alert variant="destructive">
 												<AlertCircle className="size-4" />
 												<AlertDescription>
-													<strong>Problema:</strong> {!match.enderecoCadastrado ? "Endereço não cadastrado" : `Apenas ${match.detalhesMatch.totalMatchesEndereco}/3 matches de endereço`}
+													<strong>Problema:</strong>{" "}
+													{!match.enderecoCadastrado
+														? "Endereço não cadastrado"
+														: `Apenas ${match.detalhesMatch.totalMatchesEndereco}/3 matches de endereço`}
 													<br />
-													<strong>Solução:</strong> {!match.enderecoCadastrado ? "Cadastre o endereço completo do mercado" : "Verifique se rua, número e bairro estão corretos"}
+													<strong>Solução:</strong>{" "}
+													{!match.enderecoCadastrado
+														? "Cadastre o endereço completo do mercado"
+														: "Verifique se rua, número e bairro estão corretos"}
 												</AlertDescription>
 											</Alert>
 										</div>
@@ -450,15 +455,12 @@ export default function TestMatchingPage() {
 								<AlertCircle className="size-4" />
 								<AlertTitle>Atenção!</AlertTitle>
 								<AlertDescription>
-									Estes mercados NÃO serão incluídos na sincronização automática de preços. 
-									Verifique se a razão social e o endereço estão cadastrados corretamente.
+									Estes mercados NÃO serão incluídos na sincronização automática de preços. Verifique se a razão social
+									e o endereço estão cadastrados corretamente.
 								</AlertDescription>
 							</Alert>
 							{result.resultados.semMatch.map((match) => (
-								<Card
-									key={match.mercadoCadastrado}
-									className="border-l-4 border-l-red-600 opacity-75"
-								>
+								<Card key={match.mercadoCadastrado} className="border-l-4 border-l-red-600 opacity-75">
 									<CardHeader>
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
@@ -468,8 +470,9 @@ export default function TestMatchingPage() {
 												</CardTitle>
 												<CardDescription className="mt-2">
 													<span className="text-red-600 font-medium">
-														❌ {match.estabelecimentoAPI === "Nenhum estabelecimento encontrado na API" 
-															? "Nenhum estabelecimento correspondente encontrado na API do Nota Paraná" 
+														❌{" "}
+														{match.estabelecimentoAPI === "Nenhum estabelecimento encontrado na API"
+															? "Nenhum estabelecimento correspondente encontrado na API do Nota Paraná"
 															: "Não há match suficiente com os dados da API"}
 													</span>
 												</CardDescription>
@@ -515,7 +518,8 @@ export default function TestMatchingPage() {
 													{match.detalhesMatch.totalMatchesNome > 0 && (
 														<div className="mt-2">
 															<Badge variant="secondary" className="text-xs">
-																{match.detalhesMatch.totalMatchesNome} palavra(s) coincidem: {match.detalhesMatch.palavrasMatch.join(", ")}
+																{match.detalhesMatch.totalMatchesNome} palavra(s) coincidem:{" "}
+																{match.detalhesMatch.palavrasMatch.join(", ")}
 															</Badge>
 															<span className="text-xs text-muted-foreground ml-2">(mínimo: 2 palavras)</span>
 														</div>
@@ -529,15 +533,25 @@ export default function TestMatchingPage() {
 												<AlertTitle>Como resolver:</AlertTitle>
 												<AlertDescription className="space-y-1">
 													{!match.razaoSocialCadastrada || match.razaoSocialCadastrada === "Não informada" ? (
-														<p>• Cadastre a <strong>razão social</strong> (nome oficial) do mercado</p>
+														<p>
+															• Cadastre a <strong>razão social</strong> (nome oficial) do mercado
+														</p>
 													) : null}
 													{!match.enderecoCadastrado || match.enderecoCadastrado === "Não informado" ? (
-														<p>• Cadastre o <strong>endereço completo</strong> (rua, número e bairro)</p>
+														<p>
+															• Cadastre o <strong>endereço completo</strong> (rua, número e bairro)
+														</p>
 													) : null}
 													{match.estabelecimentoAPI === "Nenhum estabelecimento encontrado na API" ? (
-														<p>• Este mercado pode não estar no raio de busca ({RAIO_PADRAO}km) ou não ter este produto em estoque</p>
+														<p>
+															• Este mercado pode não estar no raio de busca ({RAIO_PADRAO}km) ou não ter este produto
+															em estoque
+														</p>
 													) : (
-														<p>• Verifique se a razão social e endereço cadastrados correspondem aos dados oficiais do mercado</p>
+														<p>
+															• Verifique se a razão social e endereço cadastrados correspondem aos dados oficiais do
+															mercado
+														</p>
 													)}
 												</AlertDescription>
 											</Alert>
@@ -552,4 +566,3 @@ export default function TestMatchingPage() {
 		</div>
 	)
 }
-

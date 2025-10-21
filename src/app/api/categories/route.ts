@@ -7,8 +7,8 @@ export async function GET(request: Request) {
 
 		const search = searchParams.get("search") || ""
 		const sort = searchParams.get("sort") || "name-asc"
-		const page = parseInt(searchParams.get("page") || "1")
-		const limit = parseInt(searchParams.get("limit") || "12")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const limit = parseInt(searchParams.get("limit") || "12", 10)
 
 		const skip = (page - 1) * limit
 
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 				hasMore: page < totalPages,
 			},
 		})
-	} catch (error) {
+	} catch (_error) {
 		return NextResponse.json({ error: "Erro ao buscar categorias" }, { status: 500 })
 	}
 }

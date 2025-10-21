@@ -2,15 +2,15 @@
 
 import { Check, ChevronDown, ChevronUp, LinkIcon, Plus, Save, X } from "lucide-react"
 import { useState } from "react"
+import { UnitSelectDialog } from "@/components/selects/unit-select-dialog"
 import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UnitSelectDialog } from "@/components/selects/unit-select-dialog"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useUIPreferences } from "@/hooks"
 import { cn } from "@/lib/utils"
 
@@ -60,9 +60,9 @@ export function AddItemDialog({
 			...newItem,
 			productId: product.id,
 			productName: product.name,
-			productUnit: product.unit || 'unidade',
-			brand: product.brand?.name || '',
-			category: product.category?.name || '',
+			productUnit: product.unit || "unidade",
+			brand: product.brand?.name || "",
+			category: product.category?.name || "",
 		})
 		setOpenProductPopover(false)
 		setOpenProductDialog(false)
@@ -85,12 +85,7 @@ export function AddItemDialog({
 	}
 
 	return (
-		<ResponsiveDialog
-			open={isOpen}
-			onOpenChange={onClose}
-			title="Adicionar Item à Lista"
-			maxWidth="xl"
-		>
+		<ResponsiveDialog open={isOpen} onOpenChange={onClose} title="Adicionar Item à Lista" maxWidth="xl">
 			<div className="space-y-4 max-h-[70vh] overflow-y-auto">
 				{/* Input híbrido: texto livre + busca de produtos */}
 				<div className="space-y-2">
@@ -139,11 +134,7 @@ export function AddItemDialog({
 							</Button>
 						)}
 					</div>
-					{newItem.productId && (
-						<p className="text-xs text-green-600">
-							✓ Vinculado a produto cadastrado
-						</p>
-					)}
+					{newItem.productId && <p className="text-xs text-green-600">✓ Vinculado a produto cadastrado</p>}
 
 					{/* Dialog ou Popover separado */}
 					{selectStyle === "dialog" ? (
@@ -152,7 +143,7 @@ export function AddItemDialog({
 							onOpenChange={setOpenProductDialog}
 							value={newItem.productId || ""}
 							onValueChange={(productId) => {
-								const product = products.find(p => p.id === productId)
+								const product = products.find((p) => p.id === productId)
 								if (product) {
 									handleProductSelected(product)
 								}
@@ -186,16 +177,11 @@ export function AddItemDialog({
 												onSelect={() => handleProductSelected(product)}
 											>
 												<Check
-													className={cn(
-														"mr-2 h-4 w-4",
-														newItem.productId === product.id ? "opacity-100" : "opacity-0"
-													)}
+													className={cn("mr-2 h-4 w-4", newItem.productId === product.id ? "opacity-100" : "opacity-0")}
 												/>
 												<div className="flex-1">
 													<div className="font-medium">{product.name}</div>
-													{product.brand && (
-														<div className="text-xs text-muted-foreground">{product.brand.name}</div>
-													)}
+													{product.brand && <div className="text-xs text-muted-foreground">{product.brand.name}</div>}
 												</div>
 											</CommandItem>
 										))}
@@ -331,11 +317,7 @@ export function AddItemDialog({
 				)}
 
 				<div className="flex gap-2 pt-4">
-					<Button
-						onClick={onAdd}
-						disabled={adding || !newItem.productName.trim()}
-						className="flex-1"
-					>
+					<Button onClick={onAdd} disabled={adding || !newItem.productName.trim()} className="flex-1">
 						<Save className="size-4 mr-2" />
 						{adding ? "Adicionando..." : "Adicionar"}
 					</Button>

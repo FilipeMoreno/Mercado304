@@ -1045,12 +1045,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 											)}
 										</div>
 										{selectedMarket && (
-											<Button
-												variant="outline"
-												size="icon"
-												onClick={() => setSelectedMarket("")}
-												title="Limpar filtro"
-											>
+											<Button variant="outline" size="icon" onClick={() => setSelectedMarket("")} title="Limpar filtro">
 												<X className="size-4" />
 											</Button>
 										)}

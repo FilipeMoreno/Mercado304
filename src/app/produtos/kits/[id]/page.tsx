@@ -140,15 +140,11 @@ export default function KitDetailsPage() {
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Marca</p>
-										<p className="font-medium">
-											{kit.brand?.name || "Não informada"}
-										</p>
+										<p className="font-medium">{kit.brand?.name || "Não informada"}</p>
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Categoria</p>
-										<p className="font-medium">
-											{kit.category?.name || "Não informada"}
-										</p>
+										<p className="font-medium">{kit.category?.name || "Não informada"}</p>
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Total de Produtos</p>
@@ -469,16 +465,12 @@ export default function KitDetailsPage() {
 												<Card className="border-green-500/50">
 													<CardHeader>
 														<CardTitle>Preço Registrado do Kit</CardTitle>
-														<CardDescription>
-															Último preço registrado para este kit
-														</CardDescription>
+														<CardDescription>Último preço registrado para este kit</CardDescription>
 													</CardHeader>
 													<CardContent>
 														<div className="flex items-center justify-between p-6 bg-green-50 dark:bg-green-950/30 rounded-lg">
 															<div className="flex-1">
-																<p className="text-sm text-muted-foreground mb-1">
-																	{kit.kitProduct.name}
-																</p>
+																<p className="text-sm text-muted-foreground mb-1">{kit.kitProduct.name}</p>
 																<p className="text-4xl font-bold text-green-700 dark:text-green-400">
 																	R$ {priceData.data.kitRegisteredPrice.toFixed(2)}
 																</p>
@@ -533,9 +525,7 @@ export default function KitDetailsPage() {
 																			Vale a pena o kit!
 																		</Badge>
 																	) : (
-																		<Badge variant="secondary">
-																			Melhor comprar separado
-																		</Badge>
+																		<Badge variant="secondary">Melhor comprar separado</Badge>
 																	)}
 																</div>
 																<div className="flex items-center justify-between text-sm">
@@ -544,20 +534,18 @@ export default function KitDetailsPage() {
 																			? "Economia comprando o kit:"
 																			: "Diferença (mais caro):"}
 																	</span>
-																	<span className={`font-bold ${
-																		priceData.data.kitRegisteredPrice < priceData.data.totalPrice
-																			? "text-green-600"
-																			: "text-red-600"
-																	}`}>
+																	<span
+																		className={`font-bold ${
+																			priceData.data.kitRegisteredPrice < priceData.data.totalPrice
+																				? "text-green-600"
+																				: "text-red-600"
+																		}`}
+																	>
 																		R${" "}
-																		{Math.abs(
-																			priceData.data.totalPrice - priceData.data.kitRegisteredPrice
-																		).toFixed(2)}{" "}
+																		{Math.abs(priceData.data.totalPrice - priceData.data.kitRegisteredPrice).toFixed(2)}{" "}
 																		(
 																		{(
-																			(Math.abs(
-																				priceData.data.totalPrice - priceData.data.kitRegisteredPrice
-																			) /
+																			(Math.abs(priceData.data.totalPrice - priceData.data.kitRegisteredPrice) /
 																				priceData.data.totalPrice) *
 																			100
 																		).toFixed(1)}

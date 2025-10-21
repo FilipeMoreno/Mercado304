@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 		const period = searchParams.get("period") || "30" // últimos X dias
 		const categoryId = searchParams.get("categoryId")
 
-		const days = parseInt(period)
+		const days = parseInt(period, 10)
 		const startDate = new Date()
 		startDate.setDate(startDate.getDate() - days)
 
@@ -161,7 +161,7 @@ export async function GET(request: Request) {
 		const productsWithScores = nutritionalData
 			.filter((item) => item.product?.nutritionalInfo)
 			.map((item) => {
-				const nutrition = item.product!.nutritionalInfo!
+				const nutrition = item.product?.nutritionalInfo!
 				let healthScore = 100
 
 				// Penalidades

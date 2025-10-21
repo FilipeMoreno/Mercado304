@@ -103,11 +103,7 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 					<div className="relative">
 						<div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/20 blur-2xl" />
 						<div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50">
-							{error ? (
-								<ShieldAlert className="size-12 text-white" />
-							) : (
-								<Fingerprint className="size-12 text-white" />
-							)}
+							{error ? <ShieldAlert className="size-12 text-white" /> : <Fingerprint className="size-12 text-white" />}
 						</div>
 					</div>
 				</div>

@@ -2,42 +2,43 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  try {
-    const productId = params.id
-    const apiKey = process.env.GEMINI_API_KEY
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params
+	try {
+		const productId = params.id
+		const apiKey = process.env.GEMINI_API_KEY
 
-    if (!apiKey) {
-      return NextResponse.json({ error: "Chave da API do Gemini não configurada." }, { status: 500 })
-    }
+		if (!apiKey) {
+			return NextResponse.json({ error: "Chave da API do Gemini não configurada." }, { status: 500 })
+		}
 
-    // Buscar produto com informações nutricionais
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      include: {
-        nutritionalInfo: true,
-        category: true,
-        brand: true,
-      },
-    })
+		// Buscar produto com informações nutricionais
+		const product = await prisma.product.findUnique({
+			where: { id: productId },
+			include: {
+				nutritionalInfo: true,
+				category: true,
+				brand: true,
+			},
+		})
 
-    if (!product) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 })
-    }
+		if (!product) {
+			return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 })
+		}
 
-    // Gerar análise com IA
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+		// Gerar análise com IA
+		const genAI = new GoogleGenerativeAI(apiKey)
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
-    const prompt = `Você é um nutricionista especializado. Analise o seguinte produto e forneça informações detalhadas em português brasileiro.
+		const prompt = `Você é um nutricionista especializado. Analise o seguinte produto e forneça informações detalhadas em português brasileiro.
 
 Produto: ${product.name}
 Marca: ${product.brand?.name || "Não especificada"}
 Categoria: ${product.category?.name || "Não especificada"}
 
-${product.nutritionalInfo
-        ? `Informações Nutricionais (por 100g/ml):
+${
+	product.nutritionalInfo
+		? `Informações Nutricionais (por 100g/ml):
 - Calorias: ${product.nutritionalInfo.calories || "N/A"} kcal
 - Proteínas: ${product.nutritionalInfo.proteins || "N/A"}g
 - Carboidratos: ${product.nutritionalInfo.carbohydrates || "N/A"}g
@@ -48,8 +49,8 @@ ${product.nutritionalInfo
 - Sódio: ${product.nutritionalInfo.sodium || "N/A"}mg
 - Açúcares Totais: ${product.nutritionalInfo.totalSugars || "N/A"}g
 - Açúcares Adicionados: ${product.nutritionalInfo.addedSugars || "N/A"}g`
-        : "Informações nutricionais não disponíveis."
-      }
+		: "Informações nutricionais não disponíveis."
+}
 
 Forneça uma análise completa no seguinte formato JSON:
 
@@ -94,34 +95,31 @@ Forneça uma análise completa no seguinte formato JSON:
 
 Seja específico, prático e baseado em evidências científicas. Se não houver informações nutricionais, baseie-se no tipo de produto.`
 
-    const result = await model.generateContent(prompt)
-    const response = result.response
-    const text = response.text()
+		const result = await model.generateContent(prompt)
+		const response = result.response
+		const text = response.text()
 
-    // Extrair JSON da resposta
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error("Não foi possível extrair JSON da resposta da IA")
-    }
+		// Extrair JSON da resposta
+		const jsonMatch = text.match(/\{[\s\S]*\}/)
+		if (!jsonMatch) {
+			throw new Error("Não foi possível extrair JSON da resposta da IA")
+		}
 
-    const aiAnalysis = JSON.parse(jsonMatch[0])
+		const aiAnalysis = JSON.parse(jsonMatch[0])
 
-    return NextResponse.json({
-      product: {
-        id: product.id,
-        name: product.name,
-        brand: product.brand?.name,
-        category: product.category?.name,
-        unit: product.unit,
-      },
-      nutritionalInfo: product.nutritionalInfo,
-      aiAnalysis,
-    })
-  } catch (error) {
-    console.error("Erro ao gerar análise nutricional:", error)
-    return NextResponse.json(
-      { error: "Erro ao gerar análise nutricional" },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json({
+			product: {
+				id: product.id,
+				name: product.name,
+				brand: product.brand?.name,
+				category: product.category?.name,
+				unit: product.unit,
+			},
+			nutritionalInfo: product.nutritionalInfo,
+			aiAnalysis,
+		})
+	} catch (error) {
+		console.error("Erro ao gerar análise nutricional:", error)
+		return NextResponse.json({ error: "Erro ao gerar análise nutricional" }, { status: 500 })
+	}
 }

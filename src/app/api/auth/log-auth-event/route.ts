@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { logAuthEvent, getRequestInfo } from "@/lib/auth-logger"
+import { getRequestInfo, logAuthEvent } from "@/lib/auth-logger"
 import { sendNewSessionEmail } from "@/lib/email"
 import { getLocationFromIP } from "@/lib/geolocation"
 
@@ -9,56 +9,52 @@ import { getLocationFromIP } from "@/lib/geolocation"
  * Endpoint para registrar eventos de autenticação (login, reauth, etc)
  */
 export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
-    }
+		if (!session?.user) {
+			return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+		}
 
-    const { eventType, method, metadata } = await request.json()
+		const { eventType, method, metadata } = await request.json()
 
-    if (!eventType || !method) {
-      return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 })
-    }
+		if (!eventType || !method) {
+			return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 })
+		}
 
-    // Obtém informações da requisição
-    const { ipAddress, userAgent } = await getRequestInfo()
+		// Obtém informações da requisição
+		const { ipAddress, userAgent } = await getRequestInfo()
 
-    // Registra o evento
-    await logAuthEvent({
-      userId: session.user.id,
-      eventType,
-      method,
-      ipAddress,
-      userAgent,
-      metadata,
-    })
+		// Registra o evento
+		await logAuthEvent({
+			userId: session.user.id,
+			eventType,
+			method,
+			ipAddress,
+			userAgent,
+			metadata,
+		})
 
-    // Se for um evento de login, envia email de notificação
-    if (eventType === "login") {
-      const location = await getLocationFromIP(ipAddress)
-      sendNewSessionEmail({
-        user: {
-          email: session.user.email,
-          name: session.user.name || undefined,
-        },
-        device: userAgent,
-        location,
-        ipAddress,
-        timestamp: new Date().toLocaleString('pt-BR'),
-      }).catch(err => console.error("Failed to send new session email:", err))
-    }
+		// Se for um evento de login, envia email de notificação
+		if (eventType === "login") {
+			const location = await getLocationFromIP(ipAddress)
+			sendNewSessionEmail({
+				user: {
+					email: session.user.email,
+					name: session.user.name || undefined,
+				},
+				device: userAgent,
+				location,
+				ipAddress,
+				timestamp: new Date().toLocaleString("pt-BR"),
+			}).catch((err) => console.error("Failed to send new session email:", err))
+		}
 
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error("[LogAuthEvent] Error:", error)
-    return NextResponse.json(
-      { error: error.message || "Erro ao registrar evento" },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json({ success: true })
+	} catch (error: any) {
+		console.error("[LogAuthEvent] Error:", error)
+		return NextResponse.json({ error: error.message || "Erro ao registrar evento" }, { status: 500 })
+	}
 }
-

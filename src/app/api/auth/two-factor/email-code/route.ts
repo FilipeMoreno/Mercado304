@@ -1,13 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import { sendTwoFactorEmail } from "@/lib/email"
+import { prisma } from "@/lib/prisma"
 
 // Enviar código de verificação por email
 export async function POST(request: NextRequest) {
 	try {
-
 		// Tenta pegar o email do corpo da requisição (se enviado)
 		let requestBody: any = {}
 		try {
@@ -52,10 +51,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		if (!user.twoFactorEmailEnabled) {
-			return NextResponse.json(
-				{ error: "2FA por email não está habilitado" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ error: "2FA por email não está habilitado" }, { status: 400 })
 		}
 
 		// Invalida códigos antigos não usados deste usuário
@@ -105,17 +101,13 @@ export async function POST(request: NextRequest) {
 	} catch (error) {
 		console.error("[2FA-Email-Send] ===== ERRO =====")
 		console.error("[2FA-Email-Send] Erro ao enviar código:", error)
-		return NextResponse.json(
-			{ error: "Erro ao enviar código" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro ao enviar código" }, { status: 500 })
 	}
 }
 
 // Verificar código de verificação
 export async function PUT(request: NextRequest) {
 	try {
-
 		const { code, email } = await request.json()
 
 		if (!code || code.length !== 6) {
@@ -160,10 +152,7 @@ export async function PUT(request: NextRequest) {
 		})
 
 		if (!validCode) {
-			return NextResponse.json(
-				{ error: "Código inválido ou expirado" },
-				{ status: 400 }
-			)
+			return NextResponse.json({ error: "Código inválido ou expirado" }, { status: 400 })
 		}
 
 		// Marca código como usado
@@ -182,9 +171,6 @@ export async function PUT(request: NextRequest) {
 	} catch (error) {
 		console.error("[2FA-Email-Verify] ===== ERRO =====")
 		console.error("[2FA-Email-Verify] Erro ao verificar código:", error)
-		return NextResponse.json(
-			{ error: "Erro interno do servidor" },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
 	}
 }

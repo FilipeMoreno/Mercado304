@@ -244,7 +244,9 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 				matchCount++
 
 				const confidence = Math.round(bestMatch.score * 100)
-				toast.success(`"${product.name}" associado a "${updatedItems[bestMatch.index].originalName}" (${confidence}% confiança)`)
+				toast.success(
+					`"${product.name}" associado a "${updatedItems[bestMatch.index].originalName}" (${confidence}% confiança)`,
+				)
 			} else {
 				toast.warning(
 					`Produto "${product.name}" não teve match suficiente com nenhum item (melhor score: ${Math.round(bestMatch.score * 100)}%)`,

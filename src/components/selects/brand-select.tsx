@@ -1,10 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { BrandCombobox } from "@/components/ui/brand-combobox"
 import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
-import type { Brand } from "@/types"
 
 interface BrandSelectProps {
 	value?: string
@@ -46,7 +45,10 @@ export function BrandSelect({
 	const handleValueChange = useCallback(
 		(newValue: string) => {
 			console.log("[BrandSelect] Value changed:", newValue)
-			console.log("[BrandSelect] Brands available:", brands.map(b => ({ id: b.id, name: b.name })))
+			console.log(
+				"[BrandSelect] Brands available:",
+				brands.map((b) => ({ id: b.id, name: b.name })),
+			)
 			onValueChange?.(newValue)
 			if (newValue) {
 				setSearch("")
@@ -76,7 +78,6 @@ export function BrandSelect({
 			setTimeout(() => {
 				setPendingBrandName(null)
 			}, 3000)
-
 		} catch (error) {
 			console.error("Error creating brand:", error)
 		}

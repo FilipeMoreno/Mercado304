@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import { ProductCombobox } from "@/components/ui/product-combobox"
-import { useInfiniteProductsQuery, useAllProductsQuery } from "@/hooks"
+import { useAllProductsQuery, useInfiniteProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
 import type { Product } from "@/types"
@@ -74,7 +74,7 @@ export function ProductSelect({
 		[onValueChange],
 	)
 
-	const [pendingProductName, setPendingProductName] = useState<string | null>(null)
+	const [pendingProductName, _setPendingProductName] = useState<string | null>(null)
 
 	const handleCreateProduct = (name: string) => {
 		if (preserveFormData) {

@@ -1,21 +1,15 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import {
-	Bot,
-	Camera,
-	ExternalLink,
-	Mic, Sparkles,
-	Volume2, X
-} from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Bot, Camera, ExternalLink, Mic, Sparkles, Volume2, X } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
-import { SelectionCard } from "@/components/ai-chat/selection-cards"
-import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
-import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
 import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,29 +20,22 @@ export function AiAssistantChat() {
 	const [input, setInput] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
 	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
-	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
-	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
-	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
+	const [isProcessingPhoto, _setIsProcessingPhoto] = useState(false)
+	const [_capturedImagePreview, _setCapturedImagePreview] = useState<string | null>(null)
+	const [_recognizedProduct, _setRecognizedProduct] = useState<any>(null)
 	const [isDragOver, setIsDragOver] = useState(false)
-	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+	const [_showHistorySidebar, _setShowHistorySidebar] = useState(false)
 	const [isListening, setIsListening] = useState(false)
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
-	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	const [_isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
-	const inputRef = useRef<HTMLInputElement>(null)
+	const _inputRef = useRef<HTMLInputElement>(null)
 
-	const {
-		sessions,
-		currentSessionId,
-		createNewSession,
-		loadSession,
-		deleteSession,
-		renameSession,
-		clearAllHistory,
-	} = useChatHistoryDB()
+	const { sessions, currentSessionId, createNewSession, loadSession, deleteSession, renameSession, clearAllHistory } =
+		useChatHistoryDB()
 
 	const {
 		messages,
@@ -67,11 +54,11 @@ export function AiAssistantChat() {
 	// Handlers
 	const handleOpenChat = () => setIsOpen(true)
 	const handleCloseChat = () => setIsOpen(false)
-	const handleNewChat = () => startNewChat()
+	const _handleNewChat = () => startNewChat()
 
 	const handleSuggestionClick = (suggestion: string) => {
 		setInput(suggestion)
-		handleSendMessage(new Event('submit') as any)
+		handleSendMessage(new Event("submit") as any)
 	}
 
 	const handleSendMessage = async (e: React.FormEvent) => {
@@ -83,7 +70,7 @@ export function AiAssistantChat() {
 		await sendMessage(message)
 	}
 
-	const handlePhotoCapture = async (file: File) => {
+	const handlePhotoCapture = async (_file: File) => {
 		// Implementar lógica de captura de foto
 		setShowPhotoCapture(false)
 	}
@@ -120,7 +107,7 @@ export function AiAssistantChat() {
 			}
 
 			recognition.onerror = (event: any) => {
-				console.error('Erro no reconhecimento de voz:', event.error)
+				console.error("Erro no reconhecimento de voz:", event.error)
 				setIsListening(false)
 			}
 
@@ -142,13 +129,12 @@ export function AiAssistantChat() {
 		}
 	}
 
-	const stopSpeaking = () => {
+	const _stopSpeaking = () => {
 		if (synthRef.current) {
 			synthRef.current.cancel()
 			setIsSpeaking(false)
 		}
 	}
-
 
 	// Drag and drop handlers
 	const handleDragOver = (e: React.DragEvent) => {
@@ -164,18 +150,21 @@ export function AiAssistantChat() {
 		// Implementar lógica de drop
 	}
 
-	const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
-		const items = Array.from(e.clipboardData.items)
-		const imageItem = items.find(item => item.type.startsWith('image/'))
+	const _handlePaste = useCallback(
+		async (e: React.ClipboardEvent) => {
+			const items = Array.from(e.clipboardData.items)
+			const imageItem = items.find((item) => item.type.startsWith("image/"))
 
-		if (imageItem) {
-			e.preventDefault()
-			const file = imageItem.getAsFile()
-			if (file) {
-				await handlePhotoCapture(file)
+			if (imageItem) {
+				e.preventDefault()
+				const file = imageItem.getAsFile()
+				if (file) {
+					await handlePhotoCapture(file)
+				}
 			}
-		}
-	}, [])
+		},
+		[handlePhotoCapture],
+	)
 
 	return (
 		<div className="fixed bottom-4 right-4 z-50">
@@ -215,9 +204,7 @@ export function AiAssistantChat() {
 									<div className="flex flex-col">
 										<span className="text-sm font-semibold text-foreground">Zé, o assistente</span>
 										{currentSession && (
-											<span className="text-xs text-muted-foreground truncate max-w-32">
-												{currentSession.title}
-											</span>
+											<span className="text-xs text-muted-foreground truncate max-w-32">{currentSession.title}</span>
 										)}
 									</div>
 								</CardTitle>
@@ -285,10 +272,15 @@ export function AiAssistantChat() {
 										))}
 										{isLoading && (
 											<EnhancedTypingIndicator
-												context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
-													lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
-														lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-															undefined}
+												context={
+													lastUserMessage?.toLowerCase().includes("preço")
+														? "price"
+														: lastUserMessage?.toLowerCase().includes("lista")
+															? "list"
+															: lastUserMessage?.toLowerCase().includes("churrasco")
+																? "churrasco"
+																: undefined
+												}
 											/>
 										)}
 									</div>
@@ -352,8 +344,9 @@ export function AiAssistantChat() {
 								repeatType: "reverse",
 							},
 						}}
-						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-							}`}
+						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${
+							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+						}`}
 					>
 						{isListening ? (
 							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
@@ -372,11 +365,7 @@ export function AiAssistantChat() {
 					<div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
 						<div className="p-4 border-b flex items-center justify-between">
 							<h3 className="text-lg font-semibold">Capturar Produto</h3>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setShowPhotoCapture(false)}
-							>
+							<Button variant="ghost" size="icon" onClick={() => setShowPhotoCapture(false)}>
 								<X className="size-4" />
 							</Button>
 						</div>

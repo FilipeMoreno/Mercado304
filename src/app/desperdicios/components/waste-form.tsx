@@ -195,7 +195,9 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 					</Select>
 				</div>
 				<div>
-					<label htmlFor={totalValueId} className="block text-sm font-medium mb-2">Valor Total</label>
+					<label htmlFor={totalValueId} className="block text-sm font-medium mb-2">
+						Valor Total
+					</label>
 					<Input
 						id={totalValueId}
 						type="number"
@@ -236,7 +238,9 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 					{errors.wasteReason && <p className="text-red-500 text-sm mt-1">{errors.wasteReason}</p>}
 				</div>
 				<div>
-					<label htmlFor={locationId} className="block text-sm font-medium mb-2">Localização</label>
+					<label htmlFor={locationId} className="block text-sm font-medium mb-2">
+						Localização
+					</label>
 					<Input
 						id={locationId}
 						value={formData.location}
@@ -248,7 +252,9 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 
 			<div className="grid grid-cols-2 gap-4">
 				<div>
-					<label htmlFor={wasteDateId} className="block text-sm font-medium mb-2">Data do Desperdício *</label>
+					<label htmlFor={wasteDateId} className="block text-sm font-medium mb-2">
+						Data do Desperdício *
+					</label>
 					<Input
 						id={wasteDateId}
 						type="date"
@@ -259,7 +265,9 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 					/>
 				</div>
 				<div>
-					<label htmlFor={expirationDateId} className="block text-sm font-medium mb-2">Data de Validade</label>
+					<label htmlFor={expirationDateId} className="block text-sm font-medium mb-2">
+						Data de Validade
+					</label>
 					<Input
 						id={expirationDateId}
 						type="date"
@@ -271,7 +279,9 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 			</div>
 
 			<div>
-				<label htmlFor={notesId} className="block text-sm font-medium mb-2">Observações</label>
+				<label htmlFor={notesId} className="block text-sm font-medium mb-2">
+					Observações
+				</label>
 				<Textarea
 					id={notesId}
 					value={formData.notes}

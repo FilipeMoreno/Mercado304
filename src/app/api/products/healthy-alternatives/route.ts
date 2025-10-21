@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const categoryId = searchParams.get("categoryId")
 		const excludeProductId = searchParams.get("excludeProductId")
-		const limit = parseInt(searchParams.get("limit") || "5")
+		const limit = parseInt(searchParams.get("limit") || "5", 10)
 
 		if (!categoryId) {
 			return NextResponse.json({ alternatives: [] })

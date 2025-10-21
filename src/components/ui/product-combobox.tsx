@@ -1,6 +1,6 @@
 "use client"
 
-import { Barcode, Check, ChevronsUpDown, Loader2 } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -132,19 +132,19 @@ export function ProductCombobox({
 					<span className="truncate flex-1 text-left font-normal">
 						{value && value !== ""
 							? (() => {
-								// Primeiro tenta usar selectedProduct se disponível
-								if (selectedProduct) {
-									return `${selectedProduct.name} (${selectedProduct.unit})`
-								}
-								// Se não, busca na lista de produtos
-								const foundProduct = products.find((p) => p.id === value)
-								if (foundProduct) {
-									return `${foundProduct.name} (${foundProduct.unit})`
-								}
-								// Se não encontrou o produto na lista, pode ser um produto recém-criado
-								// Mostra o nome do produto pendente se disponível
-								return pendingProductName || "Produto selecionado"
-							})()
+									// Primeiro tenta usar selectedProduct se disponível
+									if (selectedProduct) {
+										return `${selectedProduct.name} (${selectedProduct.unit})`
+									}
+									// Se não, busca na lista de produtos
+									const foundProduct = products.find((p) => p.id === value)
+									if (foundProduct) {
+										return `${foundProduct.name} (${foundProduct.unit})`
+									}
+									// Se não encontrou o produto na lista, pode ser um produto recém-criado
+									// Mostra o nome do produto pendente se disponível
+									return pendingProductName || "Produto selecionado"
+								})()
 							: placeholder}
 					</span>
 					<ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />

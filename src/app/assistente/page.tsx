@@ -1,24 +1,20 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useTheme } from "@/lib/theme"
-import {
-	Bot, Camera, Menu, Mic,
-	Plus, Settings, X
-} from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Bot, Camera, Menu, Plus, Settings, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
-import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
-import { SelectionCard } from "@/components/ai-chat/selection-cards"
-import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
-import { SmartSuggestions } from "@/components/ai-chat/smart-suggestions"
-import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
 import { ChatGPTSidebar } from "@/components/ai-chat/chatgpt-sidebar"
+import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
+import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
+import { SimpleSuggestions } from "@/components/ai-chat/simple-suggestions"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistoryDB } from "@/hooks"
-import { SimpleSuggestions } from "@/components/ai-chat/simple-suggestions"
+import { useTheme } from "@/lib/theme"
 
 export default function CleanAssistentePage() {
 	const { theme } = useTheme()
@@ -28,24 +24,17 @@ export default function CleanAssistentePage() {
 	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 	const [isListening, setIsListening] = useState(false)
-	const [isSpeaking, setIsSpeaking] = useState(false)
+	const [_isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
-	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	const [_isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
 
-	const {
-		sessions,
-		currentSessionId,
-		createNewSession,
-		loadSession,
-		deleteSession,
-		renameSession,
-		clearAllHistory,
-	} = useChatHistoryDB()
+	const { sessions, currentSessionId, createNewSession, loadSession, deleteSession, renameSession, clearAllHistory } =
+		useChatHistoryDB()
 
 	const {
 		messages,
@@ -64,20 +53,20 @@ export default function CleanAssistentePage() {
 	// Auto-resize textarea
 	useEffect(() => {
 		if (textareaRef.current) {
-			textareaRef.current.style.height = 'auto'
+			textareaRef.current.style.height = "auto"
 			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
 		}
-	}, [input])
+	}, [])
 
 	// Auto-scroll to bottom
 	useEffect(() => {
 		if (scrollAreaRef.current) {
-			const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+			const scrollElement = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
 			if (scrollElement) {
 				scrollElement.scrollTop = scrollElement.scrollHeight
 			}
 		}
-	}, [messages, isLoading])
+	}, [])
 
 	const handleSendMessage = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -88,8 +77,8 @@ export default function CleanAssistentePage() {
 		await sendMessage(message)
 	}
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+	const _handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault()
 			handleSendMessage(e)
 		}
@@ -100,7 +89,7 @@ export default function CleanAssistentePage() {
 	}
 
 	const handleNewChat = () => {
-		const newSession = startNewChat()
+		const _newSession = startNewChat()
 		setShowHistorySidebar(false)
 	}
 
@@ -111,10 +100,10 @@ export default function CleanAssistentePage() {
 
 	const handlePinSession = (sessionId: string) => {
 		// TODO: Implementar lógica para fixar/desafixar sessão
-		const session = sessions.find(s => s.id === sessionId)
+		const session = sessions.find((s) => s.id === sessionId)
 		const isPinned = session?.isPinned || false
 
-		console.log(`${isPinned ? 'Desafixando' : 'Fixando'} sessão:`, sessionId)
+		console.log(`${isPinned ? "Desafixando" : "Fixando"} sessão:`, sessionId)
 
 		// Aqui você implementaria a lógica para:
 		// 1. Atualizar o estado da sessão no banco de dados
@@ -125,12 +114,12 @@ export default function CleanAssistentePage() {
 		// await updateSession(sessionId, { isPinned: !isPinned })
 		// await refreshSessions()
 
-		alert(`Sessão ${isPinned ? 'desafixada' : 'fixada'} com sucesso!\n(Funcionalidade em desenvolvimento)`)
+		alert(`Sessão ${isPinned ? "desafixada" : "fixada"} com sucesso!\n(Funcionalidade em desenvolvimento)`)
 	}
 
 	const handleShareSession = (sessionId: string) => {
-		const session = sessions.find(s => s.id === sessionId)
-		console.log('Compartilhando sessão:', session?.title || sessionId)
+		const session = sessions.find((s) => s.id === sessionId)
+		console.log("Compartilhando sessão:", session?.title || sessionId)
 
 		// Aqui você implementaria:
 		// 1. Gerar um link público para a conversa
@@ -140,20 +129,21 @@ export default function CleanAssistentePage() {
 
 		// Exemplo básico - copiar ID para clipboard
 		const shareUrl = `${window.location.origin}/assistente?session=${sessionId}`
-		navigator.clipboard.writeText(shareUrl)
+		navigator.clipboard
+			.writeText(shareUrl)
 			.then(() => {
-				alert('Link da conversa copiado para clipboard!\n(Funcionalidade em desenvolvimento)')
-				console.log('Link copiado:', shareUrl)
+				alert("Link da conversa copiado para clipboard!\n(Funcionalidade em desenvolvimento)")
+				console.log("Link copiado:", shareUrl)
 			})
-			.catch(err => {
-				console.error('Erro ao copiar link:', err)
-				alert('Erro ao copiar link para clipboard')
+			.catch((err) => {
+				console.error("Erro ao copiar link:", err)
+				alert("Erro ao copiar link para clipboard")
 			})
 	}
 
 	const handleArchiveSession = (sessionId: string) => {
-		const session = sessions.find(s => s.id === sessionId)
-		console.log('Arquivando sessão:', session?.title || sessionId)
+		const session = sessions.find((s) => s.id === sessionId)
+		console.log("Arquivando sessão:", session?.title || sessionId)
 
 		// Aqui você implementaria:
 		// 1. Marcar sessão como arquivada no banco
@@ -165,7 +155,7 @@ export default function CleanAssistentePage() {
 		// await updateSession(sessionId, { isArchived: true })
 		// await refreshSessions()
 
-		alert(`Sessão "${session?.title || 'Sem título'}" arquivada!\n(Funcionalidade em desenvolvimento)`)
+		alert(`Sessão "${session?.title || "Sem título"}" arquivada!\n(Funcionalidade em desenvolvimento)`)
 	}
 
 	const handlePhotoCapture = async (file: File) => {
@@ -180,21 +170,21 @@ export default function CleanAssistentePage() {
 				addMessage({
 					role: "user",
 					content: "📸 Foto enviada para análise",
-					imagePreview: imageData
+					imagePreview: imageData,
 				})
 
 				try {
-					const response = await fetch('/api/ai/product-recognition', {
-						method: 'POST',
+					const response = await fetch("/api/ai/product-recognition", {
+						method: "POST",
 						body: (() => {
 							const formData = new FormData()
-							formData.append('image', file)
+							formData.append("image", file)
 							return formData
-						})()
+						})(),
 					})
 
 					if (!response.ok) {
-						throw new Error('Erro ao processar imagem')
+						throw new Error("Erro ao processar imagem")
 					}
 
 					const result = await response.json()
@@ -205,29 +195,30 @@ export default function CleanAssistentePage() {
 							content: "product-recognition-card",
 							productData: {
 								...result.product,
-								imagePreview: imageData
-							}
+								imagePreview: imageData,
+							},
 						})
 					} else {
 						addMessage({
 							role: "assistant",
-							content: "❌ Não consegui identificar nenhum produto na imagem. Tente tirar uma foto mais clara do produto."
+							content:
+								"❌ Não consegui identificar nenhum produto na imagem. Tente tirar uma foto mais clara do produto.",
 						})
 					}
 				} catch (error) {
-					console.error('Erro ao processar foto:', error)
+					console.error("Erro ao processar foto:", error)
 					addMessage({
 						role: "assistant",
-						content: "❌ Erro ao processar a foto. Tente novamente."
+						content: "❌ Erro ao processar a foto. Tente novamente.",
 					})
 				}
 			}
 			reader.readAsDataURL(file)
 		} catch (error) {
-			console.error('Erro ao capturar foto:', error)
+			console.error("Erro ao capturar foto:", error)
 			addMessage({
 				role: "assistant",
-				content: "❌ Erro ao processar a foto. Tente novamente."
+				content: "❌ Erro ao processar a foto. Tente novamente.",
 			})
 		} finally {
 			setIsProcessingPhoto(false)
@@ -238,26 +229,27 @@ export default function CleanAssistentePage() {
 		try {
 			addMessage({
 				role: "user",
-				content: "🎤 Processando áudio..."
+				content: "🎤 Processando áudio...",
 			})
 
 			// Converter áudio para texto usando Web Speech API
 			const text = await convertAudioToText(audioBlob)
 
-			if (text && text.trim()) {
+			if (text?.trim()) {
 				// Enviar o texto convertido como mensagem normal
 				await sendMessage(text)
 			} else {
 				addMessage({
 					role: "assistant",
-					content: "❌ Não consegui entender o áudio. Tente falar mais claramente ou verifique se o microfone está funcionando."
+					content:
+						"❌ Não consegui entender o áudio. Tente falar mais claramente ou verifique se o microfone está funcionando.",
 				})
 			}
 		} catch (error) {
-			console.error('Erro ao processar áudio:', error)
+			console.error("Erro ao processar áudio:", error)
 			addMessage({
 				role: "assistant",
-				content: "❌ Erro ao processar o áudio. Tente novamente."
+				content: "❌ Erro ao processar o áudio. Tente novamente.",
 			})
 		}
 	}
@@ -266,8 +258,8 @@ export default function CleanAssistentePage() {
 	const convertAudioToText = async (audioBlob: Blob): Promise<string> => {
 		return new Promise((resolve, reject) => {
 			// Verificar se a Web Speech API está disponível
-			if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-				reject(new Error('Speech recognition não é suportado neste navegador'))
+			if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+				reject(new Error("Speech recognition não é suportado neste navegador"))
 				return
 			}
 
@@ -281,7 +273,7 @@ export default function CleanAssistentePage() {
 
 			recognition.continuous = false
 			recognition.interimResults = false
-			recognition.lang = 'pt-BR'
+			recognition.lang = "pt-BR"
 			recognition.maxAlternatives = 1
 
 			recognition.onresult = (event: any) => {
@@ -307,18 +299,17 @@ export default function CleanAssistentePage() {
 
 			audio.onerror = () => {
 				URL.revokeObjectURL(audioUrl)
-				reject(new Error('Erro ao reproduzir áudio'))
+				reject(new Error("Erro ao reproduzir áudio"))
 			}
 
 			// Timeout de segurança
 			setTimeout(() => {
 				recognition.stop()
 				URL.revokeObjectURL(audioUrl)
-				reject(new Error('Timeout no processamento do áudio'))
+				reject(new Error("Timeout no processamento do áudio"))
 			}, 10000) // 10 segundos
 		})
 	}
-
 
 	// Configurar assistente de voz
 	useEffect(() => {
@@ -352,7 +343,7 @@ export default function CleanAssistentePage() {
 			}
 
 			recognition.onerror = (event: any) => {
-				console.error('Erro no reconhecimento de voz:', event.error)
+				console.error("Erro no reconhecimento de voz:", event.error)
 				setIsListening(false)
 			}
 
@@ -374,7 +365,7 @@ export default function CleanAssistentePage() {
 		}
 	}
 
-	const stopSpeaking = () => {
+	const _stopSpeaking = () => {
 		if (synthRef.current) {
 			synthRef.current.cancel()
 			setIsSpeaking(false)
@@ -403,21 +394,14 @@ export default function CleanAssistentePage() {
 									<div>
 										<h1 className="font-semibold text-gray-900">Zé</h1>
 										{currentSession && (
-											<p className="text-sm text-gray-500 truncate max-w-48">
-												{currentSession.title}
-											</p>
+											<p className="text-sm text-gray-500 truncate max-w-48">{currentSession.title}</p>
 										)}
 									</div>
 								</div>
 							</div>
 
 							<div className="flex items-center gap-2">
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={handleNewChat}
-									className="gap-2"
-								>
+								<Button variant="ghost" size="sm" onClick={handleNewChat} className="gap-2">
 									<Plus className="size-4" />
 									Novo
 								</Button>
@@ -451,12 +435,8 @@ export default function CleanAssistentePage() {
 									<div className="size-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
 										<Bot className="size-8 text-white" />
 									</div>
-									<h1 className="text-4xl font-bold text-foreground mb-2">
-										Olá, eu sou o Zé!
-									</h1>
-									<p className="text-xl text-muted-foreground">
-										Seu assistente inteligente para compras e economia
-									</p>
+									<h1 className="text-4xl font-bold text-foreground mb-2">Olá, eu sou o Zé!</h1>
+									<p className="text-xl text-muted-foreground">Seu assistente inteligente para compras e economia</p>
 								</div>
 
 								{/* Sugestões Iniciais */}
@@ -556,15 +536,17 @@ export default function CleanAssistentePage() {
 								))}
 
 								{isLoading && (
-									<motion.div
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-									>
+									<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 										<EnhancedTypingIndicator
-											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
-												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
-													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-														undefined}
+											context={
+												lastUserMessage?.toLowerCase().includes("preço")
+													? "price"
+													: lastUserMessage?.toLowerCase().includes("lista")
+														? "list"
+														: lastUserMessage?.toLowerCase().includes("churrasco")
+															? "churrasco"
+															: undefined
+											}
 										/>
 									</motion.div>
 								)}
@@ -632,11 +614,7 @@ export default function CleanAssistentePage() {
 						>
 							<div className="p-4 border-b flex items-center justify-between">
 								<h3 className="text-lg font-semibold">Histórico de Conversas</h3>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => setShowHistorySidebar(false)}
-								>
+								<Button variant="ghost" size="icon" onClick={() => setShowHistorySidebar(false)}>
 									<X className="size-4" />
 								</Button>
 							</div>
@@ -653,7 +631,7 @@ export default function CleanAssistentePage() {
 									onArchiveSession={handleArchiveSession}
 									onClearAll={clearAllHistory}
 									isCollapsed={false}
-									onToggleCollapse={() => { }}
+									onToggleCollapse={() => {}}
 									isMobile={true}
 								/>
 							</div>
@@ -679,11 +657,7 @@ export default function CleanAssistentePage() {
 						>
 							<div className="p-4 border-b flex items-center justify-between">
 								<h3 className="text-lg font-semibold">Capturar Produto</h3>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => setShowPhotoCapture(false)}
-								>
+								<Button variant="ghost" size="icon" onClick={() => setShowPhotoCapture(false)}>
 									<X className="size-4" />
 								</Button>
 							</div>

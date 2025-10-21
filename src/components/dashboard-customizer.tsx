@@ -1,12 +1,12 @@
 "use client"
 
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd"
-import { Cog, Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
-import { useEffect, useState, useCallback, useRef } from "react"
+import { Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
@@ -197,21 +197,24 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 	}
 
 	// Auto-save com debounce
-	const debouncedSave = useCallback((preferences: DashboardPreferences) => {
-		if (saveTimeoutRef.current) {
-			clearTimeout(saveTimeoutRef.current)
-		}
-
-		saveTimeoutRef.current = setTimeout(async () => {
-			try {
-				await updatePreferences.mutateAsync(preferences)
-				setHasUnsavedChanges(false)
-				onPreferencesChange?.(preferences)
-			} catch (error) {
-				console.error("Erro ao salvar preferências:", error)
+	const debouncedSave = useCallback(
+		(preferences: DashboardPreferences) => {
+			if (saveTimeoutRef.current) {
+				clearTimeout(saveTimeoutRef.current)
 			}
-		}, 1000) // 1 segundo de debounce
-	}, [updatePreferences, onPreferencesChange])
+
+			saveTimeoutRef.current = setTimeout(async () => {
+				try {
+					await updatePreferences.mutateAsync(preferences)
+					setHasUnsavedChanges(false)
+					onPreferencesChange?.(preferences)
+				} catch (error) {
+					console.error("Erro ao salvar preferências:", error)
+				}
+			}, 1000) // 1 segundo de debounce
+		},
+		[updatePreferences, onPreferencesChange],
+	)
 
 	// Cleanup do timeout ao desmontar
 	useEffect(() => {
@@ -222,7 +225,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 		}
 	}, [])
 
-	const handleSavePreferences = async () => {
+	const _handleSavePreferences = async () => {
 		try {
 			await updatePreferences.mutateAsync(localPreferences)
 			onPreferencesChange?.(localPreferences)
@@ -296,12 +299,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				</Tooltip>
 			</TooltipProvider>
 
-			<ResponsiveDialog
-				open={isOpen}
-				onOpenChange={setIsOpen}
-				title="Personalizar Dashboard"
-				maxWidth="2xl"
-			>
+			<ResponsiveDialog open={isOpen} onOpenChange={setIsOpen} title="Personalizar Dashboard" maxWidth="2xl">
 				<div className="max-h-[70vh] overflow-y-auto space-y-6">
 					{/* Configurações Gerais */}
 					<div className="space-y-4">
@@ -393,7 +391,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									onValueChange={(value) => {
 										const newPreferences = {
 											...localPreferences,
-											cardsPerRow: parseInt(value),
+											cardsPerRow: parseInt(value, 10),
 										}
 										setLocalPreferences(newPreferences)
 										setHasUnsavedChanges(true)
@@ -439,12 +437,13 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 															ref={provided.innerRef}
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
-															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${snapshot.isDragging
+															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+																snapshot.isDragging
 																	? "bg-accent"
 																	: isHidden
 																		? "bg-muted opacity-60"
 																		: "bg-background hover:bg-accent/50"
-																}`}
+															}`}
 														>
 															<div className="flex items-center gap-3">
 																<div className="flex-1">
@@ -512,14 +511,14 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 								<RotateCcw className="size-4" />
 								Restaurar Padrões
 							</Button>
-							
+
 							{hasUnsavedChanges && (
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
 									Salvando...
 								</div>
 							)}
-							
+
 							{!hasUnsavedChanges && updatePreferences.isSuccess && (
 								<div className="flex items-center gap-2 text-sm text-green-600">
 									<div className="w-2 h-2 bg-green-500 rounded-full"></div>

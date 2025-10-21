@@ -16,10 +16,10 @@ import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
+import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
 	type DashboardPreferences,
@@ -34,7 +34,6 @@ import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
-import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -138,10 +137,7 @@ export function DashboardClient() {
 
 	// Loading skeleton for dashboard stats
 	if (isLoading) {
-		return (
-			<DashboardSkeleton />
-
-		)
+		return <DashboardSkeleton />
 	}
 
 	return (
@@ -267,12 +263,13 @@ export function DashboardClient() {
 								) : (
 									<>
 										<div
-											className={`text-2xl font-bold ${temporalData?.changes.spent > 0
-												? "text-red-600"
-												: temporalData?.changes.spent < 0
-													? "text-green-600"
-													: "text-muted-foreground"
-												}`}
+											className={`text-2xl font-bold ${
+												temporalData?.changes.spent > 0
+													? "text-red-600"
+													: temporalData?.changes.spent < 0
+														? "text-green-600"
+														: "text-muted-foreground"
+											}`}
 										>
 											{temporalData?.changes.spent > 0 ? "+" : ""}
 											{temporalData?.changes.spent.toFixed(1)}%
@@ -419,7 +416,9 @@ export function DashboardClient() {
 											<Store className="size-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>Cadastre um mercado e registre suas compras para ver estatísticas.</EmptyDescription>
+										<EmptyDescription>
+											Cadastre um mercado e registre suas compras para ver estatísticas.
+										</EmptyDescription>
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/mercados/novo" className="inline-flex">
@@ -436,7 +435,10 @@ export function DashboardClient() {
 											const totalSpent = market.averagePrice * market.totalPurchases
 
 											return (
-												<div key={market.marketId} className="border border-border bg-card rounded-sm p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors shadow-xs">
+												<div
+													key={market.marketId}
+													className="border border-border bg-card rounded-sm p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors shadow-xs"
+												>
 													<div className="flex items-start justify-between gap-3">
 														<div className="flex items-start gap-3 flex-1 min-w-0">
 															<div className="size-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold shrink-0">
@@ -446,7 +448,9 @@ export function DashboardClient() {
 																<div className="font-medium truncate">{market.marketName}</div>
 																<div className="text-sm text-muted-foreground mt-1 space-y-1">
 																	<div className="flex items-center gap-4">
-																		<span>🛒 {market.totalPurchases} {market.totalPurchases === 1 ? 'compra' : 'compras'}</span>
+																		<span>
+																			🛒 {market.totalPurchases} {market.totalPurchases === 1 ? "compra" : "compras"}
+																		</span>
 																		<span>💰 R$ {totalSpent.toFixed(2)} total</span>
 																	</div>
 																	<div className="text-xs text-muted-foreground/75">
@@ -466,67 +470,65 @@ export function DashboardClient() {
 				)}
 			</div>
 
-			{
-				currentPrefs.showRecentBuys && (
-					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
-						<CardHeader>
-							<CardTitle>Compras Recentes</CardTitle>
-							<CardDescription>Últimas 5 compras realizadas</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{(stats.recentPurchases || []).length === 0 ? (
-								<Empty className="border border-dashed py-8">
-									<EmptyHeader>
-										<EmptyMedia variant="icon">
-											<ShoppingCart className="size-6" />
-										</EmptyMedia>
-										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
-									</EmptyHeader>
-									<EmptyContent>
-										<Link href="/compras/nova" className="inline-flex">
-											<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
-										</Link>
-									</EmptyContent>
-								</Empty>
-							) : (
-								<div className="space-y-3">
-									{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
-										<div
-											key={purchase.id}
-											className="flex items-center justify-between p-3 border border-border bg-card rounded-sm hover:bg-muted/50 transition-colors shadow-xs"
-										>
-											<div className="flex items-center gap-3">
-												<Store className="size-5 text-muted-foreground" />
-												<div>
-													<div className="font-medium">{purchase.market?.name || "Mercado não identificado"}</div>
-													<div className="text-sm text-muted-foreground">
-														{formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-													</div>
-												</div>
-											</div>
-											<div className="text-right">
-												<div className="font-medium">R$ {(purchase.totalAmount || 0).toFixed(2)}</div>
+			{currentPrefs.showRecentBuys && (
+				<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
+					<CardHeader>
+						<CardTitle>Compras Recentes</CardTitle>
+						<CardDescription>Últimas 5 compras realizadas</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{(stats.recentPurchases || []).length === 0 ? (
+							<Empty className="border border-dashed py-8">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<ShoppingCart className="size-6" />
+									</EmptyMedia>
+									<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
+									<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
+									<Link href="/compras/nova" className="inline-flex">
+										<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
+									</Link>
+								</EmptyContent>
+							</Empty>
+						) : (
+							<div className="space-y-3">
+								{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
+									<div
+										key={purchase.id}
+										className="flex items-center justify-between p-3 border border-border bg-card rounded-sm hover:bg-muted/50 transition-colors shadow-xs"
+									>
+										<div className="flex items-center gap-3">
+											<Store className="size-5 text-muted-foreground" />
+											<div>
+												<div className="font-medium">{purchase.market?.name || "Mercado não identificado"}</div>
 												<div className="text-sm text-muted-foreground">
-													{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
+													{formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 												</div>
 											</div>
 										</div>
-									))}
-
-									{(stats.recentPurchases || []).length > 5 && (
-										<div className="text-center pt-3 border-t border-border">
-											<Link href="/compras" className="text-sm text-primary hover:text-primary/80 font-medium">
-												Ver todas as compras ({stats.totalPurchases})
-											</Link>
+										<div className="text-right">
+											<div className="font-medium">R$ {(purchase.totalAmount || 0).toFixed(2)}</div>
+											<div className="text-sm text-muted-foreground">
+												{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
+											</div>
 										</div>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				)
-			}
-		</motion.div >
+									</div>
+								))}
+
+								{(stats.recentPurchases || []).length > 5 && (
+									<div className="text-center pt-3 border-t border-border">
+										<Link href="/compras" className="text-sm text-primary hover:text-primary/80 font-medium">
+											Ver todas as compras ({stats.totalPurchases})
+										</Link>
+									</div>
+								)}
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			)}
+		</motion.div>
 	)
 }

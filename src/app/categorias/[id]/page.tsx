@@ -137,22 +137,22 @@ export default function CategoriaDetalhesPage() {
 	const deleteCategory = async () => {
 		if (!categoryId) return
 
-	if (!confirm("Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.")) {
-		return
-	}
+		if (!confirm("Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.")) {
+			return
+		}
 
-	try {
-		// Excluir sem transferência (assumindo que não tem produtos ou serão desvinculados)
-		await deleteCategoryMutation.mutateAsync({ id: categoryId })
-		toast.success("Categoria excluída com sucesso!")
-		setTimeout(() => {
-			router.push("/categorias")
-		}, 100)
-	} catch (error) {
-		console.error("Erro ao excluir categoria:", error)
-		toast.error("Erro ao excluir categoria")
+		try {
+			// Excluir sem transferência (assumindo que não tem produtos ou serão desvinculados)
+			await deleteCategoryMutation.mutateAsync({ id: categoryId })
+			toast.success("Categoria excluída com sucesso!")
+			setTimeout(() => {
+				router.push("/categorias")
+			}, 100)
+		} catch (error) {
+			console.error("Erro ao excluir categoria:", error)
+			toast.error("Erro ao excluir categoria")
+		}
 	}
-}
 
 	if (loading) {
 		return (
@@ -531,8 +531,9 @@ export default function CategoriaDetalhesPage() {
 															<div className="font-medium">R$ {month.spent.toFixed(2)}</div>
 															{prevMonth && showChange && (
 																<div
-																	className={`text-xs flex items-center gap-1 justify-end ${isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
-																		}`}
+																	className={`text-xs flex items-center gap-1 justify-end ${
+																		isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
+																	}`}
 																>
 																	{isIncrease ? (
 																		<TrendingUp className="h-3 w-3" />
@@ -592,15 +593,15 @@ export default function CategoriaDetalhesPage() {
 										return (
 											<div
 												key={market.marketId}
-												className={`flex items-center justify-between p-4 border rounded-lg ${isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
-													}`}
+												className={`flex items-center justify-between p-4 border rounded-lg ${
+													isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
+												}`}
 											>
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${isCheapest
-																? "bg-green-600 text-white"
-																: "bg-muted text-muted-foreground"
-															}`}
+														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${
+															isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
+														}`}
 													>
 														{index + 1}
 													</div>
@@ -680,9 +681,7 @@ export default function CategoriaDetalhesPage() {
 															<span className="font-semibold">{expensive.marketName}</span>:
 														</p>
 														<div className="flex items-baseline gap-2">
-															<span className="text-3xl font-bold text-green-600">
-																R$ {savings.toFixed(2)}
-															</span>
+															<span className="text-3xl font-bold text-green-600">R$ {savings.toFixed(2)}</span>
 															<span className="text-sm text-muted-foreground">de economia por compra</span>
 														</div>
 														<Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
@@ -707,9 +706,7 @@ export default function CategoriaDetalhesPage() {
 										<CardContent>
 											<div className="space-y-2">
 												<div className="flex items-baseline gap-2">
-													<span className="text-3xl font-bold text-blue-600">
-														R$ {stats.totalSpent.toFixed(2)}
-													</span>
+													<span className="text-3xl font-bold text-blue-600">R$ {stats.totalSpent.toFixed(2)}</span>
 													<span className="text-sm text-muted-foreground">gastos totais</span>
 												</div>
 												<p className="text-sm text-muted-foreground">
@@ -792,9 +789,7 @@ export default function CategoriaDetalhesPage() {
 																return (
 																	<>
 																		Você começou a comprar produtos de {category.name} este mês! Total gasto:{" "}
-																		<span className="font-semibold text-blue-600">
-																			R$ {lastMonth.spent.toFixed(2)}
-																		</span>
+																		<span className="font-semibold text-blue-600">R$ {lastMonth.spent.toFixed(2)}</span>
 																	</>
 																)
 															}
@@ -802,8 +797,8 @@ export default function CategoriaDetalhesPage() {
 															if (lastMonth.spent === 0 && prevMonth.spent > 0) {
 																return (
 																	<>
-																		Você parou de comprar produtos de {category.name} este mês.{" "}
-																		Mês anterior: R$ {prevMonth.spent.toFixed(2)}
+																		Você parou de comprar produtos de {category.name} este mês. Mês anterior: R${" "}
+																		{prevMonth.spent.toFixed(2)}
 																	</>
 																)
 															}
@@ -814,23 +809,17 @@ export default function CategoriaDetalhesPage() {
 															return isIncrease ? (
 																<>
 																	Seus gastos com {category.name} aumentaram{" "}
-																	<span className="font-semibold text-red-600">
-																		{Math.abs(change).toFixed(1)}%
-																	</span>{" "}
-																	no último mês.
+																	<span className="font-semibold text-red-600">{Math.abs(change).toFixed(1)}%</span> no
+																	último mês.
 																</>
 															) : change < 0 ? (
 																<>
 																	Você economizou{" "}
-																	<span className="font-semibold text-green-600">
-																		{Math.abs(change).toFixed(1)}%
-																	</span>{" "}
+																	<span className="font-semibold text-green-600">{Math.abs(change).toFixed(1)}%</span>{" "}
 																	em {category.name} no último mês!
 																</>
 															) : (
-																<>
-																	Seus gastos com {category.name} se mantiveram estáveis no último mês.
-																</>
+																<>Seus gastos com {category.name} se mantiveram estáveis no último mês.</>
 															)
 														})()}
 													</p>

@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, Apple, CheckCircle2, Heart, Leaf, Plus, TrendingUp } from "lucide-react"
+import { Apple, CheckCircle2, Heart, Leaf, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -59,7 +59,7 @@ export function HealthyAlternatives({
 		if (categoryId) {
 			fetchAlternatives()
 		}
-	}, [categoryId, excludeProductId])
+	}, [categoryId, fetchAlternatives])
 
 	const fetchAlternatives = async () => {
 		setLoading(true)

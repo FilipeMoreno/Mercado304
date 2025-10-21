@@ -1,16 +1,16 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Apple, Plus, AlertTriangle, Utensils, QrCode } from "lucide-react"
+import { AlertTriangle, Apple, Plus, QrCode } from "lucide-react"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { BarcodeScanner } from "@/components/barcode-scanner"
-import { Product } from "@/types"
 import { NutritionalInfoDialog } from "@/components/products/nutritional-info-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
+import type { Product } from "@/types"
 
 interface MissingNutritionalInfoProps {
 	products?: Product[]
@@ -19,7 +19,13 @@ interface MissingNutritionalInfoProps {
 }
 
 // Componente para card de produto sem info nutricional
-function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAddNutritionalInfo?: (productId: string) => void }) {
+function ProductCard({
+	product,
+	onAddNutritionalInfo,
+}: {
+	product: Product
+	onAddNutritionalInfo?: (productId: string) => void
+}) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
 
@@ -30,7 +36,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 
 	const handleScanResult = async (imageData: string) => {
 		// Aqui você pode processar o resultado do scanner
-		console.log('Scanner result:', imageData)
+		console.log("Scanner result:", imageData)
 		setShowScanner(false)
 		// TODO: Implementar análise da imagem
 	}
@@ -40,9 +46,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 				<div className="flex-1">
 					<div className="flex items-start justify-between mb-3">
 						<div className="flex-1 mr-3">
-							<h3 className="font-medium text-sm line-clamp-2 mb-1">
-								{product.name}
-							</h3>
+							<h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
 							{product.brand && (
 								<Badge variant="secondary" className="text-xs mb-2">
 									{product.brand.name}
@@ -50,9 +54,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 							)}
 							{product.category && (
 								<div className="flex items-center gap-1 text-xs text-muted-foreground">
-									{product.category.icon && (
-										<span>{product.category.icon}</span>
-									)}
+									{product.category.icon && <span>{product.category.icon}</span>}
 									<span>{product.category.name}</span>
 								</div>
 							)}
@@ -62,12 +64,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 				</div>
 
 				<div className="mt-auto">
-					<Button
-						variant="outline"
-						size="sm"
-						className="w-full"
-						onClick={() => setIsDialogOpen(true)}
-					>
+					<Button variant="outline" size="sm" className="w-full" onClick={() => setIsDialogOpen(true)}>
 						<Plus className="size-4 mr-2" />
 						Adicionar Info Nutricional
 					</Button>
@@ -80,11 +77,9 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 									<QrCode className="size-5" />
 									Scanner de Rótulo Nutricional
 								</DialogTitle>
-								<DialogDescription>
-									Posicione a câmera sobre o rótulo nutricional do produto
-								</DialogDescription>
+								<DialogDescription>Posicione a câmera sobre o rótulo nutricional do produto</DialogDescription>
 							</DialogHeader>
-							
+
 							<div className="flex-1 flex flex-col space-y-4 min-h-0">
 								<div className="flex-1 min-h-0">
 									<BarcodeScanner
@@ -95,11 +90,7 @@ function ProductCard({ product, onAddNutritionalInfo }: { product: Product; onAd
 								</div>
 
 								<div className="flex justify-center pt-4 shrink-0">
-									<Button
-										variant="outline"
-										onClick={() => setShowScanner(false)}
-										className="w-full sm:w-auto"
-									>
+									<Button variant="outline" onClick={() => setShowScanner(false)} className="w-full sm:w-auto">
 										Cancelar Scanner
 									</Button>
 								</div>
@@ -167,7 +158,11 @@ const itemVariants = {
 	visible: { opacity: 1, y: 0 },
 }
 
-export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoading = false }: MissingNutritionalInfoProps) {
+export function MissingNutritionalInfo({
+	products,
+	onNutritionalInfoAdded,
+	isLoading = false,
+}: MissingNutritionalInfoProps) {
 	// Loading state
 	if (isLoading) {
 		return (
@@ -192,9 +187,8 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 
 	// Filtrar apenas produtos alimentícios sem informações nutricionais
 	const productsList = Array.isArray(products) ? products : []
-	const foodProductsWithoutNutrition = productsList.filter(product => 
-		product.category?.isFood === true && 
-		!product.nutritionalInfo
+	const foodProductsWithoutNutrition = productsList.filter(
+		(product) => product.category?.isFood === true && !product.nutritionalInfo,
 	)
 
 	// Estado vazio
@@ -212,11 +206,12 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 						Produtos sem Informação Nutricional
 					</h2>
 					<p className="text-sm text-muted-foreground mt-1">
-						{foodProductsWithoutNutrition.length} produto{foodProductsWithoutNutrition.length !== 1 ? 's' : ''} alimentício{foodProductsWithoutNutrition.length !== 1 ? 's' : ''} sem informações nutricionais
+						{foodProductsWithoutNutrition.length} produto{foodProductsWithoutNutrition.length !== 1 ? "s" : ""}{" "}
+						alimentício{foodProductsWithoutNutrition.length !== 1 ? "s" : ""} sem informações nutricionais
 					</p>
 				</div>
 				<Badge variant="secondary" className="text-sm">
-					{foodProductsWithoutNutrition.length} pendente{foodProductsWithoutNutrition.length !== 1 ? 's' : ''}
+					{foodProductsWithoutNutrition.length} pendente{foodProductsWithoutNutrition.length !== 1 ? "s" : ""}
 				</Badge>
 			</div>
 
@@ -230,15 +225,8 @@ export function MissingNutritionalInfo({ products, onNutritionalInfoAdded, isLoa
 				aria-label={`Lista de ${foodProductsWithoutNutrition.length} produtos sem informação nutricional`}
 			>
 				{foodProductsWithoutNutrition.map((product) => (
-					<motion.div
-						key={product.id}
-						variants={itemVariants}
-						role="gridcell"
-					>
-						<ProductCard 
-							product={product}
-							onAddNutritionalInfo={onNutritionalInfoAdded}
-						/>
+					<motion.div key={product.id} variants={itemVariants} role="gridcell">
+						<ProductCard product={product} onAddNutritionalInfo={onNutritionalInfoAdded} />
 					</motion.div>
 				))}
 			</motion.div>

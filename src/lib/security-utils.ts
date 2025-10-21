@@ -194,7 +194,7 @@ export async function handleSuccessfulLogin(
 	ipAddress?: string,
 	userAgent?: string,
 	location?: string,
-	loginMethod?: string
+	loginMethod?: string,
 ) {
 	// Resetar tentativas falhadas
 	await prisma.user.update({
@@ -276,7 +276,10 @@ export async function enforceSessionLimit(userId: string) {
 
 	if (activeSessions.length >= SECURITY_CONSTANTS.MAX_SESSIONS_PER_USER) {
 		// Deletar as sessões mais antigas
-		const sessionsToDelete = activeSessions.slice(0, activeSessions.length - SECURITY_CONSTANTS.MAX_SESSIONS_PER_USER + 1)
+		const sessionsToDelete = activeSessions.slice(
+			0,
+			activeSessions.length - SECURITY_CONSTANTS.MAX_SESSIONS_PER_USER + 1,
+		)
 
 		for (const session of sessionsToDelete) {
 			await prisma.session.update({
@@ -317,7 +320,8 @@ export async function detectSuspiciousActivity(userId: string, currentLocation?:
 	const previousLocations = recentLogins.map((log) => log.location).filter(Boolean)
 
 	// Se todas as localizações anteriores eram diferentes da atual, é suspeito
-	const isSuspicious = previousLocations.length > 0 && !previousLocations.some((loc) => loc?.includes(currentLocation.split(",")[0]))
+	const isSuspicious =
+		previousLocations.length > 0 && !previousLocations.some((loc) => loc?.includes(currentLocation.split(",")[0]))
 
 	if (isSuspicious) {
 		await logSecurityEvent({

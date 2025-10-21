@@ -1,20 +1,19 @@
 "use client"
 
-import { Bell, CheckCircle, AlertTriangle, Shield, Lock, Unlock, Smartphone, Trash2, CheckCheck } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { AlertTriangle, Bell, CheckCheck, CheckCircle, Lock, Shield, Smartphone, Trash2, Unlock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import {
-	useSecurityNotifications,
-	useMarkNotificationAsRead,
-	useMarkAllNotificationsAsRead,
-	useDeleteNotification,
 	useDeleteAllReadNotifications,
+	useDeleteNotification,
+	useMarkAllNotificationsAsRead,
+	useMarkNotificationAsRead,
+	useSecurityNotifications,
 } from "@/hooks/use-security-notifications"
-import { formatDistanceToNow } from "date-fns"
-import { ptBR } from "date-fns/locale"
 
 export function SecurityNotifications() {
 	const { data, isLoading } = useSecurityNotifications()
@@ -158,9 +157,9 @@ export function SecurityNotifications() {
 							{notifications.map((notification) => (
 								<div
 									key={notification.id}
-									className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
-										getNotificationColor(notification.type)
-									} ${!notification.isRead ? "border-l-4" : ""}`}
+									className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${getNotificationColor(
+										notification.type,
+									)} ${!notification.isRead ? "border-l-4" : ""}`}
 								>
 									<div className="p-2 rounded-full bg-background/50">{getNotificationIcon(notification.type)}</div>
 

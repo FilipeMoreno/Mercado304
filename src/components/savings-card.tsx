@@ -119,11 +119,11 @@ export function SavingsCard({ savingsData, loading }: SavingsCardProps) {
 								</div>
 							</div>
 
-						<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded-sm">
-							<p className="text-sm text-green-700 dark:text-green-300">
-								Economia de <span className="font-bold">R$ {opportunity.potentialSaving.toFixed(2)}</span> por unidade
-							</p>
-						</div>
+							<div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded-sm">
+								<p className="text-sm text-green-700 dark:text-green-300">
+									Economia de <span className="font-bold">R$ {opportunity.potentialSaving.toFixed(2)}</span> por unidade
+								</p>
+							</div>
 						</div>
 					))}
 				</div>

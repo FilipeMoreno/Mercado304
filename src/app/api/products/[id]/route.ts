@@ -3,8 +3,8 @@ import { getProductPriceHistory } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const productId = params.id
 		const { searchParams } = new URL(request.url)
 		const includeStats = searchParams.get("includeStats") === "true"
@@ -249,8 +249,8 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		const body = await request.json()
 		const {
 			name,
@@ -448,8 +448,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 }
 
 export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
-    const params = await props.params;
-    try {
+	const params = await props.params
+	try {
 		// Verificar se o produto está vinculado a algum kit
 		const kitCheck = await prisma.productKitItem.findFirst({
 			where: { productId: params.id },

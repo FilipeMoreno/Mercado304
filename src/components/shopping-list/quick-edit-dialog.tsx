@@ -48,7 +48,7 @@ interface QuickEditDialogProps {
 			quantity: number
 			estimatedPrice?: number
 		},
-		options?: { closeDialog?: boolean }
+		options?: { closeDialog?: boolean },
 	) => void
 	onDelete: (item: ShoppingListItem) => void
 }
@@ -140,13 +140,17 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			estimatedPrice,
 		}
 
-		onUpdate(item.id, {
-			productId,
-			productName: productName.trim(),
-			productUnit: item.productUnit,
-			quantity: qty,
-			estimatedPrice: price,
-		}, { closeDialog: false })
+		onUpdate(
+			item.id,
+			{
+				productId,
+				productName: productName.trim(),
+				productUnit: item.productUnit,
+				quantity: qty,
+				estimatedPrice: price,
+			},
+			{ closeDialog: false },
+		)
 	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])
 
 	// Trigger auto-save quando valores mudarem

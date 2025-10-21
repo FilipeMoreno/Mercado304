@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, MoreVertical, Plus, Search, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Eye, Filter, List, MoreVertical, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
@@ -10,6 +10,7 @@ import { AiShoppingList } from "@/components/ai-shopping-list"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -18,7 +19,6 @@ import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dial
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
 import type { ShoppingList } from "@/types"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface ListaClientProps {
 	searchParams: {
@@ -224,7 +224,10 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 										Limpar Filtros
 									</Button>
 								)}
-								<Button onClick={() => router.push("/lista/nova")} className="bg-green-600 hover:bg-green-700 text-white">
+								<Button
+									onClick={() => router.push("/lista/nova")}
+									className="bg-green-600 hover:bg-green-700 text-white"
+								>
 									<Plus className="size-4 mr-2" />
 									Nova Lista
 								</Button>
@@ -274,7 +277,6 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 											</div>
 										</CardHeader>
 										<CardContent className="flex justify-between">
-
 											<Link href={`/lista/${list.id}`}>
 												<Button variant="outline" size="sm" className="w-full">
 													<Eye className="size-4 mr-1" />

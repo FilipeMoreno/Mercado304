@@ -1,10 +1,10 @@
 "use client"
 
 import { useQueryClient } from "@tanstack/react-query"
-import { useState, useEffect, useRef } from "react"
-import { queryKeys } from "./use-react-query"
-import { useChatHistoryDB } from "./use-chat-history-db"
+import { useEffect, useRef, useState } from "react"
 import { useAiCache } from "./use-ai-cache"
+import { useChatHistoryDB } from "./use-chat-history-db"
+import { queryKeys } from "./use-react-query"
 
 export interface Message {
 	role: "user" | "assistant"
@@ -23,12 +23,7 @@ export interface Message {
 
 export function useAiChat(sessionId?: string | null) {
 	const queryClient = useQueryClient()
-	const {
-		currentSession,
-		updateSession,
-		loadSession,
-		createNewSession
-	} = useChatHistoryDB()
+	const { currentSession, updateSession, loadSession, createNewSession } = useChatHistoryDB()
 	const { getCachedResponse, setCachedResponse, shouldCache } = useAiCache()
 
 	const [messages, setMessages] = useState<Message[]>([
@@ -234,9 +229,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-				role: msg.role,
-				parts: [{ text: msg.content }],
-			}))
+					role: msg.role,
+					parts: [{ text: msg.content }],
+				}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -272,7 +267,7 @@ export function useAiChat(sessionId?: string | null) {
 		// Cachear resposta se apropriado
 		if (shouldCache(messageContent) && !data.error && !data.selectionData?.showCards) {
 			setCachedResponse(messageContent, data.reply)
-			console.log("💾 Resposta cacheada:", messageContent.substring(0, 50) + "...")
+			console.log("💾 Resposta cacheada:", `${messageContent.substring(0, 50)}...`)
 		}
 
 		addMessage(assistantMessage)
@@ -283,9 +278,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-				role: msg.role,
-				parts: [{ text: msg.content }],
-			}))
+					role: msg.role,
+					parts: [{ text: msg.content }],
+				}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -346,7 +341,7 @@ export function useAiChat(sessionId?: string | null) {
 								// Cachear resposta completa se apropriado
 								if (shouldCache(messageContent) && !hasSelectionData && fullResponse) {
 									setCachedResponse(messageContent, fullResponse)
-									console.log("💾 Resposta streaming cacheada:", messageContent.substring(0, 50) + "...")
+									console.log("💾 Resposta streaming cacheada:", `${messageContent.substring(0, 50)}...`)
 								}
 								break
 							}

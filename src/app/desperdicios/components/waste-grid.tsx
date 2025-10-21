@@ -59,7 +59,16 @@ const wasteReasonColors = {
 	OTHER: "secondary",
 }
 
-export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit, onDelete, hasFilters, onCreateNew }: WasteGridProps) {
+export function WasteGrid({
+	records,
+	isLoading,
+	pageSize,
+	onViewDetails,
+	onEdit,
+	onDelete,
+	hasFilters,
+	onCreateNew,
+}: WasteGridProps) {
 	if (isLoading) {
 		return (
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -119,15 +128,13 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 								<Trash2 className="size-12" />
 							</EmptyMedia>
 							<EmptyTitle>Nenhum desperdício registrado</EmptyTitle>
-							<EmptyDescription>
-								Ótimas notícias! Você ainda não registrou nenhum desperdício.
-							</EmptyDescription>
+							<EmptyDescription>Ótimas notícias! Você ainda não registrou nenhum desperdício.</EmptyDescription>
 						</EmptyHeader>
 						<EmptyContent>
 							<div className="space-y-4">
 								<p className="text-sm text-muted-foreground max-w-md mx-auto">
-									O controle de desperdícios ajuda você a identificar padrões de perda e reduzir custos.
-									Registre desperdícios quando ocorrerem para acompanhar e melhorar.
+									O controle de desperdícios ajuda você a identificar padrões de perda e reduzir custos. Registre
+									desperdícios quando ocorrerem para acompanhar e melhorar.
 								</p>
 								<div className="flex flex-col sm:flex-row gap-3 justify-center">
 									{onCreateNew && (
@@ -227,10 +234,10 @@ export function WasteGrid({ records, isLoading, pageSize, onViewDetails, onEdit,
 								<Badge
 									variant={
 										wasteReasonColors[record.wasteReason as keyof typeof wasteReasonColors] as
-										| "default"
-										| "secondary"
-										| "destructive"
-										| "outline"
+											| "default"
+											| "secondary"
+											| "destructive"
+											| "outline"
 									}
 									className="text-xs"
 								>

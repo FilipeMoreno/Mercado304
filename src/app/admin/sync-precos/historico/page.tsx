@@ -50,11 +50,11 @@ export default function SyncHistoricoPage() {
 		try {
 			const offset = pageNum * limit
 			console.log(`[Histórico Sync] Buscando página ${pageNum}, limit=${limit}, offset=${offset}`)
-			
+
 			const response = await fetch(`/api/admin/sync-precos/history?limit=${limit}&offset=${offset}`)
-			
+
 			console.log(`[Histórico Sync] Status da resposta: ${response.status}`)
-			
+
 			if (response.ok) {
 				const historyData = await response.json()
 				console.log(`[Histórico Sync] Dados recebidos:`, {

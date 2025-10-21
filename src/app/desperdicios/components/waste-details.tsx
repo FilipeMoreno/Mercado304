@@ -59,7 +59,9 @@ export function WasteDetails({ record }: WasteDetailsProps) {
 						</div>
 						<div className="flex justify-between">
 							<span className="text-gray-600">Quantidade:</span>
-							<span className="font-medium">{record.quantity} {record.unit}</span>
+							<span className="font-medium">
+								{record.quantity} {record.unit}
+							</span>
 						</div>
 						{record.category && (
 							<div className="flex justify-between">
@@ -87,9 +89,7 @@ export function WasteDetails({ record }: WasteDetailsProps) {
 					<div className="space-y-2 text-sm">
 						<div className="flex justify-between">
 							<span className="text-gray-600">Data:</span>
-							<span className="font-medium">
-								{format(new Date(record.wasteDate), "dd/MM/yyyy", { locale: ptBR })}
-							</span>
+							<span className="font-medium">{format(new Date(record.wasteDate), "dd/MM/yyyy", { locale: ptBR })}</span>
 						</div>
 						{record.expirationDate && (
 							<div className="flex justify-between">
