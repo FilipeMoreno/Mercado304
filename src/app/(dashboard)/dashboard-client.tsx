@@ -1,26 +1,30 @@
 "use client"
 
-import { ptBR } from "date-fns/locale"
 import { motion } from "framer-motion"
-import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { InstallPWACard } from "@/components/install-pwa-card"
-import { DashboardCardMemo, DashboardStatsCardMemo } from "@/components/memoized"
+import { DashboardCardMemo } from "@/components/memoized"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Skeleton } from "@/components/ui/skeleton"
+import { MonthlySpendingWidget } from "@/components/widgets/monthly-spending-widget"
+import { TemporalComparisonWidget } from "@/components/widgets/temporal-comparison-widget"
+import { CategoryStatsWidget } from "@/components/widgets/category-stats-widget"
+import { TopProductsWidget } from "@/components/widgets/top-products-widget"
+import { MarketComparisonWidget } from "@/components/widgets/market-comparison-widget"
+import { RecentPurchasesWidget } from "@/components/widgets/recent-purchases-widget"
+import { SpendingTrendsWidget } from "@/components/widgets/spending-trends-widget"
+import { PriceAlertsWidget } from "@/components/widgets/price-alerts-widget"
+import { BudgetTrackerWidget } from "@/components/widgets/budget-tracker-widget"
+import { ShoppingPatternsWidget } from "@/components/widgets/shopping-patterns-widget"
 import {
 	type DashboardPreferences,
 	useConsumptionPatternsQuery,
@@ -29,17 +33,16 @@ import {
 	useExpirationAlertsQuery,
 	useSavingsQuery,
 	useTemporalComparisonQuery,
+	useSpendingTrendsQuery,
+	usePriceAlertsQuery,
+	useBudgetTrackerQuery,
+	useShoppingPatternsQuery,
 } from "@/hooks"
 import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
-
-const MonthlySpendingChart = lazy(() =>
-	import("@/components/monthly-spending-chart").then((module) => ({
-		default: module.MonthlySpendingChart,
-	})),
-)
+import Link from "next/link"
 
 export function DashboardClient() {
 	const router = useRouter()
@@ -59,6 +62,12 @@ export function DashboardClient() {
 	const { data: consumptionData, isLoading: consumptionLoading } = useConsumptionPatternsQuery()
 	const { data: expirationData, isLoading: expirationLoading } = useExpirationAlertsQuery()
 	const { data: preferences, isLoading: preferencesLoading } = useDashboardPreferencesQuery()
+	
+	// New widget hooks
+	const { data: spendingTrendsData, isLoading: spendingTrendsLoading } = useSpendingTrendsQuery()
+	const { data: priceAlertsData, isLoading: priceAlertsLoading } = usePriceAlertsQuery()
+	const { data: budgetTrackerData, isLoading: budgetTrackerLoading } = useBudgetTrackerQuery(1500)
+	const { data: shoppingPatternsData, isLoading: shoppingPatternsLoading } = useShoppingPatternsQuery()
 
 	const isLoading =
 		statsLoading || savingsLoading || temporalLoading || consumptionLoading || expirationLoading || preferencesLoading
@@ -92,6 +101,10 @@ export function DashboardClient() {
 		showTemporalComp: true,
 		showNutritionCard: true,
 		showPaymentStats: true,
+		showSpendingTrends: true,
+		showPriceAlerts: true,
+		showBudgetTracker: true,
+		showShoppingPatterns: true,
 		customTitle: undefined,
 		customSubtitle: undefined,
 	}
@@ -194,21 +207,7 @@ export function DashboardClient() {
 			</motion.div>
 
 			{currentPrefs.showMonthlyChart && stats?.monthlySpending && stats.monthlySpending.length > 0 && (
-				<Suspense
-					fallback={
-						<Card>
-							<CardHeader>
-								<Skeleton className="h-6 w-48 mb-2" />
-								<Skeleton className="h-4 w-64" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-64 w-full" />
-							</CardContent>
-						</Card>
-					}
-				>
-					<MonthlySpendingChart data={stats.monthlySpending} loading={statsLoading} />
-				</Suspense>
+				<MonthlySpendingWidget data={stats.monthlySpending} loading={statsLoading} />
 			)}
 
 			{currentPrefs.showReplenishment && consumptionData?.replenishmentAlerts?.length > 0 && (
@@ -228,66 +227,8 @@ export function DashboardClient() {
 					<ExpirationAlerts data={expirationData} loading={expirationLoading} onRefresh={handleRefresh} />
 				)}
 
-			{currentPrefs.showTemporalComp && stats?.monthlyComparison && (
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.5 }}
-					className="md:col-span-2"
-				>
-					<DashboardStatsCardMemo
-						title="Comparação Mensal"
-						description="Comparação entre este mês e o anterior"
-						icon={<TrendingUp className="size-5" />}
-					>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
-								<div className="text-2xl font-bold text-blue-600">R$ {temporalData?.currentMonth.spent.toFixed(2)}</div>
-								<div className="text-sm text-muted-foreground">Este Mês</div>
-								<div className="text-xs text-muted-foreground mt-1">{temporalData?.currentMonth.purchases} compras</div>
-							</div>
-
-							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
-								<div className="text-2xl font-bold text-foreground">R$ {temporalData?.lastMonth.spent.toFixed(2)}</div>
-								<div className="text-sm text-muted-foreground">Mês Passado</div>
-								<div className="text-xs text-muted-foreground mt-1">{temporalData?.lastMonth.purchases} compras</div>
-							</div>
-
-							<div className="text-center p-4 border border-border bg-card rounded-sm shadow-xs">
-								{temporalData?.lastMonth.purchases === 0 ? (
-									<>
-										<div className="text-2xl font-bold text-blue-600">Novo</div>
-										<div className="text-sm text-muted-foreground">Primeiro mês</div>
-										<div className="text-xs text-muted-foreground mt-1">sem comparação</div>
-									</>
-								) : (
-									<>
-										<div
-											className={`text-2xl font-bold ${
-												temporalData?.changes.spent > 0
-													? "text-red-600"
-													: temporalData?.changes.spent < 0
-														? "text-green-600"
-														: "text-muted-foreground"
-											}`}
-										>
-											{temporalData?.changes.spent > 0 ? "+" : ""}
-											{temporalData?.changes.spent.toFixed(1)}%
-										</div>
-										<div className="text-sm text-muted-foreground">
-											{temporalData?.changes.spent > 0
-												? "Aumento"
-												: temporalData?.changes.spent < 0
-													? "Economia"
-													: "Estável"}
-										</div>
-										<div className="text-xs text-muted-foreground mt-1">vs. mês anterior</div>
-									</>
-								)}
-							</div>
-						</div>
-					</DashboardStatsCardMemo>
-				</motion.div>
+			{currentPrefs.showTemporalComp && temporalData && (
+				<TemporalComparisonWidget temporalData={temporalData} />
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -309,226 +250,39 @@ export function DashboardClient() {
 			{currentPrefs.showPaymentStats && <PaymentMethodStats />}
 
 			{currentPrefs.showCategoryStats && stats?.categoryStats && stats.categoryStats.length > 0 && (
-				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-					<DashboardStatsCardMemo
-						title="Gastos por Categoria"
-						description="Distribuição de gastos por categoria de produtos"
-						icon={<Package className="size-5" />}
-					>
-						<div className="space-y-3">
-							{stats?.categoryStats.slice(0, 8).map((category: CategoryStats, index: number) => {
-								const percentage =
-									(stats?.totalSpent || 0) > 0 ? (category.totalSpent / (stats?.totalSpent || 1)) * 100 : 0
-								return (
-									<motion.div
-										key={category.categoryId}
-										className="flex items-center justify-between"
-										initial={{ opacity: 0, x: -20 }}
-										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: 0.7 + index * 0.05 }}
-									>
-										<div className="flex items-center gap-3">
-											<div className="size-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-												{index + 1}
-											</div>
-											<div>
-												<div className="font-medium">{category.categoryName}</div>
-												<div className="text-sm text-muted-foreground">
-													{category.totalQuantity.toFixed(1)} itens • {category.totalPurchases} compras
-												</div>
-											</div>
-										</div>
-										<div className="text-right">
-											<div className="font-medium">R$ {category.totalSpent.toFixed(2)}</div>
-											<div className="text-sm text-muted-foreground">{percentage.toFixed(1)}%</div>
-										</div>
-									</motion.div>
-								)
-							})}
-						</div>
-					</DashboardStatsCardMemo>
-				</motion.div>
+				<CategoryStatsWidget categoryStats={stats.categoryStats} totalSpent={stats.totalSpent} />
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{currentPrefs.showTopProducts && (
-					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
-						<CardHeader>
-							<CardTitle>Produtos Mais Comprados</CardTitle>
-							<CardDescription>Top 5 produtos mais frequentes</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{(stats?.topProducts || []).length === 0 ? (
-								<Empty className="border border-dashed py-8">
-									<EmptyHeader>
-										<EmptyMedia variant="icon">
-											<Package className="size-6" />
-										</EmptyMedia>
-										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>
-											Registre sua primeira compra para ver os produtos mais comprados.
-										</EmptyDescription>
-									</EmptyHeader>
-									<EmptyContent>
-										<Link href="/compras/nova" className="inline-flex">
-											<span className="text-primary hover:text-primary/80">Registre sua primeira compra</span>
-										</Link>
-									</EmptyContent>
-								</Empty>
-							) : (
-								<div className="space-y-3">
-									{(stats?.topProducts || []).slice(0, 5).map((product: TopProduct, index: number) => (
-										<div key={product.productId || index} className="flex items-center justify-between">
-											<div className="flex items-center gap-3">
-												<div className="size-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-													{index + 1}
-												</div>
-												<div>
-													<div className="font-medium">{product.productName}</div>
-													<div className="text-sm text-muted-foreground">
-														{product.totalQuantity?.toFixed(1) || 0} {product.unit || "unidades"}
-													</div>
-												</div>
-											</div>
-											<div className="text-right">
-												<div className="font-medium">R$ {(product.averagePrice || 0).toFixed(2)}</div>
-												<div className="text-sm text-muted-foreground">{product.totalPurchases || 0} compras</div>
-											</div>
-										</div>
-									))}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				)}
-
-				{currentPrefs.showMarketCompare && (
-					<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
-						<CardHeader>
-							<CardTitle>Estatísticas por Mercado</CardTitle>
-							<CardDescription>Seus mercados mais frequentados</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{(stats?.marketComparison || []).length === 0 ? (
-								<Empty className="border border-dashed py-8">
-									<EmptyHeader>
-										<EmptyMedia variant="icon">
-											<Store className="size-6" />
-										</EmptyMedia>
-										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>
-											Cadastre um mercado e registre suas compras para ver estatísticas.
-										</EmptyDescription>
-									</EmptyHeader>
-									<EmptyContent>
-										<Link href="/mercados/novo" className="inline-flex">
-											<span className="text-blue-600 hover:text-blue-800">Cadastre seu primeiro mercado</span>
-										</Link>
-									</EmptyContent>
-								</Empty>
-							) : (
-								<div className="space-y-3">
-									{(stats?.marketComparison || [])
-										.sort((a: MarketComparison, b: MarketComparison) => b.totalPurchases - a.totalPurchases)
-										.map((market: MarketComparison, index: number) => {
-											// Calcular o total gasto aproximado
-											const totalSpent = market.averagePrice * market.totalPurchases
-
-											return (
-												<div
-													key={market.marketId}
-													className="border border-border bg-card rounded-sm p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors shadow-xs"
-												>
-													<div className="flex items-start justify-between gap-3">
-														<div className="flex items-start gap-3 flex-1 min-w-0">
-															<div className="size-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold shrink-0">
-																{index + 1}
-															</div>
-															<div className="flex-1 min-w-0">
-																<div className="font-medium truncate">{market.marketName}</div>
-																<div className="text-sm text-muted-foreground mt-1 space-y-1">
-																	<div className="flex items-center gap-4">
-																		<span>
-																			🛒 {market.totalPurchases} {market.totalPurchases === 1 ? "compra" : "compras"}
-																		</span>
-																		<span>💰 R$ {totalSpent.toFixed(2)} total</span>
-																	</div>
-																	<div className="text-xs text-muted-foreground/75">
-																		Ticket médio: R$ {market.averagePrice.toFixed(2)}
-																	</div>
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
-											)
-										})}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				)}
+				{currentPrefs.showTopProducts && <TopProductsWidget topProducts={stats?.topProducts} />}
+				{currentPrefs.showMarketCompare && <MarketComparisonWidget marketComparison={stats?.marketComparison} />}
 			</div>
 
 			{currentPrefs.showRecentBuys && (
-				<Card className="shadow-xs hover:shadow-lg transition-shadow-sm">
-					<CardHeader>
-						<CardTitle>Compras Recentes</CardTitle>
-						<CardDescription>Últimas 5 compras realizadas</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{(stats.recentPurchases || []).length === 0 ? (
-							<Empty className="border border-dashed py-8">
-								<EmptyHeader>
-									<EmptyMedia variant="icon">
-										<ShoppingCart className="size-6" />
-									</EmptyMedia>
-									<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-									<EmptyDescription>Registre uma compra para ver aqui.</EmptyDescription>
-								</EmptyHeader>
-								<EmptyContent>
-									<Link href="/compras/nova" className="inline-flex">
-										<span className="text-blue-600 hover:text-blue-800">Registre sua primeira compra</span>
-									</Link>
-								</EmptyContent>
-							</Empty>
-						) : (
-							<div className="space-y-3">
-								{(stats.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
-									<div
-										key={purchase.id}
-										className="flex items-center justify-between p-3 border border-border bg-card rounded-sm hover:bg-muted/50 transition-colors shadow-xs"
-									>
-										<div className="flex items-center gap-3">
-											<Store className="size-5 text-muted-foreground" />
-											<div>
-												<div className="font-medium">{purchase.market?.name || "Mercado não identificado"}</div>
-												<div className="text-sm text-muted-foreground">
-													{formatLocalDate(purchase.purchaseDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-												</div>
-											</div>
-										</div>
-										<div className="text-right">
-											<div className="font-medium">R$ {(purchase.totalAmount || 0).toFixed(2)}</div>
-											<div className="text-sm text-muted-foreground">
-												{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
-											</div>
-										</div>
-									</div>
-								))}
-
-								{(stats.recentPurchases || []).length > 5 && (
-									<div className="text-center pt-3 border-t border-border">
-										<Link href="/compras" className="text-sm text-primary hover:text-primary/80 font-medium">
-											Ver todas as compras ({stats.totalPurchases})
-										</Link>
-									</div>
-								)}
-							</div>
-						)}
-					</CardContent>
-				</Card>
+				<RecentPurchasesWidget 
+					recentPurchases={stats?.recentPurchases} 
+					totalPurchases={stats?.totalPurchases} 
+				/>
 			)}
+
+			{/* Novos widgets adicionais */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+				{currentPrefs.showSpendingTrends && spendingTrendsData && (
+					<SpendingTrendsWidget data={spendingTrendsData} />
+				)}
+				
+				{currentPrefs.showBudgetTracker && budgetTrackerData && (
+					<BudgetTrackerWidget budget={budgetTrackerData} />
+				)}
+
+				{currentPrefs.showShoppingPatterns && shoppingPatternsData && (
+					<ShoppingPatternsWidget patterns={shoppingPatternsData} />
+				)}
+
+				{currentPrefs.showPriceAlerts && priceAlertsData?.alerts && (
+					<PriceAlertsWidget alerts={priceAlertsData.alerts} />
+				)}
+			</div>
 		</motion.div>
 	)
 }

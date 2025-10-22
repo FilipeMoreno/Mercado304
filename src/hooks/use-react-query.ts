@@ -873,6 +873,45 @@ export const usePaymentStatsQuery = () => {
 	})
 }
 
+export const useSpendingTrendsQuery = () => {
+	return useQuery({
+		queryKey: ["dashboard", "spending-trends"],
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/spending-trends"),
+		staleTime: 2 * 60 * 1000, // 2 minutos
+		gcTime: 5 * 60 * 1000, // 5 minutos
+	})
+}
+
+export const usePriceAlertsQuery = () => {
+	return useQuery({
+		queryKey: ["dashboard", "price-alerts"],
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/price-alerts"),
+		staleTime: 5 * 60 * 1000, // 5 minutos - alerts não mudam com frequência
+		gcTime: 10 * 60 * 1000, // 10 minutos
+	})
+}
+
+export const useBudgetTrackerQuery = (budget?: number) => {
+	return useQuery({
+		queryKey: ["dashboard", "budget-tracker", budget],
+		queryFn: () => {
+			const params = budget ? `?budget=${budget}` : ""
+			return fetchWithErrorHandling(`/api/dashboard/budget-tracker${params}`)
+		},
+		staleTime: 1 * 60 * 1000, // 1 minuto - budget pode mudar mais frequentemente
+		gcTime: 5 * 60 * 1000, // 5 minutos
+	})
+}
+
+export const useShoppingPatternsQuery = () => {
+	return useQuery({
+		queryKey: ["dashboard", "shopping-patterns"],
+		queryFn: () => fetchWithErrorHandling("/api/dashboard/shopping-patterns"),
+		staleTime: 10 * 60 * 1000, // 10 minutos - padrões mudam lentamente
+		gcTime: 20 * 60 * 1000, // 20 minutos
+	})
+}
+
 // Expiration Alerts
 export const useExpirationAlertsQuery = () => {
 	return useQuery({
@@ -1012,6 +1051,10 @@ export interface DashboardPreferences {
 	showTemporalComp: boolean
 	showNutritionCard: boolean
 	showPaymentStats: boolean
+	showSpendingTrends: boolean
+	showPriceAlerts: boolean
+	showBudgetTracker: boolean
+	showShoppingPatterns: boolean
 	customTitle?: string
 	customSubtitle?: string
 }

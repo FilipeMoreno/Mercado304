@@ -113,6 +113,26 @@ const cardSections = [
 		label: "Estatísticas de Pagamento",
 		description: "Análise dos métodos de pagamento",
 	},
+	{
+		key: "showSpendingTrends",
+		label: "Tendências de Gastos",
+		description: "Análise de tendências semanais e mensais",
+	},
+	{
+		key: "showPriceAlerts",
+		label: "Alertas de Preços",
+		description: "Variações significativas de preços",
+	},
+	{
+		key: "showBudgetTracker",
+		label: "Controle de Orçamento",
+		description: "Acompanhamento do orçamento mensal",
+	},
+	{
+		key: "showShoppingPatterns",
+		label: "Padrões de Compras",
+		description: "Análise dos seus hábitos de compra",
+	},
 ]
 
 interface DashboardCustomizerProps {
@@ -141,6 +161,10 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 		showTemporalComp: true,
 		showNutritionCard: true,
 		showPaymentStats: true,
+		showSpendingTrends: true,
+		showPriceAlerts: true,
+		showBudgetTracker: true,
+		showShoppingPatterns: true,
 	})
 
 	const { data: preferences, isLoading } = useDashboardPreferencesQuery()
@@ -255,6 +279,10 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				showTemporalComp: true,
 				showNutritionCard: true,
 				showPaymentStats: true,
+				showSpendingTrends: true,
+				showPriceAlerts: true,
+				showBudgetTracker: true,
+				showShoppingPatterns: true,
 			}
 			setLocalPreferences(defaultPreferences)
 			setHasUnsavedChanges(false)
