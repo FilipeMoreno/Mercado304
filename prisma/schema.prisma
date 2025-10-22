@@ -769,3 +769,39 @@ model ProductKitItem {
   @@index([productId])
   @@map("product_kit_items")
 }
+
+model GTINCache {
+  id         String   @id @default(cuid())
+  gtin       String   @unique // Código GTIN/EAN
+  name       String   // Nome do produto
+  brand      String? // Nome da marca
+  
+  // Dimensões e pesos
+  grossWeight Float? // Peso bruto em gramas
+  netWeight   Float? // Peso líquido em gramas
+  height      Float? // Altura em cm
+  length      Float? // Comprimento em cm
+  width       Float? // Largura em cm
+  
+  // Preços
+  avgPrice Float? // Preço médio
+  maxPrice Float? // Preço máximo
+  
+  // Imagens
+  thumbnail String? // URL da thumbnail original (Cosmos)
+  imageUrl  String? // URL da nossa imagem salva no R2
+  
+  // Códigos de classificação
+  gpcCode            String? // Global Product Classification
+  gpcDescription     String?
+  ncmCode            String? // Nomenclatura Comum do Mercosul
+  ncmDescription     String?
+  ncmFullDescription String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gtin])
+  @@index([createdAt])
+  @@map("gtin_cache")
+}

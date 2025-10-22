@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useGTINQuery } from "@/hooks/use-gtin"
 import type { NutritionalInfo, Product } from "@/types"
 
 export default function ProdutoDetalhesPage() {
@@ -48,6 +49,9 @@ export default function ProdutoDetalhesPage() {
 	const [product, setProduct] = useState<Product | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [stats, setStats] = useState<any>(null)
+	
+	// Hook para buscar dados GTIN se o produto tiver código de barras
+	const { data: gtinData } = useGTINQuery(product?.barcode || null)
 	const [priceHistory, setPriceHistory] = useState<any[]>([])
 	const [marketComparison, setMarketComparison] = useState<any[]>([])
 	const [recentPurchases, setRecentPurchases] = useState<any[]>([])
@@ -179,7 +183,48 @@ export default function ProdutoDetalhesPage() {
 			{/* Header Simplificado */}
 			<div className="space-y-4">
 				{/* Título e Badges */}
-				<div className="flex items-start gap-3">
+				<div className="flex items-start gap-4">
+					{/* Imagem do Produto */}
+					{(gtinData && 'imageUrl' in gtinData && gtinData.imageUrl) || 
+					 (gtinData && 'thumbnail' in gtinData && gtinData.thumbnail) ? (
+						<div className="flex-shrink-0">
+							<div className="relative w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-gray-200 bg-white">
+								<img
+									src={(gtinData as any).imageUrl || (gtinData as any).thumbnail}
+									alt={product.name}
+									className="w-full h-full object-contain"
+									onError={(e) => {
+										// Se a imagem principal falhar, tentar a thumbnail
+										const img = e.target as HTMLImageElement
+										if (img.src === (gtinData as any).imageUrl && (gtinData as any).thumbnail) {
+											img.src = (gtinData as any).thumbnail
+										} else {
+											// Se ambas falharem, ocultar a div
+											const container = img.closest('.relative')
+											if (container) {
+												container.style.display = 'none'
+											}
+										}
+									}}
+								/>
+								{(gtinData as any).source === 'api' && (
+									<div className="absolute top-1 right-1">
+										<Badge variant="default" className="text-xs bg-blue-500 hover:bg-blue-600">
+											⚡
+										</Badge>
+									</div>
+								)}
+								{(gtinData as any).cached && (
+									<div className="absolute top-1 right-1">
+										<Badge variant="secondary" className="text-xs">
+											💾
+										</Badge>
+									</div>
+								)}
+							</div>
+						</div>
+					) : null}
+
 					<div className="flex-1 min-w-0">
 						<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
 						<div className="flex flex-wrap items-center gap-2 mt-3">
@@ -195,6 +240,11 @@ export default function ProdutoDetalhesPage() {
 								</Badge>
 							)}
 							<Badge variant="outline">{product.unit}</Badge>
+							{product.barcode && (
+								<Badge variant="outline" className="font-mono text-xs">
+									🏷️ {product.barcode}
+								</Badge>
+							)}
 						</div>
 					</div>
 				</div>

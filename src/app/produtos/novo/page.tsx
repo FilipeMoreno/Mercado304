@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
+import { GTINAutofillDialog } from "@/components/gtin-autofill-dialog"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
 import { BrandSelect } from "@/components/selects/brand-select"
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation, useUIPreferences } from "@/hooks"
+import { useGTINSearch } from "@/hooks/use-gtin"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { TempStorage } from "@/lib/temp-storage"
 import { AppToasts } from "@/lib/toasts"
@@ -43,6 +45,20 @@ export default function NovoProdutoPage() {
 
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
 	const [isScanning, setIsScanning] = useState(false)
+	
+	// GTIN Search hook
+	const {
+		product: gtinProduct,
+		error: gtinError,
+		isLoading: gtinLoading,
+		searchGTIN,
+		searchGTINImmediate,
+		isCached,
+		source
+	} = useGTINSearch()
+	
+	// Estado para o dialog de auto-preenchimento
+	const [showGTINDialog, setShowGTINDialog] = useState(false)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -70,6 +86,32 @@ export default function NovoProdutoPage() {
 			setFormData((prev) => ({ ...prev, name: nameParam }))
 		}
 	}, [searchParams])
+
+	// Efeito para mostrar o dialog quando um produto GTIN é encontrado
+	useEffect(() => {
+		if (gtinProduct && !showGTINDialog) {
+			setShowGTINDialog(true)
+		}
+	}, [gtinProduct, showGTINDialog])
+
+	// Efeito para mostrar erros de GTIN
+	useEffect(() => {
+		if (gtinError) {
+			if (gtinError.includes("não encontrado")) {
+				toast.info("Produto não encontrado na base de dados", {
+					description: "Você pode continuar cadastrando manualmente."
+				})
+			} else if (gtinError.includes("Limite de consultas")) {
+				toast.warning("Limite de consultas atingido", {
+					description: "Tente novamente mais tarde ou continue manualmente."
+				})
+			} else {
+				toast.error("Erro na busca do produto", {
+					description: gtinError
+				})
+			}
+		}
+	}, [gtinError])
 
 	const showNutritionalFields = useMemo(() => {
 		if (!formData.categoryId || categories.length === 0) return false
@@ -216,6 +258,11 @@ export default function NovoProdutoPage() {
 		if (fieldErrors[name]) {
 			clearFieldError(name)
 		}
+
+		// Se for o campo barcode, fazer busca GTIN com debounce
+		if (name === "barcode" && value.trim()) {
+			searchGTIN(value.trim())
+		}
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
@@ -230,6 +277,61 @@ export default function NovoProdutoPage() {
 	const handleBarcodeScanned = (barcode: string) => {
 		setFormData((prev) => ({ ...prev, barcode }))
 		setShowBarcodeScanner(false)
+		
+		// Buscar imediatamente quando escaneado
+		if (barcode.trim()) {
+			searchGTINImmediate(barcode.trim())
+		}
+	}
+
+	// Função para quando o usuário sai do campo de código de barras
+	const handleBarcodeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		const value = e.target.value.trim()
+		if (value) {
+			searchGTINImmediate(value)
+		}
+	}
+
+	// Funções para o dialog de auto-preenchimento
+	const handleGTINAccept = (autofillData: any) => {
+		// Preencher dados básicos
+		setFormData(prev => ({
+			...prev,
+			name: autofillData.name,
+			barcode: autofillData.barcode,
+			brandId: autofillData.brand?.id || "",
+			...(autofillData.grossWeight && { packageSize: `${autofillData.grossWeight}g` }),
+		}))
+
+		// Se há descrição (categoria), tentar encontrar categoria similar
+		if (autofillData.description && categories.length > 0) {
+			const matchedCategory = categories.find((cat: any) =>
+				cat.name.toLowerCase().includes(autofillData.description.toLowerCase()) ||
+				autofillData.description.toLowerCase().includes(cat.name.toLowerCase())
+			)
+			
+			if (matchedCategory) {
+				setFormData(prev => ({
+					...prev,
+					categoryId: matchedCategory.id
+				}))
+			}
+		}
+
+		toast.success("Dados preenchidos automaticamente!", {
+			description: isCached 
+				? "Dados obtidos do cache local" 
+				: "Dados obtidos da API Cosmos"
+		})
+		
+		setShowGTINDialog(false)
+	}
+
+	const handleGTINDecline = () => {
+		toast.info("Auto-preenchimento cancelado", {
+			description: "Você pode continuar preenchendo manualmente."
+		})
+		setShowGTINDialog(false)
 	}
 
 	// --- FUNÇÃO ATUALIZADA ---
@@ -295,19 +397,38 @@ export default function NovoProdutoPage() {
 							<div className="space-y-2">
 								<Label htmlFor="barcode">Código de Barras</Label>
 								<div className="flex gap-2">
-									<Input
-										id="barcode"
-										name="barcode"
-										value={formData.barcode}
-										onChange={handleChange}
-										placeholder="Digite ou escaneie o código"
-										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
-									/>
+									<div className="relative flex-1">
+										<Input
+											id="barcode"
+											name="barcode"
+											value={formData.barcode}
+											onChange={handleChange}
+											onBlur={handleBarcodeBlur}
+											placeholder="Digite ou escaneie o código"
+											className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+										/>
+										{gtinLoading && (
+											<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+												<Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+											</div>
+										)}
+									</div>
 									<Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)}>
 										<Camera className="size-4" />
 									</Button>
 								</div>
 								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
+								{isCached && formData.barcode && (
+									<p className="text-xs text-green-600 flex items-center gap-1">
+										<Clock className="h-3 w-3" />
+										Produto encontrado no cache local
+									</p>
+								)}
+								{source === 'api' && formData.barcode && (
+									<p className="text-xs text-blue-600 flex items-center gap-1">
+										⚡ Produto encontrado na API Cosmos
+									</p>
+								)}
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>
@@ -521,6 +642,14 @@ export default function NovoProdutoPage() {
 					/>
 				</DialogContent>
 			</Dialog>
+
+			<GTINAutofillDialog
+				open={showGTINDialog}
+				onOpenChange={setShowGTINDialog}
+				product={gtinProduct}
+				onAccept={handleGTINAccept}
+				onDecline={handleGTINDecline}
+			/>
 		</div>
 	)
 }
