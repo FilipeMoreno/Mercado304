@@ -2,8 +2,10 @@ import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
-import { resetBackupProgress, updateBackupProgress } from "@/lib/backup-progress-state"
+import { resetBackupProgress, updateBackupProgress, updateBackupProgressWithAutoReset } from "@/lib/backup-progress-state"
 import { generatePrismaBackup } from "@/lib/backup-utils"
+import { generateIntegrityReport } from "@/lib/backup-integrity"
+import { applyRetentionPolicy, DEFAULT_RETENTION_POLICY } from "@/lib/backup-retention"
 
 const execAsync = promisify(exec)
 
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
 
 		// Verificar se as variáveis de ambiente estão configuradas
 		if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-			updateBackupProgress({
+			updateBackupProgressWithAutoReset({
 				status: "error",
 				progress: 0,
 				currentStep: "Erro: Credenciais do R2 não configuradas",
@@ -58,7 +60,7 @@ export async function POST(request: Request) {
 
 		const DATABASE_URL = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
 		if (!DATABASE_URL) {
-			updateBackupProgress({
+			updateBackupProgressWithAutoReset({
 				status: "error",
 				progress: 0,
 				currentStep: "Erro: URL do banco de dados não configurada",
@@ -137,7 +139,7 @@ export async function POST(request: Request) {
 				})
 			} catch (prismaError) {
 				console.error("[Backup] Erro ao gerar backup via Prisma:", prismaError)
-				updateBackupProgress({
+				updateBackupProgressWithAutoReset({
 					status: "error",
 					progress: 0,
 					currentStep: "Erro ao gerar backup",
@@ -153,6 +155,39 @@ export async function POST(request: Request) {
 				)
 			}
 		}
+
+		// Verificar integridade do backup
+		updateBackupProgress({
+			progress: 65,
+			currentStep: "Verificando integridade do backup...",
+		})
+
+		console.log("[Backup] Verificando integridade...")
+		// Usar verificação simplificada para evitar timeouts do pool de conexões
+		const integrityReport = await generateIntegrityReport(backupData, true)
+		
+		if (!integrityReport.isValid) {
+			console.error("[Backup] Falha na verificação de integridade:", integrityReport.validationErrors)
+			updateBackupProgressWithAutoReset({
+				status: "error",
+				progress: 0,
+				currentStep: "Falha na verificação de integridade",
+				error: `Backup inválido: ${integrityReport.validationErrors.join(", ")}`,
+			})
+			return NextResponse.json(
+				{
+					success: false,
+					error: "Backup falhou na verificação de integridade",
+					details: integrityReport.validationErrors,
+				},
+				{ status: 500 },
+			)
+		}
+
+		console.log("[Backup] Integridade verificada ✓")
+		console.log("[Backup] - Registros:", integrityReport.recordCount)
+		console.log("[Backup] - Checksum:", `${integrityReport.checksum.substring(0, 16)}...`)
+		console.log("[Backup] - Tabelas:", integrityReport.tables.length)
 
 		// Fazer upload para o R2
 		try {
@@ -172,13 +207,43 @@ export async function POST(request: Request) {
 					timestamp: new Date().toISOString(),
 					type: isManual ? "manual" : "automatic",
 					size: backupData.length.toString(),
+					method: backupMethod,
+					checksum: integrityReport.checksum,
+					recordCount: integrityReport.recordCount.toString(),
+					tablesCount: integrityReport.tables.length.toString(),
+					validated: "true",
 				},
 			})
 
 			await s3Client.send(uploadCommand)
 			console.log("[Backup] Upload concluído com sucesso!")
 
-			updateBackupProgress({
+			// Aplicar política de retenção (somente para backups automáticos)
+			if (!isManual) {
+				updateBackupProgress({
+					progress: 90,
+					currentStep: "Aplicando política de retenção...",
+				})
+
+				try {
+					console.log("[Backup] Aplicando política de retenção...")
+					const retentionResult = await applyRetentionPolicy(s3Client, R2_BUCKET_NAME, DEFAULT_RETENTION_POLICY)
+					
+					console.log("[Backup] Política de retenção aplicada:")
+					console.log("[Backup] - Backups mantidos:", retentionResult.kept.length)
+					console.log("[Backup] - Backups deletados:", retentionResult.deleted.length)
+					console.log("[Backup] - Espaço liberado:", ((retentionResult.totalSizeBefore - retentionResult.totalSizeAfter) / 1024 / 1024).toFixed(2), "MB")
+					
+					if (retentionResult.errors.length > 0) {
+						console.warn("[Backup] Erros na política de retenção:", retentionResult.errors)
+					}
+				} catch (retentionError) {
+					console.warn("[Backup] Erro ao aplicar política de retenção (não crítico):", retentionError)
+					// Não falhar o backup por erro de retenção
+				}
+			}
+
+			updateBackupProgressWithAutoReset({
 				status: "completed",
 				progress: 100,
 				currentStep: "Backup concluído com sucesso!",
@@ -186,6 +251,9 @@ export async function POST(request: Request) {
 					fileName: backupFileName,
 					size: backupData.length,
 					sizeFormatted: `${(backupData.length / 1024 / 1024).toFixed(2)} MB`,
+					checksum: integrityReport.checksum,
+					recordCount: integrityReport.recordCount,
+					validated: true,
 				},
 			})
 
@@ -200,11 +268,18 @@ export async function POST(request: Request) {
 					location: `r2://${R2_BUCKET_NAME}/backups/${backupFileName}`,
 					type: isManual ? "manual" : "automatic",
 					method: backupMethod,
+					integrity: {
+						checksum: integrityReport.checksum,
+						recordCount: integrityReport.recordCount,
+						tablesCount: integrityReport.tables.length,
+						validated: true,
+						isValid: integrityReport.isValid,
+					},
 				},
 			})
 		} catch (error) {
 			console.error("[Backup] Erro ao enviar para R2:", error)
-			updateBackupProgress({
+			updateBackupProgressWithAutoReset({
 				status: "error",
 				progress: 0,
 				currentStep: "Erro ao enviar backup para R2",
@@ -221,7 +296,7 @@ export async function POST(request: Request) {
 		}
 	} catch (error) {
 		console.error("[Backup] Erro geral:", error)
-		updateBackupProgress({
+		updateBackupProgressWithAutoReset({
 			status: "error",
 			progress: 0,
 			currentStep: "Erro ao criar backup",

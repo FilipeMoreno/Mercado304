@@ -35,31 +35,59 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 			return
 		}
 
+		let interval: NodeJS.Timeout
+
 		// Polling para obter o progresso
-		const interval = setInterval(async () => {
-			try {
-				const response = await fetch("/api/admin/backup/progress")
-				const data = await response.json()
+		const startPolling = () => {
+			interval = setInterval(async () => {
+				try {
+					const response = await fetch("/api/admin/backup/progress")
+					const data = await response.json()
 
-				if (data.success) {
-					setProgress(data.progress)
+					if (data.success) {
+						const newProgress = data.progress
+						setProgress(newProgress)
 
-					// Se completou ou teve erro, parar o polling
-					if (data.progress.status === "completed" || data.progress.status === "error") {
-						clearInterval(interval)
-						if (data.progress.status === "completed" && onComplete) {
-							setTimeout(() => {
-								onComplete()
-							}, 2000) // Esperar 2 segundos antes de chamar onComplete
+						// Se completou, teve erro, ou voltou para idle, parar o polling
+						if (newProgress.status === "completed" || newProgress.status === "error" || newProgress.status === "idle") {
+							clearInterval(interval)
+							
+							if (newProgress.status === "completed" && onComplete) {
+								setTimeout(() => {
+									onComplete()
+									// Reset do progresso após completar
+									setTimeout(() => {
+										setProgress(null)
+									}, 3000) // Esperar 3 segundos antes de resetar completamente
+								}, 2000) // Esperar 2 segundos antes de chamar onComplete
+							}
+							
+							// Se voltou para idle ou erro, resetar após um tempo
+							if (newProgress.status === "idle" || newProgress.status === "error") {
+								setTimeout(() => {
+									setProgress(null)
+								}, newProgress.status === "error" ? 5000 : 1000) // 5s para erro, 1s para idle
+							}
 						}
 					}
+				} catch (error) {
+					console.error("Erro ao obter progresso:", error)
+					// Em caso de erro de rede, parar o polling após algumas tentativas
+					clearInterval(interval)
+					setTimeout(() => {
+						setProgress(null)
+					}, 2000)
 				}
-			} catch (error) {
-				console.error("Erro ao obter progresso:", error)
-			}
-		}, 500) // Atualizar a cada 500ms
+			}, 300) // Atualizar a cada 300ms para mais responsividade
+		}
 
-		return () => clearInterval(interval)
+		startPolling()
+
+		return () => {
+			if (interval) {
+				clearInterval(interval)
+			}
+		}
 	}, [isCreating, onComplete])
 
 	if (!progress || progress.status === "idle") {
