@@ -481,12 +481,13 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 											<div className="flex items-center gap-2">
 												<span className="text-sm">{category.percentage.toFixed(1)}%</span>
 												<TrendingUp
-													className={`h-4 w-4 ${category.trend === "increasing"
+													className={`h-4 w-4 ${
+														category.trend === "increasing"
 															? "text-green-500"
 															: category.trend === "decreasing"
 																? "text-red-500"
 																: "text-gray-500"
-														}`}
+													}`}
 												/>
 											</div>
 										</div>

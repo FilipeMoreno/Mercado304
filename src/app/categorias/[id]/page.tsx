@@ -531,8 +531,9 @@ export default function CategoriaDetalhesPage() {
 															<div className="font-medium">R$ {month.spent.toFixed(2)}</div>
 															{prevMonth && showChange && (
 																<div
-																	className={`text-xs flex items-center gap-1 justify-end ${isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
-																		}`}
+																	className={`text-xs flex items-center gap-1 justify-end ${
+																		isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
+																	}`}
 																>
 																	{isIncrease ? (
 																		<TrendingUp className="h-3 w-3" />
@@ -592,13 +593,15 @@ export default function CategoriaDetalhesPage() {
 										return (
 											<div
 												key={market.marketId}
-												className={`flex items-center justify-between p-4 border rounded-lg ${isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
-													}`}
+												className={`flex items-center justify-between p-4 border rounded-lg ${
+													isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
+												}`}
 											>
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
-															}`}
+														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${
+															isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
+														}`}
 													>
 														{index + 1}
 													</div>

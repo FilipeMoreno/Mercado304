@@ -252,7 +252,7 @@ export const advancedAnalyticsFunctions = {
 			const intercept = (sumY - slope * sumX) / n
 
 			// Previsão para os próximos dias
-			const lastDataPoint = priceData[priceData.length - 1];
+			const lastDataPoint = priceData[priceData.length - 1]
 			if (!lastDataPoint) {
 				return { error: "Dados insuficientes para previsão" }
 			}
@@ -309,12 +309,12 @@ export const advancedAnalyticsFunctions = {
 					...(marketName ? { market: { name: { contains: marketName, mode: "insensitive" } } } : {}),
 					...(productName
 						? {
-							items: {
-								some: {
-									product: { name: { contains: productName, mode: "insensitive" } },
+								items: {
+									some: {
+										product: { name: { contains: productName, mode: "insensitive" } },
+									},
 								},
-							},
-						}
+							}
 						: {}),
 				},
 				include: {
@@ -322,10 +322,10 @@ export const advancedAnalyticsFunctions = {
 						include: { product: true },
 						...(productName
 							? {
-								where: {
-									product: { name: { contains: productName, mode: "insensitive" } },
-								},
-							}
+									where: {
+										product: { name: { contains: productName, mode: "insensitive" } },
+									},
+								}
 							: {}),
 					},
 					market: true,

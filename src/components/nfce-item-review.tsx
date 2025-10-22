@@ -235,7 +235,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 			// Associar apenas se o score for razoável (> 0.3)
 			if (bestMatch.score > 0.3) {
-				const currentItem = updatedItems[bestMatch.index];
+				const currentItem = updatedItems[bestMatch.index]
 				if (currentItem) {
 					updatedItems[bestMatch.index] = {
 						...currentItem,
@@ -246,9 +246,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 					matchCount++
 
 					const confidence = Math.round(bestMatch.score * 100)
-					toast.success(
-						`"${product.name}" associado a "${currentItem.originalName}" (${confidence}% confiança)`,
-					)
+					toast.success(`"${product.name}" associado a "${currentItem.originalName}" (${confidence}% confiança)`)
 				}
 			} else {
 				toast.warning(
@@ -276,7 +274,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 				if (item && item.code) {
 					const product = await fetchProductByBarcode(item.code)
 					if (product) {
-						const currentItem = updatedItems[i];
+						const currentItem = updatedItems[i]
 						if (currentItem) {
 							updatedItems[i] = {
 								...currentItem,
@@ -309,8 +307,8 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 	const handleProductChange = (index: number, product: Product | null) => {
 		const newItems = [...mappedItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		if (product) {
 			currentItem.productId = product.id
@@ -327,8 +325,8 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 	const handleFieldChange = (index: number, field: "quantity" | "price" | "unitDiscount", value: string) => {
 		const newItems = [...mappedItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 		const numericValue = parseFloat(value) || 0
 		currentItem[field] = numericValue
 		setMappedItems(newItems)

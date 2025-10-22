@@ -173,15 +173,15 @@ export async function GET(request: NextRequest) {
 
 		// Envia email de notificação
 		const location = await getLocationFromIP(ipAddress)
-		
+
 		const userForEmail: { email: string; name?: string } = {
 			email: session.user.email,
 		}
-		
+
 		if (session.user.name) {
 			userForEmail.name = session.user.name
 		}
-		
+
 		sendSecurityAlertEmail({
 			user: userForEmail,
 			action: `Conta Google (${googleEmail}) foi VINCULADA à sua conta`,

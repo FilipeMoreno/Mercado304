@@ -19,11 +19,11 @@ async function checkIfBackupIsRunning(): Promise<boolean> {
 	try {
 		const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
 		const response = await fetch(`${baseUrl}/api/admin/backup/progress`)
-		
+
 		if (!response.ok) {
 			return false
 		}
-		
+
 		const data = await response.json()
 		return data.status === "creating" || data.status === "uploading"
 	} catch (error) {
@@ -52,10 +52,10 @@ export async function GET(request: Request) {
 		const isBackupRunning = await checkIfBackupIsRunning()
 		if (isBackupRunning) {
 			console.log("[Cron Backup] Backup já está em execução, pulando...")
-			return NextResponse.json({ 
-				success: true, 
-				message: "Backup já está em execução", 
-				skipped: true 
+			return NextResponse.json({
+				success: true,
+				message: "Backup já está em execução",
+				skipped: true,
 			})
 		}
 

@@ -101,7 +101,7 @@ export function useAiCache() {
 		// Manter apenas as mais relevantes
 		const managed = new Map()
 		for (let i = 0; i < MAX_CACHE_SIZE; i++) {
-			const entry = entries[i];
+			const entry = entries[i]
 			if (entry && entry[0] !== undefined && entry[1] !== undefined) {
 				managed.set(entry[0], entry[1])
 			}

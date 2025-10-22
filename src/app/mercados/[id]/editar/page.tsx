@@ -48,7 +48,8 @@ export default function EditarMercadoPage() {
 		}
 
 		try {
-			await updateMarketMutation.mutateAsync({
+			console.log("[EditarMercado] Atualizando mercado...")
+			const result = await updateMarketMutation.mutateAsync({
 				id: marketId,
 				data: {
 					name: formData.name.trim(),
@@ -57,13 +58,18 @@ export default function EditarMercadoPage() {
 				},
 			})
 
-			toast.success("Mercado atualizado com sucesso!")
+			console.log("[EditarMercado] Mercado atualizado com sucesso:", result)
+			console.log("[EditarMercado] Aguardando invalidação de queries antes de redirecionar...")
+
+			// Toast já é enviado pelo hook - não duplicar aqui
+			// Aguardar invalidação antes de redirecionar
 			setTimeout(() => {
+				console.log("[EditarMercado] Redirecionando para /mercados")
 				router.push("/mercados")
-			}, 100)
+			}, 1000) // Aumentar delay para garantir atualização completa
 		} catch (error) {
 			console.error("Error updating market:", error)
-			toast.error("Erro ao atualizar mercado")
+			// Toast de erro já é enviado pelo hook
 		}
 	}
 

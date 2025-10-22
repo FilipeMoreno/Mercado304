@@ -391,12 +391,13 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 									</div>
 									<Badge
 										variant="secondary"
-										className={`${prediction.confidence > 70
-											? "bg-green-500/20 text-green-300"
-											: prediction.confidence > 40
-												? "bg-yellow-500/20 text-yellow-300"
-												: "bg-red-500/20 text-red-300"
-											}`}
+										className={`${
+											prediction.confidence > 70
+												? "bg-green-500/20 text-green-300"
+												: prediction.confidence > 40
+													? "bg-yellow-500/20 text-yellow-300"
+													: "bg-red-500/20 text-red-300"
+										}`}
 									>
 										{prediction.confidence}%
 									</Badge>

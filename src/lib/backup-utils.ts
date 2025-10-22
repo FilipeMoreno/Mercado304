@@ -289,7 +289,7 @@ export async function generatePrismaBackup(): Promise<string> {
 		// === TABELAS ADICIONAIS OPCIONAIS ===
 		// Nota: Algumas tabelas de autenticação são omitidas para evitar problemas de compatibilidade
 		// O backup foca nas tabelas principais de dados do negócio
-		
+
 		try {
 			// 21. Sync Jobs (se existir)
 			const syncJobs = await prisma.syncJob.findMany()

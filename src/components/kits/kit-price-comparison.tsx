@@ -73,12 +73,10 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 			return
 		}
 
-		const missingPrices = items.filter(
-			(item) => {
-				const price = itemPrices[item.product.id];
-				return !price || parseFloat(price) <= 0;
-			},
-		)
+		const missingPrices = items.filter((item) => {
+			const price = itemPrices[item.product.id]
+			return !price || parseFloat(price) <= 0
+		})
 
 		if (missingPrices.length > 0) {
 			toast.error(`Digite o preço de todos os produtos (faltam ${missingPrices.length})`)

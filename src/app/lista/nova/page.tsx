@@ -29,25 +29,27 @@ interface ShoppingListItem {
 	productUnit: string
 	quantity: number | string
 	estimatedPrice?: number | string
-	priceAlert?: {
-		hasAlert: boolean
-		alertType?: "price_warning" | "high_price"
-		message: string
-		details?: {
-			currentPrice: number
-			suggestedPrice?: number
-			averagePrice?: number
-			savings?: number
-			savingsPercent?: number
-			suggestedMarket?: {
-				name: string
-			}
-			difference?: number
-			percentDifference?: number
-			totalComparisons: number
-			historicalPurchases?: number
-		}
-	} | undefined
+	priceAlert?:
+		| {
+				hasAlert: boolean
+				alertType?: "price_warning" | "high_price"
+				message: string
+				details?: {
+					currentPrice: number
+					suggestedPrice?: number
+					averagePrice?: number
+					savings?: number
+					savingsPercent?: number
+					suggestedMarket?: {
+						name: string
+					}
+					difference?: number
+					percentDifference?: number
+					totalComparisons: number
+					historicalPurchases?: number
+				}
+		  }
+		| undefined
 }
 
 export default function NovaListaPage() {
@@ -56,7 +58,7 @@ export default function NovaListaPage() {
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const id = useId()
 	const { selectStyle } = useUIPreferences()
-	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
@@ -91,7 +93,7 @@ export default function NovaListaPage() {
 	const updateItem = useCallback((index: number, field: keyof ShoppingListItem, value: string | number) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
-			const currentItem = newItems[index];
+			const currentItem = newItems[index]
 			if (currentItem) {
 				newItems[index] = { ...currentItem, [field]: value } as ShoppingListItem
 			}
@@ -102,9 +104,9 @@ export default function NovaListaPage() {
 	const handleProductNameChange = (index: number, name: string) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
-			const item = newItems[index];
+			const item = newItems[index]
 			if (item) {
-				const { productId, ...rest } = item;
+				const { productId, ...rest } = item
 				newItems[index] = {
 					...rest,
 					productName: name,

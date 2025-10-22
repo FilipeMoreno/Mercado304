@@ -32,7 +32,7 @@ export default function NovaCategoriaPage() {
 		}
 
 		try {
-			const icon = formData.icon.trim();
+			const icon = formData.icon.trim()
 			await createCategoryMutation.mutateAsync({
 				name: formData.name.trim(),
 				...(icon ? { icon } : {}),

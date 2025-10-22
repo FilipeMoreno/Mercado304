@@ -773,7 +773,9 @@ export default function MarcaDetalhesPage() {
 																)
 															}
 
-															const change = prevMonth?.spent ? ((lastMonth.spent - prevMonth.spent) / prevMonth.spent) * 100 : 0
+															const change = prevMonth?.spent
+																? ((lastMonth.spent - prevMonth.spent) / prevMonth.spent) * 100
+																: 0
 															const isIncrease = change > 0
 
 															return isIncrease ? (

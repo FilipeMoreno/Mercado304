@@ -291,17 +291,29 @@ export const useCreateMarketMutation = () => {
 				body: JSON.stringify(data),
 			}),
 		onSuccess: async (newMarket: Market) => {
-			// Invalida todas as queries de markets (incluindo infinite queries se houver)
+			console.log("[useCreateMarketMutation] Market created, invalidating queries...")
+
+			// Invalidar todas as queries relacionadas a markets
 			await queryClient.invalidateQueries({
 				queryKey: ["markets"],
 				exact: false,
 			})
 
-			// Aguarda refetch de todas as queries de markets
+			// Invalidar stats do dashboard também
+			await queryClient.invalidateQueries({
+				queryKey: queryKeys.dashboard.stats(),
+			})
+
+			console.log("[useCreateMarketMutation] Queries invalidated, refetching...")
+
+			// Forçar refetch imediato de todas as queries de markets
 			await queryClient.refetchQueries({
 				queryKey: ["markets"],
 				exact: false,
+				type: "active", // Apenas queries ativas
 			})
+
+			console.log("[useCreateMarketMutation] Refetch completed")
 
 			toast.success("Mercado criado com sucesso!")
 
@@ -323,9 +335,36 @@ export const useUpdateMarketMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["markets"] })
-			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+		onSuccess: async (_, { id }) => {
+			console.log("[useUpdateMarketMutation] Market updated, invalidating queries...")
+
+			// Invalidar todas as queries relacionadas a markets
+			await queryClient.invalidateQueries({
+				queryKey: ["markets"],
+				exact: false,
+			})
+
+			// Invalidar query específica do market
+			await queryClient.invalidateQueries({
+				queryKey: ["markets", id],
+			})
+
+			// Invalidar stats do dashboard
+			await queryClient.invalidateQueries({
+				queryKey: queryKeys.dashboard.stats(),
+			})
+
+			console.log("[useUpdateMarketMutation] Queries invalidated, refetching...")
+
+			// Forçar refetch imediato
+			await queryClient.refetchQueries({
+				queryKey: ["markets"],
+				exact: false,
+				type: "active",
+			})
+
+			console.log("[useUpdateMarketMutation] Refetch completed")
+
 			toast.success("Mercado atualizado com sucesso!")
 		},
 		onError: (error) => {

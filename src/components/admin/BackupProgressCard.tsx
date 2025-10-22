@@ -51,7 +51,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 						// Se completou, teve erro, ou voltou para idle, parar o polling
 						if (newProgress.status === "completed" || newProgress.status === "error" || newProgress.status === "idle") {
 							clearInterval(interval)
-							
+
 							if (newProgress.status === "completed" && onComplete) {
 								setTimeout(() => {
 									onComplete()
@@ -61,12 +61,15 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 									}, 3000) // Esperar 3 segundos antes de resetar completamente
 								}, 2000) // Esperar 2 segundos antes de chamar onComplete
 							}
-							
+
 							// Se voltou para idle ou erro, resetar após um tempo
 							if (newProgress.status === "idle" || newProgress.status === "error") {
-								setTimeout(() => {
-									setProgress(null)
-								}, newProgress.status === "error" ? 5000 : 1000) // 5s para erro, 1s para idle
+								setTimeout(
+									() => {
+										setProgress(null)
+									},
+									newProgress.status === "error" ? 5000 : 1000,
+								) // 5s para erro, 1s para idle
 							}
 						}
 					}

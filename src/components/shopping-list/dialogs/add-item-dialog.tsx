@@ -69,7 +69,7 @@ export function AddItemDialog({
 	}
 
 	const handleProductNameChange = (name: string) => {
-		const { productId, ...rest } = newItem;
+		const { productId, ...rest } = newItem
 		onNewItemChange({
 			...rest,
 			productName: name,
@@ -78,7 +78,7 @@ export function AddItemDialog({
 	}
 
 	const handleUnlinkProduct = () => {
-		const { productId, ...rest } = newItem;
+		const { productId, ...rest } = newItem
 		onNewItemChange({
 			...rest,
 		})
@@ -245,8 +245,8 @@ export function AddItemDialog({
 						min="0"
 						value={newItem.estimatedPrice || ""}
 						onChange={(e) => {
-							const price = parseFloat(e.target.value);
-							const { estimatedPrice, ...rest } = newItem;
+							const price = parseFloat(e.target.value)
+							const { estimatedPrice, ...rest } = newItem
 							onNewItemChange({
 								...rest,
 								...(price && !isNaN(price) ? { estimatedPrice: price } : {}),

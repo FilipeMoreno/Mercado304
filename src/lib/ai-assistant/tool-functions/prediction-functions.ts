@@ -117,10 +117,10 @@ export const predictionFunctions = {
 							)
 							return product?.found
 								? {
-									market: market.market,
-									price: product.price,
-									lastUpdate: product.lastUpdate,
-								}
+										market: market.market,
+										price: product.price,
+										lastUpdate: product.lastUpdate,
+									}
 								: null
 						})
 						.filter(Boolean)
@@ -234,8 +234,8 @@ export const predictionFunctions = {
 					const intervals = []
 
 					for (let i = 1; i < sortedPurchases.length; i++) {
-						const current = sortedPurchases[i];
-						const previous = sortedPurchases[i - 1];
+						const current = sortedPurchases[i]
+						const previous = sortedPurchases[i - 1]
 						if (current && previous) {
 							const interval = (current.getTime() - previous.getTime()) / (1000 * 60 * 60 * 24)
 							intervals.push(interval)
@@ -626,7 +626,7 @@ export const predictionFunctions = {
 			}
 
 			for (const category of Object.keys(categoryChanges)) {
-				const catChange = categoryChanges[category];
+				const catChange = categoryChanges[category]
 				if (catChange) {
 					catChange.avgChange /= catChange.products
 					catChange.avgChange = Math.round(catChange.avgChange * 10) / 10

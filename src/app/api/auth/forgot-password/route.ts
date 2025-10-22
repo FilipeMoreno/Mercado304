@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
 		const userForEmail: { email: string; name?: string } = {
 			email: user.email,
 		}
-		
+
 		if (user.name) {
 			userForEmail.name = user.name
 		}
-		
+
 		await sendPasswordResetEmail({
 			user: userForEmail,
 			url: resetUrl,

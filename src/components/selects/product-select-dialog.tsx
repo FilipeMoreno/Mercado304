@@ -74,7 +74,7 @@ export function ProductSelectDialog({
 				parts.push(product.barcode)
 			}
 
-			const sublabel = parts.length > 0 ? parts.join(" • ") : undefined;
+			const sublabel = parts.length > 0 ? parts.join(" • ") : undefined
 			return {
 				id: product.id,
 				label: product.name,

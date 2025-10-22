@@ -40,23 +40,26 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 		if (existingNutritionalInfo) {
 			// Build the update data object conditionally
 			const updateData: any = {}
-			
+
 			// Basic fields
 			if (body.servingSize !== undefined) updateData.servingSize = body.servingSize
-			if (body.servingsPerPackage !== undefined) updateData.servingsPerPackage = body.servingsPerPackage ? Number(body.servingsPerPackage) : null
+			if (body.servingsPerPackage !== undefined)
+				updateData.servingsPerPackage = body.servingsPerPackage ? Number(body.servingsPerPackage) : null
 			if (body.calories !== undefined) updateData.calories = body.calories ? Number(body.calories) : null
 			if (body.proteins !== undefined) updateData.proteins = body.proteins ? Number(body.proteins) : null
 			if (body.totalFat !== undefined) updateData.totalFat = body.totalFat ? Number(body.totalFat) : null
-			if (body.saturatedFat !== undefined) updateData.saturatedFat = body.saturatedFat ? Number(body.saturatedFat) : null
+			if (body.saturatedFat !== undefined)
+				updateData.saturatedFat = body.saturatedFat ? Number(body.saturatedFat) : null
 			if (body.transFat !== undefined) updateData.transFat = body.transFat ? Number(body.transFat) : null
-			if (body.carbohydrates !== undefined) updateData.carbohydrates = body.carbohydrates ? Number(body.carbohydrates) : null
+			if (body.carbohydrates !== undefined)
+				updateData.carbohydrates = body.carbohydrates ? Number(body.carbohydrates) : null
 			if (body.totalSugars !== undefined) updateData.totalSugars = body.totalSugars ? Number(body.totalSugars) : null
 			if (body.addedSugars !== undefined) updateData.addedSugars = body.addedSugars ? Number(body.addedSugars) : null
 			if (body.lactose !== undefined) updateData.lactose = body.lactose ? Number(body.lactose) : null
 			if (body.galactose !== undefined) updateData.galactose = body.galactose ? Number(body.galactose) : null
 			if (body.fiber !== undefined) updateData.fiber = body.fiber ? Number(body.fiber) : null
 			if (body.sodium !== undefined) updateData.sodium = body.sodium ? Number(body.sodium) : null
-			
+
 			// Vitaminas
 			if (body.vitaminA !== undefined) updateData.vitaminA = body.vitaminA ? Number(body.vitaminA) : null
 			if (body.vitaminC !== undefined) updateData.vitaminC = body.vitaminC ? Number(body.vitaminC) : null
@@ -70,8 +73,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 			if (body.folate !== undefined) updateData.folate = body.folate ? Number(body.folate) : null
 			if (body.vitaminB12 !== undefined) updateData.vitaminB12 = body.vitaminB12 ? Number(body.vitaminB12) : null
 			if (body.biotin !== undefined) updateData.biotin = body.biotin ? Number(body.biotin) : null
-			if (body.pantothenicAcid !== undefined) updateData.pantothenicAcid = body.pantothenicAcid ? Number(body.pantothenicAcid) : null
-			
+			if (body.pantothenicAcid !== undefined)
+				updateData.pantothenicAcid = body.pantothenicAcid ? Number(body.pantothenicAcid) : null
+
 			// Minerais
 			if (body.calcium !== undefined) updateData.calcium = body.calcium ? Number(body.calcium) : null
 			if (body.iron !== undefined) updateData.iron = body.iron ? Number(body.iron) : null
@@ -85,20 +89,24 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 			if (body.iodine !== undefined) updateData.iodine = body.iodine ? Number(body.iodine) : null
 			if (body.chromium !== undefined) updateData.chromium = body.chromium ? Number(body.chromium) : null
 			if (body.molybdenum !== undefined) updateData.molybdenum = body.molybdenum ? Number(body.molybdenum) : null
-			
+
 			// Outros nutrientes
 			if (body.taurine !== undefined) updateData.taurine = body.taurine ? Number(body.taurine) : null
 			if (body.caffeine !== undefined) updateData.caffeine = body.caffeine ? Number(body.caffeine) : null
-			if (body.alcoholContent !== undefined) updateData.alcoholContent = body.alcoholContent ? Number(body.alcoholContent) : null
+			if (body.alcoholContent !== undefined)
+				updateData.alcoholContent = body.alcoholContent ? Number(body.alcoholContent) : null
 			if (body.omega3 !== undefined) updateData.omega3 = body.omega3 ? Number(body.omega3) : null
 			if (body.omega6 !== undefined) updateData.omega6 = body.omega6 ? Number(body.omega6) : null
-			if (body.monounsaturatedFat !== undefined) updateData.monounsaturatedFat = body.monounsaturatedFat ? Number(body.monounsaturatedFat) : null
-			if (body.polyunsaturatedFat !== undefined) updateData.polyunsaturatedFat = body.polyunsaturatedFat ? Number(body.polyunsaturatedFat) : null
+			if (body.monounsaturatedFat !== undefined)
+				updateData.monounsaturatedFat = body.monounsaturatedFat ? Number(body.monounsaturatedFat) : null
+			if (body.polyunsaturatedFat !== undefined)
+				updateData.polyunsaturatedFat = body.polyunsaturatedFat ? Number(body.polyunsaturatedFat) : null
 			if (body.cholesterol !== undefined) updateData.cholesterol = body.cholesterol ? Number(body.cholesterol) : null
 			if (body.epa !== undefined) updateData.epa = body.epa ? Number(body.epa) : null
 			if (body.dha !== undefined) updateData.dha = body.dha ? Number(body.dha) : null
-			if (body.linolenicAcid !== undefined) updateData.linolenicAcid = body.linolenicAcid ? Number(body.linolenicAcid) : null
-			
+			if (body.linolenicAcid !== undefined)
+				updateData.linolenicAcid = body.linolenicAcid ? Number(body.linolenicAcid) : null
+
 			// Alérgenos
 			if (body.allergensContains !== undefined) updateData.allergensContains = body.allergensContains || []
 			if (body.allergensMayContain !== undefined) updateData.allergensMayContain = body.allergensMayContain || []
@@ -116,22 +124,25 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 				productId: productId,
 				servingSize: body.servingSize,
 			}
-			
+
 			// Only include fields that are explicitly provided
-			if (body.servingsPerPackage !== undefined) createData.servingsPerPackage = body.servingsPerPackage ? Number(body.servingsPerPackage) : null
+			if (body.servingsPerPackage !== undefined)
+				createData.servingsPerPackage = body.servingsPerPackage ? Number(body.servingsPerPackage) : null
 			if (body.calories !== undefined) createData.calories = body.calories ? Number(body.calories) : null
 			if (body.proteins !== undefined) createData.proteins = body.proteins ? Number(body.proteins) : null
 			if (body.totalFat !== undefined) createData.totalFat = body.totalFat ? Number(body.totalFat) : null
-			if (body.saturatedFat !== undefined) createData.saturatedFat = body.saturatedFat ? Number(body.saturatedFat) : null
+			if (body.saturatedFat !== undefined)
+				createData.saturatedFat = body.saturatedFat ? Number(body.saturatedFat) : null
 			if (body.transFat !== undefined) createData.transFat = body.transFat ? Number(body.transFat) : null
-			if (body.carbohydrates !== undefined) createData.carbohydrates = body.carbohydrates ? Number(body.carbohydrates) : null
+			if (body.carbohydrates !== undefined)
+				createData.carbohydrates = body.carbohydrates ? Number(body.carbohydrates) : null
 			if (body.totalSugars !== undefined) createData.totalSugars = body.totalSugars ? Number(body.totalSugars) : null
 			if (body.addedSugars !== undefined) createData.addedSugars = body.addedSugars ? Number(body.addedSugars) : null
 			if (body.lactose !== undefined) createData.lactose = body.lactose ? Number(body.lactose) : null
 			if (body.galactose !== undefined) createData.galactose = body.galactose ? Number(body.galactose) : null
 			if (body.fiber !== undefined) createData.fiber = body.fiber ? Number(body.fiber) : null
 			if (body.sodium !== undefined) createData.sodium = body.sodium ? Number(body.sodium) : null
-			
+
 			// Vitaminas
 			if (body.vitaminA !== undefined) createData.vitaminA = body.vitaminA ? Number(body.vitaminA) : null
 			if (body.vitaminC !== undefined) createData.vitaminC = body.vitaminC ? Number(body.vitaminC) : null
@@ -145,8 +156,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 			if (body.folate !== undefined) createData.folate = body.folate ? Number(body.folate) : null
 			if (body.vitaminB12 !== undefined) createData.vitaminB12 = body.vitaminB12 ? Number(body.vitaminB12) : null
 			if (body.biotin !== undefined) createData.biotin = body.biotin ? Number(body.biotin) : null
-			if (body.pantothenicAcid !== undefined) createData.pantothenicAcid = body.pantothenicAcid ? Number(body.pantothenicAcid) : null
-			
+			if (body.pantothenicAcid !== undefined)
+				createData.pantothenicAcid = body.pantothenicAcid ? Number(body.pantothenicAcid) : null
+
 			// Minerais
 			if (body.calcium !== undefined) createData.calcium = body.calcium ? Number(body.calcium) : null
 			if (body.iron !== undefined) createData.iron = body.iron ? Number(body.iron) : null
@@ -160,20 +172,24 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 			if (body.iodine !== undefined) createData.iodine = body.iodine ? Number(body.iodine) : null
 			if (body.chromium !== undefined) createData.chromium = body.chromium ? Number(body.chromium) : null
 			if (body.molybdenum !== undefined) createData.molybdenum = body.molybdenum ? Number(body.molybdenum) : null
-			
+
 			// Outros nutrientes
 			if (body.taurine !== undefined) createData.taurine = body.taurine ? Number(body.taurine) : null
 			if (body.caffeine !== undefined) createData.caffeine = body.caffeine ? Number(body.caffeine) : null
-			if (body.alcoholContent !== undefined) createData.alcoholContent = body.alcoholContent ? Number(body.alcoholContent) : null
+			if (body.alcoholContent !== undefined)
+				createData.alcoholContent = body.alcoholContent ? Number(body.alcoholContent) : null
 			if (body.omega3 !== undefined) createData.omega3 = body.omega3 ? Number(body.omega3) : null
 			if (body.omega6 !== undefined) createData.omega6 = body.omega6 ? Number(body.omega6) : null
-			if (body.monounsaturatedFat !== undefined) createData.monounsaturatedFat = body.monounsaturatedFat ? Number(body.monounsaturatedFat) : null
-			if (body.polyunsaturatedFat !== undefined) createData.polyunsaturatedFat = body.polyunsaturatedFat ? Number(body.polyunsaturatedFat) : null
+			if (body.monounsaturatedFat !== undefined)
+				createData.monounsaturatedFat = body.monounsaturatedFat ? Number(body.monounsaturatedFat) : null
+			if (body.polyunsaturatedFat !== undefined)
+				createData.polyunsaturatedFat = body.polyunsaturatedFat ? Number(body.polyunsaturatedFat) : null
 			if (body.cholesterol !== undefined) createData.cholesterol = body.cholesterol ? Number(body.cholesterol) : null
 			if (body.epa !== undefined) createData.epa = body.epa ? Number(body.epa) : null
 			if (body.dha !== undefined) createData.dha = body.dha ? Number(body.dha) : null
-			if (body.linolenicAcid !== undefined) createData.linolenicAcid = body.linolenicAcid ? Number(body.linolenicAcid) : null
-			
+			if (body.linolenicAcid !== undefined)
+				createData.linolenicAcid = body.linolenicAcid ? Number(body.linolenicAcid) : null
+
 			// Alérgenos
 			if (body.allergensContains !== undefined) createData.allergensContains = body.allergensContains || []
 			if (body.allergensMayContain !== undefined) createData.allergensMayContain = body.allergensMayContain || []

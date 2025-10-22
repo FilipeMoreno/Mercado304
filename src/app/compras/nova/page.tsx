@@ -324,7 +324,12 @@ export default function NovaCompraPage() {
 			// @ts-expect-error - currentItem fields are dynamically updated
 			newItems[index] = currentItem
 
-			if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice !== undefined && currentItem.unitPrice > 0) {
+			if (
+				(field === "unitPrice" || field === "productId") &&
+				currentItem.productId &&
+				currentItem.unitPrice !== undefined &&
+				currentItem.unitPrice > 0
+			) {
 				setTimeout(() => {
 					if (currentItem.productId && currentItem.unitPrice !== undefined) {
 						checkBestPrice(index, currentItem.productId, currentItem.unitPrice)
@@ -862,20 +867,22 @@ export default function NovaCompraPage() {
 				</div>
 			</div>
 
-			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (() => {
-				const selectedItem = items[stockDialogState.itemIndex];
-				if (!selectedItem) return null;
-				return (
-					<StockEntryDialog
-						isOpen={stockDialogState.isOpen}
-						onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
-						onSave={handleSaveStockDetails}
-						product={products.find((p) => p.id === selectedItem.productId)}
-						quantity={selectedItem.quantity}
-						initialEntries={selectedItem.stockEntries}
-					/>
-				);
-			})()}
+			{stockDialogState.isOpen &&
+				stockDialogState.itemIndex !== null &&
+				(() => {
+					const selectedItem = items[stockDialogState.itemIndex]
+					if (!selectedItem) return null
+					return (
+						<StockEntryDialog
+							isOpen={stockDialogState.isOpen}
+							onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
+							onSave={handleSaveStockDetails}
+							product={products.find((p) => p.id === selectedItem.productId)}
+							quantity={selectedItem.quantity}
+							initialEntries={selectedItem.stockEntries}
+						/>
+					)
+				})()}
 		</div>
 	)
 }

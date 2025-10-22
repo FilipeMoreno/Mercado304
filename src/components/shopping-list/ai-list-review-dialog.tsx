@@ -90,8 +90,8 @@ export function AIListReviewDialog({
 
 	const handleProductChange = (index: number, product: Product | null) => {
 		const newItems = [...processedItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		if (product) {
 			currentItem.productId = product.id
@@ -110,8 +110,8 @@ export function AIListReviewDialog({
 
 	const handleQuantityChange = (index: number, value: string) => {
 		const newItems = [...processedItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 		const numericValue = parseFloat(value) || 0
 		currentItem.quantity = numericValue
 		setProcessedItems(newItems)
@@ -125,8 +125,8 @@ export function AIListReviewDialog({
 
 	const handleMarkAsTemporary = (index: number) => {
 		const newItems = [...processedItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		currentItem.isTemporary = !currentItem.isTemporary
 
@@ -203,10 +203,7 @@ export function AIListReviewDialog({
 		const finalItems: FinalListItem[] = processedItems
 			.filter((item) => item.isAssociated && item.quantity > 0)
 			.map((item) => ({
-				...(item.isTemporary
-					? { tempName: item.originalName }
-					: item.productId ? { productId: item.productId } : {}
-				),
+				...(item.isTemporary ? { tempName: item.originalName } : item.productId ? { productId: item.productId } : {}),
 				quantity: item.quantity,
 				isTemporary: item.isTemporary,
 			})) as FinalListItem[]

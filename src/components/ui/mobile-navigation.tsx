@@ -62,7 +62,7 @@ export function MobileNavigation({
 			const distance = Math.abs(pos - currentPosition)
 			if (distance < minDistance) {
 				minDistance = distance
-				const snapPoint = snapPoints[index];
+				const snapPoint = snapPoints[index]
 				if (snapPoint !== undefined) {
 					closestSnapPoint = snapPoint
 				}

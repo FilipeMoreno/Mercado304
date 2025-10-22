@@ -100,8 +100,8 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 
 		setIsSubmitting(true)
 		try {
-			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined;
-			const { expirationDate: _exp, wasteDate, ...restFormData } = formData;
+			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined
+			const { expirationDate: _exp, wasteDate, ...restFormData } = formData
 			await onSubmit({
 				...restFormData,
 				wasteDate: new Date(wasteDate || new Date()).toISOString(),

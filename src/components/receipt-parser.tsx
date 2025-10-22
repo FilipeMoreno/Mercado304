@@ -235,8 +235,8 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 	const updateItem = (index: number, field: string, value: any) => {
 		if (parsedReceipt) {
 			const newItems = [...parsedReceipt.items]
-			const currentItem = newItems[index];
-			if (!currentItem) return;
+			const currentItem = newItems[index]
+			if (!currentItem) return
 
 			newItems[index] = {
 				...currentItem,
@@ -244,7 +244,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 			}
 			// Recalcular preço total do item se necessário
 			if (field === "quantity" || field === "unitPrice") {
-				const updatedItem = newItems[index];
+				const updatedItem = newItems[index]
 				if (updatedItem) {
 					updatedItem.totalPrice = updatedItem.quantity * updatedItem.unitPrice
 				}

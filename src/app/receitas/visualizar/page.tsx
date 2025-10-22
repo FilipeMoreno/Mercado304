@@ -223,10 +223,11 @@ export default function VisualizarReceitaPage() {
 												return (
 													<div
 														key={`step-${cleanStep}`}
-														className={`flex gap-3 p-3 rounded-lg ${isNumberedStep
+														className={`flex gap-3 p-3 rounded-lg ${
+															isNumberedStep
 																? "bg-orange-50 border-l-4 border-orange-200"
 																: "bg-gray-50 border-l-4 border-gray-200"
-															}`}
+														}`}
 													>
 														{isNumberedStep ? (
 															<>
@@ -286,7 +287,11 @@ export default function VisualizarReceitaPage() {
 					</Card>
 
 					{/* Cronômetro */}
-					<RecipeTimer {...(recipe.tempo_preparo || recipe.cookingTime ? { suggestedTime: recipe.tempo_preparo || recipe.cookingTime } : {})} />
+					<RecipeTimer
+						{...(recipe.tempo_preparo || recipe.cookingTime
+							? { suggestedTime: recipe.tempo_preparo || recipe.cookingTime }
+							: {})}
+					/>
 
 					{/* Assistente de Voz */}
 					<VoiceAssistant onTimerCommand={handleTimerCommand} onReadRecipe={handleReadRecipe} recipe={recipe} />

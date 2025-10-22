@@ -146,13 +146,9 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			...(item.productUnit ? { productUnit: item.productUnit } : {}),
 			quantity: qty,
 			...(price ? { estimatedPrice: price } : {}),
-		};
+		}
 
-		onUpdate(
-			item.id,
-			updateData,
-			{ closeDialog: false },
-		)
+		onUpdate(item.id, updateData, { closeDialog: false })
 	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])
 
 	// Trigger auto-save quando valores mudarem

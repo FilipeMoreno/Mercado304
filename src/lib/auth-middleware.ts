@@ -87,7 +87,7 @@ export async function handleLoginAttempt(email: string, success: boolean, reques
 export function getRealIP(request: NextRequest): string {
 	const forwarded = request.headers.get("x-forwarded-for")
 	if (forwarded) {
-		const firstIp = forwarded.split(",")[0];
+		const firstIp = forwarded.split(",")[0]
 		return firstIp ? firstIp.trim() : "unknown"
 	}
 

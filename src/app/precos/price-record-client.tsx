@@ -331,47 +331,49 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 				</CardHeader>
 				<CardContent>
 					{bestDay && worstDay ? (
-					<>
-					<div className="grid md:grid-cols-2 gap-4 mb-6">
-						<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
-							<div className="flex items-center gap-2 mb-2">
-								<div className="size-8 rounded-full bg-green-600 text-white flex items-center justify-center">👍</div>
-								<h4 className="font-semibold text-green-900 dark:text-green-100">Melhor Dia</h4>
-							</div>
-							<p className="text-2xl font-bold text-green-600">{bestDay.dayName}</p>
-							<p className="text-sm text-muted-foreground">
-								Preço médio: R$ {bestDay.avgPrice.toFixed(2)} ({bestDay.recordCount} registros)
-							</p>
-						</div>
-
-						<div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
-							<div className="flex items-center gap-2 mb-2">
-								<div className="size-8 rounded-full bg-red-600 text-white flex items-center justify-center">👎</div>
-								<h4 className="font-semibold text-red-900 dark:text-red-100">Evitar</h4>
-							</div>
-							<p className="text-2xl font-bold text-red-600">{worstDay.dayName}</p>
-							<p className="text-sm text-muted-foreground">
-								Preço médio: R$ {worstDay.avgPrice.toFixed(2)} ({worstDay.recordCount} registros)
-							</p>
-						</div>
-					</div>
-
-					<div className="space-y-2">
-						<h5 className="font-semibold text-sm">Ranking Completo:</h5>
-						{dayStats.map((stat, index) => (
-							<div key={stat.day} className="flex items-center justify-between p-2 border rounded-sm">
-								<div className="flex items-center gap-2">
-									<span className="text-sm font-medium w-6">{index + 1}º</span>
-									<span>{stat.dayName}</span>
+						<>
+							<div className="grid md:grid-cols-2 gap-4 mb-6">
+								<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
+									<div className="flex items-center gap-2 mb-2">
+										<div className="size-8 rounded-full bg-green-600 text-white flex items-center justify-center">
+											👍
+										</div>
+										<h4 className="font-semibold text-green-900 dark:text-green-100">Melhor Dia</h4>
+									</div>
+									<p className="text-2xl font-bold text-green-600">{bestDay.dayName}</p>
+									<p className="text-sm text-muted-foreground">
+										Preço médio: R$ {bestDay.avgPrice.toFixed(2)} ({bestDay.recordCount} registros)
+									</p>
 								</div>
-								<div className="text-right">
-									<span className="font-semibold">R$ {stat.avgPrice.toFixed(2)}</span>
-									<span className="text-xs text-muted-foreground ml-2">({stat.recordCount})</span>
+
+								<div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
+									<div className="flex items-center gap-2 mb-2">
+										<div className="size-8 rounded-full bg-red-600 text-white flex items-center justify-center">👎</div>
+										<h4 className="font-semibold text-red-900 dark:text-red-100">Evitar</h4>
+									</div>
+									<p className="text-2xl font-bold text-red-600">{worstDay.dayName}</p>
+									<p className="text-sm text-muted-foreground">
+										Preço médio: R$ {worstDay.avgPrice.toFixed(2)} ({worstDay.recordCount} registros)
+									</p>
 								</div>
 							</div>
-						))}
-					</div>
-					</>
+
+							<div className="space-y-2">
+								<h5 className="font-semibold text-sm">Ranking Completo:</h5>
+								{dayStats.map((stat, index) => (
+									<div key={stat.day} className="flex items-center justify-between p-2 border rounded-sm">
+										<div className="flex items-center gap-2">
+											<span className="text-sm font-medium w-6">{index + 1}º</span>
+											<span>{stat.dayName}</span>
+										</div>
+										<div className="text-right">
+											<span className="font-semibold">R$ {stat.avgPrice.toFixed(2)}</span>
+											<span className="text-xs text-muted-foreground ml-2">({stat.recordCount})</span>
+										</div>
+									</div>
+								))}
+							</div>
+						</>
 					) : (
 						<p className="text-muted-foreground">Dados insuficientes para análise por dia da semana.</p>
 					)}

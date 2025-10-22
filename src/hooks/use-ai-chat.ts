@@ -231,9 +231,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-				role: msg.role,
-				parts: [{ text: msg.content }],
-			}))
+					role: msg.role,
+					parts: [{ text: msg.content }],
+				}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -280,9 +280,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-				role: msg.role,
-				parts: [{ text: msg.content }],
-			}))
+					role: msg.role,
+					parts: [{ text: msg.content }],
+				}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",

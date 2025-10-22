@@ -33,20 +33,25 @@ export default function NovoMercadoPage() {
 		}
 
 		try {
-			await createMarketMutation.mutateAsync({
+			console.log("[NovoMercado] Criando mercado...")
+			const result = await createMarketMutation.mutateAsync({
 				name: formData.name.trim(),
 				...(formData.legalName.trim() && { legalName: formData.legalName.trim() }),
 				...(formData.location.trim() && { location: formData.location.trim() }),
 			})
 
-			toast.success("Mercado criado com sucesso!")
-			// Pequeno delay para garantir que a invalidação seja processada
+			console.log("[NovoMercado] Mercado criado com sucesso:", result)
+			console.log("[NovoMercado] Aguardando invalidação de queries antes de redirecionar...")
+
+			// Toast já é enviado pelo hook - não duplicar aqui
+			// Aguardar tempo suficiente para invalidação e refetch antes de redirecionar
 			setTimeout(() => {
+				console.log("[NovoMercado] Redirecionando para /mercados")
 				router.push("/mercados")
-			}, 100)
+			}, 1000) // Aumentar para 1 segundo para garantir que o refetch termine
 		} catch (error) {
 			console.error("Erro ao criar mercado:", error)
-			toast.error("Erro ao criar mercado")
+			// Toast de erro também já é enviado pelo hook
 		}
 	}
 

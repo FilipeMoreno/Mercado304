@@ -165,7 +165,7 @@ export function SmartCameraCapture({
 	const toggleFlash = async () => {
 		if (stream) {
 			const track = stream.getVideoTracks()[0]
-			if (!track) return;
+			if (!track) return
 
 			const capabilities = track.getCapabilities() as MediaTrackCapabilities & { torch?: boolean }
 

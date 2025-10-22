@@ -545,8 +545,8 @@ export default function CleanAssistentePage() {
 														? "list"
 														: lastUserMessage?.toLowerCase().includes("churrasco")
 															? "churrasco"
-															: undefined;
-												return context ? { context } : {};
+															: undefined
+												return context ? { context } : {}
 											})()}
 										/>
 									</motion.div>
@@ -632,7 +632,7 @@ export default function CleanAssistentePage() {
 									onArchiveSession={handleArchiveSession}
 									onClearAll={clearAllHistory}
 									isCollapsed={false}
-									onToggleCollapse={() => { }}
+									onToggleCollapse={() => {}}
 									isMobile={true}
 								/>
 							</div>

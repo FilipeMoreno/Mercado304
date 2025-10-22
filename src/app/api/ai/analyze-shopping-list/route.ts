@@ -128,12 +128,12 @@ Retorne APENAS o JSON, sem explicações adicionais.
 					isMatched: !!matchedProduct,
 					confidence: matchedProduct ? 0.8 : 0.0,
 				}
-				
+
 				if (matchedProduct) {
 					processedItem.matchedProductId = matchedProduct.id
 					processedItem.matchedProductName = matchedProduct.name
 				}
-				
+
 				return processedItem
 			},
 		)

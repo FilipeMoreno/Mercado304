@@ -112,7 +112,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 			}
 
 			const secretMatch = totpUriFromApi.match(/secret=([^&]+)/)
-			const secret = (secretMatch && secretMatch[1]) ? secretMatch[1] : ""
+			const secret = secretMatch && secretMatch[1] ? secretMatch[1] : ""
 
 			setQrCodeUrl(totpUriFromApi)
 			setTotpSecret(secret)

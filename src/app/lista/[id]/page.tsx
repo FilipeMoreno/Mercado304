@@ -80,7 +80,7 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
 	const listId = params.id as string
 
 	const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -234,11 +234,11 @@ export default function ListaDetalhesPage() {
 		setList((prev) =>
 			prev
 				? {
-					...prev,
-					items: prev.items.map((item) =>
-						item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
-					),
-				}
+						...prev,
+						items: prev.items.map((item) =>
+							item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
+						),
+					}
 				: null,
 		)
 
@@ -302,9 +302,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
+						}
 					: null,
 			)
 
@@ -331,9 +331,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
+						}
 					: null,
 			)
 		} catch (error) {
@@ -347,9 +347,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+						}
 					: null,
 			)
 			updateItemInServer(itemId, { quantity: newQuantity })
@@ -373,9 +373,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-					}
+							...prev,
+							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
+						}
 					: null,
 			)
 			updateItemInServer(itemId, { estimatedPrice: newPrice })
@@ -643,15 +643,15 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-								...prev,
-								items: prev.items.map((listItem) => {
-									if (listItem.id === itemId) {
-										const { bestPriceAlert, ...rest } = listItem;
-										return rest as ExtendedShoppingListItem;
-									}
-									return listItem;
-								}),
-							}
+									...prev,
+									items: prev.items.map((listItem) => {
+										if (listItem.id === itemId) {
+											const { bestPriceAlert, ...rest } = listItem
+											return rest as ExtendedShoppingListItem
+										}
+										return listItem
+									}),
+								}
 							: null,
 					)
 				}}
@@ -848,21 +848,21 @@ export default function ListaDetalhesPage() {
 						setList((prev) =>
 							prev
 								? {
-									...prev,
-									items: prev.items.map((item) => {
-										if (item.id === editingItem.id) {
-											const { bestPriceAlert, ...rest } = item;
-											return rest as ExtendedShoppingListItem;
-										}
-										return item;
-									}),
-								}
+										...prev,
+										items: prev.items.map((item) => {
+											if (item.id === editingItem.id) {
+												const { bestPriceAlert, ...rest } = item
+												return rest as ExtendedShoppingListItem
+											}
+											return item
+										}),
+									}
 								: null,
 						)
 						setEditingItem((prev) => {
-							if (!prev) return null;
-							const { bestPriceAlert, ...rest } = prev;
-							return rest as ExtendedShoppingListItem;
+							if (!prev) return null
+							const { bestPriceAlert, ...rest } = prev
+							return rest as ExtendedShoppingListItem
 						})
 					}
 				}}
@@ -907,9 +907,9 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-								...prev,
-								items: prev.items.map((item) => (item.id === itemId ? { ...item, ...updateData } : item)),
-							}
+									...prev,
+									items: prev.items.map((item) => (item.id === itemId ? { ...item, ...updateData } : item)),
+								}
 							: null,
 					)
 

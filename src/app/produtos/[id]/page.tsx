@@ -726,7 +726,8 @@ export default function ProdutoDetalhesPage() {
 															const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
 															const threshold = isLiquid ? 7.5 : 15
 															const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
-															const servingSize = servingMatch && servingMatch[1] ? parseFloat(servingMatch[1].replace(",", ".")) : 100
+															const servingSize =
+																servingMatch && servingMatch[1] ? parseFloat(servingMatch[1].replace(",", ".")) : 100
 															const multiplier = servingSize / 100
 															const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
 

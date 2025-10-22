@@ -36,10 +36,9 @@ export async function POST(request: Request) {
 			const current = purchases[i]
 			const previous = purchases[i - 1]
 			if (!current || !previous) continue
-			
+
 			const diff =
-				(new Date(current.purchase.purchaseDate).getTime() -
-					new Date(previous.purchase.purchaseDate).getTime()) /
+				(new Date(current.purchase.purchaseDate).getTime() - new Date(previous.purchase.purchaseDate).getTime()) /
 				(1000 * 60 * 60 * 24)
 			if (diff > 0) intervals.push(diff)
 		}

@@ -279,8 +279,8 @@ export function AiAssistantChat() {
 															? "list"
 															: lastUserMessage?.toLowerCase().includes("churrasco")
 																? "churrasco"
-																: undefined;
-													return context ? { context } : {};
+																: undefined
+													return context ? { context } : {}
 												})()}
 											/>
 										)}
@@ -345,8 +345,9 @@ export function AiAssistantChat() {
 								repeatType: "reverse",
 							},
 						}}
-						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-							}`}
+						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${
+							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+						}`}
 					>
 						{isListening ? (
 							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />

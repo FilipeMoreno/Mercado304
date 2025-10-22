@@ -184,10 +184,11 @@ export function ChatGPTSidebar({
 								onClick={() => onSessionSelect(session.id)}
 								variant="ghost"
 								size="icon"
-								className={`w-full h-10 ${currentSessionId === session.id
+								className={`w-full h-10 ${
+									currentSessionId === session.id
 										? "bg-primary/10 text-primary"
 										: "text-muted-foreground hover:bg-muted"
-									}`}
+								}`}
 								title={session.title}
 							>
 								<MessageSquare className="size-4" />
@@ -261,8 +262,9 @@ export function ChatGPTSidebar({
 								{pinnedSessions.map((session) => (
 									<div
 										key={session.id}
-										className={`group relative rounded-xl transition-colors ${currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
-											}`}
+										className={`group relative rounded-xl transition-colors ${
+											currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+										}`}
 									>
 										{editingId === session.id ? (
 											/* Modo de Edição */
@@ -402,8 +404,9 @@ export function ChatGPTSidebar({
 								{groupSessions.map((session) => (
 									<div
 										key={session.id}
-										className={`group relative rounded-xl transition-colors ${currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
-											}`}
+										className={`group relative rounded-xl transition-colors ${
+											currentSessionId === session.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+										}`}
 									>
 										{editingId === session.id ? (
 											/* Modo de Edição */

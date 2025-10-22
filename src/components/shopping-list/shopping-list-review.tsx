@@ -72,22 +72,22 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
 	const handleProductNameChange = (index: number, newName: string) => {
 		const newItems = [...reviewItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		currentItem.productName = newName
 		// Ao editar o nome manualmente, remove o vínculo
 		if (currentItem.linkedProductId) {
-			const { linkedProductId, ...rest } = currentItem;
-			newItems[index] = rest as ReviewItem;
+			const { linkedProductId, ...rest } = currentItem
+			newItems[index] = rest as ReviewItem
 		}
 		setReviewItems(newItems)
 	}
 
 	const handleProductLink = (index: number, product: any) => {
 		const newItems = [...reviewItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		currentItem.linkedProductId = product.id
 		currentItem.productName = product.name
@@ -99,19 +99,19 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
 	const handleUnlink = (index: number) => {
 		const newItems = [...reviewItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
-		const { linkedProductId, ...rest } = currentItem;
-		newItems[index] = rest as ReviewItem;
+		const { linkedProductId, ...rest } = currentItem
+		newItems[index] = rest as ReviewItem
 		toast.info(`Item desvinculado, permanecerá como texto livre`)
 		setReviewItems(newItems)
 	}
 
 	const handlePriceChange = (index: number, field: "unitPrice" | "unitDiscount", value: string) => {
 		const newItems = [...reviewItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		currentItem[field] = parseFloat(value) || 0
 		setReviewItems(newItems)
@@ -119,8 +119,8 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
 	const handleQuantityChange = (index: number, value: string) => {
 		const newItems = [...reviewItems]
-		const currentItem = newItems[index];
-		if (!currentItem) return;
+		const currentItem = newItems[index]
+		if (!currentItem) return
 
 		currentItem.quantity = parseFloat(value) || 1
 		setReviewItems(newItems)

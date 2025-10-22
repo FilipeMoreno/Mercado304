@@ -179,8 +179,9 @@ export function ChatHistorySidebar({
 											key={session.id}
 											initial={{ opacity: 0, y: 10 }}
 											animate={{ opacity: 1, y: 0 }}
-											className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 mb-1 ${currentSessionId === session.id ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50"
-												}`}
+											className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 mb-1 ${
+												currentSessionId === session.id ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50"
+											}`}
 											onClick={() => onSessionSelect(session.id)}
 										>
 											<div className="flex items-start justify-between">

@@ -85,6 +85,16 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 
 	// React Query hooks
 	const { data: marketsData, isLoading, error } = useMarketsQuery(params)
+
+	// Debug: Log quando os dados mudam
+	React.useEffect(() => {
+		console.log("[MercadosClient] Markets data updated:", {
+			marketsCount: marketsData?.markets?.length || 0,
+			totalCount: marketsData?.totalCount || 0,
+			isLoading,
+			params: params.toString(),
+		})
+	}, [marketsData, isLoading, params])
 	const deleteMarketMutation = useDeleteMarketMutation()
 
 	const sortOptions = [

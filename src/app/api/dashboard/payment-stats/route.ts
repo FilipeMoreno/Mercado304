@@ -166,12 +166,14 @@ export async function GET(request: NextRequest) {
 				totalTransactions,
 				totalAmount,
 				averageTransactionValue: totalTransactions > 0 ? totalAmount / totalTransactions : 0,
-				mostUsedMethod: formattedStats.length > 0 ? formattedStats.reduce(
-					(prev, current) => (prev.count > current.count ? prev : current),
-				) : null,
-				highestValueMethod: formattedStats.length > 0 ? formattedStats.reduce(
-					(prev, current) => (prev.totalAmount > current.totalAmount ? prev : current),
-				) : null,
+				mostUsedMethod:
+					formattedStats.length > 0
+						? formattedStats.reduce((prev, current) => (prev.count > current.count ? prev : current))
+						: null,
+				highestValueMethod:
+					formattedStats.length > 0
+						? formattedStats.reduce((prev, current) => (prev.totalAmount > current.totalAmount ? prev : current))
+						: null,
 			},
 		})
 	} catch (error) {

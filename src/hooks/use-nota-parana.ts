@@ -162,8 +162,8 @@ export function useNotaParana() {
 				total: 0,
 				precos: {
 					min: "0",
-					max: "0"
-				}
+					max: "0",
+				},
 			}
 		}
 

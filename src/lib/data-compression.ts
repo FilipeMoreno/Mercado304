@@ -64,7 +64,7 @@ function compressLZ(input: string): string {
 		if (dictionary[newPhrase] !== undefined) {
 			phrase = newPhrase
 		} else {
-			const dictValue = dictionary[phrase];
+			const dictValue = dictionary[phrase]
 			data.push(phrase.length === 1 ? phrase : (dictValue ?? phrase))
 			dictionary[newPhrase] = dictSize++
 			phrase = char
@@ -72,7 +72,7 @@ function compressLZ(input: string): string {
 	}
 
 	if (phrase !== "") {
-		const dictValue = dictionary[phrase];
+		const dictValue = dictionary[phrase]
 		data.push(phrase.length === 1 ? phrase : (dictValue ?? phrase))
 	}
 

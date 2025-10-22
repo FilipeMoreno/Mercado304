@@ -226,7 +226,10 @@ export function MissingNutritionalInfo({
 			>
 				{foodProductsWithoutNutrition.map((product) => (
 					<motion.div key={product.id} variants={itemVariants} role="gridcell">
-						<ProductCard product={product} {...(onNutritionalInfoAdded ? { onAddNutritionalInfo: onNutritionalInfoAdded } : {})} />
+						<ProductCard
+							product={product}
+							{...(onNutritionalInfoAdded ? { onAddNutritionalInfo: onNutritionalInfoAdded } : {})}
+						/>
 					</motion.div>
 				))}
 			</motion.div>

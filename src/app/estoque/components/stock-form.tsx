@@ -88,7 +88,7 @@ export function StockForm({ initialData, products, onSubmit, onCancel }: StockFo
 				throw new Error("Produto não encontrado")
 			}
 
-			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined;
+			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined
 			await onSubmit({
 				productId: selectedProduct.id,
 				product: selectedProduct,

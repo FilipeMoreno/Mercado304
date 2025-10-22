@@ -54,7 +54,10 @@ export function FilterPopover({
 			{sortOptions && sortOptions.length > 0 && (
 				<div className="space-y-2">
 					<Label>Ordenar por</Label>
-					<Select {...(sortValue ? { value: sortValue } : {})} {...(onSortChange ? { onValueChange: onSortChange } : {})}>
+					<Select
+						{...(sortValue ? { value: sortValue } : {})}
+						{...(onSortChange ? { onValueChange: onSortChange } : {})}
+					>
 						<SelectTrigger>
 							<SelectValue placeholder="Selecionar ordenação" />
 						</SelectTrigger>

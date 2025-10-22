@@ -381,14 +381,14 @@ const AllergenIcon = ({
 	const allergenData = iconKey
 		? allergenColorMap[iconKey]
 		: {
-			icon: AlertTriangle,
-			category: "latex" as const,
-			color: "text-gray-700 dark:text-gray-300",
-			bgColor: "bg-gray-50 dark:bg-gray-950/50",
-			borderColor: "border-gray-200 dark:border-gray-800",
-			hoverBg: "hover:bg-gray-100 dark:hover:bg-gray-900/70",
-			description: "Alergênico não catalogado",
-		}
+				icon: AlertTriangle,
+				category: "latex" as const,
+				color: "text-gray-700 dark:text-gray-300",
+				bgColor: "bg-gray-50 dark:bg-gray-950/50",
+				borderColor: "border-gray-200 dark:border-gray-800",
+				hoverBg: "hover:bg-gray-100 dark:hover:bg-gray-900/70",
+				description: "Alergênico não catalogado",
+			}
 
 	const IconComponent = allergenData!.icon as React.FC<SvgWrapperProps>
 	const category = ALLERGEN_CATEGORIES[allergenData!.category]

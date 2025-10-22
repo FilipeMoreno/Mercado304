@@ -280,7 +280,7 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDevice)
 		const nextIndex = (currentIndex + 1) % devices.length
-		const nextDevice = devices[nextIndex];
+		const nextDevice = devices[nextIndex]
 		if (nextDevice) {
 			setSelectedDevice(nextDevice.deviceId)
 		}

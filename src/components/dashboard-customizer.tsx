@@ -310,8 +310,8 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									placeholder="Bem-vindo ao Mercado304"
 									value={localPreferences.customTitle || ""}
 									onChange={(e) => {
-										const title = e.target.value.trim();
-										const { customTitle, ...rest } = localPreferences;
+										const title = e.target.value.trim()
+										const { customTitle, ...rest } = localPreferences
 										const newPreferences: DashboardPreferences = {
 											...rest,
 											...(title ? { customTitle: title } : {}),
@@ -330,8 +330,8 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									placeholder="Sistema completo de gerenciamento de compras de mercado"
 									value={localPreferences.customSubtitle || ""}
 									onChange={(e) => {
-										const subtitle = e.target.value.trim();
-										const { customSubtitle, ...rest } = localPreferences;
+										const subtitle = e.target.value.trim()
+										const { customSubtitle, ...rest } = localPreferences
 										const newPreferences: DashboardPreferences = {
 											...rest,
 											...(subtitle ? { customSubtitle: subtitle } : {}),
@@ -438,12 +438,13 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 															ref={provided.innerRef}
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
-															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${snapshot.isDragging
+															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+																snapshot.isDragging
 																	? "bg-accent"
 																	: isHidden
 																		? "bg-muted opacity-60"
 																		: "bg-background hover:bg-accent/50"
-																}`}
+															}`}
 														>
 															<div className="flex items-center gap-3">
 																<div className="flex-1">

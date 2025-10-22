@@ -132,14 +132,16 @@ export async function processProductRecognition(
 					marketName: item.purchase.market.name,
 					date: item.purchase.createdAt,
 				})),
-				...(lowestPriceRecord ? {
-					lowestPrice: {
-						price: lowestPriceRecord.price,
-						marketName: lowestPriceRecord.market.name,
-						marketId: lowestPriceRecord.market.id,
-						date: lowestPriceRecord.createdAt,
-					}
-				} : {}),
+				...(lowestPriceRecord
+					? {
+							lowestPrice: {
+								price: lowestPriceRecord.price,
+								marketName: lowestPriceRecord.market.name,
+								marketId: lowestPriceRecord.market.id,
+								date: lowestPriceRecord.createdAt,
+							},
+						}
+					: {}),
 				...(averagePrice ? { averagePrice } : {}),
 			},
 			recognitionData,

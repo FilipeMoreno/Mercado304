@@ -306,23 +306,23 @@ export async function getProductKitDetails(args: { kitName: string }) {
 				})),
 				stock: stock
 					? {
-						available: stock.availableQuantity,
-						limitingProduct: stock.limitingProduct?.name,
-					}
+							available: stock.availableQuantity,
+							limitingProduct: stock.limitingProduct?.name,
+						}
 					: null,
 				nutrition: nutrition
 					? {
-						calories: nutrition.calories,
-						proteins: nutrition.proteins,
-						carbohydrates: nutrition.carbohydrates,
-					}
+							calories: nutrition.calories,
+							proteins: nutrition.proteins,
+							carbohydrates: nutrition.carbohydrates,
+						}
 					: null,
 				price: price
 					? {
-						total: price.totalPrice,
-						kitPrice: price.kitRegisteredPrice,
-						savings: price.kitRegisteredPrice ? price.totalPrice - price.kitRegisteredPrice : null,
-					}
+							total: price.totalPrice,
+							kitPrice: price.kitRegisteredPrice,
+							savings: price.kitRegisteredPrice ? price.totalPrice - price.kitRegisteredPrice : null,
+						}
 					: null,
 			},
 		}

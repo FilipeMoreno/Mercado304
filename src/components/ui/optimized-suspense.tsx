@@ -22,9 +22,7 @@ export function OptimizedSuspense({
 	}
 
 	const defaultFallback = fallback || (
-		<div className={`flex items-center justify-center p-8 ${sizeClasses[size]}`}>
-			{loadingText}
-		</div>
+		<div className={`flex items-center justify-center p-8 ${sizeClasses[size]}`}>{loadingText}</div>
 	)
 
 	return (

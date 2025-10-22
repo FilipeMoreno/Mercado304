@@ -90,7 +90,7 @@ export function EditItemDialog({
 	}, [])
 
 	const handleProductNameChange = (name: string) => {
-		const { productId, ...rest } = editItemData;
+		const { productId, ...rest } = editItemData
 		onEditItemDataChange({
 			...rest,
 			productName: name,
@@ -111,7 +111,7 @@ export function EditItemDialog({
 	}
 
 	const handleUnlinkProduct = () => {
-		const { productId, ...rest } = editItemData;
+		const { productId, ...rest } = editItemData
 		onEditItemDataChange({
 			...rest,
 		})

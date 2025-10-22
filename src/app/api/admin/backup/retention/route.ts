@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
 		// Gerar relatório
 		const report = generateRetentionReport(result)
-		
+
 		console.log("[Retention] Política aplicada com sucesso")
 		console.log(report)
 

@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 		})
 
 		const response = await s3Client.send(getCommand)
-		
+
 		if (!response.Body) {
 			return NextResponse.json(
 				{

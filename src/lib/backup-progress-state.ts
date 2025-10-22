@@ -51,7 +51,7 @@ export function resetBackupProgress() {
 // Função auxiliar para atualizar progresso com reset automático para estados finais
 export function updateBackupProgressWithAutoReset(update: Partial<BackupProgress>, autoResetMs?: number) {
 	updateBackupProgress(update)
-	
+
 	// Se o status é final (completed ou error), configurar reset automático
 	if (update.status === "completed" || update.status === "error") {
 		const resetDelay = autoResetMs || (update.status === "error" ? 15000 : 10000) // 15s para erro, 10s para sucesso

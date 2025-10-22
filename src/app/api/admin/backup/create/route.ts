@@ -2,10 +2,14 @@ import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
-import { resetBackupProgress, updateBackupProgress, updateBackupProgressWithAutoReset } from "@/lib/backup-progress-state"
-import { generatePrismaBackup } from "@/lib/backup-utils"
 import { generateIntegrityReport } from "@/lib/backup-integrity"
+import {
+	resetBackupProgress,
+	updateBackupProgress,
+	updateBackupProgressWithAutoReset,
+} from "@/lib/backup-progress-state"
 import { applyRetentionPolicy, DEFAULT_RETENTION_POLICY } from "@/lib/backup-retention"
+import { generatePrismaBackup } from "@/lib/backup-utils"
 
 const execAsync = promisify(exec)
 
@@ -109,8 +113,6 @@ export async function POST(request: Request) {
 
 			if (stderr && !stderr.includes("WARNING")) {
 				console.warn("[Backup] Avisos do pg_dump:", stderr)
-
-				
 			}
 
 			backupData = stdout
@@ -165,7 +167,7 @@ export async function POST(request: Request) {
 		console.log("[Backup] Verificando integridade...")
 		// Usar verificação simplificada para evitar timeouts do pool de conexões
 		const integrityReport = await generateIntegrityReport(backupData, true)
-		
+
 		if (!integrityReport.isValid) {
 			console.error("[Backup] Falha na verificação de integridade:", integrityReport.validationErrors)
 			updateBackupProgressWithAutoReset({
@@ -228,12 +230,16 @@ export async function POST(request: Request) {
 				try {
 					console.log("[Backup] Aplicando política de retenção...")
 					const retentionResult = await applyRetentionPolicy(s3Client, R2_BUCKET_NAME, DEFAULT_RETENTION_POLICY)
-					
+
 					console.log("[Backup] Política de retenção aplicada:")
 					console.log("[Backup] - Backups mantidos:", retentionResult.kept.length)
 					console.log("[Backup] - Backups deletados:", retentionResult.deleted.length)
-					console.log("[Backup] - Espaço liberado:", ((retentionResult.totalSizeBefore - retentionResult.totalSizeAfter) / 1024 / 1024).toFixed(2), "MB")
-					
+					console.log(
+						"[Backup] - Espaço liberado:",
+						((retentionResult.totalSizeBefore - retentionResult.totalSizeAfter) / 1024 / 1024).toFixed(2),
+						"MB",
+					)
+
 					if (retentionResult.errors.length > 0) {
 						console.warn("[Backup] Erros na política de retenção:", retentionResult.errors)
 					}
