@@ -52,14 +52,18 @@ export default function EditarCategoriaPage() {
 
 		try {
 			const icon = formData.icon.trim()
+			const updateData: any = {
+				name: formData.name.trim(),
+				color: formData.color,
+				isFood: formData.isFood,
+			}
+			
+			// Incluir icon explicitamente (pode ser string vazia para limpar)
+			updateData.icon = icon || null
+			
 			await updateCategoryMutation.mutateAsync({
 				id: categoryId,
-				data: {
-					name: formData.name.trim(),
-					...(icon ? { icon } : { icon: null }), // Permitir remoção do ícone
-					color: formData.color,
-					isFood: formData.isFood,
-				},
+				data: updateData,
 			})
 
 			// Toast já é enviado pelo hook - não duplicar aqui

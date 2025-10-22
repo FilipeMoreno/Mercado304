@@ -105,7 +105,9 @@ export function countRecordsByTable(backupContent: string): Array<{
 
 	while ((match = insertRegex.exec(backupContent)) !== null) {
 		const tableName = match[1]
-		tables[tableName] = (tables[tableName] || 0) + 1
+		if (tableName) {
+			tables[tableName] = (tables[tableName] || 0) + 1
+		}
 	}
 
 	return Object.entries(tables).map(([table, count]) => ({

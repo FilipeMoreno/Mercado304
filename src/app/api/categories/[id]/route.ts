@@ -35,7 +35,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 	const params = await props.params
 	try {
 		const body = await request.json()
-		const { name, icon, color } = body
+		const { name, icon, color, isFood } = body
 
 		const category = await prisma.category.update({
 			where: { id: params.id },
@@ -43,6 +43,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 				name,
 				icon,
 				color,
+				isFood,
 			},
 		})
 

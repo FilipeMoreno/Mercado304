@@ -214,7 +214,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Stock History")
 			for (const history of stockHistory) {
 				sqlStatements.push(
-					`INSERT INTO stock_history (id, type, description, "totalValue", "itemsAffected", notes, "createdAt") VALUES (${escapeValue(history.id)}, ${escapeValue(history.type)}, ${escapeValue(history.description)}, ${escapeNumber(history.totalValue)}, ${escapeNumber(history.itemsAffected)}, ${escapeValue(history.notes)}, ${escapeValue(history.createdAt)}) ON CONFLICT (id) DO NOTHING;`,
+					`INSERT INTO stock_history (id, type, "productId", "productName", quantity, reason, date, notes, location, "unitCost", "totalValue", "purchaseItemId", "userId", "createdAt", "updatedAt") VALUES (${escapeValue(history.id)}, ${escapeValue(history.type)}, ${escapeValue(history.productId)}, ${escapeValue(history.productName)}, ${escapeNumber(history.quantity)}, ${escapeValue(history.reason)}, ${escapeValue(history.date)}, ${escapeValue(history.notes)}, ${escapeValue(history.location)}, ${escapeNumber(history.unitCost)}, ${escapeNumber(history.totalValue)}, ${escapeValue(history.purchaseItemId)}, ${escapeValue(history.userId)}, ${escapeValue(history.createdAt)}, ${escapeValue(history.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
 				)
 			}
 			totalRecords += stockHistory.length
@@ -227,7 +227,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Stock Movements")
 			for (const movement of stockMovements) {
 				sqlStatements.push(
-					`INSERT INTO stock_movements (id, "stockItemId", type, "quantityBefore", "quantityChanged", "quantityAfter", reason, notes, "createdAt") VALUES (${escapeValue(movement.id)}, ${escapeValue(movement.stockItemId)}, ${escapeValue(movement.type)}, ${escapeNumber(movement.quantityBefore)}, ${escapeNumber(movement.quantityChanged)}, ${escapeNumber(movement.quantityAfter)}, ${escapeValue(movement.reason)}, ${escapeValue(movement.notes)}, ${escapeValue(movement.createdAt)}) ON CONFLICT (id) DO NOTHING;`,
+					`INSERT INTO stock_movements (id, "stockItemId", type, quantity, reason, date, notes, "purchaseItemId") VALUES (${escapeValue(movement.id)}, ${escapeValue(movement.stockItemId)}, ${escapeValue(movement.type)}, ${escapeNumber(movement.quantity)}, ${escapeValue(movement.reason)}, ${escapeValue(movement.date)}, ${escapeValue(movement.notes)}, ${escapeValue(movement.purchaseItemId)}) ON CONFLICT (id) DO NOTHING;`,
 				)
 			}
 			totalRecords += stockMovements.length
@@ -240,7 +240,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Waste Records")
 			for (const waste of wasteRecords) {
 				sqlStatements.push(
-					`INSERT INTO waste_records (id, "productId", "productName", "productCategory", "productBrand", quantity, "unitCost", "totalCost", reason, location, notes, "wasteDate", "userId", "createdAt", "updatedAt") VALUES (${escapeValue(waste.id)}, ${escapeValue(waste.productId)}, ${escapeValue(waste.productName)}, ${escapeValue(waste.productCategory)}, ${escapeValue(waste.productBrand)}, ${escapeNumber(waste.quantity)}, ${escapeNumber(waste.unitCost)}, ${escapeNumber(waste.totalCost)}, ${escapeValue(waste.reason)}, ${escapeValue(waste.location)}, ${escapeValue(waste.notes)}, ${escapeValue(waste.wasteDate)}, ${escapeValue(waste.userId)}, ${escapeValue(waste.createdAt)}, ${escapeValue(waste.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
+					`INSERT INTO waste_records (id, "productId", "productName", quantity, unit, "wasteReason", "wasteDate", "expirationDate", location, "unitCost", "totalValue", notes, "stockItemId", "userId", category, brand, "batchNumber", "createdAt", "updatedAt") VALUES (${escapeValue(waste.id)}, ${escapeValue(waste.productId)}, ${escapeValue(waste.productName)}, ${escapeNumber(waste.quantity)}, ${escapeValue(waste.unit)}, ${escapeValue(waste.wasteReason)}, ${escapeValue(waste.wasteDate)}, ${escapeValue(waste.expirationDate)}, ${escapeValue(waste.location)}, ${escapeNumber(waste.unitCost)}, ${escapeNumber(waste.totalValue)}, ${escapeValue(waste.notes)}, ${escapeValue(waste.stockItemId)}, ${escapeValue(waste.userId)}, ${escapeValue(waste.category)}, ${escapeValue(waste.brand)}, ${escapeValue(waste.batchNumber)}, ${escapeValue(waste.createdAt)}, ${escapeValue(waste.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
 				)
 			}
 			totalRecords += wasteRecords.length
@@ -253,7 +253,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Expiration Alerts")
 			for (const alert of expirationAlerts) {
 				sqlStatements.push(
-					`INSERT INTO expiration_alerts (id, "stockItemId", "productName", "expirationDate", "daysUntilExpiration", status, "isRead", "createdAt", "updatedAt") VALUES (${escapeValue(alert.id)}, ${escapeValue(alert.stockItemId)}, ${escapeValue(alert.productName)}, ${escapeValue(alert.expirationDate)}, ${escapeNumber(alert.daysUntilExpiration)}, ${escapeValue(alert.status)}, ${alert.isRead}, ${escapeValue(alert.createdAt)}, ${escapeValue(alert.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
+					`INSERT INTO expiration_alerts (id, "productId", "stockItemId", "alertType", "alertDate", "isResolved", "createdAt") VALUES (${escapeValue(alert.id)}, ${escapeValue(alert.productId)}, ${escapeValue(alert.stockItemId)}, ${escapeValue(alert.alertType)}, ${escapeValue(alert.alertDate)}, ${alert.isResolved}, ${escapeValue(alert.createdAt)}) ON CONFLICT (id) DO NOTHING;`,
 				)
 			}
 			totalRecords += expirationAlerts.length
@@ -266,7 +266,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Recipes")
 			for (const recipe of recipes) {
 				sqlStatements.push(
-					`INSERT INTO recipes (id, title, description, ingredients, instructions, "prepTime", "cookTime", servings, difficulty, cuisine, rating, "nutritionInfo", tags, "createdAt", "updatedAt") VALUES (${escapeValue(recipe.id)}, ${escapeValue(recipe.title)}, ${escapeValue(recipe.description)}, ${escapeArrayValue(recipe.ingredients)}, ${escapeArrayValue(recipe.instructions)}, ${escapeNumber(recipe.prepTime)}, ${escapeNumber(recipe.cookTime)}, ${escapeNumber(recipe.servings)}, ${escapeValue(recipe.difficulty)}, ${escapeValue(recipe.cuisine)}, ${escapeNumber(recipe.rating)}, ${escapeValue(recipe.nutritionInfo)}, ${escapeArrayValue(recipe.tags)}, ${escapeValue(recipe.createdAt)}, ${escapeValue(recipe.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
+					`INSERT INTO recipes (id, name, description, "prepTime", "mealType", ingredients, instructions, "chefTip", rating, "timesCooked", "isFavorite", "createdAt", "updatedAt") VALUES (${escapeValue(recipe.id)}, ${escapeValue(recipe.name)}, ${escapeValue(recipe.description)}, ${escapeValue(recipe.prepTime)}, ${escapeValue(recipe.mealType)}, ${escapeArrayValue(recipe.ingredients)}, ${escapeValue(recipe.instructions)}, ${escapeValue(recipe.chefTip)}, ${escapeNumber(recipe.rating)}, ${escapeNumber(recipe.timesCooked)}, ${recipe.isFavorite}, ${escapeValue(recipe.createdAt)}, ${escapeValue(recipe.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
 				)
 			}
 			totalRecords += recipes.length
@@ -297,7 +297,7 @@ export async function generatePrismaBackup(): Promise<string> {
 				sqlStatements.push("-- Sync Jobs")
 				for (const job of syncJobs) {
 					sqlStatements.push(
-						`INSERT INTO sync_jobs (id, status, tipo, progresso, "mercadosProcessados", "produtosProcessados", "precosRegistrados", erros, logs, detalhes, "startedAt", "completedAt", "createdAt", "updatedAt") VALUES (${escapeValue(job.id)}, ${escapeValue(job.status)}, ${escapeValue(job.tipo)}, ${escapeNumber(job.progresso)}, ${escapeNumber(job.mercadosProcessados)}, ${escapeNumber(job.produtosProcessados)}, ${escapeNumber(job.precosRegistrados)}, ${escapeNumber(job.erros)}, ${escapeArrayValue(job.logs)}, ${escapeValue(job.detalhes)}, ${escapeValue(job.startedAt)}, ${escapeValue(job.completedAt)}, ${escapeValue(job.createdAt)}, ${escapeValue(job.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
+						`INSERT INTO sync_jobs (id, status, tipo, progresso, "mercadosProcessados", "produtosProcessados", "precosRegistrados", erros, logs, detalhes, "startedAt", "completedAt", "createdAt", "updatedAt") VALUES (${escapeValue(job.id)}, ${escapeValue(job.status)}, ${escapeValue(job.tipo)}, ${escapeNumber(job.progresso)}, ${escapeNumber(job.mercadosProcessados)}, ${escapeNumber(job.produtosProcessados)}, ${escapeNumber(job.precosRegistrados)}, ${escapeValue(JSON.stringify(job.erros))}, ${escapeValue(JSON.stringify(job.logs))}, ${escapeValue(job.detalhes ? JSON.stringify(job.detalhes) : null)}, ${escapeValue(job.startedAt)}, ${escapeValue(job.completedAt)}, ${escapeValue(job.createdAt)}, ${escapeValue(job.updatedAt)}) ON CONFLICT (id) DO NOTHING;`,
 					)
 				}
 				totalRecords += syncJobs.length
