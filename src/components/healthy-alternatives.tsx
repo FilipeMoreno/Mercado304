@@ -1,7 +1,7 @@
 "use client"
 
 import { Apple, CheckCircle2, Heart, Leaf, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,13 +55,7 @@ export function HealthyAlternatives({
 	const [categoryName, setCategoryName] = useState("")
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		if (categoryId) {
-			fetchAlternatives()
-		}
-	}, [categoryId, fetchAlternatives])
-
-	const fetchAlternatives = async () => {
+	const fetchAlternatives = useCallback(async () => {
 		setLoading(true)
 		try {
 			const params = new URLSearchParams({
@@ -81,7 +75,13 @@ export function HealthyAlternatives({
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [categoryId, maxItems, excludeProductId])
+
+	useEffect(() => {
+		if (categoryId) {
+			fetchAlternatives()
+		}
+	}, [categoryId, fetchAlternatives])
 
 	const getHealthScoreColor = (score: number) => {
 		if (score >= 80) return "text-green-600 bg-green-50 border-green-200"

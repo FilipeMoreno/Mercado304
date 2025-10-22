@@ -245,12 +245,12 @@ export function AiAssistantChat() {
 												<ChatMessage
 													role={msg.role}
 													content={msg.content}
-													isError={msg.isError}
-													isStreaming={msg.isStreaming}
+													{...(msg.isError !== undefined ? { isError: msg.isError } : {})}
+													{...(msg.isStreaming !== undefined ? { isStreaming: msg.isStreaming } : {})}
 													onRetry={retryLastMessage}
-													canRetry={msg.isError && !!lastUserMessage && !isLoading}
-													imagePreview={msg.imagePreview}
-													productData={msg.productData}
+													{...(msg.isError && !!lastUserMessage && !isLoading ? { canRetry: true } : {})}
+													{...(msg.imagePreview ? { imagePreview: msg.imagePreview } : {})}
+													{...(msg.productData ? { productData: msg.productData } : {})}
 													onAddMessage={addMessage}
 												/>
 												{msg.selectionCard && (
@@ -272,15 +272,16 @@ export function AiAssistantChat() {
 										))}
 										{isLoading && (
 											<EnhancedTypingIndicator
-												context={
-													lastUserMessage?.toLowerCase().includes("preço")
+												{...(() => {
+													const context = lastUserMessage?.toLowerCase().includes("preço")
 														? "price"
 														: lastUserMessage?.toLowerCase().includes("lista")
 															? "list"
 															: lastUserMessage?.toLowerCase().includes("churrasco")
 																? "churrasco"
-																: undefined
-												}
+																: undefined;
+													return context ? { context } : {};
+												})()}
 											/>
 										)}
 									</div>
@@ -344,9 +345,8 @@ export function AiAssistantChat() {
 								repeatType: "reverse",
 							},
 						}}
-						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${
-							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-						}`}
+						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+							}`}
 					>
 						{isListening ? (
 							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />

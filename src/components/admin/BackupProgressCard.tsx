@@ -148,7 +148,7 @@ export function BackupProgressCard({ isCreating, onComplete }: BackupProgressCar
 						<span className="text-muted-foreground">Progresso</span>
 						<span className="font-medium">{progress.progress}%</span>
 					</div>
-					<Progress value={progress.progress} className="h-3" indicatorClassName={getProgressColor()} />
+					<Progress value={progress.progress} className="h-3" />
 				</div>
 
 				{/* Informações de Tempo */}

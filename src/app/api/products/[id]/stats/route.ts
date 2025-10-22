@@ -39,7 +39,7 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 			totalPurchases > 0 ? totalSpent / purchaseItems.reduce((sum, item) => sum + item.quantity, 0) : 0
 
 		// Última compra
-		const lastPurchaseDate = purchaseItems.length > 0 ? purchaseItems[0].purchase.purchaseDate : null
+		const lastPurchaseDate = purchaseItems.length > 0 ? purchaseItems[0]!.purchase.purchaseDate : null
 
 		// Calcular variação de preço (últimos 30 dias vs anteriores)
 		const thirtyDaysAgo = new Date()

@@ -108,12 +108,12 @@ export async function DELETE(request: NextRequest) {
 
 			// Buscar o ID da sessão atual para não deletá-la
 			// Tenta primeiro pelo token, depois pelo ID do sessionResult
-			let currentSession = await prisma.session.findFirst({
+			let currentSession = currentSessionToken ? await prisma.session.findFirst({
 				where: {
 					userId: userId,
 					token: currentSessionToken,
 				},
-			})
+			}) : null
 
 			// Fallback: se não encontrou pelo token, usa o ID do sessionResult
 			if (!currentSession && currentSessionIdFromAuth) {

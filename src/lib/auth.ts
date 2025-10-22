@@ -96,7 +96,7 @@ export const auth = betterAuth({
 			expiresIn: 600, // 10 minutos
 			sendVerificationOnSignUp: false,
 			disableSignUp: true,
-		}),
+		}) as any,
 		twoFactor({
 			backupCodeOptions: {
 				amount: 10,

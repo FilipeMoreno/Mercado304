@@ -144,10 +144,10 @@ export async function createProductKit(input: CreateProductKitInput) {
 		const kit = await tx.productKit.create({
 			data: {
 				kitProductId: input.kitProductId,
-				description: input.description,
-				barcode: input.barcode,
-				brandId: input.brandId,
-				categoryId: input.categoryId,
+				description: input.description ?? null,
+				barcode: input.barcode ?? null,
+				brandId: input.brandId ?? null,
+				categoryId: input.categoryId ?? null,
 				items: {
 					create: input.items.map((item) => ({
 						productId: item.productId,
@@ -451,7 +451,7 @@ export async function checkKitStockAvailability(kitProductId: string): Promise<K
 
 	const itemsStock: KitStockInfo["itemsStock"] = []
 	let minAvailableKits = Number.POSITIVE_INFINITY
-	let limitingProduct: KitStockInfo["limitingProduct"] | undefined
+	let limitingProduct: KitStockInfo["limitingProduct"]
 
 	// Verificar estoque de cada item do kit
 	for (const kitItem of kit.items) {
@@ -492,7 +492,7 @@ export async function checkKitStockAvailability(kitProductId: string): Promise<K
 	return {
 		isAvailable: minAvailableKits > 0,
 		availableQuantity: Math.max(0, minAvailableKits),
-		limitingProduct,
+		...(limitingProduct && { limitingProduct }),
 		itemsStock,
 	}
 }
@@ -612,9 +612,9 @@ export async function addKitToStock(kitProductId: string, quantity: number, loca
 				data: {
 					productId: product.id,
 					quantity: quantityToAdd,
-					location,
+					location: location ?? null,
 					// Dividir o custo proporcionalmente (simplificado)
-					unitCost: costPerKit > 0 ? costPerKit / kit.items.length : undefined,
+					unitCost: costPerKit > 0 ? costPerKit / kit.items.length : null,
 				},
 			})
 

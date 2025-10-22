@@ -345,7 +345,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 									<div className="space-y-3">
 										<div className="flex items-center justify-between">
 											<h4 className="font-semibold">Resultados do Nota Paraná ({notaParanaProdutos.length})</h4>
-											{notaParanaProdutos.length > 0 && (
+											{notaParanaProdutos.length > 0 && notaParanaProdutos[0] && (
 												<div className="text-sm text-muted-foreground">
 													A partir de {formatPrice(calcularPrecoFinal(notaParanaProdutos[0]))}
 												</div>

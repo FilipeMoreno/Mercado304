@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 		console.log("[Cron Backup] Iniciando backup automático...")
 
 		// Chamar a API de backup
-		const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+		const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
 		const backupResponse = await fetch(`${baseUrl}/api/admin/backup/create`, {
 			method: "POST",
 		})

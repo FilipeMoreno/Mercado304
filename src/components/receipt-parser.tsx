@@ -76,7 +76,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		// Encontrar data
 		for (const line of lines) {
 			const dateMatch = line.match(datePattern)
-			if (dateMatch) {
+			if (dateMatch && dateMatch[1]) {
 				receipt.date = dateMatch[1]
 				break
 			}
@@ -92,7 +92,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		// Encontrar total
 		for (const line of lines) {
 			const totalMatch = line.match(totalPattern)
-			if (totalMatch) {
+			if (totalMatch && totalMatch[1]) {
 				receipt.total = parseFloat(totalMatch[1].replace(",", "."))
 				break
 			}
@@ -101,7 +101,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		// Encontrar subtotal
 		for (const line of lines) {
 			const subtotalMatch = line.match(subtotalPattern)
-			if (subtotalMatch) {
+			if (subtotalMatch && subtotalMatch[1]) {
 				receipt.subtotal = parseFloat(subtotalMatch[1].replace(",", "."))
 				break
 			}
@@ -110,7 +110,7 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 		// Encontrar taxa/imposto
 		for (const line of lines) {
 			const taxMatch = line.match(taxPattern)
-			if (taxMatch) {
+			if (taxMatch && taxMatch[1]) {
 				receipt.tax = parseFloat(taxMatch[1].replace(",", "."))
 				break
 			}
@@ -158,18 +158,18 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 						unitPrice = 0,
 						totalPrice = 0
 
-					if (pattern === patterns[0]) {
+					if (pattern === patterns[0] && match[1] && match[2] && match[3] && match[4]) {
 						// Padrão completo
 						name = match[1].trim()
 						quantity = parseFloat(match[2].replace(",", "."))
 						unitPrice = parseFloat(match[3].replace(",", "."))
 						totalPrice = parseFloat(match[4].replace(",", "."))
-					} else if (pattern === patterns[1]) {
+					} else if (pattern === patterns[1] && match[1] && match[2]) {
 						// Produto + preço
 						name = match[1].trim()
 						totalPrice = parseFloat(match[2].replace(",", "."))
 						unitPrice = totalPrice
-					} else if (pattern === patterns[2]) {
+					} else if (pattern === patterns[2] && match[1] && match[2] && match[3]) {
 						// Quantidade + produto + preço
 						quantity = parseFloat(match[1])
 						name = match[2].trim()
@@ -235,13 +235,19 @@ export function ReceiptParser({ onReceiptParsed, onClose, isOpen }: ReceiptParse
 	const updateItem = (index: number, field: string, value: any) => {
 		if (parsedReceipt) {
 			const newItems = [...parsedReceipt.items]
+			const currentItem = newItems[index];
+			if (!currentItem) return;
+
 			newItems[index] = {
-				...newItems[index],
+				...currentItem,
 				[field]: value,
 			}
 			// Recalcular preço total do item se necessário
 			if (field === "quantity" || field === "unitPrice") {
-				newItems[index].totalPrice = newItems[index].quantity * newItems[index].unitPrice
+				const updatedItem = newItems[index];
+				if (updatedItem) {
+					updatedItem.totalPrice = updatedItem.quantity * updatedItem.unitPrice
+				}
 			}
 			setParsedReceipt({
 				...parsedReceipt,

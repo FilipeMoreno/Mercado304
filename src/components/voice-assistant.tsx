@@ -1,7 +1,7 @@
 "use client"
 
 import { MessageCircle, Mic, MicOff, User, Volume2, VolumeX } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,6 +31,133 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
+
+	const addMessage = useCallback((type: "user" | "assistant", text: string) => {
+		const message: Message = {
+			id: Date.now().toString(),
+			type,
+			text,
+			timestamp: new Date(),
+		}
+		setMessages((prev) => [...prev.slice(-10), message]) // Manter apenas 10 mensagens
+	}, [])
+
+	const speak = useCallback((text: string) => {
+		if (!synthRef.current) return
+
+		// Cancelar fala anterior
+		synthRef.current.cancel()
+
+		const utterance = new SpeechSynthesisUtterance(text)
+		utterance.lang = "pt-BR"
+		utterance.rate = 1
+		utterance.pitch = 1
+
+		utterance.onstart = () => {
+			setIsSpeaking(true)
+		}
+
+		utterance.onend = () => {
+			setIsSpeaking(false)
+		}
+
+		synthRef.current.speak(utterance)
+	}, [])
+
+	const handleVoiceCommand = useCallback((transcript: string) => {
+		console.log("🎤 Comando recebido:", transcript)
+		addMessage("user", transcript)
+
+		let response = ""
+
+		// Ativar assistente
+		if (transcript.includes("zé") || transcript.includes("ze")) {
+			if (transcript.includes("oi") || transcript.includes("olá") || transcript.includes("hello")) {
+				response = "Oi! Como posso ajudar na cozinha hoje?"
+			} else if (
+				transcript.includes("cronômetro") ||
+				transcript.includes("cronometro") ||
+				transcript.includes("timer")
+			) {
+				if (transcript.includes("iniciar") || transcript.includes("começar") || transcript.includes("start")) {
+					onTimerCommand?.("start")
+					response = "Cronômetro iniciado!"
+				} else if (transcript.includes("pausar") || transcript.includes("parar")) {
+					onTimerCommand?.("pause")
+					response = "Cronômetro pausado!"
+				} else if (transcript.includes("resetar") || transcript.includes("zerar")) {
+					onTimerCommand?.("reset")
+					response = "Cronômetro resetado!"
+				} else {
+					response = 'Você pode dizer: "Zé, iniciar cronômetro", "pausar cronômetro" ou "resetar cronômetro"'
+				}
+			} else if (transcript.includes("ler") || transcript.includes("receita")) {
+				if (recipe) {
+					const recipeText = onReadRecipe?.()
+					if (recipeText) {
+						speak(recipeText)
+						response = "Lendo a receita completa para você!"
+					} else {
+						response = "Vou ler a receita para você!"
+					}
+				} else {
+					response = "Não há receita para ler no momento."
+				}
+			} else if (transcript.includes("ingredientes")) {
+				if (recipe?.ingredients || recipe?.ingredientes) {
+					const ingredients = recipe.ingredients || recipe.ingredientes || []
+					response = `Os ingredientes são: ${ingredients.slice(0, 5).join(", ")}`
+					if (ingredients.length > 5) {
+						response += ` e mais ${ingredients.length - 5} ingredientes.`
+					}
+				} else {
+					response = "Não consigo encontrar a lista de ingredientes."
+				}
+			} else if (transcript.includes("tempo")) {
+				const cookingTime = recipe?.tempo_preparo || recipe?.cookingTime
+				if (cookingTime) {
+					response = `O tempo de preparo é ${cookingTime}.`
+				} else {
+					response = "Não há tempo de preparo especificado para esta receita."
+				}
+			} else if (
+				transcript.includes("modo de preparo") ||
+				transcript.includes("preparo") ||
+				transcript.includes("passos")
+			) {
+				const instructions = recipe?.modo_preparo || recipe?.instructions
+				if (instructions) {
+					const steps = instructions.split(/\n/).filter((step: string) => step.trim())
+					const stepsText = steps
+						.map(
+							(step: string, index: number) =>
+								`Passo ${index + 1}: ${step.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, "")}`,
+						)
+						.join(". ")
+					speak(stepsText)
+					response = "Lendo o modo de preparo!"
+				} else {
+					response = "Não há modo de preparo disponível."
+				}
+			} else if (transcript.includes("dica") || transcript.includes("chef")) {
+				const tip = recipe?.dica_chef || recipe?.chefTip
+				if (tip) {
+					response = `Dica do chef: ${tip}`
+				} else {
+					response = "Não há dica do chef para esta receita."
+				}
+			} else {
+				response = 'Como posso ajudar? Você pode me pedir para ler a receita, iniciar o cronômetro ou ouvir os ingredientes. Diga "Zé" para começar!'
+			}
+		} else {
+			response = 'Diga "Zé" no comando para que eu possa ajudar! Exemplo: "Zé, ler receita"'
+		}
+
+		if (response) {
+			addMessage("assistant", response)
+			speak(response)
+		}
+	}, [onTimerCommand, onReadRecipe, recipe, addMessage, speak])
 
 	useEffect(() => {
 		// Detectar se é mobile
@@ -112,133 +239,6 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 		addMessage,
 		handleVoiceCommand,
 	])
-
-	const addMessage = (type: "user" | "assistant", text: string) => {
-		const message: Message = {
-			id: Date.now().toString(),
-			type,
-			text,
-			timestamp: new Date(),
-		}
-		setMessages((prev) => [...prev.slice(-10), message]) // Manter apenas 10 mensagens
-	}
-
-	const speak = (text: string) => {
-		if (!synthRef.current) return
-
-		// Cancelar fala anterior
-		synthRef.current.cancel()
-
-		const utterance = new SpeechSynthesisUtterance(text)
-		utterance.lang = "pt-BR"
-		utterance.rate = 0.9
-		utterance.pitch = 1.1
-		utterance.volume = 0.8
-
-		utterance.onstart = () => setIsSpeaking(true)
-		utterance.onend = () => setIsSpeaking(false)
-		utterance.onerror = () => setIsSpeaking(false)
-
-		synthRef.current.speak(utterance)
-	}
-
-	const handleVoiceCommand = (transcript: string) => {
-		console.log("🎤 Comando recebido:", transcript)
-		addMessage("user", transcript)
-
-		let response = ""
-
-		// Ativar assistente
-		if (transcript.includes("zé") || transcript.includes("ze")) {
-			if (transcript.includes("oi") || transcript.includes("olá") || transcript.includes("hello")) {
-				response = "Oi! Como posso ajudar na cozinha hoje?"
-			} else if (
-				transcript.includes("cronômetro") ||
-				transcript.includes("cronometro") ||
-				transcript.includes("timer")
-			) {
-				if (transcript.includes("iniciar") || transcript.includes("começar") || transcript.includes("start")) {
-					onTimerCommand?.("start")
-					response = "Cronômetro iniciado!"
-				} else if (transcript.includes("pausar") || transcript.includes("parar")) {
-					onTimerCommand?.("pause")
-					response = "Cronômetro pausado!"
-				} else if (transcript.includes("resetar") || transcript.includes("zerar")) {
-					onTimerCommand?.("reset")
-					response = "Cronômetro resetado!"
-				} else {
-					response = 'Você pode dizer: "Zé, iniciar cronômetro", "pausar cronômetro" ou "resetar cronômetro"'
-				}
-			} else if (transcript.includes("ler") || transcript.includes("receita")) {
-				if (recipe) {
-					const recipeText = onReadRecipe?.()
-					if (recipeText) {
-						speak(recipeText)
-						response = "Lendo a receita completa para você!"
-					} else {
-						response = "Vou ler a receita para você!"
-					}
-				} else {
-					response = "Não há receita para ler no momento."
-				}
-			} else if (transcript.includes("ingredientes")) {
-				if (recipe?.ingredients || recipe?.ingredientes) {
-					const ingredients = recipe.ingredients || recipe.ingredientes || []
-					response = `Os ingredientes são: ${ingredients.slice(0, 5).join(", ")}`
-					if (ingredients.length > 5) {
-						response += ` e mais ${ingredients.length - 5} ingredientes.`
-					}
-				} else {
-					response = "Não consigo encontrar a lista de ingredientes."
-				}
-			} else if (transcript.includes("tempo")) {
-				const cookingTime = recipe?.tempo_preparo || recipe?.cookingTime
-				if (cookingTime) {
-					response = `O tempo de preparo é ${cookingTime}.`
-				} else {
-					response = "Não há tempo de preparo especificado para esta receita."
-				}
-			} else if (
-				transcript.includes("modo de preparo") ||
-				transcript.includes("preparo") ||
-				transcript.includes("passos")
-			) {
-				const instructions = recipe?.modo_preparo || recipe?.instructions
-				if (instructions) {
-					const steps = instructions.split(/\n/).filter((step: string) => step.trim())
-					const stepsText = steps
-						.map(
-							(step: string, index: number) =>
-								`Passo ${index + 1}: ${step.replace(/^(\d+\.\s*|Passo \d+:\s*|\d+\)\s*)/, "")}`,
-						)
-						.join(". ")
-					speak(stepsText)
-					response = "Lendo o modo de preparo!"
-				} else {
-					response = "Não há modo de preparo disponível."
-				}
-			} else if (transcript.includes("dica") || transcript.includes("chef")) {
-				const tip = recipe?.dica_chef || recipe?.chefTip
-				if (tip) {
-					response = `Dica do chef: ${tip}`
-				} else {
-					response = "Não há dicas do chef para esta receita."
-				}
-			} else if (transcript.includes("obrigado") || transcript.includes("obrigada") || transcript.includes("valeu")) {
-				response = "De nada! Estou aqui para ajudar na cozinha sempre que precisar!"
-			} else if (transcript.includes("ajuda") || transcript.includes("comandos")) {
-				response =
-					'Posso ajudar com: cronômetro, ler receita, ingredientes, tempo de preparo, modo de preparo, dicas do chef. Diga "Zé" seguido do comando!'
-			} else {
-				response = 'Como posso ajudar? Diga "Zé ajuda" para ver os comandos disponíveis!'
-			}
-		} else {
-			response = 'Diga "Zé" primeiro para ativar o assistente!'
-		}
-
-		addMessage("assistant", response)
-		speak(response)
-	}
 
 	const startListening = async () => {
 		if (!isSupported || !recognitionRef.current) {
@@ -402,9 +402,8 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 											)}
 										</div>
 										<div
-											className={`px-3 py-2 rounded-lg max-w-xs ${
-												message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"
-											}`}
+											className={`px-3 py-2 rounded-lg max-w-xs ${message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"
+												}`}
 										>
 											{message.text}
 										</div>

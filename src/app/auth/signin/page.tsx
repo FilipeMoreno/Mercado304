@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
-import { oneTap, signIn, twoFactor, useSession } from "@/lib/auth-client"
+import { oneTap, passkey, signIn, twoFactor, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
 
 export default function SignInPage() {
@@ -144,7 +144,7 @@ export default function SignInPage() {
 		setIsPasskeyLoading(true)
 		try {
 			// Tenta login com passkey
-			const result = await signIn.passkey()
+			const result = await passkey.signIn()
 
 			if (result?.error) {
 				// Verifica se é um erro de cancelamento

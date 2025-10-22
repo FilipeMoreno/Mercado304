@@ -510,12 +510,12 @@ export default function CleanAssistentePage() {
 										<ChatMessage
 											role={msg.role}
 											content={msg.content}
-											isError={msg.isError}
-											isStreaming={msg.isStreaming}
+											{...(msg.isError !== undefined && { isError: msg.isError })}
+											{...(msg.isStreaming !== undefined && { isStreaming: msg.isStreaming })}
 											onRetry={retryLastMessage}
-											canRetry={msg.isError && !!lastUserMessage && !isLoading}
-											imagePreview={msg.imagePreview}
-											productData={msg.productData}
+											{...(msg.isError && !!lastUserMessage && !isLoading && { canRetry: true })}
+											{...(msg.imagePreview && { imagePreview: msg.imagePreview })}
+											{...(msg.productData && { productData: msg.productData })}
 										/>
 										{msg.selectionCard && (
 											<div className="mt-4">
@@ -538,15 +538,16 @@ export default function CleanAssistentePage() {
 								{isLoading && (
 									<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 										<EnhancedTypingIndicator
-											context={
-												lastUserMessage?.toLowerCase().includes("preço")
+											{...(() => {
+												const context = lastUserMessage?.toLowerCase().includes("preço")
 													? "price"
 													: lastUserMessage?.toLowerCase().includes("lista")
 														? "list"
 														: lastUserMessage?.toLowerCase().includes("churrasco")
 															? "churrasco"
-															: undefined
-											}
+															: undefined;
+												return context ? { context } : {};
+											})()}
 										/>
 									</motion.div>
 								)}
@@ -581,7 +582,7 @@ export default function CleanAssistentePage() {
 			<div className="hidden md:block">
 				<ChatGPTSidebar
 					sessions={sessions}
-					currentSessionId={currentSessionId || undefined}
+					{...(currentSessionId ? { currentSessionId } : {})}
 					onSessionSelect={handleSessionSelect}
 					onNewChat={handleNewChat}
 					onDeleteSession={deleteSession}
@@ -621,7 +622,7 @@ export default function CleanAssistentePage() {
 							<div className="h-full overflow-y-auto">
 								<ChatGPTSidebar
 									sessions={sessions}
-									currentSessionId={currentSessionId || undefined}
+									{...(currentSessionId ? { currentSessionId } : {})}
 									onSessionSelect={handleSessionSelect}
 									onNewChat={handleNewChat}
 									onDeleteSession={deleteSession}
@@ -631,7 +632,7 @@ export default function CleanAssistentePage() {
 									onArchiveSession={handleArchiveSession}
 									onClearAll={clearAllHistory}
 									isCollapsed={false}
-									onToggleCollapse={() => {}}
+									onToggleCollapse={() => { }}
 									isMobile={true}
 								/>
 							</div>

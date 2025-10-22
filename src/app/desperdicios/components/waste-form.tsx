@@ -100,10 +100,12 @@ export function WasteForm({ initialData, onSubmit, onCancel }: WasteFormProps) {
 
 		setIsSubmitting(true)
 		try {
+			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined;
+			const { expirationDate: _exp, wasteDate, ...restFormData } = formData;
 			await onSubmit({
-				...formData,
-				wasteDate: new Date(formData.wasteDate).toISOString(),
-				expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined,
+				...restFormData,
+				wasteDate: new Date(wasteDate || new Date()).toISOString(),
+				...(expDate ? { expirationDate: expDate } : {}),
 			})
 		} catch (error) {
 			console.error("Erro ao submeter formulário:", error)

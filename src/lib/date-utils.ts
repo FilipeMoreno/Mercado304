@@ -14,7 +14,9 @@ export function parseLocalDate(dateString: string | Date | null | undefined): Da
 	if (typeof dateString === "string") {
 		if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			const [year, month, day] = dateString.split("-").map(Number)
-			return new Date(year, month - 1, day) // mês é 0-based
+			if (year !== undefined && month !== undefined && day !== undefined) {
+				return new Date(year, month - 1, day) // mês é 0-based
+			}
 		}
 
 		// Para outros formatos, tentar parseISO

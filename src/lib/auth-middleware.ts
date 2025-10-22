@@ -87,7 +87,8 @@ export async function handleLoginAttempt(email: string, success: boolean, reques
 export function getRealIP(request: NextRequest): string {
 	const forwarded = request.headers.get("x-forwarded-for")
 	if (forwarded) {
-		return forwarded.split(",")[0].trim()
+		const firstIp = forwarded.split(",")[0];
+		return firstIp ? firstIp.trim() : "unknown"
 	}
 
 	const realIp = request.headers.get("x-real-ip")
@@ -128,14 +129,14 @@ export function getDeviceInfo(userAgent: string) {
 	else if (userAgent.includes("Windows")) os = "Windows"
 	else if (userAgent.includes("Mac OS X")) {
 		const match = userAgent.match(/Mac OS X ([\d_]+)/)
-		os = match ? `macOS ${match[1].replace(/_/g, ".")}` : "macOS"
+		os = match && match[1] ? `macOS ${match[1].replace(/_/g, ".")}` : "macOS"
 	} else if (userAgent.includes("Linux")) os = "Linux"
 	else if (userAgent.includes("Android")) {
 		const match = userAgent.match(/Android ([\d.]+)/)
-		os = match ? `Android ${match[1]}` : "Android"
+		os = match && match[1] ? `Android ${match[1]}` : "Android"
 	} else if (userAgent.includes("iOS") || userAgent.includes("iPhone") || userAgent.includes("iPad")) {
 		const match = userAgent.match(/OS ([\d_]+)/)
-		os = match ? `iOS ${match[1].replace(/_/g, ".")}` : "iOS"
+		os = match && match[1] ? `iOS ${match[1].replace(/_/g, ".")}` : "iOS"
 	}
 
 	// Detectar tipo de dispositivo

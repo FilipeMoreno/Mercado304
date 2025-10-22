@@ -118,7 +118,7 @@ interface OptimizedLoadingProps {
 export const OptimizedLoading = memo<OptimizedLoadingProps>(
 	({ isLoading, children, skeletonCount = 8, skeletonType = "product", className }) => {
 		if (isLoading) {
-			return <SkeletonGrid count={skeletonCount} type={skeletonType} className={className} />
+			return <SkeletonGrid count={skeletonCount} type={skeletonType} {...(className ? { className } : {})} />
 		}
 
 		return <>{children}</>

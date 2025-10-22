@@ -74,10 +74,11 @@ export function ProductSelectDialog({
 				parts.push(product.barcode)
 			}
 
+			const sublabel = parts.length > 0 ? parts.join(" • ") : undefined;
 			return {
 				id: product.id,
 				label: product.name,
-				sublabel: parts.length > 0 ? parts.join(" • ") : undefined,
+				...(sublabel ? { sublabel } : {}),
 			}
 		})
 	}, [products])
@@ -170,7 +171,7 @@ export function ProductSelectDialog({
 					<ResponsiveSelectDialog
 						open={open}
 						onOpenChange={setOpen}
-						value={value}
+						{...(value ? { value } : {})}
 						onValueChange={handleValueChange}
 						options={options}
 						title="Selecionar Produto"

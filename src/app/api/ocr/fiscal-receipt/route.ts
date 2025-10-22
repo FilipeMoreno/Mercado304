@@ -6,7 +6,7 @@ import { NextResponse } from "next/server"
 // Função auxiliar para converter a imagem de Base64 para o formato da API do Gemini
 function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
 	const match = dataUrl.match(/^data:(.+);base64,(.+)$/)
-	if (!match) {
+	if (!match || !match[1] || !match[2]) {
 		throw new Error("Formato de Data URL inválido")
 	}
 	return {

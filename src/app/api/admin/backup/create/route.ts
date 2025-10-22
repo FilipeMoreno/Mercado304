@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 			const username = dbUrl.username
 			const password = dbUrl.password
 
-			const command = `PGPASSWORD="${password}" pg_dump -h ${host} -p ${port} -U ${username} -d ${database} --no-owner --no-acl`
+			const command = `PGPASSWORD="${password}" pg_dump -h ${host} -p ${port} -U ${username} -d ${database} -Fp --no-owner --no-acl`
 
 			console.log("[Backup] Tentando usar pg_dump...")
 			const { stdout, stderr } = await execAsync(command, {
@@ -107,6 +107,8 @@ export async function POST(request: Request) {
 
 			if (stderr && !stderr.includes("WARNING")) {
 				console.warn("[Backup] Avisos do pg_dump:", stderr)
+
+				
 			}
 
 			backupData = stdout

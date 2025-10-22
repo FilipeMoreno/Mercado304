@@ -252,7 +252,12 @@ export const advancedAnalyticsFunctions = {
 			const intercept = (sumY - slope * sumX) / n
 
 			// Previsão para os próximos dias
-			const currentPrice = priceData[priceData.length - 1].price
+			const lastDataPoint = priceData[priceData.length - 1];
+			if (!lastDataPoint) {
+				return { error: "Dados insuficientes para previsão" }
+			}
+
+			const currentPrice = lastDataPoint.price
 			const predictedPrice = slope * (n + days) + intercept
 			const priceChange = predictedPrice - currentPrice
 			const percentageChange = (priceChange / currentPrice) * 100
@@ -304,12 +309,12 @@ export const advancedAnalyticsFunctions = {
 					...(marketName ? { market: { name: { contains: marketName, mode: "insensitive" } } } : {}),
 					...(productName
 						? {
-								items: {
-									some: {
-										product: { name: { contains: productName, mode: "insensitive" } },
-									},
+							items: {
+								some: {
+									product: { name: { contains: productName, mode: "insensitive" } },
 								},
-							}
+							},
+						}
 						: {}),
 				},
 				include: {
@@ -317,10 +322,10 @@ export const advancedAnalyticsFunctions = {
 						include: { product: true },
 						...(productName
 							? {
-									where: {
-										product: { name: { contains: productName, mode: "insensitive" } },
-									},
-								}
+								where: {
+									product: { name: { contains: productName, mode: "insensitive" } },
+								},
+							}
 							: {}),
 					},
 					market: true,
@@ -348,7 +353,7 @@ export const advancedAnalyticsFunctions = {
 					const productKey = item.product?.name || "Produto não identificado"
 					const prices = productPrices[productKey]
 
-					if (prices.length >= 3) {
+					if (prices && prices.length >= 3) {
 						const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length
 						const discount = ((avgPrice - item.unitPrice) / avgPrice) * 100
 

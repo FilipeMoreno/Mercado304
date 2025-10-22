@@ -50,8 +50,7 @@ export function ResponsiveConfirmDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			title={title}
-			description={description}
-			subtitle={description}
+			{...(description ? { description, subtitle: description } : {})}
 		>
 			<div className="space-y-4">
 				{/* Icon para mobile */}

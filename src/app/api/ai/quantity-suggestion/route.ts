@@ -33,9 +33,13 @@ export async function POST(request: Request) {
 
 		const intervals: number[] = []
 		for (let i = 1; i < purchases.length; i++) {
+			const current = purchases[i]
+			const previous = purchases[i - 1]
+			if (!current || !previous) continue
+			
 			const diff =
-				(new Date(purchases[i].purchase.purchaseDate).getTime() -
-					new Date(purchases[i - 1].purchase.purchaseDate).getTime()) /
+				(new Date(current.purchase.purchaseDate).getTime() -
+					new Date(previous.purchase.purchaseDate).getTime()) /
 				(1000 * 60 * 60 * 24)
 			if (diff > 0) intervals.push(diff)
 		}
@@ -44,7 +48,11 @@ export async function POST(request: Request) {
 		const totalQuantity = purchases.reduce((sum, p) => sum + p.quantity, 0)
 		const avgQuantityPerPurchase = Math.ceil(totalQuantity / purchases.length)
 
-		const lastPurchaseDate = new Date(purchases[purchases.length - 1].purchase.purchaseDate)
+		const lastPurchase = purchases[purchases.length - 1]
+		if (!lastPurchase) {
+			return NextResponse.json({ suggestion: null })
+		}
+		const lastPurchaseDate = new Date(lastPurchase.purchase.purchaseDate)
 		const daysSinceLastPurchase = Math.floor((Date.now() - lastPurchaseDate.getTime()) / (1000 * 60 * 60 * 24))
 
 		if (daysSinceLastPurchase > avgIntervalDays * 0.8 && avgQuantityPerPurchase > 1) {

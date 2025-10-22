@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
 		console.log(`[Sync History] Encontrados: ${jobs.length} jobs de ${total} total`)
 
-		if (jobs.length > 0) {
+		if (jobs.length > 0 && jobs[0]) {
 			console.log(`[Sync History] Primeiro job:`, {
 				id: jobs[0].id,
 				status: jobs[0].status,

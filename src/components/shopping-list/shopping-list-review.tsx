@@ -43,10 +43,10 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 	const [reviewItems, setReviewItems] = useState<ReviewItem[]>(
 		items.map((item) => ({
 			...item,
-			linkedProductId: item.productId, // Já vinculado ou undefined
+			...(item.productId ? { linkedProductId: item.productId } : {}),
 			unitPrice: item.estimatedPrice || 0,
 			unitDiscount: 0,
-		})),
+		})) as ReviewItem[],
 	)
 	const [products, setProducts] = useState<any[]>([])
 	const [openPopover, setOpenPopover] = useState<number | null>(null)
@@ -72,18 +72,25 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
 	const handleProductNameChange = (index: number, newName: string) => {
 		const newItems = [...reviewItems]
-		newItems[index].productName = newName
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
+		currentItem.productName = newName
 		// Ao editar o nome manualmente, remove o vínculo
-		if (newItems[index].linkedProductId) {
-			newItems[index].linkedProductId = undefined
+		if (currentItem.linkedProductId) {
+			const { linkedProductId, ...rest } = currentItem;
+			newItems[index] = rest as ReviewItem;
 		}
 		setReviewItems(newItems)
 	}
 
 	const handleProductLink = (index: number, product: any) => {
 		const newItems = [...reviewItems]
-		newItems[index].linkedProductId = product.id
-		newItems[index].productName = product.name
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
+		currentItem.linkedProductId = product.id
+		currentItem.productName = product.name
 
 		toast.success(`Produto vinculado: "${product.name}"`)
 		setReviewItems(newItems)
@@ -92,20 +99,30 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
 
 	const handleUnlink = (index: number) => {
 		const newItems = [...reviewItems]
-		newItems[index].linkedProductId = undefined
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
+		const { linkedProductId, ...rest } = currentItem;
+		newItems[index] = rest as ReviewItem;
 		toast.info(`Item desvinculado, permanecerá como texto livre`)
 		setReviewItems(newItems)
 	}
 
 	const handlePriceChange = (index: number, field: "unitPrice" | "unitDiscount", value: string) => {
 		const newItems = [...reviewItems]
-		newItems[index][field] = parseFloat(value) || 0
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
+		currentItem[field] = parseFloat(value) || 0
 		setReviewItems(newItems)
 	}
 
 	const handleQuantityChange = (index: number, value: string) => {
 		const newItems = [...reviewItems]
-		newItems[index].quantity = parseFloat(value) || 1
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
+		currentItem.quantity = parseFloat(value) || 1
 		setReviewItems(newItems)
 	}
 

@@ -150,10 +150,10 @@ export async function createProductKit(args: {
 		// Todos os produtos foram validados acima, então foundProduct está definido
 		const kit = await productKitService.createProductKit({
 			kitProductId: kitProduct.id,
-			description,
-			barcode,
-			brandId,
-			categoryId,
+			...(description ? { description } : {}),
+			...(barcode ? { barcode } : {}),
+			...(brandId ? { brandId } : {}),
+			...(categoryId ? { categoryId } : {}),
 			items: productsData.map((p) => ({
 				productId: p.foundProduct?.id as string, // Safe: validated above that all products were found
 				quantity: p.quantity,
@@ -172,7 +172,7 @@ export async function createProductKit(args: {
 			success: true,
 			message,
 			kitId: kit.kitProductId,
-			kitName: kit.kitProduct.name,
+			kitName: kitName,
 		}
 	} catch (error) {
 		return {
@@ -306,23 +306,23 @@ export async function getProductKitDetails(args: { kitName: string }) {
 				})),
 				stock: stock
 					? {
-							available: stock.availableQuantity,
-							limitingProduct: stock.limitingProduct?.name,
-						}
+						available: stock.availableQuantity,
+						limitingProduct: stock.limitingProduct?.name,
+					}
 					: null,
 				nutrition: nutrition
 					? {
-							calories: nutrition.calories,
-							proteins: nutrition.proteins,
-							carbohydrates: nutrition.carbohydrates,
-						}
+						calories: nutrition.calories,
+						proteins: nutrition.proteins,
+						carbohydrates: nutrition.carbohydrates,
+					}
 					: null,
 				price: price
 					? {
-							total: price.totalPrice,
-							kitPrice: price.kitRegisteredPrice,
-							savings: price.kitRegisteredPrice ? price.totalPrice - price.kitRegisteredPrice : null,
-						}
+						total: price.totalPrice,
+						kitPrice: price.kitRegisteredPrice,
+						savings: price.kitRegisteredPrice ? price.totalPrice - price.kitRegisteredPrice : null,
+					}
 					: null,
 			},
 		}
@@ -531,7 +531,7 @@ export async function findSimilarKits(args: { searchTerm: string; context?: any 
 			}
 		}
 
-		if (kits.length === 1) {
+		if (kits.length === 1 && kits[0]) {
 			return {
 				success: true,
 				exactMatch: true,
@@ -729,6 +729,11 @@ export async function compareKitPrices(args: { kitName: string }) {
 
 		// Encontrar melhor preço
 		const bestMarket = marketPrices.sort((a, b) => a.lastPrice - b.lastPrice)[0]
+
+		if (!bestMarket) {
+			return { error: "Nenhum mercado com preços disponíveis" }
+		}
+
 		message += `\n🏆 **Melhor opção:** ${bestMarket.market} por R$ ${bestMarket.lastPrice.toFixed(2)}`
 
 		return {

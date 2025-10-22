@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 			eventType: eventType as SecurityEventType,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: metadata || {},
 		})
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
 				sendSecurityAlertEmail({
 					user: {
 						email: session.user.email,
-						name: session.user.name || undefined,
+						...(session.user.name && { name: session.user.name }),
 					},
 					action,
 					device: userAgent,

@@ -90,7 +90,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 			if (!acc[record.product]) {
 				acc[record.product] = []
 			}
-			acc[record.product].push(record)
+			acc[record.product]!.push(record)
 			return acc
 		},
 		{} as Record<string, PriceRecord[]>,
@@ -124,7 +124,7 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 			if (!acc[record.market]) {
 				acc[record.market] = []
 			}
-			acc[record.market].push(record.price)
+			acc[record.market]!.push(record.price)
 			return acc
 		},
 		{} as Record<string, number[]>,
@@ -282,8 +282,8 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 			if (!acc[record.product]) {
 				acc[record.product] = { total: 0, count: 0, market: record.market }
 			}
-			acc[record.product].total += record.price
-			acc[record.product].count += 1
+			acc[record.product]!.total += record.price
+			acc[record.product]!.count += 1
 			return acc
 		},
 		{} as Record<string, { total: number; count: number; market: string }>,
@@ -330,6 +330,8 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
+					{bestDay && worstDay ? (
+					<>
 					<div className="grid md:grid-cols-2 gap-4 mb-6">
 						<div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-200 dark:border-green-800">
 							<div className="flex items-center gap-2 mb-2">
@@ -369,6 +371,10 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 							</div>
 						))}
 					</div>
+					</>
+					) : (
+						<p className="text-muted-foreground">Dados insuficientes para análise por dia da semana.</p>
+					)}
 				</CardContent>
 			</Card>
 

@@ -34,6 +34,7 @@ export async function POST(_request: NextRequest) {
 			eventType: SecurityEventType.TWO_FA_ENABLED,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				method: "email",
 				via: "email-2fa",
@@ -45,7 +46,7 @@ export async function POST(_request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Autenticação de Dois Fatores via EMAIL foi ATIVADA",
 			device: userAgent,
@@ -132,6 +133,7 @@ export async function DELETE(request: NextRequest) {
 			eventType: SecurityEventType.TWO_FA_DISABLED,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				method: password ? "password" : "oauth-reauth",
 				via: "email-2fa",
@@ -143,7 +145,7 @@ export async function DELETE(request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Autenticação de Dois Fatores via EMAIL foi DESATIVADA",
 			device: userAgent,

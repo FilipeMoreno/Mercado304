@@ -93,6 +93,7 @@ export async function PUT(request: NextRequest) {
 			eventType: SecurityEventType.PASSWORD_CHANGED,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				method: "password-update",
 			},
@@ -103,7 +104,7 @@ export async function PUT(request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Sua senha foi ALTERADA",
 			device: userAgent,

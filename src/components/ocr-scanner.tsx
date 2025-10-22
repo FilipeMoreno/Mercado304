@@ -1,7 +1,7 @@
 "use client"
 
 import { CameraOff, Copy, Download, Eye, FileText, Loader2, RotateCcw, Upload } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -152,16 +152,26 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 		getDevices()
 	}, [isOpen])
 
+	const stopCamera = useCallback(() => {
+		if (streamRef.current) {
+			streamRef.current.getTracks().forEach((track) => track.stop())
+			streamRef.current = null
+		}
+
+		if (videoRef.current) {
+			videoRef.current.srcObject = null
+		}
+	}, [])
+
 	// Inicializar câmera
 	useEffect(() => {
 		if (!isOpen || !hasCamera || !selectedDevice) return
 
 		const startCamera = async () => {
 			try {
-				const constraints = {
+				const constraints: MediaStreamConstraints = {
 					video: {
-						deviceId: selectedDevice ? { exact: selectedDevice } : undefined,
-						facingMode: selectedDevice ? undefined : "environment",
+						...(selectedDevice ? { deviceId: { exact: selectedDevice } } : { facingMode: "environment" }),
 						width: { ideal: 1920, min: 1280 },
 						height: { ideal: 1080, min: 720 },
 					},
@@ -186,17 +196,6 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 			stopCamera()
 		}
 	}, [isOpen, hasCamera, selectedDevice, stopCamera])
-
-	const stopCamera = () => {
-		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop())
-			streamRef.current = null
-		}
-
-		if (videoRef.current) {
-			videoRef.current.srcObject = null
-		}
-	}
 
 	const performOCR = async (imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement) => {
 		if (!workerRef.current || !ocrReady) {
@@ -281,7 +280,10 @@ export function OCRScanner({ onTextDetected, onClose, isOpen, mode = "general" }
 
 		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDevice)
 		const nextIndex = (currentIndex + 1) % devices.length
-		setSelectedDevice(devices[nextIndex].deviceId)
+		const nextDevice = devices[nextIndex];
+		if (nextDevice) {
+			setSelectedDevice(nextDevice.deviceId)
+		}
 	}
 
 	const copyToClipboard = async () => {

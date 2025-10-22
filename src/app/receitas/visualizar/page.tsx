@@ -198,7 +198,7 @@ export default function VisualizarReceitaPage() {
 									}
 
 									// Se ainda tem apenas 1 item muito longo, forçar divisão por números
-									if (steps.length === 1 && steps[0].length > 50) {
+									if (steps.length === 1 && steps[0] && steps[0].length > 50) {
 										// Usar regex para capturar cada passo numerado
 										const matches = instructions.match(/\d+\.\s[^0-9]+(?=\d+\.|$)/g)
 										if (matches && matches.length > 1) {
@@ -223,11 +223,10 @@ export default function VisualizarReceitaPage() {
 												return (
 													<div
 														key={`step-${cleanStep}`}
-														className={`flex gap-3 p-3 rounded-lg ${
-															isNumberedStep
+														className={`flex gap-3 p-3 rounded-lg ${isNumberedStep
 																? "bg-orange-50 border-l-4 border-orange-200"
 																: "bg-gray-50 border-l-4 border-gray-200"
-														}`}
+															}`}
 													>
 														{isNumberedStep ? (
 															<>
@@ -287,7 +286,7 @@ export default function VisualizarReceitaPage() {
 					</Card>
 
 					{/* Cronômetro */}
-					<RecipeTimer suggestedTime={recipe.tempo_preparo || recipe.cookingTime} />
+					<RecipeTimer {...(recipe.tempo_preparo || recipe.cookingTime ? { suggestedTime: recipe.tempo_preparo || recipe.cookingTime } : {})} />
 
 					{/* Assistente de Voz */}
 					<VoiceAssistant onTimerCommand={handleTimerCommand} onReadRecipe={handleReadRecipe} recipe={recipe} />

@@ -104,7 +104,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			// Armazenar valores iniciais para comparação
 			initialValuesRef.current = {
 				productName: newProductName,
-				productId: newProductId,
+				...(newProductId ? { productId: newProductId } : {}),
 				quantity: newQuantity,
 				estimatedPrice: newEstimatedPrice,
 			}
@@ -135,20 +135,22 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 		// Atualizar valores iniciais
 		initialValuesRef.current = {
 			productName,
-			productId,
+			...(productId ? { productId } : {}),
 			quantity,
 			estimatedPrice,
 		}
 
+		const updateData: any = {
+			...(productId ? { productId } : {}),
+			...(productName.trim() ? { productName: productName.trim() } : {}),
+			...(item.productUnit ? { productUnit: item.productUnit } : {}),
+			quantity: qty,
+			...(price ? { estimatedPrice: price } : {}),
+		};
+
 		onUpdate(
 			item.id,
-			{
-				productId,
-				productName: productName.trim(),
-				productUnit: item.productUnit,
-				quantity: qty,
-				estimatedPrice: price,
-			},
+			updateData,
 			{ closeDialog: false },
 		)
 	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])

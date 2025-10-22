@@ -45,8 +45,13 @@ export function AuthQuote() {
 
 	useEffect(() => {
 		// Seleciona uma citação aleatória apenas no cliente
-		const randomIndex = Math.floor(Math.random() * quotes.length)
-		setRandomQuote(quotes[randomIndex])
+		if (quotes.length > 0) {
+			const randomIndex = Math.floor(Math.random() * quotes.length)
+			const selected = quotes[randomIndex]
+			if (selected) {
+				setRandomQuote(selected)
+			}
+		}
 	}, [])
 
 	return (

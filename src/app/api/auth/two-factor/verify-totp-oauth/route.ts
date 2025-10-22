@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
 			eventType: SecurityEventType.TWO_FA_ENABLED,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				method: "totp-oauth",
 				via: "authenticator-app",
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Autenticação de Dois Fatores (App) foi ATIVADA",
 			device: userAgent,

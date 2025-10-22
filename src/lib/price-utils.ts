@@ -147,7 +147,7 @@ export async function getProductPriceHistory(productId: string, marketId: string
 				purchaseDate: "desc",
 			},
 		},
-		take: limit,
+		...(limit ? { take: limit } : {}),
 	})
 
 	// Buscar registros manuais
@@ -165,7 +165,7 @@ export async function getProductPriceHistory(productId: string, marketId: string
 		orderBy: {
 			recordDate: "desc",
 		},
-		take: limit,
+		...(limit ? { take: limit } : {}),
 	})
 
 	// Combinar e ordenar por data

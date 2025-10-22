@@ -112,8 +112,8 @@ export async function GET() {
 
 				// Encontrar melhor e pior mercado
 				const sortedByPrice = flatMarketDetails.sort((a, b) => a.avgPrice - b.avgPrice)
-				const cheapest = sortedByPrice[0]
-				const mostExpensive = sortedByPrice[sortedByPrice.length - 1]
+				const cheapest = sortedByPrice[0]!
+				const mostExpensive = sortedByPrice[sortedByPrice.length - 1]!
 
 				const potentialSaving = mostExpensive.avgPrice - cheapest.avgPrice
 

@@ -41,7 +41,7 @@ export function SelectWithSearch({
 		const dialogOptions = options.map((option) => ({
 			id: option.value,
 			label: option.label,
-			icon: option.icon,
+			...(option.icon ? { icon: option.icon } : {}),
 		}))
 
 		return (

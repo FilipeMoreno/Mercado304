@@ -119,10 +119,14 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 		const dates = purchases.map((p) => new Date(p.date))
 		const dayOfWeek = dates.map((d) => d.getDay())
 		const dayFrequency = [0, 0, 0, 0, 0, 0, 0]
-		dayOfWeek.forEach((day) => dayFrequency[day]++)
+		dayOfWeek.forEach((day) => {
+			if (day >= 0 && day < 7) {
+				dayFrequency[day]!++
+			}
+		})
 
 		const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
-		const bestDay = days[dayFrequency.indexOf(Math.max(...dayFrequency))]
+		const bestDay = days[dayFrequency.indexOf(Math.max(...dayFrequency))] || "Segunda"
 
 		const shoppingFrequency = {
 			weeklyAverage: purchases.length / 4, // Assumindo 4 semanas de dados
@@ -477,13 +481,12 @@ export function MLRecommendations({ data, onAddToCart, showPatterns = true }: ML
 											<div className="flex items-center gap-2">
 												<span className="text-sm">{category.percentage.toFixed(1)}%</span>
 												<TrendingUp
-													className={`h-4 w-4 ${
-														category.trend === "increasing"
+													className={`h-4 w-4 ${category.trend === "increasing"
 															? "text-green-500"
 															: category.trend === "decreasing"
 																? "text-red-500"
 																: "text-gray-500"
-													}`}
+														}`}
 												/>
 											</div>
 										</div>

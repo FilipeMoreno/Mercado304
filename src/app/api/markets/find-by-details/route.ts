@@ -52,13 +52,13 @@ export async function POST(request: Request) {
 
 		for (const key in marketNameAliases) {
 			if (nameUpperCase.includes(key)) {
-				searchTerm = marketNameAliases[key]
+				searchTerm = marketNameAliases[key] || null
 				break
 			}
 		}
 
 		if (!searchTerm) {
-			searchTerm = name.split(" ")[0]
+			searchTerm = name.split(" ")[0] || name
 		}
 
 		console.log(`[MARKET_FIND_V2] Nome da Nota: "${name}". Termo de busca: "${searchTerm}"`)
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 		}
 
 		if (potentialMarkets.length === 1) {
-			const market = potentialMarkets[0]
+			const market = potentialMarkets[0]!
 			console.log(`[MARKET_FIND_V2] Encontrado 1 mercado correspondente: ${market.name} (ID: ${market.id})`)
 			return NextResponse.json(market)
 		}
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
 		}
 
 		// 4. Se a desambiguação falhar, retorna o primeiro como fallback
-		const fallbackMarket = potentialMarkets[0]
+		const fallbackMarket = potentialMarkets[0]!
 		console.log(
 			`[MARKET_FIND_V2] Desambiguação pelo endereço falhou. Retornando o primeiro mercado encontrado como fallback: ${fallbackMarket.name}`,
 		)

@@ -34,10 +34,9 @@ export function ProductPhotoCapture({ onPhotoCapture, onClose, isProcessing = fa
 
 				const constraints: MediaStreamConstraints = {
 					video: {
-						deviceId: deviceId ? { exact: deviceId } : undefined,
+						...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: "environment" } }),
 						width: { ideal: 1920 },
 						height: { ideal: 1080 },
-						facingMode: deviceId ? undefined : { ideal: "environment" },
 					},
 				}
 
@@ -53,7 +52,7 @@ export function ProductPhotoCapture({ onPhotoCapture, onClose, isProcessing = fa
 				const videoDevices = devices.filter((device) => device.kind === "videoinput")
 				setDevices(videoDevices)
 
-				if (!currentDeviceId && videoDevices.length > 0) {
+				if (!currentDeviceId && videoDevices.length > 0 && videoDevices[0]) {
 					setCurrentDeviceId(videoDevices[0].deviceId)
 				}
 			} catch (error) {
@@ -75,14 +74,18 @@ export function ProductPhotoCapture({ onPhotoCapture, onClose, isProcessing = fa
 			const currentIndex = devices.findIndex((device) => device.deviceId === currentDeviceId)
 			const nextIndex = (currentIndex + 1) % devices.length
 			const nextDevice = devices[nextIndex]
-			setCurrentDeviceId(nextDevice.deviceId)
-			startCamera(nextDevice.deviceId)
+			if (nextDevice) {
+				setCurrentDeviceId(nextDevice.deviceId)
+				startCamera(nextDevice.deviceId)
+			}
 		}
 	}, [devices, currentDeviceId, startCamera])
 
 	const toggleFlash = useCallback(async () => {
 		if (stream) {
 			const track = stream.getVideoTracks()[0]
+			if (!track) return;
+
 			const capabilities = track.getCapabilities() as any
 
 			if (capabilities.torch) {
@@ -325,18 +328,16 @@ export function ProductPhotoCapture({ onPhotoCapture, onClose, isProcessing = fa
 							) : (
 								/* Área de upload */
 								<div
-									className={`border-2 border-dashed rounded-lg p-12 cursor-pointer transition-all duration-200 ${
-										isDragOver ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400"
-									}`}
+									className={`border-2 border-dashed rounded-lg p-12 cursor-pointer transition-all duration-200 ${isDragOver ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400"
+										}`}
 									onClick={() => fileInputRef.current?.click()}
 									onDragOver={handleDragOver}
 									onDragLeave={handleDragLeave}
 									onDrop={handleDrop}
 								>
 									<Upload
-										className={`w-16 h-16 mx-auto mb-4 transition-colors ${
-											isDragOver ? "text-blue-500" : "text-gray-400"
-										}`}
+										className={`w-16 h-16 mx-auto mb-4 transition-colors ${isDragOver ? "text-blue-500" : "text-gray-400"
+											}`}
 									/>
 									<p className="text-lg font-medium text-gray-700 mb-2">
 										{isDragOver ? "Solte a imagem aqui" : "Selecionar foto do produto"}

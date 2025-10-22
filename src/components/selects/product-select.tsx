@@ -129,7 +129,7 @@ export function ProductSelect({
 			<div className="flex gap-2">
 				<ProductCombobox
 					products={products}
-					value={value}
+					{...(value ? { value } : {})}
 					onValueChange={handleValueChange}
 					placeholder={placeholder}
 					searchPlaceholder="Buscar produto ou código de barras..."
@@ -144,7 +144,7 @@ export function ProductSelect({
 					isLoading={isLoading || isPlaceholderData}
 					onSearchChange={handleSearchChange}
 					selectedProduct={selectedProduct}
-					pendingProductName={pendingProductName || undefined}
+					{...(pendingProductName ? { pendingProductName } : {})}
 				/>
 				{showScanButton && (
 					<Button

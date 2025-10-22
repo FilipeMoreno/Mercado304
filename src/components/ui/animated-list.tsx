@@ -181,7 +181,7 @@ export function AnimatedList({
 	}
 
 	return (
-		<LayoutGroup id={layoutId}>
+		<LayoutGroup {...(layoutId ? { id: layoutId } : {})}>
 			<motion.div
 				className={cn("space-y-2", className)}
 				variants={containerVariants}

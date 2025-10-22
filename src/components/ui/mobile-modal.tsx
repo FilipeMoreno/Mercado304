@@ -47,7 +47,7 @@ export function MobileModal({
 
 	// Gesture handlers
 	const touchGestures = useTouchGestures({
-		onSwipeDown: swipeToClose ? onClose : undefined,
+		...(swipeToClose && onClose ? { onSwipeDown: onClose } : {}),
 		swipeThreshold: 100,
 	})
 

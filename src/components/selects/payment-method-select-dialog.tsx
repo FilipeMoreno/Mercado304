@@ -51,7 +51,7 @@ export function PaymentMethodSelectDialog({
 		<ResponsiveSelectDialog
 			open={open}
 			onOpenChange={setOpen}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			options={filteredOptions}
 			title="Selecionar Método de Pagamento"

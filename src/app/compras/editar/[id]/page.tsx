@@ -88,7 +88,10 @@ export default function EditarCompraPage() {
 			const bestPriceData = await response.json()
 			setItems((prevItems) => {
 				const newItems = [...prevItems]
-				newItems[index] = { ...newItems[index], bestPriceAlert: bestPriceData }
+				const currentItem = newItems[index]
+				if (currentItem) {
+					newItems[index] = { ...currentItem, bestPriceAlert: bestPriceData }
+				}
 				return newItems
 			})
 		} catch (error) {
@@ -99,15 +102,18 @@ export default function EditarCompraPage() {
 	const updateItem = useCallback(
 		(index: number, field: keyof PurchaseItem, value: string | number) => {
 			const newItems = [...items]
-			newItems[index] = { ...newItems[index], [field]: value }
-			setItems(newItems)
+			const currentItem = newItems[index]
+			if (currentItem) {
+				newItems[index] = { ...currentItem, [field]: value }
+				setItems(newItems)
 
-			if (field === "unitPrice" || field === "productId") {
-				const item = newItems[index]
-				if (item.productId && item.unitPrice > 0) {
-					setTimeout(() => {
-						checkBestPrice(index, item.productId, item.unitPrice)
-					}, 1000)
+				if (field === "unitPrice" || field === "productId") {
+					const item = newItems[index]
+					if (item && item.productId && item.unitPrice > 0) {
+						setTimeout(() => {
+							checkBestPrice(index, item.productId, item.unitPrice)
+						}, 1000)
+					}
 				}
 			}
 		},
@@ -496,11 +502,14 @@ export default function EditarCompraPage() {
 												totalRecords={item.bestPriceAlert.totalRecords}
 												onClose={() => {
 													const newItems = [...items]
-													newItems[index] = {
-														...newItems[index],
-														bestPriceAlert: null,
+													const currentItem = newItems[index]
+													if (currentItem) {
+														newItems[index] = {
+															...currentItem,
+															bestPriceAlert: null,
+														}
+														setItems(newItems)
 													}
-													setItems(newItems)
 												}}
 											/>
 										)}

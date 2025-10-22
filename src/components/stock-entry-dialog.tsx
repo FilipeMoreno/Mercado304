@@ -56,7 +56,10 @@ export function StockEntryDialog({
 
 	const handleEntryChange = (index: number, field: keyof StockEntry, value: string) => {
 		const updatedEntries = [...entries]
-		updatedEntries[index] = { ...updatedEntries[index], [field]: value }
+		const currentEntry = updatedEntries[index];
+		if (currentEntry) {
+			updatedEntries[index] = { ...currentEntry, [field]: value } as StockEntry
+		}
 		setEntries(updatedEntries)
 	}
 

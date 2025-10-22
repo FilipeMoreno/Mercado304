@@ -161,8 +161,10 @@ export function useAiChat(sessionId?: string | null) {
 			const lastIndex = newMessages.length - 1
 			if (lastIndex >= 0) {
 				const currentMessage = newMessages[lastIndex]
-				const updatesObj = typeof updates === "function" ? updates(currentMessage) : updates
-				newMessages[lastIndex] = { ...currentMessage, ...updatesObj }
+				if (currentMessage) {
+					const updatesObj = typeof updates === "function" ? updates(currentMessage) : updates
+					newMessages[lastIndex] = { ...currentMessage, ...updatesObj }
+				}
 			}
 			return newMessages
 		})
@@ -229,9 +231,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-					role: msg.role,
-					parts: [{ text: msg.content }],
-				}))
+				role: msg.role,
+				parts: [{ text: msg.content }],
+			}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -278,9 +280,9 @@ export function useAiChat(sessionId?: string | null) {
 		const historyToSend = contextChanged
 			? messages.slice(-2).map((msg) => ({ role: msg.role, parts: [{ text: msg.content }] }))
 			: messages.map((msg) => ({
-					role: msg.role,
-					parts: [{ text: msg.content }],
-				}))
+				role: msg.role,
+				parts: [{ text: msg.content }],
+			}))
 
 		const response = await fetch("/api/ai/assistant", {
 			method: "POST",
@@ -386,7 +388,7 @@ export function useAiChat(sessionId?: string | null) {
 
 	const handleSelection = async (option: any, index: number) => {
 		const lastMessage = messages[messages.length - 1]
-		if (!lastMessage.selectionCard) return
+		if (!lastMessage || !lastMessage.selectionCard) return
 
 		const selectionMessage: Message = {
 			role: "user",

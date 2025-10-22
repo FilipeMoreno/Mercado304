@@ -88,12 +88,13 @@ export function StockForm({ initialData, products, onSubmit, onCancel }: StockFo
 				throw new Error("Produto não encontrado")
 			}
 
+			const expDate = formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined;
 			await onSubmit({
 				productId: selectedProduct.id,
 				product: selectedProduct,
 				quantity: parseFloat(formData.quantity.toString()),
 				location: formData.location,
-				expirationDate: formData.expirationDate ? new Date(formData.expirationDate).toISOString() : undefined,
+				...(expDate ? { expirationDate: expDate } : {}),
 				unitCost: parseFloat(formData.unitCost.toString()) || 0,
 				totalValue: parseFloat(formData.quantity.toString()) * (parseFloat(formData.unitCost.toString()) || 0),
 				notes: formData.notes,

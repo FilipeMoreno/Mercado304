@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 interface ShoppingListItem {
-	productId?: string
+	productId?: string | undefined
 	productName: string
 	productUnit: string
 	quantity: number | string
@@ -47,7 +47,7 @@ interface ShoppingListItem {
 			totalComparisons: number
 			historicalPurchases?: number
 		}
-	}
+	} | undefined
 }
 
 export default function NovaListaPage() {
@@ -56,7 +56,7 @@ export default function NovaListaPage() {
 	const createShoppingListMutation = useCreateShoppingListMutation()
 	const id = useId()
 	const { selectStyle } = useUIPreferences()
-	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const [dataLoading, setDataLoading] = useState(true)
 	const [loading, setLoading] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
@@ -72,12 +72,10 @@ export default function NovaListaPage() {
 
 	const [items, setItems] = useState<ShoppingListItem[]>([
 		{
-			productId: undefined,
 			productName: "",
 			productUnit: "unidade",
 			quantity: 1,
 			estimatedPrice: "",
-			priceAlert: undefined,
 		},
 	])
 
@@ -93,7 +91,10 @@ export default function NovaListaPage() {
 	const updateItem = useCallback((index: number, field: keyof ShoppingListItem, value: string | number) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
-			newItems[index] = { ...newItems[index], [field]: value }
+			const currentItem = newItems[index];
+			if (currentItem) {
+				newItems[index] = { ...currentItem, [field]: value } as ShoppingListItem
+			}
 			return newItems
 		})
 	}, [])
@@ -101,11 +102,14 @@ export default function NovaListaPage() {
 	const handleProductNameChange = (index: number, name: string) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
-			newItems[index] = {
-				...newItems[index],
-				productName: name,
-				// Remove vínculo se editar manualmente
-				productId: undefined,
+			const item = newItems[index];
+			if (item) {
+				const { productId, ...rest } = item;
+				newItems[index] = {
+					...rest,
+					productName: name,
+					// productId removed if manually editing
+				} as ShoppingListItem
 			}
 			return newItems
 		})
@@ -114,11 +118,14 @@ export default function NovaListaPage() {
 	const handleProductSelected = (index: number, product: any) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
+			const currentItem = newItems[index]
+			if (!currentItem) return newItems
 			newItems[index] = {
-				...newItems[index],
+				...currentItem,
 				productId: product.id,
 				productName: product.name,
 				productUnit: product.unit || "unidade",
+				quantity: currentItem.quantity || 1,
 			}
 			return newItems
 		})
@@ -130,8 +137,10 @@ export default function NovaListaPage() {
 	const handleUnlinkProduct = (index: number) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
+			const currentItem = newItems[index]
+			if (!currentItem) return newItems
 			newItems[index] = {
-				...newItems[index],
+				...currentItem,
 				productId: undefined,
 			}
 			return newItems
@@ -359,6 +368,7 @@ export default function NovaListaPage() {
 
 	const handlePriceBlur = async (index: number) => {
 		const item = items[index]
+		if (!item) return
 		const price = parseFloat(String(item.estimatedPrice))
 
 		if (item.productId && price > 0) {
@@ -724,7 +734,7 @@ export default function NovaListaPage() {
 												<div className="space-y-2 md:block">
 													<Label>Total</Label>
 													<Input
-														value={`R$ ${((typeof items[index].quantity === "string" ? parseFloat(items[index].quantity) || 0 : items[index].quantity) * (parseFloat(String(items[index].estimatedPrice)) || 0)).toFixed(2)}`}
+														value={`R$ ${((typeof item.quantity === "string" ? parseFloat(item.quantity) || 0 : item.quantity) * (parseFloat(String(item.estimatedPrice)) || 0)).toFixed(2)}`}
 														disabled
 														className="bg-gray-50 text-center font-semibold"
 													/>
@@ -737,7 +747,7 @@ export default function NovaListaPage() {
 													<div className="pt-2">
 														<PriceAlert
 															alertData={item.priceAlert}
-															loading={checkingPrices[index]}
+															loading={checkingPrices[index] || false}
 															onClose={() => handleClosePriceAlert(index)}
 														/>
 													</div>

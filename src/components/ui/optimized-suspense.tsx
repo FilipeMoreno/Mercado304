@@ -15,7 +15,17 @@ export function OptimizedSuspense({
 	size = "md",
 	...props
 }: OptimizedSuspenseProps) {
-	const defaultFallback = fallback || <OptimizedLoading text={loadingText} size={size} />
+	const sizeClasses = {
+		sm: "text-sm",
+		md: "text-base",
+		lg: "text-lg",
+	}
+
+	const defaultFallback = fallback || (
+		<div className={`flex items-center justify-center p-8 ${sizeClasses[size]}`}>
+			{loadingText}
+		</div>
+	)
 
 	return (
 		<Suspense fallback={defaultFallback} {...props}>

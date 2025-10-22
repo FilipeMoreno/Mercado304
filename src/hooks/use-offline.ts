@@ -42,7 +42,7 @@ export function useOffline() {
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: item.data ? JSON.stringify(item.data) : undefined,
+					...(item.data ? { body: JSON.stringify(item.data) } : {}),
 				})
 
 				if (response.ok) {

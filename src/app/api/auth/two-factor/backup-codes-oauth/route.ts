@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
 			eventType: SecurityEventType.TWO_FA_ENABLED, // Usa TWO_FA_ENABLED pois é uma operação de segurança relacionada
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				action: "backup_codes_regenerated",
 				method: "oauth-reauth",
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Novos códigos de backup 2FA foram GERADOS",
 			device: userAgent,

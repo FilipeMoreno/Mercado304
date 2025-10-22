@@ -2,23 +2,18 @@
 
 import { Loader2, Mail, ShoppingCart } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { forgetPassword } from "@/lib/auth-client"
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("")
 	const [isLoading, setIsLoading] = useState(false)
-	const [codeSent, setCodeSent] = useState(false)
-	const [otp, setOtp] = useState("")
-	const [newPassword, setNewPassword] = useState("")
+	const [emailSent, setEmailSent] = useState(false)
 	const [cooldown, setCooldown] = useState(0)
-	const router = useRouter()
 
 	// Cooldown timer
 	useEffect(() => {
@@ -29,62 +24,32 @@ export default function ForgotPasswordPage() {
 		return () => clearTimeout(timer)
 	}, [cooldown])
 
-	const handleSendOTP = async (e?: React.FormEvent) => {
+	const handleSendEmail = async (e?: React.FormEvent) => {
 		if (e) e.preventDefault()
 		if (cooldown > 0) return
 
 		setIsLoading(true)
 
 		try {
-			// Usa o plugin emailOTP do Better Auth
-			const result = await forgetPassword.emailOtp({
-				email,
+			// Usa a API de forgot-password
+			const response = await fetch("/api/auth/forgot-password", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email }),
 			})
 
-			if (result.error) {
-				throw new Error(result.error.message || "Erro ao enviar código")
+			const result = await response.json()
+
+			if (!response.ok) {
+				throw new Error(result.error || "Erro ao enviar email")
 			}
 
-			toast.success("Código enviado para seu email!")
-			setCodeSent(true)
+			toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.")
+			setEmailSent(true)
 			setCooldown(60) // 60 segundos de cooldown
 		} catch (error: any) {
 			console.error("[ForgotPassword] Error:", error)
 			toast.error(error.message || "Erro ao enviar email de recuperação")
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const handleResetPassword = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setIsLoading(true)
-
-		try {
-			// Usa a API diretamente para resetar senha com OTP
-			const response = await fetch("/api/auth/reset-password", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					email,
-					otp,
-					newPassword,
-				}),
-			})
-
-			if (!response.ok) {
-				const data = await response.json()
-				throw new Error(data.error || "Código inválido ou expirado")
-			}
-
-			toast.success("Senha alterada com sucesso!")
-
-			// Aguarda e redireciona
-			await new Promise((resolve) => setTimeout(resolve, 1000))
-			router.push("/auth/signin")
-		} catch (error: any) {
-			console.error("[ForgotPassword] Error:", error)
-			toast.error(error.message || "Erro ao alterar senha")
 		} finally {
 			setIsLoading(false)
 		}
@@ -100,14 +65,14 @@ export default function ForgotPasswordPage() {
 				<CardHeader className="text-center">
 					<CardTitle>Esqueceu sua senha?</CardTitle>
 					<CardDescription>
-						{codeSent
-							? "Digite o código enviado para seu email e sua nova senha."
-							: "Digite seu email para receber um código de recuperação."}
+						{emailSent
+							? "Enviamos um link de recuperação para seu email. Verifique sua caixa de entrada."
+							: "Digite seu email para receber um link de recuperação."}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{!codeSent ? (
-						<form onSubmit={handleSendOTP} className="space-y-4">
+					{!emailSent ? (
+						<form onSubmit={handleSendEmail} className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="email">Email</Label>
 								<div className="relative">
@@ -131,68 +96,33 @@ export default function ForgotPasswordPage() {
 										Enviando...
 									</>
 								) : (
-									"Enviar código de recuperação"
+									"Enviar link de recuperação"
 								)}
 							</Button>
 						</form>
 					) : (
-						<form onSubmit={handleResetPassword} className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="otp">Código de 6 dígitos</Label>
-								<Input
-									id="otp"
-									type="text"
-									inputMode="numeric"
-									pattern="[0-9]{6}"
-									maxLength={6}
-									placeholder="_ _ _ _ _ _"
-									value={otp}
-									onChange={(e) => setOtp(e.target.value)}
-									className="text-center tracking-[0.5em]"
-									required
-									disabled={isLoading}
-								/>
+						<div className="space-y-4">
+							<div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+								<p className="text-sm text-green-800 dark:text-green-200">
+									Email enviado com sucesso! Verifique sua caixa de entrada e spam.
+								</p>
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="newPassword">Nova Senha</Label>
-								<Input
-									id="newPassword"
-									type="password"
-									placeholder="Sua nova senha"
-									value={newPassword}
-									onChange={(e) => setNewPassword(e.target.value)}
-									required
-									disabled={isLoading}
-								/>
-							</div>
-							<Button type="submit" className="w-full" disabled={isLoading || otp.length !== 6}>
-								{isLoading ? (
-									<>
-										<Loader2 className="mr-2 size-4 animate-spin" />
-										Alterando senha...
-									</>
-								) : (
-									"Alterar Senha"
-								)}
-							</Button>
 							<div className="flex gap-2">
 								<Button
 									type="button"
 									variant="outline"
 									className="flex-1"
-									onClick={() => handleSendOTP()}
+									onClick={() => handleSendEmail()}
 									disabled={isLoading || cooldown > 0}
 								>
-									{cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar código"}
+									{cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar email"}
 								</Button>
 								<Button
 									type="button"
 									variant="ghost"
 									className="flex-1"
 									onClick={() => {
-										setCodeSent(false)
-										setOtp("")
-										setNewPassword("")
+										setEmailSent(false)
 										setCooldown(0)
 									}}
 									disabled={isLoading}
@@ -200,7 +130,7 @@ export default function ForgotPasswordPage() {
 									Voltar
 								</Button>
 							</div>
-						</form>
+						</div>
 					)}
 				</CardContent>
 				<CardFooter>

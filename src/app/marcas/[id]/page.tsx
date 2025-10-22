@@ -731,8 +731,8 @@ export default function MarcaDetalhesPage() {
 												<div>
 													<p className="font-semibold mb-1">Produto favorito</p>
 													<p className="text-sm text-muted-foreground">
-														<span className="font-semibold">{stats.topProducts[0].productName}</span> é o produto{" "}
-														{brand.name} que você mais compra ({stats.topProducts[0].purchaseCount} vezes).
+														<span className="font-semibold">{stats.topProducts[0]?.productName}</span> é o produto{" "}
+														{brand.name} que você mais compra ({stats.topProducts[0]?.purchaseCount} vezes).
 													</p>
 												</div>
 											</div>
@@ -751,11 +751,11 @@ export default function MarcaDetalhesPage() {
 															const prevMonth = stats.monthlyTrend[stats.monthlyTrend.length - 2]
 
 															// Verificar se há dados suficientes para comparação
-															if (prevMonth.spent === 0 && lastMonth.spent === 0) {
+															if (!prevMonth || !lastMonth || (prevMonth.spent === 0 && lastMonth.spent === 0)) {
 																return <>Sem dados suficientes para análise de tendência.</>
 															}
 
-															if (prevMonth.spent === 0 && lastMonth.spent > 0) {
+															if (prevMonth?.spent === 0 && lastMonth.spent > 0) {
 																return (
 																	<>
 																		Você começou a comprar produtos {brand.name} este mês! Total gasto:{" "}
@@ -764,16 +764,16 @@ export default function MarcaDetalhesPage() {
 																)
 															}
 
-															if (lastMonth.spent === 0 && prevMonth.spent > 0) {
+															if (lastMonth.spent === 0 && prevMonth?.spent && prevMonth.spent > 0) {
 																return (
 																	<>
 																		Você parou de comprar produtos {brand.name} este mês. Mês anterior: R${" "}
-																		{prevMonth.spent.toFixed(2)}
+																		{prevMonth?.spent.toFixed(2)}
 																	</>
 																)
 															}
 
-															const change = ((lastMonth.spent - prevMonth.spent) / prevMonth.spent) * 100
+															const change = prevMonth?.spent ? ((lastMonth.spent - prevMonth.spent) / prevMonth.spent) * 100 : 0
 															const isIncrease = change > 0
 
 															return isIncrease ? (

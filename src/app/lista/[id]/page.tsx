@@ -80,7 +80,7 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<{ id: string; name: string; [key: string]: unknown }[]>([])
+	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const listId = params.id as string
 
 	const [list, setList] = useState<ShoppingListDetails | null>(null)
@@ -106,21 +106,15 @@ export default function ListaDetalhesPage() {
 		category?: string
 		notes?: string
 	}>({
-		productId: undefined,
 		productName: "",
 		quantity: 1,
-		estimatedPrice: undefined,
 		productUnit: "unidade",
-		brand: undefined,
-		category: undefined,
-		notes: undefined,
 	})
 	const [addingItem, setAddingItem] = useState(false)
 
 	// Estados para editar item
 	const [editingItem, setEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [editItemData, setEditItemData] = useState<EditItemData>({
-		productId: undefined,
 		productName: "",
 		productUnit: "unidade",
 		quantity: 1,
@@ -157,7 +151,7 @@ export default function ListaDetalhesPage() {
 	useEffect(() => {
 		if (editingItem) {
 			setEditItemData({
-				productId: editingItem.productId,
+				...(editingItem.productId ? { productId: editingItem.productId } : {}),
 				productName: editingItem.product?.name || editingItem.productName || "",
 				productUnit: editingItem.product?.unit || editingItem.productUnit || "unidade",
 				quantity: editingItem.quantity,
@@ -240,11 +234,11 @@ export default function ListaDetalhesPage() {
 		setList((prev) =>
 			prev
 				? {
-						...prev,
-						items: prev.items.map((item) =>
-							item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
-						),
-					}
+					...prev,
+					items: prev.items.map((item) =>
+						item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
+					),
+				}
 				: null,
 		)
 
@@ -308,9 +302,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
+					}
 					: null,
 			)
 
@@ -337,9 +331,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
+					}
 					: null,
 			)
 		} catch (error) {
@@ -353,9 +347,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+					}
 					: null,
 			)
 			updateItemInServer(itemId, { quantity: newQuantity })
@@ -379,9 +373,9 @@ export default function ListaDetalhesPage() {
 			setList((prev) =>
 				prev
 					? {
-							...prev,
-							items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-						}
+						...prev,
+						items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
+					}
 					: null,
 			)
 			updateItemInServer(itemId, { estimatedPrice: newPrice })
@@ -468,14 +462,9 @@ export default function ListaDetalhesPage() {
 				setShowAddItem(false)
 				// Resetar formulário
 				setNewItem({
-					productId: undefined,
 					productName: "",
 					quantity: 1,
-					estimatedPrice: undefined,
 					productUnit: "unidade",
-					brand: "",
-					category: "",
-					notes: "",
 				})
 				fetchListDetails()
 				toast.success("Item adicionado com sucesso")
@@ -654,11 +643,15 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-									...prev,
-									items: prev.items.map((listItem) =>
-										listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
-									),
-								}
+								...prev,
+								items: prev.items.map((listItem) => {
+									if (listItem.id === itemId) {
+										const { bestPriceAlert, ...rest } = listItem;
+										return rest as ExtendedShoppingListItem;
+									}
+									return listItem;
+								}),
+							}
 							: null,
 					)
 				}}
@@ -855,14 +848,22 @@ export default function ListaDetalhesPage() {
 						setList((prev) =>
 							prev
 								? {
-										...prev,
-										items: prev.items.map((item) =>
-											item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
-										),
-									}
+									...prev,
+									items: prev.items.map((item) => {
+										if (item.id === editingItem.id) {
+											const { bestPriceAlert, ...rest } = item;
+											return rest as ExtendedShoppingListItem;
+										}
+										return item;
+									}),
+								}
 								: null,
 						)
-						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
+						setEditingItem((prev) => {
+							if (!prev) return null;
+							const { bestPriceAlert, ...rest } = prev;
+							return rest as ExtendedShoppingListItem;
+						})
 					}
 				}}
 				onCheckBestPrice={checkBestPrice}
@@ -906,9 +907,9 @@ export default function ListaDetalhesPage() {
 					setList((prev) =>
 						prev
 							? {
-									...prev,
-									items: prev.items.map((item) => (item.id === itemId ? { ...item, ...updateData } : item)),
-								}
+								...prev,
+								items: prev.items.map((item) => (item.id === itemId ? { ...item, ...updateData } : item)),
+							}
 							: null,
 					)
 

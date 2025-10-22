@@ -145,8 +145,8 @@ export async function POST(request: Request) {
 
 		// Encontrar melhor e pior dia
 		const sortedDays = dayStats.sort((a, b) => a.avgPrice - b.avgPrice)
-		const bestDay = sortedDays[0]
-		const worstDay = sortedDays[sortedDays.length - 1]
+		const bestDay = sortedDays[0]!
+		const worstDay = sortedDays[sortedDays.length - 1]!
 
 		const potentialSavings = worstDay.avgPrice - bestDay.avgPrice
 		const savingsPercentage = (potentialSavings / worstDay.avgPrice) * 100
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
 
 		const monthlyStats = Object.keys(monthlyAnalysis)
 			.map((monthKey) => {
-				const month = monthlyAnalysis[parseInt(monthKey, 10)]
+				const month = monthlyAnalysis[parseInt(monthKey, 10)]!
 				const monthNames = [
 					"Janeiro",
 					"Fevereiro",
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
 
 				return {
 					month: parseInt(monthKey, 10),
-					name: monthNames[parseInt(monthKey, 10)],
+					name: monthNames[parseInt(monthKey, 10)]!,
 					avgPrice: month.prices.reduce((sum, price) => sum + price, 0) / month.prices.length,
 					count: month.count,
 				}
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
 		}
 
 		if (monthlyStats.length > 1) {
-			const bestMonth = monthlyStats[0]
+			const bestMonth = monthlyStats[0]!
 			insights.push(`Historicamente, ${bestMonth.name} tem os melhores preços para este produto`)
 		}
 

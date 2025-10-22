@@ -74,8 +74,8 @@ export function MarketSelect({
 				value: String(market.id), // Garantir que o value seja string
 				label: `${market.name}${market.location ? ` - ${market.location}` : ""}`,
 			}))}
-			value={value}
-			onValueChange={onValueChange}
+			{...(value ? { value } : {})}
+			{...(onValueChange ? { onValueChange } : {})}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar mercado..."
 			emptyText="Nenhum mercado encontrado."

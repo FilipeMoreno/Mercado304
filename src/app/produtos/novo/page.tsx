@@ -156,19 +156,20 @@ export default function NovoProdutoPage() {
 			const hasNutritionalData = Object.values(nutritionalData).some(
 				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			)
+
 			const dataToSubmit: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
 				name: formData.name,
-				barcode: formData.barcode || undefined,
-				categoryId: formData.categoryId || undefined,
-				brandId: formData.brandId || undefined,
 				unit: formData.unit,
-				packageSize: formData.packageSize || undefined,
 				hasStock: formData.hasStock,
-				minStock: formData.minStock ? parseFloat(formData.minStock) : undefined,
-				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
 				hasExpiration: formData.hasExpiration,
-				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : undefined,
-				nutritionalInfo: hasNutritionalData ? (nutritionalData as NutritionalInfo) : undefined,
+				...(formData.barcode ? { barcode: formData.barcode } : {}),
+				...(formData.categoryId ? { categoryId: formData.categoryId } : {}),
+				...(formData.brandId ? { brandId: formData.brandId } : {}),
+				...(formData.packageSize ? { packageSize: formData.packageSize } : {}),
+				...(formData.minStock ? { minStock: parseFloat(formData.minStock) } : {}),
+				...(formData.maxStock ? { maxStock: parseFloat(formData.maxStock) } : {}),
+				...(formData.defaultShelfLifeDays ? { defaultShelfLifeDays: parseInt(formData.defaultShelfLifeDays, 10) } : {}),
+				...(hasNutritionalData ? { nutritionalInfo: nutritionalData as NutritionalInfo } : {}),
 			}
 			const newProduct = await createProductMutation.mutateAsync(dataToSubmit)
 			AppToasts.success("Produto criado com sucesso!")
@@ -312,12 +313,12 @@ export default function NovoProdutoPage() {
 								<Label htmlFor="brandId">Marca</Label>
 								{selectStyle === "dialog" ? (
 									<BrandSelectDialog
-										value={formData.brandId || undefined}
+										{...(formData.brandId ? { value: formData.brandId } : {})}
 										onValueChange={(value) => handleSelectChange("brandId", value || "")}
 									/>
 								) : (
 									<BrandSelect
-										value={formData.brandId || undefined}
+										{...(formData.brandId ? { value: formData.brandId } : {})}
 										onValueChange={(value) => handleSelectChange("brandId", value || "")}
 									/>
 								)}
@@ -326,12 +327,12 @@ export default function NovoProdutoPage() {
 								<Label htmlFor="categoryId">Categoria</Label>
 								{selectStyle === "dialog" ? (
 									<CategorySelectDialog
-										value={formData.categoryId || undefined}
+										{...(formData.categoryId ? { value: formData.categoryId } : {})}
 										onValueChange={(value) => handleSelectChange("categoryId", value || "")}
 									/>
 								) : (
 									<CategorySelect
-										value={formData.categoryId || undefined}
+										{...(formData.categoryId ? { value: formData.categoryId } : {})}
 										onValueChange={(value) => handleSelectChange("categoryId", value || "")}
 									/>
 								)}

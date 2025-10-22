@@ -22,14 +22,14 @@ const formatValue = (value: number | null | undefined, precision = 1) => {
 const getServingValue = (servingSize?: string): number => {
 	if (!servingSize) return 0
 	const match = servingSize.match(/(\d+[.,]?\d*)/)
-	return match ? parseFloat(match[1].replace(",", ".")) : 0
+	return match && match[1] ? parseFloat(match[1].replace(",", ".")) : 0
 }
 
 // Helper para extrair a unidade da porção (ex: "30g" -> "g", "200ml" -> "ml")
 const getServingUnit = (servingSize?: string): string => {
 	if (!servingSize) return "g"
 	const match = servingSize.match(/\d+[.,]?\d*\s*([a-zA-Z]+)/)
-	return match ? match[1] : "g"
+	return match && match[1] ? match[1] : "g"
 }
 
 export function AnvisaNutritionalTable({ nutritionalInfo }: AnvisaNutritionalTableProps) {

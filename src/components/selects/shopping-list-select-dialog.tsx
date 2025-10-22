@@ -72,7 +72,7 @@ export function ShoppingListSelectDialog({
 		<ResponsiveSelectDialog
 			open={open}
 			onOpenChange={setOpen}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			options={options}
 			title="Selecionar Lista de Compras"

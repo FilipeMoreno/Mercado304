@@ -289,7 +289,7 @@ export default function NovaCompraPage() {
 							: ""
 
 					currentItem.stockEntries = Array.from({
-						length: Math.floor(currentItem.quantity),
+						length: Math.floor(currentItem.quantity || 0),
 					}).map(() => ({
 						id: Math.random().toString(),
 						location: "Despensa",
@@ -306,7 +306,7 @@ export default function NovaCompraPage() {
 				const product = products.find((p) => p.id === currentItem.productId)
 				if (product && currentItem.addToStock) {
 					const newQuantity = Math.floor(Number(value) || 0)
-					const oldEntries = currentItem.stockEntries
+					const oldEntries = currentItem.stockEntries || []
 					const newEntries = Array.from({ length: newQuantity }).map(
 						(_, i) =>
 							oldEntries[i] || {
@@ -321,13 +321,16 @@ export default function NovaCompraPage() {
 				}
 			}
 
+			// @ts-expect-error - currentItem fields are dynamically updated
 			newItems[index] = currentItem
 
-			if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice > 0) {
+			if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice !== undefined && currentItem.unitPrice > 0) {
 				setTimeout(() => {
-					checkBestPrice(index, currentItem.productId, currentItem.unitPrice)
-					checkPrice(index, currentItem.productId, currentItem.unitPrice)
-					fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice)
+					if (currentItem.productId && currentItem.unitPrice !== undefined) {
+						checkBestPrice(index, currentItem.productId, currentItem.unitPrice)
+						checkPrice(index, currentItem.productId, currentItem.unitPrice)
+						fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice)
+					}
 				}, 1000)
 			}
 
@@ -681,7 +684,7 @@ export default function NovaCompraPage() {
 												<div className="space-y-3">
 													<PriceAlert
 														alertData={item.priceAlert || null}
-														loading={checkingPrices[index]}
+														loading={checkingPrices[index] || false}
 														onClose={() => updateItem(index, "priceAlert", null)}
 													/>
 
@@ -859,16 +862,20 @@ export default function NovaCompraPage() {
 				</div>
 			</div>
 
-			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (
-				<StockEntryDialog
-					isOpen={stockDialogState.isOpen}
-					onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
-					onSave={handleSaveStockDetails}
-					product={products.find((p) => p.id === items[stockDialogState.itemIndex ?? 0].productId)}
-					quantity={items[stockDialogState.itemIndex ?? 0].quantity}
-					initialEntries={items[stockDialogState.itemIndex ?? 0].stockEntries}
-				/>
-			)}
+			{stockDialogState.isOpen && stockDialogState.itemIndex !== null && (() => {
+				const selectedItem = items[stockDialogState.itemIndex];
+				if (!selectedItem) return null;
+				return (
+					<StockEntryDialog
+						isOpen={stockDialogState.isOpen}
+						onClose={() => setStockDialogState({ isOpen: false, itemIndex: null })}
+						onSave={handleSaveStockDetails}
+						product={products.find((p) => p.id === selectedItem.productId)}
+						quantity={selectedItem.quantity}
+						initialEntries={selectedItem.stockEntries}
+					/>
+				);
+			})()}
 		</div>
 	)
 }

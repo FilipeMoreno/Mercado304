@@ -90,7 +90,7 @@ export function BrandSelect({
 	return (
 		<BrandCombobox
 			brands={brands}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar marca..."
@@ -104,7 +104,7 @@ export function BrandSelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
-			pendingBrandName={pendingBrandName ?? undefined}
+			{...(pendingBrandName ? { pendingBrandName } : {})}
 		/>
 	)
 }

@@ -141,8 +141,6 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 		showTemporalComp: true,
 		showNutritionCard: true,
 		showPaymentStats: true,
-		customTitle: undefined,
-		customSubtitle: undefined,
 	})
 
 	const { data: preferences, isLoading } = useDashboardPreferencesQuery()
@@ -161,6 +159,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 
 		const items = Array.from(localPreferences.cardOrder)
 		const [reorderedItem] = items.splice(result.source.index, 1)
+		if (!reorderedItem) return
 		items.splice(result.destination.index, 0, reorderedItem)
 
 		const newPreferences = {
@@ -256,8 +255,6 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				showTemporalComp: true,
 				showNutritionCard: true,
 				showPaymentStats: true,
-				customTitle: undefined,
-				customSubtitle: undefined,
 			}
 			setLocalPreferences(defaultPreferences)
 			setHasUnsavedChanges(false)
@@ -313,9 +310,11 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									placeholder="Bem-vindo ao Mercado304"
 									value={localPreferences.customTitle || ""}
 									onChange={(e) => {
-										const newPreferences = {
-											...localPreferences,
-											customTitle: e.target.value || undefined,
+										const title = e.target.value.trim();
+										const { customTitle, ...rest } = localPreferences;
+										const newPreferences: DashboardPreferences = {
+											...rest,
+											...(title ? { customTitle: title } : {}),
 										}
 										setLocalPreferences(newPreferences)
 										setHasUnsavedChanges(true)
@@ -331,9 +330,11 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 									placeholder="Sistema completo de gerenciamento de compras de mercado"
 									value={localPreferences.customSubtitle || ""}
 									onChange={(e) => {
-										const newPreferences = {
-											...localPreferences,
-											customSubtitle: e.target.value || undefined,
+										const subtitle = e.target.value.trim();
+										const { customSubtitle, ...rest } = localPreferences;
+										const newPreferences: DashboardPreferences = {
+											...rest,
+											...(subtitle ? { customSubtitle: subtitle } : {}),
 										}
 										setLocalPreferences(newPreferences)
 										setHasUnsavedChanges(true)
@@ -437,13 +438,12 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 															ref={provided.innerRef}
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
-															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
-																snapshot.isDragging
+															className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${snapshot.isDragging
 																	? "bg-accent"
 																	: isHidden
 																		? "bg-muted opacity-60"
 																		: "bg-background hover:bg-accent/50"
-															}`}
+																}`}
 														>
 															<div className="flex items-center gap-3">
 																<div className="flex-1">

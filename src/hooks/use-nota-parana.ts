@@ -154,6 +154,19 @@ export function useNotaParana() {
 		// Para busca por nome, pegar apenas a categoria principal (comportamento normal)
 		const categoriaPrincipal = categorias.categorias[0]
 
+		if (!categoriaPrincipal) {
+			return {
+				tempo: 0,
+				local: params.local || "",
+				produtos: [],
+				total: 0,
+				precos: {
+					min: "0",
+					max: "0"
+				}
+			}
+		}
+
 		// Buscar produtos da categoria principal
 		const produtos = await buscarProdutos({
 			...params,

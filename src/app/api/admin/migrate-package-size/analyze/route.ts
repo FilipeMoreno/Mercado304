@@ -56,6 +56,7 @@ function analyzeProductName(name: string): ProductAnalysis | null {
 		if (matches.length > 0) {
 			// Pegar a última ocorrência (geralmente o peso/volume está no final)
 			const match = matches[matches.length - 1]
+			if (!match || !match[1]) continue
 			const value = match[1].replace(",", ".")
 			const matchText = match[0]
 			const startIndex = match.index || 0

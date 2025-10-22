@@ -230,6 +230,7 @@ async function processarSyncJob(jobId: string) {
 		// Processar cada batch em paralelo
 		for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
 			const batch = batches[batchIndex]
+			if (!batch) continue
 
 			// Verificar se o job foi cancelado antes de cada batch
 			const jobAtual = await prisma.syncJob.findUnique({
@@ -284,6 +285,7 @@ async function processarSyncJob(jobId: string) {
 			for (let i = 0; i < batch.length; i++) {
 				const produto = batch[i]
 				const result = batchResults[i]
+				if (!result || !produto) continue
 
 				// Separar logs de debug dos logs normais
 				if (result.debugLogs && result.debugLogs.length > 0) {
@@ -712,7 +714,7 @@ async function adicionarLog(jobId: string, mensagem: string) {
 	})
 
 	const logsAtuais = (job?.logs as string[]) || []
-	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
+	const timestamp = new Date().toISOString().split("T")[1]?.substring(0, 8) || "00:00:00" // Apenas HH:mm:ss
 
 	// Truncar mensagem se muito longa
 	const mensagemTruncada = mensagem.length > MAX_LOG_LENGTH ? `${mensagem.substring(0, MAX_LOG_LENGTH)}...` : mensagem
@@ -737,7 +739,7 @@ async function adicionarLogsEmLote(jobId: string, mensagens: string[]) {
 	})
 
 	const logsAtuais = (job?.logs as string[]) || []
-	const timestamp = new Date().toISOString().split("T")[1].substring(0, 8) // Apenas HH:mm:ss
+	const timestamp = new Date().toISOString().split("T")[1]?.substring(0, 8) || "00:00:00" // Apenas HH:mm:ss
 
 	// Truncar mensagens longas
 	const novosLogs = mensagens.map((msg) => {

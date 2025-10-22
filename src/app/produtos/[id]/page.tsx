@@ -66,7 +66,7 @@ export default function ProdutoDetalhesPage() {
 		} else {
 			// Calcular valor por porção
 			const servingMatch = nutritionalInfo.servingSize.match(/(\d+[.,]?\d*)/)
-			if (!servingMatch)
+			if (!servingMatch || !servingMatch[1])
 				return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}${unit}`
 
 			const servingSize = parseFloat(servingMatch[1].replace(",", "."))
@@ -726,7 +726,7 @@ export default function ProdutoDetalhesPage() {
 															const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
 															const threshold = isLiquid ? 7.5 : 15
 															const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
-															const servingSize = servingMatch ? parseFloat(servingMatch[1].replace(",", ".")) : 100
+															const servingSize = servingMatch && servingMatch[1] ? parseFloat(servingMatch[1].replace(",", ".")) : 100
 															const multiplier = servingSize / 100
 															const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
 

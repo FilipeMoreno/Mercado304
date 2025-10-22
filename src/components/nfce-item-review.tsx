@@ -235,18 +235,21 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 			// Associar apenas se o score for razoável (> 0.3)
 			if (bestMatch.score > 0.3) {
-				updatedItems[bestMatch.index] = {
-					...updatedItems[bestMatch.index],
-					productId: product.id,
-					productName: product.name,
-					isAssociated: true,
-				}
-				matchCount++
+				const currentItem = updatedItems[bestMatch.index];
+				if (currentItem) {
+					updatedItems[bestMatch.index] = {
+						...currentItem,
+						productId: product.id,
+						productName: product.name,
+						isAssociated: true,
+					}
+					matchCount++
 
-				const confidence = Math.round(bestMatch.score * 100)
-				toast.success(
-					`"${product.name}" associado a "${updatedItems[bestMatch.index].originalName}" (${confidence}% confiança)`,
-				)
+					const confidence = Math.round(bestMatch.score * 100)
+					toast.success(
+						`"${product.name}" associado a "${currentItem.originalName}" (${confidence}% confiança)`,
+					)
+				}
 			} else {
 				toast.warning(
 					`Produto "${product.name}" não teve match suficiente com nenhum item (melhor score: ${Math.round(bestMatch.score * 100)}%)`,
@@ -270,17 +273,20 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 			for (let i = 0; i < items.length; i++) {
 				const item = items[i]
-				if (item.code) {
+				if (item && item.code) {
 					const product = await fetchProductByBarcode(item.code)
 					if (product) {
-						updatedItems[i] = {
-							...updatedItems[i],
-							productId: product.id,
-							productName: product.name,
-							isAssociated: true,
+						const currentItem = updatedItems[i];
+						if (currentItem) {
+							updatedItems[i] = {
+								...currentItem,
+								productId: product.id,
+								productName: product.name,
+								isAssociated: true,
+							}
+							hasChanges = true
+							toast.success(`Produto "${product.name}" associado automaticamente pelo código ${item.code}.`)
 						}
-						hasChanges = true
-						toast.success(`Produto "${product.name}" associado automaticamente pelo código ${item.code}.`)
 					}
 				}
 			}
@@ -303,23 +309,28 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 
 	const handleProductChange = (index: number, product: Product | null) => {
 		const newItems = [...mappedItems]
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
 		if (product) {
-			newItems[index].productId = product.id
-			newItems[index].productName = product.name
-			newItems[index].isAssociated = true
-			toast.success(`"${newItems[index].originalName}" associado a "${product.name}".`)
+			currentItem.productId = product.id
+			currentItem.productName = product.name
+			currentItem.isAssociated = true
+			toast.success(`"${currentItem.originalName}" associado a "${product.name}".`)
 		} else {
-			newItems[index].productId = ""
-			newItems[index].productName = ""
-			newItems[index].isAssociated = false
+			currentItem.productId = ""
+			currentItem.productName = ""
+			currentItem.isAssociated = false
 		}
 		setMappedItems(newItems)
 	}
 
 	const handleFieldChange = (index: number, field: "quantity" | "price" | "unitDiscount", value: string) => {
 		const newItems = [...mappedItems]
+		const currentItem = newItems[index];
+		if (!currentItem) return;
 		const numericValue = parseFloat(value) || 0
-		newItems[index][field] = numericValue
+		currentItem[field] = numericValue
 		setMappedItems(newItems)
 	}
 
@@ -436,7 +447,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 										<Label>Associar ao Produto</Label>
 										{selectStyle === "dialog" ? (
 											<ProductSelectDialog
-												value={item.productId ? item.productId.toString() : undefined}
+												{...(item.productId ? { value: item.productId.toString() } : {})}
 												onValueChange={(value) => {
 													if (value) {
 														// Buscar o produto pelo ID para obter o nome
@@ -455,7 +466,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 											/>
 										) : (
 											<ProductSelect
-												value={item.productId ? item.productId.toString() : undefined}
+												{...(item.productId ? { value: item.productId.toString() } : {})}
 												onValueChange={(value) => {
 													if (value) {
 														// Buscar o produto pelo ID para obter o nome

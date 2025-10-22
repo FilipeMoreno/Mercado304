@@ -102,8 +102,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 				totalAmount,
 				totalDiscount: totalDiscount || 0,
 				finalAmount,
-				purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-				paymentMethod: paymentMethod ? normalizePaymentMethod(paymentMethod) : undefined,
+				...(purchaseDate && { purchaseDate: new Date(purchaseDate) }),
+				...(paymentMethod && { paymentMethod: normalizePaymentMethod(paymentMethod) }),
 				items: {
 					create: items.map((item: any) => {
 						const product = products.find((p) => p.id === item.productId)

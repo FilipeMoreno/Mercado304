@@ -381,27 +381,27 @@ const AllergenIcon = ({
 	const allergenData = iconKey
 		? allergenColorMap[iconKey]
 		: {
-				icon: AlertTriangle,
-				category: "latex" as const,
-				color: "text-gray-700 dark:text-gray-300",
-				bgColor: "bg-gray-50 dark:bg-gray-950/50",
-				borderColor: "border-gray-200 dark:border-gray-800",
-				hoverBg: "hover:bg-gray-100 dark:hover:bg-gray-900/70",
-				description: "Alergênico não catalogado",
-			}
+			icon: AlertTriangle,
+			category: "latex" as const,
+			color: "text-gray-700 dark:text-gray-300",
+			bgColor: "bg-gray-50 dark:bg-gray-950/50",
+			borderColor: "border-gray-200 dark:border-gray-800",
+			hoverBg: "hover:bg-gray-100 dark:hover:bg-gray-900/70",
+			description: "Alergênico não catalogado",
+		}
 
-	const IconComponent = allergenData.icon as React.FC<SvgWrapperProps>
-	const category = ALLERGEN_CATEGORIES[allergenData.category]
+	const IconComponent = allergenData!.icon as React.FC<SvgWrapperProps>
+	const category = ALLERGEN_CATEGORIES[allergenData!.category]
 
 	// Different styles for "contains" vs "may contain"
 	const isContains = variant === "contains"
 
 	// Modern gradient background for "contains"
 	const containerClass = isContains
-		? `${allergenData.bgColor} ${allergenData.borderColor} ${allergenData.hoverBg} border-2 shadow-xs`
+		? `${allergenData!.bgColor} ${allergenData!.borderColor} ${allergenData!.hoverBg} border-2 shadow-xs`
 		: "bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-2 border-dashed border-yellow-400 dark:border-yellow-600 shadow-xs hover:from-yellow-100 hover:to-orange-100 dark:hover:from-yellow-950/50 dark:hover:to-orange-950/50"
 
-	const iconClass = isContains ? allergenData.color : "text-yellow-800 dark:text-yellow-200"
+	const iconClass = isContains ? allergenData!.color : "text-yellow-800 dark:text-yellow-200"
 
 	return (
 		<TooltipProvider delayDuration={150}>
@@ -430,7 +430,7 @@ const AllergenIcon = ({
 								{isContains ? "⚠️ Contém" : "⚡ Pode conter"}
 							</Badge>
 						</div>
-						<p className="text-xs text-muted-foreground leading-relaxed">{allergenData.description}</p>
+						<p className="text-xs text-muted-foreground leading-relaxed">{allergenData!.description}</p>
 						<div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
 							<div className="flex items-center gap-1.5">
 								<span className="text-sm">{category.emoji}</span>

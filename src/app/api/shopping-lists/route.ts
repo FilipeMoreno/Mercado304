@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 					},
 				},
 				orderBy: {
-					[orderBy === "date" ? "createdAt" : orderBy]: orderDirection as "asc" | "desc",
+					...(orderBy === "date" ? { createdAt: orderDirection as "asc" | "desc" } : { [orderBy as any]: orderDirection as "asc" | "desc" }),
 				},
 				skip: (page - 1) * itemsPerPage,
 				take: itemsPerPage,

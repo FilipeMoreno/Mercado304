@@ -2,7 +2,7 @@
 
 import { Copy, Download, Eye, EyeOff, Loader2, Shield, ShieldCheck } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -30,12 +30,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasPassword, setHasPassword] = useState<boolean | null>(null)
 
-	// Verifica se o usuário tem senha ao montar o componente
-	useEffect(() => {
-		checkHasPassword()
-	}, [checkHasPassword])
-
-	const checkHasPassword = async () => {
+	const checkHasPassword = useCallback(async () => {
 		try {
 			const response = await fetch("/api/user/has-password")
 			if (response.ok) {
@@ -47,7 +42,12 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 			// Em caso de erro, assume que tem senha por segurança
 			setHasPassword(true)
 		}
-	}
+	}, [])
+
+	// Verifica se o usuário tem senha ao montar o componente
+	useEffect(() => {
+		checkHasPassword()
+	}, [checkHasPassword])
 
 	const handleInitialSetup = async () => {
 		// Se ainda não verificou se tem senha, verifica agora
@@ -112,7 +112,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 			}
 
 			const secretMatch = totpUriFromApi.match(/secret=([^&]+)/)
-			const secret = secretMatch ? secretMatch[1] : ""
+			const secret = (secretMatch && secretMatch[1]) ? secretMatch[1] : ""
 
 			setQrCodeUrl(totpUriFromApi)
 			setTotpSecret(secret)

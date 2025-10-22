@@ -137,7 +137,7 @@ export async function GET(request: Request) {
 
 		// Calcular médias e scores por categoria
 		Object.keys(categoryAnalysis).forEach((categoryKey) => {
-			const category = categoryAnalysis[categoryKey]
+			const category = categoryAnalysis[categoryKey]!
 			category.avgCalories = category.totalCalories / category.count
 
 			// Score de saúde simplificado (0-100)

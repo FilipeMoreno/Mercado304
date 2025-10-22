@@ -89,7 +89,7 @@ export function ProductList({ products, onDelete, onEdit, isLoading = false }: P
 		>
 			{products.map((product) => (
 				<motion.div key={product.id} variants={itemVariants} role="gridcell">
-					<ProductCardMemo product={product} onDelete={onDelete} onEdit={onEdit} />
+					<ProductCardMemo product={product} onDelete={onDelete} {...(onEdit ? { onEdit } : {})} />
 				</motion.div>
 			))}
 		</motion.div>

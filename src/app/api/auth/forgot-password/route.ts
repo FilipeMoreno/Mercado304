@@ -48,11 +48,16 @@ export async function POST(request: NextRequest) {
 		const resetUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`
 
 		// Envia email
+		const userForEmail: { email: string; name?: string } = {
+			email: user.email,
+		}
+		
+		if (user.name) {
+			userForEmail.name = user.name
+		}
+		
 		await sendPasswordResetEmail({
-			user: {
-				email: user.email,
-				name: user.name || undefined,
-			},
+			user: userForEmail,
 			url: resetUrl,
 		})
 

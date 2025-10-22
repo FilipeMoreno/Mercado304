@@ -70,7 +70,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 		const _totalSpent = purchaseItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 		const averagePrice = totalEntries > 0 ? allPrices.reduce((sum, price) => sum + price.price, 0) / totalEntries : 0
 
-		const lastPriceDate = allPrices.length > 0 ? allPrices[0].date : null
+		const lastPriceDate = allPrices.length > 0 ? allPrices[0]!.date : null
 
 		const thirtyDaysAgo = new Date()
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -87,14 +87,14 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 		let priceChange = 0
 		if (allPrices.length >= 2) {
 			// Get the most recent price and compare with previous prices
-			const latestPrice = allPrices[0].price
+			const latestPrice = allPrices[0]!.price
 
 			if (olderPrices.length > 0) {
 				const olderAveragePrice = olderPrices.reduce((sum, price) => sum + price.price, 0) / olderPrices.length
 				priceChange = ((latestPrice - olderAveragePrice) / olderAveragePrice) * 100
 			} else {
 				// If no older prices, compare with second most recent price
-				const secondPrice = allPrices[1].price
+				const secondPrice = allPrices[1]!.price
 				priceChange = ((latestPrice - secondPrice) / secondPrice) * 100
 			}
 		}

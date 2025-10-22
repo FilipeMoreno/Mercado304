@@ -63,7 +63,7 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 		return () => clearInterval(interval)
 	}, [context, customMessage])
 
-	const IconComponent = currentStatus.icon
+	const IconComponent = currentStatus?.icon || Bot
 
 	return (
 		<motion.div
@@ -88,19 +88,19 @@ export function EnhancedTypingIndicator({ context, customMessage }: EnhancedTypi
 						rotate: { duration: 2, repeat: Infinity, ease: "linear" },
 						scale: { duration: 1, repeat: Infinity },
 					}}
-					className={`${currentStatus.color} shrink-0`}
+					className={`${currentStatus?.color || "text-blue-500"} shrink-0`}
 				>
 					<IconComponent className="size-4" />
 				</motion.div>
 
 				<motion.span
-					key={currentStatus.message}
+					key={currentStatus?.message || "Processando..."}
 					initial={{ opacity: 0, x: -10 }}
 					animate={{ opacity: 1, x: 0 }}
 					exit={{ opacity: 0, x: 10 }}
 					className="text-sm font-medium text-foreground"
 				>
-					{currentStatus.message}
+					{currentStatus?.message || "Processando..."}
 				</motion.span>
 			</div>
 

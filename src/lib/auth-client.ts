@@ -4,7 +4,7 @@ import { createAuthClient } from "better-auth/react"
 export const authClient = createAuthClient({
 	baseURL: process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3000",
 	plugins: [
-		emailOTPClient(),
+		emailOTPClient() as any,
 		twoFactorClient({
 			onTwoFactorRedirect() {
 				// Tenta salvar o email do usuário se disponível
@@ -38,4 +38,8 @@ export const authClient = createAuthClient({
 	],
 })
 
-export const { signIn, signUp, signOut, useSession, twoFactor, passkey, oneTap, emailOtp, forgetPassword } = authClient
+export const { signIn, signUp, signOut, useSession, forgetPassword } = authClient
+export const twoFactor = (authClient as any).twoFactor
+export const passkey = (authClient as any).passkey
+export const oneTap = (authClient as any).oneTap
+export const emailOtp = (authClient as any).emailOtp

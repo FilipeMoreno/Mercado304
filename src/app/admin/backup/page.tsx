@@ -219,7 +219,7 @@ export default function BackupPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-lg font-semibold">
-							{backups.length > 0 ? formatDate(backups[0].lastModified) : "Nenhum"}
+							{backups.length > 0 && backups[0]?.lastModified ? formatDate(backups[0].lastModified) : "Nenhum"}
 						</div>
 					</CardContent>
 				</Card>

@@ -110,7 +110,7 @@ export async function processBackgroundSyncQueue(): Promise<void> {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: task.data ? JSON.stringify(task.data) : undefined,
+				...(task.data ? { body: JSON.stringify(task.data) } : {}),
 			})
 
 			if (response.ok) {

@@ -294,13 +294,13 @@ export default function EditProductKitPage() {
 								<Label>Marca (Opcional)</Label>
 								{selectStyle === "dialog" ? (
 									<BrandSelectDialog
-										value={kitBrandId || undefined}
+										value={kitBrandId || ""}
 										onValueChange={(value) => setKitBrandId(value || "")}
 										placeholder="Selecione uma marca"
 									/>
 								) : (
 									<BrandSelect
-										value={kitBrandId || undefined}
+										value={kitBrandId || ""}
 										onValueChange={(value) => setKitBrandId(value || "")}
 										placeholder="Selecione uma marca"
 									/>
@@ -312,13 +312,13 @@ export default function EditProductKitPage() {
 								<Label>Categoria (Opcional)</Label>
 								{selectStyle === "dialog" ? (
 									<CategorySelectDialog
-										value={kitCategoryId || undefined}
+										value={kitCategoryId || ""}
 										onValueChange={(value) => setKitCategoryId(value || "")}
 										placeholder="Selecione uma categoria"
 									/>
 								) : (
 									<CategorySelect
-										value={kitCategoryId || undefined}
+										value={kitCategoryId || ""}
 										onValueChange={(value) => setKitCategoryId(value || "")}
 										placeholder="Selecione uma categoria"
 									/>

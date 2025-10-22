@@ -237,7 +237,7 @@ function distributeItemsToMarkets(
 		marketItems[market.id] = {
 			marketId: market.id,
 			marketName: market.name,
-			marketLocation: market.location,
+			marketLocation: market.location || null,
 			items: [],
 			totalCost: 0,
 			estimatedSavings: 0,
@@ -271,7 +271,7 @@ function distributeItemsToMarkets(
 
 		// Calcular preços médios
 		Object.keys(marketPrices).forEach((marketId) => {
-			marketPrices[marketId].price = marketPrices[marketId].price / marketPrices[marketId].recordCount
+			marketPrices[marketId]!.price = marketPrices[marketId]!.price / marketPrices[marketId]!.recordCount
 		})
 
 		// Encontrar o mercado com o menor preço
@@ -296,7 +296,7 @@ function distributeItemsToMarkets(
 			const estimatedTotal = item.quantity * bestPrice
 			const savings = averagePrice > 0 ? (averagePrice - bestPrice) * item.quantity : 0
 
-			marketItems[bestMarketId].items.push({
+			marketItems[bestMarketId]!.items.push({
 				itemId: item.id,
 				productId: item.product.id,
 				productName: item.product.name,
@@ -307,9 +307,9 @@ function distributeItemsToMarkets(
 				savings,
 			})
 
-			marketItems[bestMarketId].totalCost += estimatedTotal
-			marketItems[bestMarketId].estimatedSavings += savings
-			marketItems[bestMarketId].itemCount += 1
+			marketItems[bestMarketId]!.totalCost += estimatedTotal
+			marketItems[bestMarketId]!.estimatedSavings += savings
+			marketItems[bestMarketId]!.itemCount += 1
 		}
 	})
 

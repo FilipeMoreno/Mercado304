@@ -121,7 +121,10 @@ export const Waveform = ({
 		const dataIndex = Math.floor((barIndex * data.length) / Math.floor(rect.width / (barWidth + barGap)))
 
 		if (dataIndex >= 0 && dataIndex < data.length) {
-			onBarClick(dataIndex, data[dataIndex])
+			const dataPoint = data[dataIndex];
+			if (dataPoint !== undefined) {
+				onBarClick(dataIndex, dataPoint)
+			}
 		}
 	}
 
@@ -220,12 +223,15 @@ export const ScrollingWaveform = ({
 
 			const step = barWidth + barGap
 			for (let i = 0; i < barsRef.current.length; i++) {
-				barsRef.current[i].x -= speed * deltaTime
+				const bar = barsRef.current[i];
+				if (bar) {
+					bar.x -= speed * deltaTime
+				}
 			}
 
 			barsRef.current = barsRef.current.filter((bar) => bar.x + barWidth > -step)
 
-			while (barsRef.current.length === 0 || barsRef.current[barsRef.current.length - 1].x < rect.width) {
+			while (barsRef.current.length === 0 || (barsRef.current[barsRef.current.length - 1] && barsRef.current[barsRef.current.length - 1]!.x < rect.width)) {
 				const lastBar = barsRef.current[barsRef.current.length - 1]
 				const nextX = lastBar ? lastBar.x + step : rect.width
 
@@ -405,7 +411,7 @@ export const AudioScrubber = ({
 			{...props}
 		>
 			<Waveform
-				barColor={barColor}
+				{...(barColor ? { barColor } : {})}
 				barGap={barGap}
 				barRadius={barRadius}
 				barWidth={barWidth}
@@ -572,13 +578,19 @@ export const MicrophoneWaveform = ({
 					const normalizedData = []
 
 					for (let i = halfLength - 1; i >= 0; i--) {
-						const value = Math.min(1, (relevantData[i] / 255) * sensitivity)
-						normalizedData.push(value)
+						const dataValue = relevantData[i];
+						if (dataValue !== undefined) {
+							const value = Math.min(1, (dataValue / 255) * sensitivity)
+							normalizedData.push(value)
+						}
 					}
 
 					for (let i = 0; i < halfLength; i++) {
-						const value = Math.min(1, (relevantData[i] / 255) * sensitivity)
-						normalizedData.push(value)
+						const dataValue = relevantData[i];
+						if (dataValue !== undefined) {
+							const value = Math.min(1, (dataValue / 255) * sensitivity)
+							normalizedData.push(value)
+						}
 					}
 
 					setData(normalizedData)
@@ -720,6 +732,18 @@ export const LiveMicrophoneWaveform = ({
 		return () => resizeObserver.disconnect()
 	}, [])
 
+	const processAudioBlob = useCallback(async (blob: Blob) => {
+		try {
+			const arrayBuffer = await blob.arrayBuffer()
+			if (audioContextRef.current) {
+				const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer)
+				audioBufferRef.current = audioBuffer
+			}
+		} catch (error) {
+			console.error("Error processing audio:", error)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (!active) {
 			if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
@@ -808,18 +832,6 @@ export const LiveMicrophoneWaveform = ({
 		processAudioBlob,
 	])
 
-	const processAudioBlob = async (blob: Blob) => {
-		try {
-			const arrayBuffer = await blob.arrayBuffer()
-			if (audioContextRef.current) {
-				const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer)
-				audioBufferRef.current = audioBuffer
-			}
-		} catch (error) {
-			console.error("Error processing audio:", error)
-		}
-	}
-
 	const playScrubSound = useCallback(
 		(position: number, direction: number) => {
 			if (!enableAudioPlayback || !audioBufferRef.current || !audioContextRef.current) return
@@ -827,7 +839,7 @@ export const LiveMicrophoneWaveform = ({
 			if (scrubSourceRef.current) {
 				try {
 					scrubSourceRef.current.stop()
-				} catch {}
+				} catch { }
 			}
 
 			const source = audioContextRef.current.createBufferSource()
@@ -859,7 +871,7 @@ export const LiveMicrophoneWaveform = ({
 			if (sourceNodeRef.current) {
 				try {
 					sourceNodeRef.current.stop()
-				} catch {}
+				} catch { }
 			}
 
 			const source = audioContextRef.current.createBufferSource()
@@ -937,7 +949,10 @@ export const LiveMicrophoneWaveform = ({
 
 					let sum = 0
 					for (let i = 0; i < dataArray.length; i++) {
-						sum += dataArray[i]
+						const value = dataArray[i];
+						if (value !== undefined) {
+							sum += value
+						}
 					}
 					const average = (sum / dataArray.length / 255) * sensitivity
 
@@ -1098,7 +1113,7 @@ export const LiveMicrophoneWaveform = ({
 			if (scrubSourceRef.current) {
 				try {
 					scrubSourceRef.current.stop()
-				} catch {}
+				} catch { }
 			}
 		}
 
@@ -1287,7 +1302,10 @@ export const RecordingWaveform = ({
 
 					let sum = 0
 					for (let i = 0; i < dataArray.length; i++) {
-						sum += dataArray[i]
+						const value = dataArray[i];
+						if (value !== undefined) {
+							sum += value
+						}
 					}
 					const average = (sum / dataArray.length / 255) * sensitivity
 

@@ -64,14 +64,16 @@ function compressLZ(input: string): string {
 		if (dictionary[newPhrase] !== undefined) {
 			phrase = newPhrase
 		} else {
-			data.push(phrase.length === 1 ? phrase : dictionary[phrase])
+			const dictValue = dictionary[phrase];
+			data.push(phrase.length === 1 ? phrase : (dictValue ?? phrase))
 			dictionary[newPhrase] = dictSize++
 			phrase = char
 		}
 	}
 
 	if (phrase !== "") {
-		data.push(phrase.length === 1 ? phrase : dictionary[phrase])
+		const dictValue = dictionary[phrase];
+		data.push(phrase.length === 1 ? phrase : (dictValue ?? phrase))
 	}
 
 	return btoa(JSON.stringify(data))
@@ -101,7 +103,7 @@ function decompressLZ(compressed: string): string {
 
 			if (typeof k === "string") {
 				entry = k
-			} else if (dictionary[k] !== undefined) {
+			} else if (k !== undefined && dictionary[k] !== undefined) {
 				entry = dictionary[k]
 			} else {
 				entry = w + w.charAt(0)

@@ -36,7 +36,7 @@ export function useOptimizedQuery<TData, TError = unknown>(
 		enabled,
 		staleTime,
 		gcTime,
-		refetchInterval,
+		...(refetchInterval ? { refetchInterval } : {}),
 		refetchOnWindowFocus: queryConfig.refetchOnWindowFocus,
 		refetchOnMount: queryConfig.refetchOnMount,
 		retry: queryConfig.retry,

@@ -259,6 +259,10 @@ export const productFunctions = {
 
 			const mostExpensive = formattedProducts[0]
 
+			if (!mostExpensive) {
+				return { error: "Nenhum produto encontrado" }
+			}
+
 			return {
 				success: true,
 				message: `O produto mais caro registrado é "${mostExpensive.product}" (${mostExpensive.brand}) por R$ ${mostExpensive.price.toFixed(2)} no ${mostExpensive.market}.`,

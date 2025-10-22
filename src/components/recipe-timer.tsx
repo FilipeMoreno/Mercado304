@@ -1,7 +1,7 @@
 "use client"
 
 import { Pause, Play, RotateCcw, Timer, Volume2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +18,33 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 	const [isRunning, setIsRunning] = useState(false)
 	const [timeLeft, setTimeLeft] = useState(0)
 
+	const parseSuggestedTime = useCallback((timeString: string): number => {
+		const text = timeString.toLowerCase()
+		let totalSeconds = 0
+
+		// Extrair horas
+		const hoursMatch = text.match(/(\d+)\s*(hora|hr|h)/)
+		if (hoursMatch && hoursMatch[1]) {
+			totalSeconds += parseInt(hoursMatch[1], 10) * 3600
+		}
+
+		// Extrair minutos
+		const minutesMatch = text.match(/(\d+)\s*(minuto|min|m)/)
+		if (minutesMatch && minutesMatch[1]) {
+			totalSeconds += parseInt(minutesMatch[1], 10) * 60
+		}
+
+		// Apenas números (assumir minutos)
+		if (totalSeconds === 0) {
+			const numbersMatch = text.match(/(\d+)/)
+			if (numbersMatch && numbersMatch[1]) {
+				totalSeconds = parseInt(numbersMatch[1], 10) * 60
+			}
+		}
+
+		return totalSeconds
+	}, [])
+
 	// Parsear tempo sugerido
 	useEffect(() => {
 		if (suggestedTime) {
@@ -29,6 +56,31 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 			}
 		}
 	}, [suggestedTime, parseSuggestedTime])
+
+	const playAlarm = useCallback(() => {
+		// Criar áudio programaticamente
+		const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+
+		// Tocar 3 bips
+		for (let i = 0; i < 3; i++) {
+			setTimeout(() => {
+				const oscillator = audioContext.createOscillator()
+				const gainNode = audioContext.createGain()
+
+				oscillator.connect(gainNode)
+				gainNode.connect(audioContext.destination)
+
+				oscillator.frequency.value = 800
+				oscillator.type = "sine"
+
+				gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+				gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
+
+				oscillator.start(audioContext.currentTime)
+				oscillator.stop(audioContext.currentTime + 0.2)
+			}, i * 300)
+		}
+	}, [])
 
 	// Cronômetro principal
 	useEffect(() => {
@@ -54,56 +106,6 @@ export function RecipeTimer({ suggestedTime }: RecipeTimerProps) {
 			}
 		}
 	}, [isRunning, timeLeft, playAlarm])
-
-	const parseSuggestedTime = (timeString: string): number => {
-		const text = timeString.toLowerCase()
-		let totalSeconds = 0
-
-		// Extrair horas
-		const hoursMatch = text.match(/(\d+)\s*(hora|hr|h)/)
-		if (hoursMatch) {
-			totalSeconds += parseInt(hoursMatch[1], 10) * 3600
-		}
-
-		// Extrair minutos
-		const minutesMatch = text.match(/(\d+)\s*(minuto|min|m)/)
-		if (minutesMatch) {
-			totalSeconds += parseInt(minutesMatch[1], 10) * 60
-		}
-
-		// Apenas números (assumir minutos)
-		if (totalSeconds === 0) {
-			const numbersMatch = text.match(/(\d+)/)
-			if (numbersMatch) {
-				totalSeconds = parseInt(numbersMatch[1], 10) * 60
-			}
-		}
-
-		return totalSeconds
-	}
-
-	const playAlarm = () => {
-		// Criar áudio programaticamente
-		const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-
-		// Tocar 3 bips
-		for (let i = 0; i < 3; i++) {
-			setTimeout(() => {
-				const oscillator = audioContext.createOscillator()
-				const gainNode = audioContext.createGain()
-
-				oscillator.connect(gainNode)
-				gainNode.connect(audioContext.destination)
-
-				oscillator.frequency.setValueAtTime(800, audioContext.currentTime)
-				gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-				gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5)
-
-				oscillator.start(audioContext.currentTime)
-				oscillator.stop(audioContext.currentTime + 0.5)
-			}, i * 600)
-		}
-	}
 
 	const startTimer = () => {
 		const total = minutes * 60 + seconds

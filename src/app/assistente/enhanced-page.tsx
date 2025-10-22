@@ -330,12 +330,12 @@ export default function EnhancedAssistentePage() {
 											<ChatMessage
 												role={msg.role}
 												content={msg.content}
-												isError={msg.isError}
-												isStreaming={msg.isStreaming}
+												{...(msg.isError !== undefined && { isError: msg.isError })}
+												{...(msg.isStreaming !== undefined && { isStreaming: msg.isStreaming })}
 												onRetry={retryLastMessage}
-												canRetry={msg.isError && !!lastUserMessage && !isLoading}
-												imagePreview={msg.imagePreview}
-												productData={msg.productData}
+												{...(msg.isError && !!lastUserMessage && !isLoading && { canRetry: true })}
+												{...(msg.imagePreview && { imagePreview: msg.imagePreview })}
+												{...(msg.productData && { productData: msg.productData })}
 											/>
 											{msg.selectionCard && (
 												<div className="mt-4 ml-12">
@@ -365,7 +365,7 @@ export default function EnhancedAssistentePage() {
 														? "list"
 														: lastUserMessage?.toLowerCase().includes("churrasco")
 															? "churrasco"
-															: undefined
+															: "default"
 											}
 										/>
 									)}

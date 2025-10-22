@@ -132,15 +132,15 @@ export async function processProductRecognition(
 					marketName: item.purchase.market.name,
 					date: item.purchase.createdAt,
 				})),
-				lowestPrice: lowestPriceRecord
-					? {
-							price: lowestPriceRecord.price,
-							marketName: lowestPriceRecord.market.name,
-							marketId: lowestPriceRecord.market.id,
-							date: lowestPriceRecord.createdAt,
-						}
-					: undefined,
-				averagePrice,
+				...(lowestPriceRecord ? {
+					lowestPrice: {
+						price: lowestPriceRecord.price,
+						marketName: lowestPriceRecord.market.name,
+						marketId: lowestPriceRecord.market.id,
+						date: lowestPriceRecord.createdAt,
+					}
+				} : {}),
+				...(averagePrice ? { averagePrice } : {}),
 			},
 			recognitionData,
 		}
@@ -193,8 +193,8 @@ export async function createProductFromRecognition(
 		data: {
 			name: recognitionData.productName,
 			barcode: recognitionData.barcode,
-			categoryId: category?.id,
-			brandId: brand?.id,
+			...(category?.id ? { categoryId: category.id } : {}),
+			...(brand?.id ? { brandId: brand.id } : {}),
 		},
 	})
 

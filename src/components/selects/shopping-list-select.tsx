@@ -55,8 +55,8 @@ export function ShoppingListSelect({
 				value: list.id,
 				label: `${list.name} (${list.items?.length || 0} itens)`,
 			}))}
-			value={value}
-			onValueChange={onValueChange}
+			{...(value ? { value } : {})}
+			{...(onValueChange ? { onValueChange } : {})}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar lista..."
 			emptyText="Nenhuma lista encontrada."

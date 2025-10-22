@@ -152,7 +152,7 @@ export default function TwoFactorPage() {
 					localStorage.getItem("lastUserEmail")
 
 				// Usa o plugin nativo emailOTP do Better Auth para fazer login
-				const emailOtpResult = await signIn.emailOtp({
+				const emailOtpResult = await emailOtp.verifyEmail({
 					email: userEmail!,
 					otp: code,
 				})

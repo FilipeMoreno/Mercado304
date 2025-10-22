@@ -55,7 +55,7 @@ export function UnitSelectDialog({
 		<ResponsiveSelectDialog
 			open={open}
 			onOpenChange={setOpen}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			options={filteredOptions}
 			title="Selecionar Unidade de Medida"

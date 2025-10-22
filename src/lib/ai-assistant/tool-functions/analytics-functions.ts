@@ -124,6 +124,9 @@ export const analyticsFunctions = {
 
 			// Calcular economia
 			const worstOption = sortedByBenefit[sortedByBenefit.length - 1]
+			if (!worstOption || !bestOption) {
+				return { error: "Dados insuficientes para análise" }
+			}
 			const savingsPercentage = ((worstOption.pricePerUnit - bestOption.pricePerUnit) / worstOption.pricePerUnit) * 100
 
 			// Criar recomendação detalhada

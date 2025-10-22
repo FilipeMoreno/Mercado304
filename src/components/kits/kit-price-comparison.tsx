@@ -74,7 +74,10 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 		}
 
 		const missingPrices = items.filter(
-			(item) => !itemPrices[item.product.id] || parseFloat(itemPrices[item.product.id]) <= 0,
+			(item) => {
+				const price = itemPrices[item.product.id];
+				return !price || parseFloat(price) <= 0;
+			},
 		)
 
 		if (missingPrices.length > 0) {
@@ -93,7 +96,7 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 					kitPrice: parseFloat(kitPrice),
 					itemPrices: items.map((item) => ({
 						productId: item.product.id,
-						price: parseFloat(itemPrices[item.product.id]),
+						price: parseFloat(itemPrices[item.product.id] || "0"),
 					})),
 				}),
 			})
@@ -142,13 +145,13 @@ export function KitPriceComparison({ kitId, kitName, items }: KitPriceComparison
 						<Label>Mercado *</Label>
 						{selectStyle === "dialog" ? (
 							<MarketSelectDialog
-								value={selectedMarketId || undefined}
+								{...(selectedMarketId ? { value: selectedMarketId } : {})}
 								onValueChange={(value) => setSelectedMarketId(value || "")}
 								placeholder="Selecione o mercado"
 							/>
 						) : (
 							<MarketSelect
-								value={selectedMarketId || undefined}
+								{...(selectedMarketId ? { value: selectedMarketId } : {})}
 								onValueChange={(value) => setSelectedMarketId(value || "")}
 								placeholder="Selecione o mercado"
 							/>

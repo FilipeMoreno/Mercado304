@@ -48,7 +48,7 @@ export default function ImportarCompraPage() {
 	const [marketId, setMarketId] = useState<number | null>(null)
 	const [suggestedMarket, setSuggestedMarket] = useState<Market | null>(null)
 	const [paymentMethod, setPaymentMethod] = useState<string>("CREDIT_CARD")
-	const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split("T")[0])
+	const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().split("T")[0] || "")
 	const [totalDiscount, _setTotalDiscount] = useState<number>(0)
 	const mutation = useCreatePurchaseMutation()
 
@@ -376,13 +376,13 @@ export default function ImportarCompraPage() {
 									{selectStyle === "dialog" ? (
 										<MarketSelectDialog
 											key={suggestedMarket?.id}
-											value={marketId !== null ? marketId.toString() : undefined}
+											{...(marketId !== null ? { value: marketId.toString() } : {})}
 											onValueChange={(value) => setMarketId(parseInt(value, 10))}
 										/>
 									) : (
 										<MarketSelect
 											key={suggestedMarket?.id}
-											value={marketId !== null ? marketId.toString() : undefined}
+											{...(marketId !== null ? { value: marketId.toString() } : {})}
 											onValueChange={(value) => setMarketId(parseInt(value, 10))}
 										/>
 									)}

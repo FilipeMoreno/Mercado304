@@ -138,11 +138,7 @@ const nextConfig = {
             test(module) {
               return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier());
             },
-            name(module) {
-              const hash = require('crypto').createHash('sha1');
-              hash.update(module.identifier());
-              return hash.digest('hex').substring(0, 8);
-            },
+            name: 'lib',
             priority: 30,
             minChunks: 1,
             reuseExistingChunk: true,

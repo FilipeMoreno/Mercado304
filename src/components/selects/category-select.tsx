@@ -91,7 +91,7 @@ export function CategorySelect({
 	return (
 		<CategoryCombobox
 			categories={categories}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			placeholder={placeholder}
 			searchPlaceholder="Buscar categoria..."
@@ -105,7 +105,7 @@ export function CategorySelect({
 			isFetchingNextPage={isFetchingNextPage}
 			isLoading={isLoading || isPlaceholderData}
 			onSearchChange={handleSearchChange}
-			pendingCategoryName={pendingCategoryName ?? undefined}
+			{...(pendingCategoryName ? { pendingCategoryName } : {})}
 		/>
 	)
 }

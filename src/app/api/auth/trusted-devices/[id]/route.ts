@@ -44,6 +44,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
 			eventType: SecurityEventType.LOGIN_SUCCESS, // Poderia criar um novo tipo "TRUSTED_DEVICE_REMOVED"
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				action: "trusted_device_removed",
 				deviceId: id,

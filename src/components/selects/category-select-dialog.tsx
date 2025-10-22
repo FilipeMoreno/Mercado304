@@ -42,7 +42,7 @@ export function CategorySelectDialog({
 			id: category.id,
 			label: category.name,
 			icon: category.icon,
-			sublabel: category.isFood ? "Alimento" : undefined,
+			...(category.isFood ? { sublabel: "Alimento" } : {}),
 		}))
 	}, [categories])
 
@@ -83,7 +83,7 @@ export function CategorySelectDialog({
 		<ResponsiveSelectDialog
 			open={open}
 			onOpenChange={setOpen}
-			value={value}
+			{...(value ? { value } : {})}
 			onValueChange={handleValueChange}
 			options={options}
 			title="Selecionar Categoria"

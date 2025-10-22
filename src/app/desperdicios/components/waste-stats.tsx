@@ -110,7 +110,7 @@ export function WasteStats({ stats, isLoading }: WasteStatsProps) {
 				</CardHeader>
 				<CardContent>
 					<div className="text-lg font-bold text-purple-600">
-						{stats.reasonStats.length > 0
+						{stats.reasonStats.length > 0 && stats.reasonStats[0]
 							? wasteReasonLabels[stats.reasonStats[0].wasteReason as keyof typeof wasteReasonLabels]
 							: "N/A"}
 					</div>

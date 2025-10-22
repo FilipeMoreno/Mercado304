@@ -81,7 +81,7 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 	const getServingValue = (servingSize?: string): number => {
 		if (!servingSize) return 100 // Se não há porção definida, usa 100g/ml como padrão
 		const match = servingSize.match(/(\d+[.,]?\d*)/)
-		return match ? parseFloat(match[1].replace(",", ".")) : 100
+		return match && match[1] ? parseFloat(match[1].replace(",", ".")) : 100
 	}
 
 	// Converte valores de 100g/ml para a porção real
@@ -122,12 +122,12 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 				))}
 			</div>
 		)
-	} else if (layout === "vertical") {
+	} else if (layout === "vertical" && warnings.length > 0) {
 		content = (
 			<div className="inline-flex flex-col font-sans">
 				<div className="flex items-stretch">
 					<LupaHeader className="border-r-0" />
-					<NutrientBlock nutrient={warnings[0]} className="grow" />
+					<NutrientBlock nutrient={warnings[0]!} className="grow" />
 				</div>
 				{warnings.slice(1).map((warning) => (
 					<NutrientBlock key={warning} nutrient={warning} className="-mt-[2px]" />

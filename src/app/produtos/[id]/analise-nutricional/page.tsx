@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { Badge } from "@/components/ui/badge"
@@ -76,11 +76,7 @@ export default function AnaliseNutricionalPage() {
 	const [data, setData] = useState<ProductData | null>(null)
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		fetchNutritionalAnalysis()
-	}, [fetchNutritionalAnalysis])
-
-	const fetchNutritionalAnalysis = async () => {
+	const fetchNutritionalAnalysis = useCallback(async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/products/${productId}/nutrition-analysis`)
@@ -99,7 +95,11 @@ export default function AnaliseNutricionalPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [productId, router])
+
+	useEffect(() => {
+		fetchNutritionalAnalysis()
+	}, [fetchNutritionalAnalysis])
 
 	if (loading) {
 		return <LoadingSkeleton />

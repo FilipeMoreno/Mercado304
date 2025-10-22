@@ -44,8 +44,8 @@ export function ResponsiveDialog({
 			<MobileModal
 				isOpen={open}
 				onClose={handleClose}
-				title={title}
-				subtitle={subtitle || description}
+				{...(title ? { title } : {})}
+				{...(subtitle || description ? { subtitle: subtitle || description } : {})}
 				dragToClose={dragToClose}
 				swipeToClose={swipeToClose}
 				preventScrollClose={preventScrollClose}

@@ -49,6 +49,15 @@ export class AppError extends Error {
 		// Busca a mensagem e o statusCode do nosso dicionário
 		const errorDetails = ERROR_CODES[errorCode] || ERROR_CODES.GEN_001
 
+		if (!errorDetails) {
+			super(message || "Erro interno no servidor")
+			this.name = "AppError"
+			this.errorCode = errorCode
+			this.statusCode = 500
+			Object.setPrototypeOf(this, AppError.prototype)
+			return
+		}
+
 		// Usa a mensagem personalizada se for fornecida, senão usa a padrão
 		super(message || errorDetails.message)
 

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { Beer, ChevronLeft, Drumstick, Flame, Loader2, ShoppingCart, Sparkles, Users, Utensils } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -43,11 +43,7 @@ export default function ChurrascoDetailsPage() {
 	const [loading, setLoading] = useState(true)
 	const { create, loading: creatingList } = useDataMutation()
 
-	useEffect(() => {
-		loadCalculation()
-	}, [loadCalculation])
-
-	const loadCalculation = async () => {
+	const loadCalculation = useCallback(async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/churrasco/history/${params.id}`)
@@ -65,7 +61,11 @@ export default function ChurrascoDetailsPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [params.id, router])
+
+	useEffect(() => {
+		loadCalculation()
+	}, [loadCalculation])
 
 	const handleCreateList = async () => {
 		if (!calculation) return

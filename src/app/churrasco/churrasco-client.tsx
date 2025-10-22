@@ -2,7 +2,7 @@
 
 import { Beer, Calculator, Clock, History, Loader2, Sparkles, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useId, useState } from "react"
+import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { ChurrascoHistorySkeleton } from "@/components/skeletons/churrasco-history-skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -41,11 +41,7 @@ export default function ChurrascoClient() {
 	const [history, setHistory] = useState<ChurrascoResult[]>([])
 	const router = useRouter()
 
-	useEffect(() => {
-		loadHistory()
-	}, [loadHistory])
-
-	const loadHistory = async () => {
+	const loadHistory = useCallback(async () => {
 		try {
 			setLoadingHistory(true)
 			const response = await fetch("/api/churrasco/history")
@@ -67,7 +63,11 @@ export default function ChurrascoClient() {
 		} finally {
 			setLoadingHistory(false)
 		}
-	}
+	}, [])
+
+	useEffect(() => {
+		loadHistory()
+	}, [loadHistory])
 
 	const saveToHistory = async (
 		newResult: any,

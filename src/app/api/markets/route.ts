@@ -12,7 +12,9 @@ export async function GET(request: Request) {
 		const limit = parseInt(searchParams.get("limit") || "12", 10)
 		const itemsPerPage = limit
 
-		const [orderBy, orderDirection] = sort.split("-")
+		const sortParts = sort.split("-")
+		const orderBy = sortParts.length === 2 ? sortParts[0]! : sort
+		const orderDirection = sortParts.length === 2 ? sortParts[1]! : "asc"
 
 		const where = {
 			name: {
@@ -21,12 +23,14 @@ export async function GET(request: Request) {
 			},
 		}
 
+		// Create proper orderBy object
+		const orderByField: string = orderBy === "date" ? "createdAt" : orderBy
+		const orderByObj = { [orderByField]: orderDirection as "asc" | "desc" } as any
+
 		const [markets, totalCount] = await prisma.$transaction([
 			prisma.market.findMany({
 				where,
-				orderBy: {
-					[orderBy === "date" ? "createdAt" : orderBy]: orderDirection as "asc" | "desc",
-				},
+				orderBy: orderByObj,
 				skip: (page - 1) * itemsPerPage,
 				take: itemsPerPage,
 			}),

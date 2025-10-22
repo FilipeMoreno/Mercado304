@@ -52,8 +52,7 @@ export function ResponsiveFormDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			title={title}
-			description={description}
-			subtitle={description}
+			{...(description ? { description, subtitle: description } : {})}
 			maxWidth={maxWidth}
 		>
 			<div className="space-y-4">

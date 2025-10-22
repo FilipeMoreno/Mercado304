@@ -54,12 +54,14 @@ export function MonthlySpendingChart({ data, loading }: MonthlySpendingChartProp
 
 	// Adicionar um placeholder de 'totalSpent' para o mês atual, se não houver dados ainda.
 	// Isso garante que o gráfico sempre mostre o mês atual no eixo X.
-	const _lastMonth = new Date(data[data.length - 1].month)
-	const now = new Date()
-	const currentMonthKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, "0")}`
+	if (data.length > 0) {
+		const _lastMonth = new Date(data[data.length - 1]!.month)
+		const now = new Date()
+		const currentMonthKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, "0")}`
 
-	if (data[data.length - 1].month !== currentMonthKey) {
-		data.push({ month: currentMonthKey, totalSpent: 0 })
+		if (data[data.length - 1]!.month !== currentMonthKey) {
+			data.push({ month: currentMonthKey, totalSpent: 0 })
+		}
 	}
 
 	return (

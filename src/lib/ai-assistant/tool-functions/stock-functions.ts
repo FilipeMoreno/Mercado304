@@ -44,7 +44,7 @@ export const stockFunctions = {
 				data: {
 					productId: product.id,
 					quantity,
-					expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+					...(expirationDate ? { expirationDate: new Date(expirationDate) } : {}),
 					location,
 				},
 				include: { product: true },

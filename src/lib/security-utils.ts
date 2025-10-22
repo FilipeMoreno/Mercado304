@@ -39,9 +39,9 @@ export enum NotificationType {
 interface AuditLogParams {
 	userId?: string
 	eventType: SecurityEventType
-	ipAddress?: string
-	userAgent?: string
-	location?: string
+	ipAddress: string | undefined
+	userAgent: string | undefined
+	location: string | undefined
 	metadata?: Record<string, any>
 }
 
@@ -60,11 +60,11 @@ export async function logSecurityEvent(params: AuditLogParams) {
 	try {
 		await prisma.securityAudit.create({
 			data: {
-				userId: params.userId,
+				...(params.userId ? { userId: params.userId } : {}),
 				eventType: params.eventType,
-				ipAddress: params.ipAddress,
-				userAgent: params.userAgent,
-				location: params.location,
+				...(params.ipAddress ? { ipAddress: params.ipAddress } : {}),
+				...(params.userAgent ? { userAgent: params.userAgent } : {}),
+				...(params.location ? { location: params.location } : {}),
 				metadata: params.metadata || {},
 			},
 		})
@@ -130,9 +130,9 @@ export async function handleFailedLogin(userId: string, ipAddress?: string, user
 	await logSecurityEvent({
 		userId,
 		eventType: SecurityEventType.LOGIN_FAILED,
-		ipAddress,
-		userAgent,
-		location,
+		ipAddress: ipAddress || undefined,
+		userAgent: userAgent || undefined,
+		location: location || undefined,
 		metadata: { attempts: newAttempts },
 	})
 
@@ -154,9 +154,9 @@ export async function handleFailedLogin(userId: string, ipAddress?: string, user
 		await logSecurityEvent({
 			userId,
 			eventType: SecurityEventType.ACCOUNT_LOCKED,
-			ipAddress,
-			userAgent,
-			location,
+			ipAddress: ipAddress || undefined,
+			userAgent: userAgent || undefined,
+			location: location || undefined,
 			metadata: {
 				reason: "max_failed_attempts",
 				lockDurationMinutes: SECURITY_CONSTANTS.LOCKOUT_DURATION_MINUTES,
@@ -209,9 +209,9 @@ export async function handleSuccessfulLogin(
 	await logSecurityEvent({
 		userId,
 		eventType: SecurityEventType.LOGIN_SUCCESS,
-		ipAddress,
-		userAgent,
-		location,
+		ipAddress: ipAddress || undefined,
+		userAgent: userAgent || undefined,
+		location: location || undefined,
 		metadata: { loginMethod },
 	})
 
@@ -219,7 +219,7 @@ export async function handleSuccessfulLogin(
 	const existingSessions = await prisma.session.findFirst({
 		where: {
 			userId,
-			userAgent,
+			...(userAgent ? { userAgent } : {}),
 			isRevoked: false,
 		},
 	})
@@ -257,6 +257,9 @@ export async function unlockAccount(userId: string) {
 	await logSecurityEvent({
 		userId,
 		eventType: SecurityEventType.ACCOUNT_UNLOCKED,
+		ipAddress: undefined,
+		userAgent: undefined,
+		location: undefined,
 		metadata: { reason: "manual_unlock" },
 	})
 }
@@ -321,12 +324,14 @@ export async function detectSuspiciousActivity(userId: string, currentLocation?:
 
 	// Se todas as localizações anteriores eram diferentes da atual, é suspeito
 	const isSuspicious =
-		previousLocations.length > 0 && !previousLocations.some((loc) => loc?.includes(currentLocation.split(",")[0]))
+		previousLocations.length > 0 && !previousLocations.some((loc) => loc?.includes(currentLocation.split(",")[0] || ""))
 
 	if (isSuspicious) {
 		await logSecurityEvent({
 			userId,
 			eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+			ipAddress: undefined,
+			userAgent: undefined,
 			location: currentLocation,
 			metadata: {
 				reason: "unusual_location",

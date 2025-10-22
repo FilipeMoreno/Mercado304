@@ -138,7 +138,7 @@ export async function GET(request: Request) {
 				{} as Record<string, number>,
 			)
 			analysis.trends.mostCommonProduct = Object.keys(productCounts).reduce((a, b) =>
-				productCounts[a] > productCounts[b] ? a : b,
+				(productCounts[a] || 0) > (productCounts[b] || 0) ? a : b,
 			)
 
 			// Mercado mais comum
@@ -150,7 +150,7 @@ export async function GET(request: Request) {
 				{} as Record<string, number>,
 			)
 			analysis.trends.mostCommonMarket = Object.keys(marketCounts).reduce((a, b) =>
-				marketCounts[a] > marketCounts[b] ? a : b,
+				(marketCounts[a] || 0) > (marketCounts[b] || 0) ? a : b,
 			)
 
 			// Análise de tendência (últimos 30 dias vs 30-60 dias atrás)
@@ -206,7 +206,7 @@ export async function GET(request: Request) {
 		)
 
 		Object.keys(productGroups).forEach((key) => {
-			const product = productGroups[key]
+			const product = productGroups[key]!
 			const prices = product.prices.map((p: any) => p.price)
 
 			analysis.byProduct[key] = {
@@ -251,7 +251,7 @@ export async function GET(request: Request) {
 		)
 
 		Object.keys(marketGroups).forEach((key) => {
-			const market = marketGroups[key]
+			const market = marketGroups[key]!
 			const prices = market.prices.map((p: any) => p.price)
 
 			analysis.byMarket[key] = {

@@ -220,10 +220,11 @@ export async function POST(request: Request) {
 								},
 							})
 
+							const purchaseItem = newPurchase.items.find((pi) => pi.productId === item.productId)
 							return tx.stockMovement.create({
 								data: {
 									stockItemId: stockItem.id,
-									purchaseItemId: newPurchase.items.find((pi) => pi.productId === item.productId)?.id,
+									purchaseItemId: purchaseItem?.id || null,
 									type: "ENTRADA",
 									quantity: entry.quantity || 1,
 									reason: "Registro de compra",

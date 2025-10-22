@@ -49,12 +49,14 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 		if (touches.length < 2) return 0
 		const touch1 = touches[0]
 		const touch2 = touches[1]
+		if (!touch1 || !touch2) return 0
 		return Math.sqrt((touch2.clientX - touch1.clientX) ** 2 + (touch2.clientY - touch1.clientY) ** 2)
 	}, [])
 
 	const handleTouchStart = useCallback(
 		(e: React.TouchEvent) => {
 			const touch = e.touches[0]
+			if (!touch) return
 			const now = Date.now()
 
 			touchData.current = {
@@ -92,7 +94,7 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 			// Cancelar long press se o dedo se mover
 			if (touchData.current.longPressTimer) {
 				clearTimeout(touchData.current.longPressTimer)
-				touchData.current.longPressTimer = undefined
+				delete touchData.current.longPressTimer
 			}
 
 			// Pinch gesture
@@ -110,12 +112,13 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 			// Limpar timer de long press
 			if (touchData.current.longPressTimer) {
 				clearTimeout(touchData.current.longPressTimer)
-				touchData.current.longPressTimer = undefined
+				delete touchData.current.longPressTimer
 			}
 
 			// Verificar se é um swipe (apenas para single touch)
 			if (e.changedTouches.length === 1) {
 				const touch = e.changedTouches[0]
+				if (!touch) return
 				const deltaX = touch.clientX - touchData.current.startX
 				const deltaY = touch.clientY - touchData.current.startY
 				const deltaTime = Date.now() - touchData.current.startTime
@@ -147,7 +150,7 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 			}
 
 			// Reset pinch data
-			touchData.current.initialDistance = undefined
+			delete touchData.current.initialDistance
 		},
 		[onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, swipeThreshold],
 	)

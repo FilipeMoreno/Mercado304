@@ -60,11 +60,13 @@ export const purchaseFunctions = {
 
 	getPurchases: async ({ marketName, limit = 10 }: any) => {
 		const purchases = await prisma.purchase.findMany({
-			where: marketName
+			...(marketName
 				? {
+					where: {
 						market: { name: { contains: marketName, mode: "insensitive" } },
-					}
-				: undefined,
+					},
+				}
+				: {}),
 			include: {
 				market: true,
 				items: { include: { product: true } },

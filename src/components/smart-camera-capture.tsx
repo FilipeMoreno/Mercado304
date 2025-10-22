@@ -109,10 +109,9 @@ export function SmartCameraCapture({
 
 				const constraints: MediaStreamConstraints = {
 					video: {
-						deviceId: deviceId ? { exact: deviceId } : undefined,
+						...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: "environment" } }),
 						width: { ideal: maxWidth },
 						height: { ideal: maxHeight },
-						facingMode: deviceId ? undefined : { ideal: "environment" },
 					},
 				}
 
@@ -128,7 +127,7 @@ export function SmartCameraCapture({
 				const videoDevices = allDevices.filter((device) => device.kind === "videoinput")
 				setDevices(videoDevices)
 
-				if (!currentDeviceId && videoDevices.length > 0) {
+				if (!currentDeviceId && videoDevices.length > 0 && videoDevices[0]) {
 					setCurrentDeviceId(videoDevices[0].deviceId)
 				}
 			} catch (error) {
@@ -156,14 +155,18 @@ export function SmartCameraCapture({
 			const currentIndex = devices.findIndex((device) => device.deviceId === currentDeviceId)
 			const nextIndex = (currentIndex + 1) % devices.length
 			const nextDevice = devices[nextIndex]
-			setCurrentDeviceId(nextDevice.deviceId)
-			startWebCamera(nextDevice.deviceId)
+			if (nextDevice) {
+				setCurrentDeviceId(nextDevice.deviceId)
+				startWebCamera(nextDevice.deviceId)
+			}
 		}
 	}
 
 	const toggleFlash = async () => {
 		if (stream) {
 			const track = stream.getVideoTracks()[0]
+			if (!track) return;
+
 			const capabilities = track.getCapabilities() as MediaTrackCapabilities & { torch?: boolean }
 
 			if (capabilities.torch) {

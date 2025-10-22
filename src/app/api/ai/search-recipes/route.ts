@@ -29,7 +29,7 @@ function extractRecipesFromText(text: string, ingredients?: string[]) {
 					prato: pratoMatch[1],
 					descricao: descricaoMatch ? descricaoMatch[1] : "Receita deliciosa",
 					tempo_preparo: tempoMatch ? tempoMatch[1] : "30 minutos",
-					ingredientes: ingredientesMatch
+					ingredientes: ingredientesMatch && ingredientesMatch[1]
 						? ingredientesMatch[1].split(",").map((i) => i.trim().replace(/"/g, ""))
 						: ingredients || ["Ingredientes diversos"],
 					modo_preparo: modoMatch ? modoMatch[1] : "Siga as instruções básicas de preparo",

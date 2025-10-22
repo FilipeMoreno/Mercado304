@@ -32,6 +32,7 @@ function analyzeProductName(name: string): { proposedName: string; packageSize: 
 
 		if (matches.length > 0) {
 			const match = matches[matches.length - 1]
+			if (!match || !match[1]) continue
 			const value = match[1].replace(",", ".")
 			const matchText = match[0]
 

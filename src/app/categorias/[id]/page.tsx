@@ -531,9 +531,8 @@ export default function CategoriaDetalhesPage() {
 															<div className="font-medium">R$ {month.spent.toFixed(2)}</div>
 															{prevMonth && showChange && (
 																<div
-																	className={`text-xs flex items-center gap-1 justify-end ${
-																		isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
-																	}`}
+																	className={`text-xs flex items-center gap-1 justify-end ${isIncrease ? "text-red-600" : change < 0 ? "text-green-600" : "text-gray-600"
+																		}`}
 																>
 																	{isIncrease ? (
 																		<TrendingUp className="h-3 w-3" />
@@ -593,15 +592,13 @@ export default function CategoriaDetalhesPage() {
 										return (
 											<div
 												key={market.marketId}
-												className={`flex items-center justify-between p-4 border rounded-lg ${
-													isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
-												}`}
+												className={`flex items-center justify-between p-4 border rounded-lg ${isCheapest ? "bg-green-50 dark:bg-green-950 border-green-200" : ""
+													}`}
 											>
 												<div className="flex items-center gap-3">
 													<div
-														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${
-															isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
-														}`}
+														className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${isCheapest ? "bg-green-600 text-white" : "bg-muted text-muted-foreground"
+															}`}
 													>
 														{index + 1}
 													</div>
@@ -753,7 +750,7 @@ export default function CategoriaDetalhesPage() {
 											</div>
 										)}
 
-										{stats.topProducts && stats.topProducts.length > 0 && (
+										{stats.topProducts && stats.topProducts.length > 0 && stats.topProducts[0] && (
 											<div className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border">
 												<div className="size-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
 													📊
@@ -779,6 +776,11 @@ export default function CategoriaDetalhesPage() {
 														{(() => {
 															const lastMonth = stats.monthlyTrend[stats.monthlyTrend.length - 1]
 															const prevMonth = stats.monthlyTrend[stats.monthlyTrend.length - 2]
+
+															// Verificar se os dados existem
+															if (!lastMonth || !prevMonth) {
+																return "Sem dados suficientes para análise de tendência."
+															}
 
 															// Verificar se há dados suficientes para comparação
 															if (prevMonth.spent === 0 && lastMonth.spent === 0) {

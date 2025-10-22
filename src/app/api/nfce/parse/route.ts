@@ -113,15 +113,16 @@ export async function POST(request: Request) {
 				const expectedTotal = quantity * unitPrice
 				const discount = expectedTotal > totalPrice ? expectedTotal - totalPrice : 0
 
-				items.push({
+				const item = {
 					name: nameText,
-					code: codeText || undefined,
 					quantity: quantity,
 					unit: unitText || "UN",
 					unitPrice: unitPrice,
 					totalPrice: totalPrice,
-					discount: discount > 0 ? discount : undefined,
-				})
+					...(codeText && { code: codeText }),
+					...(discount > 0 && { discount: discount }),
+				}
+				items.push(item)
 			}
 		})
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { CalendarDays, Sparkles } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
@@ -24,6 +24,25 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 	const [loading, setLoading] = useState(true)
 	const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
 	const [loadingAi, setLoadingAi] = useState(false)
+
+	const fetchAiAnalysis = useCallback(async () => {
+		setLoadingAi(true)
+		try {
+			const response = await fetch("/api/products/best-day-to-buy/ai-analysis", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId }),
+			})
+			if (response.ok) {
+				const result = await response.json()
+				setAiAnalysis(result.analysis)
+			}
+		} catch (error) {
+			console.error("Erro ao buscar análise da IA", error)
+		} finally {
+			setLoadingAi(false)
+		}
+	}, [productId])
 
 	useEffect(() => {
 		async function fetchData() {
@@ -59,25 +78,6 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 			fetchData()
 		}
 	}, [productId, fetchAiAnalysis])
-
-	const fetchAiAnalysis = async () => {
-		setLoadingAi(true)
-		try {
-			const response = await fetch("/api/products/best-day-to-buy/ai-analysis", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ productId }),
-			})
-			if (response.ok) {
-				const result = await response.json()
-				setAiAnalysis(result.analysis)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar análise da IA", error)
-		} finally {
-			setLoadingAi(false)
-		}
-	}
 
 	if (loading) {
 		return (

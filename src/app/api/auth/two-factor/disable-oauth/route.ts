@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
 			eventType: SecurityEventType.TWO_FA_DISABLED,
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				method: "oauth-reauth",
 				via: "authenticator-app",
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
 		sendSecurityAlertEmail({
 			user: {
 				email: session.user.email,
-				name: session.user.name || undefined,
+				...(session.user.name && { name: session.user.name }),
 			},
 			action: "Autenticação de Dois Fatores (App) foi DESATIVADA",
 			device: userAgent,

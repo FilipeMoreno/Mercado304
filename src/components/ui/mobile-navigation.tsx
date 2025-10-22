@@ -55,14 +55,17 @@ export function MobileNavigation({
 		const targetPositions = snapPoints.map((point) => height * point)
 		const currentPosition = height * currentSnapPoint + currentY
 
-		let closestSnapPoint = snapPoints[0]
-		let minDistance = Math.abs(targetPositions[0] - currentPosition)
+		let closestSnapPoint = snapPoints[0] || 0
+		let minDistance = Math.abs((targetPositions[0] || 0) - currentPosition)
 
 		targetPositions.forEach((pos, index) => {
 			const distance = Math.abs(pos - currentPosition)
 			if (distance < minDistance) {
 				minDistance = distance
-				closestSnapPoint = snapPoints[index]
+				const snapPoint = snapPoints[index];
+				if (snapPoint !== undefined) {
+					closestSnapPoint = snapPoint
+				}
 			}
 		})
 
@@ -197,7 +200,7 @@ export function MobileNavigation({
 									size="sm"
 									onClick={() => {
 										const nextIndex = snapPoints.indexOf(currentSnapPoint) + 1
-										const nextSnapPoint = snapPoints[nextIndex] || snapPoints[0]
+										const nextSnapPoint = snapPoints[nextIndex] || snapPoints[0] || 0
 										setCurrentSnapPoint(nextSnapPoint)
 									}}
 									className="text-gray-500"

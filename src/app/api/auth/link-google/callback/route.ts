@@ -163,6 +163,7 @@ export async function GET(request: NextRequest) {
 			eventType: SecurityEventType.LOGIN_SUCCESS, // Poderia criar um novo tipo "ACCOUNT_LINKED"
 			ipAddress,
 			userAgent,
+			location: undefined,
 			metadata: {
 				action: "google_account_linked",
 				googleEmail,
@@ -172,11 +173,17 @@ export async function GET(request: NextRequest) {
 
 		// Envia email de notificação
 		const location = await getLocationFromIP(ipAddress)
+		
+		const userForEmail: { email: string; name?: string } = {
+			email: session.user.email,
+		}
+		
+		if (session.user.name) {
+			userForEmail.name = session.user.name
+		}
+		
 		sendSecurityAlertEmail({
-			user: {
-				email: session.user.email,
-				name: session.user.name || undefined,
-			},
+			user: userForEmail,
 			action: `Conta Google (${googleEmail}) foi VINCULADA à sua conta`,
 			device: userAgent,
 			location,

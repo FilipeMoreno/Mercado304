@@ -1,7 +1,7 @@
 "use client"
 
 import { Brain, CameraOff, Eye, Loader2, RotateCcw, Upload } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -87,16 +87,26 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 		getDevices()
 	}, [isOpen])
 
+	const stopCamera = useCallback(() => {
+		if (streamRef.current) {
+			streamRef.current.getTracks().forEach((track) => track.stop())
+			streamRef.current = null
+		}
+
+		if (videoRef.current) {
+			videoRef.current.srcObject = null
+		}
+	}, [])
+
 	// Inicializar câmera
 	useEffect(() => {
 		if (!isOpen || !hasCamera || !selectedDevice) return
 
 		const startCamera = async () => {
 			try {
-				const constraints = {
+				const constraints: MediaStreamConstraints = {
 					video: {
-						deviceId: selectedDevice ? { exact: selectedDevice } : undefined,
-						facingMode: selectedDevice ? undefined : "environment",
+						...(selectedDevice ? { deviceId: { exact: selectedDevice } } : { facingMode: "environment" }),
 						width: { ideal: 640 },
 						height: { ideal: 480 },
 					},
@@ -121,17 +131,6 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 			stopCamera()
 		}
 	}, [isOpen, hasCamera, selectedDevice, stopCamera])
-
-	const stopCamera = () => {
-		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop())
-			streamRef.current = null
-		}
-
-		if (videoRef.current) {
-			videoRef.current.srcObject = null
-		}
-	}
 
 	const analyzeImage = async (_imageElement: HTMLImageElement | HTMLVideoElement) => {
 		if (!modelLoaded) {
@@ -232,7 +231,10 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 
 		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDevice)
 		const nextIndex = (currentIndex + 1) % devices.length
-		setSelectedDevice(devices[nextIndex].deviceId)
+		const nextDevice = devices[nextIndex]
+		if (nextDevice) {
+			setSelectedDevice(nextDevice.deviceId)
+		}
 	}
 
 	const clearPredictions = () => {
@@ -389,13 +391,12 @@ export function ProductRecognition({ onProductDetected, onClose, isOpen }: Produ
 									</div>
 									<Badge
 										variant="secondary"
-										className={`${
-											prediction.confidence > 70
-												? "bg-green-500/20 text-green-300"
-												: prediction.confidence > 40
-													? "bg-yellow-500/20 text-yellow-300"
-													: "bg-red-500/20 text-red-300"
-										}`}
+										className={`${prediction.confidence > 70
+											? "bg-green-500/20 text-green-300"
+											: prediction.confidence > 40
+												? "bg-yellow-500/20 text-yellow-300"
+												: "bg-red-500/20 text-red-300"
+											}`}
 									>
 										{prediction.confidence}%
 									</Badge>

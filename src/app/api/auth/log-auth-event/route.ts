@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 			sendNewSessionEmail({
 				user: {
 					email: session.user.email,
-					name: session.user.name || undefined,
+					...(session.user.name && { name: session.user.name }),
 				},
 				device: userAgent,
 				location,

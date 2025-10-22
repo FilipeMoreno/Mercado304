@@ -21,7 +21,7 @@ function dataUrlToGoogleGenerativeAIContent(dataUrl: string) {
 		throw new Error("Formato de Data URL inválido")
 	}
 	return {
-		inlineData: { mimeType: match[1], data: match[2] },
+		inlineData: { mimeType: match[1] || "image/jpeg", data: match[2] || "" },
 	}
 }
 
@@ -120,16 +120,21 @@ Retorne APENAS o JSON, sem explicações adicionais.
 						item.name.toLowerCase().includes(product.name.toLowerCase()),
 				)
 
-				return {
+				const processedItem: ProcessedItem = {
 					id: item.id || crypto.randomUUID(),
 					name: item.name,
 					quantity: item.quantity || 1,
 					originalText: item.originalText || item.name,
 					isMatched: !!matchedProduct,
-					matchedProductId: matchedProduct?.id,
-					matchedProductName: matchedProduct?.name,
 					confidence: matchedProduct ? 0.8 : 0.0,
 				}
+				
+				if (matchedProduct) {
+					processedItem.matchedProductId = matchedProduct.id
+					processedItem.matchedProductName = matchedProduct.name
+				}
+				
+				return processedItem
 			},
 		)
 

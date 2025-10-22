@@ -203,7 +203,7 @@ export function SwipeableCard({
 				onTouchEnd={handleTouchEnd}
 				onClick={onClick}
 				animate={{
-					x: isDragging ? undefined : 0,
+					...(isDragging ? {} : { x: 0 }),
 					scale: isDragging ? 0.98 : 1,
 				}}
 				transition={{

@@ -32,6 +32,8 @@ export const advancedStockFunctions = {
 					const firstMovement = movements[0]
 					const lastMovement = movements[movements.length - 1]
 
+					if (!firstMovement || !lastMovement) continue;
+
 					const daysDiff = Math.max(
 						1,
 						(lastMovement.date.getTime() - firstMovement.date.getTime()) / (1000 * 60 * 60 * 24),
@@ -153,9 +155,13 @@ export const advancedStockFunctions = {
 
 				if (item.movements.length >= 2) {
 					const movements = item.movements
+					const firstMov = movements[0];
+					const lastMov = movements[movements.length - 1];
+					if (!firstMov || !lastMov) continue;
+
 					const daysDiff = Math.max(
 						1,
-						(movements[0].date.getTime() - movements[movements.length - 1].date.getTime()) / (1000 * 60 * 60 * 24),
+						(firstMov.date.getTime() - lastMov.date.getTime()) / (1000 * 60 * 60 * 24),
 					)
 					const totalConsumed = movements.reduce((sum, mov) => sum + mov.quantity, 0)
 					dailyConsumption = totalConsumed / daysDiff
@@ -260,8 +266,15 @@ export const advancedStockFunctions = {
 
 			// Calcula estatísticas de consumo
 			const sortedMovements = consumptionMovements.sort((a, b) => a.date.getTime() - b.date.getTime())
-			const firstDate = sortedMovements[0].date
-			const lastDate = sortedMovements[sortedMovements.length - 1].date
+			const firstMovement = sortedMovements[0];
+			const lastMovement = sortedMovements[sortedMovements.length - 1];
+
+			if (!firstMovement || !lastMovement) {
+				return { error: "Dados insuficientes para análise de padrões de consumo" }
+			}
+
+			const firstDate = firstMovement.date
+			const lastDate = lastMovement.date
 			const daysDiff = Math.max(1, (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24))
 
 			const totalConsumed = consumptionMovements.reduce((sum, mov) => sum + mov.quantity, 0)
@@ -453,9 +466,11 @@ export const advancedStockFunctions = {
 				// Categoria com mais desperdício
 				if (categoryAnalysis.length > 0) {
 					const topCategory = categoryAnalysis[0]
-					recommendations.push(
-						`Foque na categoria "${topCategory.category}" que representa ${topCategory.percentage.toFixed(1)}% do desperdício.`,
-					)
+					if (topCategory) {
+						recommendations.push(
+							`Foque na categoria "${topCategory.category}" que representa ${topCategory.percentage.toFixed(1)}% do desperdício.`,
+						)
+					}
 				}
 
 				// Principais motivos

@@ -41,6 +41,8 @@ export const CACHE_TAGS = {
 	userPreferences: (id: string) => `user-preferences-${id}`,
 } as const
 
-export type CacheTag =
-	| (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS]
-	| ReturnType<(typeof CACHE_TAGS)[keyof typeof CACHE_TAGS]>
+type CacheTagsValues = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS]
+type CacheTagFunctions = Extract<CacheTagsValues, (...args: any) => any>
+type CacheTagStrings = Exclude<CacheTagsValues, (...args: any) => any>
+
+export type CacheTag = CacheTagStrings | ReturnType<CacheTagFunctions>

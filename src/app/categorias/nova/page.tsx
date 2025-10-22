@@ -32,9 +32,10 @@ export default function NovaCategoriaPage() {
 		}
 
 		try {
+			const icon = formData.icon.trim();
 			await createCategoryMutation.mutateAsync({
 				name: formData.name.trim(),
-				icon: formData.icon.trim() || undefined,
+				...(icon ? { icon } : {}),
 				color: formData.color,
 				isFood: formData.isFood,
 			})

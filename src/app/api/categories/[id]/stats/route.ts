@@ -72,9 +72,10 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 					}
 				}
 
-				acc[item.productId].totalQuantity += item.quantity
-				acc[item.productId].totalSpent += item.finalPrice || item.totalPrice
-				acc[item.productId].purchaseCount += 1
+				const productStat = acc[item.productId]!
+				productStat.totalQuantity += item.quantity
+				productStat.totalSpent += item.finalPrice || item.totalPrice
+				productStat.purchaseCount += 1
 
 				return acc
 			},
@@ -114,8 +115,9 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
 					}
 				}
 
-				acc[marketId].totalSpent += item.finalPrice || item.totalPrice
-				acc[marketId].purchases.add(item.purchaseId)
+				const marketStat = acc[marketId]!
+				marketStat.totalSpent += item.finalPrice || item.totalPrice
+				marketStat.purchases.add(item.purchaseId)
 
 				return acc
 			},

@@ -112,7 +112,7 @@ const _nutrientMapping: { [key: string]: keyof NutritionalInfo } = {
 function _parseNutrientAmount(amount: string | null): number | undefined {
 	if (!amount) return undefined
 	const match = amount.match(/(\d+[,.]?\d*)/)
-	return match ? parseFloat(match[1].replace(",", ".")) : undefined
+	return match && match[1] ? parseFloat(match[1].replace(",", ".")) : undefined
 }
 
 // Função auxiliar para verificar se um valor é válido (não vazio)
@@ -306,7 +306,7 @@ function extractValue(text: string, keywords: RegExp[]): number | undefined {
 			const startIndex = match.index! + match[0].length
 			const remainingText = text.substring(startIndex)
 			const valueMatch = remainingText.match(/(\d+(\.\d+)?)/)
-			if (valueMatch) {
+			if (valueMatch && valueMatch[1]) {
 				const value = parseFloat(valueMatch[1])
 				if (value < 2000) return value
 			}
@@ -335,7 +335,7 @@ function extractServingsPerPackage(text: string): number | undefined {
 
 	for (const pattern of patterns) {
 		const match = text.match(pattern)
-		if (match) {
+		if (match && match[1]) {
 			const value = parseFloat(match[1].replace(",", "."))
 			if (value > 0 && value <= 100) {
 				// Validação básica
@@ -355,7 +355,7 @@ function extractAllergens(text: string): {
 	const cleanedText = text.toLowerCase().replace(/\s+/g, " ")
 
 	const containsMatch = cleanedText.match(/alergicos\s*:\s*contem\s+([^.]+)/i)
-	if (containsMatch) {
+	if (containsMatch && containsMatch[1]) {
 		const allergensText = containsMatch[1]
 		commonAllergens.forEach((allergen) => {
 			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
@@ -365,7 +365,7 @@ function extractAllergens(text: string): {
 	}
 
 	const mayContainMatch = cleanedText.match(/pode conter\s+([^.]+)/i)
-	if (mayContainMatch) {
+	if (mayContainMatch && mayContainMatch[1]) {
 		const allergensText = mayContainMatch[1]
 		commonAllergens.forEach((allergen) => {
 			if (new RegExp(`\\b${allergen}\\b`, "i").test(allergensText)) {
@@ -404,8 +404,8 @@ export function parseOcrText(text: string): Partial<NutritionalInfo> {
 	const allergens = extractAllergens(cleaned)
 
 	return {
-		servingSize,
-		servingsPerPackage,
+		...(servingSize ? { servingSize } : {}),
+		...(servingsPerPackage ? { servingsPerPackage } : {}),
 		...nutrients,
 		allergensContains: allergens.contains,
 		allergensMayContain: allergens.mayContain,

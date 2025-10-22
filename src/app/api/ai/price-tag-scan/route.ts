@@ -123,7 +123,7 @@ Exemplo 2 - Etiqueta com preço único:
 
 			extractedData = {
 				barcode: barcodeMatch ? barcodeMatch[0] : null,
-				prices: priceMatch ? [{ value: parseFloat(priceMatch[1].replace(",", ".")), condition: "Normal" }] : [],
+				prices: priceMatch && priceMatch[1] ? [{ value: parseFloat(priceMatch[1].replace(",", ".")), condition: "Normal" }] : [],
 				productName: null,
 				weight: null,
 				confidence: 0.5,

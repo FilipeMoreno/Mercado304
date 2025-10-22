@@ -90,11 +90,11 @@ export function EditItemDialog({
 	}, [])
 
 	const handleProductNameChange = (name: string) => {
+		const { productId, ...rest } = editItemData;
 		onEditItemDataChange({
-			...editItemData,
+			...rest,
 			productName: name,
-			// Remove vínculo se editar manualmente
-			productId: undefined,
+			// productId removed when manually editing
 		})
 	}
 
@@ -111,9 +111,9 @@ export function EditItemDialog({
 	}
 
 	const handleUnlinkProduct = () => {
+		const { productId, ...rest } = editItemData;
 		onEditItemDataChange({
-			...editItemData,
-			productId: undefined,
+			...rest,
 		})
 		toast.info("Produto desvinculado, permanecerá como texto livre")
 	}

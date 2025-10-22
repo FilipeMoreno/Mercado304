@@ -43,7 +43,8 @@ export async function GET() {
 			})
 		})
 
-		const topCategory = Object.entries(categoryCounts).sort(([, a], [, b]) => b - a)[0][0]
+		const sortedCategories = Object.entries(categoryCounts).sort(([, a], [, b]) => b - a)
+		const topCategory = sortedCategories[0]?.[0] || "Outros"
 
 		const genAI = new GoogleGenerativeAI(apiKey)
 		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })

@@ -117,10 +117,10 @@ export const predictionFunctions = {
 							)
 							return product?.found
 								? {
-										market: market.market,
-										price: product.price,
-										lastUpdate: product.lastUpdate,
-									}
+									market: market.market,
+									price: product.price,
+									lastUpdate: product.lastUpdate,
+								}
 								: null
 						})
 						.filter(Boolean)
@@ -234,8 +234,12 @@ export const predictionFunctions = {
 					const intervals = []
 
 					for (let i = 1; i < sortedPurchases.length; i++) {
-						const interval = (sortedPurchases[i].getTime() - sortedPurchases[i - 1].getTime()) / (1000 * 60 * 60 * 24)
-						intervals.push(interval)
+						const current = sortedPurchases[i];
+						const previous = sortedPurchases[i - 1];
+						if (current && previous) {
+							const interval = (current.getTime() - previous.getTime()) / (1000 * 60 * 60 * 24)
+							intervals.push(interval)
+						}
 					}
 
 					const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
@@ -451,7 +455,7 @@ export const predictionFunctions = {
 				if (!categoryGroups[item.category]) {
 					categoryGroups[item.category] = []
 				}
-				categoryGroups[item.category].push(item)
+				categoryGroups[item.category]!.push(item)
 			}
 
 			const totalEstimatedCost = forgottenItems.reduce((sum, item) => sum + item.estimatedPrice * item.avgQuantity, 0)
@@ -617,13 +621,16 @@ export const predictionFunctions = {
 				if (!categoryChanges[change.category]) {
 					categoryChanges[change.category] = { products: 0, avgChange: 0 }
 				}
-				categoryChanges[change.category].products++
-				categoryChanges[change.category].avgChange += Math.abs(change.quantityChange)
+				categoryChanges[change.category]!.products++
+				categoryChanges[change.category]!.avgChange += Math.abs(change.quantityChange)
 			}
 
 			for (const category of Object.keys(categoryChanges)) {
-				categoryChanges[category].avgChange /= categoryChanges[category].products
-				categoryChanges[category].avgChange = Math.round(categoryChanges[category].avgChange * 10) / 10
+				const catChange = categoryChanges[category];
+				if (catChange) {
+					catChange.avgChange /= catChange.products
+					catChange.avgChange = Math.round(catChange.avgChange * 10) / 10
+				}
 			}
 
 			const totalFirstPeriodSpending = Object.values(firstPeriodConsumption).reduce(

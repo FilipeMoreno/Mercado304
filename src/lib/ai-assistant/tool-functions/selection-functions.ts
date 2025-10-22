@@ -43,7 +43,7 @@ export const selectionFunctions = {
 			}
 		}
 
-		if (products.length === 1) {
+		if (products.length === 1 && products[0]) {
 			return {
 				success: true,
 				exactMatch: true,
@@ -87,7 +87,7 @@ export const selectionFunctions = {
 			}
 		}
 
-		if (markets.length === 1) {
+		if (markets.length === 1 && markets[0]) {
 			return {
 				success: true,
 				exactMatch: true,
@@ -126,7 +126,7 @@ export const selectionFunctions = {
 			}
 		}
 
-		if (categories.length === 1) {
+		if (categories.length === 1 && categories[0]) {
 			return {
 				success: true,
 				exactMatch: true,
@@ -170,7 +170,7 @@ export const selectionFunctions = {
 			}
 		}
 
-		if (brands.length === 1) {
+		if (brands.length === 1 && brands[0]) {
 			return {
 				success: true,
 				exactMatch: true,
@@ -213,7 +213,7 @@ export const selectionFunctions = {
 			}
 		}
 
-		if (lists.length === 1) {
+		if (lists.length === 1 && lists[0]) {
 			return {
 				success: true,
 				exactMatch: true,

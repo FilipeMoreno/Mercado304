@@ -69,18 +69,18 @@ export function AddItemDialog({
 	}
 
 	const handleProductNameChange = (name: string) => {
+		const { productId, ...rest } = newItem;
 		onNewItemChange({
-			...newItem,
+			...rest,
 			productName: name,
-			// Remove vínculo se editar manualmente
-			productId: undefined,
+			// productId removed when manually editing
 		})
 	}
 
 	const handleUnlinkProduct = () => {
+		const { productId, ...rest } = newItem;
 		onNewItemChange({
-			...newItem,
-			productId: undefined,
+			...rest,
 		})
 	}
 
@@ -244,12 +244,14 @@ export function AddItemDialog({
 						step="0.01"
 						min="0"
 						value={newItem.estimatedPrice || ""}
-						onChange={(e) =>
+						onChange={(e) => {
+							const price = parseFloat(e.target.value);
+							const { estimatedPrice, ...rest } = newItem;
 							onNewItemChange({
-								...newItem,
-								estimatedPrice: parseFloat(e.target.value) || undefined,
+								...rest,
+								...(price && !isNaN(price) ? { estimatedPrice: price } : {}),
 							})
-						}
+						}}
 						placeholder="0.00"
 					/>
 				</div>

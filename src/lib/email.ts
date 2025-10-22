@@ -46,7 +46,7 @@ export async function sendVerificationEmail({ user, url }: { user: { email: stri
 	console.log(`[SendVerificationEmail] Nome do usuário:`, user.name || "Não fornecido")
 
 	const html = getEmailVerificationTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 		url,
 	})
 
@@ -61,7 +61,7 @@ export async function sendVerificationEmail({ user, url }: { user: { email: stri
 
 export async function sendPasswordResetEmail({ user, url }: { user: { email: string; name?: string }; url: string }) {
 	const html = getPasswordResetTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 		url,
 	})
 
@@ -74,7 +74,7 @@ export async function sendPasswordResetEmail({ user, url }: { user: { email: str
 
 export async function sendTwoFactorEmail({ user, code }: { user: { email: string; name?: string }; code: string }) {
 	const html = getTwoFactorEmailTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 		code,
 	})
 
@@ -87,7 +87,7 @@ export async function sendTwoFactorEmail({ user, code }: { user: { email: string
 
 export async function sendWelcomeEmail({ user }: { user: { email: string; name?: string } }) {
 	const html = getWelcomeEmailTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 	})
 
 	return sendEmail({
@@ -113,12 +113,12 @@ export async function sendSecurityAlertEmail({
 	timestamp?: string
 }) {
 	const html = getSecurityAlertTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 		action,
-		device,
-		location,
-		ipAddress,
-		timestamp,
+		...(device ? { device } : {}),
+		...(location ? { location } : {}),
+		...(ipAddress ? { ipAddress } : {}),
+		...(timestamp ? { timestamp } : {}),
 	})
 
 	return sendEmail({
@@ -142,12 +142,12 @@ export async function sendNewSessionEmail({
 	timestamp?: string
 }) {
 	const html = getNewSessionTemplate({
-		userName: user.name,
+		...(user.name ? { userName: user.name } : { userName: "Usuário" }),
 		action: "", // não usado neste template
-		device,
-		location,
-		ipAddress,
-		timestamp,
+		...(device ? { device } : {}),
+		...(location ? { location } : {}),
+		...(ipAddress ? { ipAddress } : {}),
+		...(timestamp ? { timestamp } : {}),
 	})
 
 	return sendEmail({

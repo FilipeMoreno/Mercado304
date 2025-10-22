@@ -90,25 +90,30 @@ export function AIListReviewDialog({
 
 	const handleProductChange = (index: number, product: Product | null) => {
 		const newItems = [...processedItems]
+		const currentItem = newItems[index];
+		if (!currentItem) return;
+
 		if (product) {
-			newItems[index].productId = product.id
-			newItems[index].productName = product.name
-			newItems[index].isAssociated = true
-			newItems[index].isTemporary = false
-			toast.success(`"${newItems[index].originalName}" associado a "${product.name}".`)
+			currentItem.productId = product.id
+			currentItem.productName = product.name
+			currentItem.isAssociated = true
+			currentItem.isTemporary = false
+			toast.success(`"${currentItem.originalName}" associado a "${product.name}".`)
 		} else {
-			newItems[index].productId = ""
-			newItems[index].productName = ""
-			newItems[index].isAssociated = false
-			newItems[index].isTemporary = false
+			currentItem.productId = ""
+			currentItem.productName = ""
+			currentItem.isAssociated = false
+			currentItem.isTemporary = false
 		}
 		setProcessedItems(newItems)
 	}
 
 	const handleQuantityChange = (index: number, value: string) => {
 		const newItems = [...processedItems]
+		const currentItem = newItems[index];
+		if (!currentItem) return;
 		const numericValue = parseFloat(value) || 0
-		newItems[index].quantity = numericValue
+		currentItem.quantity = numericValue
 		setProcessedItems(newItems)
 	}
 
@@ -120,14 +125,17 @@ export function AIListReviewDialog({
 
 	const handleMarkAsTemporary = (index: number) => {
 		const newItems = [...processedItems]
-		newItems[index].isTemporary = !newItems[index].isTemporary
+		const currentItem = newItems[index];
+		if (!currentItem) return;
 
-		if (newItems[index].isTemporary) {
-			newItems[index].isAssociated = true // Considerar como "resolvido"
-			toast.success(`"${newItems[index].originalName}" será criado como produto temporário.`)
+		currentItem.isTemporary = !currentItem.isTemporary
+
+		if (currentItem.isTemporary) {
+			currentItem.isAssociated = true // Considerar como "resolvido"
+			toast.success(`"${currentItem.originalName}" será criado como produto temporário.`)
 		} else {
-			newItems[index].isAssociated = false
-			toast.info(`"${newItems[index].originalName}" não será mais temporário.`)
+			currentItem.isAssociated = false
+			toast.info(`"${currentItem.originalName}" não será mais temporário.`)
 		}
 		setProcessedItems(newItems)
 	}
@@ -195,11 +203,13 @@ export function AIListReviewDialog({
 		const finalItems: FinalListItem[] = processedItems
 			.filter((item) => item.isAssociated && item.quantity > 0)
 			.map((item) => ({
-				productId: item.isTemporary ? undefined : item.productId,
-				tempName: item.isTemporary ? item.originalName : undefined,
+				...(item.isTemporary
+					? { tempName: item.originalName }
+					: item.productId ? { productId: item.productId } : {}
+				),
 				quantity: item.quantity,
 				isTemporary: item.isTemporary,
-			}))
+			})) as FinalListItem[]
 
 		if (finalItems.length === 0) {
 			toast.error("Nenhum item foi processado.", {
@@ -335,7 +345,7 @@ export function AIListReviewDialog({
 										<div className="flex-1">
 											{selectStyle === "dialog" ? (
 												<ProductSelectDialog
-													value={item.productId || undefined}
+													{...(item.productId ? { value: item.productId } : {})}
 													onValueChange={(value) => {
 														if (value) {
 															fetch(`/api/products/${value}`)
@@ -353,7 +363,7 @@ export function AIListReviewDialog({
 												/>
 											) : (
 												<ProductSelect
-													value={item.productId || undefined}
+													{...(item.productId ? { value: item.productId } : {})}
 													onValueChange={(value) => {
 														if (value) {
 															fetch(`/api/products/${value}`)
