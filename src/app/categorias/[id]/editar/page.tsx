@@ -3,30 +3,41 @@
 import { ArrowLeft, Save, X } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { useCategoryQuery, useUpdateCategoryMutation } from "@/hooks"
 
 export default function EditarCategoriaPage() {
 	const params = useParams()
 	const router = useRouter()
 	const categoryId = params.id as string
+	const nameId = useId()
+	const iconId = useId()
+	const colorId = useId()
+	const isFoodId = useId()
 
 	const { data: category, isLoading } = useCategoryQuery(categoryId)
 	const updateCategoryMutation = useUpdateCategoryMutation()
 
 	const [formData, setFormData] = useState({
 		name: "",
+		icon: "",
+		color: "#3b82f6",
+		isFood: false,
 	})
 
 	useEffect(() => {
 		if (category) {
 			setFormData({
 				name: category.name || "",
+				icon: category.icon || "",
+				color: category.color || "#3b82f6",
+				isFood: category.isFood || false,
 			})
 		}
 	}, [category])
@@ -40,20 +51,24 @@ export default function EditarCategoriaPage() {
 		}
 
 		try {
+			const icon = formData.icon.trim()
 			await updateCategoryMutation.mutateAsync({
 				id: categoryId,
 				data: {
 					name: formData.name.trim(),
+					...(icon ? { icon } : { icon: null }), // Permitir remoção do ícone
+					color: formData.color,
+					isFood: formData.isFood,
 				},
 			})
 
-			toast.success("Categoria atualizada com sucesso!")
+			// Toast já é enviado pelo hook - não duplicar aqui
 			setTimeout(() => {
 				router.push("/categorias")
-			}, 100)
+			}, 500)
 		} catch (error) {
 			console.error("Error updating category:", error)
-			toast.error("Erro ao atualizar categoria")
+			// Toast de erro já é enviado pelo hook
 		}
 	}
 
@@ -131,15 +146,58 @@ export default function EditarCategoriaPage() {
 				<CardContent>
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div className="space-y-2">
-							<Label htmlFor="name">Nome da Categoria *</Label>
+							<Label htmlFor={nameId}>Nome da Categoria *</Label>
 							<Input
-								id="name"
+								id={nameId}
 								value={formData.name}
 								onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 								placeholder="Ex: Bebidas, Laticínios, Carnes..."
 								required
 							/>
 							<p className="text-xs text-gray-500">Digite o nome da categoria de produtos</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={iconId}>Ícone (Emoji)</Label>
+							<Input
+								id={iconId}
+								value={formData.icon}
+								onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
+								placeholder="📦 🥛 🍖 🍞 (opcional)"
+								maxLength={10}
+							/>
+							<p className="text-xs text-gray-500">Use emojis para representar visualmente a categoria</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={colorId}>Cor da Categoria</Label>
+							<div className="flex items-center gap-3">
+								<Input
+									id={colorId}
+									type="color"
+									value={formData.color}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
+									className="w-20 h-10"
+								/>
+								<Input
+									value={formData.color}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
+									placeholder="#3b82f6"
+									className="flex-1"
+								/>
+							</div>
+						</div>
+
+						<div className="flex items-center space-x-3">
+							<Switch
+								id={isFoodId}
+								checked={formData.isFood}
+								onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isFood: checked }))}
+							/>
+							<div>
+								<Label htmlFor={isFoodId}>Esta categoria é um alimento?</Label>
+								<p className="text-xs text-gray-500">Marque se esta categoria representa produtos alimentícios</p>
+							</div>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">

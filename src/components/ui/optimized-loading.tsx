@@ -6,69 +6,28 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 // Skeleton otimizado para ProductCard
 export const ProductCardSkeleton = memo(() => (
-	<Card className="h-full">
-		<CardContent className="p-4">
-			<div className="space-y-3">
-				<div className="flex items-start justify-between">
-					<Skeleton className="h-4 w-3/4" />
-					<Skeleton className="size-6 rounded-sm" />
-				</div>
-				<div className="space-y-2">
-					<Skeleton className="h-3 w-1/2" />
-					<Skeleton className="h-3 w-1/3" />
-				</div>
-				<Skeleton className="h-8 w-full" />
-			</div>
-		</CardContent>
-	</Card>
+	<ProductCardSkeleton />
 ))
 
 ProductCardSkeleton.displayName = "ProductCardSkeleton"
 
 // Skeleton otimizado para MarketCard
 export const MarketCardSkeleton = memo(() => (
-	<Card className="h-full">
-		<CardHeader className="pb-3">
-			<div className="space-y-2">
-				<Skeleton className="h-6 w-3/4" />
-				<Skeleton className="h-4 w-1/2" />
-			</div>
-		</CardHeader>
-		<CardContent className="pt-0">
-			<Skeleton className="h-8 w-full" />
-		</CardContent>
-	</Card>
+	<MarketCardSkeleton />
 ))
 
 MarketCardSkeleton.displayName = "MarketCardSkeleton"
 
 // Skeleton otimizado para CategoryCard
 export const CategoryCardSkeleton = memo(() => (
-	<Card className="h-full">
-		<CardHeader className="pb-3">
-			<div className="flex items-center gap-2">
-				<Skeleton className="size-8 rounded-sm" />
-				<Skeleton className="h-6 w-3/4" />
-			</div>
-		</CardHeader>
-		<CardContent className="pt-0">
-			<Skeleton className="h-8 w-full" />
-		</CardContent>
-	</Card>
+	<CategoryCardSkeleton />
 ))
 
 CategoryCardSkeleton.displayName = "CategoryCardSkeleton"
 
 // Skeleton otimizado para BrandCard
 export const BrandCardSkeleton = memo(() => (
-	<Card className="h-full">
-		<CardHeader className="pb-3">
-			<Skeleton className="h-6 w-3/4" />
-		</CardHeader>
-		<CardContent className="pt-0">
-			<Skeleton className="h-8 w-full" />
-		</CardContent>
-	</Card>
+	<BrandCardSkeleton />
 ))
 
 BrandCardSkeleton.displayName = "BrandCardSkeleton"

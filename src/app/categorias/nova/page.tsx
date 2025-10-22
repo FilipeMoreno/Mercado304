@@ -40,14 +40,14 @@ export default function NovaCategoriaPage() {
 				isFood: formData.isFood,
 			})
 
-			toast.success("Categoria criada com sucesso!")
+			// Toast já é enviado pelo hook - não duplicar aqui
 			// Pequeno delay para garantir que a invalidação seja processada
 			setTimeout(() => {
 				router.push("/categorias")
-			}, 100)
+			}, 500)
 		} catch (error) {
 			console.error("Error creating category:", error)
-			toast.error("Erro ao criar categoria")
+			// Toast de erro já é enviado pelo hook
 		}
 	}
 
