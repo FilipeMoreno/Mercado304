@@ -2,19 +2,13 @@
 
 import { Check, Loader2, Package, X } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog"
+import { DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Separator } from "@/components/ui/separator"
 
 interface BarcodeAutofillDialogProps {
@@ -63,15 +57,14 @@ interface BarcodeResponse {
 	}
 }
 
-export function BarcodeAutofillDialog({
-	open,
-	onOpenChange,
-	barcode,
-	onApply,
-}: BarcodeAutofillDialogProps) {
+export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: BarcodeAutofillDialogProps) {
 	const [loading, setLoading] = useState(false)
 	const [data, setData] = useState<BarcodeResponse | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const nameId = useId()
+	const packageSizeId = useId()
+	const brandId = useId()
+	const categoryId = useId()
 
 	// Campos selecionados para autofill
 	const [selectedFields, setSelectedFields] = useState({
@@ -105,7 +98,7 @@ export function BarcodeAutofillDialog({
 			// Converter resposta do Gemini para o formato esperado
 			const convertedResult: BarcodeResponse = {
 				cosmos: {
-					gtin: Number.parseInt(barcode),
+					gtin: Number.parseInt(barcode, 10),
 					description: result.suggestions.name || "",
 					avg_price: result.suggestions.estimatedPrice || undefined,
 					brand: result.suggestions.brand?.name ? { name: result.suggestions.brand.name } : undefined,
@@ -114,21 +107,27 @@ export function BarcodeAutofillDialog({
 				suggestions: {
 					name: result.suggestions.name || "",
 					packageSize: result.suggestions.packageSize || undefined,
-					brand: result.suggestions.brand ? {
-						id: result.suggestions.brand.id || undefined,
-						name: result.suggestions.brand.name,
-						exists: !!result.suggestions.brand.id,
-						shouldCreate: result.suggestions.brand.shouldCreate || false,
-					} : undefined,
-					categories: result.suggestions.category ? [{
-						id: result.suggestions.category.id,
-						name: result.suggestions.category.name,
-						icon: undefined,
-						color: undefined,
-					}] : [],
+					brand: result.suggestions.brand
+						? {
+								id: result.suggestions.brand.id || undefined,
+								name: result.suggestions.brand.name,
+								exists: !!result.suggestions.brand.id,
+								shouldCreate: result.suggestions.brand.shouldCreate || false,
+							}
+						: undefined,
+					categories: result.suggestions.category
+						? [
+								{
+									id: result.suggestions.category.id,
+									name: result.suggestions.category.name,
+									icon: undefined,
+									color: undefined,
+								},
+							]
+						: [],
 					categoryKeywords: [],
 					thumbnail: undefined,
-				}
+				},
 			}
 
 			setData(convertedResult)
@@ -136,12 +135,11 @@ export function BarcodeAutofillDialog({
 			// Pré-selecionar categoria se houver
 			if (result.suggestions.category) {
 				setSelectedCategoryId(result.suggestions.category.id)
-				setSelectedFields(prev => ({ ...prev, category: true }))
+				setSelectedFields((prev) => ({ ...prev, category: true }))
 			}
-
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error("Erro ao buscar dados do barcode:", err)
-			setError(err.message)
+			setError(err instanceof Error ? err.message : "Erro desconhecido")
 		} finally {
 			setLoading(false)
 		}
@@ -188,19 +186,20 @@ export function BarcodeAutofillDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						Informações do Produto
-						<span className="text-xs font-normal px-2 py-1 bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-full">
-							✨ IA Gemini
-						</span>
-					</DialogTitle>
-					<DialogDescription>
-						Dados encontrados via IA para o código EAN/GTIN <strong>{barcode}</strong>
-					</DialogDescription>
-				</DialogHeader>
+		<ResponsiveDialog
+			open={open}
+			onOpenChange={handleOpenChange}
+			title="Informações do Produto"
+			description={`Dados encontrados via IA para o código EAN/GTIN ${barcode}`}
+			maxWidth="2xl"
+			maxHeight={true}
+		>
+			<div className="space-y-4">
+				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<span className="text-xs font-normal px-2 py-1 bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-full">
+						✨ IA Gemini
+					</span>
+				</div>
 
 				{loading && (
 					<div className="flex items-center justify-center py-8">
@@ -232,16 +231,12 @@ export function BarcodeAutofillDialog({
 								</div>
 							)}
 							<div className="flex-1">
-								<h3 className="font-semibold">{data.cosmos.description}</h3>
-								{data.cosmos.brand && (
-									<p className="text-sm text-gray-600 mt-1">
-										Marca: {data.cosmos.brand.name}
-									</p>
-								)}
+								<h3 className="font-semibold">
+									{data.cosmos.description || data.suggestions.name || "Produto não identificado"}
+								</h3>
+								{data.cosmos.brand && <p className="text-sm text-gray-600 mt-1">Marca: {data.cosmos.brand.name}</p>}
 								{data.cosmos.avg_price && (
-									<p className="text-sm text-gray-600">
-										Preço médio: R$ {data.cosmos.avg_price.toFixed(2)}
-									</p>
+									<p className="text-sm text-gray-600">Preço médio: R$ {data.cosmos.avg_price.toFixed(2)}</p>
 								)}
 							</div>
 						</div>
@@ -250,44 +245,38 @@ export function BarcodeAutofillDialog({
 
 						{/* Selecionar campos para preencher */}
 						<div className="space-y-4">
-							<h4 className="font-semibold text-sm">
-								Selecione as informações que deseja preencher automaticamente:
-							</h4>
+							<h4 className="font-semibold text-sm">Selecione as informações que deseja preencher automaticamente:</h4>
 
-							{/* Nome do Produto */}
-							<div className="flex items-start space-x-3">
-								<Checkbox
-									id="name"
-									checked={selectedFields.name}
-									onCheckedChange={(checked) =>
-										setSelectedFields(prev => ({ ...prev, name: !!checked }))
-									}
-								/>
-								<div className="flex-1">
-									<Label htmlFor="name" className="font-medium cursor-pointer">
-										Nome do Produto
-									</Label>
-									<p className="text-sm text-gray-600">{data.suggestions.name}</p>
+							{/* Nome do Produto - sempre mostrar se houver nome */}
+							{data.suggestions.name && (
+								<div className="flex items-start space-x-3">
+									<Checkbox
+										id={nameId}
+										checked={selectedFields.name}
+										onCheckedChange={(checked) => setSelectedFields((prev) => ({ ...prev, name: !!checked }))}
+									/>
+									<div className="flex-1">
+										<Label htmlFor={nameId} className="font-medium cursor-pointer">
+											Nome do Produto
+										</Label>
+										<p className="text-sm text-gray-600">{data.suggestions.name}</p>
+									</div>
 								</div>
-							</div>
+							)}
 
 							{/* Tamanho/Volume */}
 							{data.suggestions.packageSize && (
 								<div className="flex items-start space-x-3">
 									<Checkbox
-										id="packageSize"
+										id={packageSizeId}
 										checked={selectedFields.packageSize}
-										onCheckedChange={(checked) =>
-											setSelectedFields(prev => ({ ...prev, packageSize: !!checked }))
-										}
+										onCheckedChange={(checked) => setSelectedFields((prev) => ({ ...prev, packageSize: !!checked }))}
 									/>
 									<div className="flex-1">
-										<Label htmlFor="packageSize" className="font-medium cursor-pointer">
+										<Label htmlFor={packageSizeId} className="font-medium cursor-pointer">
 											Tamanho/Volume
 										</Label>
-										<p className="text-sm text-gray-600">
-											{data.suggestions.packageSize}
-										</p>
+										<p className="text-sm text-gray-600">{data.suggestions.packageSize}</p>
 									</div>
 								</div>
 							)}
@@ -296,14 +285,12 @@ export function BarcodeAutofillDialog({
 							{data.suggestions.brand && (
 								<div className="flex items-start space-x-3">
 									<Checkbox
-										id="brand"
+										id={brandId}
 										checked={selectedFields.brand}
-										onCheckedChange={(checked) =>
-											setSelectedFields(prev => ({ ...prev, brand: !!checked }))
-										}
+										onCheckedChange={(checked) => setSelectedFields((prev) => ({ ...prev, brand: !!checked }))}
 									/>
 									<div className="flex-1">
-										<Label htmlFor="brand" className="font-medium cursor-pointer">
+										<Label htmlFor={brandId} className="font-medium cursor-pointer">
 											Marca
 										</Label>
 										<p className="text-sm text-gray-600">
@@ -322,21 +309,19 @@ export function BarcodeAutofillDialog({
 							{data.suggestions.categories.length > 0 && (
 								<div className="flex items-start space-x-3">
 									<Checkbox
-										id="category"
+										id={categoryId}
 										checked={selectedFields.category}
-										onCheckedChange={(checked) =>
-											setSelectedFields(prev => ({ ...prev, category: !!checked }))
-										}
+										onCheckedChange={(checked) => setSelectedFields((prev) => ({ ...prev, category: !!checked }))}
 									/>
 									<div className="flex-1">
-										<Label htmlFor="category" className="font-medium cursor-pointer">
+										<Label htmlFor={categoryId} className="font-medium cursor-pointer">
 											Categoria
 										</Label>
 										<p className="text-xs text-gray-500 mb-2">
 											Palavras-chave: {data.suggestions.categoryKeywords.join(", ")}
 										</p>
 										<div className="space-y-2">
-											{data.suggestions.categories.map(category => (
+											{data.suggestions.categories.map((category) => (
 												<label
 													key={category.id}
 													className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
@@ -356,38 +341,44 @@ export function BarcodeAutofillDialog({
 													/>
 													<span className="text-lg">{category.icon || "📦"}</span>
 													<span className="text-sm flex-1">{category.name}</span>
-													{selectedCategoryId === category.id && (
-														<Check className="h-4 w-4 text-primary" />
-													)}
+													{selectedCategoryId === category.id && <Check className="h-4 w-4 text-primary" />}
 												</label>
 											))}
 										</div>
 									</div>
 								</div>
 							)}
+
+							{/* Mensagem quando não há dados para preencher */}
+							{!data.suggestions.name &&
+								!data.suggestions.packageSize &&
+								!data.suggestions.brand &&
+								data.suggestions.categories.length === 0 && (
+									<div className="text-center py-4">
+										<Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+										<p className="text-sm text-gray-600">
+											Nenhuma informação adicional foi encontrada para este código de barras.
+										</p>
+										<p className="text-xs text-gray-500 mt-1">
+											Você pode preencher manualmente as informações do produto.
+										</p>
+									</div>
+								)}
 						</div>
 					</div>
 				)}
 
 				<DialogFooter>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => onOpenChange(false)}
-					>
+					<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
 						<X className="h-4 w-4 mr-2" />
 						Cancelar
 					</Button>
-					<Button
-						type="button"
-						onClick={handleApply}
-						disabled={loading || !data}
-					>
+					<Button type="button" onClick={handleApply} disabled={loading || !data}>
 						<Check className="h-4 w-4 mr-2" />
 						Aplicar Selecionados
 					</Button>
 				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+			</div>
+		</ResponsiveDialog>
 	)
 }

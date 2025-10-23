@@ -89,12 +89,30 @@ Se não encontrar o produto nas suas bases de dados, retorne productFound: false
 		const text = response.text()
 
 		// Extrair JSON da resposta
-		let geminiData
+		let geminiData: {
+			productFound: boolean
+			name?: string
+			description?: string
+			packageSize?: string
+			brand?: {
+				id?: string
+				name: string
+				shouldCreate?: boolean
+			}
+			category?: {
+				id: string
+				name: string
+			}
+			unit?: string
+			estimatedPrice?: number
+			isFood?: boolean
+			confidence?: string
+		}
 		try {
 			// Remover markdown code blocks se existirem
 			const cleanText = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
 			geminiData = JSON.parse(cleanText)
-		} catch (parseError) {
+		} catch {
 			console.error("[Gemini Barcode] Erro ao parsear resposta:", text)
 			return NextResponse.json(
 				{ error: "Erro ao processar resposta do Gemini" },
@@ -134,11 +152,11 @@ Se não encontrar o produto nas suas bases de dados, retorne productFound: false
 			}
 		})
 
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("[Gemini Barcode API] Erro:", error)
 
 		// Erro de API Key
-		if (error.message?.includes("API key")) {
+		if (error instanceof Error && error.message?.includes("API key")) {
 			return NextResponse.json(
 				{ error: "Erro de configuração da API Gemini. Contate o administrador." },
 				{ status: 500 },
@@ -146,7 +164,7 @@ Se não encontrar o produto nas suas bases de dados, retorne productFound: false
 		}
 
 		// Erro de quota
-		if (error.message?.includes("quota") || error.message?.includes("limit")) {
+		if (error instanceof Error && (error.message?.includes("quota") || error.message?.includes("limit"))) {
 			return NextResponse.json(
 				{ error: "Limite de requisições do Gemini atingido. Tente novamente mais tarde." },
 				{ status: 429 },
