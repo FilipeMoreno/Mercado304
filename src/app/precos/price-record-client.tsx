@@ -21,7 +21,7 @@ import {
 	X,
 	Zap,
 } from "lucide-react"
-import type React from "react"
+import React from "react"
 import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
@@ -54,10 +54,48 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUIPreferences } from "@/hooks"
+import { useDebounce } from "@/hooks/use-debounce"
 
-function PriceAnalysisCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
+function PriceAnalysisCard({
+	className,
+	priceRecords,
+	loading = false,
+	onLoadData
+}: {
+	className?: string
+	priceRecords: PriceRecord[]
+	loading?: boolean
+	onLoadData?: () => void
+}) {
+	// Carregar dados se necessário
+	React.useEffect(() => {
+		if (priceRecords.length === 0 && onLoadData && !loading) {
+			onLoadData()
+		}
+	}, [priceRecords.length, onLoadData, loading])
+
+	if (loading) {
+		return (
+			<Card className={className}>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Activity className="h-5 w-5" />
+						Análise de Preços
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-center py-12">
+						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+						<p className="text-muted-foreground mt-2">Carregando dados históricos...</p>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
+
 	if (priceRecords.length === 0) {
 		return (
 			<Card className={className}>
@@ -142,6 +180,21 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 
 	return (
 		<div className={`space-y-6 ${className}`}>
+			{/* Informações sobre os dados */}
+			<Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+				<CardContent className="pt-6">
+					<div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+						<Activity className="h-4 w-4" />
+						<span className="font-medium">Análise Completa:</span>
+						<span>{priceRecords.length} registros históricos analisados</span>
+						<span>•</span>
+						<span>{new Set(priceRecords.map(r => r.product)).size} produtos únicos</span>
+						<span>•</span>
+						<span>{new Set(priceRecords.map(r => r.market)).size} mercados</span>
+					</div>
+				</CardContent>
+			</Card>
+
 			{/* Produtos com Maior Variação */}
 			<Card>
 				<CardHeader>
@@ -160,6 +213,15 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 										<p className="text-sm text-muted-foreground">
 											{stat.recordCount} registros em {stat.marketCount} mercado(s)
 										</p>
+										{/* Mostrar fontes dos dados */}
+										<div className="flex gap-2 mt-1">
+											{priceRecords.filter(r => r.product === stat.product).some(r => r.source === "manual") && (
+												<Badge variant="outline" className="text-xs">Registros Manuais</Badge>
+											)}
+											{priceRecords.filter(r => r.product === stat.product).some(r => r.source === "purchase") && (
+												<Badge variant="outline" className="text-xs">Dados de Compras</Badge>
+											)}
+										</div>
 									</div>
 									<Badge variant="destructive">Variação: R$ {stat.variance.toFixed(2)}</Badge>
 								</div>
@@ -196,21 +258,29 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 						{marketStats.map((stat, index) => (
 							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
 								<div
-									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-										index === 0
-											? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-											: index === 1
-												? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-												: index === 2
-													? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-													: "bg-muted text-muted-foreground"
-									}`}
+									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0
+										? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+										: index === 1
+											? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+											: index === 2
+												? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+												: "bg-muted text-muted-foreground"
+										}`}
 								>
 									{index + 1}
 								</div>
 								<div className="flex-1">
 									<h4 className="font-semibold">{stat.market}</h4>
 									<p className="text-sm text-muted-foreground">{stat.recordCount} registros</p>
+									{/* Mostrar fontes dos dados */}
+									<div className="flex gap-2 mt-1">
+										{priceRecords.filter(r => r.market === stat.market).some(r => r.source === "manual") && (
+											<Badge variant="outline" className="text-xs">Registros Manuais</Badge>
+										)}
+										{priceRecords.filter(r => r.market === stat.market).some(r => r.source === "purchase") && (
+											<Badge variant="outline" className="text-xs">Dados de Compras</Badge>
+										)}
+									</div>
 								</div>
 								<div className="text-right">
 									<p className="text-lg font-bold text-green-600">R$ {stat.avgPrice.toFixed(2)}</p>
@@ -225,7 +295,43 @@ function PriceAnalysisCard({ className, priceRecords }: { className?: string; pr
 	)
 }
 
-function BestDayCard({ className, priceRecords }: { className?: string; priceRecords: PriceRecord[] }) {
+function BestDayCard({
+	className,
+	priceRecords,
+	loading = false,
+	onLoadData
+}: {
+	className?: string
+	priceRecords: PriceRecord[]
+	loading?: boolean
+	onLoadData?: () => void
+}) {
+	// Carregar dados se necessário
+	React.useEffect(() => {
+		if (priceRecords.length === 0 && onLoadData && !loading) {
+			onLoadData()
+		}
+	}, [priceRecords.length, onLoadData, loading])
+
+	if (loading) {
+		return (
+			<Card className={className}>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Target className="h-5 w-5" />
+						Insights de Compra
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-center py-12">
+						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+						<p className="text-muted-foreground mt-2">Carregando dados históricos...</p>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
+
 	if (priceRecords.length === 0) {
 		return (
 			<Card className={className}>
@@ -321,6 +427,21 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 	return (
 		<div className={`space-y-6 ${className}`}>
+			{/* Informações sobre os dados */}
+			<Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+				<CardContent className="pt-6">
+					<div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+						<Target className="h-4 w-4" />
+						<span className="font-medium">Insights Completos:</span>
+						<span>{priceRecords.length} registros históricos analisados</span>
+						<span>•</span>
+						<span>{new Set(priceRecords.map(r => r.product)).size} produtos únicos</span>
+						<span>•</span>
+						<span>{new Set(priceRecords.map(r => r.market)).size} mercados</span>
+					</div>
+				</CardContent>
+			</Card>
+
 			{/* Melhor Dia para Comprar */}
 			<Card>
 				<CardHeader>
@@ -356,18 +477,61 @@ function BestDayCard({ className, priceRecords }: { className?: string; priceRec
 
 					<div className="space-y-2">
 						<h5 className="font-semibold text-sm">Ranking Completo:</h5>
-						{dayStats.map((stat, index) => (
-							<div key={stat.day} className="flex items-center justify-between p-2 border rounded">
-								<div className="flex items-center gap-2">
-									<span className="text-sm font-medium w-6">{index + 1}º</span>
-									<span>{stat.dayName}</span>
+						{dayStats.map((stat, index) => {
+							// Buscar produtos específicos deste dia
+							const dayProducts = priceRecords
+								.filter(r => new Date(r.recordDate).getDay() === stat.day)
+								.reduce((acc, record) => {
+									if (!acc[record.product]) {
+										acc[record.product] = []
+									}
+									acc[record.product].push(record.price)
+									return acc
+								}, {} as Record<string, number[]>)
+
+							const dayProductStats = Object.entries(dayProducts)
+								.map(([product, prices]) => ({
+									product,
+									avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
+									minPrice: Math.min(...prices),
+									recordCount: prices.length,
+								}))
+								.sort((a, b) => a.avgPrice - b.avgPrice)
+								.slice(0, 3) // Top 3 produtos mais baratos
+
+							return (
+								<div key={stat.day} className="border rounded p-3">
+									<div className="flex items-center justify-between mb-2">
+										<div className="flex items-center gap-2">
+											<span className="text-sm font-medium w-6">{index + 1}º</span>
+											<span className="font-semibold">{stat.dayName}</span>
+										</div>
+										<div className="text-right">
+											<span className="font-semibold">R$ {stat.avgPrice.toFixed(2)}</span>
+											<span className="text-xs text-muted-foreground ml-2">({stat.recordCount} registros)</span>
+										</div>
+									</div>
+
+									{/* Melhores produtos deste dia */}
+									{dayProductStats.length > 0 && (
+										<div className="mt-2 pt-2 border-t">
+											<p className="text-xs text-muted-foreground mb-1">Melhores produtos:</p>
+											<div className="space-y-1">
+												{dayProductStats.map((product, idx) => (
+													<div key={product.product} className="flex items-center justify-between text-xs">
+														<span className="truncate flex-1">{product.product}</span>
+														<div className="flex items-center gap-2 ml-2">
+															<span className="text-green-600 font-medium">R$ {product.minPrice.toFixed(2)}</span>
+															<span className="text-muted-foreground">({product.recordCount})</span>
+														</div>
+													</div>
+												))}
+											</div>
+										</div>
+									)}
 								</div>
-								<div className="text-right">
-									<span className="font-semibold">R$ {stat.avgPrice.toFixed(2)}</span>
-									<span className="text-xs text-muted-foreground ml-2">({stat.recordCount})</span>
-								</div>
-							</div>
-						))}
+							)
+						})}
 					</div>
 				</CardContent>
 			</Card>
@@ -475,6 +639,7 @@ interface PriceRecord {
 	price: number
 	recordDate: string
 	notes?: string
+	source?: "manual" | "purchase"
 }
 
 interface Product {
@@ -502,11 +667,34 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const markets = Array.isArray(initialMarkets) ? initialMarkets : []
 
 	const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([])
+	const [allPriceData, setAllPriceData] = useState<PriceRecord[]>([])
 	const [loading, setLoading] = useState(false)
 	const [initialLoading, setInitialLoading] = useState(true)
+	const [analysisLoading, setAnalysisLoading] = useState(false)
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedMarket, setSelectedMarket] = useState("")
 	const [selectedProduct, setSelectedProduct] = useState("")
+
+	// Estados para filtros de período
+	const [selectedPeriod, setSelectedPeriod] = useState("all")
+	const [customStartDate, setCustomStartDate] = useState("")
+	const [customEndDate, setCustomEndDate] = useState("")
+
+	// Estados para filtros de período no histórico
+	const [historyPeriod, setHistoryPeriod] = useState("all")
+	const [historyStartDate, setHistoryStartDate] = useState("")
+	const [historyEndDate, setHistoryEndDate] = useState("")
+
+	// Estados para estatísticas gerais
+	const [generalStats, setGeneralStats] = useState({
+		totalRecords: 0,
+		uniqueProducts: 0,
+		uniqueMarkets: 0,
+		avgPrice: 0,
+	})
+
+	// Debounce para busca
+	const debouncedSearchTerm = useDebounce(searchTerm, 500) // 500ms de delay
 
 	// Estados para paginação
 	const [currentPage, setCurrentPage] = useState(1)
@@ -540,12 +728,16 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	// Carregar registros de preços
 	const loadPriceRecords = useCallback(
-		async (page = 1, filters?: { product?: string; market?: string }) => {
+		async (page = 1, filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string; search?: string }) => {
 			setLoading(true)
 			try {
 				const params = new URLSearchParams()
 				if (filters?.product) params.append("product", filters.product)
 				if (filters?.market) params.append("market", filters.market)
+				if (filters?.period) params.append("period", filters.period)
+				if (filters?.startDate) params.append("startDate", filters.startDate)
+				if (filters?.endDate) params.append("endDate", filters.endDate)
+				if (filters?.search) params.append("search", filters.search)
 				params.append("limit", itemsPerPage.toString())
 				params.append("page", page.toString())
 
@@ -568,6 +760,53 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			}
 		},
 		[itemsPerPage],
+	)
+
+	// Carregar estatísticas gerais do sistema
+	const loadGeneralStats = useCallback(async () => {
+		try {
+			const response = await fetch("/api/prices/stats")
+			const data = await response.json()
+
+			if (data.success) {
+				setGeneralStats(data.stats)
+			}
+		} catch (error) {
+			console.error("Erro ao carregar estatísticas gerais:", error)
+		}
+	}, [])
+
+	// Carregar todos os dados históricos para análise
+	const loadAllPriceData = useCallback(
+		async (filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
+			setAnalysisLoading(true)
+			try {
+				const params = new URLSearchParams()
+				if (filters?.product) params.append("product", filters.product)
+				if (filters?.market) params.append("market", filters.market)
+				if (filters?.period) params.append("period", filters.period)
+				if (filters?.startDate) params.append("startDate", filters.startDate)
+				if (filters?.endDate) params.append("endDate", filters.endDate)
+				params.append("includePurchases", "true") // Incluir dados de compras também
+
+				const response = await fetch(`/api/prices/analysis?${params.toString()}`)
+				const data = await response.json()
+
+				if (data.success) {
+					setAllPriceData(data.data)
+					console.log(`[Análise] Carregados ${data.data.length} registros históricos`)
+					console.log(`[Análise] Estatísticas:`, data.stats)
+					console.log(`[Análise] Filtros:`, data.filters)
+				} else {
+					toast.error("Erro ao carregar dados para análise")
+				}
+			} catch (_error) {
+				toast.error("Erro ao conectar com o servidor")
+			} finally {
+				setAnalysisLoading(false)
+			}
+		},
+		[],
 	)
 
 	// Registrar novo preço
@@ -717,22 +956,23 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	// Os registros já vêm filtrados do backend, então apenas exibimos
 	const filteredRecords = priceRecords
 
-	// Estatísticas
+	// Estatísticas (usar dados gerais do sistema)
 	const stats = {
-		totalRecords: totalRecords,
-		uniqueProducts: new Set(priceRecords.map((r) => r.product)).size,
-		uniqueMarkets: new Set(priceRecords.map((r) => r.market)).size,
-		avgPrice: priceRecords.length > 0 ? priceRecords.reduce((sum, r) => sum + r.price, 0) / priceRecords.length : 0,
+		totalRecords: generalStats.totalRecords,
+		uniqueProducts: generalStats.uniqueProducts,
+		uniqueMarkets: generalStats.uniqueMarkets,
+		avgPrice: generalStats.avgPrice,
 	}
 
 	// Carregar dados iniciais
 	useEffect(() => {
 		loadPriceRecords(1)
-	}, [loadPriceRecords])
+		loadGeneralStats()
+	}, [loadPriceRecords, loadGeneralStats])
 
 	// Recarregar quando filtros mudarem
 	useEffect(() => {
-		const filters: { product?: string; market?: string } = {}
+		const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string; search?: string } = {}
 		if (selectedProduct && selectedProduct !== "all") {
 			// Buscar o nome do produto pelo ID
 			const product = products.find((p) => p.id === selectedProduct)
@@ -743,10 +983,20 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			const market = markets.find((m) => m.id === selectedMarket)
 			if (market) filters.market = market.name
 		}
+		if (historyPeriod && historyPeriod !== "all") {
+			filters.period = historyPeriod
+		}
+		if (historyPeriod === "custom") {
+			if (historyStartDate) filters.startDate = historyStartDate
+			if (historyEndDate) filters.endDate = historyEndDate
+		}
+		if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+			filters.search = debouncedSearchTerm.trim()
+		}
 
 		// Resetar para página 1 quando filtros mudarem
 		loadPriceRecords(1, filters)
-	}, [selectedProduct, selectedMarket, products, markets, loadPriceRecords])
+	}, [selectedProduct, selectedMarket, historyPeriod, historyStartDate, historyEndDate, debouncedSearchTerm, products, markets, loadPriceRecords])
 
 	if (initialLoading) {
 		return <PriceRecordSkeleton />
@@ -1012,20 +1262,65 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<div>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+								<div className="md:col-span-2 w-full">
 									<Label>Buscar</Label>
 									<div className="relative">
 										<Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
 										<Input
 											value={searchTerm}
 											onChange={(e) => setSearchTerm(e.target.value)}
-											placeholder="Produto ou mercado..."
-											className="pl-10"
+											placeholder="Digite o nome do produto ou mercado para buscar..."
+											className="pl-10 w-full"
 										/>
 									</div>
+									{searchTerm && (
+										<p className="text-xs text-muted-foreground mt-1">
+											{debouncedSearchTerm ? "Buscando..." : "Digite para pesquisar"}
+										</p>
+									)}
 								</div>
 
+								<div>
+									<Label>Período</Label>
+									<Select value={historyPeriod} onValueChange={setHistoryPeriod}>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Selecione o período" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">Todo o histórico</SelectItem>
+											<SelectItem value="hour">Última hora</SelectItem>
+											<SelectItem value="day">Último dia</SelectItem>
+											<SelectItem value="week">Última semana</SelectItem>
+											<SelectItem value="month">Último mês</SelectItem>
+											<SelectItem value="custom">Personalizado</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{historyPeriod === "custom" && (
+									<>
+										<div>
+											<Label>Data Inicial</Label>
+											<Input
+												type="date"
+												value={historyStartDate}
+												onChange={(e) => setHistoryStartDate(e.target.value)}
+											/>
+										</div>
+										<div>
+											<Label>Data Final</Label>
+											<Input
+												type="date"
+												value={historyEndDate}
+												onChange={(e) => setHistoryEndDate(e.target.value)}
+											/>
+										</div>
+									</>
+								)}
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
 								<div>
 									<Label>Mercado</Label>
 									<div className="flex gap-2">
@@ -1251,11 +1546,207 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 				</TabsContent>
 
 				<TabsContent value="analysis" className="space-y-6">
-					<PriceAnalysisCard className="w-full" priceRecords={priceRecords} />
+					{/* Filtros de Período */}
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Filter className="h-5 w-5" />
+								Filtros de Análise
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+								<div>
+									<Label>Período</Label>
+									<Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+										<SelectTrigger>
+											<SelectValue placeholder="Selecione o período" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">Todo o histórico</SelectItem>
+											<SelectItem value="hour">Última hora</SelectItem>
+											<SelectItem value="day">Último dia</SelectItem>
+											<SelectItem value="week">Última semana</SelectItem>
+											<SelectItem value="month">Último mês</SelectItem>
+											<SelectItem value="custom">Personalizado</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{selectedPeriod === "custom" && (
+									<>
+										<div>
+											<Label>Data Inicial</Label>
+											<Input
+												type="date"
+												value={customStartDate}
+												onChange={(e) => setCustomStartDate(e.target.value)}
+											/>
+										</div>
+										<div>
+											<Label>Data Final</Label>
+											<Input
+												type="date"
+												value={customEndDate}
+												onChange={(e) => setCustomEndDate(e.target.value)}
+											/>
+										</div>
+									</>
+								)}
+
+								<div className="flex items-end">
+									<Button
+										onClick={() => {
+											const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+											if (selectedProduct && selectedProduct !== "all") {
+												const product = products.find((p) => p.id === selectedProduct)
+												if (product) filters.product = product.name
+											}
+											if (selectedMarket && selectedMarket !== "all") {
+												const market = markets.find((m) => m.id === selectedMarket)
+												if (market) filters.market = market.name
+											}
+											filters.period = selectedPeriod
+											if (selectedPeriod === "custom") {
+												if (customStartDate) filters.startDate = customStartDate
+												if (customEndDate) filters.endDate = customEndDate
+											}
+											loadAllPriceData(filters)
+										}}
+										disabled={analysisLoading}
+										className="w-full"
+									>
+										{analysisLoading ? "Carregando..." : "Aplicar Filtros"}
+									</Button>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<PriceAnalysisCard
+						className="w-full"
+						priceRecords={allPriceData}
+						loading={analysisLoading}
+						onLoadData={() => {
+							const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+							if (selectedProduct && selectedProduct !== "all") {
+								const product = products.find((p) => p.id === selectedProduct)
+								if (product) filters.product = product.name
+							}
+							if (selectedMarket && selectedMarket !== "all") {
+								const market = markets.find((m) => m.id === selectedMarket)
+								if (market) filters.market = market.name
+							}
+							filters.period = selectedPeriod
+							if (selectedPeriod === "custom") {
+								if (customStartDate) filters.startDate = customStartDate
+								if (customEndDate) filters.endDate = customEndDate
+							}
+							loadAllPriceData(filters)
+						}}
+					/>
 				</TabsContent>
 
 				<TabsContent value="insights" className="space-y-6">
-					<BestDayCard className="w-full" priceRecords={priceRecords} />
+					{/* Filtros de Período */}
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Filter className="h-5 w-5" />
+								Filtros de Insights
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+								<div>
+									<Label>Período</Label>
+									<Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+										<SelectTrigger>
+											<SelectValue placeholder="Selecione o período" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">Todo o histórico</SelectItem>
+											<SelectItem value="hour">Última hora</SelectItem>
+											<SelectItem value="day">Último dia</SelectItem>
+											<SelectItem value="week">Última semana</SelectItem>
+											<SelectItem value="month">Último mês</SelectItem>
+											<SelectItem value="custom">Personalizado</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{selectedPeriod === "custom" && (
+									<>
+										<div>
+											<Label>Data Inicial</Label>
+											<Input
+												type="date"
+												value={customStartDate}
+												onChange={(e) => setCustomStartDate(e.target.value)}
+											/>
+										</div>
+										<div>
+											<Label>Data Final</Label>
+											<Input
+												type="date"
+												value={customEndDate}
+												onChange={(e) => setCustomEndDate(e.target.value)}
+											/>
+										</div>
+									</>
+								)}
+
+								<div className="flex items-end">
+									<Button
+										onClick={() => {
+											const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+											if (selectedProduct && selectedProduct !== "all") {
+												const product = products.find((p) => p.id === selectedProduct)
+												if (product) filters.product = product.name
+											}
+											if (selectedMarket && selectedMarket !== "all") {
+												const market = markets.find((m) => m.id === selectedMarket)
+												if (market) filters.market = market.name
+											}
+											filters.period = selectedPeriod
+											if (selectedPeriod === "custom") {
+												if (customStartDate) filters.startDate = customStartDate
+												if (customEndDate) filters.endDate = customEndDate
+											}
+											loadAllPriceData(filters)
+										}}
+										disabled={analysisLoading}
+										className="w-full"
+									>
+										{analysisLoading ? "Carregando..." : "Aplicar Filtros"}
+									</Button>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<BestDayCard
+						className="w-full"
+						priceRecords={allPriceData}
+						loading={analysisLoading}
+						onLoadData={() => {
+							const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+							if (selectedProduct && selectedProduct !== "all") {
+								const product = products.find((p) => p.id === selectedProduct)
+								if (product) filters.product = product.name
+							}
+							if (selectedMarket && selectedMarket !== "all") {
+								const market = markets.find((m) => m.id === selectedMarket)
+								if (market) filters.market = market.name
+							}
+							filters.period = selectedPeriod
+							if (selectedPeriod === "custom") {
+								if (customStartDate) filters.startDate = customStartDate
+								if (customEndDate) filters.endDate = customEndDate
+							}
+							loadAllPriceData(filters)
+						}}
+					/>
 				</TabsContent>
 			</Tabs>
 

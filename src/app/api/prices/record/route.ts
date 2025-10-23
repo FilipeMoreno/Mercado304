@@ -87,26 +87,83 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url)
 		const productName = searchParams.get("product")
 		const marketName = searchParams.get("market")
+		const searchTerm = searchParams.get("search")
+		const period = searchParams.get("period") || "all"
+		const startDate = searchParams.get("startDate")
+		const endDate = searchParams.get("endDate")
 		const limit = parseInt(searchParams.get("limit") || "50", 10)
 		const page = parseInt(searchParams.get("page") || "1", 10)
 		const skip = (page - 1) * limit
+
+		// Calcular filtro de data baseado no período
+		let dateFilter: { gte?: Date; lte?: Date } = {}
+
+		if (period !== "all") {
+			const now = new Date()
+
+			switch (period) {
+				case "hour":
+					dateFilter.gte = new Date(now.getTime() - 60 * 60 * 1000)
+					break
+				case "day":
+					dateFilter.gte = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+					break
+				case "week":
+					dateFilter.gte = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+					break
+				case "month":
+					dateFilter.gte = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+					break
+				case "custom":
+					if (startDate) dateFilter.gte = new Date(startDate)
+					if (endDate) dateFilter.lte = new Date(endDate)
+					break
+			}
+		}
 
 		// Construir filtros
 		const where: {
 			product?: { name: { contains: string; mode: "insensitive" } }
 			market?: { name: { contains: string; mode: "insensitive" } }
+			recordDate?: { gte?: Date; lte?: Date }
+			OR?: Array<{
+				product: { name: { contains: string; mode: "insensitive" } }
+			} | {
+				market: { name: { contains: string; mode: "insensitive" } }
+			}>
 		} = {}
 
-		if (productName) {
-			where.product = {
-				name: { contains: productName, mode: "insensitive" },
+		// Se há termo de busca, usar OR para buscar em produto ou mercado
+		if (searchTerm && searchTerm.trim()) {
+			where.OR = [
+				{
+					product: {
+						name: { contains: searchTerm.trim(), mode: "insensitive" },
+					},
+				},
+				{
+					market: {
+						name: { contains: searchTerm.trim(), mode: "insensitive" },
+					},
+				},
+			]
+		} else {
+			// Se não há busca, usar filtros específicos
+			if (productName) {
+				where.product = {
+					name: { contains: productName, mode: "insensitive" },
+				}
+			}
+
+			if (marketName) {
+				where.market = {
+					name: { contains: marketName, mode: "insensitive" },
+				}
 			}
 		}
 
-		if (marketName) {
-			where.market = {
-				name: { contains: marketName, mode: "insensitive" },
-			}
+		if (Object.keys(dateFilter).length > 0) {
+			where.recordDate = dateFilter
 		}
 
 		// Buscar total de registros (sem limite)
