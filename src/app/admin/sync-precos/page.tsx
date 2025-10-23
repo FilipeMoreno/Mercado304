@@ -69,6 +69,12 @@ interface SyncJob {
 	startedAt?: string
 	completedAt?: string
 	createdAt: string
+	_logsInfo?: {
+		totalLogs: number
+		filteredLogs: number
+		debugMode: boolean
+		limit: number
+	}
 }
 
 export default function AdminSyncPrecosPage() {
@@ -91,13 +97,16 @@ export default function AdminSyncPrecosPage() {
 	const fetchLatestJob = useCallback(async () => {
 		try {
 			setLoading(true)
-			const response = await fetch("/api/admin/sync-precos/latest")
+			const response = await fetch(`/api/admin/sync-precos/latest?debug=${debugMode}&limit=2000`)
 			if (response.ok) {
 				const data = await response.json()
 				if (data.job) {
 					setCurrentJob(data.job)
 					setLastUpdateTime(new Date()) // Marcar hora da atualização
 					console.log("[UI] Job carregado:", data.job.id, "Status:", data.job.status)
+					if (data.job._logsInfo) {
+						console.log("[UI] Logs info:", data.job._logsInfo)
+					}
 				} else {
 					setCurrentJob(null)
 					console.log("[UI] Nenhum job encontrado")
@@ -108,18 +117,21 @@ export default function AdminSyncPrecosPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [])
+	}, [debugMode])
 
 	const fetchJobStatus = useCallback(async (jobId: string) => {
 		try {
 			setPolling(true)
 			setLoading(true)
-			const response = await fetch(`/api/admin/sync-precos/status/${jobId}`)
+			const response = await fetch(`/api/admin/sync-precos/status/${jobId}?debug=${debugMode}&limit=2000`)
 			if (response.ok) {
 				const job = await response.json()
 				setCurrentJob(job)
 				setLastUpdateTime(new Date()) // Marcar hora da atualização
 				console.log("[UI] Status atualizado:", job.id, "Status:", job.status, "Progresso:", job.progresso)
+				if (job._logsInfo) {
+					console.log("[UI] Logs info:", job._logsInfo)
+				}
 			}
 		} catch (error) {
 			console.error("Erro ao buscar status:", error)
@@ -127,7 +139,7 @@ export default function AdminSyncPrecosPage() {
 			setPolling(false)
 			setLoading(false)
 		}
-	}, [])
+	}, [debugMode])
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
@@ -141,7 +153,7 @@ export default function AdminSyncPrecosPage() {
 				await fetchLatestJob()
 			}
 		}
-		
+
 		loadInitialJob()
 	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
 
@@ -626,113 +638,216 @@ export default function AdminSyncPrecosPage() {
 								currentJob.detalhes.produtosNaoEncontrados.length > 0) ||
 								(currentJob.detalhes?.estatisticas?.produtosNaoEncontrados &&
 									currentJob.detalhes.estatisticas.produtosNaoEncontrados > 0)) && (
-								<Card className="border-orange-200 bg-orange-50/30">
-									<CardHeader>
-										<CardTitle className="flex items-center justify-between">
-											<span className="flex items-center gap-2">
-												<AlertCircle className="h-5 w-5 text-orange-600" />
-												Produtos Não Encontrados
-											</span>
-											<Badge variant="outline" className="border-orange-600 text-orange-600">
-												{currentJob.detalhes?.estatisticas?.produtosNaoEncontrados ||
-													(Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
-														? currentJob.detalhes.produtosNaoEncontrados.length
-														: 0)}
-											</Badge>
-										</CardTitle>
-										<CardDescription>
-											Produtos com código de barras que não foram encontrados na API do Nota Paraná
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<Button
-											variant="outline"
-											onClick={() => setShowProdutosNaoEncontrados(!showProdutosNaoEncontrados)}
-											className="w-full mb-3"
-										>
-											{showProdutosNaoEncontrados ? "Ocultar Lista" : "Ver Lista Completa"}
-										</Button>
+									<Card className="border-orange-200 bg-orange-50/30">
+										<CardHeader>
+											<CardTitle className="flex items-center justify-between">
+												<span className="flex items-center gap-2">
+													<AlertCircle className="h-5 w-5 text-orange-600" />
+													Produtos Não Encontrados
+												</span>
+												<Badge variant="outline" className="border-orange-600 text-orange-600">
+													{currentJob.detalhes?.estatisticas?.produtosNaoEncontrados ||
+														(Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
+															? currentJob.detalhes.produtosNaoEncontrados.length
+															: 0)}
+												</Badge>
+											</CardTitle>
+											<CardDescription>
+												Produtos com código de barras que não foram encontrados na API do Nota Paraná
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<Button
+												variant="outline"
+												onClick={() => setShowProdutosNaoEncontrados(!showProdutosNaoEncontrados)}
+												className="w-full mb-3"
+											>
+												{showProdutosNaoEncontrados ? "Ocultar Lista" : "Ver Lista Completa"}
+											</Button>
 
-										{showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados) && (
-											<ScrollArea className="h-[300px] border rounded p-4">
-												<div className="space-y-2">
-													{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
-														<div
-															key={produto.id}
-															className="flex justify-between items-center p-3 bg-background rounded text-sm"
-														>
-															<div>
-																<div className="font-medium">{produto.nome}</div>
-																<div className="text-xs text-muted-foreground">EAN: {produto.barcode}</div>
+											{showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados) && (
+												<ScrollArea className="h-[300px] border rounded p-4">
+													<div className="space-y-2">
+														{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
+															<div
+																key={produto.id}
+																className="flex justify-between items-center p-3 bg-background rounded text-sm"
+															>
+																<div>
+																	<div className="font-medium">{produto.nome}</div>
+																	<div className="text-xs text-muted-foreground">EAN: {produto.barcode}</div>
+																</div>
+																<Badge variant="outline" className="text-orange-600">
+																	Não encontrado
+																</Badge>
 															</div>
-															<Badge variant="outline" className="text-orange-600">
-																Não encontrado
-															</Badge>
-														</div>
-													))}
-												</div>
-											</ScrollArea>
-										)}
+														))}
+													</div>
+												</ScrollArea>
+											)}
 
-										{!showProdutosNaoEncontrados && (
-											<Alert>
-												<AlertDescription className="text-sm">
-													💡 Esses produtos podem não estar cadastrados nos estabelecimentos próximos ou o código de
-													barras pode estar incorreto.
-												</AlertDescription>
-											</Alert>
-										)}
-									</CardContent>
-								</Card>
-							)}
+											{!showProdutosNaoEncontrados && (
+												<Alert>
+													<AlertDescription className="text-sm">
+														💡 Esses produtos podem não estar cadastrados nos estabelecimentos próximos ou o código de
+														barras pode estar incorreto.
+													</AlertDescription>
+												</Alert>
+											)}
+										</CardContent>
+									</Card>
+								)}
 
 							{/* Logs */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="flex items-center gap-2">
-										<FileText className="h-5 w-5" />
-										{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}
-										<Badge variant="outline" className="ml-auto">
-											{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0} / 500
-										</Badge>
-									</CardTitle>
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<FileText className="h-5 w-5" />
+											<CardTitle>
+												{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}
+											</CardTitle>
+											<Badge variant="outline">
+												{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0}
+												{currentJob._logsInfo && (
+													<span className="text-xs text-muted-foreground ml-1">
+														/ {currentJob._logsInfo.totalLogs} total
+													</span>
+												)}
+											</Badge>
+										</div>
+										<div className="flex items-center gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => setDebugMode(!debugMode)}
+												className="text-xs"
+											>
+												<Bug className="h-3 w-3 mr-1" />
+												{debugMode ? "Modo Normal" : "Modo Debug"}
+											</Button>
+										</div>
+									</div>
 									<CardDescription>
-										{debugMode 
-											? "Modo debug ativo: exibindo logs do servidor, API e processamento detalhado" 
-											: "Últimos 500 logs essenciais (ative debug para mais detalhes)"}
+										{debugMode
+											? "Modo debug ativo: exibindo logs do servidor, API e processamento detalhado"
+											: "Logs essenciais filtrados (ative debug para mais detalhes)"}
+										{currentJob._logsInfo && (
+											<span className="block text-xs text-muted-foreground mt-1">
+												Exibindo {currentJob._logsInfo.filteredLogs} de {currentJob._logsInfo.totalLogs} logs
+												{currentJob._logsInfo.totalLogs > currentJob._logsInfo.limit &&
+													` (limitado a ${currentJob._logsInfo.limit})`
+												}
+											</span>
+										)}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
+									{/* Estatísticas de logs no modo debug */}
+									{debugMode && currentJob._logsInfo && (
+										<div className="mb-4 p-3 bg-muted/50 rounded-lg border">
+											<h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+												<Bug className="h-4 w-4" />
+												Estatísticas de Logs
+											</h4>
+											<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+												<div>
+													<span className="text-muted-foreground">Total de logs:</span>
+													<span className="ml-1 font-mono font-semibold">{currentJob._logsInfo.totalLogs}</span>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Exibindo:</span>
+													<span className="ml-1 font-mono font-semibold text-blue-600">{currentJob._logsInfo.filteredLogs}</span>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Filtrados:</span>
+													<span className="ml-1 font-mono font-semibold text-orange-600">
+														{currentJob._logsInfo.totalLogs - currentJob._logsInfo.filteredLogs}
+													</span>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Limite:</span>
+													<span className="ml-1 font-mono font-semibold">{currentJob._logsInfo.limit}</span>
+												</div>
+											</div>
+										</div>
+									)}
+
 									<ScrollArea className="h-[300px] w-full rounded border p-4">
 										<div className="space-y-1 font-mono text-xs whitespace-pre-wrap break-all">
 											{Array.isArray(currentJob.logs) && currentJob.logs.length > 0 ? (
-												currentJob.logs
-													.filter((log) => {
-														// No modo debug, mostra todos
-														if (debugMode) {
-															return true
-														}
-														// No modo normal, oculta apenas logs com prefixos de debug
-														const logLower = log.toLowerCase()
-														return !logLower.includes("[debug]") && !logLower.includes("[api]") && !logLower.includes("[server]")
-													})
-													.map((log) => {
-														// Colorir baseado no tipo de log
-														let colorClass = "text-muted-foreground"
-														if (log.includes("✓")) colorClass = "text-green-600"
-														else if (log.includes("Erro") || log.includes("erro")) colorClass = "text-red-600"
-														else if (log.includes("[DEBUG]")) colorClass = "text-blue-500"
-														else if (log.includes("[API]")) colorClass = "text-purple-500"
-														else if (log.includes("[SERVER]")) colorClass = "text-orange-500"
-														else if (log.includes("⚠")) colorClass = "text-orange-600"
+												currentJob.logs.map((log, index) => {
+													// Colorir baseado no tipo de log
+													let colorClass = "text-muted-foreground"
+													let icon = ""
 
-														// Usar o log completo como key (é único por ter timestamp)
-														return (
-															<div key={log} className={colorClass}>
+													if (log.includes("✓")) {
+														colorClass = "text-green-600"
+														icon = "✓"
+													} else if (log.includes("Erro") || log.includes("erro")) {
+														colorClass = "text-red-600"
+														icon = "✗"
+													} else if (log.includes("[DEBUG]")) {
+														colorClass = "text-blue-500"
+														icon = "🐛"
+													} else if (log.includes("[API]")) {
+														colorClass = "text-purple-500"
+														icon = "🌐"
+													} else if (log.includes("[SERVER]")) {
+														colorClass = "text-orange-500"
+														icon = "🖥️"
+													} else if (log.includes("[BATCH]")) {
+														colorClass = "text-cyan-500"
+														icon = "📦"
+													} else if (log.includes("[PARSING]")) {
+														colorClass = "text-pink-500"
+														icon = "🔍"
+													} else if (log.includes("⚠")) {
+														colorClass = "text-orange-600"
+														icon = "⚠"
+													} else if (log.includes("Iniciando") || log.includes("iniciando")) {
+														colorClass = "text-blue-600"
+														icon = "🚀"
+													} else if (log.includes("Concluído") || log.includes("concluído")) {
+														colorClass = "text-green-600"
+														icon = "✅"
+													}
+
+													// No modo debug, adicionar informações extras
+													const showDebugInfo = debugMode && (log.includes("[DEBUG]") || log.includes("[API]") || log.includes("[SERVER]"))
+
+													return (
+														<div key={`${log}-${index}`} className={`${colorClass} ${showDebugInfo ? 'bg-muted/30 p-2 rounded border-l-2 border-current' : ''}`}>
+															{debugMode && (
+																<div className="flex items-center gap-2 mb-1">
+																	<span className="text-xs opacity-70">#{index + 1}</span>
+																	{icon && <span className="text-sm">{icon}</span>}
+																	<span className="text-xs opacity-70">
+																		{new Date().toLocaleTimeString('pt-BR', {
+																			hour12: false,
+																			hour: '2-digit',
+																			minute: '2-digit',
+																			second: '2-digit',
+																			fractionalSecondDigits: 3
+																		})}
+																	</span>
+																</div>
+															)}
+															<div className={debugMode ? 'ml-4' : ''}>
 																{log}
 															</div>
-														)
-													})
+															{showDebugInfo && (
+																<div className="text-xs opacity-60 mt-1 ml-4">
+																	{log.includes("[DEBUG]") && "🔧 Informação técnica detalhada"}
+																	{log.includes("[API]") && "🌐 Comunicação com API externa"}
+																	{log.includes("[SERVER]") && "🖥️ Processamento interno do servidor"}
+																	{log.includes("[BATCH]") && "📦 Processamento em lotes"}
+																	{log.includes("[PARSING]") && "🔍 Análise e processamento de dados"}
+																</div>
+															)}
+														</div>
+													)
+												})
 											) : (
 												<div className="text-muted-foreground text-center">Nenhum log ainda</div>
 											)}
