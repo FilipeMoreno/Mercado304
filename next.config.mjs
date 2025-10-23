@@ -102,10 +102,20 @@ const nextConfig = {
   turbopack: {
     root: '.',
   },
+  fontLoaders: [
+    {
+      loader: '@next/font/google',
+      options: {
+        subsets: ['latin'],
+        timeout: 30000, // 30 segundos
+      },
+    },
+  ],
   experimental: {
     // Enable modern bundling optimizations
     optimizePackageImports: ['lucide-react', 'date-fns', 'framer-motion'],
     // Enable modern ESM externals
+    esmExternals: true,
     esmExternals: true,
   },
   // Server external packages (moved from experimental)

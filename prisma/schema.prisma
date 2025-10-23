@@ -631,6 +631,10 @@ model DashboardPreference {
   showTemporalComp     Boolean  @default(true)
   showNutritionCard    Boolean  @default(true)
   showPaymentStats     Boolean  @default(true)
+  showBudgetTracker    Boolean  @default(true)
+  showSpendingTrends   Boolean  @default(true)
+  showPriceAlerts      Boolean  @default(true)
+  showShoppingPatterns Boolean  @default(true)
   customTitle          String?
   customSubtitle       String?
   createdAt            DateTime @default(now())

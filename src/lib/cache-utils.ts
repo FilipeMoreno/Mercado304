@@ -26,10 +26,10 @@ export function createCachedFunction<T extends (...args: any[]) => Promise<any>>
 }
 
 // Cache invalidation helper
-export function invalidateCache(tags: CacheTag[]) {
-	tags.forEach((tag) => {
-		revalidateTag(tag)
-	})
+export async function invalidateCache(tags: CacheTag[]) {
+	for (const tag of tags) {
+		await revalidateTag(tag, {})
+	}
 }
 
 // Specific cache invalidation functions

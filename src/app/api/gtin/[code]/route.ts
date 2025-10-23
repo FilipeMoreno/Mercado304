@@ -34,32 +34,32 @@ interface CosmosProduct {
 interface GTINResponse {
 	gtin: string
 	name: string
-	brand?: string
-	grossWeight?: number
-	netWeight?: number
-	height?: number
-	length?: number
-	width?: number
-	avgPrice?: number
-	maxPrice?: number
-	thumbnail?: string
-	imageUrl?: string // Nossa imagem salva no R2
+	brand?: string | undefined
+	grossWeight?: number | undefined
+	netWeight?: number | undefined
+	height?: number | undefined
+	length?: number | undefined
+	width?: number | undefined
+	avgPrice?: number | undefined
+	maxPrice?: number | undefined
+	thumbnail?: string | undefined
+	imageUrl?: string | undefined // Nossa imagem salva no R2
 	gpc?: {
 		code: string
 		description: string
-	}
+	} | undefined
 	ncm?: {
 		code: string
 		description: string
 		fullDescription: string
-	}
+	} | undefined
 	cached: boolean
 	source: 'cache' | 'api'
 }
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { code: string } }
+	{ params }: { params: Promise<{ code: string }> }
 ) {
 	try {
 		const session = await getSession()
@@ -67,7 +67,7 @@ export async function GET(
 			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 		}
 
-		const { code } = params
+		const { code } = await params
 		
 		// Validar se é um código válido (8, 12, 13 ou 14 dígitos)
 		if (!code || !/^\d{8,14}$/.test(code)) {
@@ -85,7 +85,7 @@ export async function GET(
 		// Se está em cache e não expirou (7 dias), retornar do cache
 		const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 dias em ms
 		if (cachedProduct && (Date.now() - cachedProduct.createdAt.getTime()) < CACHE_DURATION) {
-			const response: GTINResponse = {
+			const response = {
 				gtin: cachedProduct.gtin,
 				name: cachedProduct.name,
 				brand: cachedProduct.brand || undefined,

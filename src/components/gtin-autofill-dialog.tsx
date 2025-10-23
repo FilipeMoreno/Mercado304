@@ -44,14 +44,14 @@ interface AutofillData {
 	brand?: {
 		id: string
 		name: string
-	}
+	} | undefined
 	barcode: string
-	grossWeight?: number
-	netWeight?: number
-	height?: number
-	length?: number
-	width?: number
-	description?: string
+	grossWeight?: number | undefined
+	netWeight?: number | undefined
+	height?: number | undefined
+	length?: number | undefined
+	width?: number | undefined
+	description?: string | undefined
 }
 
 interface GTINAutofillDialogProps {

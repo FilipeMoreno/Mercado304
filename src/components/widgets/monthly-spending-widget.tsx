@@ -18,6 +18,12 @@ interface MonthlySpendingWidgetProps {
 export function MonthlySpendingWidget({ data, loading }: MonthlySpendingWidgetProps) {
 	if (!data || data.length === 0) return null
 
+	// Transform data to match MonthlyDataPoint interface
+	const transformedData = data.map(item => ({
+		month: item.month,
+		totalSpent: item.amount
+	}))
+
 	return (
 		<Suspense
 			fallback={
@@ -32,7 +38,7 @@ export function MonthlySpendingWidget({ data, loading }: MonthlySpendingWidgetPr
 				</Card>
 			}
 		>
-			<MonthlySpendingChart data={data} loading={loading} />
+			<MonthlySpendingChart data={transformedData} loading={loading ?? false} />
 		</Suspense>
 	)
 }

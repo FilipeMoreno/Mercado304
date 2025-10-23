@@ -45,6 +45,8 @@ export function useGTINSearch() {
 	const {
 		data,
 		isLoading,
+		isSuccess,
+		isError,
 		error,
 		refetch
 	} = useQuery({
@@ -66,20 +68,27 @@ export function useGTINSearch() {
 		retry: (failureCount, error) => {
 			// Não tentar novamente se for erro de rate limit ou produto não encontrado
 			const errorMessage = error?.message || ""
-			if (errorMessage.includes("Limite de consultas") || 
+			if (errorMessage.includes("Limite de consultas") ||
 				errorMessage.includes("não encontrado")) {
 				return false
 			}
 			return failureCount < 2
-		},
-		onSuccess: () => {
-			lastSearchRef.current = searchCode
-			setIsSearching(false)
-		},
-		onError: () => {
-			setIsSearching(false)
 		}
 	})
+
+	// Handle success and error states
+	useEffect(() => {
+		if (isSuccess && searchCode) {
+			lastSearchRef.current = searchCode
+			setIsSearching(false)
+		}
+	}, [isSuccess, searchCode])
+
+	useEffect(() => {
+		if (isError) {
+			setIsSearching(false)
+		}
+	}, [isError])
 
 	// Função para buscar com debounce
 	const searchGTIN = useCallback((code: string) => {
@@ -143,7 +152,7 @@ export function useGTINSearch() {
 	}, [])
 
 	// Helper para verificar se o resultado é um erro
-	const isError = (result: GTINResponse | undefined): result is GTINError => {
+	const isErrorResponse = (result: GTINResponse | undefined): result is GTINError => {
 		return !!(result && 'error' in result)
 	}
 
@@ -155,7 +164,7 @@ export function useGTINSearch() {
 	return {
 		// Dados
 		product: isValidProduct(data) ? data : null,
-		error: isError(data) ? data.error : (error?.message || null),
+		error: isErrorResponse(data) ? data.error : (error?.message || null),
 		
 		// Estados
 		isLoading: isLoading || isSearching,

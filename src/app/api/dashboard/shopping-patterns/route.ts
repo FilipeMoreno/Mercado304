@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
 
+// Helper function to find max entry from a record
+function findMaxEntry(record: Record<string, number>): string | null {
+	const entries = Object.entries(record)
+	if (entries.length === 0) return null
+
+	const firstEntry = entries[0]
+	if (!firstEntry) return null
+
+	let maxKey = firstEntry[0]
+	let maxValue = firstEntry[1]
+
+	for (const [key, value] of entries) {
+		if (value > maxValue) {
+			maxKey = key
+			maxValue = value
+		}
+	}
+
+	return maxKey
+}
+
 export async function GET(request: NextRequest) {
 	try {
 		const session = await getSession()
@@ -31,7 +52,7 @@ export async function GET(request: NextRequest) {
 		if (purchases.length === 0) {
 			return NextResponse.json({
 				favoriteDay: "Não definido",
-				favoriteTime: "Não definido", 
+				favoriteTime: "Não definido",
 				favoriteMarket: "Não definido",
 				averageItemsPerPurchase: 0,
 				averageTimeBetweenPurchases: 0,
@@ -44,34 +65,40 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Analyze day patterns
-		const dayCount: { [key: string]: number } = {}
-		const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
-		
+		const dayCount: Record<string, number> = {}
+		const dayNames: string[] = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
+
 		purchases.forEach(purchase => {
-			const dayOfWeek = dayNames[purchase.createdAt.getDay()]
-			dayCount[dayOfWeek] = (dayCount[dayOfWeek] || 0) + 1
+			const dayIndex = purchase.createdAt.getDay()
+			const dayOfWeek = dayNames[dayIndex]
+			if (dayOfWeek) {
+				dayCount[dayOfWeek] = (dayCount[dayOfWeek] || 0) + 1
+			}
 		})
 
-		const favoriteDay = Object.entries(dayCount).reduce((a, b) => dayCount[a[0]] > dayCount[b[0]] ? a : b)[0]
+		const favoriteDay = findMaxEntry(dayCount) ?? "Não definido"
 
 		// Analyze hour patterns
-		const hourCount: { [key: number]: number } = {}
+		const hourCount: Record<string, number> = {}
 		purchases.forEach(purchase => {
-			const hour = purchase.createdAt.getHours()
+			const hour = purchase.createdAt.getHours().toString()
 			hourCount[hour] = (hourCount[hour] || 0) + 1
 		})
 
-		const favoriteHour = Object.entries(hourCount).reduce((a, b) => hourCount[Number(a[0])] > hourCount[Number(b[0])] ? a : b)[0]
-		const favoriteTime = `${favoriteHour.padStart(2, '0')}:00`
+		let favoriteTime = "Não definido"
+		const maxHourKey = findMaxEntry(hourCount)
+		if (maxHourKey) {
+			favoriteTime = `${maxHourKey.padStart(2, '0')}:00`
+		}
 
 		// Analyze market patterns
-		const marketCount: { [key: string]: number } = {}
+		const marketCount: Record<string, number> = {}
 		purchases.forEach(purchase => {
 			const marketName = purchase.market.name
 			marketCount[marketName] = (marketCount[marketName] || 0) + 1
 		})
 
-		const favoriteMarket = Object.entries(marketCount).reduce((a, b) => marketCount[a[0]] > marketCount[b[0]] ? a : b)[0]
+		const favoriteMarket = findMaxEntry(marketCount) ?? "Não definido"
 
 		// Calculate average items per purchase
 		const totalItems = purchases.reduce((total, purchase) => total + purchase.items.length, 0)
@@ -80,13 +107,16 @@ export async function GET(request: NextRequest) {
 		// Calculate average time between purchases
 		let totalDaysBetween = 0
 		for (let i = 1; i < purchases.length; i++) {
-			const daysDiff = Math.abs(purchases[i-1].createdAt.getTime() - purchases[i].createdAt.getTime()) / (1000 * 60 * 60 * 24)
+			const currentPurchase = purchases[i]
+			const previousPurchase = purchases[i - 1]
+			if (!currentPurchase || !previousPurchase) continue
+			const daysDiff = Math.abs(previousPurchase.createdAt.getTime() - currentPurchase.createdAt.getTime()) / (1000 * 60 * 60 * 24)
 			totalDaysBetween += daysDiff
 		}
 		const averageTimeBetweenPurchases = purchases.length > 1 ? Math.round(totalDaysBetween / (purchases.length - 1)) : 0
 
 		// Analyze category patterns
-		const categoryCount: { [key: string]: number } = {}
+		const categoryCount: Record<string, number> = {}
 		purchases.forEach(purchase => {
 			purchase.items.forEach(item => {
 				if (item.product?.category?.name) {
@@ -96,9 +126,7 @@ export async function GET(request: NextRequest) {
 			})
 		})
 
-		const mostBoughtCategory = Object.keys(categoryCount).length > 0 
-			? Object.entries(categoryCount).reduce((a, b) => categoryCount[a[0]] > categoryCount[b[0]] ? a : b)[0]
-			: "Não definido"
+		const mostBoughtCategory = findMaxEntry(categoryCount) ?? "Não definido"
 
 		// Weekday vs Weekend analysis
 		let weekdayPurchases = 0
@@ -109,7 +137,7 @@ export async function GET(request: NextRequest) {
 		purchases.forEach(purchase => {
 			const dayOfWeek = purchase.createdAt.getDay()
 			const amount = purchase.items.reduce((sum, item) => sum + item.totalPrice, 0)
-			
+
 			if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
 				weekendPurchases++
 				weekendAmount += amount

@@ -200,7 +200,7 @@ export default function ProdutoDetalhesPage() {
 											img.src = (gtinData as any).thumbnail
 										} else {
 											// Se ambas falharem, ocultar a div
-											const container = img.closest('.relative')
+											const container = img.closest('.relative') as HTMLElement
 											if (container) {
 												container.style.display = 'none'
 											}
