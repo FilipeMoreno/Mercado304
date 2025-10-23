@@ -1,13 +1,14 @@
 "use client"
 
-import { ArrowLeft, Camera, Loader2, Package, Save, ScanLine } from "lucide-react"
+import { ArrowLeft, Camera, Loader2, Package, Save, ScanLine, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
+import { BarcodeAutofillDialog } from "@/components/products/barcode-autofill-dialog"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
@@ -20,7 +21,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAllBrandsQuery, useAllCategoriesQuery, useCreateProductMutation, useUIPreferences } from "@/hooks"
+import {
+	useAllBrandsQuery,
+	useAllCategoriesQuery,
+	useCreateBrandMutation,
+	useCreateProductMutation,
+	useUIPreferences,
+} from "@/hooks"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { TempStorage } from "@/lib/temp-storage"
 import { AppToasts } from "@/lib/toasts"
@@ -40,9 +47,15 @@ export default function NovoProdutoPage() {
 	const { data: categories = [] } = useAllCategoriesQuery()
 	const { data: brands = [] } = useAllBrandsQuery()
 	const createProductMutation = useCreateProductMutation()
+	const createBrandMutation = useCreateBrandMutation()
 
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
 	const [isScanning, setIsScanning] = useState(false)
+
+	// Estados para barcode autofill
+	const [showAutofillDialog, setShowAutofillDialog] = useState(false)
+	const [barcodeForLookup, setBarcodeForLookup] = useState("")
+	const barcodeDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -215,6 +228,11 @@ export default function NovoProdutoPage() {
 		if (fieldErrors[name]) {
 			clearFieldError(name)
 		}
+
+		// Se for o campo de barcode, disparar lookup com debounce
+		if (name === "barcode" && value) {
+			triggerBarcodeLookup(value)
+		}
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
@@ -229,7 +247,74 @@ export default function NovoProdutoPage() {
 	const handleBarcodeScanned = (barcode: string) => {
 		setFormData((prev) => ({ ...prev, barcode }))
 		setShowBarcodeScanner(false)
+		// Trigger autofill lookup
+		triggerBarcodeLookup(barcode)
 	}
+
+	// Debounce para busca de barcode (espera 1.5s após parar de digitar)
+	const triggerBarcodeLookup = useCallback((barcode: string) => {
+		// Limpar timeout anterior
+		if (barcodeDebounceRef.current) {
+			clearTimeout(barcodeDebounceRef.current)
+		}
+
+		// Validar se tem formato de código de barras válido (8, 12, 13 ou 14 dígitos)
+		const cleanBarcode = barcode.trim()
+		if (!/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/.test(cleanBarcode)) {
+			return
+		}
+
+		// Setar timeout de 1.5 segundos
+		barcodeDebounceRef.current = setTimeout(() => {
+			setBarcodeForLookup(cleanBarcode)
+			setShowAutofillDialog(true)
+		}, 1500)
+	}, [])
+
+	// Handler para aplicar dados do autofill
+	const handleAutofillApply = async (data: any) => {
+		try {
+			// Aplicar nome
+			if (data.name) {
+				setFormData(prev => ({ ...prev, name: data.name }))
+			}
+
+			// Aplicar tamanho/volume
+			if (data.packageSize) {
+				setFormData(prev => ({ ...prev, packageSize: data.packageSize }))
+			}
+
+			// Aplicar marca
+			if (data.brandId) {
+				setFormData(prev => ({ ...prev, brandId: data.brandId }))
+			} else if (data.shouldCreateBrand && data.brandName) {
+				// Criar marca automaticamente
+				const newBrand = await createBrandMutation.mutateAsync({
+					name: data.brandName,
+				})
+				setFormData(prev => ({ ...prev, brandId: newBrand.id }))
+				toast.success(`Marca "${data.brandName}" criada automaticamente!`)
+			}
+
+			// Aplicar categoria
+			if (data.categoryId) {
+				setFormData(prev => ({ ...prev, categoryId: data.categoryId }))
+			}
+
+		} catch (error) {
+			console.error("Erro ao aplicar autofill:", error)
+			toast.error("Erro ao preencher dados automaticamente")
+		}
+	}
+
+	// Limpar debounce ao desmontar
+	useEffect(() => {
+		return () => {
+			if (barcodeDebounceRef.current) {
+				clearTimeout(barcodeDebounceRef.current)
+			}
+		}
+	}, [])
 
 	// --- FUNÇÃO ATUALIZADA ---
 	// Agora ela processa e preenche os dados diretamente, sem o diálogo de debug.
@@ -299,14 +384,36 @@ export default function NovoProdutoPage() {
 										name="barcode"
 										value={formData.barcode}
 										onChange={handleChange}
+										onBlur={(e) => {
+											// Trigger lookup ao sair do campo
+											if (e.target.value) {
+												triggerBarcodeLookup(e.target.value)
+											}
+										}}
 										placeholder="Digite ou escaneie o código"
 										className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
 									/>
 									<Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)}>
 										<Camera className="h-4 w-4" />
 									</Button>
+									{formData.barcode && (
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => {
+												setBarcodeForLookup(formData.barcode)
+												setShowAutofillDialog(true)
+											}}
+											title="Buscar informações do produto"
+										>
+											<Sparkles className="h-4 w-4" />
+										</Button>
+									)}
 								</div>
 								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
+								<p className="text-xs text-gray-500">
+									Ao digitar ou escanear, buscaremos automaticamente as informações do produto
+								</p>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="brandId">Marca</Label>
@@ -512,6 +619,13 @@ export default function NovoProdutoPage() {
 				isOpen={showBarcodeScanner}
 				onScan={handleBarcodeScanned}
 				onClose={() => setShowBarcodeScanner(false)}
+			/>
+
+			<BarcodeAutofillDialog
+				open={showAutofillDialog}
+				onOpenChange={setShowAutofillDialog}
+				barcode={barcodeForLookup}
+				onApply={handleAutofillApply}
 			/>
 
 			<Dialog open={showNutritionalScanner} onOpenChange={setShowNutritionalScanner}>

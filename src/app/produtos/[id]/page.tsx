@@ -12,6 +12,7 @@ import {
 	ChevronRight,
 	DollarSign,
 	Edit,
+	ImageIcon,
 	Minus,
 	MoreVertical,
 	Package,
@@ -22,6 +23,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
@@ -231,261 +233,253 @@ export default function ProdutoDetalhesPage() {
 				</div>
 			</div>
 
-			<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
-			<AllergenIcons nutritionalInfo={nutritionalInfo} />
-
-			{/* Botão para Análise Nutricional Completa */}
-			{nutritionalInfo && (
-				<Link href={`/produtos/${productId}/analise-nutricional`}>
-					<Button size="lg" className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
-						<Sparkles className="h-5 w-5 mr-2" />
-						Ver Análise Nutricional Completa com IA
-					</Button>
-				</Link>
-			)}
-
-			{/* Cards de Estatísticas Rápidas */}
-			{stats && (
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-					<Card>
-						<CardContent className="p-4">
-							<div className="flex items-center gap-3">
-								<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-									<ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-								</div>
-								<div>
-									<p className="text-2xl font-bold">{stats.totalPurchases || 0}</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Compras Realizadas</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardContent className="p-4">
-							<div className="flex items-center gap-3">
-								<div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-									<DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
-								</div>
-								<div>
-									<p className="text-2xl font-bold">R$ {(stats.averagePrice || 0).toFixed(2)}</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Preço Médio</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardContent className="p-4">
-							<div className="flex items-center gap-3">
-								<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-									<Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-								</div>
-								<div>
-									<p className="text-2xl font-bold">
-										{stats.lastPriceDate
-											? format(new Date(stats.lastPriceDate), "dd/MM", {
-												locale: ptBR,
-											})
-											: "-"}
-									</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Última Compra</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardContent className="p-4">
-							<div className="flex items-center gap-3">
-								<div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-									{stats.priceChange > 0 ? (
-										<TrendingUp className="h-5 w-5 text-red-600 dark:text-red-400" />
-									) : stats.priceChange < 0 ? (
-										<TrendingDown className="h-5 w-5 text-green-600 dark:text-green-400" />
-									) : (
-										<Minus className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-									)}
-								</div>
-								<div>
-									<p
-										className={`text-2xl font-bold ${stats.priceChange > 0
-												? "text-red-600 dark:text-red-400"
-												: stats.priceChange < 0
-													? "text-green-600 dark:text-green-400"
-													: "text-gray-600 dark:text-gray-400"
-											}`}
-									>
-										{stats.priceChange > 0 ? "+" : ""}
-										{(stats.priceChange || 0).toFixed(1)}%
-									</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Variação de Preço</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
-			)}
-
-			{/* Alertas de Estoque */}
-			{stockAlerts && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<AlertTriangle className="h-5 w-5" />
-							Status do Estoque
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-							<div className="flex items-center gap-3">
-								<div
-									className={`p-2 rounded-lg ${stockAlerts.status === "low"
-											? "bg-red-100 dark:bg-red-900"
-											: stockAlerts.status === "ok"
-												? "bg-green-100 dark:bg-green-900"
-												: "bg-gray-100 dark:bg-gray-900"
-										}`}
-								>
-									{stockAlerts.status === "low" ? (
-										<AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-									) : (
-										<CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-									)}
-								</div>
-								<div>
-									<p className="text-xl font-bold">{stockAlerts.currentStock || 0}</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Atual</p>
-								</div>
-							</div>
-
-							{product.minStock && (
-								<div className="flex items-center gap-3">
-									<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-										<Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-									</div>
-									<div>
-										<p className="text-xl font-bold">{product.minStock}</p>
-										<p className="text-sm text-gray-600 dark:text-gray-400">Mínimo</p>
-									</div>
-								</div>
-							)}
-
-							{product.maxStock && (
-								<div className="flex items-center gap-3">
-									<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-										<Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-									</div>
-									<div>
-										<p className="text-xl font-bold">{product.maxStock}</p>
-										<p className="text-sm text-gray-600 dark:text-gray-400">Máximo</p>
-									</div>
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Gráfico de Evolução de Preços */}
-			{priceHistory.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<TrendingUp className="h-5 w-5" />
-							Evolução de Preços por Mercado
-						</CardTitle>
-						<CardDescription>Histórico de preços nos últimos 3 meses</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<ResponsiveContainer width="100%" height={300}>
-							<LineChart data={priceHistory}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="week" />
-								<YAxis />
-								<Tooltip
-									formatter={(value: number) => [`R$ ${value.toFixed(2)}`, ""]}
-									labelFormatter={(label) => `Semana: ${label}`}
-								/>
-								<Legend />
-								{Object.keys(priceHistory[0] || {})
-									.filter((key) => key !== "week")
-									.map((marketName, index) => (
-										<Line
-											key={marketName}
-											type="monotone"
-											dataKey={marketName}
-											stroke={`hsl(${(index * 137.5) % 360}, 70%, 50%)`}
-											strokeWidth={2}
-											connectNulls={false}
-										/>
-									))}
-							</LineChart>
-						</ResponsiveContainer>
-					</CardContent>
-				</Card>
-			)}
-
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{/* Informações Básicas */}
-				<Card>
-					<Tabs defaultValue="info">
-						<CardHeader>
-							<TabsList className="grid w-full grid-cols-2">
-								<TabsTrigger value="info">Informações Gerais</TabsTrigger>
-								<TabsTrigger value="nutrition" disabled={!nutritionalInfo}>
-									Tabela Nutricional
-								</TabsTrigger>
-							</TabsList>
+			{/* Grid: Imagem + Stats + Info + Estoque */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+				{/* Coluna Esquerda: Imagem do Produto */}
+				{product.barcode && (
+					<Card className="flex flex-col">
+						<CardHeader className="pb-3">
+							<CardTitle className="text-base flex items-center gap-2">
+								<ImageIcon className="h-4 w-4" />
+								Imagem do Produto
+							</CardTitle>
 						</CardHeader>
-						<TabsContent value="info">
-							<CardContent className="space-y-4">
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Código de Barras</p>
-										<p className="text-lg font-mono">{product.barcode || "Não informado"}</p>
+						<CardContent className="flex-1 flex items-center justify-center">
+							<div className="flex justify-center items-center w-full h-full">
+								<Image
+									src={`https://cdn-cosmos.bluesoft.com.br/products/${product.barcode}`}
+									alt={product.name}
+									width={400}
+									height={400}
+									className="rounded-lg object-contain max-h-full"
+									unoptimized
+									onError={(e) => {
+										const target = e.target as HTMLImageElement
+										target.style.display = "none"
+										const parent = target.parentElement
+										if (parent) {
+											parent.innerHTML = `
+												<div class="w-full h-full min-h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-gray-400">
+													<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="13.5" x2="6" y1="13.5" y2="21"/><line x1="18" x2="21" y1="12" y2="15"/><path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"/><path d="M21 15V5a2 2 0 0 0-2-2H9"/></svg>
+													<p class="mt-2 text-sm">Imagem não disponível</p>
+												</div>
+											`
+										}
+									}}
+								/>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Coluna Direita: Stats + Informações + Estoque */}
+				<div className="space-y-4">
+					{/* Cards de Estatísticas Compactos */}
+					{stats && (
+						<div className="grid grid-cols-2 gap-3">
+							<Card>
+								<CardContent className="p-3">
+									<div className="flex items-center gap-2">
+										<div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded">
+											<ShoppingCart className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-lg font-bold leading-none">{stats.totalPurchases || 0}</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Compras</p>
+										</div>
 									</div>
-									<div>
-										<p className="text-sm font-medium text-gray-600 dark:text-gray-400">Unidade</p>
-										<p className="text-lg">{product.unit}</p>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardContent className="p-3">
+									<div className="flex items-center gap-2">
+										<div className="p-1.5 bg-green-100 dark:bg-green-900 rounded">
+											<DollarSign className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-lg font-bold leading-none">R$ {(stats.averagePrice || 0).toFixed(2)}</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Preço Médio</p>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardContent className="p-3">
+									<div className="flex items-center gap-2">
+										<div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded">
+											<Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-lg font-bold leading-none">
+												{stats.lastPriceDate ? format(new Date(stats.lastPriceDate), "dd/MM", { locale: ptBR }) : "-"}
+											</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Última Compra</p>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardContent className="p-3">
+									<div className="flex items-center gap-2">
+										<div className="p-1.5 bg-orange-100 dark:bg-orange-900 rounded">
+											{stats.priceChange > 0 ? (
+												<TrendingUp className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+											) : stats.priceChange < 0 ? (
+												<TrendingDown className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+											) : (
+												<Minus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+											)}
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className={`text-lg font-bold leading-none ${
+												stats.priceChange > 0 ? "text-red-600" : stats.priceChange < 0 ? "text-green-600" : "text-gray-600"
+											}`}>
+												{stats.priceChange > 0 ? "+" : ""}{(stats.priceChange || 0).toFixed(1)}%
+											</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Variação</p>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+					)}
+
+					{/* Informações Gerais Compactas */}
+					<Card>
+						<CardHeader className="pb-3">
+							<CardTitle className="text-sm">Informações Gerais</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-3">
+							<div className="grid grid-cols-2 gap-3 text-sm">
+								<div>
+									<p className="text-xs text-gray-600 dark:text-gray-400">Código de Barras</p>
+									<p className="font-medium font-mono text-xs">{product.barcode || "N/A"}</p>
+								</div>
+								<div>
+									<p className="text-xs text-gray-600 dark:text-gray-400">Unidade</p>
+									<p className="font-medium">{product.unit}</p>
+								</div>
+							</div>
+
+							{product.hasStock && (
+								<div className="border-t pt-3">
+									<p className="text-xs font-medium mb-2">Controle de Estoque</p>
+									<div className="grid grid-cols-2 gap-3 text-sm">
+										<div>
+											<p className="text-xs text-gray-600 dark:text-gray-400">Mínimo</p>
+											<p className="font-medium">{product.minStock || "-"}</p>
+										</div>
+										<div>
+											<p className="text-xs text-gray-600 dark:text-gray-400">Máximo</p>
+											<p className="font-medium">{product.maxStock || "-"}</p>
+										</div>
 									</div>
 								</div>
+							)}
 
-								{product.hasStock && (
-									<div className="border-t pt-4">
-										<h4 className="font-medium mb-2">Controle de Estoque</h4>
-										<div className="grid grid-cols-2 gap-4">
-											<div>
-												<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Mínimo</p>
-												<p className="font-medium">{product.minStock || "-"}</p>
-											</div>
-											<div>
-												<p className="text-sm text-gray-600 dark:text-gray-400">Estoque Máximo</p>
-												<p className="font-medium">{product.maxStock || "-"}</p>
-											</div>
-										</div>
-									</div>
-								)}
+							{product.hasExpiration && (
+								<div className="border-t pt-3">
+									<p className="text-xs font-medium mb-2">Validade</p>
+									<p className="text-sm">{product.defaultShelfLifeDays || "-"} dias</p>
+								</div>
+							)}
+						</CardContent>
+					</Card>
 
-								{product.hasExpiration && (
-									<div className="border-t pt-4">
-										<h4 className="font-medium mb-2">Controle de Validade</h4>
-										<div>
-											<p className="text-sm text-gray-600 dark:text-gray-400">Prazo padrão</p>
-											<p className="font-medium">{product.defaultShelfLifeDays || "-"} dias</p>
-										</div>
-									</div>
-								)}
-							</CardContent>
-						</TabsContent>
-
-						<TabsContent value="nutrition">
+					{/* Status do Estoque Compacto */}
+					{stockAlerts && (
+						<Card>
+							<CardHeader className="pb-3">
+								<CardTitle className="text-sm flex items-center gap-2">
+									<AlertTriangle className="h-4 w-4" />
+									Status do Estoque
+								</CardTitle>
+							</CardHeader>
 							<CardContent>
-								<AnvisaNutritionalTable nutritionalInfo={nutritionalInfo} />
+								<div className="grid grid-cols-3 gap-3">
+									<div className="flex flex-col items-center text-center">
+										<div className={`p-2 rounded-lg mb-1 ${
+											stockAlerts.status === "low" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"
+										}`}>
+											{stockAlerts.status === "low" ? (
+												<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+											) : (
+												<CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+											)}
+										</div>
+										<p className="text-lg font-bold">{stockAlerts.currentStock || 0}</p>
+										<p className="text-[10px] text-gray-600 dark:text-gray-400">Atual</p>
+									</div>
+
+									{product.minStock && (
+										<div className="flex flex-col items-center text-center">
+											<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mb-1">
+												<Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+											</div>
+											<p className="text-lg font-bold">{product.minStock}</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400">Mínimo</p>
+										</div>
+									)}
+
+									{product.maxStock && (
+										<div className="flex flex-col items-center text-center">
+											<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mb-1">
+												<Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+											</div>
+											<p className="text-lg font-bold">{product.maxStock}</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400">Máximo</p>
+										</div>
+									)}
+								</div>
 							</CardContent>
-						</TabsContent>
-					</Tabs>
-				</Card>
+						</Card>
+					)}
+				</div>
+			</div>
+
+			{/* Grid: Gráficos lado a lado */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+				{/* Gráfico de Evolução de Preços */}
+				{priceHistory.length > 0 && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<TrendingUp className="h-5 w-5" />
+								Evolução de Preços
+							</CardTitle>
+							<CardDescription>Histórico nos últimos 3 meses</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<ResponsiveContainer width="100%" height={300}>
+								<LineChart data={priceHistory}>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="week" />
+									<YAxis />
+									<Tooltip
+										formatter={(value: number) => [`R$ ${value.toFixed(2)}`, ""]}
+										labelFormatter={(label) => `Semana: ${label}`}
+									/>
+									<Legend />
+									{Object.keys(priceHistory[0] || {})
+										.filter((key) => key !== "week")
+										.map((marketName, index) => (
+											<Line
+												key={marketName}
+												type="monotone"
+												dataKey={marketName}
+												stroke={`hsl(${(index * 137.5) % 360}, 70%, 50%)`}
+												strokeWidth={2}
+												connectNulls={false}
+											/>
+										))}
+								</LineChart>
+							</ResponsiveContainer>
+						</CardContent>
+					</Card>
+				)}
 
 				{/* Análise do melhor dia */}
 				<BestDayToBuyCard productId={productId} />
@@ -1212,7 +1206,7 @@ export default function ProdutoDetalhesPage() {
 				</Card>
 			)}
 
-			<NutritionAiAnalysis productId={productId} productName={product.name} />
+			<NutritionAiAnalysis productId={productId} productName={product.name} nutritionalInfo={nutritionalInfo} />
 
 			{/* Informações sobre Alérgenos */}
 			{nutritionalInfo &&

@@ -1,15 +1,19 @@
 "use client"
 
-import { Wand2 } from "lucide-react"
+import { Utensils, Wand2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
+import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { NutritionalInfo } from "@/types"
 
 interface NutritionAiAnalysisProps {
 	productId: string
 	productName: string
+	nutritionalInfo?: NutritionalInfo | null
 }
 
-export function NutritionAiAnalysis({ productId, productName }: NutritionAiAnalysisProps) {
+export function NutritionAiAnalysis({ productId, productName, nutritionalInfo }: NutritionAiAnalysisProps) {
 	const [analysis, setAnalysis] = useState<string | null>(null)
 	const [loading, setLoading] = useState(true)
 
@@ -39,18 +43,99 @@ export function NutritionAiAnalysis({ productId, productName }: NutritionAiAnaly
 		fetchAnalysis()
 	}, [productId, productName])
 
-	if (!analysis && !loading) {
-		return null // Não renderiza nada se não houver análise
+	if (!analysis && !loading && !nutritionalInfo) {
+		return null // Não renderiza nada se não houver análise nem informações nutricionais
 	}
 
 	return (
-		<AiAnalysisCard
-			title="Análise Nutricional do Zé"
-			description="Informações e recomendações nutricionais"
-			icon={Wand2}
-			loading={loading}
-		>
-			{analysis}
-		</AiAnalysisCard>
+		<Card className="border-2 border-purple-200 dark:border-purple-800 overflow-hidden">
+			<Tabs defaultValue="per100">
+				<CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border-b">
+					<CardTitle className="flex items-center gap-2.5">
+						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
+							<Wand2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+						</div>
+						<span className="text-lg">Informações Nutricionais</span>
+					</CardTitle>
+					<CardDescription className="mt-2">
+						Análise detalhada e tabela nutricional do produto
+					</CardDescription>
+					{nutritionalInfo && (
+						<TabsList className="grid w-full grid-cols-3 mt-4">
+							<TabsTrigger value="per100">Por 100g</TabsTrigger>
+							<TabsTrigger value="perServing">Por Porção</TabsTrigger>
+							<TabsTrigger value="table">
+								<Utensils className="h-3.5 w-3.5 mr-1.5" />
+								Tabela
+							</TabsTrigger>
+						</TabsList>
+					)}
+				</CardHeader>
+
+				{nutritionalInfo && (
+					<>
+						<TabsContent value="per100">
+							<CardContent className="pt-6">
+								{loading ? (
+									<div className="flex items-center justify-center py-8">
+										<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+									</div>
+								) : analysis ? (
+									<div className="prose prose-sm dark:prose-invert max-w-none">
+										<div dangerouslySetInnerHTML={{ __html: analysis }} />
+									</div>
+								) : (
+									<p className="text-sm text-gray-500 text-center py-4">
+										Análise nutricional não disponível
+									</p>
+								)}
+							</CardContent>
+						</TabsContent>
+
+						<TabsContent value="perServing">
+							<CardContent className="pt-6">
+								{loading ? (
+									<div className="flex items-center justify-center py-8">
+										<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+									</div>
+								) : analysis ? (
+									<div className="prose prose-sm dark:prose-invert max-w-none">
+										<div dangerouslySetInnerHTML={{ __html: analysis }} />
+									</div>
+								) : (
+									<p className="text-sm text-gray-500 text-center py-4">
+										Análise nutricional não disponível
+									</p>
+								)}
+							</CardContent>
+						</TabsContent>
+
+						<TabsContent value="table">
+							<CardContent className="pt-6">
+								<AnvisaNutritionalTable nutritionalInfo={nutritionalInfo} />
+							</CardContent>
+						</TabsContent>
+					</>
+				)}
+
+				{!nutritionalInfo && (
+					<CardContent className="pt-6">
+						{loading ? (
+							<div className="flex items-center justify-center py-8">
+								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+							</div>
+						) : analysis ? (
+							<div className="prose prose-sm dark:prose-invert max-w-none">
+								<div dangerouslySetInnerHTML={{ __html: analysis }} />
+							</div>
+						) : (
+							<p className="text-sm text-gray-500 text-center py-4">
+								Análise nutricional não disponível
+							</p>
+						)}
+					</CardContent>
+				)}
+			</Tabs>
+		</Card>
 	)
 }
