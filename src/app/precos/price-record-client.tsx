@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
 	Dialog,
 	DialogContent,
@@ -180,20 +180,6 @@ function PriceAnalysisCard({
 
 	return (
 		<div className={`space-y-6 ${className}`}>
-			{/* Informações sobre os dados */}
-			<Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-				<CardContent className="pt-6">
-					<div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
-						<Activity className="h-4 w-4" />
-						<span className="font-medium">Análise Completa:</span>
-						<span>{priceRecords.length} registros históricos analisados</span>
-						<span>•</span>
-						<span>{new Set(priceRecords.map(r => r.product)).size} produtos únicos</span>
-						<span>•</span>
-						<span>{new Set(priceRecords.map(r => r.market)).size} mercados</span>
-					</div>
-				</CardContent>
-			</Card>
 
 			{/* Produtos com Maior Variação */}
 			<Card>
@@ -427,20 +413,6 @@ function BestDayCard({
 
 	return (
 		<div className={`space-y-6 ${className}`}>
-			{/* Informações sobre os dados */}
-			<Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-				<CardContent className="pt-6">
-					<div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
-						<Target className="h-4 w-4" />
-						<span className="font-medium">Insights Completos:</span>
-						<span>{priceRecords.length} registros históricos analisados</span>
-						<span>•</span>
-						<span>{new Set(priceRecords.map(r => r.product)).size} produtos únicos</span>
-						<span>•</span>
-						<span>{new Set(priceRecords.map(r => r.market)).size} mercados</span>
-					</div>
-				</CardContent>
-			</Card>
 
 			{/* Melhor Dia para Comprar */}
 			<Card>
@@ -1621,6 +1593,17 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								</div>
 							</div>
 						</CardContent>
+						<CardFooter>
+							<div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+								<Activity className="h-4 w-4" />
+								<span className="font-medium">Análise Completa:</span>
+								<span>{allPriceData.length} registros históricos analisados</span>
+								<span>•</span>
+								<span>{new Set(allPriceData.map(r => r.product)).size} produtos únicos</span>
+								<span>•</span>
+								<span>{new Set(allPriceData.map(r => r.market)).size} mercados</span>
+							</div>
+						</CardFooter>
 					</Card>
 
 					<PriceAnalysisCard
@@ -1723,6 +1706,17 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								</div>
 							</div>
 						</CardContent>
+						<CardFooter>
+							<div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+								<Target className="h-4 w-4" />
+								<span className="font-medium">Insights Completos:</span>
+								<span>{allPriceData.length} registros históricos analisados</span>
+								<span>•</span>
+								<span>{new Set(allPriceData.map(r => r.product)).size} produtos únicos</span>
+								<span>•</span>
+								<span>{new Set(allPriceData.map(r => r.market)).size} mercados</span>
+							</div>
+						</CardFooter>
 					</Card>
 
 					<BestDayCard
