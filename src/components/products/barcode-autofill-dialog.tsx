@@ -92,19 +92,50 @@ export function BarcodeAutofillDialog({
 		setError(null)
 
 		try {
-			const response = await fetch(`/api/products/barcode/lookup/${barcode}`)
+			// Usar nova API do Gemini em vez da Cosmos (que tem limite de 25 req/dia)
+			const response = await fetch(`/api/products/barcode/gemini-lookup/${barcode}`)
 
 			if (!response.ok) {
 				const errorData = await response.json()
 				throw new Error(errorData.error || "Erro ao buscar produto")
 			}
 
-			const result: BarcodeResponse = await response.json()
-			setData(result)
+			const result = await response.json()
 
-			// Pré-selecionar primeira categoria se houver
-			if (result.suggestions.categories.length > 0) {
-				setSelectedCategoryId(result.suggestions.categories[0].id)
+			// Converter resposta do Gemini para o formato esperado
+			const convertedResult: BarcodeResponse = {
+				cosmos: {
+					gtin: Number.parseInt(barcode),
+					description: result.suggestions.name || "",
+					avg_price: result.suggestions.estimatedPrice || undefined,
+					brand: result.suggestions.brand?.name ? { name: result.suggestions.brand.name } : undefined,
+					thumbnail: undefined,
+				},
+				suggestions: {
+					name: result.suggestions.name || "",
+					packageSize: result.suggestions.packageSize || undefined,
+					brand: result.suggestions.brand ? {
+						id: result.suggestions.brand.id || undefined,
+						name: result.suggestions.brand.name,
+						exists: !!result.suggestions.brand.id,
+						shouldCreate: result.suggestions.brand.shouldCreate || false,
+					} : undefined,
+					categories: result.suggestions.category ? [{
+						id: result.suggestions.category.id,
+						name: result.suggestions.category.name,
+						icon: undefined,
+						color: undefined,
+					}] : [],
+					categoryKeywords: [],
+					thumbnail: undefined,
+				}
+			}
+
+			setData(convertedResult)
+
+			// Pré-selecionar categoria se houver
+			if (result.suggestions.category) {
+				setSelectedCategoryId(result.suggestions.category.id)
 				setSelectedFields(prev => ({ ...prev, category: true }))
 			}
 
@@ -160,9 +191,14 @@ export function BarcodeAutofillDialog({
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
-					<DialogTitle>Informações do Produto</DialogTitle>
+					<DialogTitle className="flex items-center gap-2">
+						Informações do Produto
+						<span className="text-xs font-normal px-2 py-1 bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-full">
+							✨ IA Gemini
+						</span>
+					</DialogTitle>
 					<DialogDescription>
-						Dados encontrados para o código de barras <strong>{barcode}</strong>
+						Dados encontrados via IA para o código EAN/GTIN <strong>{barcode}</strong>
 					</DialogDescription>
 				</DialogHeader>
 

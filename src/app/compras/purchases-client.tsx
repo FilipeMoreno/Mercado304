@@ -370,7 +370,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 															</div>
 															{totalDiscount > 0 && (
 																<div className="text-xs md:text-sm text-red-600 font-medium">
-																	-R$ {totalDiscount.toFixed(2)}
+																	Desconto: -R$ {totalDiscount.toFixed(2)}
 																</div>
 															)}
 														</div>
@@ -519,7 +519,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											</p>
 											<p className="text-sm text-gray-600">
 												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
-												{item.unitDiscount && item.unitDiscount > 0 && (
+												{item.unitDiscount > 0 && (
 													<span className="text-red-600 ml-1">
 														(-R$ {item.unitDiscount.toFixed(2)})
 													</span>
@@ -528,7 +528,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 										</div>
 										<div className="text-right">
 											<p className="font-medium">R$ {(item.finalPrice || item.totalPrice).toFixed(2)}</p>
-											{item.totalDiscount && item.totalDiscount > 0 && (
+											{item.totalDiscount > 0 && (
 												<p className="text-xs text-red-600">
 													Desconto: -R$ {item.totalDiscount.toFixed(2)}
 												</p>
@@ -540,13 +540,13 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						</div>
 
 						<div className="space-y-2 pt-4 border-t">
-							{purchaseDetails.totalDiscount && purchaseDetails.totalDiscount > 0 && (
+							{purchaseDetails.totalDiscount > 0 && (
 								<div className="flex justify-between items-center text-sm">
 									<span>Subtotal:</span>
 									<span>R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
 								</div>
 							)}
-							{purchaseDetails.totalDiscount && purchaseDetails.totalDiscount > 0 && (
+							{purchaseDetails.totalDiscount > 0 && (
 								<div className="flex justify-between items-center text-sm text-red-600">
 									<span>Desconto:</span>
 									<span>-R$ {purchaseDetails.totalDiscount.toFixed(2)}</span>
