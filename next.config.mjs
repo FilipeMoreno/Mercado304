@@ -97,19 +97,17 @@ const pwaConfig = withPWA({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 15 stable optimizations
+  // Next.js 16 with React Compiler
+  reactCompiler: true,
+  turbopack: {
+    root: '.',
+  },
   experimental: {
     // Enable modern bundling optimizations
     optimizePackageImports: ['lucide-react', 'date-fns', 'framer-motion'],
     // Enable modern ESM externals
     esmExternals: true,
   },
-
-  // Turbopack configuration
-  turbopack: {
-    root: '.',
-  },
-
   // Server external packages (moved from experimental)
   serverExternalPackages: ['@prisma/client'],
 
