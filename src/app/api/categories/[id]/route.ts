@@ -33,7 +33,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const body = await request.json()
-		const { name, icon, color } = body
+		const { name, icon, color, isFood } = body
 
 		const category = await prisma.category.update({
 			where: { id: params.id },
@@ -41,6 +41,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				name,
 				icon,
 				color,
+				isFood,
 			},
 		})
 

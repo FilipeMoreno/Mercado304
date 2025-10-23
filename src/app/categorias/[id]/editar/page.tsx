@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { useCategoryQuery, useUpdateCategoryMutation } from "@/hooks"
 
 export default function EditarCategoriaPage() {
@@ -21,12 +22,18 @@ export default function EditarCategoriaPage() {
 
 	const [formData, setFormData] = useState({
 		name: "",
+		icon: "",
+		color: "#3b82f6",
+		isFood: false,
 	})
 
 	useEffect(() => {
 		if (category) {
 			setFormData({
 				name: category.name || "",
+				icon: category.icon || "",
+				color: category.color || "#3b82f6",
+				isFood: category.isFood || false,
 			})
 		}
 	}, [category])
@@ -44,6 +51,9 @@ export default function EditarCategoriaPage() {
 				id: categoryId,
 				data: {
 					name: formData.name.trim(),
+					icon: formData.icon.trim() || undefined,
+					color: formData.color,
+					isFood: formData.isFood,
 				},
 			})
 
@@ -139,7 +149,49 @@ export default function EditarCategoriaPage() {
 								placeholder="Ex: Bebidas, Laticínios, Carnes..."
 								required
 							/>
-							<p className="text-xs text-gray-500">Digite o nome da categoria de produtos</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="icon">Ícone (Emoji)</Label>
+							<Input
+								id="icon"
+								value={formData.icon}
+								onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
+								placeholder="📦 🥛 🍖 🍞 (opcional)"
+								maxLength={10}
+							/>
+							<p className="text-xs text-gray-500">Use emojis para representar visualmente a categoria</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="color">Cor da Categoria</Label>
+							<div className="flex items-center gap-3">
+								<Input
+									id="color"
+									type="color"
+									value={formData.color}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
+									className="w-20 h-10"
+								/>
+								<Input
+									value={formData.color}
+									onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
+									placeholder="#3b82f6"
+									className="flex-1"
+								/>
+							</div>
+						</div>
+
+						<div className="flex items-center space-x-3">
+							<Switch
+								id="isFood"
+								checked={formData.isFood}
+								onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isFood: checked }))}
+							/>
+							<div>
+								<Label htmlFor="isFood">Esta categoria é um alimento?</Label>
+								<p className="text-xs text-gray-500">Marque se esta categoria representa produtos alimentícios</p>
+							</div>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">

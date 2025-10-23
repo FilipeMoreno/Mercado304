@@ -65,7 +65,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { name, icon, color } = body
+		const { name, icon, color, isFood } = body
 
 		if (!name) {
 			return NextResponse.json({ error: "Nome da categoria é obrigatório" }, { status: 400 })
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
 				name,
 				icon,
 				color,
+				isFood: isFood ?? false,
 			},
 		})
 
