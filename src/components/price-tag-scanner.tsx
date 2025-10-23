@@ -30,22 +30,92 @@ interface ScanResult {
 	rawText?: string
 	productName?: string
 	weight?: string
+	productExists?: boolean
+}
+
+interface PriceOptionWithDiscount extends PriceOption {
+	discount?: {
+		amount: number
+		percentage: number
+		comparedTo: string
+	}
+}
+
+// Função para verificar se o produto existe no sistema
+const checkProductExists = async (barcode: string): Promise<boolean> => {
+	try {
+		const response = await fetch(`/api/products/search?barcode=${encodeURIComponent(barcode)}`)
+		const data = await response.json()
+		return data.success && data.products && data.products.length > 0
+	} catch (error) {
+		console.error("Erro ao verificar produto:", error)
+		return false
+	}
+}
+
+// Função para calcular descontos entre preços
+const calculateDiscounts = (prices: PriceOption[]): PriceOptionWithDiscount[] => {
+	if (!prices || prices.length < 2) return prices
+
+	// Encontrar preços de atacado e varejo
+	const atacadoPrices = prices.filter(p =>
+		p.condition.toLowerCase().includes('atacado') ||
+		p.condition.toLowerCase().includes('a partir de')
+	)
+	const varejoPrices = prices.filter(p =>
+		p.condition.toLowerCase().includes('varejo') ||
+		p.condition.toLowerCase().includes('unidade')
+	)
+
+	const pricesWithDiscounts: PriceOptionWithDiscount[] = prices.map(price => {
+		const priceWithDiscount: PriceOptionWithDiscount = { ...price }
+
+		// Se é preço de atacado, calcular desconto em relação ao varejo
+		if (atacadoPrices.includes(price) && varejoPrices.length > 0) {
+			const varejoPrice = varejoPrices[0] // Pegar o primeiro preço de varejo
+			const discountAmount = varejoPrice.value - price.value
+			const discountPercentage = (discountAmount / varejoPrice.value) * 100
+
+			if (discountAmount > 0) {
+				priceWithDiscount.discount = {
+					amount: discountAmount,
+					percentage: discountPercentage,
+					comparedTo: varejoPrice.condition
+				}
+			}
+		}
+
+		return priceWithDiscount
+	})
+
+	return pricesWithDiscounts
 }
 
 export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagScannerProps) {
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [capturedImage, setCapturedImage] = useState<string>("")
-	const [priceOptions, setPriceOptions] = useState<PriceOption[]>([])
+	const [priceOptions, setPriceOptions] = useState<PriceOptionWithDiscount[]>([])
 	const [pendingScanResult, setPendingScanResult] = useState<ScanResult | null>(null)
 	const [showPriceSelectionDialog, setShowPriceSelectionDialog] = useState(false)
 	const [showCamera, setShowCamera] = useState(true)
 
-	// Função para processar imagem com IA
+	// Função para processar imagem com IA - Nova estratégia otimizada
 	const processImage = async (imageFile: File) => {
 		setIsProcessing(true)
 		setShowCamera(false)
 
 		try {
+			console.log("📸 Processando imagem:", {
+				name: imageFile.name,
+				size: `${(imageFile.size / 1024 / 1024).toFixed(2)} MB`,
+				type: imageFile.type
+			})
+
+			// Mostrar toast de processamento
+			toast.loading("Processando etiqueta com IA...", {
+				id: "processing-image"
+			})
+
 			// Converter File para base64
 			const reader = new FileReader()
 			const imageDataUrl = await new Promise<string>((resolve, reject) => {
@@ -70,46 +140,58 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				throw new Error("Erro ao processar imagem")
 			}
 
-		const result = await response.json()
+			const result = await response.json()
 
-		if (result.success && result.barcode) {
-			// Os dados estão diretamente no result, não em result.data
-			const scanResult: ScanResult = {
-				barcode: result.barcode,
-				prices: result.prices,
-				confidence: result.confidence || 0.8,
-				rawText: result.rawText,
-				productName: result.productName,
-				weight: result.weight,
-			}
+			if (result.success && result.barcode) {
+				// Verificar se o produto existe no sistema
+				const productExists = await checkProductExists(result.barcode)
 
-			// Se houver múltiplos preços, mostrar dialog de seleção
-			if (scanResult.prices && scanResult.prices.length > 1) {
-				setPriceOptions(scanResult.prices)
-				setPendingScanResult(scanResult)
-				setShowPriceSelectionDialog(true)
-			} else {
-				// Se houver apenas um preço ou preço único, retornar direto
-				const price = scanResult.prices?.[0]?.value || scanResult.price
-				if (price) {
-					toast.success("Etiqueta processada com sucesso!")
-					onScan({
-						barcode: scanResult.barcode,
-						price: price,
-						confidence: scanResult.confidence || 0.8,
-					})
-					handleCloseAll()
-				} else {
-					toast.error("Não foi possível identificar o preço na etiqueta")
-					resetAndRetry()
+				// Calcular descontos se houver preços de atacado e varejo
+				const pricesWithDiscounts = calculateDiscounts(result.prices || [])
+
+				// Os dados estão diretamente no result, não em result.data
+				const scanResult: ScanResult = {
+					barcode: result.barcode,
+					prices: pricesWithDiscounts,
+					confidence: result.confidence || 0.8,
+					rawText: result.rawText,
+					productName: result.productName,
+					weight: result.weight,
+					productExists,
 				}
+
+				// Dismiss loading toast
+				toast.dismiss("processing-image")
+
+				// Se houver múltiplos preços, mostrar dialog de seleção
+				if (scanResult.prices && scanResult.prices.length > 1) {
+					setPriceOptions(scanResult.prices)
+					setPendingScanResult(scanResult)
+					setShowPriceSelectionDialog(true)
+				} else {
+					// Se houver apenas um preço ou preço único, retornar direto
+					const price = scanResult.prices?.[0]?.value || scanResult.price
+					if (price) {
+						toast.success("Etiqueta processada com sucesso!")
+						onScan({
+							barcode: scanResult.barcode,
+							price: price,
+							confidence: scanResult.confidence || 0.8,
+						})
+						handleCloseAll()
+					} else {
+						toast.error("Não foi possível identificar o preço na etiqueta")
+						resetAndRetry()
+					}
+				}
+			} else {
+				toast.dismiss("processing-image")
+				toast.error(result.message || "Não foi possível processar a etiqueta")
+				resetAndRetry()
 			}
-		} else {
-			toast.error(result.message || "Não foi possível processar a etiqueta")
-			resetAndRetry()
-		}
 		} catch (error) {
 			console.error("Erro ao processar imagem:", error)
+			toast.dismiss("processing-image")
 			toast.error("Erro ao processar etiqueta. Tente novamente.")
 			resetAndRetry()
 		} finally {
@@ -117,7 +199,7 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 		}
 	}
 
-	const handlePriceSelection = (selectedPrice: PriceOption) => {
+	const handlePriceSelection = (selectedPrice: PriceOptionWithDiscount) => {
 		if (pendingScanResult) {
 			toast.success("Preço selecionado com sucesso!")
 			onScan({
@@ -148,18 +230,18 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 
 	return (
 		<>
-			{/* Câmera para captura */}
+			{/* Câmera para captura - Nova estratégia otimizada */}
 			{showCamera && (
 				<SmartCameraCapture
 					isOpen={isOpen}
 					onClose={handleCloseAll}
 					onCapture={processImage}
 					title="Escanear Etiqueta de Preço"
-					description="Tire uma foto da etiqueta de preço do produto"
+					description="Sistema inteligente de captura otimizado para PWA e dispositivos móveis"
 					mode="auto"
-					quality={0.9}
-					maxWidth={2560}
-					maxHeight={1440}
+					quality={0.85}
+					maxWidth={1920}
+					maxHeight={1080}
 				/>
 			)}
 
@@ -184,16 +266,22 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 						</p>
 					</div>
 
-					{/* Preview da imagem capturada */}
+					{/* Preview da imagem capturada - Nova estratégia otimizada */}
 					{capturedImage && (
-						<div className="relative aspect-video bg-black rounded-lg overflow-hidden border-2 border-border">
-							<Image
-								src={capturedImage}
-								alt="Etiqueta capturada"
-								fill
-								className="object-contain"
-								unoptimized
-							/>
+						<div className="space-y-3">
+							<div className="relative aspect-video bg-black rounded-lg overflow-hidden border-2 border-border">
+								<Image
+									src={capturedImage}
+									alt="Etiqueta capturada"
+									fill
+									className="object-contain"
+									unoptimized
+								/>
+							</div>
+							<div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+								<div className="w-2 h-2 bg-green-500 rounded-full"></div>
+								<span>Imagem processada com compressão inteligente</span>
+							</div>
 						</div>
 					)}
 
@@ -218,6 +306,23 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 									<span className="font-semibold min-w-[80px]">Código:</span>
 									<span className="text-muted-foreground font-mono">{pendingScanResult.barcode}</span>
 								</div>
+								{/* Status do produto no sistema */}
+								<div className="flex items-start gap-2">
+									<span className="font-semibold min-w-[80px]">Sistema:</span>
+									<div className="flex items-center gap-2">
+										{pendingScanResult.productExists ? (
+											<>
+												<Badge variant="default" className="text-xs bg-green-100 text-green-800">
+													✅ Produto cadastrado
+												</Badge>
+											</>
+										) : (
+											<Badge variant="outline" className="text-xs">
+												❌ Produto não cadastrado
+											</Badge>
+										)}
+									</div>
+								</div>
 							</CardContent>
 						</Card>
 					)}
@@ -230,15 +335,27 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 								<Button
 									key={`${option.value}-${option.condition}`}
 									variant="outline"
-									className="h-auto py-4 px-4 justify-start text-left hover:bg-primary/10 hover:border-primary"
+									className="h-auto py-4 px-4 justify-start text-left hover:bg-primary/10 hover:border-primary group"
 									onClick={() => handlePriceSelection(option)}
 								>
 									<div className="flex items-center justify-between w-full gap-4">
 										<div className="space-y-1 flex-1">
-											<div className="text-2xl font-bold text-primary">
-												R$ {option.value.toFixed(2).replace(".", ",")}
+											<div className="flex items-center gap-2">
+												<div className="text-2xl font-bold text-primary">
+													R$ {option.value.toFixed(2).replace(".", ",")}
+												</div>
+												{option.discount && (
+													<Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+														💰 R$ {option.discount.amount.toFixed(2).replace(".", ",")} de desconto
+													</Badge>
+												)}
 											</div>
 											<div className="text-xs text-muted-foreground">{option.condition}</div>
+											{option.discount && (
+												<div className="text-xs text-green-600 font-medium">
+													{option.discount.percentage.toFixed(1)}% mais barato que {option.discount.comparedTo}
+												</div>
+											)}
 										</div>
 										<Check className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
 									</div>
@@ -247,14 +364,24 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 						</div>
 					</div>
 
-					{/* Informações de confiança */}
-					{pendingScanResult?.confidence && (
+					{/* Informações técnicas - Nova estratégia otimizada */}
+					<div className="space-y-2">
+						{pendingScanResult?.confidence && (
+							<div className="flex items-center gap-2 text-xs text-muted-foreground">
+								<Badge variant="outline" className="text-xs">
+									Confiança: {(pendingScanResult.confidence * 100).toFixed(0)}%
+								</Badge>
+							</div>
+						)}
 						<div className="flex items-center gap-2 text-xs text-muted-foreground">
 							<Badge variant="outline" className="text-xs">
-								Confiança: {(pendingScanResult.confidence * 100).toFixed(0)}%
+								📱 Modo Auto Ativo
+							</Badge>
+							<Badge variant="outline" className="text-xs">
+								⚡ Compressão Inteligente
 							</Badge>
 						</div>
-					)}
+					</div>
 
 					{/* Botões de ação */}
 					<div className="flex gap-2 justify-end pt-2">
@@ -266,19 +393,23 @@ export function PriceTagScanner({ onScan, onClose, isOpen, marketId }: PriceTagS
 				</div>
 			</ResponsiveDialog>
 
-			{/* Overlay de processamento */}
+			{/* Overlay de processamento - Nova estratégia otimizada */}
 			{isProcessing && !showCamera && (
-				<ResponsiveDialog open={true} onOpenChange={() => {}}>
-					<div className="flex flex-col items-center justify-center p-8 space-y-4">
+				<ResponsiveDialog open={true} onOpenChange={() => { }}>
+					<div className="flex flex-col items-center justify-center p-8 space-y-6">
 						<div className="relative">
-							<div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
-							<Tag className="h-8 w-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+							<div className="animate-spin rounded-full h-20 w-20 border-b-2 border-primary"></div>
+							<Tag className="h-10 w-10 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 						</div>
-						<div className="space-y-2 text-center">
-							<h3 className="text-lg font-semibold">Processando Etiqueta</h3>
+						<div className="space-y-3 text-center">
+							<h3 className="text-xl font-semibold">Processando Etiqueta</h3>
 							<p className="text-sm text-muted-foreground">
-								Analisando código de barras e preços com IA...
+								Sistema inteligente analisando código de barras e preços com IA...
 							</p>
+							<div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+								<div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+								<span>Compressão inteligente ativa</span>
+							</div>
 						</div>
 					</div>
 				</ResponsiveDialog>
