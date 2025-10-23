@@ -1,6 +1,6 @@
 "use client"
 
-import { Utensils, Wand2 } from "lucide-react"
+import { Utensils, Wand2, Package } from "lucide-react"
 import { useEffect, useState } from "react"
 import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,15 +55,16 @@ export function NutritionAiAnalysis({ productId, productName, nutritionalInfo }:
 						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
 							<Wand2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
 						</div>
-						<span className="text-lg">Informações Nutricionais</span>
+						<span className="text-lg">Análise Nutricional do Zé</span>
 					</CardTitle>
 					<CardDescription className="mt-2">
 						Análise detalhada e tabela nutricional do produto
 					</CardDescription>
 					{nutritionalInfo && (
-						<TabsList className="grid w-full grid-cols-3 mt-4">
+						<TabsList className="grid w-full grid-cols-4 mt-4">
 							<TabsTrigger value="per100">Por 100g</TabsTrigger>
 							<TabsTrigger value="perServing">Por Porção</TabsTrigger>
+							<TabsTrigger value="complete">Completas</TabsTrigger>
 							<TabsTrigger value="table">
 								<Utensils className="h-3.5 w-3.5 mr-1.5" />
 								Tabela
@@ -107,6 +108,68 @@ export function NutritionAiAnalysis({ productId, productName, nutritionalInfo }:
 										Análise nutricional não disponível
 									</p>
 								)}
+							</CardContent>
+						</TabsContent>
+
+						<TabsContent value="complete">
+							<CardContent className="pt-6">
+								<div className="space-y-8">
+									{/* Macronutrientes */}
+									<div>
+										{nutritionalInfo.calories || nutritionalInfo.carbohydrates || nutritionalInfo.proteins || nutritionalInfo.totalFat ? (
+											<div className="flex items-center gap-2 mb-4">
+												<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
+												<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
+											</div>
+										) : null}
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+											{nutritionalInfo.calories && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
+														<p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+															{nutritionalInfo.calories.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })} kcal
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
+												</div>
+											)}
+											{nutritionalInfo.carbohydrates && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
+														<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+															{nutritionalInfo.carbohydrates.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}g
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
+												</div>
+											)}
+											{nutritionalInfo.proteins && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
+														<p className="text-2xl font-bold text-green-900 dark:text-green-100">
+															{nutritionalInfo.proteins.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}g
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
+												</div>
+											)}
+											{nutritionalInfo.totalFat && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">Gorduras Totais</p>
+														<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+															{nutritionalInfo.totalFat.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}g
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
 							</CardContent>
 						</TabsContent>
 

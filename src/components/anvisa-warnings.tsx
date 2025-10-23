@@ -18,27 +18,27 @@ interface AnvisaWarningsProps {
 const LupaHeader = ({ className }: { className?: string }) => (
 	<div
 		className={cn(
-			"flex h-full items-center gap-2 border-2 border-black bg-white p-3 text-black shadow-lg",
-			"dark:border-white dark:bg-zinc-800 dark:text-white", // Estilos para o Dark Mode
+			"flex h-full items-center gap-1.5 border border-red-300 bg-red-50 px-2 py-1.5 text-red-700 rounded-l-md",
+			"dark:border-red-600 dark:bg-red-950/30 dark:text-red-300", // Estilos para o Dark Mode
 			className,
 		)}
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
+			width="16"
+			height="16"
 			viewBox="0 0 24 24"
 			fill="none"
 			stroke="currentColor"
-			strokeWidth="3"
+			strokeWidth="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="h-7 w-7 flex-shrink-0"
+			className="h-4 w-4 flex-shrink-0"
 		>
 			<circle cx="11" cy="11" r="8" />
 			<line x1="21" y1="21" x2="16.65" y2="16.65" />
 		</svg>
-		<span className="block font-extrabold text-sm leading-tight">ALTO EM</span>
+		<span className="block font-semibold text-xs leading-tight">ALTO EM</span>
 	</div>
 )
 
@@ -46,12 +46,12 @@ const LupaHeader = ({ className }: { className?: string }) => (
 const NutrientBlock = ({ nutrient, className }: { nutrient: string; className?: string }) => (
 	<div
 		className={cn(
-			"border-2 border-black bg-black p-3 text-center text-white shadow-lg",
-			"dark:border-white dark:bg-white dark:text-black", // Estilos para o Dark Mode
+			"border border-red-300 bg-red-100 px-2 py-1.5 text-center text-red-800 rounded-r-md",
+			"dark:border-red-600 dark:bg-red-900/50 dark:text-red-200", // Estilos para o Dark Mode
 			className,
 		)}
 	>
-		<span className="block font-extrabold text-sm leading-tight">{nutrient}</span>
+		<span className="block font-semibold text-xs leading-tight">{nutrient}</span>
 	</div>
 )
 
@@ -59,7 +59,7 @@ const NutrientBlock = ({ nutrient, className }: { nutrient: string; className?: 
 const IndividualWarningLabel = ({ nutrient }: { nutrient: string }) => (
 	<div className="inline-flex items-stretch font-sans">
 		<LupaHeader />
-		<NutrientBlock nutrient={nutrient} className="-ml-[2px]" />
+		<NutrientBlock nutrient={nutrient} className="-ml-px" />
 	</div>
 )
 

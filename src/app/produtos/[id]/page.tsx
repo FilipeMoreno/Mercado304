@@ -183,21 +183,21 @@ export default function ProdutoDetalhesPage() {
 				{/* Título e Badges */}
 				<div className="flex items-start gap-3">
 					<div className="flex-1 min-w-0">
-					<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
-					<div className="flex flex-wrap items-center gap-2 mt-3">
-						{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
-						{product.category && (
-							<Badge variant="outline">
-								{product.category.icon} {product.category.name}
-							</Badge>
-						)}
-						{product.packageSize && (
-							<Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
-								📦 {product.packageSize}
-							</Badge>
-						)}
-						<Badge variant="outline">{product.unit}</Badge>
-					</div>
+						<h1 className="text-xl md:text-3xl font-bold break-words leading-tight">{product.name}</h1>
+						<div className="flex flex-wrap items-center gap-2 mt-3">
+							{product.brand && <Badge variant="secondary">{product.brand.name}</Badge>}
+							{product.category && (
+								<Badge variant="outline">
+									{product.category.icon} {product.category.name}
+								</Badge>
+							)}
+							{product.packageSize && (
+								<Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
+									📦 {product.packageSize}
+								</Badge>
+							)}
+							<Badge variant="outline">{product.unit}</Badge>
+						</div>
 					</div>
 				</div>
 				<div className="flex flex-row gap-3">
@@ -278,35 +278,35 @@ export default function ProdutoDetalhesPage() {
 					{stats && (
 						<div className="grid grid-cols-2 gap-3">
 							<Card>
-								<CardContent className="p-3">
+								<CardContent className="p-4">
 									<div className="flex items-center gap-2">
 										<div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded">
 											<ShoppingCart className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
 										</div>
 										<div className="flex-1 min-w-0">
 											<p className="text-lg font-bold leading-none">{stats.totalPurchases || 0}</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Compras</p>
+											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Compras</p>
 										</div>
 									</div>
 								</CardContent>
 							</Card>
 
 							<Card>
-								<CardContent className="p-3">
+								<CardContent className="p-4">
 									<div className="flex items-center gap-2">
 										<div className="p-1.5 bg-green-100 dark:bg-green-900 rounded">
 											<DollarSign className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
 										</div>
 										<div className="flex-1 min-w-0">
 											<p className="text-lg font-bold leading-none">R$ {(stats.averagePrice || 0).toFixed(2)}</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Preço Médio</p>
+											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Preço Médio</p>
 										</div>
 									</div>
 								</CardContent>
 							</Card>
 
 							<Card>
-								<CardContent className="p-3">
+								<CardContent className="p-4">
 									<div className="flex items-center gap-2">
 										<div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded">
 											<Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
@@ -315,14 +315,14 @@ export default function ProdutoDetalhesPage() {
 											<p className="text-lg font-bold leading-none">
 												{stats.lastPriceDate ? format(new Date(stats.lastPriceDate), "dd/MM", { locale: ptBR }) : "-"}
 											</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Última Compra</p>
+											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Última Compra</p>
 										</div>
 									</div>
 								</CardContent>
 							</Card>
 
 							<Card>
-								<CardContent className="p-3">
+								<CardContent className="p-4">
 									<div className="flex items-center gap-2">
 										<div className="p-1.5 bg-orange-100 dark:bg-orange-900 rounded">
 											{stats.priceChange > 0 ? (
@@ -334,12 +334,11 @@ export default function ProdutoDetalhesPage() {
 											)}
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className={`text-lg font-bold leading-none ${
-												stats.priceChange > 0 ? "text-red-600" : stats.priceChange < 0 ? "text-green-600" : "text-gray-600"
-											}`}>
+											<p className={`text-lg font-bold leading-none ${stats.priceChange > 0 ? "text-red-600" : stats.priceChange < 0 ? "text-green-600" : "text-gray-600"
+												}`}>
 												{stats.priceChange > 0 ? "+" : ""}{(stats.priceChange || 0).toFixed(1)}%
 											</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">Variação</p>
+											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Variação</p>
 										</div>
 									</div>
 								</CardContent>
@@ -356,18 +355,26 @@ export default function ProdutoDetalhesPage() {
 							<div className="grid grid-cols-2 gap-3 text-sm">
 								<div>
 									<p className="text-xs text-gray-600 dark:text-gray-400">Código de Barras</p>
-									<p className="font-medium font-mono text-xs">{product.barcode || "N/A"}</p>
+									<p className="font-medium">{product.barcode || "N/A"}</p>
 								</div>
 								<div>
 									<p className="text-xs text-gray-600 dark:text-gray-400">Unidade</p>
 									<p className="font-medium">{product.unit}</p>
+								</div>
+								<div>
+									<p className="text-xs text-gray-600 dark:text-gray-400">Categoria</p>
+									<p className="font-medium">{product.category?.name || "N/A"}</p>
+								</div>
+								<div>
+									<p className="text-xs text-gray-600 dark:text-gray-400">Tamanho</p>
+									<p className="font-medium">{product.packageSize || "N/A"}</p>
 								</div>
 							</div>
 
 							{product.hasStock && (
 								<div className="border-t pt-3">
 									<p className="text-xs font-medium mb-2">Controle de Estoque</p>
-									<div className="grid grid-cols-2 gap-3 text-sm">
+									<div className="grid grid-cols-3 gap-3 text-sm">
 										<div>
 											<p className="text-xs text-gray-600 dark:text-gray-400">Mínimo</p>
 											<p className="font-medium">{product.minStock || "-"}</p>
@@ -375,6 +382,10 @@ export default function ProdutoDetalhesPage() {
 										<div>
 											<p className="text-xs text-gray-600 dark:text-gray-400">Máximo</p>
 											<p className="font-medium">{product.maxStock || "-"}</p>
+										</div>
+										<div>
+											<p className="text-xs text-gray-600 dark:text-gray-400">Validade padrão</p>
+											<p className="font-medium">{product.defaultShelfLifeDays || "-"}</p>
 										</div>
 									</div>
 								</div>
@@ -401,9 +412,8 @@ export default function ProdutoDetalhesPage() {
 							<CardContent>
 								<div className="grid grid-cols-3 gap-3">
 									<div className="flex flex-col items-center text-center">
-										<div className={`p-2 rounded-lg mb-1 ${
-											stockAlerts.status === "low" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"
-										}`}>
+										<div className={`p-2 rounded-lg mb-1 ${stockAlerts.status === "low" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"
+											}`}>
 											{stockAlerts.status === "low" ? (
 												<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
 											) : (
@@ -503,8 +513,8 @@ export default function ProdutoDetalhesPage() {
 									<div
 										key={market.marketId}
 										className={`p-4 rounded-lg border ${isCheapest
-												? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-												: "border-gray-200 dark:border-gray-700"
+											? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+											: "border-gray-200 dark:border-gray-700"
 											}`}
 									>
 										<div className="flex justify-between items-start">
