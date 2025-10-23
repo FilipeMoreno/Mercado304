@@ -34,6 +34,7 @@ import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
+import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -138,34 +139,7 @@ export function DashboardClient() {
 	// Loading skeleton for dashboard stats
 	if (isLoading) {
 		return (
-			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 md:space-y-6">
-				<div>
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-4 w-96 mt-2" />
-				</div>
-				<OptimizedLoading isLoading={true} skeletonType="product" skeletonCount={5}>
-					<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-						{Array.from({ length: 5 }).map((_, i) => (
-							<motion.div
-								key={`dashboard-skeleton-${i}-${Math.random().toString(36).substr(2, 9)}`}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: i * 0.1 }}
-							>
-								<Card className="shadow-sm">
-									<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-										<Skeleton className="h-4 w-20" />
-										<Skeleton className="h-4 w-4" />
-									</CardHeader>
-									<CardContent>
-										<Skeleton className="h-8 w-16" />
-									</CardContent>
-								</Card>
-							</motion.div>
-						))}
-					</div>
-				</OptimizedLoading>
-			</motion.div>
+			<DashboardSkeleton />
 		)
 	}
 

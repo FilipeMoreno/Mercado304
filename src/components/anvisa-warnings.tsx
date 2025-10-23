@@ -89,22 +89,48 @@ export function AnvisaWarnings({ nutritionalInfo, unit, layout = "vertical" }: A
 	const multiplier = servingValue / 100
 
 	// Converte os valores para a porção e compara com os thresholds
-	if (nutritionalInfo.addedSugars) {
+	if (nutritionalInfo.addedSugars && nutritionalInfo.addedSugars > 0) {
 		const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
+		console.log("DEBUG ANVISA - Açúcar Adicionado:", {
+			value100g: nutritionalInfo.addedSugars,
+			servingSize: nutritionalInfo.servingSize,
+			multiplier,
+			valuePerServing: addedSugarsPerServing,
+			threshold: thresholds.addedSugars,
+			isHigh: addedSugarsPerServing >= thresholds.addedSugars,
+		})
 		if (addedSugarsPerServing >= thresholds.addedSugars) {
 			warnings.push("AÇÚCAR ADICIONADO")
 		}
 	}
 
-	if (nutritionalInfo.saturatedFat) {
+	if (nutritionalInfo.saturatedFat && nutritionalInfo.saturatedFat > 0) {
 		const saturatedFatPerServing = nutritionalInfo.saturatedFat * multiplier
+		console.log("DEBUG ANVISA - Gordura Saturada:", {
+			value100g: nutritionalInfo.saturatedFat,
+			servingSize: nutritionalInfo.servingSize,
+			multiplier,
+			valuePerServing: saturatedFatPerServing,
+			threshold: thresholds.saturatedFat,
+			isHigh: saturatedFatPerServing >= thresholds.saturatedFat,
+		})
 		if (saturatedFatPerServing >= thresholds.saturatedFat) {
 			warnings.push("GORDURA SATURADA")
 		}
 	}
 
-	if (nutritionalInfo.sodium) {
+	if (nutritionalInfo.sodium && nutritionalInfo.sodium > 0) {
 		const sodiumPerServing = nutritionalInfo.sodium * multiplier
+		console.log("DEBUG ANVISA - Sódio:", {
+			value100g: nutritionalInfo.sodium,
+			servingSize: nutritionalInfo.servingSize,
+			multiplier,
+			valuePerServing: sodiumPerServing,
+			threshold: thresholds.sodium,
+			isHigh: sodiumPerServing >= thresholds.sodium,
+			unit,
+			isLiquid,
+		})
 		if (sodiumPerServing >= thresholds.sodium) {
 			warnings.push("SÓDIO")
 		}
