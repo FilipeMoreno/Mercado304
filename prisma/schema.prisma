@@ -631,8 +631,11 @@ model DashboardPreference {
   showTemporalComp     Boolean  @default(true)
   showNutritionCard    Boolean  @default(true)
   showPaymentStats     Boolean  @default(true)
+  showMonthlyStats     Boolean  @default(true)
   customTitle          String?
   customSubtitle       String?
+  widgetLayouts        Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
+  gridColumns          Int      @default(12) // Número de colunas no grid (padrão 12)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

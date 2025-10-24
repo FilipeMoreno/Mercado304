@@ -2,7 +2,7 @@
 
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd"
 import { Cog, Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, useId } from "react"
 import { Button } from "@/components/ui/button"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
@@ -113,6 +113,11 @@ const cardSections = [
 		label: "Estatísticas de Pagamento",
 		description: "Análise dos métodos de pagamento",
 	},
+	{
+		key: "showMonthlyStats",
+		label: "Histórico Mensal de Compras",
+		description: "Análise dos gastos mensais e tendências",
+	},
 ]
 
 interface DashboardCustomizerProps {
@@ -130,6 +135,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 		cardsPerRow: 5,
 		showSummaryCard: true,
 		showMonthlyChart: true,
+		showMonthlyStats: true,
 		showCategoryStats: true,
 		showTopProducts: true,
 		showMarketCompare: true,
@@ -242,6 +248,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				cardsPerRow: 5,
 				showSummaryCard: true,
 				showMonthlyChart: true,
+				showMonthlyStats: true,
 				showCategoryStats: true,
 				showTopProducts: true,
 				showMarketCompare: true,

@@ -1,3 +1,6 @@
+// Export widget types
+export * from "./dashboard-widgets"
+
 export interface Market {
 	id: string
 	name: string

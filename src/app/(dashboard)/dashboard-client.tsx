@@ -6,19 +6,20 @@ import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { InstallPWACard } from "@/components/install-pwa-card"
 import { DashboardCardMemo, DashboardStatsCardMemo } from "@/components/memoized"
+import { MonthlyPurchaseStats } from "@/components/monthly-purchase-stats"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -212,6 +213,16 @@ export function DashboardClient() {
 				>
 					<MonthlySpendingChart data={stats.monthlySpending} loading={statsLoading} />
 				</Suspense>
+			)}
+
+			{currentPrefs.showMonthlyStats && (
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.4 }}
+				>
+					<MonthlyPurchaseStats data={stats} loading={statsLoading} />
+				</motion.div>
 			)}
 
 			{currentPrefs.showReplenishment && consumptionData?.replenishmentAlerts?.length > 0 && (

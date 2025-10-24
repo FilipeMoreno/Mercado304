@@ -33,8 +33,11 @@ export async function GET() {
 				showTemporalComp: true,
 				showNutritionCard: true,
 				showPaymentStats: true,
+				showMonthlyStats: true,
 				customTitle: null,
 				customSubtitle: null,
+				widgetLayouts: {},
+				gridColumns: 12,
 			})
 		}
 
@@ -56,8 +59,11 @@ export async function GET() {
 			showTemporalComp: preferences.showTemporalComp,
 			showNutritionCard: preferences.showNutritionCard,
 			showPaymentStats: preferences.showPaymentStats,
+			showMonthlyStats: preferences.showMonthlyStats,
 			customTitle: preferences.customTitle,
 			customSubtitle: preferences.customSubtitle,
+			widgetLayouts: preferences.widgetLayouts || {},
+			gridColumns: preferences.gridColumns || 12,
 		})
 	} catch (error) {
 		console.error("Erro ao buscar preferências do dashboard:", error)
@@ -99,8 +105,11 @@ export async function POST(request: NextRequest) {
 				showTemporalComp: data.showTemporalComp ?? true,
 				showNutritionCard: data.showNutritionCard ?? true,
 				showPaymentStats: data.showPaymentStats ?? true,
+				showMonthlyStats: data.showMonthlyStats ?? true,
 				customTitle: data.customTitle,
 				customSubtitle: data.customSubtitle,
+				widgetLayouts: data.widgetLayouts || {},
+				gridColumns: data.gridColumns || 12,
 			},
 			create: {
 				userId: session.user.id,
@@ -127,8 +136,11 @@ export async function POST(request: NextRequest) {
 				showTemporalComp: data.showTemporalComp ?? true,
 				showNutritionCard: data.showNutritionCard ?? true,
 				showPaymentStats: data.showPaymentStats ?? true,
+				showMonthlyStats: data.showMonthlyStats ?? true,
 				customTitle: data.customTitle,
 				customSubtitle: data.customSubtitle,
+				widgetLayouts: data.widgetLayouts || {},
+				gridColumns: data.gridColumns || 12,
 			},
 		})
 
@@ -170,6 +182,13 @@ export async function PUT(request: NextRequest) {
 
 		if (data.customTitle !== undefined) updateData.customTitle = data.customTitle
 		if (data.customSubtitle !== undefined) updateData.customSubtitle = data.customSubtitle
+		if (data.widgetLayouts !== undefined) updateData.widgetLayouts = data.widgetLayouts
+		if (data.gridColumns !== undefined) {
+			if (data.gridColumns < 6 || data.gridColumns > 24) {
+				return NextResponse.json({ error: "Colunas do grid deve estar entre 6 e 24" }, { status: 400 })
+			}
+			updateData.gridColumns = data.gridColumns
+		}
 
 		const preferences = await prisma.dashboardPreference.upsert({
 			where: { userId: session.user.id },
@@ -198,8 +217,11 @@ export async function PUT(request: NextRequest) {
 				showTemporalComp: data.showTemporalComp ?? true,
 				showNutritionCard: data.showNutritionCard ?? true,
 				showPaymentStats: data.showPaymentStats ?? true,
+				showMonthlyStats: data.showMonthlyStats ?? true,
 				customTitle: data.customTitle,
 				customSubtitle: data.customSubtitle,
+				widgetLayouts: data.widgetLayouts || {},
+				gridColumns: data.gridColumns || 12,
 				...updateData,
 			},
 		})

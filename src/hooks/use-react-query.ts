@@ -973,6 +973,7 @@ export interface DashboardPreferences {
 	showTemporalComp: boolean
 	showNutritionCard: boolean
 	showPaymentStats: boolean
+	showMonthlyStats: boolean
 	customTitle?: string
 	customSubtitle?: string
 }
