@@ -1,0 +1,10 @@
+# Ignorar diretório render (para Railway)
+render/
+
+# Ignorar outros arquivos desnecessários para Vercel
+*.log
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
