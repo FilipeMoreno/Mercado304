@@ -5,7 +5,7 @@ import { type ConnectionOptions, Worker } from "bullmq"
 import { HandlerFactory } from "./src/handlers/HandlerFactory"
 import app from "./src/server"
 
-const { REDIS_URL, DATABASE_URL, PORT = "3000", NODE_ENV = "development" } = process.env
+const { REDIS_URL, DATABASE_URL, PORT = "3100", NODE_ENV = "development" } = process.env
 
 function validateEnv() {
 	const missing: string[] = []

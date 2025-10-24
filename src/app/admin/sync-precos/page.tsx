@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -91,6 +92,7 @@ export default function AdminSyncPrecosPage() {
 	const [debugMode, setDebugMode] = useState(false)
 	const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 	const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("agora")
+	const [showCancelDialog, setShowCancelDialog] = useState(false)
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -207,6 +209,12 @@ export default function AdminSyncPrecosPage() {
 	}, [currentJob, autoRefresh, fetchJobStatus])
 
 	const handleStartSync = async () => {
+		// Verificar se já existe uma sync em andamento
+		if (isRunning) {
+			toast.error("Já existe uma sincronização em andamento!")
+			return
+		}
+
 		try {
 			const response = await fetch("/api/admin/sync-precos/start", {
 				method: "POST",
@@ -224,11 +232,11 @@ export default function AdminSyncPrecosPage() {
 				throw new Error(error.error || "Erro ao iniciar sincronização")
 			}
 
-			const data = await response.json()
+			const _data = await response.json()
 			toast.success("Sincronização iniciada em background!")
 
-			// Buscar status do job criado
-			setTimeout(() => fetchJobStatus(data.jobId), 1000)
+			// Buscar o último job da tabela SyncJob (não o ID do BullMQ)
+			setTimeout(() => fetchLatestJob(), 1000)
 		} catch (error) {
 			console.error("Erro ao iniciar sincronização:", error)
 			toast.error(error instanceof Error ? error.message : "Erro ao iniciar sincronização")
@@ -238,26 +246,38 @@ export default function AdminSyncPrecosPage() {
 	const handleCancelSync = async () => {
 		if (!currentJob) return
 
-		// Confirmar cancelamento
-		if (!confirm("Tem certeza que deseja cancelar a sincronização em andamento?")) {
-			return
-		}
+		// Abrir dialog de confirmação
+		setShowCancelDialog(true)
+	}
+
+	const confirmCancelSync = async () => {
+		if (!currentJob) return
 
 		try {
+			console.log(`[UI] Cancelando job: ${currentJob.id}`)
+			
 			const response = await fetch(`/api/admin/sync-precos/cancel/${currentJob.id}`, {
 				method: "POST",
 			})
 
+			console.log(`[UI] Resposta do cancelamento: ${response.status}`)
+
 			if (!response.ok) {
 				const error = await response.json()
+				console.error(`[UI] Erro no cancelamento:`, error)
 				throw new Error(error.error || "Erro ao cancelar sincronização")
 			}
 
 			const data = await response.json()
+			console.log(`[UI] Job cancelado com sucesso:`, data.job)
+			
 			toast.success("Sincronização cancelada!")
 
 			// Atualizar status do job
 			setCurrentJob(data.job)
+			
+			// Fechar dialog
+			setShowCancelDialog(false)
 		} catch (error) {
 			console.error("Erro ao cancelar sincronização:", error)
 			toast.error(error instanceof Error ? error.message : "Erro ao cancelar sincronização")
@@ -355,7 +375,19 @@ export default function AdminSyncPrecosPage() {
 						</Label>
 						<p className="text-xs text-muted-foreground">Exibe logs detalhados do servidor, API e processamento</p>
 					</div>
-					<Switch id={debugSwitchId} checked={debugMode} onCheckedChange={setDebugMode} />
+					<Switch 
+						id={debugSwitchId} 
+						checked={debugMode} 
+						onCheckedChange={(checked) => {
+							setDebugMode(checked)
+							// Recarregar dados com novo modo de debug
+							if (currentJob) {
+								fetchJobStatus(currentJob.id)
+							} else {
+								fetchLatestJob()
+							}
+						}} 
+					/>
 				</div>
 			</div>
 
@@ -395,16 +427,22 @@ export default function AdminSyncPrecosPage() {
 									</Button>
 
 									<div className="flex items-center gap-2">
-										<Button variant="outline" size="sm" onClick={() => setAutoRefresh(!autoRefresh)} className="flex-1">
+										<Button 
+											variant="outline" 
+											size="sm" 
+											onClick={() => setAutoRefresh(!autoRefresh)} 
+											className="flex-1"
+											title={autoRefresh ? "Pausar atualização automática da página" : "Retomar atualização automática da página"}
+										>
 											{autoRefresh ? (
 												<>
 													<Pause className="mr-2 h-3 w-3" />
-													Pausar Atualização
+													Pausar Auto-Refresh
 												</>
 											) : (
 												<>
 													<Play className="mr-2 h-3 w-3" />
-													Retomar Atualização
+													Retomar Auto-Refresh
 												</>
 											)}
 										</Button>
@@ -413,6 +451,7 @@ export default function AdminSyncPrecosPage() {
 											size="sm"
 											onClick={() => currentJob && fetchJobStatus(currentJob.id)}
 											disabled={polling}
+											title="Atualizar status manualmente"
 										>
 											<RefreshCw className={`h-3 w-3 ${polling ? "animate-spin" : ""}`} />
 										</Button>
@@ -426,6 +465,8 @@ export default function AdminSyncPrecosPage() {
 								<AlertDescription className="text-xs">
 									A sincronização processa múltiplos produtos simultaneamente (5 por vez) para maior velocidade. Você
 									pode navegar pelo app enquanto isso acontece.
+									<br />
+									<strong>Botões:</strong> "Cancelar" para interromper a sync, "Pausar Auto-Refresh" para parar as atualizações automáticas da página.
 								</AlertDescription>
 							</Alert>
 						</CardContent>
@@ -531,7 +572,7 @@ export default function AdminSyncPrecosPage() {
 
 									{isRunning && (
 										<p className="text-xs text-muted-foreground text-center">
-											Atualização automática a cada 10 segundos • Última atualização: {timeSinceUpdate}
+											Atualização automática a cada 2 segundos • Última atualização: {timeSinceUpdate}
 										</p>
 									)}
 								</CardContent>
@@ -593,9 +634,9 @@ export default function AdminSyncPrecosPage() {
 														>
 															<span className="font-medium">{mercado.mercado}</span>
 															<div className="flex gap-4 items-center text-sm">
-																<span className="text-muted-foreground">{mercado.itens.length} itens</span>
+																<span className="text-muted-foreground">{mercado.itens?.length || 0} itens</span>
 																<Badge variant="default" className="bg-green-600">
-																	{mercado.itens.length} preços
+																	{mercado.itens?.length || 0} preços
 																</Badge>
 																<span className="text-lg">{expandedMercado === mercado.mercadoId ? "▼" : "▶"}</span>
 															</div>
@@ -606,22 +647,28 @@ export default function AdminSyncPrecosPage() {
 															<div className="p-4 bg-background border-t">
 																<ScrollArea className="h-[300px]">
 																	<div className="space-y-2">
-																		{mercado.itens.map((item, idx) => (
-																			<div
-																				key={`${item.produto}-${idx}`}
-																				className="flex justify-between items-center p-3 bg-muted/50 rounded text-sm"
-																			>
-																				<div className="flex-1">
-																					<div className="font-medium">{item.produto}</div>
-																					<div className="text-xs text-muted-foreground">
-																						{new Date(item.data).toLocaleString("pt-BR")}
+																		{mercado.itens && mercado.itens.length > 0 ? (
+																			mercado.itens.map((item, idx) => (
+																				<div
+																					key={`${item.produto}-${idx}`}
+																					className="flex justify-between items-center p-3 bg-muted/50 rounded text-sm"
+																				>
+																					<div className="flex-1">
+																						<div className="font-medium">{item.produto}</div>
+																						<div className="text-xs text-muted-foreground">
+																							{new Date(item.data).toLocaleString("pt-BR")}
+																						</div>
+																					</div>
+																					<div className="text-lg font-bold text-green-600">
+																						{formatarPreco(item.preco)}
 																					</div>
 																				</div>
-																				<div className="text-lg font-bold text-green-600">
-																					{formatarPreco(item.preco)}
-																				</div>
+																			))
+																		) : (
+																			<div className="text-center text-muted-foreground py-4">
+																				Nenhum item encontrado para este mercado
 																			</div>
-																		))}
+																		)}
 																	</div>
 																</ScrollArea>
 															</div>
@@ -817,7 +864,7 @@ export default function AdminSyncPrecosPage() {
 													const showDebugInfo = debugMode && (log.includes("[DEBUG]") || log.includes("[API]") || log.includes("[SERVER]"))
 
 													return (
-														<div key={`${log}-${index}`} className={`${colorClass} ${showDebugInfo ? 'bg-muted/30 p-2 rounded border-l-2 border-current' : ''}`}>
+														<div key={`log-${currentJob.id}-${index}`} className={`${colorClass} ${showDebugInfo ? 'bg-muted/30 p-2 rounded border-l-2 border-current' : ''}`}>
 															{debugMode && (
 																<div className="flex items-center gap-2 mb-1">
 																	<span className="text-xs opacity-70">#{index + 1}</span>
@@ -925,6 +972,43 @@ export default function AdminSyncPrecosPage() {
 					)}
 				</div>
 			</div>
+
+			{/* Dialog de Confirmação de Cancelamento */}
+			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Ban className="h-5 w-5 text-destructive" />
+							Cancelar Sincronização
+						</DialogTitle>
+						<DialogDescription>
+							Tem certeza que deseja cancelar a sincronização em andamento?
+							<br />
+							<br />
+							<span className="text-sm text-muted-foreground">
+								Esta ação irá interromper o processamento atual e não poderá ser desfeita.
+							</span>
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="flex-col sm:flex-row gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setShowCancelDialog(false)}
+							className="w-full sm:w-auto"
+						>
+							Manter Executando
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={confirmCancelSync}
+							className="w-full sm:w-auto"
+						>
+							<Ban className="h-4 w-4 mr-2" />
+							Sim, Cancelar
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

@@ -13,9 +13,11 @@ export async function POST(request: Request) {
 		const job = await addPriceSyncJob(body)
 
 		// Responde IMEDIATAMENTE
+		// Nota: O jobId retornado é do BullMQ, mas o handler criará um registro na tabela SyncJob
+		// A página de admin deve buscar o último job da tabela SyncJob
 		return NextResponse.json({
 			message: 'Sincronização de preços iniciada.',
-			jobId: job.id,
+			jobId: job.id, // ID do BullMQ
 			status: 'enqueued',
 		})
 	} catch (error) {

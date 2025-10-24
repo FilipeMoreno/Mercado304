@@ -2,26 +2,77 @@
 // Handler para jobs de sincronização de preços
 
 import type { Job } from "bullmq"
-import type { JobResult, PriceSyncJobData } from "../types/jobs"
+import { LOCAL_PADRAO, NOTA_PARANA_BASE_URL, PERIODO_PADRAO, RAIO_PADRAO } from "../lib/nota-parana-config"
+import type { JobProgress, JobResult, PriceSyncJobData } from "../types/jobs"
 import { BaseHandler } from "./BaseHandler"
 
 export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 	private readonly BATCH_SIZE = 5
 	private readonly DELAY_BETWEEN_BATCHES = 500
+	private syncJobId: string | null = null
+
+	protected async updateProgress(job: Job<PriceSyncJobData>, progress: JobProgress): Promise<void> {
+		await job.updateProgress(progress.percentage)
+		console.log(`[${job.name}] ${progress.stage}: ${progress.message} (${progress.percentage}%)`)
+
+		// Atualizar também na tabela SyncJob se disponível
+		if (this.syncJobId) {
+			await this.prisma.syncJob.update({
+				where: { id: this.syncJobId },
+				data: {
+					progresso: progress.percentage,
+					updatedAt: new Date(),
+				},
+			})
+		}
+	}
+
+	protected async logInfo(job: Job<PriceSyncJobData>, message: string, data?: unknown, debugLogs?: string[]): Promise<void> {
+		console.log(`[${job.name}] ${message}`, data ? JSON.stringify(data, null, 2) : "")
+
+		// Salvar log também na tabela SyncJob se disponível
+		if (this.syncJobId) {
+			const currentSyncJob = await this.prisma.syncJob.findUnique({
+				where: { id: this.syncJobId },
+				select: { logs: true },
+			})
+
+			const currentLogs = Array.isArray(currentSyncJob?.logs) ? (currentSyncJob.logs as string[]) : []
+			let newLogs = [...currentLogs, `[${new Date().toISOString()}] ${message}`]
+			
+			// Adicionar logs de debug se fornecidos
+			if (debugLogs && debugLogs.length > 0) {
+				newLogs = [...newLogs, ...debugLogs.map(log => `[${new Date().toISOString()}] ${log}`)]
+			}
+
+			await this.prisma.syncJob.update({
+				where: { id: this.syncJobId },
+				data: {
+					logs: newLogs,
+					updatedAt: new Date(),
+				},
+			})
+		}
+	}
 
 	async handle(job: Job<PriceSyncJobData>): Promise<JobResult> {
 		try {
+			// Criar registro na tabela SyncJob
+			const syncJob = await this.prisma.syncJob.create({
+				data: {
+					status: "running",
+					tipo: "precos",
+					progresso: 0,
+					startedAt: new Date(),
+				},
+			})
+			this.syncJobId = syncJob.id
+
 			await this.updateProgress(job, {
 				percentage: 5,
 				stage: "INIT",
 				message: "Iniciando sincronização de preços",
 			})
-
-			const NOTA_PARANA_BASE_URL = "https://menorpreco.notaparana.pr.gov.br/api/v1"
-			// Configurações padrão da Nota Paraná
-			const LOCAL_PADRAO = "Curitiba"
-			const PERIODO_PADRAO = 30
-			const RAIO_PADRAO = 5000
 
 			// 1. Buscar mercados
 			const mercados = await this.prisma.market.findMany({
@@ -87,15 +138,51 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				batches.push(produtos.slice(i, i + this.BATCH_SIZE))
 			}
 
-			await this.logInfo(job, `Processando ${produtos.length} produtos em ${batches.length} batches paralelos`)
+			await this.logInfo(job, `🚀 Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${this.BATCH_SIZE} produtos por batch)`)
+			
+			// Atualizar contadores iniciais na tabela SyncJob
+			if (this.syncJobId) {
+				await this.prisma.syncJob.update({
+					where: { id: this.syncJobId },
+					data: {
+						mercadosProcessados: mercados.length,
+						produtosProcessados: 0,
+						precosRegistrados: 0,
+						updatedAt: new Date(),
+					},
+				})
+			}
 
 			// Processar cada batch em paralelo
 			for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+				// Verificar se o job foi cancelado
+				if (this.syncJobId) {
+					const currentSyncJob = await this.prisma.syncJob.findUnique({
+						where: { id: this.syncJobId },
+						select: { status: true },
+					})
+					
+					if (currentSyncJob?.status === "cancelled") {
+						await this.logInfo(job, `🛑 Sincronização cancelada pelo usuário`)
+						return this.createSuccessResult("Sincronização cancelada pelo usuário", {
+							mercadosProcessados: mercados.length,
+							produtosProcessados,
+							precosRegistrados,
+							produtosNaoEncontrados: produtosNaoEncontrados.length,
+							tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+							detalhes,
+						})
+					}
+				}
+
 				const batch = batches[batchIndex]
 
-				await this.logInfo(job, `Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos`)
+				await this.logInfo(job, `📦 Processando batch ${batchIndex + 1}/${batches.length} com ${batch.length} produtos`)
 
 				const batchStartTime = Date.now()
+				let batchPrecosRegistrados = 0
+				let batchProdutosEncontrados = 0
+				let batchProdutosNaoEncontrados = 0
 
 				// Processar produtos do batch em paralelo
 				const batchResults = await Promise.all(
@@ -114,8 +201,25 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					}),
 				)
 
+				// Coletar todos os logs de debug do batch
+				const allDebugLogs = batchResults.flatMap(result => result.debugLogs || [])
+				if (allDebugLogs.length > 0) {
+					await this.logInfo(job, `🔍 Logs detalhados do batch ${batchIndex + 1}:`, undefined, allDebugLogs)
+				}
+
 				const batchElapsed = Date.now() - batchStartTime
-				await this.logInfo(job, `Batch ${batchIndex + 1} concluído em ${batchElapsed}ms`)
+				
+				// Contar resultados do batch
+				for (const result of batchResults) {
+					if (result.encontrou) {
+						batchProdutosEncontrados++
+						batchPrecosRegistrados += result.precosEncontrados.length
+					} else {
+						batchProdutosNaoEncontrados++
+					}
+				}
+
+				await this.logInfo(job, `✅ Batch ${batchIndex + 1} concluído em ${batchElapsed}ms - ${batchProdutosEncontrados} produtos encontrados, ${batchPrecosRegistrados} preços registrados, ${batchProdutosNaoEncontrados} não encontrados`)
 
 				// Consolidar resultados do batch
 				for (let i = 0; i < batch.length; i++) {
@@ -154,12 +258,54 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					produtosProcessados++
 				}
 
+				// Calcular estimativa de tempo restante
+				const tempoDecorrido = Math.round((Date.now() - startTime) / 1000)
+				const progressoAtual = produtosProcessados / produtos.length
+				const estimativaSegundos = progressoAtual > 0 ? Math.round((tempoDecorrido / progressoAtual) - tempoDecorrido) : 0
+
+				// Atualizar contadores em tempo real na tabela SyncJob
+				if (this.syncJobId) {
+					await this.prisma.syncJob.update({
+						where: { id: this.syncJobId },
+						data: {
+							produtosProcessados,
+							precosRegistrados,
+							detalhes: {
+								mercados: detalhes, // Lista de mercados com preços encontrados
+								produtosNaoEncontrados,
+								// Campos para o progresso em tempo real
+								produtosProcessadosAtual: produtosProcessados,
+								produtosTotal: produtos.length,
+								batchAtual: batchIndex + 1,
+								totalBatches: batches.length,
+								produtosPorBatch: this.BATCH_SIZE,
+								estimativaSegundos: estimativaSegundos,
+								estatisticas: {
+									produtosTotal: produtos.length,
+									produtosEncontrados: produtosProcessados - produtosNaoEncontrados.length,
+									produtosNaoEncontrados: produtosNaoEncontrados.length,
+									precosRegistrados,
+									tempoTotalSegundos: tempoDecorrido,
+								},
+							},
+							updatedAt: new Date(),
+						},
+					})
+				}
+
 				// Calcular progresso
 				const progresso = Math.floor(10 + (produtosProcessados / produtos.length) * 85)
+				const formatarTempo = (segundos: number) => {
+					if (segundos < 60) return `${segundos}s`
+					const minutos = Math.floor(segundos / 60)
+					const segs = segundos % 60
+					return `${minutos}m ${segs}s`
+				}
+				
 				await this.updateProgress(job, {
 					percentage: progresso,
 					stage: "PROCESSING",
-					message: `Processados ${produtosProcessados}/${produtos.length} produtos`,
+					message: `Processados ${produtosProcessados}/${produtos.length} produtos (${precosRegistrados} preços registrados) - Tempo decorrido: ${formatarTempo(tempoDecorrido)} - Estimativa restante: ${formatarTempo(estimativaSegundos)}`,
 				})
 
 				// Delay entre batches
@@ -177,6 +323,33 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			const tempoTotal = Math.round((Date.now() - startTime) / 1000)
 			await this.logInfo(job, `Sincronização concluída em ${tempoTotal}s`)
 
+			// Atualizar status final na tabela SyncJob
+			if (this.syncJobId) {
+				await this.prisma.syncJob.update({
+					where: { id: this.syncJobId },
+					data: {
+						status: "completed",
+						progresso: 100,
+						mercadosProcessados: mercados.length,
+						produtosProcessados: produtos.length,
+						precosRegistrados,
+						detalhes: {
+							mercados: detalhes, // Lista de mercados com preços encontrados
+							produtosNaoEncontrados,
+							estatisticas: {
+								produtosTotal: produtos.length,
+								produtosEncontrados: produtos.length - produtosNaoEncontrados.length,
+								produtosNaoEncontrados: produtosNaoEncontrados.length,
+								precosRegistrados,
+								tempoTotalSegundos: tempoTotal,
+							},
+						},
+						completedAt: new Date(),
+						updatedAt: new Date(),
+					},
+				})
+			}
+
 			return this.createSuccessResult("Sincronização de preços concluída com sucesso", {
 				mercadosProcessados: mercados.length,
 				produtosProcessados: produtos.length,
@@ -187,6 +360,21 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			})
 		} catch (error) {
 			await this.logError(job, error as Error, "Erro durante sincronização de preços")
+
+			// Atualizar status de erro na tabela SyncJob
+			if (this.syncJobId) {
+				const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+				await this.prisma.syncJob.update({
+					where: { id: this.syncJobId },
+					data: {
+						status: "failed",
+						erros: [errorMessage],
+						completedAt: new Date(),
+						updatedAt: new Date(),
+					},
+				})
+			}
+
 			return this.createErrorResult("Erro durante sincronização de preços", [
 				error instanceof Error ? error.message : "Erro desconhecido",
 			])
@@ -209,23 +397,26 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 		const debugLogs: string[] = []
 		let encontrouProduto = false
 
+		debugLogs.push(`[DEBUG] 🔍 Processando produto: ${produto.name} (EAN: ${produto.barcode})`)
+
 		try {
 			const urlInicial = `${NOTA_PARANA_BASE_URL}/produtos?local=${LOCAL_PADRAO}&termo=${produto.barcode}&offset=0&raio=${RAIO_PADRAO}&data=${PERIODO_PADRAO}&ordem=0&gtin=${produto.barcode}`
 
 			const responseInicial = await fetch(urlInicial)
 			if (!responseInicial.ok) {
-				debugLogs.push(`[API] Resposta HTTP ${responseInicial.status}`)
-		} else {
-			const dataInicial = await responseInicial.json() as any
-			if (!dataInicial.produtos || dataInicial.produtos.length === 0) {
-				debugLogs.push(`[API] Nenhum produto encontrado`)
+				debugLogs.push(`[API] ❌ Resposta HTTP ${responseInicial.status} para ${produto.name}`)
 			} else {
-				encontrouProduto = true
+				const dataInicial = (await responseInicial.json()) as any
+				if (!dataInicial.produtos || dataInicial.produtos.length === 0) {
+					debugLogs.push(`[API] ❌ Nenhum produto encontrado para ${produto.name} (EAN: ${produto.barcode})`)
+				} else {
+					encontrouProduto = true
+					debugLogs.push(`[API] ✅ Produto encontrado: ${produto.name} - ${dataInicial.produtos.length} resultados na API`)
 
-				// Processar produtos encontrados
-				const produtosPorCategoria = new Map<number, any[]>()
+					// Processar produtos encontrados
+					const produtosPorCategoria = new Map<number, any[]>()
 
-				for (const prod of dataInicial.produtos) {
+					for (const prod of dataInicial.produtos) {
 						const categoria = prod.categoria || 0
 						if (!produtosPorCategoria.has(categoria)) {
 							produtosPorCategoria.set(categoria, [])
@@ -244,13 +435,20 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 						const nomeEstabelecimento = produtoNP.estabelecimento.nm_emp || produtoNP.estabelecimento.nm_fan
 						const enderecoEstabelecimento = produtoNP.estabelecimento
 
-						if (!nomeEstabelecimento) continue
+						if (!nomeEstabelecimento) {
+							debugLogs.push(`[PARSING] ⚠️ Estabelecimento sem nome para ${produto.name}`)
+							continue
+						}
 
 						// Encontrar mercado correspondente
 						const melhorMatch = this.encontrarMelhorMatch(mercados, nomeEstabelecimento, enderecoEstabelecimento)
-						if (!melhorMatch) continue
+						if (!melhorMatch) {
+							debugLogs.push(`[PARSING] ⚠️ Nenhum mercado correspondente para "${nomeEstabelecimento}" (produto: ${produto.name})`)
+							continue
+						}
 
 						const mercadoMatch = melhorMatch.mercado
+						debugLogs.push(`[PARSING] ✅ Mercado encontrado: ${mercadoMatch.name} para "${nomeEstabelecimento}" (score: ${melhorMatch.score})`)
 
 						// Calcular preço
 						const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
@@ -295,6 +493,10 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 								preco: preco,
 								data: produtoNP.datahora,
 							})
+
+							debugLogs.push(`[PRICE] 💰 Preço registrado: ${produto.name} - R$ ${preco.toFixed(2)} no ${mercadoMatch.name}`)
+						} else {
+							debugLogs.push(`[PRICE] ⏭️ Preço já existe: ${produto.name} - R$ ${preco.toFixed(2)} no ${mercadoMatch.name}`)
 						}
 					}
 				}

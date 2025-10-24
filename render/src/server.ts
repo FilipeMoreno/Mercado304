@@ -5,7 +5,7 @@ import express from 'express'
 import { healthCheck } from './health'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const _PORT = process.env.PORT || 3333
 
 // Middleware
 app.use(express.json())
@@ -33,12 +33,6 @@ app.get('/', (_req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   })
-})
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor HTTP rodando na porta ${PORT}`)
-  console.log(`📊 Health check disponível em: http://localhost:${PORT}/health`)
 })
 
 export default app

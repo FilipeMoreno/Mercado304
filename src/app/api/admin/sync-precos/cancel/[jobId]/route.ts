@@ -22,6 +22,11 @@ export async function POST(_request: Request, { params }: { params: { jobId: str
 			)
 		}
 
+		// Tentar cancelar o job no BullMQ (se existir)
+		// Nota: O jobId da tabela SyncJob é diferente do jobId do BullMQ
+		// Por isso vamos apenas marcar como cancelado na tabela
+		// O worker deve verificar periodicamente se o job foi cancelado
+
 		// Atualizar status para cancelled
 		const updatedJob = await prisma.syncJob.update({
 			where: { id: params.jobId },
