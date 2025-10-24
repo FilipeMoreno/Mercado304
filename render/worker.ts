@@ -11,9 +11,22 @@ const prisma = new PrismaClient()
 
 // Conexão com o Redis/Upstash
 const connection = {
-	host: process.env.UPSTASH_REDIS_HOST!,
-	port: parseInt(process.env.UPSTASH_REDIS_PORT!, 10),
-	password: process.env.UPSTASH_REDIS_PASSWORD!,
+	host: process.env.UPSTASH_REDIS_HOST || 'localhost',
+	port: parseInt(process.env.UPSTASH_REDIS_PORT || '6379', 10),
+	password: process.env.UPSTASH_REDIS_PASSWORD || '',
+}
+
+// Verificar se as variáveis de ambiente estão configuradas
+if (!process.env.UPSTASH_REDIS_HOST) {
+	console.error('❌ UPSTASH_REDIS_HOST não configurado!')
+	console.error('Configure as variáveis de ambiente do Redis/Upstash')
+	process.exit(1)
+}
+
+if (!process.env.UPSTASH_REDIS_PASSWORD) {
+	console.error('❌ UPSTASH_REDIS_PASSWORD não configurado!')
+	console.error('Configure as variáveis de ambiente do Redis/Upstash')
+	process.exit(1)
 }
 
 console.log("🚀 Worker genérico iniciando...")
@@ -72,10 +85,20 @@ for (const queueName of SUPPORTED_QUEUES) {
 
 	worker.on("failed", (job, err) => {
 		console.error(`❌ Job ${job?.id} falhou na fila ${queueName}:`, err.message)
+		console.error('Stack trace:', err.stack)
 	})
 
 	worker.on("error", (err) => {
 		console.error(`🚨 Erro no worker da fila ${queueName}:`, err.message)
+		console.error('Stack trace:', err.stack)
+	})
+
+	worker.on("ready", () => {
+		console.log(`✅ Worker da fila ${queueName} conectado e pronto`)
+	})
+
+	worker.on("closing", () => {
+		console.log(`🔄 Worker da fila ${queueName} fechando...`)
 	})
 }
 

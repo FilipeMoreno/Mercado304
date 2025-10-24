@@ -65,12 +65,27 @@ Resposta esperada:
   "timestamp": "2024-01-20T10:00:00.000Z",
   "services": {
     "database": "connected",
-    "redis": "configured"
+    "redis": "connected",
+    "environment": {
+      "nodeVersion": "v18.17.0",
+      "platform": "linux",
+      "uptime": 120
+    }
   }
 }
 ```
 
-#### 3.2 Logs
+#### 3.2 Teste Local (Opcional)
+Antes do deploy, teste localmente:
+```bash
+cd render
+npm install
+cp env.example .env
+# Edite o .env com suas credenciais
+npm run test-connection
+```
+
+#### 3.3 Logs
 No Railway Dashboard, vá em "Deployments" → "View Logs"
 
 Logs esperados:
@@ -124,7 +139,20 @@ UPSTASH_REDIS_PASSWORD=your-redis-password
 
 ### 6. Troubleshooting
 
-#### 6.1 Worker não inicia
+#### 6.1 ❌ Erro: "ECONNREFUSED 127.0.0.1:6379"
+**Problema**: Worker tentando conectar no Redis local.
+
+**Solução**:
+1. Verifique se as variáveis estão configuradas no Railway
+2. Teste localmente: `npm run test-connection`
+3. Verifique se o formato das variáveis está correto:
+   ```
+   UPSTASH_REDIS_HOST=your-host.upstash.io
+   UPSTASH_REDIS_PORT=6379
+   UPSTASH_REDIS_PASSWORD=your-password
+   ```
+
+#### 6.2 Worker não inicia
 ```bash
 # Verificar logs
 railway logs
@@ -133,18 +161,24 @@ railway logs
 railway variables
 ```
 
-#### 6.2 Jobs não processam
+#### 6.3 Jobs não processam
 1. Verificar conexão com Redis
 2. Verificar logs do worker
-3. Testar health check
+3. Testar health check: `GET /health`
+4. Verificar se o tipo de job é suportado
 
-#### 6.3 Erro de build
+#### 6.4 Erro de build
 ```bash
 # Build local para testar
 cd render
 npm install
 npm run build
 ```
+
+#### 6.5 Health Check falha
+- Acesse `https://seu-projeto.railway.app/health`
+- Verifique o status detalhado
+- Compare com os logs do Railway
 
 ### 7. Comandos Railway CLI (Opcional)
 

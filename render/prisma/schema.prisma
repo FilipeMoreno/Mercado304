@@ -244,7 +244,7 @@ model StockMovement {
   date        DateTime          @default(now())
   notes       String?
 
-  purchaseItemId String?   @default(0)
+  purchaseItemId String?
   stockItem      StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
 
   @@index([stockItemId])

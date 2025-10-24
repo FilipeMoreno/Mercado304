@@ -79,6 +79,13 @@ DIRECT_URL=postgresql://user:password@host:port/database
 # Instalar dependências
 npm install
 
+# Configurar variáveis de ambiente
+cp env.example .env
+# Edite o arquivo .env com suas credenciais
+
+# Testar conexões
+npm run test-connection
+
 # Executar em modo desenvolvimento
 npm run dev
 
@@ -146,11 +153,27 @@ render/
 
 ## Troubleshooting
 
+### ❌ Erro: "ECONNREFUSED 127.0.0.1:6379"
+**Problema**: Worker tentando conectar no Redis local em vez do Upstash.
+
+**Solução**:
+1. Verifique se as variáveis de ambiente estão configuradas:
+   ```bash
+   echo $UPSTASH_REDIS_HOST
+   echo $UPSTASH_REDIS_PASSWORD
+   ```
+2. Teste a conexão localmente:
+   ```bash
+   npm run test-connection
+   ```
+3. No Railway, verifique se as variáveis estão configuradas corretamente
+
 ### Worker não inicia
 - Verifique se todas as variáveis de ambiente estão configuradas
 - Verifique se o Redis está acessível
 - Verifique se o banco de dados está acessível
 - Verifique os logs no Railway Dashboard
+- Execute `npm run test-connection` para diagnosticar
 
 ### Jobs não são processados
 - Verifique se o worker está rodando
@@ -172,3 +195,8 @@ render/
 - Verifique se o build local funciona: `npm run build`
 - Verifique se todas as dependências estão no `package.json`
 - Verifique os logs de build no Railway Dashboard
+
+### Health Check retorna erro
+- Acesse `https://seu-projeto.railway.app/health`
+- Verifique o status detalhado dos serviços
+- Compare com os logs do Railway Dashboard
