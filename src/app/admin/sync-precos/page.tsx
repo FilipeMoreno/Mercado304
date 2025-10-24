@@ -93,6 +93,20 @@ export default function AdminSyncPrecosPage() {
 	const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 	const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("agora")
 	const [showCancelDialog, setShowCancelDialog] = useState(false)
+	const [serverHealth, setServerHealth] = useState<{
+		status: string
+		timestamp: string
+		services: {
+			database: string
+			redis: string
+		}
+	} | null>(null)
+	const [serverInfo, setServerInfo] = useState<{
+		message: string
+		status: string
+		timestamp: string
+		version: string
+	} | null>(null)
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -105,13 +119,13 @@ export default function AdminSyncPrecosPage() {
 				if (data.job) {
 					setCurrentJob(data.job)
 					setLastUpdateTime(new Date()) // Marcar hora da atualização
-					console.log("[UI] Job carregado:", data.job.id, "Status:", data.job.status)
+
 					if (data.job._logsInfo) {
-						console.log("[UI] Logs info:", data.job._logsInfo)
+
 					}
 				} else {
 					setCurrentJob(null)
-					console.log("[UI] Nenhum job encontrado")
+
 				}
 			}
 		} catch (error) {
@@ -130,9 +144,7 @@ export default function AdminSyncPrecosPage() {
 				const job = await response.json()
 				setCurrentJob(job)
 				setLastUpdateTime(new Date()) // Marcar hora da atualização
-				console.log("[UI] Status atualizado:", job.id, "Status:", job.status, "Progresso:", job.progresso)
 				if (job._logsInfo) {
-					console.log("[UI] Logs info:", job._logsInfo)
 				}
 			}
 		} catch (error) {
@@ -143,21 +155,67 @@ export default function AdminSyncPrecosPage() {
 		}
 	}, [debugMode])
 
+	const fetchServerHealth = useCallback(async () => {
+		try {
+			// Buscar informações do servidor (endpoint raiz)
+			const serverResponse = await fetch("http://localhost:3100/")
+			if (serverResponse.ok) {
+				const serverData = await serverResponse.json()
+				setServerInfo(serverData)
+			}
+
+			// Buscar status de saúde
+			const healthResponse = await fetch("http://localhost:3100/health")
+			if (healthResponse.ok) {
+				const health = await healthResponse.json()
+				setServerHealth(health)
+			} else {
+				setServerHealth({
+					status: "unhealthy",
+					timestamp: new Date().toISOString(),
+					services: {
+						database: "unknown",
+						redis: "unknown"
+					}
+				})
+			}
+		} catch (error) {
+			console.error("Erro ao buscar status do servidor:", error)
+			setServerHealth({
+				status: "unhealthy",
+				timestamp: new Date().toISOString(),
+				services: {
+					database: "disconnected",
+					redis: "disconnected"
+				}
+			})
+			setServerInfo(null)
+		}
+	}, [])
+
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
 		const loadInitialJob = async () => {
-			console.log("[UI] Carregando página - jobIdFromUrl:", jobIdFromUrl)
 			if (jobIdFromUrl) {
-				console.log("[UI] Buscando job específico:", jobIdFromUrl)
 				await fetchJobStatus(jobIdFromUrl)
 			} else {
-				console.log("[UI] Buscando último job")
 				await fetchLatestJob()
 			}
 		}
 
 		loadInitialJob()
 	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
+
+	// Buscar status de saúde do servidor ao carregar e periodicamente
+	useEffect(() => {
+		// Buscar imediatamente
+		fetchServerHealth()
+
+		// Buscar a cada 30 segundos
+		const healthInterval = setInterval(fetchServerHealth, 30000)
+
+		return () => clearInterval(healthInterval)
+	}, [fetchServerHealth])
 
 	// Atualizar contador de tempo desde última atualização
 	useEffect(() => {
@@ -254,23 +312,17 @@ export default function AdminSyncPrecosPage() {
 		if (!currentJob) return
 
 		try {
-			console.log(`[UI] Cancelando job: ${currentJob.id}`)
-			
 			const response = await fetch(`/api/admin/sync-precos/cancel/${currentJob.id}`, {
 				method: "POST",
 			})
 
-			console.log(`[UI] Resposta do cancelamento: ${response.status}`)
 
 			if (!response.ok) {
 				const error = await response.json()
-				console.error(`[UI] Erro no cancelamento:`, error)
 				throw new Error(error.error || "Erro ao cancelar sincronização")
 			}
 
 			const data = await response.json()
-			console.log(`[UI] Job cancelado com sucesso:`, data.job)
-			
 			toast.success("Sincronização cancelada!")
 
 			// Atualizar status do job
@@ -342,6 +394,58 @@ export default function AdminSyncPrecosPage() {
 
 	return (
 		<div className="container mx-auto py-8 px-4 max-w-6xl">
+			{/* Banner de Status do Servidor */}
+			{(serverHealth || serverInfo) && (
+				<div className="mb-6">
+					<div className={`p-4 rounded-lg border ${
+						serverHealth?.status === "healthy" 
+							? "bg-green-50 border-green-200" 
+							: "bg-red-50 border-red-200"
+					}`}>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<div className={`w-3 h-3 rounded-full ${
+									serverHealth?.status === "healthy" ? "bg-green-500" : "bg-red-500"
+								}`} />
+								<div>
+									<h3 className={`font-semibold ${
+										serverHealth?.status === "healthy" ? "text-green-800" : "text-red-800"
+									}`}>
+										{serverInfo?.message || "Servidor de Jobs"}: {serverHealth?.status === "healthy" ? "Online" : "Offline"}
+									</h3>
+									<div className={`text-sm ${
+										serverHealth?.status === "healthy" ? "text-green-600" : "text-red-600"
+									}`}>
+										{serverHealth && (
+											<span>Database: {serverHealth.services.database} • Redis: {serverHealth.services.redis}</span>
+										)}
+										{serverInfo && (
+											<span className="ml-2">• Versão: {serverInfo.version}</span>
+										)}
+									</div>
+								</div>
+							</div>
+							<div className="text-right">
+								<p className={`text-xs ${
+									serverHealth?.status === "healthy" ? "text-green-600" : "text-red-600"
+								}`}>
+									Última verificação: {new Date((serverHealth?.timestamp || serverInfo?.timestamp || new Date().toISOString())).toLocaleTimeString("pt-BR")}
+								</p>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={fetchServerHealth}
+									className="text-xs h-6 px-2"
+								>
+									<RefreshCw className="h-3 w-3 mr-1" />
+									Atualizar
+								</Button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
 			<div className="mb-8">
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex-1">

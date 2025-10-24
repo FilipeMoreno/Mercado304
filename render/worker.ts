@@ -1,7 +1,7 @@
 import "dotenv/config" // Carrega .env automaticamente - primeiro de tudo!
 import type { Server } from "node:http"
 import { PrismaClient } from "@prisma/client"
-import { type ConnectionOptions, Worker } from "bullmq"
+import { type ConnectionOptions, Queue, Worker } from "bullmq"
 import { HandlerFactory } from "./src/handlers/HandlerFactory"
 import app from "./src/server"
 
@@ -26,12 +26,12 @@ const workers: Worker[] = []
 let httpServer: Server | null = null
 
 const REDIS_CONNECTION: ConnectionOptions = {
-  url: REDIS_URL,
-  connectTimeout: 20000, // permitir conexão via TLS
-  maxRetriesPerRequest: null, // recomendado pela própria Upstash
-  enableReadyCheck: false, // reduz erros falsos de "desconectado"
-  keepAlive: 60000,
-};
+	url: REDIS_URL,
+	connectTimeout: 20000, // permitir conexão via TLS
+	maxRetriesPerRequest: null, // recomendado pela própria Upstash
+	enableReadyCheck: false, // reduz erros falsos de "desconectado"
+	keepAlive: 60000,
+}
 
 const WORKER_CONFIG = {
 	connection: REDIS_CONNECTION,
@@ -40,7 +40,133 @@ const WORKER_CONFIG = {
 	removeOnFail: { count: 10 },
 }
 
+async function recoverPendingJobs() {
+	console.log("🔄 Verificando jobs pendentes para retomada...")
+
+	try {
+		// Buscar jobs que estavam rodando quando o servidor caiu
+		const runningJobs = await prisma.syncJob.findMany({
+			where: {
+				status: "running",
+			},
+			orderBy: {
+				updatedAt: "desc",
+			},
+		})
+
+		if (runningJobs.length > 0) {
+			console.log(`📋 Encontrados ${runningJobs.length} jobs que estavam rodando:`)
+
+			for (const job of runningJobs) {
+				console.log(`  - Job ${job.id} (${job.tipo}) - Iniciado em ${job.startedAt}`)
+
+				// Verificar se o job foi iniciado recentemente (menos de 1 hora)
+				const jobAge = Date.now() - new Date(job.startedAt || job.createdAt).getTime()
+				const oneHour = 60 * 60 * 1000
+
+				if (jobAge < oneHour) {
+					console.log(`  ⚠️ Job ${job.id} foi interrompido recentemente (${Math.round(jobAge / 1000 / 60)}min atrás)`)
+
+					// Marcar como falhou com motivo de interrupção do servidor
+					await prisma.syncJob.update({
+						where: { id: job.id },
+						data: {
+							status: "failed",
+							erros: [...(Array.isArray(job.erros) ? job.erros : []), "Job interrompido devido à queda do servidor"],
+							completedAt: new Date(),
+							updatedAt: new Date(),
+							logs: [
+								...(Array.isArray(job.logs) ? job.logs : []),
+								`[${new Date().toISOString()}] ❌ Job interrompido devido à queda do servidor (${Math.round(jobAge / 1000 / 60)}min atrás)`,
+							],
+						},
+					})
+				} else {
+					console.log(
+						`  ⏰ Job ${job.id} é muito antigo (${Math.round(jobAge / 1000 / 60 / 60)}h atrás) - marcando como falhado`,
+					)
+
+					// Jobs muito antigos são marcados como falhados
+					await prisma.syncJob.update({
+						where: { id: job.id },
+						data: {
+							status: "failed",
+							erros: [
+								...(Array.isArray(job.erros) ? job.erros : []),
+								"Job interrompido devido à queda do servidor (muito antigo)",
+							],
+							completedAt: new Date(),
+							updatedAt: new Date(),
+							logs: [
+								...(Array.isArray(job.logs) ? job.logs : []),
+								`[${new Date().toISOString()}] ❌ Job interrompido devido à queda do servidor (${Math.round(jobAge / 1000 / 60 / 60)}h atrás)`,
+							],
+						},
+					})
+				}
+			}
+
+			console.log("✅ Jobs interrompidos marcados como falhados")
+		} else {
+			console.log("✅ Nenhum job pendente encontrado")
+		}
+	} catch (error) {
+		console.error("❌ Erro ao verificar jobs pendentes:", error)
+	}
+}
+
+async function cleanupOrphanedJobs() {
+	console.log("🧹 Limpando jobs órfãos no BullMQ...")
+
+	try {
+		const jobTypes = HandlerFactory.getSupportedJobTypes()
+
+		for (const jobType of jobTypes) {
+			const queue = new Queue(jobType, { connection: REDIS_CONNECTION })
+
+			// Buscar jobs ativos (que podem estar "presos")
+			const activeJobs = await queue.getActive()
+			const waitingJobs = await queue.getWaiting()
+
+			console.log(`[${jobType}] Jobs ativos: ${activeJobs.length}, aguardando: ${waitingJobs.length}`)
+
+			// Se há jobs ativos, verificar se eles têm correspondência na tabela SyncJob
+			if (activeJobs.length > 0) {
+				for (const activeJob of activeJobs) {
+					// Verificar se o job ainda existe na tabela SyncJob
+					const syncJob = await prisma.syncJob.findFirst({
+						where: {
+							// Assumindo que o jobId do BullMQ está relacionado ao ID da SyncJob
+							// ou que há alguma forma de relacionar
+							status: { in: ["running", "pending"] },
+						},
+						orderBy: { createdAt: "desc" },
+					})
+
+					// Se não há correspondência, o job pode estar órfão
+					if (!syncJob) {
+						console.log(`[${jobType}] Removendo job órfão: ${activeJob.id}`)
+						await activeJob.remove()
+					}
+				}
+			}
+
+			await queue.close()
+		}
+
+		console.log("✅ Limpeza de jobs órfãos concluída")
+	} catch (error) {
+		console.error("❌ Erro ao limpar jobs órfãos:", error)
+	}
+}
+
 async function bootstrapWorkers() {
+	// Primeiro, verificar e recuperar jobs pendentes
+	await recoverPendingJobs()
+
+	// Limpar jobs órfãos no BullMQ
+	await cleanupOrphanedJobs()
+
 	const jobTypes = HandlerFactory.getSupportedJobTypes()
 
 	if (!jobTypes.length) {
@@ -60,8 +186,9 @@ async function bootstrapWorkers() {
 				try {
 					console.log(`[${jobType}] ▶️ Job #${job.id}`)
 					return await handler.handle(job)
-				} catch (err: any) {
-					console.error(`[${jobType}] ❌ Falha no Job #${job.id}:`, err?.message ?? err)
+				} catch (err: unknown) {
+					const errorMessage = err instanceof Error ? err.message : String(err)
+					console.error(`[${jobType}] ❌ Falha no Job #${job.id}:`, errorMessage)
 					throw err
 				}
 			},
