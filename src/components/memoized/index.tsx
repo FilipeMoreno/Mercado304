@@ -5,6 +5,7 @@ import {
 	Barcode,
 	DollarSign,
 	Edit,
+	ImageIcon,
 	MoreHorizontal,
 	Package,
 	Receipt,
@@ -12,7 +13,8 @@ import {
 	Store,
 	Trash2,
 } from "lucide-react"
-import { memo, useCallback, useMemo } from "react"
+import Image from "next/image"
+import { memo, useCallback, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,88 +50,146 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 			return product.brand?.name || null
 		}, [product.brand?.name])
 
+		// URL da imagem baseada no código de barras
+		const imageUrl = useMemo(() => {
+			if (product.barcode) {
+				return `https://cdn-cosmos.bluesoft.com.br/products/${product.barcode}`
+			}
+			return null
+		}, [product.barcode])
+
+		// Estado para controlar o carregamento da imagem
+		const [imageError, setImageError] = useState(false)
+
+		// Blur placeholder para melhor UX durante carregamento
+		const blurDataURL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+
 		return (
 			<TooltipProvider>
-				<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
-					<CardContent className="flex-1 flex flex-col p-4">
-						<div className="flex-1">
-							<div className="flex items-start justify-between mb-2">
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<h3 className="font-medium text-sm line-clamp-2 flex-1 mr-2">{productDisplayName}</h3>
-									</TooltipTrigger>
-									<TooltipContent>
-										<p>{productDisplayName}</p>
-									</TooltipContent>
-								</Tooltip>
-
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-											<MoreHorizontal className="h-4 w-4" />
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="end">
-										<DropdownMenuItem onClick={handleEdit}>
-											<Edit className="h-4 w-4 mr-2" />
-											Editar
-										</DropdownMenuItem>
-										<DropdownMenuItem onClick={handleDelete} className="text-red-600">
-											<Trash2 className="h-4 w-4 mr-2" />
-											Excluir
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</div>
-
-						{brandName && (
-							<div className="mb-2 flex flex-wrap items-center gap-2">
-								<Badge variant="secondary" className="text-xs">
-									{brandName}
-								</Badge>
-								{product.packageSize && (
-									<Badge variant="default" className="text-xs bg-blue-600">
-										📦 {product.packageSize}
-									</Badge>
-								)}
-								<Badge variant="secondary" className="text-xs">
-									{productUnit}
-								</Badge>
-								{product.barcode && (
-									<Badge variant="outline" className="text-xs flex items-center gap-1">
-										<Barcode className="h-3 w-3" />
-										{product.barcode}
-									</Badge>
+				<Card className="h-full flex flex-col hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+					<CardContent className="flex-1 flex flex-col p-0">
+						{/* Layout horizontal com imagem e informações */}
+						<div className="flex h-full p-4">
+							{/* Área da imagem */}
+							<div className="w-24 h-24 flex-shrink-0 relative rounded-lg overflow-hidden">
+								{imageUrl && !imageError ? (
+									<Image
+										src={imageUrl}
+										alt={productDisplayName}
+										fill
+										className="object-cover object-center rounded-lg"
+										sizes="96px"
+										quality={90}
+										placeholder="blur"
+										blurDataURL={blurDataURL}
+										loading="lazy"
+										onError={() => setImageError(true)}
+									/>
+								) : (
+									<div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-lg flex items-center justify-center">
+										<ImageIcon className="h-8 w-8 text-gray-400" />
+									</div>
 								)}
 							</div>
-						)}
 
-						{!brandName && (
-							<div className="mb-2 flex flex-wrap items-center gap-2">
-								{product.packageSize && (
-									<Badge variant="default" className="text-xs bg-blue-600">
-										📦 {product.packageSize}
-									</Badge>
-								)}
-								<Badge variant="secondary" className="text-xs">
-									{productUnit}
-								</Badge>
-								{product.barcode && (
-									<Badge variant="outline" className="text-xs flex items-center gap-1">
-										<Barcode className="h-3 w-3" />
-										{product.barcode}
-									</Badge>
-								)}
+							{/* Área das informações */}
+							<div className="flex-1 flex flex-col pl-4">
+								{/* Header com título e menu */}
+								<div className="flex items-start justify-between mb-3">
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<h3 className="font-semibold text-base line-clamp-2 flex-1 mr-2 text-gray-900 dark:text-gray-100">
+												{productDisplayName}
+											</h3>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>{productDisplayName}</p>
+										</TooltipContent>
+									</Tooltip>
+
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+											>
+												<MoreHorizontal className="h-4 w-4" />
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end">
+											<DropdownMenuItem onClick={handleEdit}>
+												<Edit className="h-4 w-4 mr-2" />
+												Editar
+											</DropdownMenuItem>
+											<DropdownMenuItem onClick={handleDelete} className="text-red-600">
+												<Trash2 className="h-4 w-4 mr-2" />
+												Excluir
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</div>
+
+								{/* Informações do produto */}
+								<div className="flex-1 space-y-2">
+									{/* Marca */}
+									{brandName && (
+										<div className="flex items-center gap-2">
+											<span className="text-xs font-medium text-gray-500 dark:text-gray-400">Marca:</span>
+											<Badge variant="secondary" className="text-xs">
+												{brandName}
+											</Badge>
+										</div>
+									)}
+
+									{/* Categoria */}
+									{product.category?.name && (
+										<div className="flex items-center gap-2">
+											<span className="text-xs font-medium text-gray-500 dark:text-gray-400">Categoria:</span>
+											<Badge variant="outline" className="text-xs">
+												{product.category.icon} {product.category.name}
+											</Badge>
+										</div>
+									)}
+
+									{/* Tamanho e Unidade */}
+									<div className="flex items-center gap-2">
+										<span className="text-xs font-medium text-gray-500 dark:text-gray-400">Tamanho:</span>
+										<div className="flex gap-1">
+											{product.packageSize && (
+												<Badge variant="default" className="text-xs bg-blue-600">
+													📦 {product.packageSize}
+												</Badge>
+											)}
+											<Badge variant="secondary" className="text-xs">
+												{productUnit}
+											</Badge>
+										</div>
+									</div>
+
+									{/* Código de barras */}
+									{product.barcode && (
+										<div className="flex items-center gap-2">
+											<span className="text-xs font-medium text-gray-500 dark:text-gray-400">Código:</span>
+											<Badge variant="outline" className="text-xs flex items-center gap-1">
+												<Barcode className="h-3 w-3" />
+												{product.barcode}
+											</Badge>
+										</div>
+									)}
+								</div>
 							</div>
-						)}
 						</div>
 
-						<div className="mt-auto">
+						{/* Botão de ação - agora ocupa toda a largura */}
+						<div className="px-4 pb-4">
 							<Button
 								variant="outline"
 								size="sm"
 								className="w-full"
-								onClick={() => (window.location.href = `/produtos/${product.id}`)}
+								onClick={() => {
+									window.location.href = `/produtos/${product.id}`
+								}}
 							>
 								<BarChart3 className="h-4 w-4 mr-2" />
 								Ver Detalhes
@@ -214,7 +274,9 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/mercados/${market.id}`)}
+						onClick={() => {
+							window.location.href = `/mercados/${market.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Detalhes
@@ -296,7 +358,9 @@ export const CategoryCardMemo = memo<CategoryCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/categorias/${category.id}`)}
+						onClick={() => {
+							window.location.href = `/categorias/${category.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Detalhes
@@ -371,7 +435,9 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/marcas/${brand.id}`)}
+						onClick={() => {
+							window.location.href = `/marcas/${brand.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Detalhes
@@ -456,7 +522,9 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/compras/${purchase.id}`)}
+						onClick={() => {
+							window.location.href = `/compras/${purchase.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Detalhes
@@ -678,7 +746,9 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/lista/${shoppingList.id}`)}
+						onClick={() => {
+							window.location.href = `/lista/${shoppingList.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Lista
@@ -764,7 +834,9 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 						variant="outline"
 						size="sm"
 						className="w-full"
-						onClick={() => (window.location.href = `/receitas/${recipe.id}`)}
+						onClick={() => {
+							window.location.href = `/receitas/${recipe.id}`
+						}}
 					>
 						<BarChart3 className="h-4 w-4 mr-2" />
 						Ver Receita

@@ -106,6 +106,18 @@ const nextConfig = {
       },
     },
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn-cosmos.bluesoft.com.br',
+        port: '',
+        pathname: '/products/**',
+      },
+    ],
+    qualities: [25, 50, 75, 90, 100],
+    formats: ['image/webp', 'image/avif'],
+  },
   env: {
     OPTIMIZE_API_KEY: process.env.OPTIMIZE_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY

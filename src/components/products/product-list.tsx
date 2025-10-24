@@ -64,12 +64,12 @@ export function ProductList({ products, onDelete, onEdit, isLoading = false }: P
 	if (isLoading) {
 		return (
 			<div 
-				className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+				className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"
 				role="status"
 				aria-label="Carregando produtos"
 			>
-				{Array.from({ length: 8 }).map((_, index) => (
-					<ProductSkeleton key={index} />
+				{Array.from({ length: 6 }).map((_, index) => (
+					<ProductSkeleton key={`skeleton-${index}`} />
 				))}
 			</div>
 		)
@@ -82,7 +82,7 @@ export function ProductList({ products, onDelete, onEdit, isLoading = false }: P
 
 	return (
 		<motion.div
-			className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+			className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"
 			variants={containerVariants}
 			initial="hidden"
 			animate="visible"
