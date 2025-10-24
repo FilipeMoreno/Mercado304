@@ -223,7 +223,7 @@ export async function createAndUploadBackup(
 
 		// Comprimir se solicitado
 		if (compress) {
-			dataBuffer = await gzipAsync(dataBuffer)
+			dataBuffer = Buffer.from(await gzipAsync(dataBuffer))
 			contentType = "application/gzip"
 			compressedSize = dataBuffer.length
 		}
