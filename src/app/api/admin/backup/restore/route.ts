@@ -1,15 +1,21 @@
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { type NextRequest, NextResponse } from "next/server"
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
+
+// Configuração do R2 da Cloudflare (compatível com S3)
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "mercado304-backups"
 
 // Configurar o cliente S3 (R2)
 const s3Client = new S3Client({
 	region: "auto",
-	endpoint: process.env.R2_ENDPOINT || "",
+	endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 	credentials: {
-		accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
-		secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+		accessKeyId: R2_ACCESS_KEY_ID || "",
+		secretAccessKey: R2_SECRET_ACCESS_KEY || "",
 	},
 })
 
@@ -33,10 +39,7 @@ export async function POST(request: NextRequest) {
 		const { backupKey, password } = body
 
 		if (!backupKey || !password) {
-			return NextResponse.json(
-				{ success: false, error: "backupKey e password são obrigatórios" },
-				{ status: 400 },
-			)
+			return NextResponse.json({ success: false, error: "backupKey e password são obrigatórios" }, { status: 400 })
 		}
 
 		// Verificar a senha de restauração
@@ -60,13 +63,12 @@ export async function POST(request: NextRequest) {
 		console.log(`[Restore] Iniciando restauração do backup: ${backupKey}`)
 
 		// Verificar credenciais do R2
-		const bucketName = process.env.R2_BUCKET_NAME
-		if (!bucketName || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+		if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
 			return NextResponse.json(
 				{
 					success: false,
 					error: "Credenciais do R2 não configuradas",
-					details: "Verifique R2_BUCKET_NAME, R2_ACCESS_KEY_ID e R2_SECRET_ACCESS_KEY",
+					details: "Verifique R2_ACCOUNT_ID, R2_ACCESS_KEY_ID e R2_SECRET_ACCESS_KEY",
 				},
 				{ status: 500 },
 			)
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
 		// Baixar o backup do R2
 		console.log(`[Restore] Baixando backup do R2...`)
 		const getCommand = new GetObjectCommand({
-			Bucket: bucketName,
+			Bucket: R2_BUCKET_NAME,
 			Key: backupKey,
 		})
 
@@ -90,9 +92,15 @@ export async function POST(request: NextRequest) {
 		console.log(`[Restore] Backup baixado com sucesso (${backupSQL.length} caracteres)`)
 
 		// Validar o conteúdo do backup
-		if (!backupSQL.includes("PostgreSQL database dump")) {
+		const isValidBackup = 
+			backupSQL.includes("PostgreSQL database dump") || // pg_dump
+			backupSQL.includes("Mercado304 Database Backup") || // Prisma backup
+			backupSQL.includes("BEGIN;") // Qualquer backup SQL válido
+		
+		if (!isValidBackup) {
+			console.error("[Restore] Conteúdo do backup inválido. Primeiras 200 caracteres:", backupSQL.substring(0, 200))
 			return NextResponse.json(
-				{ success: false, error: "Arquivo de backup inválido (não é um dump do PostgreSQL)" },
+				{ success: false, error: "Arquivo de backup inválido (não é um dump válido do PostgreSQL)" },
 				{ status: 400 },
 			)
 		}
@@ -125,12 +133,7 @@ export async function POST(request: NextRequest) {
 						}
 					} catch (error: any) {
 						// Ignorar alguns erros comuns que não afetam a restauração
-						const ignorableErrors = [
-							"already exists",
-							"does not exist",
-							"duplicate key",
-							"relation .* already exists",
-						]
+						const ignorableErrors = ["already exists", "does not exist", "duplicate key", "relation .* already exists"]
 
 						const shouldIgnore = ignorableErrors.some((pattern) => error.message?.match(new RegExp(pattern, "i")))
 

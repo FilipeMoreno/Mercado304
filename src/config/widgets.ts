@@ -9,7 +9,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Total de Compras",
 		description: "Número total de compras realizadas",
 		category: "stats",
-		defaultSize: { w: 2, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 2, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"total-spent": {
@@ -17,7 +17,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Total Gasto",
 		description: "Valor total gasto em compras",
 		category: "stats",
-		defaultSize: { w: 2, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 2, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"total-products": {
@@ -25,7 +25,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Produtos Cadastrados",
 		description: "Número de produtos no sistema",
 		category: "stats",
-		defaultSize: { w: 2, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 2, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"total-markets": {
@@ -33,7 +33,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Mercados Cadastrados",
 		description: "Número de mercados cadastrados",
 		category: "stats",
-		defaultSize: { w: 2, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 2, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"price-records": {
@@ -41,7 +41,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Preços Registrados",
 		description: "Total de registros de preços",
 		category: "stats",
-		defaultSize: { w: 2, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 2, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"ai-summary": {
@@ -49,7 +49,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Resumo IA",
 		description: "Resumo inteligente gerado por IA",
 		category: "analytics",
-		defaultSize: { w: 12, h: 3, minW: 6, minH: 2, maxW: 12, maxH: 5 },
+		defaultSize: { w: 12, h: 5, minW: 6, minH: 3, maxW: 12, maxH: 7 },
 		requiresData: true,
 	},
 	"monthly-chart": {
@@ -57,7 +57,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Gráfico Mensal",
 		description: "Gráfico de gastos mensais",
 		category: "charts",
-		defaultSize: { w: 12, h: 4, minW: 6, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 12, h: 6, minW: 6, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"monthly-stats": {
@@ -65,7 +65,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Estatísticas Mensais",
 		description: "Análise detalhada dos gastos mensais",
 		category: "analytics",
-		defaultSize: { w: 12, h: 4, minW: 6, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 12, h: 6, minW: 6, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"category-stats": {
@@ -73,7 +73,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Gastos por Categoria",
 		description: "Distribuição de gastos por categoria",
 		category: "charts",
-		defaultSize: { w: 6, h: 5, minW: 4, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"top-products": {
@@ -81,7 +81,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Produtos Mais Comprados",
 		description: "Ranking de produtos frequentes",
 		category: "lists",
-		defaultSize: { w: 6, h: 5, minW: 4, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"market-compare": {
@@ -89,7 +89,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Comparação de Mercados",
 		description: "Estatísticas por mercado",
 		category: "analytics",
-		defaultSize: { w: 6, h: 5, minW: 4, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"recent-purchases": {
@@ -97,7 +97,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Compras Recentes",
 		description: "Últimas compras registradas",
 		category: "lists",
-		defaultSize: { w: 12, h: 5, minW: 6, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 12, h: 8, minW: 6, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"expiration-alerts": {
@@ -105,7 +105,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Alertas de Validade",
 		description: "Produtos próximos ao vencimento",
 		category: "alerts",
-		defaultSize: { w: 6, h: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 6, h: 6, minW: 4, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"replenishment-alerts": {
@@ -113,7 +113,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Alertas de Reposição",
 		description: "Produtos que precisam ser repostos",
 		category: "alerts",
-		defaultSize: { w: 6, h: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 6, h: 6, minW: 4, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"savings-card": {
@@ -121,7 +121,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Economias",
 		description: "Análise de economias e oportunidades",
 		category: "analytics",
-		defaultSize: { w: 4, h: 3, minW: 3, minH: 2, maxW: 6, maxH: 4 },
+		defaultSize: { w: 4, h: 5, minW: 3, minH: 3, maxW: 6, maxH: 6 },
 		requiresData: true,
 	},
 	"discount-stats": {
@@ -129,7 +129,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Estatísticas de Descontos",
 		description: "Análise dos descontos obtidos",
 		category: "analytics",
-		defaultSize: { w: 12, h: 4, minW: 6, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 12, h: 6, minW: 6, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"temporal-comparison": {
@@ -137,7 +137,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Comparação Temporal",
 		description: "Comparação entre períodos",
 		category: "analytics",
-		defaultSize: { w: 4, h: 3, minW: 3, minH: 2, maxW: 6, maxH: 4 },
+		defaultSize: { w: 4, h: 5, minW: 3, minH: 3, maxW: 6, maxH: 6 },
 		requiresData: true,
 	},
 	"nutrition-summary": {
@@ -145,7 +145,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Resumo Nutricional",
 		description: "Informações nutricionais dos produtos",
 		category: "analytics",
-		defaultSize: { w: 4, h: 3, minW: 3, minH: 2, maxW: 6, maxH: 4 },
+		defaultSize: { w: 4, h: 5, minW: 3, minH: 3, maxW: 6, maxH: 6 },
 		requiresData: true,
 	},
 	"payment-stats": {
@@ -153,7 +153,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Métodos de Pagamento",
 		description: "Estatísticas de formas de pagamento",
 		category: "charts",
-		defaultSize: { w: 6, h: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+		defaultSize: { w: 6, h: 6, minW: 4, minH: 4, maxW: 12, maxH: 9 },
 		requiresData: true,
 	},
 	"payment-transactions": {
@@ -161,7 +161,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Total de Transações",
 		description: "Total de transações de pagamento",
 		category: "stats",
-		defaultSize: { w: 3, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 3, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"payment-total-amount": {
@@ -169,7 +169,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Valor Total em Pagamentos",
 		description: "Soma total de todos os pagamentos",
 		category: "stats",
-		defaultSize: { w: 3, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 3, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"payment-average-ticket": {
@@ -177,7 +177,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Ticket Médio",
 		description: "Valor médio de transações",
 		category: "stats",
-		defaultSize: { w: 3, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 3, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"payment-most-used": {
@@ -185,7 +185,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Método Mais Usado",
 		description: "Forma de pagamento mais utilizada",
 		category: "stats",
-		defaultSize: { w: 3, h: 2, minW: 2, minH: 2, maxW: 4, maxH: 3 },
+		defaultSize: { w: 3, h: 3, minW: 2, minH: 2, maxW: 4, maxH: 5 },
 		requiresData: true,
 	},
 	"payment-distribution": {
@@ -193,7 +193,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Distribuição de Pagamentos",
 		description: "Distribuição por método de pagamento",
 		category: "charts",
-		defaultSize: { w: 6, h: 5, minW: 4, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"payment-details": {
@@ -201,7 +201,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Detalhes de Pagamentos",
 		description: "Estatísticas detalhadas por método",
 		category: "analytics",
-		defaultSize: { w: 6, h: 5, minW: 4, minH: 4, maxW: 12, maxH: 8 },
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
 		requiresData: true,
 	},
 	"payment-insights": {
@@ -209,7 +209,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Insights de Pagamentos",
 		description: "Análises e insights sobre pagamentos",
 		category: "analytics",
-		defaultSize: { w: 12, h: 3, minW: 6, minH: 2, maxW: 12, maxH: 5 },
+		defaultSize: { w: 12, h: 5, minW: 6, minH: 3, maxW: 12, maxH: 7 },
 		requiresData: true,
 	},
 	"install-pwa": {
@@ -217,7 +217,7 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		label: "Instalar App",
 		description: "Instalar aplicativo PWA",
 		category: "tools",
-		defaultSize: { w: 12, h: 2, minW: 6, minH: 2, maxW: 12, maxH: 3 },
+		defaultSize: { w: 12, h: 3, minW: 6, minH: 2, maxW: 12, maxH: 5 },
 		requiresData: false,
 	},
 }
@@ -313,9 +313,9 @@ export const DEFAULT_LAYOUT_XS: WidgetLayout[] = DEFAULT_LAYOUT_SM.map((item) =>
  */
 export const GRID_CONFIG = {
 	cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
-	rowHeight: 60,
+	rowHeight: 40, // Reduzido de 60 para 40 para ajustes mais refinados
 	breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
-	margin: [16, 16] as [number, number],
+	margin: [12, 12] as [number, number], // Reduzido de 16 para 12
 	containerPadding: [0, 0] as [number, number],
 }
 

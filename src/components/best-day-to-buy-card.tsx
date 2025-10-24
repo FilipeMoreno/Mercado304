@@ -1,12 +1,11 @@
 "use client"
 
 import { CalendarDays, Sparkles } from "lucide-react"
-import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "./ui/skeleton"
 
 interface BestDayAnalysis {
 	dayOfWeek: number
@@ -43,7 +42,8 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 						setData(null)
 					} else {
 						setData(result)
-						fetchAiAnalysis() // Chama a análise da IA depois de obter os dados
+						// Chama a análise da IA depois de obter os dados
+						fetchAiAnalysis()
 					}
 				} else {
 					toast.error("Erro ao buscar análise do dia da semana")
@@ -56,29 +56,29 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 			}
 		}
 
+		async function fetchAiAnalysis() {
+			setLoadingAi(true)
+			try {
+				const response = await fetch("/api/products/best-day-to-buy/ai-analysis", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ productId }),
+				})
+				if (response.ok) {
+					const result = await response.json()
+					setAiAnalysis(result.analysis)
+				}
+			} catch (error) {
+				console.error("Erro ao buscar análise da IA", error)
+			} finally {
+				setLoadingAi(false)
+			}
+		}
+
 		if (productId) {
 			fetchData()
 		}
 	}, [productId])
-
-	const fetchAiAnalysis = async () => {
-		setLoadingAi(true)
-		try {
-			const response = await fetch("/api/products/best-day-to-buy/ai-analysis", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ productId }),
-			})
-			if (response.ok) {
-				const result = await response.json()
-				setAiAnalysis(result.analysis)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar análise da IA", error)
-		} finally {
-			setLoadingAi(false)
-		}
-	}
 
 	if (loading) {
 		return (
@@ -98,7 +98,29 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 	}
 
 	if (!data || data.length === 0) {
-		return null
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<CalendarDays className="h-5 w-5" />
+						Análise por Dia da Semana
+					</CardTitle>
+					<CardDescription>Melhor dia para comprar este produto</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="flex flex-col items-center justify-center py-12 text-center">
+						<div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+							<CalendarDays className="h-8 w-8 text-gray-400" />
+						</div>
+						<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Nenhum dado disponível</h3>
+						<p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+							Não há dados suficientes para analisar o melhor dia da semana para comprar este produto. Faça algumas
+							compras em diferentes dias para ver a análise.
+						</p>
+					</div>
+				</CardContent>
+			</Card>
+		)
 	}
 
 	const formattedData = data.map((d) => ({

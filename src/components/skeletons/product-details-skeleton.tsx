@@ -125,7 +125,7 @@ export function ProductDetailsSkeleton() {
 						<Skeleton className="h-4 w-48" />
 					</CardHeader>
 					<CardContent>
-						<Skeleton className="h-[300px] w-full" />
+						<Skeleton className="h-[300px] w-full rounded-lg" />
 					</CardContent>
 				</Card>
 
@@ -139,7 +139,24 @@ export function ProductDetailsSkeleton() {
 						<Skeleton className="h-4 w-56" />
 					</CardHeader>
 					<CardContent>
-						<Skeleton className="h-[300px] w-full" />
+						<div className="space-y-4">
+							<Skeleton className="h-[200px] w-full rounded-lg" />
+							<div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+								<Skeleton className="h-4 w-full mb-2" />
+								<Skeleton className="h-4 w-3/4" />
+							</div>
+							<div className="p-4 bg-gradient-to-br from-violet-50 to-blue-50 dark:from-violet-950/20 dark:to-blue-950/20 rounded-lg">
+								<div className="flex items-start gap-3">
+									<Skeleton className="h-8 w-8 rounded-lg" />
+									<div className="flex-1 space-y-2">
+										<Skeleton className="h-4 w-32" />
+										<Skeleton className="h-3 w-48" />
+										<Skeleton className="h-4 w-full" />
+										<Skeleton className="h-4 w-2/3" />
+									</div>
+								</div>
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
@@ -162,6 +179,7 @@ export function ProductDetailsSkeleton() {
 										<Skeleton className="h-5 w-32 mb-1" />
 										<Skeleton className="h-4 w-20" />
 									</div>
+									{i === 0 && <Skeleton className="h-5 w-20 rounded-full" />}
 								</div>
 								<Skeleton className="h-6 w-24" />
 							</div>
@@ -184,8 +202,8 @@ export function ProductDetailsSkeleton() {
 						<div className="flex items-center gap-2">
 							<Skeleton className="h-4 w-20" />
 							<div className="flex gap-1">
-								<Skeleton className="h-8 w-8" />
-								<Skeleton className="h-8 w-8" />
+								<Skeleton className="h-8 w-8 rounded" />
+								<Skeleton className="h-8 w-8 rounded" />
 							</div>
 						</div>
 					</div>
@@ -195,7 +213,7 @@ export function ProductDetailsSkeleton() {
 						{Array.from({ length: 5 }).map((_, i) => (
 							<div key={i} className="flex items-center justify-between p-3 border rounded-lg">
 								<div className="flex items-center gap-3">
-									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-4 rounded" />
 									<div>
 										<Skeleton className="h-4 w-24 mb-1" />
 										<Skeleton className="h-3 w-32" />
@@ -224,36 +242,41 @@ export function ProductDetailsSkeleton() {
 					<div className="space-y-4">
 						{/* Tabs */}
 						<div className="flex gap-2 border-b">
-							<Skeleton className="h-10 w-24" />
-							<Skeleton className="h-10 w-24" />
-							<Skeleton className="h-10 w-32" />
+							<Skeleton className="h-10 w-24 rounded-md" />
+							<Skeleton className="h-10 w-24 rounded-md" />
+							<Skeleton className="h-10 w-32 rounded-md" />
 						</div>
 
 						{/* Conteúdo Nutricional */}
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-							{Array.from({ length: 4 }).map((_, i) => (
-								<Skeleton key={i} className="h-24 w-full rounded-xl" />
+							{Array.from({ length: 8 }).map((_, i) => (
+								<div key={i} className="p-4 border rounded-xl">
+									<Skeleton className="h-4 w-16 mb-2" />
+									<Skeleton className="h-8 w-20 mb-1" />
+									<Skeleton className="h-3 w-12" />
+								</div>
 							))}
 						</div>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Análise Nutricional do Zé (AI) */}
+			{/* Análise Nutricional do Zé (AI) - apenas para alimentos */}
 			<div className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 dark:from-violet-950/20 dark:via-blue-950/20 dark:to-cyan-950/20 rounded-lg">
 				<CardContent className="relative p-6">
 					<div className="flex items-start gap-4">
 						<Skeleton className="h-12 w-12 rounded-xl" />
-						<div className="flex-1 space-y-2">
+						<div className="flex-1 space-y-3">
 							<div className="flex items-center justify-between gap-2">
 								<Skeleton className="h-6 w-48" />
-								<Skeleton className="h-6 w-12" />
+								<Skeleton className="h-6 w-12 rounded-full" />
 							</div>
 							<Skeleton className="h-4 w-64" />
 							<div className="space-y-2 mt-4">
 								<Skeleton className="h-4 w-full" />
 								<Skeleton className="h-4 w-3/4" />
 								<Skeleton className="h-4 w-1/2" />
+								<Skeleton className="h-4 w-5/6" />
 							</div>
 						</div>
 					</div>
@@ -272,9 +295,13 @@ export function ProductDetailsSkeleton() {
 				<CardContent className="pt-6">
 					<div className="space-y-4">
 						<div className="flex flex-wrap gap-2">
-							{Array.from({ length: 6 }).map((_, i) => (
+							{Array.from({ length: 8 }).map((_, i) => (
 								<Skeleton key={i} className="h-8 w-20 rounded-full" />
 							))}
+						</div>
+						<div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+							<Skeleton className="h-4 w-full mb-2" />
+							<Skeleton className="h-4 w-3/4" />
 						</div>
 					</div>
 				</CardContent>

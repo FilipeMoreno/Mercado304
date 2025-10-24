@@ -23,7 +23,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 			<div
 				ref={ref}
 				className={cn(
-					"relative overflow-hidden transition-all h-full",
+					"relative overflow-visible transition-all h-full flex flex-col",
 					isEditing && "ring-2 ring-primary/50 shadow-lg rounded-lg",
 					className,
 				)}
@@ -85,7 +85,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 				)}
 
 				{/* Conteúdo do widget */}
-				<div className={cn("h-full", isEditing && "pt-8")}>{children}</div>
+				<div className={cn("flex-1 flex flex-col", isEditing && "pt-8")}>{children}</div>
 
 				{/* Indicador de redimensionamento */}
 				{isEditing && (

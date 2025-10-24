@@ -506,16 +506,16 @@ export default function ProdutoDetalhesPage() {
 			</div>
 
 			{/* Comparação entre Mercados */}
-			{marketComparison.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Store className="h-5 w-5" />
-							Comparação entre Mercados
-						</CardTitle>
-						<CardDescription>Preços médios nos diferentes mercados</CardDescription>
-					</CardHeader>
-					<CardContent>
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Store className="h-5 w-5" />
+						Comparação entre Mercados
+					</CardTitle>
+					<CardDescription>Preços médios nos diferentes mercados</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{marketComparison.length > 0 ? (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{marketComparison.map((market: any, index: number) => {
 								const isCheapest = index === 0 // Assumindo que vem ordenado
@@ -539,9 +539,22 @@ export default function ProdutoDetalhesPage() {
 								)
 							})}
 						</div>
-					</CardContent>
-				</Card>
-			)}
+					) : (
+						<div className="flex flex-col items-center justify-center py-12 text-center">
+							<div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+								<Store className="h-8 w-8 text-gray-400" />
+							</div>
+							<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+								Nenhum dado disponível
+							</h3>
+							<p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+								Não há dados suficientes para comparar preços entre mercados. 
+								Faça algumas compras deste produto para ver a comparação.
+							</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			{/* Compras Recentes */}
 			{recentPurchases.length > 0 && (
@@ -1812,7 +1825,10 @@ export default function ProdutoDetalhesPage() {
 				</Card>
 			)}
 
-			<NutritionAiAnalysis productId={productId} productName={product.name} nutritionalInfo={nutritionalInfo} />
+			{/* Análise Nutricional do Zé - apenas para alimentos */}
+			{product.category?.isFood && (
+				<NutritionAiAnalysis productId={productId} productName={product.name} nutritionalInfo={nutritionalInfo} />
+			)}
 
 			{/* Informações sobre Alérgenos */}
 			{nutritionalInfo &&
