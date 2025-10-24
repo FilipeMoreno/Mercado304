@@ -23,6 +23,13 @@ export type WidgetType =
 	| "temporal-comparison"
 	| "nutrition-summary"
 	| "payment-stats"
+	| "payment-transactions"
+	| "payment-total-amount"
+	| "payment-average-ticket"
+	| "payment-most-used"
+	| "payment-distribution"
+	| "payment-details"
+	| "payment-insights"
 	| "install-pwa"
 
 /**

@@ -9,6 +9,13 @@ import { InstallPWACard } from "@/components/install-pwa-card"
 import { MonthlyPurchaseStats } from "@/components/monthly-purchase-stats"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
+import { PaymentTransactionsWidget } from "@/components/widgets/payment-transactions-widget"
+import { PaymentTotalAmountWidget } from "@/components/widgets/payment-total-amount-widget"
+import { PaymentAverageTicketWidget } from "@/components/widgets/payment-average-ticket-widget"
+import { PaymentMostUsedWidget } from "@/components/widgets/payment-most-used-widget"
+import { PaymentDistributionWidget } from "@/components/widgets/payment-distribution-widget"
+import { PaymentDetailsWidget } from "@/components/widgets/payment-details-widget"
+import { PaymentInsightsWidget } from "@/components/widgets/payment-insights-widget"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
@@ -317,6 +324,35 @@ export function WidgetMapper({
 	// Widget de estatísticas de pagamento
 	if (widgetId === "payment-stats") {
 		return <PaymentMethodStats />
+	}
+
+	// Widgets de pagamento individuais
+	if (widgetId === "payment-transactions") {
+		return <PaymentTransactionsWidget />
+	}
+
+	if (widgetId === "payment-total-amount") {
+		return <PaymentTotalAmountWidget />
+	}
+
+	if (widgetId === "payment-average-ticket") {
+		return <PaymentAverageTicketWidget />
+	}
+
+	if (widgetId === "payment-most-used") {
+		return <PaymentMostUsedWidget />
+	}
+
+	if (widgetId === "payment-distribution") {
+		return <PaymentDistributionWidget />
+	}
+
+	if (widgetId === "payment-details") {
+		return <PaymentDetailsWidget />
+	}
+
+	if (widgetId === "payment-insights") {
+		return <PaymentInsightsWidget />
 	}
 
 	// Fallback para widgets desconhecidos

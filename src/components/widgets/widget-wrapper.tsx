@@ -3,7 +3,6 @@
 import { GripVertical, Settings, X } from "lucide-react"
 import { type ReactNode, forwardRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { WidgetType } from "@/types/dashboard-widgets"
 import { cn } from "@/lib/utils"
@@ -21,11 +20,11 @@ interface WidgetWrapperProps {
 export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 	({ widgetId, children, isEditing = false, onRemove, onConfigure, className, style, ...props }, ref) => {
 		return (
-			<Card
+			<div
 				ref={ref}
 				className={cn(
-					"relative overflow-hidden transition-all h-full flex flex-col",
-					isEditing && "ring-2 ring-primary/50 shadow-lg",
+					"relative overflow-hidden transition-all h-full",
+					isEditing && "ring-2 ring-primary/50 shadow-lg rounded-lg",
 					className,
 				)}
 				style={style}
@@ -33,7 +32,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 			>
 				{/* Barra de controle em modo de edição */}
 				{isEditing && (
-					<div className="absolute top-0 left-0 right-0 z-10 bg-primary/10 backdrop-blur-sm border-b flex items-center justify-between px-2 py-1">
+					<div className="absolute top-0 left-0 right-0 z-10 bg-primary/10 backdrop-blur-sm border-b flex items-center justify-between px-2 py-1 rounded-t-lg">
 						<div className="flex items-center gap-1">
 							<div className="cursor-move p-1 hover:bg-primary/20 rounded">
 								<GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -86,7 +85,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 				)}
 
 				{/* Conteúdo do widget */}
-				<div className={cn("flex-1 overflow-auto", isEditing && "mt-8")}>{children}</div>
+				<div className={cn("h-full", isEditing && "pt-8")}>{children}</div>
 
 				{/* Indicador de redimensionamento */}
 				{isEditing && (
@@ -94,7 +93,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 						<div className="w-3 h-3 border-r-2 border-b-2 border-muted-foreground" />
 					</div>
 				)}
-			</Card>
+			</div>
 		)
 	},
 )

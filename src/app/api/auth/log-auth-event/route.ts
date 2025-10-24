@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { logAuthEvent, getRequestInfo } from "@/lib/auth-logger"
+import { getRequestInfo, logAuthEvent } from "@/lib/auth-logger"
 import { sendNewSessionEmail } from "@/lib/email"
 import { getLocationFromIP } from "@/lib/geolocation"
 
@@ -18,7 +18,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    const { eventType, method, metadata } = await request.json()
+    // Valida se há corpo na requisição
+    const contentType = request.headers.get("content-type")
+    if (!contentType?.includes("application/json")) {
+      return NextResponse.json({ error: "Content-Type deve ser application/json" }, { status: 400 })
+    }
+
+    const body = await request.text()
+    if (!body || body.trim() === "") {
+      return NextResponse.json({ error: "Corpo da requisição está vazio" }, { status: 400 })
+    }
+
+    let data: {
+      eventType?: "login" | "reauth" | "logout"
+      method?: "email" | "google" | "one-tap" | "passkey" | "reauth-google"
+      metadata?: Record<string, unknown>
+    }
+    try {
+      data = JSON.parse(body)
+    } catch {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 })
+    }
+
+    const { eventType, method, metadata } = data
 
     if (!eventType || !method) {
       return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 })
@@ -53,10 +75,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro ao registrar evento"
     console.error("[LogAuthEvent] Error:", error)
     return NextResponse.json(
-      { error: error.message || "Erro ao registrar evento" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

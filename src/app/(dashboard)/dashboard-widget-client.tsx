@@ -116,8 +116,14 @@ export function DashboardWidgetClient() {
 				}
 			})
 
-			// Sempre adicionar install-pwa
-			enabled.push("install-pwa")
+			// Adicionar install-pwa apenas se não estiver instalado
+			const isStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+				(window.navigator as any).standalone === true ||
+				document.referrer.includes("android-app://")
+
+			if (!isStandalone) {
+				enabled.push("install-pwa")
+			}
 
 			setEnabledWidgets(enabled)
 			setGridColumns(preferences.gridColumns || 12)
