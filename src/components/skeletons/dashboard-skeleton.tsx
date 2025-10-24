@@ -31,9 +31,9 @@ export function DashboardSkeleton() {
 			</Card>
 
 			{/* Cards de Estatísticas Principais (5 cards) */}
-			<div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+			<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
 				{Array.from({ length: 5 }).map((_, i) => (
-					<Card key={i} className="shadow-sm">
+					<Card key={`skeleton-card-${i}`} className="shadow-sm">
 						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 							<Skeleton className="h-4 w-20" />
 							<Skeleton className="h-4 w-4" />

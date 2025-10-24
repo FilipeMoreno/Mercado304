@@ -6,7 +6,6 @@ import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
@@ -18,9 +17,10 @@ import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
+import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { OptimizedLoading } from "@/components/ui/optimized-loading"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
 	type DashboardPreferences,
@@ -35,7 +35,6 @@ import { useSession } from "@/lib/auth-client"
 import { formatLocalDate } from "@/lib/date-utils"
 import { AppToasts } from "@/lib/toasts"
 import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
-import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -122,9 +121,10 @@ export function DashboardClient() {
 			case "list":
 				return "grid grid-cols-1 gap-4 md:gap-6"
 			case "compact":
-				return `grid grid-cols-3 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 6)} gap-2 md:gap-3`
+				return `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-${Math.min(currentPrefs.cardsPerRow, 6)} gap-2 md:gap-3`
 			default:
-				return `grid grid-cols-2 md:grid-cols-${Math.min(currentPrefs.cardsPerRow, 5)} gap-4 md:gap-6`
+				// Layout responsivo melhorado para evitar sobreposição
+				return `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6`
 		}
 	}, [currentPrefs.layoutStyle, currentPrefs.cardsPerRow])
 
@@ -139,9 +139,7 @@ export function DashboardClient() {
 
 	// Loading skeleton for dashboard stats
 	if (isLoading) {
-		return (
-			<DashboardSkeleton />
-		)
+		return <DashboardSkeleton />
 	}
 
 	return (
@@ -216,11 +214,7 @@ export function DashboardClient() {
 			)}
 
 			{currentPrefs.showMonthlyStats && (
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.4 }}
-				>
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
 					<MonthlyPurchaseStats data={stats} loading={statsLoading} />
 				</motion.div>
 			)}
@@ -430,7 +424,9 @@ export function DashboardClient() {
 											<Store className="h-6 w-6" />
 										</EmptyMedia>
 										<EmptyTitle>Nenhuma compra registrada ainda</EmptyTitle>
-										<EmptyDescription>Cadastre um mercado e registre suas compras para ver estatísticas.</EmptyDescription>
+										<EmptyDescription>
+											Cadastre um mercado e registre suas compras para ver estatísticas.
+										</EmptyDescription>
 									</EmptyHeader>
 									<EmptyContent>
 										<Link href="/mercados/novo" className="inline-flex">
@@ -445,9 +441,12 @@ export function DashboardClient() {
 										.map((market: MarketComparison, index: number) => {
 											// Calcular o total gasto aproximado
 											const totalSpent = market.averagePrice * market.totalPurchases
-											
+
 											return (
-												<div key={market.marketId} className="border rounded-lg p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors">
+												<div
+													key={market.marketId}
+													className="border rounded-lg p-3 hover:bg-muted/50 dark:hover:bg-muted/10 transition-colors"
+												>
 													<div className="flex items-start justify-between gap-3">
 														<div className="flex items-start gap-3 flex-1 min-w-0">
 															<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold flex-shrink-0">
@@ -457,7 +456,9 @@ export function DashboardClient() {
 																<div className="font-medium truncate">{market.marketName}</div>
 																<div className="text-sm text-muted-foreground mt-1 space-y-1">
 																	<div className="flex items-center gap-4">
-																		<span>🛒 {market.totalPurchases} {market.totalPurchases === 1 ? 'compra' : 'compras'}</span>
+																		<span>
+																			🛒 {market.totalPurchases} {market.totalPurchases === 1 ? "compra" : "compras"}
+																		</span>
 																		<span>💰 R$ {totalSpent.toFixed(2)} total</span>
 																	</div>
 																	<div className="text-xs opacity-75">

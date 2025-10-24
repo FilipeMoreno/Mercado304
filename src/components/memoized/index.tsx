@@ -618,11 +618,11 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 		return (
 			<CardComponent
 				{...cardProps}
-				className={`shadow-sm hover:shadow-lg transition-shadow ${onClick ? "cursor-pointer hover:bg-muted/50" : ""}`}
+				className={`shadow-sm hover:shadow-lg transition-shadow min-w-0 ${onClick ? "cursor-pointer hover:bg-muted/50" : ""}`}
 			>
-				<Card className="h-full">
+				<Card className="h-full min-w-0">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-xs md:text-sm font-medium">{cardContent.title}</CardTitle>
+						<CardTitle className="text-xs md:text-sm font-medium truncate pr-2">{cardContent.title}</CardTitle>
 						{cardContent.icon === "ShoppingCart" && <ShoppingCart className="h-4 w-4 text-muted-foreground" />}
 						{cardContent.icon === "DollarSign" && <DollarSign className="h-4 w-4 text-muted-foreground" />}
 						{cardContent.icon === "Package" && <Package className="h-4 w-4 text-muted-foreground" />}
