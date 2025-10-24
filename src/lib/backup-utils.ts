@@ -143,7 +143,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Stock History")
 			for (const history of stockHistory) {
 				sqlStatements.push(
-					`INSERT INTO "StockHistory" (id, type, quantity, "productName", category, notes, "createdAt") VALUES (${escapeValue(history.id)}, ${escapeValue(history.type)}, ${history.quantity}, ${escapeValue(history.productName)}, ${escapeValue(history.category)}, ${escapeValue(history.notes)}, ${escapeValue(history.createdAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO stock_history (id, type, "productId", "productName", quantity, reason, date, notes, location, "unitCost", "totalValue", "purchaseItemId", "userId", "createdAt", "updatedAt") VALUES (${escapeValue(history.id)}, ${escapeValue(history.type)}, ${escapeValue(history.productId)}, ${escapeValue(history.productName)}, ${history.quantity}, ${escapeValue(history.reason)}, ${escapeValue(history.date)}, ${escapeValue(history.notes)}, ${escapeValue(history.location)}, ${escapeNumber(history.unitCost)}, ${escapeNumber(history.totalValue)}, ${escapeValue(history.purchaseItemId)}, ${escapeValue(history.userId)}, ${escapeValue(history.createdAt)}, ${escapeValue(history.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -155,7 +155,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Stock Movements")
 			for (const movement of stockMovements) {
 				sqlStatements.push(
-					`INSERT INTO "StockMovement" (id, "stockItemId", type, quantity, notes, "createdAt") VALUES (${escapeValue(movement.id)}, ${escapeValue(movement.stockItemId)}, ${escapeValue(movement.type)}, ${movement.quantity}, ${escapeValue(movement.notes)}, ${escapeValue(movement.createdAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO stock_movements (id, "stockItemId", type, quantity, reason, date, notes, "purchaseItemId") VALUES (${escapeValue(movement.id)}, ${escapeValue(movement.stockItemId)}, ${escapeValue(movement.type)}, ${movement.quantity}, ${escapeValue(movement.reason)}, ${escapeValue(movement.date)}, ${escapeValue(movement.notes)}, ${escapeValue(movement.purchaseItemId)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -167,7 +167,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Waste Records")
 			for (const waste of wasteRecords) {
 				sqlStatements.push(
-					`INSERT INTO "WasteRecord" (id, "productId", "productName", category, quantity, unit, "estimatedCost", reason, "reasonDetails", location, "userId", "createdAt", "updatedAt") VALUES (${escapeValue(waste.id)}, ${escapeValue(waste.productId)}, ${escapeValue(waste.productName)}, ${escapeValue(waste.category)}, ${waste.quantity}, ${escapeValue(waste.unit)}, ${escapeNumber(waste.estimatedCost)}, ${escapeValue(waste.reason)}, ${escapeValue(waste.reasonDetails)}, ${escapeValue(waste.location)}, ${escapeValue(waste.userId)}, ${escapeValue(waste.createdAt)}, ${escapeValue(waste.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO waste_records (id, "productId", "productName", category, quantity, unit, "wasteReason", "wasteDate", "expirationDate", location, "unitCost", "totalValue", notes, "stockItemId", "userId", brand, "batchNumber", "createdAt", "updatedAt") VALUES (${escapeValue(waste.id)}, ${escapeValue(waste.productId)}, ${escapeValue(waste.productName)}, ${escapeValue(waste.category)}, ${waste.quantity}, ${escapeValue(waste.unit)}, ${escapeValue(waste.wasteReason)}, ${escapeValue(waste.wasteDate)}, ${escapeValue(waste.expirationDate)}, ${escapeValue(waste.location)}, ${escapeNumber(waste.unitCost)}, ${escapeNumber(waste.totalValue)}, ${escapeValue(waste.notes)}, ${escapeValue(waste.stockItemId)}, ${escapeValue(waste.userId)}, ${escapeValue(waste.brand)}, ${escapeValue(waste.batchNumber)}, ${escapeValue(waste.createdAt)}, ${escapeValue(waste.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -179,7 +179,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Expiration Alerts")
 			for (const alert of expirationAlerts) {
 				sqlStatements.push(
-					`INSERT INTO "ExpirationAlert" (id, "stockItemId", "productId", "alertType", "expirationDate", "isRead", "createdAt") VALUES (${escapeValue(alert.id)}, ${escapeValue(alert.stockItemId)}, ${escapeValue(alert.productId)}, ${escapeValue(alert.alertType)}, ${escapeValue(alert.expirationDate)}, ${alert.isRead}, ${escapeValue(alert.createdAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO expiration_alerts (id, "stockItemId", "productId", "alertType", "alertDate", "isResolved", "createdAt") VALUES (${escapeValue(alert.id)}, ${escapeValue(alert.stockItemId)}, ${escapeValue(alert.productId)}, ${escapeValue(alert.alertType)}, ${escapeValue(alert.alertDate)}, ${alert.isResolved}, ${escapeValue(alert.createdAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -191,7 +191,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Nutritional Info")
 			for (const info of nutritionalInfo) {
 				sqlStatements.push(
-					`INSERT INTO "NutritionalInfo" (id, "productId", "servingSize", calories, protein, carbohydrates, "totalFat", "saturatedFat", "transFat", fiber, sodium, sugars, allergens, ingredients, "createdAt", "updatedAt") VALUES (${escapeValue(info.id)}, ${escapeValue(info.productId)}, ${escapeValue(info.servingSize)}, ${escapeNumber(info.calories)}, ${escapeNumber(info.protein)}, ${escapeNumber(info.carbohydrates)}, ${escapeNumber(info.totalFat)}, ${escapeNumber(info.saturatedFat)}, ${escapeNumber(info.transFat)}, ${escapeNumber(info.fiber)}, ${escapeNumber(info.sodium)}, ${escapeNumber(info.sugars)}, ${escapeValue(info.allergens)}, ${escapeValue(info.ingredients)}, ${escapeValue(info.createdAt)}, ${escapeValue(info.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO nutritional_info (id, "productId", "servingSize", "servingsPerPackage", calories, proteins, "totalFat", "saturatedFat", "transFat", carbohydrates, "totalSugars", "addedSugars", fiber, sodium, "vitaminA", "vitaminC", "vitaminD", "vitaminE", "vitaminK", thiamine, riboflavin, niacin, "vitaminB6", folate, "vitaminB12", biotin, "pantothenicAcid", taurine, caffeine, lactose, galactose, "alcoholContent", omega3, omega6, "monounsaturatedFat", "polyunsaturatedFat", cholesterol, epa, dha, "linolenicAcid", calcium, iron, magnesium, phosphorus, potassium, zinc, copper, manganese, selenium, iodine, chromium, molybdenum, "allergensContains", "allergensMayContain", "createdAt", "updatedAt") VALUES (${escapeValue(info.id)}, ${escapeValue(info.productId)}, ${escapeValue(info.servingSize)}, ${escapeNumber(info.servingsPerPackage)}, ${escapeNumber(info.calories)}, ${escapeNumber(info.proteins)}, ${escapeNumber(info.totalFat)}, ${escapeNumber(info.saturatedFat)}, ${escapeNumber(info.transFat)}, ${escapeNumber(info.carbohydrates)}, ${escapeNumber(info.totalSugars)}, ${escapeNumber(info.addedSugars)}, ${escapeNumber(info.fiber)}, ${escapeNumber(info.sodium)}, ${escapeNumber(info.vitaminA)}, ${escapeNumber(info.vitaminC)}, ${escapeNumber(info.vitaminD)}, ${escapeNumber(info.vitaminE)}, ${escapeNumber(info.vitaminK)}, ${escapeNumber(info.thiamine)}, ${escapeNumber(info.riboflavin)}, ${escapeNumber(info.niacin)}, ${escapeNumber(info.vitaminB6)}, ${escapeNumber(info.folate)}, ${escapeNumber(info.vitaminB12)}, ${escapeNumber(info.biotin)}, ${escapeNumber(info.pantothenicAcid)}, ${escapeNumber(info.taurine)}, ${escapeNumber(info.caffeine)}, ${escapeNumber(info.lactose)}, ${escapeNumber(info.galactose)}, ${escapeNumber(info.alcoholContent)}, ${escapeNumber(info.omega3)}, ${escapeNumber(info.omega6)}, ${escapeNumber(info.monounsaturatedFat)}, ${escapeNumber(info.polyunsaturatedFat)}, ${escapeNumber(info.cholesterol)}, ${escapeNumber(info.epa)}, ${escapeNumber(info.dha)}, ${escapeNumber(info.linolenicAcid)}, ${escapeNumber(info.calcium)}, ${escapeNumber(info.iron)}, ${escapeNumber(info.magnesium)}, ${escapeNumber(info.phosphorus)}, ${escapeNumber(info.potassium)}, ${escapeNumber(info.zinc)}, ${escapeNumber(info.copper)}, ${escapeNumber(info.manganese)}, ${escapeNumber(info.selenium)}, ${escapeNumber(info.iodine)}, ${escapeNumber(info.chromium)}, ${escapeNumber(info.molybdenum)}, ${escapeValue(JSON.stringify(info.allergensContains))}, ${escapeValue(JSON.stringify(info.allergensMayContain))}, ${escapeValue(info.createdAt)}, ${escapeValue(info.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -203,7 +203,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Recipes")
 			for (const recipe of recipes) {
 				sqlStatements.push(
-					`INSERT INTO "Recipe" (id, name, description, ingredients, instructions, "prepTime", "cookTime", servings, difficulty, rating, "isCooked", "cookedAt", "createdAt", "updatedAt") VALUES (${escapeValue(recipe.id)}, ${escapeValue(recipe.name)}, ${escapeValue(recipe.description)}, ${escapeValue(recipe.ingredients)}, ${escapeValue(recipe.instructions)}, ${escapeNumber(recipe.prepTime)}, ${escapeNumber(recipe.cookTime)}, ${escapeNumber(recipe.servings)}, ${escapeValue(recipe.difficulty)}, ${escapeNumber(recipe.rating)}, ${recipe.isCooked}, ${escapeValue(recipe.cookedAt)}, ${escapeValue(recipe.createdAt)}, ${escapeValue(recipe.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO recipes (id, name, description, "prepTime", "mealType", ingredients, instructions, "chefTip", rating, "timesCooked", "isFavorite", "createdAt", "updatedAt") VALUES (${escapeValue(recipe.id)}, ${escapeValue(recipe.name)}, ${escapeValue(recipe.description)}, ${escapeValue(recipe.prepTime)}, ${escapeValue(recipe.mealType)}, ${escapeValue(JSON.stringify(recipe.ingredients))}, ${escapeValue(recipe.instructions)}, ${escapeValue(recipe.chefTip)}, ${escapeNumber(recipe.rating)}, ${recipe.timesCooked}, ${recipe.isFavorite}, ${escapeValue(recipe.createdAt)}, ${escapeValue(recipe.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -215,7 +215,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Sync Jobs")
 			for (const job of syncJobs) {
 				sqlStatements.push(
-					`INSERT INTO "SyncJob" (id, status, "startedAt", "completedAt", "totalProducts", "syncedProducts", "failedProducts", error, "createdAt", "updatedAt") VALUES (${escapeValue(job.id)}, ${escapeValue(job.status)}, ${escapeValue(job.startedAt)}, ${escapeValue(job.completedAt)}, ${escapeNumber(job.totalProducts)}, ${escapeNumber(job.syncedProducts)}, ${escapeNumber(job.failedProducts)}, ${escapeValue(job.error)}, ${escapeValue(job.createdAt)}, ${escapeValue(job.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO sync_jobs (id, status, tipo, progresso, "mercadosProcessados", "produtosProcessados", "precosRegistrados", erros, logs, detalhes, "startedAt", "completedAt", "createdAt", "updatedAt") VALUES (${escapeValue(job.id)}, ${escapeValue(job.status)}, ${escapeValue(job.tipo)}, ${job.progresso}, ${job.mercadosProcessados}, ${job.produtosProcessados}, ${job.precosRegistrados}, ${escapeValue(JSON.stringify(job.erros))}, ${escapeValue(JSON.stringify(job.logs))}, ${escapeValue(JSON.stringify(job.detalhes))}, ${escapeValue(job.startedAt)}, ${escapeValue(job.completedAt)}, ${escapeValue(job.createdAt)}, ${escapeValue(job.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -239,7 +239,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Sessions")
 			for (const session of sessions) {
 				sqlStatements.push(
-					`INSERT INTO session (id, "expiresAt", token, "ipAddress", "userAgent", "userId", "impersonatedBy", "activeOrganizationId", "createdAt", "updatedAt") VALUES (${escapeValue(session.id)}, ${escapeValue(session.expiresAt)}, ${escapeValue(session.token)}, ${escapeValue(session.ipAddress)}, ${escapeValue(session.userAgent)}, ${escapeValue(session.userId)}, ${escapeValue(session.impersonatedBy)}, ${escapeValue(session.activeOrganizationId)}, ${escapeValue(session.createdAt)}, ${escapeValue(session.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO session (id, "expiresAt", token, "createdAt", "updatedAt", "ipAddress", "userAgent", "userId", "loginMethod", location, "deviceName", "isRevoked", "revokedAt", "revokedReason") VALUES (${escapeValue(session.id)}, ${escapeValue(session.expiresAt)}, ${escapeValue(session.token)}, ${escapeValue(session.createdAt)}, ${escapeValue(session.updatedAt)}, ${escapeValue(session.ipAddress)}, ${escapeValue(session.userAgent)}, ${escapeValue(session.userId)}, ${escapeValue(session.loginMethod)}, ${escapeValue(session.location)}, ${escapeValue(session.deviceName)}, ${session.isRevoked}, ${escapeValue(session.revokedAt)}, ${escapeValue(session.revokedReason)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -275,7 +275,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Passkeys")
 			for (const passkey of passkeys) {
 				sqlStatements.push(
-					`INSERT INTO passkey (id, name, "publicKey", "userId", "webauthnUserID", counter, "deviceType", backed_up, transports, "createdAt") VALUES (${escapeValue(passkey.id)}, ${escapeValue(passkey.name)}, ${escapeValue(passkey.publicKey)}, ${escapeValue(passkey.userId)}, ${escapeValue(passkey.webauthnUserID)}, ${passkey.counter}, ${escapeValue(passkey.deviceType)}, ${passkey.backed_up}, ${escapeValue(passkey.transports)}, ${escapeValue(passkey.createdAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO passkey (id, name, "publicKey", "userId", "credentialID", counter, "deviceType", "backedUp", transports, "createdAt", aaguid) VALUES (${escapeValue(passkey.id)}, ${escapeValue(passkey.name)}, ${escapeValue(passkey.publicKey)}, ${escapeValue(passkey.userId)}, ${escapeValue(passkey.credentialID)}, ${passkey.counter}, ${escapeValue(passkey.deviceType)}, ${passkey.backedUp}, ${escapeValue(passkey.transports)}, ${escapeValue(passkey.createdAt)}, ${escapeValue(passkey.aaguid)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -287,7 +287,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Two Factors")
 			for (const tf of twoFactors) {
 				sqlStatements.push(
-					`INSERT INTO "twoFactor" (id, secret, "backupCodes", "userId", "createdAt", "updatedAt") VALUES (${escapeValue(tf.id)}, ${escapeValue(tf.secret)}, ${escapeValue(tf.backupCodes)}, ${escapeValue(tf.userId)}, ${escapeValue(tf.createdAt)}, ${escapeValue(tf.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO "twoFactor" (id, secret, "backupCodes", "userId") VALUES (${escapeValue(tf.id)}, ${escapeValue(tf.secret)}, ${escapeValue(tf.backupCodes)}, ${escapeValue(tf.userId)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -311,7 +311,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Churrasco Calculations")
 			for (const calc of churrascoCalcs) {
 				sqlStatements.push(
-					`INSERT INTO "ChurrascoCalculation" (id, "userId", adults, children, drinkers, preferences, result, "createdAt", "updatedAt") VALUES (${escapeValue(calc.id)}, ${escapeValue(calc.userId)}, ${calc.adults}, ${calc.children}, ${calc.drinkers}, ${escapeValue(calc.preferences)}, ${escapeValue(JSON.stringify(calc.result))}, ${escapeValue(calc.createdAt)}, ${escapeValue(calc.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO churrasco_calculations (id, "userId", adults, children, drinkers, preferences, result, "createdAt") VALUES (${escapeValue(calc.id)}, ${escapeValue(calc.userId)}, ${calc.adults}, ${calc.children}, ${calc.drinkers}, ${escapeValue(calc.preferences)}, ${escapeValue(JSON.stringify(calc.result))}, ${escapeValue(calc.createdAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -335,7 +335,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Product Kits")
 			for (const kit of productKits) {
 				sqlStatements.push(
-					`INSERT INTO "ProductKit" ("productId", description, "categoryId", "brandId", "createdAt", "updatedAt") VALUES (${escapeValue(kit.productId)}, ${escapeValue(kit.description)}, ${escapeValue(kit.categoryId)}, ${escapeValue(kit.brandId)}, ${escapeValue(kit.createdAt)}, ${escapeValue(kit.updatedAt)}) ON CONFLICT ("productId") DO NOTHING;`
+					`INSERT INTO product_kits (id, "kitProductId", description, "isActive", barcode, "brandId", "categoryId", "createdAt", "updatedAt") VALUES (${escapeValue(kit.id)}, ${escapeValue(kit.kitProductId)}, ${escapeValue(kit.description)}, ${kit.isActive}, ${escapeValue(kit.barcode)}, ${escapeValue(kit.brandId)}, ${escapeValue(kit.categoryId)}, ${escapeValue(kit.createdAt)}, ${escapeValue(kit.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -347,7 +347,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Product Kit Items")
 			for (const item of productKitItems) {
 				sqlStatements.push(
-					`INSERT INTO "ProductKitItem" (id, "kitProductId", "itemProductId", quantity, "createdAt", "updatedAt") VALUES (${escapeValue(item.id)}, ${escapeValue(item.kitProductId)}, ${escapeValue(item.itemProductId)}, ${item.quantity}, ${escapeValue(item.createdAt)}, ${escapeValue(item.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO product_kit_items (id, "kitId", "productId", quantity, "createdAt", "updatedAt") VALUES (${escapeValue(item.id)}, ${escapeValue(item.kitId)}, ${escapeValue(item.productId)}, ${item.quantity}, ${escapeValue(item.createdAt)}, ${escapeValue(item.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -359,7 +359,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Two Factor Email Codes")
 			for (const code of twoFactorEmailCodes) {
 				sqlStatements.push(
-					`INSERT INTO "twoFactorEmailCode" (id, code, "userId", "expiresAt", "createdAt", "updatedAt") VALUES (${escapeValue(code.id)}, ${escapeValue(code.code)}, ${escapeValue(code.userId)}, ${escapeValue(code.expiresAt)}, ${escapeValue(code.createdAt)}, ${escapeValue(code.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO "twoFactorEmailCode" (id, "userId", code, type, "expiresAt", "createdAt", used, "usedAt") VALUES (${escapeValue(code.id)}, ${escapeValue(code.userId)}, ${escapeValue(code.code)}, ${escapeValue(code.type)}, ${escapeValue(code.expiresAt)}, ${escapeValue(code.createdAt)}, ${code.used}, ${escapeValue(code.usedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
@@ -371,7 +371,7 @@ export async function generatePrismaBackup(): Promise<string> {
 			sqlStatements.push("-- Trusted Devices")
 			for (const device of trustedDevices) {
 				sqlStatements.push(
-					`INSERT INTO "trustedDevice" (id, "userId", "deviceId", "deviceName", "deviceType", "ipAddress", "lastUsedAt", "expiresAt", "createdAt", "updatedAt") VALUES (${escapeValue(device.id)}, ${escapeValue(device.userId)}, ${escapeValue(device.deviceId)}, ${escapeValue(device.deviceName)}, ${escapeValue(device.deviceType)}, ${escapeValue(device.ipAddress)}, ${escapeValue(device.lastUsedAt)}, ${escapeValue(device.expiresAt)}, ${escapeValue(device.createdAt)}, ${escapeValue(device.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
+					`INSERT INTO "trustedDevice" (id, "userId", "userAgent", "ipAddress", "createdAt", "updatedAt") VALUES (${escapeValue(device.id)}, ${escapeValue(device.userId)}, ${escapeValue(device.userAgent)}, ${escapeValue(device.ipAddress)}, ${escapeValue(device.createdAt)}, ${escapeValue(device.updatedAt)}) ON CONFLICT (id) DO NOTHING;`
 				)
 			}
 			sqlStatements.push("")
