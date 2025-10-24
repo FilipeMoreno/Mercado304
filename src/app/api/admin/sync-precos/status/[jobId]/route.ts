@@ -1,60 +1,39 @@
 // src/app/api/admin/sync-precos/status/[jobId]/route.ts
-// Consulta status de um job de sincronização
+// Consulta status de um job de sincronização via BullMQ
 
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { getPriceSyncJobStatus } from "@/lib/queue"
 
-export async function GET(request: Request, { params }: { params: { jobId: string } }) {
+export async function GET(_request: Request, { params }: { params: { jobId: string } }) {
 	try {
-		const { searchParams } = new URL(request.url)
-		const debugMode = searchParams.get("debug") === "true"
-		const limit = parseInt(searchParams.get("limit") || "1000", 10)
+		const { jobId } = params
+		if (!jobId) {
+			return NextResponse.json({ error: "Job ID é obrigatório" }, { status: 400 })
+		}
 
-		const job = await prisma.syncJob.findUnique({
-			where: { id: params.jobId },
-		})
+		const jobStatus = await getPriceSyncJobStatus(jobId)
 
-		if (!job) {
+		if (!jobStatus) {
 			return NextResponse.json({ error: "Job não encontrado" }, { status: 404 })
 		}
 
-		// Filtrar logs baseado no modo debug
-		let filteredLogs = job.logs as string[]
-
-		if (!debugMode && Array.isArray(filteredLogs)) {
-			// No modo normal, oculta logs com prefixos de debug
-			filteredLogs = filteredLogs.filter((log) => {
-				const logLower = log.toLowerCase()
-				return !logLower.includes("[debug]") &&
-					!logLower.includes("[api]") &&
-					!logLower.includes("[server]") &&
-					!logLower.includes("[batch]") &&
-					!logLower.includes("[parsing]")
-			})
-		}
-
-		// Aplicar limite de logs
-		if (Array.isArray(filteredLogs)) {
-			filteredLogs = filteredLogs.slice(-limit) // Pegar os últimos N logs
-		}
-
-		// Retornar job com logs filtrados
-		const jobWithFilteredLogs = {
-			...job,
-			logs: filteredLogs,
-			// Adicionar informações sobre filtragem
-			_logsInfo: {
-				totalLogs: Array.isArray(job.logs) ? job.logs.length : 0,
-				filteredLogs: Array.isArray(filteredLogs) ? filteredLogs.length : 0,
-				debugMode,
-				limit
-			}
-		}
-
-		return NextResponse.json(jobWithFilteredLogs)
+		return NextResponse.json({
+			jobId: jobStatus.id,
+			status: jobStatus.state,
+			progress: jobStatus.progress,
+			data: jobStatus.data,
+			returnValue: jobStatus.returnValue,
+			failedReason: jobStatus.failedReason,
+			processedOn: jobStatus.processedOn,
+			finishedOn: jobStatus.finishedOn,
+			createdAt: jobStatus.createdAt,
+		})
 	} catch (error) {
 		console.error("Erro ao buscar status do job:", error)
-		return NextResponse.json({ error: "Erro ao buscar status" }, { status: 500 })
+		return NextResponse.json({ 
+			error: "Erro ao buscar status",
+			details: error instanceof Error ? error.message : "Erro desconhecido"
+		}, { status: 500 })
 	}
 }
 

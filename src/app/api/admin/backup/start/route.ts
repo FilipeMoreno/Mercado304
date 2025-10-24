@@ -1,29 +1,27 @@
-// src/app/api/admin/sync-precos/start/route.ts
-// Inicia job de sincronização usando fila (BullMQ)
+// src/app/api/admin/backup/start/route.ts
+// Inicia job de backup
 
 import { NextResponse } from "next/server"
-import { addPriceSyncJob } from "@/lib/queue"
+import { addBackupJob } from "@/lib/queue"
 
 export async function POST(request: Request) {
 	try {
-		// Pega qualquer parâmetro que você precise para o job
 		const body = await request.json().catch(() => ({}))
 		
 		// Adiciona o job à fila
-		const job = await addPriceSyncJob(body)
+		const job = await addBackupJob(body)
 
 		// Responde IMEDIATAMENTE
 		return NextResponse.json({
-			message: 'Sincronização de preços iniciada.',
+			message: 'Backup iniciado.',
 			jobId: job.id,
 			status: 'enqueued',
 		})
 	} catch (error) {
-		console.error("Erro ao iniciar sincronização:", error)
+		console.error("Erro ao iniciar backup:", error)
 		return NextResponse.json({ 
-			error: "Erro ao iniciar sincronização",
+			error: "Erro ao iniciar backup",
 			details: error instanceof Error ? error.message : "Erro desconhecido"
 		}, { status: 500 })
 	}
 }
-

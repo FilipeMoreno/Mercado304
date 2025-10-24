@@ -1,0 +1,774 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Market {
+  id           String        @id @default(cuid())
+  name         String // Nome fantasia/nome usado no app
+  legalName    String? // Nome de registro/razão social (nome da nota fiscal)
+  location     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  purchases    Purchase[]
+  priceRecords PriceRecord[]
+
+  @@map("markets")
+}
+
+model Brand {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  products    Product[]
+  productKits ProductKit[]
+
+  @@map("brands")
+}
+
+model Category {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  icon   String?
+  color  String?
+  isFood Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products    Product[]
+  productKits ProductKit[]
+
+  @@index([isFood])
+  @@map("categories")
+}
+
+model Product {
+  id                   String  @id @default(cuid())
+  name                 String
+  barcode              String? @unique
+  categoryId           String?
+  brandId              String?
+  unit                 String  @default("unidade")
+  packageSize          String? // Peso/Volume do produto (ex: "2L", "500g", "1kg")
+  hasStock             Boolean @default(false)
+  minStock             Float?
+  maxStock             Float?
+  hasExpiration        Boolean @default(false)
+  defaultShelfLifeDays Int?
+  isKit                Boolean @default(false) // Indica se é um produto kit
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category        Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand           Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  purchaseItems   PurchaseItem[]
+  listItems       ShoppingListItem[]
+  stockItems      StockItem[]
+  nutritionalInfo NutritionalInfo?
+  priceRecords    PriceRecord[]
+
+  // Relações com kits
+  kit      ProductKit?      @relation("KitProduct")
+  kitItems ProductKitItem[] @relation("KitItemProduct")
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([hasStock])
+  @@index([hasExpiration])
+  @@index([isKit])
+  @@map("products")
+}
+
+model Purchase {
+  id            String        @id @default(cuid())
+  marketId      String
+  totalAmount   Float
+  totalDiscount Float?        @default(0) // Desconto total da compra
+  finalAmount   Float? // Valor final após desconto (totalAmount - totalDiscount)
+  purchaseDate  DateTime      @default(now())
+  paymentMethod PaymentMethod @default(MONEY)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  market Market         @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  items  PurchaseItem[]
+
+  @@index([purchaseDate])
+  @@index([marketId])
+  @@index([purchaseDate, marketId])
+  @@map("purchases")
+}
+
+enum PaymentMethod {
+  MONEY
+  DEBIT
+  CREDIT
+  PIX
+  VOUCHER
+  CHECK
+  OTHER
+}
+
+model PurchaseItem {
+  id              String  @id @default(cuid())
+  purchaseId      String
+  productId       String?
+  quantity        Float
+  unitPrice       Float
+  unitDiscount    Float?  @default(0) // Desconto por unidade
+  totalPrice      Float // Preço total antes do desconto (quantity * unitPrice)
+  totalDiscount   Float?  @default(0) // Desconto total do item (quantity * unitDiscount)
+  finalPrice      Float // Preço final após desconto (totalPrice - totalDiscount)
+  productName     String?
+  productUnit     String?
+  productCategory String?
+  brandName       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([purchaseId])
+  @@index([productId])
+  @@map("purchase_items")
+}
+
+model ShoppingList {
+  id       String  @id @default(cuid())
+  name     String
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items ShoppingListItem[]
+
+  @@map("shopping_lists")
+}
+
+model ShoppingListItem {
+  id             String  @id @default(cuid())
+  listId         String
+  productId      String? // Opcional - pode ser vinculado depois no review
+  quantity       Float   @default(1)
+  estimatedPrice Float?
+  isChecked      Boolean @default(false)
+
+  // Nome do item (sempre obrigatório - texto livre ou nome do produto)
+  productName String
+  productUnit String @default("unidade")
+
+  // Campos opcionais para informações adicionais
+  barcode  String? // Código de barras se escaneado
+  brand    String? // Nome da marca (texto livre)
+  category String? // Nome da categoria (texto livre)
+  notes    String? // Observações sobre o item
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  list    ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([listId])
+  @@index([productId])
+  @@index([isChecked])
+  @@map("shopping_list_items")
+}
+
+model StockItem {
+  id             String    @id @default(cuid())
+  productId      String
+  quantity       Float     @default(0)
+  expirationDate DateTime?
+  location       String?
+  unitCost       Float?
+  addedDate      DateTime  @default(now())
+  lastUpdated    DateTime  @updatedAt
+  notes          String?
+  isExpired      Boolean   @default(false)
+  isLowStock     Boolean   @default(false)
+
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  movements StockMovement[]
+
+  @@index([productId])
+  @@index([expirationDate])
+  @@index([isExpired])
+  @@index([isLowStock])
+  @@map("stock_items")
+}
+
+model StockHistory {
+  id             String            @id @default(cuid())
+  type           StockMovementType
+  productId      String?
+  productName    String?
+  quantity       Float
+  reason         String?
+  date           DateTime          @default(now())
+  notes          String?
+  location       String?
+  unitCost       Float?
+  totalValue     Float?
+  purchaseItemId String?
+  userId         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([date])
+  @@index([type])
+  @@map("stock_history")
+}
+
+model StockMovement {
+  id          String            @id @default(cuid())
+  stockItemId String
+  type        StockMovementType
+  quantity    Float
+  reason      String?
+  date        DateTime          @default(now())
+  notes       String?
+
+  purchaseItemId String?   @default(0)
+  stockItem      StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@index([stockItemId])
+  @@index([date])
+  @@index([type])
+  @@map("stock_movements")
+}
+
+enum StockMovementType {
+  ENTRADA
+  SAIDA
+  AJUSTE
+  VENCIMENTO
+  PERDA
+  DESPERDICIO
+}
+
+model WasteRecord {
+  id             String      @id @default(cuid())
+  productId      String?
+  productName    String
+  quantity       Float
+  unit           String
+  wasteReason    WasteReason
+  wasteDate      DateTime    @default(now())
+  expirationDate DateTime?
+  location       String?
+  unitCost       Float?
+  totalValue     Float?
+  notes          String?
+  stockItemId    String?
+  userId         String?
+  category       String?
+  brand          String?
+  batchNumber    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([productId])
+  @@index([wasteDate])
+  @@index([wasteReason])
+  @@map("waste_records")
+}
+
+enum WasteReason {
+  EXPIRED // Produto vencido
+  SPOILED // Produto estragado/azedou
+  DAMAGED // Produto danificado
+  CONTAMINATED // Produto contaminado
+  EXCESS // Produto em excesso/sobra
+  FREEZER_BURN // Queimadura do freezer
+  MOLDY // Produto com mofo
+  PEST_DAMAGE // Danificado por pragas
+  POWER_OUTAGE // Perda por falta de energia
+  FORGOTTEN // Produto esquecido
+  OTHER // Outros motivos
+}
+
+model ExpirationAlert {
+  id          String              @id @default(cuid())
+  productId   String
+  stockItemId String
+  alertType   ExpirationAlertType
+  alertDate   DateTime
+  isResolved  Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+
+  @@index([productId])
+  @@index([stockItemId])
+  @@index([alertDate])
+  @@index([isResolved])
+  @@map("expiration_alerts")
+}
+
+enum ExpirationAlertType {
+  EXPIRING_SOON // Vence em 3 dias
+  EXPIRING_TODAY // Vence hoje
+  EXPIRED // Já vencido
+}
+
+model NutritionalInfo {
+  id                 String  @id @default(cuid())
+  productId          String  @unique
+  product            Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // Informações da Tabela Nutricional Obrigatórias
+  servingSize        String? // Ex: "200 ml" ou "30 g"
+  servingsPerPackage Float? // Quantas porções o produto tem
+  calories           Float? // Valor energético em kcal
+  proteins           Float? // Proteínas em g
+  totalFat           Float? // Gorduras totais em g
+  saturatedFat       Float? // Gorduras saturadas em g
+  transFat           Float? // Gorduras trans em g
+  carbohydrates      Float? // Carboidratos totais em g
+  totalSugars        Float? // Açúcares totais em g
+  addedSugars        Float? // Açúcares adicionados em g
+  fiber              Float? // Fibra alimentar em g
+  sodium             Float? // Sódio em mg
+
+  // Vitaminas (valores opcionais)
+  vitaminA        Float? // Vitamina A em mcg
+  vitaminC        Float? // Vitamina C em mg
+  vitaminD        Float? // Vitamina D em mcg
+  vitaminE        Float? // Vitamina E em mg
+  vitaminK        Float? // Vitamina K em mcg
+  thiamine        Float? // Vitamina B1 (Tiamina) em mg
+  riboflavin      Float? // Vitamina B2 (Riboflavina) em mg
+  niacin          Float? // Vitamina B3 (Niacina) em mg
+  vitaminB6       Float? // Vitamina B6 em mg
+  folate          Float? // Folato em mcg
+  vitaminB12      Float? // Vitamina B12 em mcg
+  biotin          Float? // Biotina em mcg
+  pantothenicAcid Float? // Ácido Pantotênico (Vitamina B5) em mg
+
+  // Outros nutrientes (valores opcionais)
+  taurine        Float? // Taurina em mg
+  caffeine       Float? // Cafeína em mg
+  lactose        Float? // Lactose em g
+  galactose      Float? // Galactose em g
+  alcoholContent Float? // Teor alcoólico em % (para bebidas alcoólicas)
+
+  // Ácidos graxos e gorduras especiais (valores opcionais)
+  omega3             Float? // Ômega 3 em mg
+  omega6             Float? // Ômega 6 em g
+  monounsaturatedFat Float? // Gordura monoinsaturada em g
+  polyunsaturatedFat Float? // Gordura poli-insaturada em g
+  cholesterol        Float? // Colesterol em mg
+  epa                Float? // EPA em mg
+  dha                Float? // DHA em mg
+  linolenicAcid      Float? // Ácido linolênico em mg
+
+  // Minerais (valores opcionais)
+  calcium    Float? // Cálcio em mg
+  iron       Float? // Ferro em mg
+  magnesium  Float? // Magnésio em mg
+  phosphorus Float? // Fósforo em mg
+  potassium  Float? // Potássio em mg
+  zinc       Float? // Zinco em mg
+  copper     Float? // Cobre em mg
+  manganese  Float? // Manganês em mg
+  selenium   Float? // Selênio em mcg
+  iodine     Float? // Iodo em mcg
+  chromium   Float? // Cromo em mcg
+  molybdenum Float? // Molibdênio em mcg
+
+  // Informações de Alérgenos
+  allergensContains   String[] // Alérgenos que o produto contém
+  allergensMayContain String[] // Alérgenos que pode conter
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("nutritional_info")
+}
+
+model Recipe {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  prepTime     String?
+  mealType     String
+  ingredients  String[]
+  instructions String
+  chefTip      String?
+  rating       Float?
+  timesCooked  Int      @default(0)
+  isFavorite   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("recipes")
+}
+
+model PriceRecord {
+  id         String   @id @default(cuid())
+  productId  String
+  marketId   String
+  price      Float
+  recordDate DateTime @default(now())
+  notes      String?
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  market    Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Índice para consultas rápidas
+  @@index([productId, marketId])
+  @@index([recordDate])
+  @@map("price_records")
+}
+
+model SyncJob {
+  id                  String    @id @default(cuid())
+  status              String    @default("pending") // pending, running, completed, failed, cancelled
+  tipo                String    @default("precos") // precos, produtos, etc
+  progresso           Int       @default(0) // 0-100
+  mercadosProcessados Int       @default(0)
+  produtosProcessados Int       @default(0)
+  precosRegistrados   Int       @default(0)
+  erros               Json      @default("[]")
+  logs                Json      @default("[]")
+  detalhes            Json?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("sync_jobs")
+}
+
+model User {
+  id                    String      @id
+  name                  String
+  email                 String
+  emailVerified         Boolean     @default(false)
+  image                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @default(now()) @updatedAt
+  normalizedEmail       String?
+  twoFactorEnabled      Boolean?    @default(false)
+  twoFactorEmailEnabled Boolean?    @default(false)
+  sessions              Session[]
+  accounts              Account[]
+  passkeys              Passkey[]
+  twofactors            TwoFactor[]
+
+  lastLoginMethod String?
+
+  role                String?              @default("USER")
+  banned              Boolean?             @default(false)
+  banReason           String?
+  banExpires          DateTime?
+  dashboardPreference DashboardPreference?
+
+  // Bloqueio automático por tentativas falhadas
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastFailedLogin     DateTime?
+
+  securityAudits        SecurityAudit[]
+  securityNotifications SecurityNotification[]
+  twoFactorEmailCodes   TwoFactorEmailCode[]
+  trustedDevices        TrustedDevice[]
+
+  @@unique([email])
+  @@unique([normalizedEmail])
+  @@index([lockedUntil])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+
+  // Campos adicionais para rastreamento
+  loginMethod   String? // "password", "passkey", "google", "2fa"
+  location      String? // Cache da localização
+  deviceName    String? // Nome amigável do dispositivo
+  isRevoked     Boolean   @default(false)
+  revokedAt     DateTime?
+  revokedReason String? // "user_action", "suspicious_activity", "admin"
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isRevoked])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model Passkey {
+  id           String    @id
+  name         String?
+  publicKey    String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime?
+  aaguid       String?
+
+  @@map("passkey")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("twoFactor")
+}
+
+model TwoFactorEmailCode {
+  id        String    @id @default(cuid())
+  userId    String
+  code      String
+  type      String    @default("EMAIL")
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([used])
+  @@map("two_factor_email_code")
+}
+
+model TrustedDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  userAgent String
+  ipAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("trustedDevice")
+}
+
+model DashboardPreference {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  cardOrder            String[] // Array com IDs dos cards na ordem desejada
+  hiddenCards          String[] // Array com IDs dos cards ocultos
+  layoutStyle          String   @default("grid") // "grid", "list", "compact"
+  cardsPerRow          Int      @default(5) // Cards por linha no grid
+  showSummaryCard      Boolean  @default(true)
+  showMonthlyChart     Boolean  @default(true)
+  showCategoryStats    Boolean  @default(true)
+  showTopProducts      Boolean  @default(true)
+  showMarketCompare    Boolean  @default(true)
+  showRecentBuys       Boolean  @default(true)
+  showExpirationAlerts Boolean  @default(true)
+  showReplenishment    Boolean  @default(true)
+  showSavingsCard      Boolean  @default(true)
+  showDiscountStats    Boolean  @default(true)
+  showTemporalComp     Boolean  @default(true)
+  showNutritionCard    Boolean  @default(true)
+  showPaymentStats     Boolean  @default(true)
+  showMonthlyStats     Boolean  @default(true)
+  customTitle          String?
+  customSubtitle       String?
+  widgetLayouts        Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
+  gridColumns          Int      @default(12) // Número de colunas no grid (padrão 12)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dashboard_preferences")
+}
+
+model SecurityAudit {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventType String // "login_success", "login_failed", "password_reset", "2fa_enabled", "account_locked", etc
+  ipAddress String?
+  userAgent String?
+  location  String?
+  metadata  Json? // Dados adicionais flexíveis
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventType])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@map("security_audit")
+}
+
+model SecurityNotification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // "new_device", "password_changed", "2fa_disabled", "suspicious_login", "account_locked"
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("security_notifications")
+}
+
+model IpLocation {
+  ip        String   @id
+  city      String?
+  region    String?
+  country   String?
+  location  String // Formatado: "Cidade, Estado, País"
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Cache por 30 dias
+
+  @@index([expiresAt])
+  @@map("ip_locations")
+}
+
+model ChurrascoCalculation {
+  id          String   @id @default(cuid())
+  userId      String
+  adults      Int
+  children    Int
+  drinkers    Int
+  preferences String?
+  result      Json // Armazena o resultado completo: { summary, shoppingList, chefTip }
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("churrasco_calculations")
+}
+
+model AssistantChatSession {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  messages   Json // Array de mensagens: [{ role, content, timestamp, etc }]
+  isPinned   Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("assistant_chat_sessions")
+}
+
+// ============================================
+// PRODUCT KITS (Kits de Produtos)
+// ============================================
+
+model ProductKit {
+  id           String  @id @default(cuid())
+  kitProductId String  @unique // ID do produto que representa o kit
+  description  String? // Descrição adicional sobre o kit
+  isActive     Boolean @default(true) // Se o kit está ativo ou não
+
+  // Campos adicionais para o kit (independentes do kitProduct)
+  barcode    String? // Código de barras específico do kit
+  brandId    String? // Marca do kit
+  categoryId String? // Categoria do kit
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  kitProduct Product          @relation("KitProduct", fields: [kitProductId], references: [id], onDelete: Cascade)
+  items      ProductKitItem[] // Produtos que compõem o kit
+  brand      Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category   Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([kitProductId])
+  @@index([isActive])
+  @@index([barcode])
+  @@index([brandId])
+  @@index([categoryId])
+  @@map("product_kits")
+}
+
+model ProductKitItem {
+  id        String @id @default(cuid())
+  kitId     String // ID do kit
+  productId String // ID do produto individual
+  quantity  Float  @default(1) // Quantidade do produto no kit
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  kit     ProductKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product Product    @relation("KitItemProduct", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([kitId])
+  @@index([productId])
+  @@map("product_kit_items")
+}

@@ -1,29 +1,27 @@
-// src/app/api/admin/sync-precos/start/route.ts
-// Inicia job de sincronização usando fila (BullMQ)
+// src/app/api/admin/email/send/route.ts
+// Inicia job de envio de email
 
 import { NextResponse } from "next/server"
-import { addPriceSyncJob } from "@/lib/queue"
+import { addEmailSendJob } from "@/lib/queue"
 
 export async function POST(request: Request) {
 	try {
-		// Pega qualquer parâmetro que você precise para o job
 		const body = await request.json().catch(() => ({}))
 		
 		// Adiciona o job à fila
-		const job = await addPriceSyncJob(body)
+		const job = await addEmailSendJob(body)
 
 		// Responde IMEDIATAMENTE
 		return NextResponse.json({
-			message: 'Sincronização de preços iniciada.',
+			message: 'Email enfileirado para envio.',
 			jobId: job.id,
 			status: 'enqueued',
 		})
 	} catch (error) {
-		console.error("Erro ao iniciar sincronização:", error)
+		console.error("Erro ao enfileirar email:", error)
 		return NextResponse.json({ 
-			error: "Erro ao iniciar sincronização",
+			error: "Erro ao enfileirar email",
 			details: error instanceof Error ? error.message : "Erro desconhecido"
 		}, { status: 500 })
 	}
 }
-
