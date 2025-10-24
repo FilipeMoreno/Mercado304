@@ -39,8 +39,8 @@ const SUPPORTED_QUEUES = ["price-sync", "backup", "email-send", "data-export", "
 const WORKER_CONFIG = {
 	connection,
 	concurrency: 2, // Processar até 2 jobs simultaneamente
-	removeOnComplete: 10, // Manter apenas os últimos 10 jobs completos
-	removeOnFail: 5, // Manter apenas os últimos 5 jobs falhados
+	removeOnComplete: { count: 10 }, // Manter apenas os últimos 10 jobs completos
+	removeOnFail: { count: 5 }, // Manter apenas os últimos 5 jobs falhados
 }
 
 // Criar workers para cada fila

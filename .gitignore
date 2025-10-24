@@ -6,3 +6,6 @@ GEMINI.md
 .env
 .env.local
 .vercel
+
+# Render worker build output
+render/dist

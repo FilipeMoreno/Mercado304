@@ -2,7 +2,7 @@
 // Factory para criar handlers baseado no tipo de job
 
 import type { PrismaClient } from "@prisma/client"
-import type { JobData, JobType } from "../types/jobs"
+import type { JobType } from "../types/jobs"
 import { BackupHandler } from "./BackupHandler"
 import type { BaseHandler } from "./BaseHandler"
 import { CleanupHandler } from "./CleanupHandler"
@@ -12,17 +12,17 @@ import { PriceSyncHandler } from "./PriceSyncHandler"
 import { ReportGenerationHandler } from "./ReportGenerationHandler"
 
 export class HandlerFactory {
-	private static handlers: Map<JobType, new (prisma: PrismaClient) => BaseHandler<JobData>> = new Map([
-		["price-sync", PriceSyncHandler],
-		["backup", BackupHandler],
-		["email-send", EmailSendHandler],
-		["data-export", DataExportHandler],
-		["cleanup", CleanupHandler],
-		["report-generation", ReportGenerationHandler],
-	])
+	private static handlers: Record<JobType, new (prisma: PrismaClient) => BaseHandler<any>> = {
+		"price-sync": PriceSyncHandler,
+		"backup": BackupHandler,
+		"email-send": EmailSendHandler,
+		"data-export": DataExportHandler,
+		"cleanup": CleanupHandler,
+		"report-generation": ReportGenerationHandler,
+	}
 
-	static createHandler(jobType: JobType, prisma: PrismaClient): BaseHandler<JobData> | null {
-		const HandlerClass = HandlerFactory.handlers.get(jobType)
+	static createHandler(jobType: JobType, prisma: PrismaClient): BaseHandler<any> | null {
+		const HandlerClass = HandlerFactory.handlers[jobType]
 
 		if (!HandlerClass) {
 			console.error(`Handler não encontrado para o tipo de job: ${jobType}`)
@@ -33,10 +33,10 @@ export class HandlerFactory {
 	}
 
 	static getSupportedJobTypes(): JobType[] {
-		return Array.from(HandlerFactory.handlers.keys())
+		return Object.keys(HandlerFactory.handlers) as JobType[]
 	}
 
 	static isJobTypeSupported(jobType: string): jobType is JobType {
-		return HandlerFactory.handlers.has(jobType as JobType)
+		return jobType in HandlerFactory.handlers
 	}
 }

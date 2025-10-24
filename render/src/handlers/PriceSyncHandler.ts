@@ -18,7 +18,10 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			})
 
 			const NOTA_PARANA_BASE_URL = "https://menorpreco.notaparana.pr.gov.br/api/v1"
-			const { LOCAL_PADRAO, PERIODO_PADRAO, RAIO_PADRAO } = await import("../../src/lib/nota-parana-config")
+			// Configurações padrão da Nota Paraná
+			const LOCAL_PADRAO = "Curitiba"
+			const PERIODO_PADRAO = 30
+			const RAIO_PADRAO = 5000
 
 			// 1. Buscar mercados
 			const mercados = await this.prisma.market.findMany({
@@ -212,17 +215,17 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			const responseInicial = await fetch(urlInicial)
 			if (!responseInicial.ok) {
 				debugLogs.push(`[API] Resposta HTTP ${responseInicial.status}`)
+		} else {
+			const dataInicial = await responseInicial.json() as any
+			if (!dataInicial.produtos || dataInicial.produtos.length === 0) {
+				debugLogs.push(`[API] Nenhum produto encontrado`)
 			} else {
-				const dataInicial = await responseInicial.json()
-				if (!dataInicial.produtos || dataInicial.produtos.length === 0) {
-					debugLogs.push(`[API] Nenhum produto encontrado`)
-				} else {
-					encontrouProduto = true
+				encontrouProduto = true
 
-					// Processar produtos encontrados
-					const produtosPorCategoria = new Map<number, typeof dataInicial.produtos>()
+				// Processar produtos encontrados
+				const produtosPorCategoria = new Map<number, any[]>()
 
-					for (const prod of dataInicial.produtos) {
+				for (const prod of dataInicial.produtos) {
 						const categoria = prod.categoria || 0
 						if (!produtosPorCategoria.has(categoria)) {
 							produtosPorCategoria.set(categoria, [])
