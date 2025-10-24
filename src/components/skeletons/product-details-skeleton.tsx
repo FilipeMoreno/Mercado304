@@ -90,26 +90,70 @@ export function ProductDetailsSkeleton() {
 						</CardContent>
 					</Card>
 
-					{/* Status do Estoque Compacto */}
-					<Card>
-						<CardHeader className="pb-3">
-							<div className="flex items-center gap-2">
-								<Skeleton className="h-4 w-4" />
-								<Skeleton className="h-4 w-28" />
-							</div>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-3 gap-3">
-								{Array.from({ length: 3 }).map((_, i) => (
-									<div key={i} className="flex flex-col items-center text-center">
-										<Skeleton className="h-10 w-10 rounded-lg mb-1" />
-										<Skeleton className="h-5 w-8 mb-1" />
-										<Skeleton className="h-3 w-12" />
+					{/* Status do Estoque e Desperdícios/Usos */}
+					<div className="space-y-4">
+						{/* Status do Estoque Compacto */}
+						<Card>
+							<CardHeader className="pb-3">
+								<div className="flex items-center gap-2">
+									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-28" />
+								</div>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-3 gap-3">
+									{Array.from({ length: 3 }).map((_, i) => (
+										<div key={i} className="flex flex-col items-center text-center">
+											<Skeleton className="h-10 w-10 rounded-lg mb-1" />
+											<Skeleton className="h-5 w-8 mb-1" />
+											<Skeleton className="h-3 w-12" />
+										</div>
+									))}
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Desperdícios e Usos */}
+						<Card>
+							<CardHeader className="pb-3">
+								<div className="flex items-center gap-2">
+									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-32" />
+								</div>
+								<Skeleton className="h-3 w-48" />
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-3">
+									<div className="grid grid-cols-2 gap-3">
+										{Array.from({ length: 2 }).map((_, i) => (
+											<div key={i} className="p-3 border rounded-lg">
+												<div className="flex items-center gap-2 mb-2">
+													<Skeleton className="h-4 w-4" />
+													<Skeleton className="h-3 w-16" />
+												</div>
+												<Skeleton className="h-6 w-12 mb-1" />
+												<Skeleton className="h-3 w-20" />
+											</div>
+										))}
 									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
+									<div className="space-y-2">
+										{Array.from({ length: 3 }).map((_, i) => (
+											<div key={i} className="flex items-center justify-between p-2 border rounded text-xs">
+												<div className="flex-1">
+													<Skeleton className="h-3 w-16 mb-1" />
+													<Skeleton className="h-3 w-24" />
+												</div>
+												<div className="text-right">
+													<Skeleton className="h-3 w-12 mb-1" />
+													<Skeleton className="h-3 w-16" />
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
 				</div>
 			</div>
 
@@ -225,6 +269,11 @@ export function ProductDetailsSkeleton() {
 								</div>
 							</div>
 						))}
+					</div>
+					
+					{/* Botão Adicionar à Lista */}
+					<div className="mt-4 pt-4 border-t">
+						<Skeleton className="h-10 w-full rounded" />
 					</div>
 				</CardContent>
 			</Card>

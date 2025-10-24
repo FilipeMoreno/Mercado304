@@ -5,21 +5,19 @@ import { ptBR } from "date-fns/locale"
 import {
 	AlertTriangle,
 	ArrowLeft,
-	BarChart3,
 	Calendar,
 	CheckCircle,
-	ChevronLeft,
-	ChevronRight,
 	DollarSign,
 	Edit,
 	ImageIcon,
 	Minus,
 	MoreVertical,
 	Package,
-	ShoppingCart, Store,
+	ShoppingCart,
+	Store,
 	Trash2,
 	TrendingDown,
-	TrendingUp
+	TrendingUp,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -32,6 +30,8 @@ import { AllergenIcons } from "@/components/allergen-icons"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
+import { ProductRecentPurchasesCard } from "@/components/product-recent-purchases-card"
+import { ProductWasteUsageCard } from "@/components/product-waste-usage-card"
 import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,8 +54,6 @@ export default function ProdutoDetalhesPage() {
 	const [stockAlerts, setStockAlerts] = useState<any>(null)
 	const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo | null>(null)
 	const [nutritionalViewMode, setNutritionalViewMode] = useState<"per100" | "perServing" | "tabela">("per100")
-	const [purchasesPage, setPurchasesPage] = useState(1)
-	const purchasesPerPage = 5
 
 	// Helper para calcular valores por porção
 	const getDisplayValue = (value: number | null | undefined, unit: string = "") => {
@@ -344,9 +342,17 @@ export default function ProdutoDetalhesPage() {
 											)}
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className={`text-lg font-bold leading-none ${stats.priceChange > 0 ? "text-red-600" : stats.priceChange < 0 ? "text-green-600" : "text-gray-600"
-												}`}>
-												{stats.priceChange > 0 ? "+" : ""}{(stats.priceChange || 0).toFixed(1)}%
+											<p
+												className={`text-lg font-bold leading-none ${
+													stats.priceChange > 0
+														? "text-red-600"
+														: stats.priceChange < 0
+															? "text-green-600"
+															: "text-gray-600"
+												}`}
+											>
+												{stats.priceChange > 0 ? "+" : ""}
+												{(stats.priceChange || 0).toFixed(1)}%
 											</p>
 											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Variação</p>
 										</div>
@@ -410,53 +416,62 @@ export default function ProdutoDetalhesPage() {
 						</CardContent>
 					</Card>
 
-					{/* Status do Estoque Compacto */}
-					{stockAlerts && (
-						<Card>
-							<CardHeader className="pb-3">
-								<CardTitle className="text-sm flex items-center gap-2">
-									<AlertTriangle className="h-4 w-4" />
-									Status do Estoque
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-3 gap-3">
-									<div className="flex flex-col items-center text-center">
-										<div className={`p-2 rounded-lg mb-1 ${stockAlerts.status === "low" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"
-											}`}>
-											{stockAlerts.status === "low" ? (
-												<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-											) : (
-												<CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-											)}
+					{/* Status do Estoque e Desperdícios/Usos */}
+					<div className="space-y-4">
+						{/* Status do Estoque Compacto */}
+						{stockAlerts && (
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-sm flex items-center gap-2">
+										<AlertTriangle className="h-4 w-4" />
+										Status do Estoque
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="grid grid-cols-3 gap-3">
+										<div className="flex flex-col items-center text-center">
+											<div
+												className={`p-2 rounded-lg mb-1 ${
+													stockAlerts.status === "low" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"
+												}`}
+											>
+												{stockAlerts.status === "low" ? (
+													<AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+												) : (
+													<CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+												)}
+											</div>
+											<p className="text-lg font-bold">{stockAlerts.currentStock || 0}</p>
+											<p className="text-[10px] text-gray-600 dark:text-gray-400">Atual</p>
 										</div>
-										<p className="text-lg font-bold">{stockAlerts.currentStock || 0}</p>
-										<p className="text-[10px] text-gray-600 dark:text-gray-400">Atual</p>
+
+										{product.minStock && (
+											<div className="flex flex-col items-center text-center">
+												<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mb-1">
+													<Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+												</div>
+												<p className="text-lg font-bold">{product.minStock}</p>
+												<p className="text-[10px] text-gray-600 dark:text-gray-400">Mínimo</p>
+											</div>
+										)}
+
+										{product.maxStock && (
+											<div className="flex flex-col items-center text-center">
+												<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mb-1">
+													<Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+												</div>
+												<p className="text-lg font-bold">{product.maxStock}</p>
+												<p className="text-[10px] text-gray-600 dark:text-gray-400">Máximo</p>
+											</div>
+										)}
 									</div>
+								</CardContent>
+							</Card>
+						)}
 
-									{product.minStock && (
-										<div className="flex flex-col items-center text-center">
-											<div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mb-1">
-												<Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-											</div>
-											<p className="text-lg font-bold">{product.minStock}</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400">Mínimo</p>
-										</div>
-									)}
-
-									{product.maxStock && (
-										<div className="flex flex-col items-center text-center">
-											<div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mb-1">
-												<Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-											</div>
-											<p className="text-lg font-bold">{product.maxStock}</p>
-											<p className="text-[10px] text-gray-600 dark:text-gray-400">Máximo</p>
-										</div>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					)}
+						{/* Desperdícios e Usos */}
+						<ProductWasteUsageCard productId={productId} productName={product.name} />
+					</div>
 				</div>
 			</div>
 
@@ -522,10 +537,11 @@ export default function ProdutoDetalhesPage() {
 								return (
 									<div
 										key={market.marketId}
-										className={`p-4 rounded-lg border ${isCheapest
-											? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-											: "border-gray-200 dark:border-gray-700"
-											}`}
+										className={`p-4 rounded-lg border ${
+											isCheapest
+												? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+												: "border-gray-200 dark:border-gray-700"
+										}`}
 									>
 										<div className="flex justify-between items-start">
 											<div>
@@ -544,12 +560,10 @@ export default function ProdutoDetalhesPage() {
 							<div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
 								<Store className="h-8 w-8 text-gray-400" />
 							</div>
-							<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-								Nenhum dado disponível
-							</h3>
+							<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Nenhum dado disponível</h3>
 							<p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-								Não há dados suficientes para comparar preços entre mercados. 
-								Faça algumas compras deste produto para ver a comparação.
+								Não há dados suficientes para comparar preços entre mercados. Faça algumas compras deste produto para
+								ver a comparação.
 							</p>
 						</div>
 					)}
@@ -557,71 +571,12 @@ export default function ProdutoDetalhesPage() {
 			</Card>
 
 			{/* Compras Recentes */}
-			{recentPurchases.length > 0 && (
-				<Card>
-					<CardHeader>
-						<div className="flex justify-between items-center">
-							<div>
-								<CardTitle className="flex items-center gap-2">
-									<BarChart3 className="h-5 w-5" />
-									Compras Recentes
-								</CardTitle>
-								<CardDescription>Histórico das últimas compras deste produto</CardDescription>
-							</div>
-							<div className="flex items-center gap-2">
-								<span className="text-sm text-gray-600 dark:text-gray-400">
-									{(purchasesPage - 1) * purchasesPerPage + 1}-
-									{Math.min(purchasesPage * purchasesPerPage, recentPurchases.length)} de {recentPurchases.length}
-								</span>
-								<div className="flex gap-1">
-									<Button
-										variant="outline"
-										size="icon"
-										className="h-8 w-8"
-										onClick={() => setPurchasesPage((p) => Math.max(1, p - 1))}
-										disabled={purchasesPage === 1}
-									>
-										<ChevronLeft className="h-4 w-4" />
-									</Button>
-									<Button
-										variant="outline"
-										size="icon"
-										className="h-8 w-8"
-										onClick={() => setPurchasesPage((p) => p + 1)}
-										disabled={purchasesPage * purchasesPerPage >= recentPurchases.length}
-									>
-										<ChevronRight className="h-4 w-4" />
-									</Button>
-								</div>
-							</div>
-						</div>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{recentPurchases
-								.slice((purchasesPage - 1) * purchasesPerPage, purchasesPage * purchasesPerPage)
-								.map((purchase: any) => (
-									<div key={purchase.id} className="flex items-center justify-between p-3 border rounded-lg">
-										<div className="flex items-center gap-3">
-											<Store className="h-4 w-4 text-gray-400" />
-											<div>
-												<p className="font-medium">{purchase.market?.name}</p>
-												<p className="text-sm text-gray-600 dark:text-gray-400">
-													{format(new Date(purchase.purchaseDate), "dd/MM/yyyy", { locale: ptBR })} •{purchase.quantity}{" "}
-													{product.unit}
-												</p>
-											</div>
-										</div>
-										<div className="text-right">
-											<p className="font-bold">R$ {purchase.unitPrice.toFixed(2)}</p>
-											<p className="text-sm text-gray-600 dark:text-gray-400">por {product.unit}</p>
-										</div>
-									</div>
-								))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
+			<ProductRecentPurchasesCard
+				productId={productId}
+				productName={product.name}
+				productUnit={product.unit}
+				recentPurchases={recentPurchases}
+			/>
 
 			{/* Informações Nutricionais Completas */}
 			{nutritionalInfo && (
@@ -659,136 +614,138 @@ export default function ProdutoDetalhesPage() {
 
 							<TabsContent value="per100" className="space-y-8 mt-0">
 								<p className="text-sm text-muted-foreground">Valores calculados por {getReferenceUnit()}</p>
-							{/* Macronutrientes */}
-							<div>
-								{_hasValue(nutritionalInfo.calories) ||
-									_hasValue(nutritionalInfo.carbohydrates) ||
-									_hasValue(nutritionalInfo.proteins) ||
-									(_hasValue(nutritionalInfo.totalFat) && (
-										<div className="flex items-center gap-2 mb-4">
-											<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
-											<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
-										</div>
-									))}
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-									{_hasValue(nutritionalInfo.calories) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
-												<p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-													{getDisplayValue(nutritionalInfo.calories, " kcal")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.carbohydrates) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
-												<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-													{getDisplayValue(nutritionalInfo.carbohydrates, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.proteins) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
-												<p className="text-2xl font-bold text-green-900 dark:text-green-100">
-													{getDisplayValue(nutritionalInfo.proteins, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.totalFat) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">Gorduras Totais</p>
-												<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
-													{getDisplayValue(nutritionalInfo.totalFat, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
-										</div>
-									)}
-								</div>
-							</div>
-
-							{/* Açúcares e Fibras */}
-							{(nutritionalInfo.totalSugars || nutritionalInfo.addedSugars || nutritionalInfo.fiber) && (
+								{/* Macronutrientes */}
 								<div>
-									<div className="flex items-center gap-2 mb-4">
-										<div className="h-1 w-8 bg-gradient-to-r from-pink-500 to-teal-500 rounded-full"></div>
-										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Açúcares e Fibras</h4>
-									</div>
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-										{_hasValue(nutritionalInfo.totalSugars) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-4 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all duration-300">
+									{_hasValue(nutritionalInfo.calories) ||
+										_hasValue(nutritionalInfo.carbohydrates) ||
+										_hasValue(nutritionalInfo.proteins) ||
+										(_hasValue(nutritionalInfo.totalFat) && (
+											<div className="flex items-center gap-2 mb-4">
+												<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
+												<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
+											</div>
+										))}
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+										{_hasValue(nutritionalInfo.calories) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<p className="text-sm font-medium text-pink-700 dark:text-pink-300 mb-1">Açúcares Totais</p>
-													<p className="text-xl font-bold text-pink-900 dark:text-pink-100">
-														{getDisplayValue(nutritionalInfo.totalSugars, "g")}
+													<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
+													<p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+														{getDisplayValue(nutritionalInfo.calories, " kcal")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 											</div>
 										)}
-										{_hasValue(nutritionalInfo.addedSugars) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+										{_hasValue(nutritionalInfo.carbohydrates) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<div className="flex items-center justify-between mb-1">
-														<p className="text-sm font-medium text-red-700 dark:text-red-300">Açúcares Adicionados</p>
-														{(() => {
-															// Verificar se há aviso ANVISA para açúcar adicionado
-															const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
-															const threshold = isLiquid ? 7.5 : 15
-															const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
-															const servingSize = servingMatch ? parseFloat(servingMatch[1].replace(",", ".")) : 100
-															const multiplier = servingSize / 100
-															const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
-
-															if (addedSugarsPerServing >= threshold) {
-																return (
-																	<Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1">
-																		Alto
-																	</Badge>
-																)
-															}
-															return null
-														})()}
-													</div>
-													<p className="text-xl font-bold text-red-900 dark:text-red-100">
-														{getDisplayValue(nutritionalInfo.addedSugars, "g")}
+													<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
+													<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+														{getDisplayValue(nutritionalInfo.carbohydrates, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 											</div>
 										)}
-										{_hasValue(nutritionalInfo.fiber) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
+										{_hasValue(nutritionalInfo.proteins) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Fibras</p>
-													<p className="text-xl font-bold text-teal-900 dark:text-teal-100">
-														{getDisplayValue(nutritionalInfo.fiber, "g")}
+													<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
+													<p className="text-2xl font-bold text-green-900 dark:text-green-100">
+														{getDisplayValue(nutritionalInfo.proteins, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
+											</div>
+										)}
+										{_hasValue(nutritionalInfo.totalFat) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
+												<div className="relative z-10">
+													<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">
+														Gorduras Totais
+													</p>
+													<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+														{getDisplayValue(nutritionalInfo.totalFat, "g")}
+													</p>
+												</div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
 											</div>
 										)}
 									</div>
 								</div>
-							)}
 
-							{/* Gorduras Detalhadas */}
-							{(nutritionalInfo.saturatedFat ||
-								nutritionalInfo.transFat ||
-								nutritionalInfo.monounsaturatedFat ||
-								nutritionalInfo.polyunsaturatedFat ||
-								nutritionalInfo.cholesterol) && (
+								{/* Açúcares e Fibras */}
+								{(nutritionalInfo.totalSugars || nutritionalInfo.addedSugars || nutritionalInfo.fiber) && (
+									<div>
+										<div className="flex items-center gap-2 mb-4">
+											<div className="h-1 w-8 bg-gradient-to-r from-pink-500 to-teal-500 rounded-full"></div>
+											<h4 className="font-semibold text-gray-900 dark:text-gray-100">Açúcares e Fibras</h4>
+										</div>
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+											{_hasValue(nutritionalInfo.totalSugars) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-4 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-pink-700 dark:text-pink-300 mb-1">Açúcares Totais</p>
+														<p className="text-xl font-bold text-pink-900 dark:text-pink-100">
+															{getDisplayValue(nutritionalInfo.totalSugars, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
+												</div>
+											)}
+											{_hasValue(nutritionalInfo.addedSugars) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<div className="flex items-center justify-between mb-1">
+															<p className="text-sm font-medium text-red-700 dark:text-red-300">Açúcares Adicionados</p>
+															{(() => {
+																// Verificar se há aviso ANVISA para açúcar adicionado
+																const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
+																const threshold = isLiquid ? 7.5 : 15
+																const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
+																const servingSize = servingMatch ? parseFloat(servingMatch[1].replace(",", ".")) : 100
+																const multiplier = servingSize / 100
+																const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
+
+																if (addedSugarsPerServing >= threshold) {
+																	return (
+																		<Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1">
+																			Alto
+																		</Badge>
+																	)
+																}
+																return null
+															})()}
+														</div>
+														<p className="text-xl font-bold text-red-900 dark:text-red-100">
+															{getDisplayValue(nutritionalInfo.addedSugars, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+												</div>
+											)}
+											{_hasValue(nutritionalInfo.fiber) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Fibras</p>
+														<p className="text-xl font-bold text-teal-900 dark:text-teal-100">
+															{getDisplayValue(nutritionalInfo.fiber, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+												</div>
+											)}
+										</div>
+									</div>
+								)}
+
+								{/* Gorduras Detalhadas */}
+								{(nutritionalInfo.saturatedFat ||
+									nutritionalInfo.transFat ||
+									nutritionalInfo.monounsaturatedFat ||
+									nutritionalInfo.polyunsaturatedFat ||
+									nutritionalInfo.cholesterol) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-yellow-500 to-red-500 rounded-full"></div>
@@ -858,20 +815,20 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Vitaminas */}
-							{(nutritionalInfo.vitaminA ||
-								nutritionalInfo.vitaminC ||
-								nutritionalInfo.vitaminD ||
-								nutritionalInfo.vitaminE ||
-								nutritionalInfo.vitaminK ||
-								nutritionalInfo.thiamine ||
-								nutritionalInfo.riboflavin ||
-								nutritionalInfo.niacin ||
-								nutritionalInfo.vitaminB6 ||
-								nutritionalInfo.folate ||
-								nutritionalInfo.vitaminB12 ||
-								nutritionalInfo.biotin ||
-								nutritionalInfo.pantothenicAcid) && (
+								{/* Vitaminas */}
+								{(nutritionalInfo.vitaminA ||
+									nutritionalInfo.vitaminC ||
+									nutritionalInfo.vitaminD ||
+									nutritionalInfo.vitaminE ||
+									nutritionalInfo.vitaminK ||
+									nutritionalInfo.thiamine ||
+									nutritionalInfo.riboflavin ||
+									nutritionalInfo.niacin ||
+									nutritionalInfo.vitaminB6 ||
+									nutritionalInfo.folate ||
+									nutritionalInfo.vitaminB12 ||
+									nutritionalInfo.biotin ||
+									nutritionalInfo.pantothenicAcid) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"></div>
@@ -990,20 +947,20 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Minerais */}
-							{(nutritionalInfo.sodium ||
-								nutritionalInfo.calcium ||
-								nutritionalInfo.iron ||
-								nutritionalInfo.magnesium ||
-								nutritionalInfo.phosphorus ||
-								nutritionalInfo.potassium ||
-								nutritionalInfo.zinc ||
-								nutritionalInfo.copper ||
-								nutritionalInfo.manganese ||
-								nutritionalInfo.selenium ||
-								nutritionalInfo.iodine ||
-								nutritionalInfo.chromium ||
-								nutritionalInfo.molybdenum) && (
+								{/* Minerais */}
+								{(nutritionalInfo.sodium ||
+									nutritionalInfo.calcium ||
+									nutritionalInfo.iron ||
+									nutritionalInfo.magnesium ||
+									nutritionalInfo.phosphorus ||
+									nutritionalInfo.potassium ||
+									nutritionalInfo.zinc ||
+									nutritionalInfo.copper ||
+									nutritionalInfo.manganese ||
+									nutritionalInfo.selenium ||
+									nutritionalInfo.iodine ||
+									nutritionalInfo.chromium ||
+									nutritionalInfo.molybdenum) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-stone-500 to-amber-500 rounded-full"></div>
@@ -1118,14 +1075,14 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Outros Compostos */}
-							{(nutritionalInfo.omega3 ||
-								nutritionalInfo.omega6 ||
-								nutritionalInfo.epa ||
-								nutritionalInfo.dha ||
-								nutritionalInfo.taurine ||
-								nutritionalInfo.caffeine ||
-								nutritionalInfo.alcoholContent) && (
+								{/* Outros Compostos */}
+								{(nutritionalInfo.omega3 ||
+									nutritionalInfo.omega6 ||
+									nutritionalInfo.epa ||
+									nutritionalInfo.dha ||
+									nutritionalInfo.taurine ||
+									nutritionalInfo.caffeine ||
+									nutritionalInfo.alcoholContent) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full"></div>
@@ -1238,136 +1195,138 @@ export default function ProdutoDetalhesPage() {
 
 							<TabsContent value="perServing" className="space-y-8 mt-0">
 								<p className="text-sm text-muted-foreground">Valores calculados por {getReferenceUnit()}</p>
-							{/* Macronutrientes */}
-							<div>
-								{_hasValue(nutritionalInfo.calories) ||
-									_hasValue(nutritionalInfo.carbohydrates) ||
-									_hasValue(nutritionalInfo.proteins) ||
-									(_hasValue(nutritionalInfo.totalFat) && (
-										<div className="flex items-center gap-2 mb-4">
-											<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
-											<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
-										</div>
-									))}
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-									{_hasValue(nutritionalInfo.calories) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
-												<p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-													{getDisplayValue(nutritionalInfo.calories, " kcal")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.carbohydrates) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
-												<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-													{getDisplayValue(nutritionalInfo.carbohydrates, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.proteins) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
-												<p className="text-2xl font-bold text-green-900 dark:text-green-100">
-													{getDisplayValue(nutritionalInfo.proteins, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
-										</div>
-									)}
-									{_hasValue(nutritionalInfo.totalFat) && (
-										<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
-											<div className="relative z-10">
-												<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">Gorduras Totais</p>
-												<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
-													{getDisplayValue(nutritionalInfo.totalFat, "g")}
-												</p>
-											</div>
-											<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
-										</div>
-									)}
-								</div>
-							</div>
-
-							{/* Açúcares e Fibras */}
-							{(nutritionalInfo.totalSugars || nutritionalInfo.addedSugars || nutritionalInfo.fiber) && (
+								{/* Macronutrientes */}
 								<div>
-									<div className="flex items-center gap-2 mb-4">
-										<div className="h-1 w-8 bg-gradient-to-r from-pink-500 to-teal-500 rounded-full"></div>
-										<h4 className="font-semibold text-gray-900 dark:text-gray-100">Açúcares e Fibras</h4>
-									</div>
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-										{_hasValue(nutritionalInfo.totalSugars) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-4 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all duration-300">
+									{_hasValue(nutritionalInfo.calories) ||
+										_hasValue(nutritionalInfo.carbohydrates) ||
+										_hasValue(nutritionalInfo.proteins) ||
+										(_hasValue(nutritionalInfo.totalFat) && (
+											<div className="flex items-center gap-2 mb-4">
+												<div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-orange-500 rounded-full"></div>
+												<h4 className="font-semibold text-gray-900 dark:text-gray-100">Macronutrientes</h4>
+											</div>
+										))}
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+										{_hasValue(nutritionalInfo.calories) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<p className="text-sm font-medium text-pink-700 dark:text-pink-300 mb-1">Açúcares Totais</p>
-													<p className="text-xl font-bold text-pink-900 dark:text-pink-100">
-														{getDisplayValue(nutritionalInfo.totalSugars, "g")}
+													<p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Valor Energético</p>
+													<p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+														{getDisplayValue(nutritionalInfo.calories, " kcal")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-blue-200 dark:bg-blue-700 opacity-20"></div>
 											</div>
 										)}
-										{_hasValue(nutritionalInfo.addedSugars) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+										{_hasValue(nutritionalInfo.carbohydrates) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<div className="flex items-center justify-between mb-1">
-														<p className="text-sm font-medium text-red-700 dark:text-red-300">Açúcares Adicionados</p>
-														{(() => {
-															// Verificar se há aviso ANVISA para açúcar adicionado
-															const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
-															const threshold = isLiquid ? 7.5 : 15
-															const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
-															const servingSize = servingMatch ? parseFloat(servingMatch[1].replace(",", ".")) : 100
-															const multiplier = servingSize / 100
-															const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
-
-															if (addedSugarsPerServing >= threshold) {
-																return (
-																	<Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1">
-																		Alto
-																	</Badge>
-																)
-															}
-															return null
-														})()}
-													</div>
-													<p className="text-xl font-bold text-red-900 dark:text-red-100">
-														{getDisplayValue(nutritionalInfo.addedSugars, "g")}
+													<p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Carboidratos</p>
+													<p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+														{getDisplayValue(nutritionalInfo.carbohydrates, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-orange-200 dark:bg-orange-700 opacity-20"></div>
 											</div>
 										)}
-										{_hasValue(nutritionalInfo.fiber) && (
-											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
+										{_hasValue(nutritionalInfo.proteins) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
 												<div className="relative z-10">
-													<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Fibras</p>
-													<p className="text-xl font-bold text-teal-900 dark:text-teal-100">
-														{getDisplayValue(nutritionalInfo.fiber, "g")}
+													<p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Proteínas</p>
+													<p className="text-2xl font-bold text-green-900 dark:text-green-100">
+														{getDisplayValue(nutritionalInfo.proteins, "g")}
 													</p>
 												</div>
-												<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-green-200 dark:bg-green-700 opacity-20"></div>
+											</div>
+										)}
+										{_hasValue(nutritionalInfo.totalFat) && (
+											<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300">
+												<div className="relative z-10">
+													<p className="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">
+														Gorduras Totais
+													</p>
+													<p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+														{getDisplayValue(nutritionalInfo.totalFat, "g")}
+													</p>
+												</div>
+												<div className="absolute -top-2 -right-2 h-16 w-16 rounded-full bg-yellow-200 dark:bg-yellow-700 opacity-20"></div>
 											</div>
 										)}
 									</div>
 								</div>
-							)}
 
-							{/* Gorduras Detalhadas */}
-							{(nutritionalInfo.saturatedFat ||
-								nutritionalInfo.transFat ||
-								nutritionalInfo.monounsaturatedFat ||
-								nutritionalInfo.polyunsaturatedFat ||
-								nutritionalInfo.cholesterol) && (
+								{/* Açúcares e Fibras */}
+								{(nutritionalInfo.totalSugars || nutritionalInfo.addedSugars || nutritionalInfo.fiber) && (
+									<div>
+										<div className="flex items-center gap-2 mb-4">
+											<div className="h-1 w-8 bg-gradient-to-r from-pink-500 to-teal-500 rounded-full"></div>
+											<h4 className="font-semibold text-gray-900 dark:text-gray-100">Açúcares e Fibras</h4>
+										</div>
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+											{_hasValue(nutritionalInfo.totalSugars) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900 p-4 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-pink-700 dark:text-pink-300 mb-1">Açúcares Totais</p>
+														<p className="text-xl font-bold text-pink-900 dark:text-pink-100">
+															{getDisplayValue(nutritionalInfo.totalSugars, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-pink-200 dark:bg-pink-700 opacity-20"></div>
+												</div>
+											)}
+											{_hasValue(nutritionalInfo.addedSugars) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 p-4 border border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<div className="flex items-center justify-between mb-1">
+															<p className="text-sm font-medium text-red-700 dark:text-red-300">Açúcares Adicionados</p>
+															{(() => {
+																// Verificar se há aviso ANVISA para açúcar adicionado
+																const isLiquid = ["ml", "litro"].includes(product.unit.toLowerCase())
+																const threshold = isLiquid ? 7.5 : 15
+																const servingMatch = nutritionalInfo.servingSize?.match(/(\d+[.,]?\d*)/)
+																const servingSize = servingMatch ? parseFloat(servingMatch[1].replace(",", ".")) : 100
+																const multiplier = servingSize / 100
+																const addedSugarsPerServing = nutritionalInfo.addedSugars * multiplier
+
+																if (addedSugarsPerServing >= threshold) {
+																	return (
+																		<Badge className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1">
+																			Alto
+																		</Badge>
+																	)
+																}
+																return null
+															})()}
+														</div>
+														<p className="text-xl font-bold text-red-900 dark:text-red-100">
+															{getDisplayValue(nutritionalInfo.addedSugars, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-red-200 dark:bg-red-700 opacity-20"></div>
+												</div>
+											)}
+											{_hasValue(nutritionalInfo.fiber) && (
+												<div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300">
+													<div className="relative z-10">
+														<p className="text-sm font-medium text-teal-700 dark:text-teal-300 mb-1">Fibras</p>
+														<p className="text-xl font-bold text-teal-900 dark:text-teal-100">
+															{getDisplayValue(nutritionalInfo.fiber, "g")}
+														</p>
+													</div>
+													<div className="absolute -top-2 -right-2 h-12 w-12 rounded-full bg-teal-200 dark:bg-teal-700 opacity-20"></div>
+												</div>
+											)}
+										</div>
+									</div>
+								)}
+
+								{/* Gorduras Detalhadas */}
+								{(nutritionalInfo.saturatedFat ||
+									nutritionalInfo.transFat ||
+									nutritionalInfo.monounsaturatedFat ||
+									nutritionalInfo.polyunsaturatedFat ||
+									nutritionalInfo.cholesterol) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-yellow-500 to-red-500 rounded-full"></div>
@@ -1437,20 +1396,20 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Vitaminas */}
-							{(nutritionalInfo.vitaminA ||
-								nutritionalInfo.vitaminC ||
-								nutritionalInfo.vitaminD ||
-								nutritionalInfo.vitaminE ||
-								nutritionalInfo.vitaminK ||
-								nutritionalInfo.thiamine ||
-								nutritionalInfo.riboflavin ||
-								nutritionalInfo.niacin ||
-								nutritionalInfo.vitaminB6 ||
-								nutritionalInfo.folate ||
-								nutritionalInfo.vitaminB12 ||
-								nutritionalInfo.biotin ||
-								nutritionalInfo.pantothenicAcid) && (
+								{/* Vitaminas */}
+								{(nutritionalInfo.vitaminA ||
+									nutritionalInfo.vitaminC ||
+									nutritionalInfo.vitaminD ||
+									nutritionalInfo.vitaminE ||
+									nutritionalInfo.vitaminK ||
+									nutritionalInfo.thiamine ||
+									nutritionalInfo.riboflavin ||
+									nutritionalInfo.niacin ||
+									nutritionalInfo.vitaminB6 ||
+									nutritionalInfo.folate ||
+									nutritionalInfo.vitaminB12 ||
+									nutritionalInfo.biotin ||
+									nutritionalInfo.pantothenicAcid) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"></div>
@@ -1569,20 +1528,20 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Minerais */}
-							{(nutritionalInfo.sodium ||
-								nutritionalInfo.calcium ||
-								nutritionalInfo.iron ||
-								nutritionalInfo.magnesium ||
-								nutritionalInfo.phosphorus ||
-								nutritionalInfo.potassium ||
-								nutritionalInfo.zinc ||
-								nutritionalInfo.copper ||
-								nutritionalInfo.manganese ||
-								nutritionalInfo.selenium ||
-								nutritionalInfo.iodine ||
-								nutritionalInfo.chromium ||
-								nutritionalInfo.molybdenum) && (
+								{/* Minerais */}
+								{(nutritionalInfo.sodium ||
+									nutritionalInfo.calcium ||
+									nutritionalInfo.iron ||
+									nutritionalInfo.magnesium ||
+									nutritionalInfo.phosphorus ||
+									nutritionalInfo.potassium ||
+									nutritionalInfo.zinc ||
+									nutritionalInfo.copper ||
+									nutritionalInfo.manganese ||
+									nutritionalInfo.selenium ||
+									nutritionalInfo.iodine ||
+									nutritionalInfo.chromium ||
+									nutritionalInfo.molybdenum) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-stone-500 to-amber-500 rounded-full"></div>
@@ -1697,14 +1656,14 @@ export default function ProdutoDetalhesPage() {
 									</div>
 								)}
 
-							{/* Outros Compostos */}
-							{(nutritionalInfo.omega3 ||
-								nutritionalInfo.omega6 ||
-								nutritionalInfo.epa ||
-								nutritionalInfo.dha ||
-								nutritionalInfo.taurine ||
-								nutritionalInfo.caffeine ||
-								nutritionalInfo.alcoholContent) && (
+								{/* Outros Compostos */}
+								{(nutritionalInfo.omega3 ||
+									nutritionalInfo.omega6 ||
+									nutritionalInfo.epa ||
+									nutritionalInfo.dha ||
+									nutritionalInfo.taurine ||
+									nutritionalInfo.caffeine ||
+									nutritionalInfo.alcoholContent) && (
 									<div>
 										<div className="flex items-center gap-2 mb-4">
 											<div className="h-1 w-8 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full"></div>

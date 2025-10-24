@@ -1,8 +1,8 @@
-import { ptBR } from "date-fns/locale"
+
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
 	try {
 		const productId = params.id
 
@@ -88,6 +88,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			purchaseDate: item.purchase.purchaseDate,
 			quantity: item.quantity,
 			unitPrice: item.unitPrice,
+			totalPrice: item.finalPrice || (item.unitPrice * item.quantity),
 			market: {
 				id: item.purchase.market.id,
 				name: item.purchase.market.name,
@@ -135,7 +136,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
 		// Coletar todas as semanas
 		priceHistoryByMarket.forEach((marketData) => {
-			marketData.data.forEach((weekData: any, weekKey: string) => {
+			marketData.data.forEach((_weekData: any, weekKey: string) => {
 				allWeeks.add(weekKey)
 			})
 		})
@@ -147,7 +148,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 				const dataPoint: any = { week: "" }
 				let hasData = false
 
-				priceHistoryByMarket.forEach((marketData, marketId) => {
+				priceHistoryByMarket.forEach((marketData, _marketId) => {
 					if (marketData.data.has(weekKey)) {
 						const weekData = marketData.data.get(weekKey)
 						const averagePrice =
