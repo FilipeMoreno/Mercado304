@@ -4,6 +4,7 @@
 import cors from "cors"
 import express from "express"
 import { healthCheck } from "./health"
+import backupRoutes from "./routes/backup"
 
 const app = express()
 const _PORT = process.env.PORT || 3333
@@ -18,6 +19,8 @@ app.use(cors({
 		'http://localhost:3001',
     'healthcheck.railway.app',
     'https://healthcheck.railway.app',
+		'https://filipemoreno.com.br',
+		'https://mercado.filipemoreno.com.br',
 		process.env.FRONTEND_URL || 'http://localhost:3000'
 	],
 	credentials: true,
@@ -39,6 +42,9 @@ app.get("/health", async (_req, res) => {
 		})
 	}
 })
+
+// API Routes
+app.use("/api/backup", backupRoutes)
 
 // Root endpoint
 app.get("/", (_req, res) => {

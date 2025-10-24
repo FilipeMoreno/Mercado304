@@ -17,6 +17,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
+import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -93,7 +94,7 @@ export default function AdminSyncPrecosPage() {
 	const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 	const [timeSinceUpdate, setTimeSinceUpdate] = useState<string>("agora")
 	const [showCancelDialog, setShowCancelDialog] = useState(false)
-	const [serverHealth, setServerHealth] = useState<{
+	const [_serverHealth, setServerHealth] = useState<{
 		status: string
 		timestamp: string
 		services: {
@@ -101,7 +102,7 @@ export default function AdminSyncPrecosPage() {
 			redis: string
 		}
 	} | null>(null)
-	const [serverInfo, setServerInfo] = useState<{
+	const [_serverInfo, setServerInfo] = useState<{
 		message: string
 		status: string
 		timestamp: string
@@ -395,56 +396,7 @@ export default function AdminSyncPrecosPage() {
 	return (
 		<div className="container mx-auto py-8 px-4 max-w-6xl">
 			{/* Banner de Status do Servidor */}
-			{(serverHealth || serverInfo) && (
-				<div className="mb-6">
-					<div className={`p-4 rounded-lg border ${
-						serverHealth?.status === "healthy" 
-							? "bg-green-50 border-green-200" 
-							: "bg-red-50 border-red-200"
-					}`}>
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<div className={`w-3 h-3 rounded-full ${
-									serverHealth?.status === "healthy" ? "bg-green-500" : "bg-red-500"
-								}`} />
-								<div>
-									<h3 className={`font-semibold ${
-										serverHealth?.status === "healthy" ? "text-green-800" : "text-red-800"
-									}`}>
-										{serverInfo?.message || "Servidor de Jobs"}: {serverHealth?.status === "healthy" ? "Online" : "Offline"}
-									</h3>
-									<div className={`text-sm ${
-										serverHealth?.status === "healthy" ? "text-green-600" : "text-red-600"
-									}`}>
-										{serverHealth && (
-											<span>Database: {serverHealth.services.database} • Redis: {serverHealth.services.redis}</span>
-										)}
-										{serverInfo && (
-											<span className="ml-2">• Versão: {serverInfo.version}</span>
-										)}
-									</div>
-								</div>
-							</div>
-							<div className="text-right">
-								<p className={`text-xs ${
-									serverHealth?.status === "healthy" ? "text-green-600" : "text-red-600"
-								}`}>
-									Última verificação: {new Date((serverHealth?.timestamp || serverInfo?.timestamp || new Date().toISOString())).toLocaleTimeString("pt-BR")}
-								</p>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={fetchServerHealth}
-									className="text-xs h-6 px-2"
-								>
-									<RefreshCw className="h-3 w-3 mr-1" />
-									Atualizar
-								</Button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			<ServerStatusBanner />
 
 			<div className="mb-8">
 				<div className="flex items-center justify-between mb-4">

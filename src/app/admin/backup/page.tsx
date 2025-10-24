@@ -1,22 +1,50 @@
 "use client"
 
-import { AlertCircle, CheckCircle, Clock, Database, Download, Loader2, Plus, RefreshCw, RotateCcw, Trash2 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import {
+	AlertCircle,
+	CheckCircle,
+	Clock,
+	Database,
+	Download,
+	Loader2,
+	Plus,
+	RefreshCw,
+	RotateCcw,
+	Trash2,
+} from "lucide-react"
+import { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
-import { BackupProgressCard } from "@/components/admin/BackupProgressCard"
 import { RestoreBackupDialog } from "@/components/admin/RestoreBackupDialog"
+import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { Switch } from "@/components/ui/switch"
 
 interface Backup {
 	key: string
 	fileName: string
 	size: number
-	sizeFormatted: string
 	lastModified: string
+	backupType: string
+	compressed: boolean
+	generatedAt: string
 }
+
+interface BackupJob {
+	id: string
+	status: string
+	progresso: number
+	startedAt: string | null
+	completedAt: string | null
+	logs: string[]
+	detalhes: Record<string, unknown> | null
+	erros: string[]
+}
+
 
 export default function BackupPage() {
 	const [backups, setBackups] = useState<Backup[]>([])
@@ -26,75 +54,148 @@ export default function BackupPage() {
 	const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
 	const [selectedBackup, setSelectedBackup] = useState<{ key: string; fileName: string } | null>(null)
 
+	// Estados para integração com servidor de background
+	const [currentJob, setCurrentJob] = useState<BackupJob | null>(null)
+	const [compressBackup, setCompressBackup] = useState(true)
+	const [encryptBackup, setEncryptBackup] = useState(true)
+	const [backupType, setBackupType] = useState<"full" | "incremental">("full")
+	const [autoRefresh, setAutoRefresh] = useState(true)
+	const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+
+	// IDs únicos para elementos
+	const backupTypeId = useId()
+	const compressId = useId()
+	const encryptId = useId()
+	const autoRefreshId = useId()
+
+	// URL do servidor de background
+	const serverUrl = process.env.NEXT_PUBLIC_BACKGROUND_WORKER_SERVER || "http://localhost:3100"
+
+	// Função para carregar backups do servidor de background
 	const loadBackups = useCallback(async () => {
 		try {
-			const response = await fetch("/api/admin/backup/list")
+			const response = await fetch(`${serverUrl}/api/backup/list`)
 			const data = await response.json()
 
 			if (data.success) {
 				setBackups(data.backups || [])
-				console.log(`[Backup List] ${data.backups?.length || 0} backups carregados`)
 			} else {
 				console.error("[Backup List] Erro:", data.error, data.details)
 				toast.error(data.error || "Erro ao carregar backups")
-
-				// Mostrar detalhes do erro se disponível
-				if (data.details) {
-					console.error("[Backup List] Detalhes:", data.details)
-				}
 			}
 		} catch (error) {
 			console.error("Erro ao carregar backups:", error)
-			toast.error("Erro ao carregar lista de backups. Verifique as credenciais do R2.")
+			toast.error("Erro ao carregar lista de backups. Verifique se o servidor de background está rodando.")
 		} finally {
 			setLoading(false)
 		}
-	}, [])
+	}, [serverUrl])
 
-	useEffect(() => {
-		loadBackups()
-	}, [loadBackups])
+	// Função para buscar status do job de backup
+	const fetchJobStatus = useCallback(
+		async (jobId: string) => {
+			try {
+				const response = await fetch(`${serverUrl}/api/backup/status/${jobId}`)
+				const data = await response.json()
 
+				if (data.success) {
+					setCurrentJob(data.job)
+					setLastUpdate(new Date())
+
+					// Se o job terminou, parar de buscar status
+					if (data.job.status === "completed" || data.job.status === "failed" || data.job.status === "cancelled") {
+						setCreating(false)
+						loadBackups() // Recarregar lista de backups
+					}
+				}
+			} catch (error) {
+				console.error("Erro ao buscar status do job:", error)
+			}
+		},
+		[loadBackups, serverUrl],
+	)
+
+	// Função para criar backup via servidor de background
 	const createBackup = async () => {
+		if (creating) {
+			toast.error("Já existe um backup em andamento!")
+			return
+		}
+
 		setCreating(true)
 		try {
-			const response = await fetch("/api/admin/backup/create?manual=true", {
+			const response = await fetch(`${serverUrl}/api/backup/start`, {
 				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					backupType,
+					compress: compressBackup,
+					encrypt: encryptBackup,
+					description: `Backup ${backupType} manual - ${new Date().toLocaleString("pt-BR")}`,
+				}),
 			})
 
 			const data = await response.json()
 
 			if (data.success) {
-				toast.success("Backup criado com sucesso!")
-				// Não chamar loadBackups aqui, será chamado pelo onComplete do BackupProgressCard
+				toast.success("Backup iniciado com sucesso!")
+				setCurrentJob({
+					id: data.jobId,
+					status: "running",
+					progresso: 0,
+					startedAt: new Date().toISOString(),
+					completedAt: null,
+					logs: [],
+					detalhes: null,
+					erros: [],
+				})
 			} else {
-				console.error("[Backup Create] Erro:", data.error, data.details)
-				toast.error(data.error || "Erro ao criar backup")
-				if (data.details) {
-					console.error("[Backup Create] Detalhes:", data.details)
-				}
-				setCreating(false) // Resetar apenas em caso de erro
+				console.error("[Backup Start] Erro:", data.error, data.details)
+				toast.error(data.error || "Erro ao iniciar backup")
+				setCreating(false)
 			}
 		} catch (error) {
-			console.error("Erro ao criar backup:", error)
-			toast.error("Erro ao criar backup. Verifique as credenciais do R2.")
+			console.error("Erro ao iniciar backup:", error)
+			toast.error("Erro ao iniciar backup. Verifique se o servidor de background está rodando.")
 			setCreating(false)
 		}
 	}
 
-	const handleBackupComplete = () => {
-		setCreating(false)
+	// useEffect para carregar dados iniciais
+	useEffect(() => {
 		loadBackups()
-	}
+	}, [loadBackups])
 
-	const deleteBackup = async (key: string, fileName: string) => {
+	// useEffect para auto-refresh do status do job
+	useEffect(() => {
+		if (
+			!autoRefresh ||
+			!currentJob ||
+			currentJob.status === "completed" ||
+			currentJob.status === "failed" ||
+			currentJob.status === "cancelled"
+		) {
+			return
+		}
+
+		const interval = setInterval(() => {
+			fetchJobStatus(currentJob.id)
+		}, 2000) // Atualizar a cada 2 segundos
+
+		return () => clearInterval(interval)
+	}, [autoRefresh, currentJob, fetchJobStatus])
+
+
+	const deleteBackup = async (fileName: string) => {
 		if (!confirm(`Tem certeza que deseja deletar o backup "${fileName}"?`)) {
 			return
 		}
 
-		setDeleting(key)
+		setDeleting(fileName)
 		try {
-			const response = await fetch(`/api/admin/backup/delete?key=${encodeURIComponent(key)}`, {
+			const response = await fetch(`${serverUrl}/api/backup/${fileName}`, {
 				method: "DELETE",
 			})
 
@@ -114,19 +215,37 @@ export default function BackupPage() {
 		}
 	}
 
-	const downloadBackup = (key: string, fileName: string) => {
-		const url = `/api/admin/backup/download?key=${encodeURIComponent(key)}`
-		const link = document.createElement("a")
-		link.href = url
-		link.download = fileName
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-		toast.success("Download iniciado!")
+	const downloadBackup = async (fileName: string) => {
+		try {
+			const response = await fetch(`${serverUrl}/api/backup/download/${fileName}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ expiresIn: 3600 }), // 1 hora
+			})
+
+			const data = await response.json()
+
+			if (data.success && data.downloadUrl) {
+				const link = document.createElement("a")
+				link.href = data.downloadUrl
+				link.download = fileName
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				toast.success("Download iniciado!")
+			} else {
+				toast.error(data.error || "Erro ao gerar URL de download")
+			}
+		} catch (error) {
+			console.error("Erro ao baixar backup:", error)
+			toast.error("Erro ao baixar backup")
+		}
 	}
 
-	const openRestoreDialog = (key: string, fileName: string) => {
-		setSelectedBackup({ key, fileName })
+	const openRestoreDialog = (fileName: string) => {
+		setSelectedBackup({ key: `backups/${fileName}`, fileName })
 		setRestoreDialogOpen(true)
 	}
 
@@ -146,6 +265,29 @@ export default function BackupPage() {
 		})
 	}
 
+	const formatBytes = (bytes: number) => {
+		if (bytes === 0) return "0 Bytes"
+		const k = 1024
+		const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
+		const i = Math.floor(Math.log(bytes) / Math.log(k))
+		return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
+	}
+
+	const getStatusText = (status: string) => {
+		switch (status) {
+			case "completed":
+				return "Concluído"
+			case "failed":
+				return "Falhou"
+			case "running":
+				return "Em execução"
+			case "cancelled":
+				return "Cancelado"
+			default:
+				return status
+		}
+	}
+
 	if (loading) {
 		return (
 			<div className="container mx-auto py-8 px-4">
@@ -163,61 +305,160 @@ export default function BackupPage() {
 					<Database className="h-8 w-8" />
 					Backups do Banco de Dados
 				</h1>
-				<p className="text-muted-foreground mt-2">
-					Gerencie backups automáticos e manuais armazenados no Cloudflare R2
-				</p>
+				<p className="text-muted-foreground mt-2">Gerencie backups automáticos e manuais via servidor de background</p>
 			</div>
 
-			{/* Informações sobre o Backup Automático */}
-			<Alert className="mb-6">
-				<Clock className="h-4 w-4" />
-				<AlertTitle>Backup Automático Configurado</AlertTitle>
-				<AlertDescription>
-					O sistema cria backups automáticos <strong>todos os dias às 3h da manhã (horário do servidor)</strong>.
-					<br />
-					Você também pode criar backups manuais a qualquer momento clicando no botão abaixo.
-				</AlertDescription>
-			</Alert>
+			{/* Status do Servidor de Background */}
+			<ServerStatusBanner />
 
-			{/* Card de Progresso do Backup */}
-			<BackupProgressCard isCreating={creating} onComplete={handleBackupComplete} />
+			{/* Status do Job de Backup Atual */}
+			{currentJob && (
+				<Card className="mb-6">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<Database className="h-5 w-5" />
+							Status do Backup
+							<Badge
+								variant={
+									currentJob.status === "completed"
+										? "default"
+										: currentJob.status === "failed"
+											? "destructive"
+											: "secondary"
+								}
+							>
+								{getStatusText(currentJob.status)}
+							</Badge>
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-4">
+							<div>
+								<div className="flex justify-between text-sm mb-1">
+									<span>Progresso</span>
+									<span>{currentJob.progresso}%</span>
+								</div>
+								<Progress value={currentJob.progresso} className="w-full" />
+							</div>
 
-			{/* Ações */}
+							{currentJob.logs && currentJob.logs.length > 0 && (
+								<div>
+									<h4 className="text-sm font-medium mb-2">Logs:</h4>
+									<div className="bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
+										{currentJob.logs.slice(-5).map((log, index) => (
+											<div key={`log-${currentJob.id}-${index}`} className="text-xs text-gray-600 mb-1">
+												{log}
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+
+							{currentJob.erros && currentJob.erros.length > 0 && (
+								<div>
+									<h4 className="text-sm font-medium mb-2 text-red-600">Erros:</h4>
+									<div className="bg-red-50 p-3 rounded-md">
+										{currentJob.erros.map((error, index) => (
+											<div key={`error-${currentJob.id}-${index}`} className="text-xs text-red-600 mb-1">
+												{error}
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+
+							<div className="flex items-center gap-4 text-sm text-gray-600">
+								{currentJob.startedAt && <span>Iniciado: {formatDate(currentJob.startedAt)}</span>}
+								{currentJob.completedAt && <span>Concluído: {formatDate(currentJob.completedAt)}</span>}
+								<span>Última atualização: {lastUpdate.toLocaleTimeString("pt-BR")}</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* Configurações e Ações */}
 			<Card className="mb-6">
 				<CardHeader>
-					<CardTitle>Ações</CardTitle>
-					<CardDescription>Crie novos backups ou atualize a lista</CardDescription>
+					<CardTitle>Configurações e Ações</CardTitle>
+					<CardDescription>Configure e execute backups</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex gap-4">
-						<Button onClick={createBackup} disabled={creating} size="lg">
-							{creating ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Criando Backup...
-								</>
-							) : (
-								<>
-									<Plus className="mr-2 h-4 w-4" />
-									Criar Backup Manual
-								</>
-							)}
-						</Button>
-						<Button variant="outline" onClick={loadBackups} disabled={loading || creating} size="lg">
-							<RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-							Atualizar Lista
-						</Button>
+					<div className="space-y-4">
+						{/* Configurações */}
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor={backupTypeId}>Tipo de Backup</Label>
+								<select
+									id={backupTypeId}
+									value={backupType}
+									onChange={(e) => setBackupType(e.target.value as "full" | "incremental")}
+									className="w-full p-2 border rounded-md"
+									disabled={creating}
+								>
+									<option value="full">Completo</option>
+									<option value="incremental">Incremental</option>
+								</select>
+							</div>
+
+							<div className="flex items-center space-x-2">
+								<Switch
+									id={compressId}
+									checked={compressBackup}
+									onCheckedChange={setCompressBackup}
+									disabled={creating}
+								/>
+								<Label htmlFor={compressId}>Comprimir backup</Label>
+							</div>
+
+							<div className="flex items-center space-x-2">
+								<Switch
+									id={encryptId}
+									checked={encryptBackup}
+									onCheckedChange={setEncryptBackup}
+									disabled={creating}
+								/>
+								<Label htmlFor={encryptId}>Criptografar backup</Label>
+							</div>
+
+							<div className="flex items-center space-x-2">
+								<Switch id={autoRefreshId} checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+								<Label htmlFor={autoRefreshId}>Auto-atualizar status</Label>
+							</div>
+						</div>
+
+						{/* Botões de Ação */}
+						<div className="flex gap-4">
+							<Button onClick={createBackup} disabled={creating} size="lg">
+								{creating ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Criando Backup...
+									</>
+								) : (
+									<>
+										<Plus className="mr-2 h-4 w-4" />
+										Criar Backup
+									</>
+								)}
+							</Button>
+							<Button variant="outline" onClick={loadBackups} disabled={loading} size="lg">
+								<RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+								Atualizar Lista
+							</Button>
+						</div>
+
+						{creating && (
+							<p className="text-sm text-muted-foreground">
+								⚠️ Aguarde a conclusão do backup antes de sair desta página.
+							</p>
+						)}
 					</div>
-					{creating && (
-						<p className="text-sm text-muted-foreground mt-3">
-							⚠️ Aguarde a conclusão do backup antes de sair desta página.
-						</p>
-					)}
 				</CardContent>
 			</Card>
 
 			{/* Estatísticas */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 				<Card>
 					<CardHeader className="pb-3">
 						<CardTitle className="text-sm font-medium text-muted-foreground">Total de Backups</CardTitle>
@@ -241,10 +482,16 @@ export default function BackupPage() {
 						<CardTitle className="text-sm font-medium text-muted-foreground">Espaço Total</CardTitle>
 					</CardHeader>
 					<CardContent>
+						<div className="text-2xl font-bold">{formatBytes(backups.reduce((acc, b) => acc + b.size, 0))}</div>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="pb-3">
+						<CardTitle className="text-sm font-medium text-muted-foreground">Backups Comprimidos</CardTitle>
+					</CardHeader>
+					<CardContent>
 						<div className="text-2xl font-bold">
-							{backups.reduce((acc, b) => acc + b.size, 0) / 1024 / 1024 > 0
-								? `${(backups.reduce((acc, b) => acc + b.size, 0) / 1024 / 1024).toFixed(2)} MB`
-								: "0 MB"}
+							{backups.filter((b) => b.compressed).length} / {backups.length}
 						</div>
 					</CardContent>
 				</Card>
@@ -258,7 +505,7 @@ export default function BackupPage() {
 					<AlertDescription>
 						{creating
 							? "Aguarde enquanto o primeiro backup está sendo criado..."
-							: 'Crie seu primeiro backup clicando no botão "Criar Backup Manual" acima. Caso já tenha criado backups, verifique se as credenciais do Cloudflare R2 estão configuradas corretamente nas variáveis de ambiente.'}
+							: 'Crie seu primeiro backup clicando no botão "Criar Backup" acima. Verifique se o servidor de background está rodando.'}
 					</AlertDescription>
 				</Alert>
 			) : backups.length === 0 ? null : (
@@ -278,23 +525,37 @@ export default function BackupPage() {
 												<Clock className="h-3 w-3" />
 												{formatDate(backup.lastModified)}
 											</div>
+											<div className="flex items-center gap-4 text-xs">
+												<Badge variant="outline" className="text-xs">
+													{backup.backupType}
+												</Badge>
+												{backup.compressed && (
+													<Badge variant="secondary" className="text-xs">
+														Comprimido
+													</Badge>
+												)}
+											</div>
 										</CardDescription>
 									</div>
 									<Badge variant="outline" className="ml-4">
-										{backup.sizeFormatted}
+										{formatBytes(backup.size)}
 									</Badge>
 								</div>
 							</CardHeader>
 							<CardContent>
 								<div className="flex gap-2 flex-wrap">
-									<Button variant="outline" size="sm" onClick={() => downloadBackup(backup.key, backup.fileName)}>
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => downloadBackup(backup.fileName)}
+									>
 										<Download className="h-4 w-4 mr-2" />
 										Baixar
 									</Button>
 									<Button
 										variant="default"
 										size="sm"
-										onClick={() => openRestoreDialog(backup.key, backup.fileName)}
+										onClick={() => openRestoreDialog(backup.fileName)}
 										className="bg-orange-600 hover:bg-orange-700 text-white"
 									>
 										<RotateCcw className="h-4 w-4 mr-2" />
@@ -303,11 +564,11 @@ export default function BackupPage() {
 									<Button
 										variant="outline"
 										size="sm"
-										onClick={() => deleteBackup(backup.key, backup.fileName)}
-										disabled={deleting === backup.key}
+										onClick={() => deleteBackup(backup.fileName)}
+										disabled={deleting === backup.fileName}
 										className="text-red-600 hover:text-red-700"
 									>
-										{deleting === backup.key ? (
+										{deleting === backup.fileName ? (
 											<>
 												<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 												Deletando...
@@ -332,10 +593,17 @@ export default function BackupPage() {
 				<AlertTitle>Informações Importantes</AlertTitle>
 				<AlertDescription className="space-y-2">
 					<p>
-						• Os backups são armazenados de forma segura no <strong>Cloudflare R2</strong>
+						• Os backups são processados pelo <strong>servidor de background</strong> e armazenados no{" "}
+						<strong>Cloudflare R2</strong>
 					</p>
 					<p>
-						• Backups automáticos são criados <strong>diariamente às 3h da manhã</strong>
+						• Backups podem ser <strong>comprimidos</strong> para economizar espaço (redução de ~65%)
+					</p>
+					<p>
+						• Backups podem ser <strong>criptografados</strong> para máxima segurança na nuvem
+					</p>
+					<p>
+						• <strong>Checksum SHA-256</strong> garante integridade dos arquivos
 					</p>
 					<p>
 						• Para restaurar um backup, clique no botão <strong>"Restaurar"</strong> e confirme com a senha
@@ -345,6 +613,9 @@ export default function BackupPage() {
 					</p>
 					<p>
 						• Recomendamos manter pelo menos os <strong>últimos 7 backups</strong> (uma semana)
+					</p>
+					<p>
+						• O servidor de background deve estar <strong>online</strong> para executar operações
 					</p>
 				</AlertDescription>
 			</Alert>

@@ -24,10 +24,12 @@ export interface PriceSyncJobData extends BaseJobData {
 
 // Job de backup
 export interface BackupJobData extends BaseJobData {
-  type: 'backup'
-  backupType: 'full' | 'incremental'
-  tables?: string[]
-  compress?: boolean
+	type: 'backup'
+	backupType: 'full' | 'incremental'
+	tables?: string[]
+	compress?: boolean
+	encrypt?: boolean
+	description?: string
 }
 
 // Job de envio de email
