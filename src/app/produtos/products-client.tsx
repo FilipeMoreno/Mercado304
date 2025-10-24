@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Apple, Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
+import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
@@ -11,13 +11,13 @@ import { ProductEmptyState } from "@/components/products/product-empty-state"
 import { ProductList } from "@/components/products/product-list"
 import { ProductPagination } from "@/components/products/product-pagination"
 import { ProductStats } from "@/components/products/product-stats"
+import { ProductsListSkeleton } from "@/components/skeletons/products-list-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
 	useAllBrandsQuery,
 	useAllCategoriesQuery,
@@ -267,35 +267,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 
 			<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-4">
 				{loading ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{Array.from({ length: 9 }, (_, i) => {
-							const uniqueKey = `skeleton-${i}-${Math.random().toString(36).substr(2, 9)}`
-							return (
-								<motion.div
-									key={uniqueKey}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: i * 0.1 }}
-								>
-									<Card>
-										<CardContent className="p-4">
-											<div className="flex items-center gap-2 mb-2">
-												<Skeleton className="h-5 w-5" />
-												<Skeleton className="h-6 w-28" />
-											</div>
-											<div className="space-y-1">
-												<div className="flex items-center gap-1">
-													<Skeleton className="h-3 w-3" />
-													<Skeleton className="h-4 w-20" />
-												</div>
-												<Skeleton className="h-4 w-24" />
-											</div>
-										</CardContent>
-									</Card>
-								</motion.div>
-							)
-						})}
-					</div>
+					<ProductsListSkeleton />
 				) : products.length > 0 ? (
 					<>
 						<ProductStats
