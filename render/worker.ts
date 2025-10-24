@@ -1,127 +1,126 @@
-// render/worker.ts
-// Worker genérico para processar múltiplos tipos de jobs
-
+import "dotenv/config" // Carrega .env automaticamente - primeiro de tudo!
+import type { Server } from "node:http"
 import { PrismaClient } from "@prisma/client"
-import { Worker } from "bullmq"
+import { type ConnectionOptions, Worker } from "bullmq"
 import { HandlerFactory } from "./src/handlers/HandlerFactory"
-import type { JobType } from "./src/types/jobs"
-import "./src/server" // Inicia o servidor HTTP
+import app from "./src/server"
+
+const { REDIS_URL, DATABASE_URL, PORT = "3000", NODE_ENV = "development" } = process.env
+
+function validateEnv() {
+	const missing: string[] = []
+
+	if (!REDIS_URL) missing.push("REDIS_URL")
+	if (!DATABASE_URL) missing.push("DATABASE_URL")
+
+	if (missing.length) {
+		console.error(`❌ Variáveis de ambiente faltando: ${missing.join(", ")}`)
+		process.exit(1)
+	}
+}
+
+validateEnv()
 
 const prisma = new PrismaClient()
-
-// Conexão com o Redis/Upstash
-const connection = {
-	host: process.env.UPSTASH_REDIS_HOST || 'localhost',
-	port: parseInt(process.env.UPSTASH_REDIS_PORT || '6379', 10),
-	password: process.env.UPSTASH_REDIS_PASSWORD || '',
-}
-
-// Verificar se as variáveis de ambiente estão configuradas
-if (!process.env.UPSTASH_REDIS_HOST) {
-	console.error('❌ UPSTASH_REDIS_HOST não configurado!')
-	console.error('Configure as variáveis de ambiente do Redis/Upstash')
-	process.exit(1)
-}
-
-if (!process.env.UPSTASH_REDIS_PASSWORD) {
-	console.error('❌ UPSTASH_REDIS_PASSWORD não configurado!')
-	console.error('Configure as variáveis de ambiente do Redis/Upstash')
-	process.exit(1)
-}
-
-console.log("🚀 Worker genérico iniciando...")
-console.log("📡 Conectando ao Redis:", process.env.UPSTASH_REDIS_HOST)
-
-// Lista de filas suportadas
-const SUPPORTED_QUEUES = ["price-sync", "backup", "email-send", "data-export", "cleanup", "report-generation"]
-
-// Configuração do worker
-const WORKER_CONFIG = {
-	connection,
-	concurrency: 2, // Processar até 2 jobs simultaneamente
-	removeOnComplete: { count: 10 }, // Manter apenas os últimos 10 jobs completos
-	removeOnFail: { count: 5 }, // Manter apenas os últimos 5 jobs falhados
-}
-
-// Criar workers para cada fila
 const workers: Worker[] = []
+let httpServer: Server | null = null
 
-for (const queueName of SUPPORTED_QUEUES) {
-	const worker = new Worker(
-		queueName,
-		async (job) => {
-			console.log(`🔄 Processando job ${job.id} - ${job.name} na fila ${queueName}`)
+const REDIS_CONNECTION: ConnectionOptions = {
+  url: REDIS_URL,
+  connectTimeout: 20000, // permitir conexão via TLS
+  maxRetriesPerRequest: null, // recomendado pela própria Upstash
+  enableReadyCheck: false, // reduz erros falsos de "desconectado"
+  keepAlive: 60000,
+};
 
-			try {
-				// Determinar o tipo de job baseado no nome da fila
-				const jobType = queueName as JobType
+const WORKER_CONFIG = {
+	connection: REDIS_CONNECTION,
+	concurrency: 4, // Aumentado para melhor throughput
+	removeOnComplete: { count: 20 },
+	removeOnFail: { count: 10 },
+}
 
-				// Criar handler apropriado
+async function bootstrapWorkers() {
+	const jobTypes = HandlerFactory.getSupportedJobTypes()
+
+	if (!jobTypes.length) {
+		console.warn("⚠️ Nenhum job encontrado no HandlerFactory.")
+		return
+	}
+
+	console.log(`🔧 Inicializando filas: ${jobTypes.join(", ")}`)
+
+	for (const jobType of jobTypes) {
+		const worker = new Worker(
+			jobType,
+			async (job) => {
 				const handler = HandlerFactory.createHandler(jobType, prisma)
+				if (!handler) throw new Error(`Handler ausente: ${jobType}`)
 
-				if (!handler) {
-					throw new Error(`Handler não encontrado para o tipo de job: ${jobType}`)
+				try {
+					console.log(`[${jobType}] ▶️ Job #${job.id}`)
+					return await handler.handle(job)
+				} catch (err: any) {
+					console.error(`[${jobType}] ❌ Falha no Job #${job.id}:`, err?.message ?? err)
+					throw err
 				}
+			},
+			WORKER_CONFIG,
+		)
 
-				// Processar job
-				const result = await handler.handle(job as any)
+		worker.on("ready", () => console.log(`[${jobType}] ✅ Worker pronto`))
+		worker.on("failed", (job, err) => console.error(`[${jobType}] Job #${job?.id} falhou: ${err.message}`))
+		worker.on("error", (err) => console.error(`[${jobType}] 🚨 Erro geral: ${err.message}`))
 
-				console.log(`✅ Job ${job.id} concluído com sucesso`)
-				return result
-			} catch (error) {
-				console.error(`❌ Job ${job.id} falhou:`, error)
-				throw error // O BullMQ vai tentar rodar de novo (retry)
-			}
-		},
-		WORKER_CONFIG,
-	)
+		workers.push(worker)
+	}
 
-	workers.push(worker)
-
-	// Event listeners para cada worker
-	worker.on("completed", (job) => {
-		console.log(`✅ Job ${job.id} concluído na fila ${queueName}`)
-	})
-
-	worker.on("failed", (job, err) => {
-		console.error(`❌ Job ${job?.id} falhou na fila ${queueName}:`, err.message)
-		console.error('Stack trace:', err.stack)
-	})
-
-	worker.on("error", (err) => {
-		console.error(`🚨 Erro no worker da fila ${queueName}:`, err.message)
-		console.error('Stack trace:', err.stack)
-	})
-
-	worker.on("ready", () => {
-		console.log(`✅ Worker da fila ${queueName} conectado e pronto`)
-	})
-
-	worker.on("closing", () => {
-		console.log(`🔄 Worker da fila ${queueName} fechando...`)
-	})
+	console.log("🎯 Workers totalmente iniciados!")
 }
 
-console.log(`👂 Workers iniciados para ${SUPPORTED_QUEUES.length} filas:`)
-SUPPORTED_QUEUES.forEach((queue) => {
-	console.log(`   - ${queue}`)
+async function gracefulShutdown(signal: string) {
+	console.log(`\n🛑 Recebido ${signal}: desligando com segurança...`)
+
+	const timeout = setTimeout(() => {
+		console.warn("⚠️ Shutdown demorando muito. Forçando saída.")
+		process.exit(1)
+	}, 15000)
+
+	try {
+		if (httpServer) {
+			console.log(" - Fechando servidor HTTP...")
+			await new Promise((resolve) => httpServer?.close(resolve))
+		}
+
+		console.log(" - Encerrando Workers...")
+		await Promise.allSettled(workers.map((w) => w.close()))
+
+		console.log(" - Desconectando banco...")
+		await prisma.$disconnect()
+
+		console.log("✅ Finalizado com sucesso!")
+	} catch (err) {
+		console.error("❌ Erro no shutdown:", err)
+	} finally {
+		clearTimeout(timeout)
+		process.exit(0)
+	}
+}
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"))
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"))
+
+async function main() {
+	console.log("🚀 Mercado304 Worker iniciado")
+	console.log(`📡 Redis: ${REDIS_URL?.replace(/\/\/.*@/, "//***:***@")}`)
+	console.log(`🌎 Ambiente: ${NODE_ENV}`)
+
+	await bootstrapWorkers()
+
+	httpServer = app.listen(Number(PORT), () => console.log(`📊 Health check ON — Porta ${PORT}`))
+}
+
+main().catch((err) => {
+	console.error("❌ Erro crítico ao iniciar:", err)
+	process.exit(1)
 })
-
-console.log("🎯 Workers prontos para processar jobs!")
-
-// Graceful shutdown
-const shutdown = async () => {
-	console.log("🛑 Iniciando shutdown dos workers...")
-
-	// Fechar todos os workers
-	await Promise.all(workers.map((worker) => worker.close()))
-
-	// Desconectar do banco
-	await prisma.$disconnect()
-
-	console.log("✅ Shutdown concluído")
-	process.exit(0)
-}
-
-process.on("SIGINT", shutdown)
-process.on("SIGTERM", shutdown)

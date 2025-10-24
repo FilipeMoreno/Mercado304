@@ -1,10 +1,15 @@
 import { Queue } from 'bullmq'
 
-// Configuração de conexão com Redis (Upstash)
+// Configuração de conexão com Redis (Upstash) usando REDIS_URL
 const connection = {
-  host: process.env.UPSTASH_REDIS_HOST || '',
-  port: parseInt(process.env.UPSTASH_REDIS_PORT || '6379', 10),
-  password: process.env.UPSTASH_REDIS_PASSWORD || '',
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+  // Configurações para conexão Redis
+  connectTimeout: 10000, // 10 segundos
+  commandTimeout: 5000,  // 5 segundos
+  retryDelayOnFailover: 100,
+  lazyConnect: true, // Conectar apenas quando necessário
+  keepAlive: 30000, // 30 segundos
+  family: 4, // Forçar IPv4
 }
 
 // Configuração padrão para todos os jobs
@@ -29,7 +34,7 @@ export const queues = {
 }
 
 // Função genérica para adicionar jobs
-export async function addJob(queueName: keyof typeof queues, jobName: string, data: any, options?: any) {
+export async function addJob(queueName: keyof typeof queues, jobName: string, data: unknown, options?: unknown) {
   const queue = queues[queueName]
   if (!queue) {
     throw new Error(`Fila ${queueName} não encontrada`)
@@ -37,7 +42,7 @@ export async function addJob(queueName: keyof typeof queues, jobName: string, da
   
   return await queue.add(jobName, data, {
     priority: 1, // Prioridade alta
-    ...options,
+    ...(options as Record<string, unknown>),
   })
 }
 
@@ -55,7 +60,7 @@ export async function getJobStatus(queueName: keyof typeof queues, jobId: string
   }
 
   const state = await job.getState()
-  const progress = await job.getProgress()
+  const progress = job.progress
   
   return {
     id: job.id,
@@ -109,7 +114,7 @@ export async function addEmailSendJob(data: {
   to: string | string[]
   subject: string
   template: string
-  data: Record<string, any>
+  data: Record<string, unknown>
   priority?: 'low' | 'normal' | 'high'
 }) {
   return await addJob('email-send', 'send-email', { type: 'email-send', ...data })
@@ -119,7 +124,7 @@ export async function addEmailSendJob(data: {
 export async function addDataExportJob(data: {
   format: 'csv' | 'xlsx' | 'json'
   tables: string[]
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   dateRange?: { start: Date; end: Date }
 }) {
   return await addJob('data-export', 'export-data', { type: 'data-export', ...data })
