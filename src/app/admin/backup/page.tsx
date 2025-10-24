@@ -1,9 +1,10 @@
 "use client"
 
-import { AlertCircle, CheckCircle, Clock, Database, Download, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react"
+import { AlertCircle, CheckCircle, Clock, Database, Download, Loader2, Plus, RefreshCw, RotateCcw, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { BackupProgressCard } from "@/components/admin/BackupProgressCard"
+import { RestoreBackupDialog } from "@/components/admin/RestoreBackupDialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,8 @@ export default function BackupPage() {
 	const [loading, setLoading] = useState(true)
 	const [creating, setCreating] = useState(false)
 	const [deleting, setDeleting] = useState<string | null>(null)
+	const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
+	const [selectedBackup, setSelectedBackup] = useState<{ key: string; fileName: string } | null>(null)
 
 	const loadBackups = useCallback(async () => {
 		try {
@@ -120,6 +123,16 @@ export default function BackupPage() {
 		link.click()
 		document.body.removeChild(link)
 		toast.success("Download iniciado!")
+	}
+
+	const openRestoreDialog = (key: string, fileName: string) => {
+		setSelectedBackup({ key, fileName })
+		setRestoreDialogOpen(true)
+	}
+
+	const handleRestoreSuccess = () => {
+		setRestoreDialogOpen(false)
+		setSelectedBackup(null)
 	}
 
 	const formatDate = (isoString: string) => {
@@ -273,10 +286,19 @@ export default function BackupPage() {
 								</div>
 							</CardHeader>
 							<CardContent>
-								<div className="flex gap-2">
+								<div className="flex gap-2 flex-wrap">
 									<Button variant="outline" size="sm" onClick={() => downloadBackup(backup.key, backup.fileName)}>
 										<Download className="h-4 w-4 mr-2" />
 										Baixar
+									</Button>
+									<Button
+										variant="default"
+										size="sm"
+										onClick={() => openRestoreDialog(backup.key, backup.fileName)}
+										className="bg-orange-600 hover:bg-orange-700 text-white"
+									>
+										<RotateCcw className="h-4 w-4 mr-2" />
+										Restaurar
 									</Button>
 									<Button
 										variant="outline"
@@ -315,12 +337,28 @@ export default function BackupPage() {
 					<p>
 						• Backups automáticos são criados <strong>diariamente às 3h da manhã</strong>
 					</p>
-					<p>• Para restaurar um backup, baixe o arquivo .sql e execute-o no seu banco de dados PostgreSQL</p>
+					<p>
+						• Para restaurar um backup, clique no botão <strong>"Restaurar"</strong> e confirme com a senha
+					</p>
+					<p>
+						• <strong>⚠️ ATENÇÃO:</strong> Restaurar um backup irá <strong>APAGAR TODOS OS DADOS ATUAIS</strong>
+					</p>
 					<p>
 						• Recomendamos manter pelo menos os <strong>últimos 7 backups</strong> (uma semana)
 					</p>
 				</AlertDescription>
 			</Alert>
+
+			{/* Diálogo de Restauração */}
+			{selectedBackup && (
+				<RestoreBackupDialog
+					isOpen={restoreDialogOpen}
+					onClose={() => setRestoreDialogOpen(false)}
+					backupKey={selectedBackup.key}
+					backupFileName={selectedBackup.fileName}
+					onRestoreSuccess={handleRestoreSuccess}
+				/>
+			)}
 		</div>
 	)
 }
