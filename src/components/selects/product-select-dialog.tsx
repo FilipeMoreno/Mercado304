@@ -20,6 +20,8 @@ interface ProductSelectDialogProps {
   preserveFormData?: any
   itemIndex?: number
   showScanButton?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function ProductSelectDialog({
@@ -31,11 +33,17 @@ export function ProductSelectDialog({
   preserveFormData,
   itemIndex,
   showScanButton = true,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: ProductSelectDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
+  
+  // Se open e onOpenChange forem fornecidos, usá-los; caso contrário, usar estado interno
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = controlledOnOpenChange || setInternalOpen
 
   // Query para todos os produtos (para encontrar o produto selecionado)
   const { data: allProductsData } = useAllProductsQuery()
@@ -62,13 +70,16 @@ export function ProductSelectDialog({
   // Convert products to SelectOption format
   const options: SelectOption[] = useMemo(() => {
     return products.map((product) => {
-      // Construir sublabel com marca, unidade e código
+      // Construir sublabel com marca, pacote, quantidade e código
       const parts = []
       if (product.brand?.name) {
         parts.push(product.brand.name)
       }
       if (product.unit) {
         parts.push(product.unit)
+      }
+      if (product.packageSize) {
+        parts.push(product.packageSize)
       }
       if (product.barcode) {
         parts.push(product.barcode)
@@ -92,7 +103,7 @@ export function ProductSelectDialog({
       setSearch("")
       setOpen(false) // Fechar dialog após selecionar
     },
-    [onValueChange],
+    [onValueChange, setOpen],
   )
 
   const handleCreateProduct = (name: string) => {
@@ -144,13 +155,16 @@ export function ProductSelectDialog({
   const _selectedOption = useMemo(() => {
     if (!selectedProduct) return undefined
 
-    // Construir sublabel com marca, unidade e código
+    // Construir sublabel com marca, pacote, quantidade e código
     const parts = []
     if (selectedProduct.brand?.name) {
       parts.push(selectedProduct.brand.name)
     }
     if (selectedProduct.unit) {
       parts.push(selectedProduct.unit)
+    }
+    if (selectedProduct.packageSize) {
+      parts.push(selectedProduct.packageSize)
     }
     if (selectedProduct.barcode) {
       parts.push(`${selectedProduct.barcode}`)

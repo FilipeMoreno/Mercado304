@@ -1,0 +1,97 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: mercado304-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mercado304
+      POSTGRES_PASSWORD: mercado304_password
+      POSTGRES_DB: mercado304
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercado304"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: mercado304-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Background Worker
+  worker:
+    build:
+      context: ./render
+      dockerfile: Dockerfile
+    container_name: mercado304-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://mercado304:mercado304_password@postgres:5432/mercado304
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - PORT=3100
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./render:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mercado304-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://mercado304:mercado304_password@postgres:5432/mercado304
+      - PRISMA_DATABASE_URL=postgresql://mercado304:mercado304_password@postgres:5432/mercado304
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BACKGROUND_WORKER_SERVER=http://worker:3100
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: sh -c "npx prisma migrate deploy && node server.js"
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: mercado304-network

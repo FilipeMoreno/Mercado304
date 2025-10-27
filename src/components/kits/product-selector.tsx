@@ -1,17 +1,12 @@
 "use client"
 
-import { Plus, Search, X } from "lucide-react"
-import { useMemo, useState } from "react"
+import { Plus, X } from "lucide-react"
+import { useState } from "react"
+import { ProductSelectDialog } from "@/components/selects/product-select-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ResponsiveSelectDialog, type SelectOption } from "@/components/ui/responsive-select-dialog"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useUIPreferences } from "@/hooks"
-import { useAllProductsQuery } from "@/hooks/use-react-query"
 
 export interface SelectedProduct {
 	productId: string
@@ -27,82 +22,46 @@ interface ProductSelectorProps {
 	excludeProductIds?: string[]
 }
 
-export function ProductSelector({ selectedProducts, onChange, excludeProductIds = [] }: ProductSelectorProps) {
-	const [open, setOpen] = useState(false)
-	const [searchTerm, setSearchTerm] = useState("")
-	const { selectStyle } = useUIPreferences()
+export function ProductSelector({ selectedProducts, onChange, excludeProductIds: _excludeProductIds = [] }: ProductSelectorProps) {
+	const [isDialogOpen, setIsDialogOpen] = useState(false)
+	const [selectedProductId, setSelectedProductId] = useState<string>("")
 
-	// Excluir kits da seleção (não faz sentido kit dentro de kit)
-	const { data: productsData, isLoading } = useAllProductsQuery({ excludeKits: true })
-
-	// Filter available products
-	const availableProducts = useMemo(() => {
-		if (!productsData?.data) return []
-
-		const selectedIds = selectedProducts.map((p) => p.productId)
-		const excludedIds = [...selectedIds, ...excludeProductIds]
-
-		return productsData.data.filter((product: any) => !excludedIds.includes(product.id))
-	}, [productsData, selectedProducts, excludeProductIds])
-
-	// Filtered by search
-	const filteredProducts = useMemo(() => {
-		if (!searchTerm) return availableProducts
-
-		const search = searchTerm.toLowerCase()
-		return availableProducts.filter(
-			(product: any) =>
-				product.name.toLowerCase().includes(search) || product.brand?.name.toLowerCase().includes(search),
-		)
-	}, [availableProducts, searchTerm])
-
-	// Convert to SelectOption for dialog
-	const dialogOptions: SelectOption[] = useMemo(() => {
-		return filteredProducts.map((product: any) => ({
-			id: product.id,
-			label: product.name,
-			sublabel: product.brand?.name ? `${product.brand.name} • ${product.unit}` : product.unit,
-		}))
-	}, [filteredProducts])
-
-	const handleAddProduct = (productId: string) => {
-		// Buscar o produto nas opções de diálogo para ter acesso aos dados completos
-		const product = productsData?.data?.find((p: any) => p.id === productId)
-
-		if (!product) return
-
+	const handleAddProduct = async (productId: string) => {
 		// Verificar se já não foi adicionado
-		if (selectedProducts.some((p) => p.productId === product.id)) {
+		if (selectedProducts.some((p) => p.productId === productId)) {
 			return
 		}
 
-		onChange([
-			...selectedProducts,
-			{
-				productId: product.id,
-				productName: product.name,
-				quantity: 1,
-				unit: product.unit,
-				brand: product.brand?.name,
-			},
-		])
+		// Buscar dados completos do produto
+		try {
+			const response = await fetch(`/api/products/${productId}`)
+			if (!response.ok) return
+
+			const product = await response.json()
+
+			onChange([
+				...selectedProducts,
+				{
+					productId: product.id,
+					productName: product.name,
+					quantity: 1,
+					unit: product.unit,
+					brand: product.brand?.name,
+				},
+			])
+
+			// Fechar o dialog e limpar seleção
+			setIsDialogOpen(false)
+			setSelectedProductId("")
+		} catch (error) {
+			console.error("Erro ao buscar produto:", error)
+		}
 	}
 
 	const handleDialogValueChange = (productId: string) => {
 		if (productId) {
-			// Adicionar imediatamente quando selecionar
+			setSelectedProductId(productId)
 			handleAddProduct(productId)
-			// Fechar o dialog
-			setOpen(false)
-			setSearchTerm("")
-		}
-	}
-
-	const handleDialogOpenChange = (isOpen: boolean) => {
-		setOpen(isOpen)
-		if (!isOpen) {
-			// Resetar busca ao fechar
-			setSearchTerm("")
 		}
 	}
 
@@ -169,86 +128,28 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds 
 				</div>
 			)}
 
-			{/* Add Product Button */}
-			{selectStyle === "dialog" ? (
-				<>
-					<Button type="button" variant="outline" className="w-full" onClick={() => setOpen(true)}>
-						<Plus className="h-4 w-4 mr-2" />
-						Adicionar Produto
-					</Button>
+		{/* Add Product Button */}
+		
+			<Button 
+				type="button" 
+				variant="outline" 
+				className="w-full" 
+				onClick={() => setIsDialogOpen(true)}
+			>
+				<Plus className="h-4 w-4 mr-2" />
+				Adicionar Produto
+			</Button>
 
-					<ResponsiveSelectDialog
-						open={open}
-						onOpenChange={handleDialogOpenChange}
-						value=""
-						onValueChange={handleDialogValueChange}
-						options={dialogOptions}
-						title="Selecionar Produto"
-						placeholder="Selecione um produto"
-						searchPlaceholder="Buscar produtos..."
-						emptyText="Nenhum produto encontrado."
-						isLoading={isLoading}
-						onSearchChange={setSearchTerm}
-						showCreateNew={false}
-						renderTrigger={false}
-					/>
-				</>
-			) : (
-				<Popover open={open} onOpenChange={setOpen}>
-					<PopoverTrigger asChild>
-						<Button type="button" variant="outline" className="w-full">
-							<Plus className="h-4 w-4 mr-2" />
-							Adicionar Produto
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent className="w-[400px] p-0" align="start">
-						<Command>
-							<div className="flex items-center border-b px-3">
-								<Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-								<input
-									placeholder="Buscar produtos..."
-									value={searchTerm}
-									onChange={(e) => setSearchTerm(e.target.value)}
-									className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-								/>
-							</div>
-
-							<CommandList>
-								{isLoading ? (
-									<div className="p-4 space-y-2">
-										<Skeleton className="h-10 w-full" />
-										<Skeleton className="h-10 w-full" />
-										<Skeleton className="h-10 w-full" />
-									</div>
-								) : filteredProducts.length === 0 ? (
-									<CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-								) : (
-									<CommandGroup>
-										{filteredProducts.map((product: any) => (
-											<CommandItem
-												key={product.id}
-												value={product.id}
-												onSelect={() => handleAddProduct(product.id)}
-												className="cursor-pointer"
-											>
-												<div className="flex items-center justify-between w-full">
-													<div>
-														<p className="font-medium">{product.name}</p>
-														<p className="text-xs text-muted-foreground">{product.brand?.name}</p>
-													</div>
-													<Badge variant="outline" className="text-xs">
-														{product.unit}
-													</Badge>
-												</div>
-											</CommandItem>
-										))}
-									</CommandGroup>
-								)}
-							</CommandList>
-						</Command>
-					</PopoverContent>
-				</Popover>
-			)}
+			<ProductSelectDialog
+				open={isDialogOpen}
+				onOpenChange={setIsDialogOpen}
+				value={selectedProductId}
+				onValueChange={handleDialogValueChange}
+				placeholder="Selecione um produto"
+				showScanButton={true}
+			/>
+		
+			
 
 			{selectedProducts.length === 0 && (
 				<p className="text-sm text-muted-foreground text-center py-4">

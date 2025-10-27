@@ -96,6 +96,7 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone', // Enable standalone output for Docker
   experimental: {
     turbo: {
       rules: {
