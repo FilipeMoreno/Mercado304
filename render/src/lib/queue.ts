@@ -2,18 +2,10 @@
 // Configuração de filas BullMQ para o servidor de background
 
 import { Queue } from "bullmq"
+import { createBullMQConnection } from "./bullmq-valkey-adapter"
 
-// Configuração de conexão com Redis (Upstash) usando REDIS_URL
-const connection = {
-	url: process.env.REDIS_URL || "redis://localhost:6379",
-	// Configurações para conexão Redis
-	connectTimeout: 10000, // 10 segundos
-	commandTimeout: 5000, // 5 segundos
-	retryDelayOnFailover: 100,
-	lazyConnect: true, // Conectar apenas quando necessário
-	keepAlive: 30000, // 30 segundos
-	family: 4, // Forçar IPv4
-}
+// Configuração de conexão com Valkey da AWS usando REDIS_URL
+const connection = createBullMQConnection()
 
 // Configuração padrão para todos os jobs
 const defaultJobOptions = {
