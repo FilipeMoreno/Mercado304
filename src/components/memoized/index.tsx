@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { memo, useCallback, useMemo, useState } from "react"
+import { BarcodeListDisplay } from "@/components/products/barcode-list-display"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,13 +51,18 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 			return product.brand?.name || null
 		}, [product.brand?.name])
 
-		// URL da imagem baseada no código de barras
+		// URL da imagem baseada no código de barras primário
 		const imageUrl = useMemo(() => {
+			if (product.barcodes && product.barcodes.length > 0) {
+				const primaryBarcode = product.barcodes.find((b: any) => b.isPrimary) || product.barcodes[0]
+				return `https://cdn-cosmos.bluesoft.com.br/products/${primaryBarcode.barcode}`
+			}
+			// Fallback para barcode antigo (compatibilidade)
 			if (product.barcode) {
 				return `https://cdn-cosmos.bluesoft.com.br/products/${product.barcode}`
 			}
 			return null
-		}, [product.barcode])
+		}, [product.barcodes, product.barcode])
 
 		// Estado para controlar o carregamento da imagem
 		const [imageError, setImageError] = useState(false)
@@ -168,13 +174,14 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 									</div>
 
 									{/* Código de barras */}
-									{product.barcode && (
+									{product.barcodes && product.barcodes.length > 0 && (
 										<div className="flex items-center gap-2">
 											<span className="text-xs font-medium text-gray-500 dark:text-gray-400">Código:</span>
-											<Badge variant="outline" className="text-xs flex items-center gap-1">
-												<Barcode className="h-3 w-3" />
-												{product.barcode}
-											</Badge>
+											<BarcodeListDisplay
+												barcodes={product.barcodes}
+												variant="inline"
+												showCount={false}
+											/>
 										</div>
 									)}
 								</div>
@@ -207,7 +214,7 @@ export const ProductCardMemo = memo<ProductCardMemoProps>(
 			prevProps.product.name === nextProps.product.name &&
 			prevProps.product.brand?.name === nextProps.product.brand?.name &&
 			prevProps.product.unit === nextProps.product.unit &&
-			prevProps.product.barcode === nextProps.product.barcode &&
+			prevProps.product.barcodes?.length === nextProps.product.barcodes?.length &&
 			prevProps.product.updatedAt === nextProps.product.updatedAt
 		)
 	},

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
-        { barcode: { contains: search } },
+        { barcodes: { some: { barcode: { contains: search } } } },
       ];
     }
 
@@ -41,6 +41,7 @@ export async function GET(request: Request) {
             name: true,
           },
         },
+        barcodes: true,
       },
       orderBy: {
         name: "asc",
@@ -64,4 +65,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

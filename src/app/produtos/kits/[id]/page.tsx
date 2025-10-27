@@ -175,6 +175,11 @@ export default function KitDetailsPage() {
 															<Badge className="text-base">{item.quantity}x</Badge>
 															<div>
 																<p className="font-medium">{item.product.name}</p>
+																{item.product.packageSize && (
+																	<p className="text-sm text-muted-foreground mt-0.5">
+																		{item.product.packageSize}
+																	</p>
+																)}
 																<div className="flex items-center gap-2 mt-1">
 																	{item.product.brand && (
 																		<Badge variant="outline" className="text-xs">

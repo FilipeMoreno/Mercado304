@@ -79,6 +79,9 @@ model Product {
   kit      ProductKit?      @relation("KitProduct")
   kitItems ProductKitItem[] @relation("KitItemProduct")
 
+  // Relações com códigos de barras
+  barcodes ProductBarcode[]
+
   @@index([name])
   @@index([categoryId])
   @@index([brandId])
@@ -86,6 +89,22 @@ model Product {
   @@index([hasExpiration])
   @@index([isKit])
   @@map("products")
+}
+
+model ProductBarcode {
+  id        String   @id @default(cuid())
+  productId String
+  barcode   String   @unique // GTIN/EAN - deve ser único
+  isPrimary Boolean  @default(false) // Indica se é o código principal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([barcode])
+  @@index([isPrimary])
+  @@map("product_barcodes")
 }
 
 model Purchase {

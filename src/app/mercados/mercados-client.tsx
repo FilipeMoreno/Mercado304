@@ -172,16 +172,26 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 									<EmptyDescription>Nenhum mercado corresponde aos filtros aplicados</EmptyDescription>
 								</EmptyHeader>
 								<EmptyContent>
-									<Button
-										variant="outline"
-										onClick={() => {
-											setSearchValue("")
-											clearFilters()
-											updateSingleValue("page", 1)
-										}}
-									>
-										Limpar Filtros
-									</Button>
+									<div className="flex flex-col sm:flex-row gap-2">
+										{state.search && (
+											<Link href={`/mercados/novo?name=${encodeURIComponent(String(state.search))}`}>
+												<Button>
+													<Plus className="mr-2 h-4 w-4" />
+													Cadastrar Mercado "{state.search}"
+												</Button>
+											</Link>
+										)}
+										<Button
+											variant="outline"
+											onClick={() => {
+												setSearchValue("")
+												clearFilters()
+												updateSingleValue("page", 1)
+											}}
+										>
+											Limpar Filtros
+										</Button>
+									</div>
 								</EmptyContent>
 							</Empty>
 						) : (

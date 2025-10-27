@@ -295,6 +295,7 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 						hasActiveFilters={hasActiveFilters}
 						onClearFilters={clearFilters}
 						onResetSearch={() => setSearchValue("")}
+						searchValue={searchValue}
 					/>
 				)}
 			</motion.div>

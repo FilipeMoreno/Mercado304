@@ -257,12 +257,19 @@ export default function NewProductKitPage() {
 											key={product.productId}
 											className="flex items-center justify-between text-sm p-2 rounded-md bg-secondary/30"
 										>
-											<div className="flex items-center gap-2">
+											<div className="flex items-center gap-2 flex-1 min-w-0">
 												<span className="font-medium text-primary">{product.quantity}x</span>
-												<span>{product.productName}</span>
+												<div className="flex flex-col min-w-0">
+													<span className="truncate">{product.productName}</span>
+													{product.packageSize && (
+														<span className="text-xs text-muted-foreground">
+															{product.packageSize}
+														</span>
+													)}
+												</div>
 											</div>
 											{product.brand && (
-												<Badge variant="outline" className="text-xs">
+												<Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
 													{product.brand}
 												</Badge>
 											)}

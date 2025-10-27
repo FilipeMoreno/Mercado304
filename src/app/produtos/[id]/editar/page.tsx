@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
+import { BarcodeManager } from "@/components/products/barcode-manager"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
@@ -395,14 +396,9 @@ export default function EditarProdutoPage() {
 								</div>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="barcode">Código de Barras</Label>
-								<Input
-									id="barcode"
-									name="barcode"
-									value={formData.barcode}
-									onChange={handleChange}
-									placeholder="Ex: 7891234567890"
-									className={fieldErrors.barcode ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}
+								<BarcodeManager
+									productId={productId}
+									initialBarcodes={product?.barcodes || []}
 								/>
 								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
 							</div>

@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
@@ -30,6 +30,8 @@ import { AllergenIcons } from "@/components/allergen-icons"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
+import { AddBarcodeDialog } from "@/components/products/add-barcode-dialog"
+import { BarcodeListDisplay } from "@/components/products/barcode-list-display"
 import { ProductRecentPurchasesCard } from "@/components/product-recent-purchases-card"
 import { ProductWasteUsageCard } from "@/components/product-waste-usage-card"
 import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-skeleton"
@@ -43,6 +45,7 @@ import type { NutritionalInfo, Product } from "@/types"
 export default function ProdutoDetalhesPage() {
 	const params = useParams()
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const productId = params.id as string
 
 	const [product, setProduct] = useState<Product | null>(null)
@@ -54,6 +57,10 @@ export default function ProdutoDetalhesPage() {
 	const [stockAlerts, setStockAlerts] = useState<any>(null)
 	const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo | null>(null)
 	const [nutritionalViewMode, setNutritionalViewMode] = useState<"per100" | "perServing" | "tabela">("per100")
+
+	// Estado para o dialog de adicionar código de barras
+	const [showAddBarcodeDialog, setShowAddBarcodeDialog] = useState(false)
+	const [initialBarcodeValue, setInitialBarcodeValue] = useState("")
 
 	// Helper para calcular valores por porção
 	const getDisplayValue = (value: number | null | undefined, unit: string = "") => {
@@ -137,6 +144,19 @@ export default function ProdutoDetalhesPage() {
 		}
 	}, [productId, fetchProductDetails, fetchNutritionalInfo])
 
+	// Detectar parâmetro action=add-barcode na URL
+	useEffect(() => {
+		const action = searchParams.get("action")
+		const barcode = searchParams.get("barcode")
+
+		if (action === "add-barcode" && product) {
+			setInitialBarcodeValue(barcode || "")
+			setShowAddBarcodeDialog(true)
+			// Limpar os parâmetros da URL após abrir o dialog
+			router.replace(`/produtos/${productId}`, { scroll: false })
+		}
+	}, [searchParams, product, productId, router])
+
 	const handleDeleteProduct = async () => {
 		if (!confirm(`Tem certeza que deseja excluir o produto "${product?.name}"? Esta ação não pode ser desfeita.`)) {
 			return
@@ -160,16 +180,16 @@ export default function ProdutoDetalhesPage() {
 		}
 	}
 
+	const _hasValue = (value: number | null | undefined): value is number => {
+		return value !== null && typeof value !== "undefined" && value > 0
+	}
+
 	if (loading) {
 		return <ProductDetailsSkeleton />
 	}
 
 	if (!product) {
 		return null
-	}
-
-	const _hasValue = (value: number | null | undefined): value is number => {
-		return value !== null && typeof value !== "undefined" && value > 0
 	}
 
 	return (
@@ -244,7 +264,7 @@ export default function ProdutoDetalhesPage() {
 			{/* Grid: Imagem + Stats + Info + Estoque */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 				{/* Coluna Esquerda: Imagem do Produto */}
-				{product.barcode && (
+				{((product.barcodes && product.barcodes.length > 0) || product.barcode) && (
 					<Card className="flex flex-col">
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base flex items-center gap-2">
@@ -255,7 +275,11 @@ export default function ProdutoDetalhesPage() {
 						<CardContent className="flex-1 flex items-center justify-center">
 							<div className="flex justify-center items-center w-full h-full">
 								<Image
-									src={`https://cdn-cosmos.bluesoft.com.br/products/${product.barcode}`}
+									src={`https://cdn-cosmos.bluesoft.com.br/products/${
+										product.barcodes && product.barcodes.length > 0
+											? (product.barcodes.find((b: any) => b.isPrimary) || product.barcodes[0]).barcode
+											: product.barcode
+									}`}
 									alt={product.name}
 									width={400}
 									height={400}
@@ -369,9 +393,13 @@ export default function ProdutoDetalhesPage() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							<div className="grid grid-cols-2 gap-3 text-sm">
-								<div>
-									<p className="text-xs text-gray-600 dark:text-gray-400">Código de Barras</p>
-									<p className="font-medium">{product.barcode || "N/A"}</p>
+								<div className="col-span-2">
+									<p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Código(s) de Barras</p>
+									<BarcodeListDisplay
+										barcodes={product.barcodes || []}
+										variant="full"
+										showCount={true}
+									/>
 								</div>
 								<div>
 									<p className="text-xs text-gray-600 dark:text-gray-400">Unidade</p>
@@ -1809,6 +1837,21 @@ export default function ProdutoDetalhesPage() {
 						</CardContent>
 					</Card>
 				)}
+
+			{/* Dialog para adicionar código de barras */}
+			{product && (
+				<AddBarcodeDialog
+					isOpen={showAddBarcodeDialog}
+					onClose={() => setShowAddBarcodeDialog(false)}
+					productId={productId}
+					productName={product.name}
+					initialBarcode={initialBarcodeValue}
+					onSuccess={() => {
+						fetchProductDetails()
+						toast.success("Produto atualizado!")
+					}}
+				/>
+			)}
 		</div>
 	)
 }

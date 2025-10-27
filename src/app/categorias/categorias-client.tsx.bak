@@ -244,15 +244,6 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 									<EmptyDescription>Nenhuma categoria corresponde aos filtros aplicados</EmptyDescription>
 								</EmptyHeader>
 								<EmptyContent>
-									<div className="flex flex-col sm:flex-row gap-2">
-										{state.search && (
-											<Link href={`/categorias/nova?name=${encodeURIComponent(String(state.search))}`}>
-												<Button>
-													<Plus className="mr-2 h-4 w-4" />
-													Cadastrar Categoria "{state.search}"
-												</Button>
-											</Link>
-										)}
 									<Button
 										variant="outline"
 										onClick={() => {

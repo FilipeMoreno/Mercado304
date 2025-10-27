@@ -13,6 +13,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
 			include: {
 				brand: true,
 				category: true,
+				barcodes: {
+					orderBy: {
+						isPrimary: "desc",
+					},
+				},
 			},
 		})
 

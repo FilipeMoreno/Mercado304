@@ -14,6 +14,7 @@ export interface SelectedProduct {
 	quantity: number
 	unit?: string
 	brand?: string
+	packageSize?: string
 }
 
 interface ProductSelectorProps {
@@ -47,6 +48,7 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds:
 					quantity: 1,
 					unit: product.unit,
 					brand: product.brand?.name,
+				packageSize: product.packageSize,
 				},
 			])
 
@@ -84,7 +86,12 @@ export function ProductSelector({ selectedProducts, onChange, excludeProductIds:
 								<div className="flex items-center gap-3">
 									<div className="flex-1">
 										<p className="font-medium">{product.productName}</p>
-										{product.brand && (
+								{product.packageSize && (
+									<p className="text-sm text-muted-foreground mt-0.5">
+										{product.packageSize}
+									</p>
+								)}
+								{product.brand && (
 											<Badge variant="outline" className="text-xs mt-1">
 												{product.brand}
 											</Badge>

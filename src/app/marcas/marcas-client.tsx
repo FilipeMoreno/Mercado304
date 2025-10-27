@@ -205,15 +205,25 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 									<EmptyDescription>Nenhuma marca corresponde aos filtros aplicados</EmptyDescription>
 								</EmptyHeader>
 								<EmptyContent>
-									<Button
-										variant="outline"
-										onClick={() => {
-											setSearchValue("") // Reset o input local
-											clearFilters()
-										}}
-									>
-										Limpar Filtros
-									</Button>
+									<div className="flex flex-col sm:flex-row gap-2">
+										{state.search && (
+											<Link href={`/marcas/nova?name=${encodeURIComponent(String(state.search))}`}>
+												<Button>
+													<Plus className="mr-2 h-4 w-4" />
+													Cadastrar Marca "{state.search}"
+												</Button>
+											</Link>
+										)}
+										<Button
+											variant="outline"
+											onClick={() => {
+												setSearchValue("") // Reset o input local
+												clearFilters()
+											}}
+										>
+											Limpar Filtros
+										</Button>
+									</div>
 								</EmptyContent>
 							</Empty>
 						) : (
@@ -258,8 +268,8 @@ export function MarcasClient({ searchParams }: MarcasClientProps) {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: index * 0.05 }}
 									>
-										<BrandCardMemo 
-											brand={brand} 
+										<BrandCardMemo
+											brand={brand}
 											onDelete={openDeleteConfirm}
 											onEdit={(brand) => router.push(`/marcas/${brand.id}/editar`)}
 										/>

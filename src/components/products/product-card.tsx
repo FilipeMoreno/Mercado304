@@ -15,6 +15,10 @@ interface ProductCardProps {
 }
 
 export const ProductCard = React.memo(function ProductCard({ product, onDelete }: ProductCardProps) {
+	// Obter código de barras primário
+	const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
+	const barcode = primaryBarcode?.barcode || product.barcode
+
 	return (
 		<Card className="group hover:shadow-lg transition-all duration-200 h-full flex flex-col">
 			<CardHeader className="pb-3">
@@ -64,10 +68,10 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 								{product.unit}
 							</Badge>
 						)}
-						{product.barcode && (
+						{barcode && (
 							<Badge variant="outline" className="w-fit flex items-center gap-1">
 								<Barcode className="h-3 w-3" />
-								{product.barcode}
+								{barcode}
 							</Badge>
 						)}
 					</div>

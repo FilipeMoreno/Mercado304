@@ -2,8 +2,8 @@
 
 import { ArrowLeft, Save, X } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,11 +13,23 @@ import { useCreateBrandMutation } from "@/hooks"
 
 export default function NovaMarcaPage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const createBrandMutation = useCreateBrandMutation()
 
 	const [formData, setFormData] = useState({
 		name: "",
 	})
+
+	// Auto-preencher com parâmetro da URL
+	useEffect(() => {
+		const nameParam = searchParams.get("name")
+		if (nameParam) {
+			setFormData((prev) => ({
+				...prev,
+				name: nameParam,
+			}))
+		}
+	}, [searchParams])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()

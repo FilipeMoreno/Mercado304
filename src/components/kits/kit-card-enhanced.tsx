@@ -133,7 +133,14 @@ export function KitCardEnhanced({ kit, onEdit, onDelete }: KitCardEnhancedProps)
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="font-medium text-primary">{item.quantity}x</span>
-                  <span className="truncate">{item.product.name}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate">{item.product.name}</span>
+                    {item.product.packageSize && (
+                      <span className="text-xs text-muted-foreground">
+                        {item.product.packageSize}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {item.product.brand && (
                   <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">

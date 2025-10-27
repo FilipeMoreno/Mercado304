@@ -18,7 +18,10 @@ export async function GET(request: Request) {
 		const where: any = {}
 
 		if (search) {
-			where.OR = [{ name: { contains: search, mode: "insensitive" } }, { barcode: { contains: search } }]
+			where.OR = [
+				{ name: { contains: search, mode: "insensitive" } },
+				{ barcodes: { some: { barcode: { contains: search } } } },
+			]
 		}
 
 		if (category && category !== "all") {
@@ -46,6 +49,7 @@ export async function GET(request: Request) {
 		const includeConfig: any = {
 			brand: true,
 			category: true,
+			barcodes: true,
 		}
 
 		if (include.includes("nutritionalInfo")) {
@@ -85,6 +89,7 @@ export async function POST(request: Request) {
 		const {
 			name,
 			barcode,
+			barcodes,
 			categoryId,
 			brandId,
 			unit,
@@ -101,27 +106,52 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
 		}
 
-		// Verificar se o código de barras já existe
-		if (barcode) {
-			const existingProduct = await prisma.product.findUnique({
-				where: { barcode },
-				select: { id: true, name: true },
-			})
+		// Verificar se algum código de barras já existe na nova tabela
+		const allBarcodes = barcodes || (barcode ? [barcode] : [])
 
-			if (existingProduct) {
-				return NextResponse.json(
-					{
-						error: `Código de barras já cadastrado para o produto: ${existingProduct.name}`,
-					},
-					{ status: 409 },
-				)
+		if (allBarcodes.length > 0) {
+			for (const barcodeValue of allBarcodes) {
+				if (!barcodeValue) continue
+
+				const existingBarcode = await prisma.productBarcode.findUnique({
+					where: { barcode: barcodeValue },
+					include: { product: true },
+				})
+
+				if (existingBarcode) {
+					return NextResponse.json(
+						{
+							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingBarcode.product.name}`,
+						},
+						{ status: 409 },
+					)
+				}
+			}
+
+			// Fallback: verificar no campo barcode antigo (compatibilidade)
+			for (const barcodeValue of allBarcodes) {
+				if (!barcodeValue) continue
+
+				const existingProduct = await prisma.product.findUnique({
+					where: { barcode: barcodeValue },
+					select: { id: true, name: true },
+				})
+
+				if (existingProduct) {
+					return NextResponse.json(
+						{
+							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingProduct.name}`,
+						},
+						{ status: 409 },
+					)
+				}
 			}
 		}
 
 		const product = await prisma.product.create({
 			data: {
 				name,
-				barcode: barcode || null,
+				barcode: barcode || null, // Manter para compatibilidade
 				categoryId: categoryId || null,
 				brandId: brandId || null,
 				unit: unit || "unidade",
@@ -136,11 +166,19 @@ export async function POST(request: Request) {
 						create: nutritionalInfo,
 					},
 				}),
+				// Criar registros de barcode na nova tabela
+				barcodes: {
+					create: allBarcodes.map((barcodeValue: string, index: number) => ({
+						barcode: barcodeValue,
+						isPrimary: index === 0, // Primeiro é o principal
+					})),
+				},
 			},
 			include: {
 				brand: true,
 				category: true,
 				nutritionalInfo: true,
+				barcodes: true,
 			},
 		})
 

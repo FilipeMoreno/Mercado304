@@ -81,8 +81,12 @@ export function ProductSelectDialog({
       if (product.packageSize) {
         parts.push(product.packageSize)
       }
-      if (product.barcode) {
-        parts.push(product.barcode)
+
+      // Usar código de barras primário da nova tabela
+      const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
+      const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
+      if (barcode) {
+        parts.push(barcode)
       }
 
       return {

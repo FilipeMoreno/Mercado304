@@ -2,8 +2,8 @@
 
 import { ArrowLeft, Save, Store } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useId, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useId, useState, useEffect } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,7 @@ import { useCreateMarketMutation } from "@/hooks"
 
 export default function NovoMercadoPage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const createMarketMutation = useCreateMarketMutation()
 	const nameId = useId()
 	const legalNameId = useId()
@@ -23,6 +24,17 @@ export default function NovoMercadoPage() {
 		legalName: "",
 		location: "",
 	})
+
+	// Auto-preencher com parâmetro da URL
+	useEffect(() => {
+		const nameParam = searchParams.get("name")
+		if (nameParam) {
+			setFormData((prev) => ({
+				...prev,
+				name: nameParam,
+			}))
+		}
+	}, [searchParams])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
