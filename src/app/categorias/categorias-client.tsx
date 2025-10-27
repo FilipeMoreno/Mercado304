@@ -262,6 +262,7 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 									>
 										Limpar Filtros
 									</Button>
+									</div>
 								</EmptyContent>
 							</Empty>
 						) : (

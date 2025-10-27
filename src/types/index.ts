@@ -30,6 +30,12 @@ export interface Category {
 	updatedAt: Date
 }
 
+export interface Barcode {
+	id: string
+	barcode: string
+	isPrimary: boolean
+}
+
 export interface Product {
 	id: string
 	name: string
@@ -50,6 +56,7 @@ export interface Product {
 	category?: Category
 	brand?: Brand
 	nutritionalInfo?: NutritionalInfo
+	barcodes?: Barcode[]
 }
 
 export interface Purchase {
