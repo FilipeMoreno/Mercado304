@@ -318,8 +318,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 								className="w-full"
 							/>
 							<Button type="button" variant="outline" onClick={addOptionalFields} disabled={fieldsToAdd.length === 0}>
-								<Plus className="h-4 w-4 mr-2" />
-								Adicionar
+								<Plus className="h-4 w-4" />
 							</Button>
 						</div>
 					</div>

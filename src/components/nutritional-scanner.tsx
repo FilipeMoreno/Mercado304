@@ -1,24 +1,26 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Camera, Loader2, ScanLine, Upload } from "lucide-react"
+import { Camera, Loader2, Minimize2, ScanLine, Upload } from "lucide-react"
+import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MinimizedDialog } from "@/components/ui/minimized-dialog"
 
 interface NutritionalScannerProps {
-	onScanComplete: (response: any) => void
+	onScanComplete: (response: unknown) => void
 	onClose: () => void
 }
 
-type ProcessingStep = 
-	| 'capturing' 
-	| 'reading_image' 
-	| 'extracting_text' 
-	| 'identifying_nutrition' 
-	| 'analyzing_ingredients' 
-	| 'calculating_values' 
-	| 'finalizing'
+type ProcessingStep =
+	| "capturing"
+	| "reading_image"
+	| "extracting_text"
+	| "identifying_nutrition"
+	| "analyzing_ingredients"
+	| "calculating_values"
+	| "finalizing"
 
 const processingSteps: Record<ProcessingStep, string> = {
 	capturing: "🔍 Capturando imagem...",
@@ -27,7 +29,7 @@ const processingSteps: Record<ProcessingStep, string> = {
 	identifying_nutrition: "🥗 Identificando nutrientes...",
 	analyzing_ingredients: "🧪 Analisando ingredientes...",
 	calculating_values: "📊 Calculando valores nutricionais...",
-	finalizing: "✅ Finalizando análise nutricional..."
+	finalizing: "✅ Finalizando análise nutricional...",
 }
 
 export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScannerProps) {
@@ -38,11 +40,19 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
-	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
+	const [currentStep, setCurrentStep] = useState<ProcessingStep>("capturing")
+	const [isMinimized, setIsMinimized] = useState(false)
+
+	// Debug: Monitorar mudanças no estado de processamento
+	useEffect(() => {
+		console.log("🔄 NutritionalScanner: Estado isProcessing mudou para:", isProcessing)
+	}, [isProcessing])
 
 	const stopCamera = useCallback(() => {
 		if (stream) {
-			stream.getTracks().forEach((track) => track.stop())
+			stream.getTracks().forEach((track) => {
+				track.stop()
+			})
 			setStream(null)
 		}
 	}, [stream])
@@ -73,35 +83,55 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 		return () => {
 			stopCamera()
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [startCamera, stopCamera])
+
+	// Funções para minimização
+	const handleMinimize = () => {
+		setIsMinimized(true)
+	}
+
+	const handleMaximize = () => {
+		setIsMinimized(false)
+	}
+
+	const handleClose = () => {
+		setIsMinimized(false)
+		onClose()
+	}
 
 	const processImage = async (dataUrl: string) => {
+		console.log("🔄 NutritionalScanner: Iniciando processamento da imagem")
 		setCapturedImage(dataUrl)
 		setIsProcessing(true)
 		stopCamera()
 
 		try {
 			// Etapa 1: Processando imagem
-			setCurrentStep('reading_image')
-			await new Promise(resolve => setTimeout(resolve, 800))
+			console.log("📖 Etapa 1: Lendo imagem")
+			setCurrentStep("reading_image")
+			await new Promise((resolve) => setTimeout(resolve, 800))
 
 			// Etapa 2: Extraindo texto
-			setCurrentStep('extracting_text')
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			console.log("📝 Etapa 2: Extraindo texto")
+			setCurrentStep("extracting_text")
+			await new Promise((resolve) => setTimeout(resolve, 1000))
 
 			// Etapa 3: Identificando nutrição
-			setCurrentStep('identifying_nutrition')
-			await new Promise(resolve => setTimeout(resolve, 1200))
+			console.log("🥗 Etapa 3: Identificando nutrição")
+			setCurrentStep("identifying_nutrition")
+			await new Promise((resolve) => setTimeout(resolve, 1200))
 
 			// Etapa 4: Analisando ingredientes
-			setCurrentStep('analyzing_ingredients')
-			await new Promise(resolve => setTimeout(resolve, 900))
+			console.log("🧪 Etapa 4: Analisando ingredientes")
+			setCurrentStep("analyzing_ingredients")
+			await new Promise((resolve) => setTimeout(resolve, 900))
 
 			// Etapa 5: Calculando valores
-			setCurrentStep('calculating_values')
-			await new Promise(resolve => setTimeout(resolve, 700))
+			console.log("📊 Etapa 5: Calculando valores")
+			setCurrentStep("calculating_values")
+			await new Promise((resolve) => setTimeout(resolve, 700))
 
+			console.log("🌐 Chamando API de OCR")
 			const response = await fetch("/api/ocr/scan", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -114,17 +144,23 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			}
 
 			// Etapa 6: Finalizando
-			setCurrentStep('finalizing')
-			await new Promise(resolve => setTimeout(resolve, 500))
+			console.log("✅ Etapa 6: Finalizando")
+			setCurrentStep("finalizing")
+			await new Promise((resolve) => setTimeout(resolve, 500))
 
 			const result = await response.json()
+			console.log("🎉 NutritionalScanner: Processamento concluído com sucesso")
 			onScanComplete(result)
 		} catch (error) {
-			console.error("Erro ao chamar a API de OCR:", error)
+			console.error("❌ Erro ao chamar a API de OCR:", error)
+			setError(error instanceof Error ? error.message : "Erro desconhecido")
 		} finally {
-			// Reset do estado quando terminar
+			// Reset do estado quando terminar - SEMPRE executa
+			console.log("🔄 NutritionalScanner: Finalizando processamento, resetando estados")
+			console.log("🔄 NutritionalScanner: isMinimized:", isMinimized)
 			setIsProcessing(false)
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
+			console.log("🔄 NutritionalScanner: Estados resetados")
 		}
 	}
 
@@ -138,14 +174,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
 			const dataUrl = canvas.toDataURL("image/png")
-			setCurrentStep('capturing')
+			setCurrentStep("capturing")
 			await processImage(dataUrl)
 		}
 	}
 
 	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
-		if (file && file.type.startsWith('image/')) {
+		if (file?.type.startsWith("image/")) {
 			const reader = new FileReader()
 			reader.onload = async (e) => {
 				const dataUrl = e.target?.result as string
@@ -160,19 +196,37 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 	}
 
 	return (
-		<>
+		<MinimizedDialog
+			isMinimized={isMinimized}
+			onMinimize={handleMinimize}
+			onMaximize={handleMaximize}
+			onClose={handleClose}
+			title="Scanner Nutricional"
+			isLoading={isProcessing}
+		>
 			<DialogHeader>
-				<DialogTitle className="flex items-center gap-2">
-					<ScanLine className="h-5 w-5" />
-					Escanear Rótulo Nutricional
-				</DialogTitle>
+				<div className="flex items-center justify-between">
+					<DialogTitle className="flex items-center gap-2">
+						<ScanLine className="h-5 w-5" />
+						Escanear Rótulo Nutricional
+					</DialogTitle>
+					<Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleMinimize} title="Minimizar">
+						<Minimize2 className="h-3 w-3" />
+					</Button>
+				</div>
 			</DialogHeader>
 
 			<div className="w-full h-96 bg-black rounded-lg overflow-hidden relative flex items-center justify-center">
 				{isProcessing && capturedImage ? (
 					// Ecrã de processamento com a imagem e animação
 					<div className="relative w-full h-full">
-						<img src={capturedImage} alt="Rótulo capturado" className="w-full h-full object-cover" />
+						<Image
+							src={capturedImage}
+							alt="Rótulo capturado"
+							width={400}
+							height={384}
+							className="w-full h-full object-cover"
+						/>
 						<div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
 							{/* Animação da linha de scanner */}
 							<motion.div
@@ -192,7 +246,9 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 				) : (
 					// Vista da câmara
 					<>
-						<video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
+						<video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover">
+							<track kind="captions" />
+						</video>
 						<canvas ref={canvasRef} className="hidden"></canvas>
 						<div className="absolute inset-0 border-4 border-dashed border-white/50 rounded-lg m-4"></div>
 						{error && (
@@ -214,13 +270,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 					Carregar
 				</Button>
 			</div>
-			<input
-				ref={fileInputRef}
-				type="file"
-				accept="image/*"
-				onChange={handleFileUpload}
-				className="hidden"
-			/>
-		</>
+			<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+		</MinimizedDialog>
 	)
 }
