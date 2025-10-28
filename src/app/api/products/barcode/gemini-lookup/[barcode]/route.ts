@@ -83,7 +83,7 @@ Retorne APENAS um JSON válido com a seguinte estrutura:
 Se não encontrar o produto nas suas bases de dados, retorne productFound: false e tente deduzir o máximo possível apenas pelo código de barras.`
 
 		// Chamar Gemini
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 		const result = await model.generateContent(prompt)
 		const response = result.response
 		const text = response.text()
@@ -147,7 +147,7 @@ Se não encontrar o produto nas suas bases de dados, retorne productFound: false
 			},
 			metadata: {
 				source: "gemini-ai",
-				model: "gemini-1.5-flash",
+				model: "gemini-2.5-flash",
 				timestamp: new Date().toISOString(),
 			}
 		})

@@ -525,11 +525,12 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 			<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
 				<SyncStatusIndicator collapsed={collapsed} />
 				<UserNav collapsed={collapsed} />
-				{!collapsed && (
-					<div className="text-center text-xs text-muted-foreground/50 pt-2 border-t border-border/50">
-						v{APP_VERSION}
+		
+				<div className="flex items-center justify-center">
+						<Badge variant="outline" className="font-normal text-muted-foreground">
+							v{APP_VERSION}
+						</Badge>
 					</div>
-				)}
 			</div>
 		</div>
 	)

@@ -6,7 +6,6 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Sidebar } from "@/components/sidebar"
-import { cn } from "@/lib/utils"
 import { AiAssistantChat } from "./ai-assistant-chat"
 import { OfflineIndicator, OfflineStatusBar } from "./offline-indicator"
 import { OfflineSyncManager } from "./offline-sync-manager"
@@ -50,10 +49,10 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 		<AuthGuard>
 			<div className="flex h-screen bg-accent">
 				<Sidebar />
-				<main ref={mainRef} className="flex-1 p-2 ml-0 md:ml-0 overflow-y-auto custom-scrollbar">
-					<div
-						className="bg-background rounded-xl p-4 md:p-6 min-h-full"
-					>
+				<main ref={mainRef} className="flex-1 ml-0 md:ml-0 overflow-y-auto custom-scrollbar">
+						<div
+								className="bg-background rounded-xl p-4 md:p-6 min-h-full"
+						>
 						<div className="pb-6">{children}</div>
 						<ReactQueryDevtools initialIsOpen={false} />
 					</div>

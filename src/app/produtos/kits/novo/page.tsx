@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ProductSelector, type SelectedProduct } from "@/components/kits/product-selector"
+import { BarcodeManager } from "@/components/products/barcode-manager"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
 import { CategorySelect } from "@/components/selects/category-select"
@@ -16,8 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { useUIPreferences } from "@/hooks"
-import { useCreateProductKitMutation, useCreateProductMutation } from "@/hooks/use-react-query"
+import { useCreateProductKitMutation, useCreateProductMutation, useUIPreferences } from "@/hooks"
 
 export default function NewProductKitPage() {
 	const router = useRouter()
@@ -27,7 +27,7 @@ export default function NewProductKitPage() {
 
 	const [kitName, setKitName] = useState("")
 	const [kitDescription, setKitDescription] = useState("")
-	const [kitBarcode, setKitBarcode] = useState("")
+	const [kitBarcodes, setKitBarcodes] = useState<string[]>([])
 	const [kitBrandId, setKitBrandId] = useState<string>("")
 	const [kitCategoryId, setKitCategoryId] = useState<string>("")
 	const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
@@ -55,6 +55,11 @@ export default function NewProductKitPage() {
 				name: kitName,
 				unit: "kit",
 				hasStock: false, // Kits don't have direct stock
+				brandId: kitBrandId || undefined,
+				categoryId: kitCategoryId || undefined,
+				barcode: kitBarcodes.length > 0 ? kitBarcodes[0] : undefined,
+				barcodes: kitBarcodes.length > 0 ? kitBarcodes : undefined,
+				packageSize: undefined, // Kits não têm peso/volume específico
 			})
 
 			console.log("Kit Product Response:", kitProductResponse)
@@ -73,7 +78,7 @@ export default function NewProductKitPage() {
 			const kitResponse = await createKitMutation.mutateAsync({
 				kitProductId,
 				description: kitDescription || undefined,
-				barcode: kitBarcode || undefined,
+				barcode: kitBarcodes.length > 0 ? kitBarcodes[0] : undefined,
 				brandId: kitBrandId || undefined,
 				categoryId: kitCategoryId || undefined,
 				items: selectedProducts.map((p) => ({
@@ -158,13 +163,17 @@ export default function NewProductKitPage() {
 						<Separator />
 
 						<div className="space-y-2">
-							<Label>Código de Barras (Opcional)</Label>
-							<Input
-								placeholder="Ex: 7891234567890"
-								value={kitBarcode}
-								onChange={(e) => setKitBarcode(e.target.value)}
+							<BarcodeManager
+								initialBarcodes={kitBarcodes.map((barcode) => ({
+									id: Math.random().toString(),
+									barcode,
+									isPrimary: false,
+								}))}
+								onBarcodesChange={(codes) => {
+									setKitBarcodes(codes)
+								}}
 							/>
-							<p className="text-xs text-muted-foreground">Código de barras específico do kit, se houver</p>
+							<p className="text-xs text-muted-foreground">Código(s) de barras específico(s) do kit, se houver</p>
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">

@@ -4,7 +4,6 @@ import { Camera, Plus, Sparkles, Star, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
-import { BarcodeAutofillDialog } from "@/components/products/barcode-autofill-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,15 +18,14 @@ interface BarcodeManagerProps {
 	productId?: string
 	initialBarcodes?: Barcode[]
 	onBarcodesChange?: (barcodes: string[]) => void
+	onBarcodeLookup?: (barcode: string) => void // Callback para buscar informações do produto
 }
 
-export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChange }: BarcodeManagerProps) {
+export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChange, onBarcodeLookup }: BarcodeManagerProps) {
 	const [barcodes, setBarcodes] = useState<Barcode[]>(initialBarcodes)
 	const [newBarcode, setNewBarcode] = useState("")
 	const [showScanner, setShowScanner] = useState(false)
 	const [isAdding, setIsAdding] = useState(false)
-	const [showAutofillDialog, setShowAutofillDialog] = useState(false)
-	const [barcodeForLookup, setBarcodeForLookup] = useState("")
 
 	const addBarcode = async (barcode: string) => {
 		if (!barcode || !barcode.trim()) return
@@ -157,13 +155,8 @@ export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChan
 
 	const handleLookupBarcode = () => {
 		if (!newBarcode) return
-		setBarcodeForLookup(newBarcode)
-		setShowAutofillDialog(true)
-	}
-
-	const handleAutofillSuccess = () => {
-		setShowAutofillDialog(false)
-		toast.success("Informações do produto preenchidas!")
+		// Chamar callback externo para buscar informações
+		onBarcodeLookup?.(newBarcode)
 	}
 
 	return (
@@ -255,12 +248,6 @@ export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChan
 				<BarcodeScanner isOpen={showScanner} onScan={handleBarcodeScanned} onClose={() => setShowScanner(false)} />
 			)}
 
-			<BarcodeAutofillDialog
-				open={showAutofillDialog}
-				barcode={barcodeForLookup}
-				onOpenChange={setShowAutofillDialog}
-				onApply={handleAutofillSuccess}
-			/>
 		</div>
 	)
 }

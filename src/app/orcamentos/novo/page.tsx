@@ -1,26 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select"
 import { ArrowLeft, Calculator, Loader2, Sparkles } from "lucide-react"
-import { useCreateBudgetMutation } from "@/hooks/use-react-query"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
 import { CategorySelect } from "@/components/selects/category-select"
 import { MarketSelect } from "@/components/selects/market-select"
 import { ProductSelect } from "@/components/selects/product-select"
-import { BudgetType } from "@/types"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useCreateBudgetMutation } from "@/hooks/use-react-query"
 import { formatCurrency } from "@/lib/utils"
-import { toast } from "sonner"
+import type { BudgetType } from "@/types"
 
 export default function NewBudgetPage() {
 	const router = useRouter()
@@ -80,7 +74,7 @@ export default function NewBudgetPage() {
 			})
 
 			router.push("/orcamentos")
-		} catch (error) {
+		} catch (_error) {
 			// Error handled by mutation
 		}
 	}
@@ -135,15 +129,10 @@ export default function NewBudgetPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="max-w-3xl mx-auto">
+			<div className="w-full mx-auto">
 				{/* Header */}
 				<div className="mb-8">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => router.back()}
-						className="mb-4 -ml-2"
-					>
+					<Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4 -ml-2">
 						<ArrowLeft className="h-4 w-4 mr-2" />
 						Voltar
 					</Button>
@@ -153,9 +142,7 @@ export default function NewBudgetPage() {
 						</div>
 						<div>
 							<h1 className="text-3xl font-bold tracking-tight">Novo Orçamento</h1>
-							<p className="text-muted-foreground mt-1">
-								Defina um limite de gastos para controlar suas finanças
-							</p>
+							<p className="text-muted-foreground mt-1">Defina um limite de gastos para controlar suas finanças</p>
 						</div>
 					</div>
 				</div>
@@ -207,9 +194,7 @@ export default function NewBudgetPage() {
 							<Label htmlFor="type">Tipo de Controle</Label>
 							<Select
 								value={formData.type}
-								onValueChange={(value) =>
-									setFormData({ ...formData, type: value as BudgetType, targetId: "" })
-								}
+								onValueChange={(value) => setFormData({ ...formData, type: value as BudgetType, targetId: "" })}
 							>
 								<SelectTrigger className="h-11">
 									<SelectValue placeholder="Selecione como quer controlar" />
@@ -218,25 +203,19 @@ export default function NewBudgetPage() {
 									<SelectItem value="CATEGORY">
 										<div className="flex flex-col items-start py-1">
 											<span className="font-medium">Por Categoria</span>
-											<span className="text-xs text-muted-foreground">
-												Controle gastos de toda uma categoria
-											</span>
+											<span className="text-xs text-muted-foreground">Controle gastos de toda uma categoria</span>
 										</div>
 									</SelectItem>
 									<SelectItem value="MARKET">
 										<div className="flex flex-col items-start py-1">
 											<span className="font-medium">Por Mercado</span>
-											<span className="text-xs text-muted-foreground">
-												Controle gastos em um mercado específico
-											</span>
+											<span className="text-xs text-muted-foreground">Controle gastos em um mercado específico</span>
 										</div>
 									</SelectItem>
 									<SelectItem value="PRODUCT">
 										<div className="flex flex-col items-start py-1">
 											<span className="font-medium">Por Produto</span>
-											<span className="text-xs text-muted-foreground">
-												Controle gastos com um produto específico
-											</span>
+											<span className="text-xs text-muted-foreground">Controle gastos com um produto específico</span>
 										</div>
 									</SelectItem>
 								</SelectContent>
@@ -263,9 +242,7 @@ export default function NewBudgetPage() {
 						<div className="space-y-2">
 							<Label htmlFor="limit">Valor Limite (R$)</Label>
 							<div className="relative">
-								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-									R$
-								</span>
+								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">R$</span>
 								<Input
 									id="limit"
 									type="number"
@@ -314,10 +291,7 @@ export default function NewBudgetPage() {
 						{/* Alerta */}
 						<div className="space-y-2">
 							<Label htmlFor="alertAt">Receber Alerta Quando Atingir</Label>
-							<Select
-								value={formData.alertAt}
-								onValueChange={(value) => setFormData({ ...formData, alertAt: value })}
-							>
+							<Select value={formData.alertAt} onValueChange={(value) => setFormData({ ...formData, alertAt: value })}>
 								<SelectTrigger className="h-11">
 									<SelectValue />
 								</SelectTrigger>
@@ -330,29 +304,18 @@ export default function NewBudgetPage() {
 							</Select>
 							<p className="text-sm text-muted-foreground">
 								Você será alertado ao atingir{" "}
-								<span className="font-medium text-foreground">
-									{Number.parseFloat(formData.alertAt) * 100}%
-								</span>{" "}
-								do valor limite
+								<span className="font-medium text-foreground">{Number.parseFloat(formData.alertAt) * 100}%</span> do
+								valor limite
 							</p>
 						</div>
 					</div>
 
 					{/* Actions */}
 					<div className="flex gap-3 pt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => router.back()}
-							className="flex-1 h-11"
-						>
+						<Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 h-11">
 							Cancelar
 						</Button>
-						<Button
-							type="submit"
-							className="flex-1 h-11"
-							disabled={createMutation.isPending}
-						>
+						<Button type="submit" className="flex-1 h-11" disabled={createMutation.isPending}>
 							{createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
 							Criar Orçamento
 						</Button>

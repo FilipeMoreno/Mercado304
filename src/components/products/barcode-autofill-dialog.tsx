@@ -16,6 +16,7 @@ interface BarcodeAutofillDialogProps {
 	onOpenChange: (open: boolean) => void
 	barcode: string
 	onApply: (data: AutofillData) => void
+	isLoading?: boolean // Nova prop para controlar loading externo
 }
 
 interface CosmosProduct {
@@ -57,7 +58,7 @@ interface BarcodeResponse {
 	}
 }
 
-export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: BarcodeAutofillDialogProps) {
+export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply, isLoading: externalLoading = false }: BarcodeAutofillDialogProps) {
 	const [loading, setLoading] = useState(false)
 	const [data, setData] = useState<BarcodeResponse | null>(null)
 	const [error, setError] = useState<string | null>(null)
@@ -81,19 +82,23 @@ export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: 
 	const fetchData = async () => {
 		if (!barcode || data) return
 
+		console.log("🔍 BarcodeAutofillDialog: Iniciando busca para barcode:", barcode)
 		setLoading(true)
 		setError(null)
 
 		try {
 			// Usar nova API do Gemini em vez da Cosmos (que tem limite de 25 req/dia)
 			const response = await fetch(`/api/products/barcode/gemini-lookup/${barcode}`)
+			console.log("📡 BarcodeAutofillDialog: Resposta da API:", response.status)
 
 			if (!response.ok) {
 				const errorData = await response.json()
+				console.error("❌ BarcodeAutofillDialog: Erro da API:", errorData)
 				throw new Error(errorData.error || "Erro ao buscar produto")
 			}
 
 			const result = await response.json()
+			console.log("✅ BarcodeAutofillDialog: Dados recebidos:", result)
 
 			// Converter resposta do Gemini para o formato esperado
 			const convertedResult: BarcodeResponse = {
@@ -147,7 +152,9 @@ export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: 
 
 	// Quando o dialog abre, buscar dados
 	const handleOpenChange = (isOpen: boolean) => {
+		console.log("🔄 BarcodeAutofillDialog: handleOpenChange chamado com:", { isOpen, barcode, hasData: !!data, isLoading: loading })
 		if (isOpen && !data && !loading) {
+			console.log("🚀 BarcodeAutofillDialog: Iniciando fetchData")
 			fetchData()
 		}
 		onOpenChange(isOpen)
@@ -201,19 +208,35 @@ export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: 
 					</span>
 				</div>
 
-				{loading && (
-					<div className="flex items-center justify-center py-8">
-						<Loader2 className="h-8 w-8 animate-spin text-primary" />
+				{/* Estado de Loading - Melhorado */}
+				{(loading || externalLoading) && (
+					<div className="flex flex-col items-center justify-center py-12 min-h-[300px]">
+						<Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+						<p className="text-lg font-medium text-muted-foreground mb-2">
+							Buscando dados do produto...
+						</p>
+						<p className="text-sm text-muted-foreground text-center max-w-md">
+							Nossa IA está analisando o código de barras <strong>{barcode}</strong> para encontrar informações do produto.
+						</p>
 					</div>
 				)}
 
-				{error && (
-					<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+				{/* Estado de Erro */}
+				{error && !loading && !externalLoading && (
+					<div className="bg-red-50 border border-red-200 rounded-lg p-6">
+						<div className="flex items-center gap-3 mb-2">
+							<X className="h-5 w-5 text-red-600" />
+							<h3 className="font-semibold text-red-800">Erro ao buscar produto</h3>
+						</div>
 						<p className="text-sm text-red-600">{error}</p>
+						<p className="text-xs text-red-500 mt-2">
+							Você pode tentar novamente ou preencher as informações manualmente.
+						</p>
 					</div>
 				)}
 
-				{data && !loading && (
+				{/* Estado de Dados Encontrados */}
+				{data && !loading && !externalLoading && (
 					<div className="space-y-6">
 						{/* Preview do Produto */}
 						<div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
@@ -369,13 +392,22 @@ export function BarcodeAutofillDialog({ open, onOpenChange, barcode, onApply }: 
 				)}
 
 				<DialogFooter>
-					<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+					<Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading || externalLoading}>
 						<X className="h-4 w-4 mr-2" />
 						Cancelar
 					</Button>
-					<Button type="button" onClick={handleApply} disabled={loading || !data}>
-						<Check className="h-4 w-4 mr-2" />
-						Aplicar Selecionados
+					<Button type="button" onClick={handleApply} disabled={loading || externalLoading || !data}>
+						{loading || externalLoading ? (
+							<>
+								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+								Processando...
+							</>
+						) : (
+							<>
+								<Check className="h-4 w-4 mr-2" />
+								Aplicar Selecionados
+							</>
+						)}
 					</Button>
 				</DialogFooter>
 			</div>

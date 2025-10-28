@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
@@ -83,7 +83,7 @@ export default function NovoProdutoPage() {
 	// Estados para barcode autofill
 	const [showAutofillDialog, setShowAutofillDialog] = useState(false)
 	const [barcodeForLookup, setBarcodeForLookup] = useState("")
-	const barcodeDebounceRef = useRef<NodeJS.Timeout | null>(null)
+	const [isLookingUpBarcode, setIsLookingUpBarcode] = useState(false)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -161,9 +161,10 @@ export default function NovoProdutoPage() {
 			const hasNutritionalData = Object.values(nutritionalData).some(
 				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
 			)
-			const dataToSubmit: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
+			const dataToSubmit: Omit<Product, "id" | "createdAt" | "updatedAt" | "barcodes"> & { barcodes?: string[] } = {
 				name: formData.name,
 				barcode: formData.barcode || undefined,
+				barcodes: barcodes.length > 0 ? barcodes : undefined,
 				categoryId: formData.categoryId || undefined,
 				brandId: formData.brandId || undefined,
 				unit: formData.unit,
@@ -216,10 +217,6 @@ export default function NovoProdutoPage() {
 		if (fieldErrors[name]) {
 			clearFieldError(name)
 		}
-
-		if (name === "barcode" && value) {
-			triggerBarcodeLookup(value)
-		}
 	}
 
 	const handleSelectChange = (name: string, value: string) => {
@@ -232,61 +229,52 @@ export default function NovoProdutoPage() {
 		setFormData((prev) => ({ ...prev, barcode }))
 		setBarcodes([barcode])
 		setShowBarcodeScanner(false)
-		triggerBarcodeLookup(barcode)
+		// Não disparar autofill automaticamente - usuário deve clicar no botão de IA
 	}
 
-	const triggerBarcodeLookup = useCallback((barcode: string) => {
-		if (barcodeDebounceRef.current) {
-			clearTimeout(barcodeDebounceRef.current)
-		}
-
+	const handleBarcodeLookup = useCallback(async (barcode: string) => {
 		const cleanBarcode = barcode.trim()
 		if (!/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/.test(cleanBarcode)) {
+			toast.error("Código de barras inválido. Use 8, 12, 13 ou 14 dígitos.")
 			return
 		}
 
-		barcodeDebounceRef.current = setTimeout(() => {
-			setBarcodeForLookup(cleanBarcode)
-			setShowAutofillDialog(true)
-		}, 1500)
+		setIsLookingUpBarcode(true)
+		setBarcodeForLookup(cleanBarcode)
+		setShowAutofillDialog(true)
 	}, [])
 
 	const handleAutofillApply = async (data: { name?: string; packageSize?: string; brandId?: string; shouldCreateBrand?: boolean; brandName?: string; categoryId?: string }) => {
 		try {
 			if (data.name && data.name.length > 0) {
-				setFormData((prev) => ({ ...prev, name: data.name! }))
+				setFormData((prev) => ({ ...prev, name: data.name }))
 			}
 
 			if (data.packageSize && data.packageSize.length > 0) {
-				setFormData((prev) => ({ ...prev, packageSize: data.packageSize! }))
+				setFormData((prev) => ({ ...prev, packageSize: data.packageSize }))
 			}
 
 			if (data.brandId && data.brandId.length > 0) {
-				setFormData((prev) => ({ ...prev, brandId: data.brandId! }))
+				setFormData((prev) => ({ ...prev, brandId: data.brandId }))
 			} else if (data.shouldCreateBrand && data.brandName && data.brandName.length > 0) {
 				const newBrand = await createBrandMutation.mutateAsync({
-					name: data.brandName!,
+					name: data.brandName,
 				})
 				setFormData((prev) => ({ ...prev, brandId: newBrand.id }))
 				toast.success(`Marca "${data.brandName}" criada automaticamente!`)
 			}
 
 			if (data.categoryId && data.categoryId.length > 0) {
-				setFormData((prev) => ({ ...prev, categoryId: data.categoryId! }))
+				setFormData((prev) => ({ ...prev, categoryId: data.categoryId }))
 			}
 		} catch (error) {
 			console.error("Erro ao aplicar autofill:", error)
 			toast.error("Erro ao preencher dados automaticamente")
+		} finally {
+			setIsLookingUpBarcode(false)
+			setShowAutofillDialog(false)
 		}
 	}
-
-	useEffect(() => {
-		return () => {
-			if (barcodeDebounceRef.current) {
-				clearTimeout(barcodeDebounceRef.current)
-			}
-		}
-	}, [])
 
 	const handleNutritionalScanComplete = (geminiResponse: unknown) => {
 		setIsScanning(true)
@@ -404,6 +392,7 @@ export default function NovoProdutoPage() {
 										setFormData((prev) => ({ ...prev, barcode: codes[0] }))
 									}
 								}}
+								onBarcodeLookup={handleBarcodeLookup}
 							/>
 						</div>
 
@@ -638,7 +627,7 @@ export default function NovoProdutoPage() {
 	}
 
 	return (
-		<div className="container max-w-4xl mx-auto px-4 py-6 space-y-8">
+		<div className="container w-full mx-auto px-4 py-6 space-y-8">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
@@ -684,6 +673,7 @@ export default function NovoProdutoPage() {
 				onOpenChange={setShowAutofillDialog}
 				barcode={barcodeForLookup}
 				onApply={handleAutofillApply}
+				isLoading={isLookingUpBarcode}
 			/>
 
 			<Dialog open={showNutritionalScanner} onOpenChange={setShowNutritionalScanner}>

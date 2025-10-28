@@ -30,10 +30,10 @@ import { AllergenIcons } from "@/components/allergen-icons"
 import { AnvisaWarnings } from "@/components/anvisa-warnings"
 import { BestDayToBuyCard } from "@/components/best-day-to-buy-card"
 import { NutritionAiAnalysis } from "@/components/nutrition-ai-analysis"
-import { AddBarcodeDialog } from "@/components/products/add-barcode-dialog"
-import { BarcodeListDisplay } from "@/components/products/barcode-list-display"
 import { ProductRecentPurchasesCard } from "@/components/product-recent-purchases-card"
 import { ProductWasteUsageCard } from "@/components/product-waste-usage-card"
+import { AddBarcodeDialog } from "@/components/products/add-barcode-dialog"
+import { BarcodeListDisplay } from "@/components/products/barcode-list-display"
 import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -264,8 +264,7 @@ export default function ProdutoDetalhesPage() {
 			{/* Grid: Imagem + Stats + Info + Estoque */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 				{/* Coluna Esquerda: Imagem do Produto */}
-				{((product.barcodes && product.barcodes.length > 0) || product.barcode) && (
-					<Card className="flex flex-col">
+				<Card className="flex flex-col">
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base flex items-center gap-2">
 								<ImageIcon className="h-4 w-4" />
@@ -274,35 +273,50 @@ export default function ProdutoDetalhesPage() {
 						</CardHeader>
 						<CardContent className="flex-1 flex items-center justify-center">
 							<div className="flex justify-center items-center w-full h-full">
-								<Image
-									src={`https://cdn-cosmos.bluesoft.com.br/products/${
-										product.barcodes && product.barcodes.length > 0
-											? (product.barcodes.find((b: any) => b.isPrimary) || product.barcodes[0]).barcode
-											: product.barcode
-									}`}
-									alt={product.name}
-									width={400}
-									height={400}
-									className="rounded-lg object-contain max-h-full"
-									unoptimized
-									onError={(e) => {
-										const target = e.target as HTMLImageElement
-										target.style.display = "none"
-										const parent = target.parentElement
-										if (parent) {
-											parent.innerHTML = `
-												<div class="w-full h-full min-h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-gray-400">
-													<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="13.5" x2="6" y1="13.5" y2="21"/><line x1="18" x2="21" y1="12" y2="15"/><path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"/><path d="M21 15V5a2 2 0 0 0-2-2H9"/></svg>
-													<p class="mt-2 text-sm">Imagem não disponível</p>
-												</div>
-											`
-										}
-									}}
-								/>
+								{(() => {
+									// Obter código de barra primário ou primeiro disponível
+									const primaryBarcode =
+										product.barcodes?.find((b: { isPrimary: boolean }) => b.isPrimary) || product.barcodes?.[0]
+									const barcode = primaryBarcode?.barcode || product.barcode
+
+									// Se não há código de barra, mostrar placeholder
+									if (!barcode) {
+										return (
+											<div className="w-full h-full min-h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-gray-400">
+												<ImageIcon className="h-16 w-16 mb-2" />
+												<p className="text-sm">Produto sem código de barra</p>
+											</div>
+										)
+									}
+
+									// Se há código de barra, tentar carregar a imagem
+									return (
+										<Image
+											src={`https://cdn-cosmos.bluesoft.com.br/products/${barcode}`}
+											alt={product.name}
+											width={400}
+											height={400}
+											className="rounded-lg object-contain max-h-full"
+											unoptimized
+											onError={(e) => {
+												const target = e.target as HTMLImageElement
+												target.style.display = "none"
+												const parent = target.parentElement
+												if (parent) {
+													parent.innerHTML = `
+														<div class="w-full h-full min-h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-gray-400">
+															<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="13.5" x2="6" y1="13.5" y2="21"/><line x1="18" x2="21" y1="12" y2="15"/><path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"/><path d="M21 15V5a2 2 0 0 0-2-2H9"/></svg>
+															<p class="mt-2 text-sm">Imagem não disponível</p>
+														</div>
+													`
+												}
+											}}
+										/>
+									)
+								})()}
 							</div>
 						</CardContent>
 					</Card>
-				)}
 
 				{/* Coluna Direita: Stats + Informações + Estoque */}
 				<div className="space-y-4">
@@ -395,11 +409,7 @@ export default function ProdutoDetalhesPage() {
 							<div className="grid grid-cols-2 gap-3 text-sm">
 								<div className="col-span-2">
 									<p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Código(s) de Barras</p>
-									<BarcodeListDisplay
-										barcodes={product.barcodes || []}
-										variant="full"
-										showCount={true}
-									/>
+									<BarcodeListDisplay barcodes={product.barcodes || []} variant="full" showCount={true} />
 								</div>
 								<div>
 									<p className="text-xs text-gray-600 dark:text-gray-400">Unidade</p>

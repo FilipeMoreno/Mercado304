@@ -150,7 +150,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
 		const recentPriceHistory = allPrices.filter((price) => new Date(price.date) >= threeMonthsAgo)
 
-		const priceHistoryByMarket = new Map()
+		const priceHistoryByMarket = new Map<string, { marketName: string; data: Map<string, { date: Date; prices: number[]; fullDate: Date }> }>()
 
 		recentPriceHistory.forEach((price) => {
 			const marketId = price.marketId
@@ -168,7 +168,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 				})
 			}
 
-			const marketData = priceHistoryByMarket.get(marketId)
+			const marketData = priceHistoryByMarket.get(marketId)!
 			if (!marketData.data.has(weekKey)) {
 				marketData.data.set(weekKey, {
 					date: date,
@@ -177,14 +177,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
 				})
 			}
 
-			marketData.data.get(weekKey).prices.push(price.price)
+			marketData.data.get(weekKey)?.prices.push(price.price)
 		})
 
-		const priceHistory: any[] = []
+		const priceHistory: Record<string, string | number>[] = []
 		const allWeeks = new Set<string>()
 
 		priceHistoryByMarket.forEach((marketData) => {
-			marketData.data.forEach((_weekData: any, weekKey: string) => {
+			marketData.data.forEach((_weekData, weekKey: string) => {
 				allWeeks.add(weekKey)
 			})
 		})
@@ -192,12 +192,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		Array.from(allWeeks)
 			.sort()
 			.forEach((weekKey) => {
-				const dataPoint: any = { week: "" }
+				const dataPoint: Record<string, string | number> = { week: "" }
 				let hasData = false
 
 				priceHistoryByMarket.forEach((marketData, _marketId) => {
 					if (marketData.data.has(weekKey)) {
-						const weekData = marketData.data.get(weekKey)
+						const weekData = marketData.data.get(weekKey)!
 						const averagePrice =
 							weekData.prices.reduce((sum: number, price: number) => sum + price, 0) / weekData.prices.length
 						dataPoint[marketData.marketName] = parseFloat(averagePrice.toFixed(2))
@@ -262,6 +262,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 			unit,
 			packageSize,
 			barcode,
+			barcodes,
 			hasStock,
 			minStock,
 			maxStock,
@@ -274,20 +275,45 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 			return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
 		}
 
-		// Verificar se o código de barras já existe em outro produto
-		if (barcode) {
-			const existingProduct = await prisma.product.findUnique({
-				where: { barcode },
-				select: { id: true, name: true },
-			})
+		// Verificar se algum código de barras já existe na nova tabela
+		const allBarcodes = barcodes || (barcode ? [barcode] : [])
 
-			if (existingProduct && existingProduct.id !== params.id) {
-				return NextResponse.json(
-					{
-						error: `Código de barras já cadastrado para o produto: ${existingProduct.name}`,
-					},
-					{ status: 409 },
-				)
+		if (allBarcodes.length > 0) {
+			for (const barcodeValue of allBarcodes) {
+				if (!barcodeValue) continue
+
+				const existingBarcode = await prisma.productBarcode.findUnique({
+					where: { barcode: barcodeValue },
+					include: { product: true },
+				})
+
+				if (existingBarcode && existingBarcode.product.id !== params.id) {
+					return NextResponse.json(
+						{
+							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingBarcode.product.name}`,
+						},
+						{ status: 409 },
+					)
+				}
+			}
+
+			// Fallback: verificar no campo barcode antigo (compatibilidade)
+			for (const barcodeValue of allBarcodes) {
+				if (!barcodeValue) continue
+
+				const existingProduct = await prisma.product.findUnique({
+					where: { barcode: barcodeValue },
+					select: { id: true, name: true },
+				})
+
+				if (existingProduct && existingProduct.id !== params.id) {
+					return NextResponse.json(
+						{
+							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingProduct.name}`,
+						},
+						{ status: 409 },
+					)
+				}
 			}
 		}
 		let cleanNutritionalInfoData = null
@@ -413,6 +439,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 			}
 		}
 
+		// Primeiro, remover todos os barcodes existentes
+		await prisma.productBarcode.deleteMany({
+			where: { productId: params.id },
+		})
+
 		const product = await prisma.product.update({
 			where: { id: params.id },
 			data: {
@@ -421,7 +452,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 				brandId: brandId || null,
 				unit: unit || "unidade",
 				packageSize: packageSize || null,
-				barcode: barcode || null,
+				barcode: barcode || null, // Manter para compatibilidade
 				hasStock,
 				minStock,
 				maxStock,
@@ -435,11 +466,19 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 						},
 					},
 				}),
+				// Recriar registros de barcode na nova tabela
+				barcodes: {
+					create: allBarcodes.map((barcodeValue: string, index: number) => ({
+						barcode: barcodeValue,
+						isPrimary: index === 0, // Primeiro é o principal
+					})),
+				},
 			},
 			include: {
 				brand: true,
 				category: true,
 				nutritionalInfo: true,
+				barcodes: true,
 			},
 		})
 

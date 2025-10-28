@@ -58,6 +58,7 @@ export default function EditarProdutoPage() {
 	})
 
 	const [nutritionalData, setNutritionalData] = useState<Partial<NutritionalInfo> | null>(null)
+	const [barcodes, setBarcodes] = useState<string[]>([])
 
 	// Estados para erros específicos de campos
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -160,6 +161,15 @@ export default function EditarProdutoPage() {
 				defaultShelfLifeDays: productData.defaultShelfLifeDays?.toString() || "",
 			})
 
+			// Carregar barcodes da nova tabela
+			if (productData.barcodes && productData.barcodes.length > 0) {
+				setBarcodes(productData.barcodes.map((b: { barcode: string }) => b.barcode))
+			} else if (productData.barcode) {
+				setBarcodes([productData.barcode])
+			} else {
+				setBarcodes([])
+			}
+
 			const nutritionRes = await fetch(`/api/products/${productId}/scan-nutrition`)
 			if (nutritionRes.ok) {
 				setNutritionalData(await nutritionRes.json())
@@ -197,6 +207,7 @@ export default function EditarProdutoPage() {
 			)
 			const dataToSubmit = {
 				...formData,
+				barcodes: barcodes.length > 0 ? barcodes : undefined,
 				minStock: formData.minStock ? parseFloat(formData.minStock) : null,
 				maxStock: formData.maxStock ? parseFloat(formData.maxStock) : null,
 				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : null,
@@ -238,7 +249,7 @@ export default function EditarProdutoPage() {
 	}
 
 	// --- FUNÇÃO ATUALIZADA ---
-	const handleNutritionalScanComplete = (geminiResponse: any) => {
+	const handleNutritionalScanComplete = (geminiResponse: unknown) => {
 		setIsScanning(true)
 		setShowNutritionalScanner(false)
 		try {
@@ -398,7 +409,14 @@ export default function EditarProdutoPage() {
 							<div className="space-y-2">
 								<BarcodeManager
 									productId={productId}
-									initialBarcodes={product?.barcodes || []}
+									initialBarcodes={barcodes.map((barcode) => ({
+										id: Math.random().toString(),
+										barcode,
+										isPrimary: false,
+									}))}
+									onBarcodesChange={(codes) => {
+										setBarcodes(codes)
+									}}
 								/>
 								{fieldErrors.barcode && <p className="text-sm text-red-600 mt-1">{fieldErrors.barcode}</p>}
 							</div>

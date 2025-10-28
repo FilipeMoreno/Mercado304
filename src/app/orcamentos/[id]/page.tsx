@@ -1,26 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { ArrowLeft, Calendar, Edit, Loader2, Trash2, TrendingDown, TrendingUp } from "lucide-react"
-import { useBudgetQuery, useDeleteBudgetMutation } from "@/hooks/use-react-query"
-import { BudgetProgressBar } from "@/components/budget-progress-bar"
-import { BudgetAlert } from "@/components/budget-alert"
-import { formatCurrency } from "@/lib/utils"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table"
+import { ArrowLeft, Calendar, Edit, Loader2, Trash2, TrendingDown, TrendingUp } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { BudgetAlert } from "@/components/budget-alert"
+import { BudgetProgressBar } from "@/components/budget-progress-bar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useBudgetQuery, useDeleteBudgetMutation } from "@/hooks/use-react-query"
+import { formatCurrency } from "@/lib/utils"
 
 interface BudgetDetailsPageProps {
 	params: { id: string }
@@ -71,7 +64,7 @@ export default function BudgetDetailsPage({ params }: BudgetDetailsPageProps) {
 	}
 
 	return (
-		<div className="container py-8 space-y-6">
+		<div className="w-full container py-8 space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
@@ -83,9 +76,7 @@ export default function BudgetDetailsPage({ params }: BudgetDetailsPageProps) {
 							<h1 className="text-3xl font-bold">{budget.name}</h1>
 							<Badge>{getTypeLabel(budget.type)}</Badge>
 						</div>
-						{budget.description && (
-							<p className="text-muted-foreground mt-1">{budget.description}</p>
-						)}
+						{budget.description && <p className="text-muted-foreground mt-1">{budget.description}</p>}
 					</div>
 				</div>
 				<div className="flex gap-2">
@@ -118,9 +109,7 @@ export default function BudgetDetailsPage({ params }: BudgetDetailsPageProps) {
 							<p className="text-3xl font-bold">{formatCurrency(budget.spent)}</p>
 							<TrendingUp className="h-5 w-5 text-destructive" />
 						</div>
-						<p className="text-xs text-muted-foreground mt-1">
-							{budget.percentage.toFixed(1)}% do limite
-						</p>
+						<p className="text-xs text-muted-foreground mt-1">{budget.percentage.toFixed(1)}% do limite</p>
 					</CardContent>
 				</Card>
 
@@ -144,9 +133,7 @@ export default function BudgetDetailsPage({ params }: BudgetDetailsPageProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="flex items-baseline gap-2">
-							<p
-								className={`text-3xl font-bold ${budget.isOverBudget ? "text-destructive" : "text-green-600"}`}
-							>
+							<p className={`text-3xl font-bold ${budget.isOverBudget ? "text-destructive" : "text-green-600"}`}>
 								{formatCurrency(Math.abs(budget.remaining))}
 							</p>
 							{budget.isOverBudget ? (
@@ -226,17 +213,14 @@ export default function BudgetDetailsPage({ params }: BudgetDetailsPageProps) {
 							<TableBody>
 								{budget.purchases.map((purchase: any) => (
 									<TableRow key={purchase.id}>
-										<TableCell>
-											{format(new Date(purchase.purchaseDate), "dd/MM/yyyy", { locale: ptBR })}
-										</TableCell>
+										<TableCell>{format(new Date(purchase.purchaseDate), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
 										<TableCell>
 											<div>
 												<p className="font-medium">
-													{purchase.productName || `Compra ${purchase.itemCount ? `(${purchase.itemCount} itens)` : ""}`}
+													{purchase.productName ||
+														`Compra ${purchase.itemCount ? `(${purchase.itemCount} itens)` : ""}`}
 												</p>
-												{purchase.marketName && (
-													<p className="text-sm text-muted-foreground">{purchase.marketName}</p>
-												)}
+												{purchase.marketName && <p className="text-sm text-muted-foreground">{purchase.marketName}</p>}
 											</div>
 										</TableCell>
 										<TableCell>{purchase.quantity || "-"}</TableCell>

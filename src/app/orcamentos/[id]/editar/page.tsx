@@ -1,24 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { format } from "date-fns"
+import { ArrowLeft, Calculator, Loader2, Lock, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select"
-import { ArrowLeft, Calculator, Loader2, Sparkles, Lock } from "lucide-react"
 import { useBudgetQuery, useUpdateBudgetMutation } from "@/hooks/use-react-query"
-import { BudgetType } from "@/types"
 import { formatCurrency } from "@/lib/utils"
-import { format } from "date-fns"
-import { toast } from "sonner"
 
 interface EditBudgetPageProps {
 	params: { id: string }
@@ -87,7 +80,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 
 			router.push(`/orcamentos/${id}`)
 		} catch (error) {
-			// Error handled by mutation
+			// Error_errorled by mutation
 		}
 	}
 
@@ -117,9 +110,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 			<div className="space-y-6 flex items-center justify-center py-12">
 				<div className="text-center">
 					<p className="text-lg font-medium mb-2">Orçamento não encontrado</p>
-					<Button onClick={() => router.push("/orcamentos")}>
-						Voltar para Orçamentos
-					</Button>
+					<Button onClick={() => router.push("/orcamentos")}>Voltar para Orçamentos</Button>
 				</div>
 			</div>
 		)
@@ -127,15 +118,10 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 
 	return (
 		<div className="space-y-6">
-			<div className="max-w-3xl mx-auto">
+			<div className="w-full mx-auto">
 				{/* Header */}
 				<div className="mb-8">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => router.back()}
-						className="mb-4 -ml-2"
-					>
+					<Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4 -ml-2">
 						<ArrowLeft className="h-4 w-4 mr-2" />
 						Voltar
 					</Button>
@@ -145,9 +131,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 						</div>
 						<div>
 							<h1 className="text-3xl font-bold tracking-tight">Editar Orçamento</h1>
-							<p className="text-muted-foreground mt-1">
-								Atualize as informações do seu orçamento
-							</p>
+							<p className="text-muted-foreground mt-1">Atualize as informações do seu orçamento</p>
 						</div>
 					</div>
 				</div>
@@ -197,15 +181,8 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 						{/* Tipo (disabled) */}
 						<div className="space-y-2">
 							<Label htmlFor="type">Tipo de Controle</Label>
-							<Input
-								id="type"
-								value={getTypeLabel(budget.type)}
-								disabled
-								className="h-11 bg-muted"
-							/>
-							<p className="text-sm text-muted-foreground">
-								O tipo de orçamento não pode ser alterado após a criação
-							</p>
+							<Input id="type" value={getTypeLabel(budget.type)} disabled className="h-11 bg-muted" />
+							<p className="text-sm text-muted-foreground">O tipo de orçamento não pode ser alterado após a criação</p>
 						</div>
 
 						{/* Alvo (disabled) */}
@@ -214,12 +191,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 								<Label htmlFor="target">
 									{budget.type === "CATEGORY" ? "Categoria" : budget.type === "MARKET" ? "Mercado" : "Produto"}
 								</Label>
-								<Input
-									id="target"
-									value={budget.target.name}
-									disabled
-									className="h-11 bg-muted"
-								/>
+								<Input id="target" value={budget.target.name} disabled className="h-11 bg-muted" />
 								<p className="text-sm text-muted-foreground">
 									O alvo do orçamento não pode ser alterado após a criação
 								</p>
@@ -238,9 +210,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 						<div className="space-y-2">
 							<Label htmlFor="limit">Valor Limite (R$)</Label>
 							<div className="relative">
-								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-									R$
-								</span>
+								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">R$</span>
 								<Input
 									id="limit"
 									type="number"
@@ -289,10 +259,7 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 						{/* Alerta */}
 						<div className="space-y-2">
 							<Label htmlFor="alertAt">Receber Alerta Quando Atingir</Label>
-							<Select
-								value={formData.alertAt}
-								onValueChange={(value) => setFormData({ ...formData, alertAt: value })}
-							>
+							<Select value={formData.alertAt} onValueChange={(value) => setFormData({ ...formData, alertAt: value })}>
 								<SelectTrigger className="h-11">
 									<SelectValue />
 								</SelectTrigger>
@@ -305,29 +272,18 @@ export default function EditBudgetPage({ params }: EditBudgetPageProps) {
 							</Select>
 							<p className="text-sm text-muted-foreground">
 								Você será alertado ao atingir{" "}
-								<span className="font-medium text-foreground">
-									{Number.parseFloat(formData.alertAt) * 100}%
-								</span>{" "}
-								do valor limite
+								<span className="font-medium text-foreground">{Number.parseFloat(formData.alertAt) * 100}%</span> do
+								valor limite
 							</p>
 						</div>
 					</div>
 
 					{/* Actions */}
 					<div className="flex gap-3 pt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => router.back()}
-							className="flex-1 h-11"
-						>
+						<Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 h-11">
 							Cancelar
 						</Button>
-						<Button
-							type="submit"
-							className="flex-1 h-11"
-							disabled={updateMutation.isPending}
-						>
+						<Button type="submit" className="flex-1 h-11" disabled={updateMutation.isPending}>
 							{updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
 							Salvar Alterações
 						</Button>

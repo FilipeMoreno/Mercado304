@@ -406,7 +406,7 @@ export const useAllMarketsQuery = () => {
 export const useCreateProductMutation = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: Omit<Product, "id" | "createdAt" | "updatedAt">) =>
+		mutationFn: (data: Omit<Product, "id" | "createdAt" | "updatedAt" | "barcodes"> & { barcodes?: string[] }) =>
 			fetchWithErrorHandling("/api/products", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
