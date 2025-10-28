@@ -36,8 +36,8 @@ export async function GET(request: Request) {
 		const sort = searchParams.get("sort") || "date-desc"
 		const dateFrom = searchParams.get("dateFrom")
 		const dateTo = searchParams.get("dateTo")
-		const page = parseInt(searchParams.get("page") || "1")
-		const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "12")
+		const page = parseInt(searchParams.get("page") || "1", 10)
+		const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "12", 10)
 
 		const where: any = {}
 		if (marketId && marketId !== "all") {
@@ -145,6 +145,7 @@ export async function POST(request: Request) {
 			include: {
 				brand: true,
 				category: true,
+				nutritionalInfo: true,
 			}
 		})
 
@@ -191,7 +192,7 @@ export async function POST(request: Request) {
 				.filter((item: any) => {
 					if (!item.productId || !item.addToStock) return false
 					const product = products.find((p) => p.id === item.productId)
-					return product && product.hasStock
+					return product?.hasStock
 				})
 				.flatMap((item: any) => {
 					const product = products.find((p) => p.id === item.productId)!
@@ -242,7 +243,21 @@ export async function POST(request: Request) {
 			timeout: 15000, // 15 segundos de timeout
 		})
 
-		return NextResponse.json(purchase, { status: 201 })
+		// Identificar produtos sem informações nutricionais
+		const productsWithoutNutrition = products
+			.filter((p) => !p.nutritionalInfo)
+			.map((p) => ({
+				productId: p.id,
+				productName: p.name,
+			}))
+
+		return NextResponse.json(
+			{ 
+				purchase, 
+				productsWithoutNutrition: productsWithoutNutrition.length > 0 ? productsWithoutNutrition : undefined
+			}, 
+			{ status: 201 }
+		)
 	} catch (error) {
 		console.error("Erro ao criar compra:", error)
 		return NextResponse.json({ error: "Erro ao criar compra" }, { status: 500 })

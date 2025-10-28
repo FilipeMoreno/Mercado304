@@ -20,10 +20,12 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-import { useId, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
+import { MissingNutritionalInfoDialog } from "@/components/missing-nutritional-info-dialog"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DateInput } from "@/components/ui/date-input"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -35,7 +37,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DateInput } from "@/components/ui/date-input"
 // removed unused imports
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -68,6 +69,10 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const router = useRouter()
 	const id = useId()
 	const [viewingPurchase, setViewingPurchase] = useState<Purchase | null>(null)
+	const [showNutritionalDialog, setShowNutritionalDialog] = useState(false)
+	const [productsWithoutNutrition, setProductsWithoutNutrition] = useState<
+		Array<{ productId: string; productName: string }>
+	>([])
 	const itemsPerPage = 12
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Purchase>()
@@ -178,6 +183,39 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 
 	const viewPurchaseDetails = async (purchase: Purchase) => {
 		setViewingPurchase(purchase)
+	}
+
+	// Verificar se há produtos sem informações nutricionais no sessionStorage
+	useEffect(() => {
+		const stored = sessionStorage.getItem("productsWithoutNutrition")
+		if (stored) {
+			try {
+				const products = JSON.parse(stored)
+				if (products && products.length > 0) {
+					setProductsWithoutNutrition(products)
+					setShowNutritionalDialog(true)
+					// Limpar do sessionStorage para não mostrar novamente
+					sessionStorage.removeItem("productsWithoutNutrition")
+				}
+			} catch (error) {
+				console.error("Erro ao processar produtos sem informações nutricionais:", error)
+			}
+		}
+	}, [])
+
+	const handleNutritionalDialogClose = () => {
+		setShowNutritionalDialog(false)
+	}
+
+	const handleAddNutritionalInfo = (productIds: string[]) => {
+		// Abrir a primeira página de produto para adicionar informações nutricionais
+		if (productIds.length > 0) {
+			const firstProductId = productIds[0]
+			const queryParams = new URLSearchParams()
+			queryParams.set("focusNutrition", "true")
+			// Abrir no mesmo tab para múltiplos produtos
+			router.push(`/produtos/${firstProductId}/editar?${queryParams.toString()}`)
+		}
 	}
 
 	// React Query handles data synchronization automatically
@@ -343,8 +381,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{purchases.map((purchase: any, index: number) => {
 								// Calcular desconto total real (itens + desconto total da compra)
-								const itemsDiscount = purchase.items?.reduce((sum: number, item: any) =>
-									sum + (item.totalDiscount || 0), 0) || 0
+								const itemsDiscount =
+									purchase.items?.reduce((sum: number, item: any) => sum + (item.totalDiscount || 0), 0) || 0
 								const totalDiscount = itemsDiscount + (purchase.totalDiscount || 0)
 
 								return (
@@ -387,7 +425,7 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 															{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 														</div>
 														<div className="text-xs md:text-sm font-medium text-muted-foreground">
-															{purchase.items?.length || 0} {purchase.items?.length === 1 ? 'item' : 'itens'}
+															{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
 														</div>
 													</CardDescription>
 												</div>
@@ -520,18 +558,14 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 											<p className="text-sm text-gray-600">
 												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
 												{item.unitDiscount > 0 && (
-													<span className="text-red-600 ml-1">
-														(-R$ {item.unitDiscount.toFixed(2)})
-													</span>
+													<span className="text-red-600 ml-1">(-R$ {item.unitDiscount.toFixed(2)})</span>
 												)}
 											</p>
 										</div>
 										<div className="text-right">
 											<p className="font-medium">R$ {(item.finalPrice || item.totalPrice).toFixed(2)}</p>
 											{item.totalDiscount > 0 && (
-												<p className="text-xs text-red-600">
-													Desconto: -R$ {item.totalDiscount.toFixed(2)}
-												</p>
+												<p className="text-xs text-red-600">Desconto: -R$ {item.totalDiscount.toFixed(2)}</p>
 											)}
 										</div>
 									</div>
@@ -579,7 +613,13 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				</p>
 				<p className="text-sm text-gray-600 mt-2">Todos os itens da compra serão perdidos permanentemente.</p>
 			</ResponsiveConfirmDialog>
+
+			<MissingNutritionalInfoDialog
+				isOpen={showNutritionalDialog}
+				onClose={handleNutritionalDialogClose}
+				onAddNutritionalInfo={handleAddNutritionalInfo}
+				productsWithoutNutrition={productsWithoutNutrition}
+			/>
 		</>
 	)
 }
-

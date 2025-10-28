@@ -1,5 +1,6 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { addDays, format } from "date-fns"
 import { motion } from "framer-motion"
 import { ArrowLeft, Box, Package, Plus, Save, Settings2, Trash2 } from "lucide-react"
@@ -24,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCreatePurchaseMutation, useUIPreferences } from "@/hooks"
+import { useUIPreferences } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod, type Product } from "@/types"
@@ -69,7 +70,7 @@ interface PurchaseItem {
 export default function NovaCompraPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const createPurchaseMutation = useCreatePurchaseMutation()
+	const queryClient = useQueryClient()
 	const id = useId()
 	const { selectStyle } = useUIPreferences()
 	const [products, setProducts] = useState<Product[]>([])
@@ -81,6 +82,7 @@ export default function NovaCompraPage() {
 		isOpen: boolean
 		itemIndex: number | null
 	}>({ isOpen: false, itemIndex: null })
+
 
 	const [formData, setFormData] = useState({
 		marketId: "",
@@ -364,7 +366,7 @@ export default function NovaCompraPage() {
 	}
 
 	const calculateTotalDiscounts = () => {
-		const itemDiscounts = items.reduce((sum, item) => sum + (item.quantity * (item.unitDiscount || 0)), 0)
+		const itemDiscounts = items.reduce((sum, item) => sum + item.quantity * (item.unitDiscount || 0), 0)
 		return itemDiscounts + (formData.totalDiscount || 0)
 	}
 
@@ -395,19 +397,41 @@ export default function NovaCompraPage() {
 				}
 			})
 
-			await createPurchaseMutation.mutateAsync({
-				marketId: formData.marketId,
-				purchaseDate: formData.purchaseDate,
-				paymentMethod: formData.paymentMethod,
-				totalDiscount: formData.totalDiscount || 0,
-				items: itemsWithNames,
+			const response = await fetch("/api/purchases", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					marketId: formData.marketId,
+					purchaseDate: formData.purchaseDate,
+					paymentMethod: formData.paymentMethod,
+					totalDiscount: formData.totalDiscount || 0,
+					items: itemsWithNames,
+				}),
 			})
 
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw new Error(errorData.error || "Erro ao criar compra")
+			}
+
+			const result = await response.json()
+
+			// Invalidar queries
+			await queryClient.invalidateQueries({ queryKey: ["purchases"] })
+			await queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] })
+			await queryClient.invalidateQueries({ queryKey: ["stock"] })
+
 			toast.success("Compra registrada com sucesso!")
+
+			// Verificar se há produtos sem informações nutricionais e armazenar no sessionStorage
+			if (result.productsWithoutNutrition && result.productsWithoutNutrition.length > 0) {
+				sessionStorage.setItem("productsWithoutNutrition", JSON.stringify(result.productsWithoutNutrition))
+			}
+
 			// Pequeno delay para garantir que a invalidação seja processada
 			setTimeout(() => {
 				router.push("/compras")
-			}, 100)
+			}, 500)
 		} catch (error) {
 			console.error("Erro ao criar compra:", error)
 			toast.error("Erro ao criar compra")
@@ -601,7 +625,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "quantity", parsed)
@@ -628,7 +652,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "unitPrice", parsed)
@@ -655,7 +679,7 @@ export default function NovaCompraPage() {
 																	next[index] = raw
 																	return next
 																})
-																const normalized = raw.replace(',', '.')
+																const normalized = raw.replace(",", ".")
 																const parsed = parseFloat(normalized)
 																if (!Number.isNaN(parsed)) {
 																	updateItem(index, "unitDiscount", parsed)
@@ -765,12 +789,12 @@ export default function NovaCompraPage() {
 												onChange={(e) => {
 													const raw = e.target.value
 													setTotalDiscountInput(raw)
-													const normalized = raw.replace(',', '.')
+													const normalized = raw.replace(",", ".")
 													const parsed = parseFloat(normalized)
 													if (!Number.isNaN(parsed)) {
-														setFormData(prev => ({ ...prev, totalDiscount: parsed }))
+														setFormData((prev) => ({ ...prev, totalDiscount: parsed }))
 													} else if (raw === "") {
-														setFormData(prev => ({ ...prev, totalDiscount: 0 }))
+														setFormData((prev) => ({ ...prev, totalDiscount: 0 }))
 													}
 												}}
 												placeholder="0,00"
@@ -799,7 +823,10 @@ export default function NovaCompraPage() {
 
 								{/* Total e botões de ação - apenas no desktop */}
 								<div className="hidden md:flex justify-between items-center pt-4 border-t">
-									<div className="text-lg font-bold">Total da Compra ({items.length} itens): R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
+									<div className="text-lg font-bold">
+										Total da Compra ({items.length} itens): R${" "}
+										{(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}
+									</div>
 									<div className="flex gap-3">
 										<Button type="button" onClick={addItem} variant="outline">
 											<Plus className="h-4 w-4 mr-2" />
@@ -835,7 +862,9 @@ export default function NovaCompraPage() {
 						{/* Total da compra */}
 						<div className="text-center min-w-[120px]">
 							<div className="text-sm text-gray-600">Total</div>
-							<div className="text-lg font-bold text-primary">R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}</div>
+							<div className="text-lg font-bold text-primary">
+								R$ {(calculateTotalWithoutDiscounts() - calculateTotalDiscounts()).toFixed(2)}
+							</div>
 						</div>
 					</div>
 
