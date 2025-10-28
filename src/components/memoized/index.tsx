@@ -231,6 +231,8 @@ interface MarketCardMemoProps {
 
 export const MarketCardMemo = memo<MarketCardMemoProps>(
 	({ market, onDelete, onEdit }) => {
+		const [imageError, setImageError] = useState(false)
+
 		const handleDelete = useCallback(() => {
 			onDelete(market)
 		}, [market, onDelete])
@@ -238,6 +240,10 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 		const handleEdit = useCallback(() => {
 			onEdit?.(market)
 		}, [market, onEdit])
+
+		const handleCardClick = useCallback(() => {
+			window.location.href = `/mercados/${market.id}`
+		}, [market.id])
 
 		const marketName = useMemo(() => {
 			return market.name || "Mercado sem nome"
@@ -248,65 +254,90 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 		}, [market.location])
 
 		return (
-			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
-				{/* Área de imagem - sempre presente */}
-				<div className="relative h-32 w-full overflow-hidden rounded-t-lg">
-					{market.imageUrl ? (
-						<Image
-							src={market.imageUrl}
-							alt={marketName}
-							fill
-							className="object-cover"
-							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-						/>
+			<Card
+				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
+				onClick={handleCardClick}
+			>
+				{/* Área de imagem com overlay */}
+				<div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+					{market.imageUrl && !imageError ? (
+						<>
+							<Image
+								src={market.imageUrl}
+								alt={marketName}
+								fill
+								className="object-cover transition-transform duration-500 group-hover:scale-110"
+								sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+								onError={() => setImageError(true)}
+							/>
+							{/* Overlay gradiente sutil */}
+							<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
+						</>
 					) : (
-						<MarketImageFallback 
-							marketName={marketName}
-							className="w-full h-full"
-							size="md"
-						/>
-					)}
-				</div>
-				
-				<CardHeader className="pb-3">
-					<div className="flex items-start justify-between">
-						<div className="flex-1">
-							<CardTitle className="text-lg font-medium line-clamp-2">{marketName}</CardTitle>
-							{marketLocation && <p className="text-sm text-gray-600 mt-1">{marketLocation}</p>}
+						<div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
+							<Store className="h-16 w-16 text-primary/20" />
 						</div>
+					)}
 
+					{/* Menu de ações - position absoluto no canto superior direito */}
+					<div
+						className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+								<Button
+									variant="secondary"
+									size="icon"
+									className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg"
+								>
 									<MoreHorizontal className="h-4 w-4" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuItem onClick={handleEdit}>
+							<DropdownMenuContent align="end" className="w-48">
+								<DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(); }}>
 									<Edit className="h-4 w-4 mr-2" />
-									Editar
+									Editar Mercado
 								</DropdownMenuItem>
-								<DropdownMenuItem onClick={handleDelete} className="text-red-600">
+								<DropdownMenuItem
+									onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+									className="text-destructive focus:text-destructive"
+								>
 									<Trash2 className="h-4 w-4 mr-2" />
 									Excluir
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
-				</CardHeader>
 
-				<CardContent className="pt-0">
-					<Button
-						variant="outline"
-						size="sm"
-						className="w-full"
-						onClick={() => {
-							window.location.href = `/mercados/${market.id}`
-						}}
-					>
-						<BarChart3 className="h-4 w-4 mr-2" />
-						Ver Detalhes
-					</Button>
+					{/* Badge de localização sobreposta à imagem */}
+					{marketLocation && (
+						<div className="absolute bottom-3 left-3 right-3">
+							<div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-md shadow-lg text-xs font-medium border border-border/50">
+								<div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+								<span className="line-clamp-1">{marketLocation}</span>
+							</div>
+						</div>
+					)}
+				</div>
+
+				{/* Conteúdo minimalista */}
+				<CardContent className="flex-1 flex flex-col p-4">
+					<h3 className="font-semibold text-lg line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+						{marketName}
+					</h3>
+
+					{!marketLocation && (
+						<p className="text-sm text-muted-foreground">
+							Clique para ver detalhes
+						</p>
+					)}
+
+					{/* Indicador de ação */}
+					<div className="mt-auto pt-3 flex items-center justify-between text-sm text-muted-foreground group-hover:text-primary transition-colors">
+						<span className="font-medium">Ver detalhes</span>
+						<BarChart3 className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+					</div>
 				</CardContent>
 			</Card>
 		)
