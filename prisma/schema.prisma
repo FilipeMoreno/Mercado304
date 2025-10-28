@@ -17,6 +17,7 @@ model Market {
   updatedAt    DateTime      @updatedAt
   purchases    Purchase[]
   priceRecords PriceRecord[]
+  quotes       Quote[]
 
   @@map("markets")
 }
@@ -44,6 +45,7 @@ model Category {
 
   products    Product[]
   productKits ProductKit[]
+  quotes      Quote[]
 
   @@index([isFood])
   @@map("categories")
@@ -74,6 +76,7 @@ model Product {
   stockItems      StockItem[]
   nutritionalInfo NutritionalInfo?
   priceRecords    PriceRecord[]
+  quoteItems      QuoteItem[]
 
   // Relações com kits
   kit      ProductKit?      @relation("KitProduct")
@@ -658,6 +661,14 @@ model DashboardPreference {
   showPaymentDistribution    Boolean  @default(false) // Widget de distribuição de pagamentos
   showPaymentDetails         Boolean  @default(false) // Widget de detalhes de pagamento
   showPaymentInsights        Boolean  @default(false) // Widget de insights de pagamento
+  showQuoteOverview          Boolean  @default(true) // Widget de visão geral de cotações
+  showQuoteTrend             Boolean  @default(true) // Widget de tendência de cotações
+  showQuoteByMarket          Boolean  @default(true) // Widget de cotações por mercado
+  showQuoteTopQuotes         Boolean  @default(false) // Widget de maiores cotações
+  showQuoteSavings           Boolean  @default(true) // Widget de economia em cotações
+  showBudgetOverview         Boolean  @default(true) // Widget de visão geral de orçamentos (controle de gastos)
+  showBudgetAlerts           Boolean  @default(true) // Widget de alertas de orçamento
+  showBudgetProgress         Boolean  @default(true) // Widget de progresso dos orçamentos
   customTitle                String?
   customSubtitle             String?
   widgetLayouts        Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
@@ -797,4 +808,119 @@ model ProductKitItem {
   @@index([kitId])
   @@index([productId])
   @@map("product_kit_items")
+}
+
+// ============================================
+// QUOTES (Cotações/Orçamentos de Compra)
+// ============================================
+
+model Quote {
+  id             String      @id @default(cuid())
+  name           String // Nome da cotação (ex: "Compra Mensal Outubro", "Churrasco Sábado")
+  description    String? // Descrição detalhada
+  type           QuoteType   @default(BY_ITEMS) // Tipo de cotação
+  marketId       String? // Mercado alvo (opcional, obrigatório para BY_MARKET)
+  categoryId     String? // Categoria alvo (obrigatório para BY_CATEGORY)
+  status         QuoteStatus @default(DRAFT) // Status da cotação
+  totalEstimated Float       @default(0) // Valor total estimado
+  totalDiscount  Float       @default(0) // Desconto total estimado
+  finalEstimated Float       @default(0) // Valor final estimado (totalEstimated - totalDiscount)
+  purchaseId     String?     @unique // ID da compra gerada (se convertido)
+  quoteDate      DateTime    @default(now()) // Data da cotação
+  validUntil     DateTime? // Data de validade
+  notes          String? // Observações gerais
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  market   Market?     @relation(fields: [marketId], references: [id], onDelete: SetNull)
+  category Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  items    QuoteItem[]
+
+  @@index([marketId])
+  @@index([categoryId])
+  @@index([type])
+  @@index([status])
+  @@index([quoteDate])
+  @@index([validUntil])
+  @@map("quotes")
+}
+
+enum QuoteType {
+  BY_ITEMS // Cotação por itens individuais (padrão)
+  BY_CATEGORY // Cotação focada em uma categoria específica
+  BY_MARKET // Cotação para um mercado específico (comparar diferentes datas/períodos)
+}
+
+enum QuoteStatus {
+  DRAFT // Rascunho - em edição
+  FINALIZED // Finalizado - pronto para comparação
+  APPROVED // Aprovado - selecionado para compra
+  CONVERTED // Convertido - transformado em compra
+  EXPIRED // Expirado - passou da validade
+  CANCELLED // Cancelado
+}
+
+model QuoteItem {
+  id              String  @id @default(cuid())
+  quoteId         String
+  productId       String? // Produto vinculado (opcional)
+  quantity        Float
+  unitPrice       Float
+  unitDiscount    Float   @default(0) // Desconto por unidade
+  totalPrice      Float // Preço total (quantity * unitPrice)
+  totalDiscount   Float   @default(0) // Desconto total (quantity * unitDiscount)
+  finalPrice      Float // Preço final (totalPrice - totalDiscount)
+  productName     String // Nome do produto
+  productUnit     String  @default("unidade")
+  productCategory String?
+  brandName       String?
+  notes           String? // Observações do item
+  priority        Int     @default(0) // Prioridade do item (0 = normal, 1 = alta, -1 = baixa)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quote   Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+  @@index([productId])
+  @@index([priority])
+  @@map("quote_items")
+}
+
+// ============================================
+// BUDGETS (Orçamentos de Controle de Gastos)
+// ============================================
+
+model Budget {
+  id          String     @id @default(cuid())
+  name        String // Nome do orçamento (ex: "Frios Dezembro 2024")
+  description String? // Descrição
+  type        BudgetType // Tipo: CATEGORY, MARKET ou PRODUCT
+  targetId    String // ID da categoria, mercado ou produto
+  limitAmount Float // Valor limite do orçamento
+  period      String // Período (ex: "2024-12" para dezembro de 2024)
+  startDate   DateTime // Data de início do período
+  endDate     DateTime // Data de fim do período
+  isActive    Boolean    @default(true) // Se está ativo
+  alertAt     Float      @default(0.9) // Alertar quando atingir X% (padrão 90%)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([targetId])
+  @@index([period])
+  @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("budgets")
+}
+
+enum BudgetType {
+  CATEGORY // Orçamento por categoria (ex: Frios)
+  MARKET // Orçamento por mercado (ex: Carrefour)
+  PRODUCT // Orçamento por produto específico (ex: Refrigerante)
 }

@@ -1,4 +1,4 @@
-import type { WidgetConfig, WidgetLayout, WidgetType } from "@/types/dashboard-widgets"
+import type { WidgetConfig, WidgetLayout, } from "@/types/dashboard-widgets"
 
 /**
  * Configurações de todos os widgets disponíveis no dashboard
@@ -220,6 +220,78 @@ export const WIDGET_CONFIGS: Record<string, WidgetConfig> = {
 		defaultSize: { w: 12, h: 3, minW: 6, minH: 2, maxW: 12, maxH: 5 },
 		requiresData: false,
 	},
+	"quote-overview": {
+		id: "quote-overview",
+		label: "Visão Geral de Cotações",
+		description: "Resumo das cotações de compras",
+		category: "stats",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"quote-trend": {
+		id: "quote-trend",
+		label: "Tendência de Cotações",
+		description: "Evolução das cotações nos últimos meses",
+		category: "charts",
+		defaultSize: { w: 12, h: 8, minW: 6, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"quote-by-market": {
+		id: "quote-by-market",
+		label: "Cotações por Mercado",
+		description: "Distribuição de cotações entre mercados",
+		category: "charts",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"quote-top-quotes": {
+		id: "quote-top-quotes",
+		label: "Maiores Cotações",
+		description: "Top 5 cotações por valor",
+		category: "lists",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"quote-savings": {
+		id: "quote-savings",
+		label: "Economia em Cotações",
+		description: "Análise de descontos e economia",
+		category: "analytics",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"quote-by-type": {
+		id: "quote-by-type",
+		label: "Cotações por Tipo",
+		description: "Distribuição de cotações por tipo (Itens, Categoria, Mercado)",
+		category: "charts",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"budget-overview": {
+		id: "budget-overview",
+		label: "Visão Geral de Orçamentos",
+		description: "Resumo dos orçamentos e gastos",
+		category: "stats",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"budget-alerts": {
+		id: "budget-alerts",
+		label: "Alertas de Orçamento",
+		description: "Orçamentos próximos ou acima do limite",
+		category: "alerts",
+		defaultSize: { w: 6, h: 8, minW: 4, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
+	"budget-progress": {
+		id: "budget-progress",
+		label: "Progresso dos Orçamentos",
+		description: "Acompanhamento do progresso de todos os orçamentos",
+		category: "charts",
+		defaultSize: { w: 12, h: 8, minW: 6, minH: 5, maxW: 12, maxH: 12 },
+		requiresData: true,
+	},
 }
 
 /**
@@ -246,6 +318,11 @@ export const DEFAULT_LAYOUT_LG: WidgetLayout[] = [
 	{ i: "recent-purchases", x: 0, y: 50, w: 12, h: 8 },
 	{ i: "expiration-alerts", x: 0, y: 58, w: 6, h: 6 },
 	{ i: "replenishment-alerts", x: 6, y: 58, w: 6, h: 6 },
+	{ i: "quote-overview", x: 0, y: 64, w: 6, h: 8 },
+	{ i: "quote-savings", x: 6, y: 64, w: 6, h: 8 },
+	{ i: "quote-trend", x: 0, y: 72, w: 12, h: 8 },
+	{ i: "quote-by-market", x: 0, y: 80, w: 6, h: 8 },
+	{ i: "quote-top-quotes", x: 6, y: 80, w: 6, h: 8 },
 ]
 
 /**

@@ -1,37 +1,41 @@
 "use client"
 
+import { ptBR } from "date-fns/locale"
+import { Package, Store, } from "lucide-react"
+import Link from "next/link"
 import { lazy, Suspense } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
-import { DashboardCardMemo } from "@/components/memoized"
+import { BudgetAlertsWidget } from "@/components/dashboard/widgets/budget-alerts-widget"
+import { BudgetOverviewWidget } from "@/components/dashboard/widgets/budget-overview-widget"
+import { BudgetProgressWidget } from "@/components/dashboard/widgets/budget-progress-widget"
+import { QuoteByMarketWidget } from "@/components/dashboard/widgets/quote-by-market-widget"
+import { QuoteByTypeWidget } from "@/components/dashboard/widgets/quote-by-type-widget"
+import { QuoteOverviewWidget } from "@/components/dashboard/widgets/quote-overview-widget"
+import { QuoteSavingsWidget } from "@/components/dashboard/widgets/quote-savings-widget"
+import { QuoteTopQuotesWidget } from "@/components/dashboard/widgets/quote-top-quotes-widget"
+import { QuoteTrendWidget } from "@/components/dashboard/widgets/quote-trend-widget"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
 import { ExpirationAlerts } from "@/components/expiration-alerts"
 import { InstallPWACard } from "@/components/install-pwa-card"
+import { DashboardCardMemo } from "@/components/memoized"
 import { MonthlyPurchaseStats } from "@/components/monthly-purchase-stats"
 import { NutritionSummaryCard } from "@/components/nutrition-summary-card"
 import { PaymentMethodStats } from "@/components/payment-method-stats"
-import { PaymentTransactionsWidget } from "@/components/widgets/payment-transactions-widget"
-import { PaymentTotalAmountWidget } from "@/components/widgets/payment-total-amount-widget"
-import { PaymentAverageTicketWidget } from "@/components/widgets/payment-average-ticket-widget"
-import { PaymentMostUsedWidget } from "@/components/widgets/payment-most-used-widget"
-import { PaymentDistributionWidget } from "@/components/widgets/payment-distribution-widget"
-import { PaymentDetailsWidget } from "@/components/widgets/payment-details-widget"
-import { PaymentInsightsWidget } from "@/components/widgets/payment-insights-widget"
 import { ReplenishmentAlerts } from "@/components/replenishment-alerts"
 import { SavingsCard } from "@/components/savings-card"
 import { TemporalComparisonCard } from "@/components/temporal-comparison-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { WidgetType } from "@/types/dashboard-widgets"
-import type {
-	CategoryStats,
-	MarketComparison,
-	RecentPurchase,
-	TopProduct,
-} from "@/types"
-import { Store, Package, TrendingUp, ShoppingCart } from "lucide-react"
+import { PaymentAverageTicketWidget } from "@/components/widgets/payment-average-ticket-widget"
+import { PaymentDetailsWidget } from "@/components/widgets/payment-details-widget"
+import { PaymentDistributionWidget } from "@/components/widgets/payment-distribution-widget"
+import { PaymentInsightsWidget } from "@/components/widgets/payment-insights-widget"
+import { PaymentMostUsedWidget } from "@/components/widgets/payment-most-used-widget"
+import { PaymentTotalAmountWidget } from "@/components/widgets/payment-total-amount-widget"
+import { PaymentTransactionsWidget } from "@/components/widgets/payment-transactions-widget"
 import { formatLocalDate } from "@/lib/date-utils"
-import { ptBR } from "date-fns/locale"
-import Link from "next/link"
+import type { CategoryStats, MarketComparison, RecentPurchase, TopProduct } from "@/types"
+import type { WidgetType } from "@/types/dashboard-widgets"
 
 const MonthlySpendingChart = lazy(() =>
 	import("@/components/monthly-spending-chart").then((module) => ({
@@ -292,13 +296,7 @@ export function WidgetMapper({
 
 	// Widget de alertas de reposição
 	if (widgetId === "replenishment-alerts" && consumptionData?.replenishmentAlerts && onAddToShoppingList) {
-		return (
-			<ReplenishmentAlerts
-				data={consumptionData}
-				loading={isLoading}
-				onAddToShoppingList={onAddToShoppingList}
-			/>
-		)
+		return <ReplenishmentAlerts data={consumptionData} loading={isLoading} onAddToShoppingList={onAddToShoppingList} />
 	}
 
 	// Widget de economias
@@ -353,6 +351,44 @@ export function WidgetMapper({
 
 	if (widgetId === "payment-insights") {
 		return <PaymentInsightsWidget />
+	}
+
+	// Widgets de cotações
+	if (widgetId === "quote-overview") {
+		return <QuoteOverviewWidget />
+	}
+
+	if (widgetId === "quote-trend") {
+		return <QuoteTrendWidget />
+	}
+
+	if (widgetId === "quote-by-market") {
+		return <QuoteByMarketWidget />
+	}
+
+	if (widgetId === "quote-top-quotes") {
+		return <QuoteTopQuotesWidget />
+	}
+
+	if (widgetId === "quote-savings") {
+		return <QuoteSavingsWidget />
+	}
+
+	if (widgetId === "quote-by-type") {
+		return <QuoteByTypeWidget />
+	}
+
+	// Widgets de orçamentos (controle de gastos)
+	if (widgetId === "budget-overview") {
+		return <BudgetOverviewWidget />
+	}
+
+	if (widgetId === "budget-alerts") {
+		return <BudgetAlertsWidget />
+	}
+
+	if (widgetId === "budget-progress") {
+		return <BudgetProgressWidget />
 	}
 
 	// Fallback para widgets desconhecidos

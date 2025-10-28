@@ -30,6 +30,15 @@ export type WidgetType =
 	| "payment-distribution"
 	| "payment-details"
 	| "payment-insights"
+	| "quote-overview"
+	| "quote-trend"
+	| "quote-by-market"
+	| "quote-top-quotes"
+	| "quote-savings"
+	| "quote-by-type"
+	| "budget-overview"
+	| "budget-alerts"
+	| "budget-progress"
 	| "install-pwa"
 
 /**

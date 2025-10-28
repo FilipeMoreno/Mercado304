@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface VoiceAssistantProps {
 	onTimerCommand?: (command: "start" | "pause" | "reset" | "set", value?: number) => void
-	onReadRecipe?: () => void
+	onReadRecipe?: () => string | undefined
 	recipe?: any
 }
 
@@ -26,7 +26,7 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 	const [isSupported, setIsSupported] = useState(false)
 	const [messages, setMessages] = useState<Message[]>([])
 	const [showChat, setShowChat] = useState(false)
-	const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null)
+	const [_permissionGranted, setPermissionGranted] = useState<boolean | null>(null)
 	const [isMobile, setIsMobile] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
@@ -107,7 +107,8 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 				synthRef.current.cancel()
 			}
 		}
-	}, [isMobile])
+	}, [isMobile, handleVoiceCommand, // Mensagem de boas-vindas
+			addMessage])
 
 	const addMessage = (type: "user" | "assistant", text: string) => {
 		const message: Message = {
@@ -167,12 +168,16 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 				}
 			} else if (transcript.includes("ler") || transcript.includes("receita")) {
 				if (recipe) {
-					const recipeText = onReadRecipe?.()
-					if (recipeText) {
-						speak(recipeText)
-						response = "Lendo a receita completa para você!"
+					if (onReadRecipe) {
+						const recipeText = onReadRecipe()
+						if (recipeText) {
+							speak(recipeText)
+							response = "Lendo a receita completa para você!"
+						} else {
+							response = "Vou ler a receita para você!"
+						}
 					} else {
-						response = "Vou ler a receita para você!"
+						response = "Não há função de leitura disponível."
 					}
 				} else {
 					response = "Não há receita para ler no momento."

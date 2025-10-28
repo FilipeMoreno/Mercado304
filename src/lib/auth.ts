@@ -32,9 +32,9 @@ export const auth = betterAuth({
 	emailVerification: {
 		sendOnSignUp: true,
 		autoSignInAfterVerification: true,
-		sendVerificationEmail: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
+		sendVerificationEmail: async ({ user, url }: { user: { id: string; createdAt: Date; updatedAt: Date; emailVerified: boolean; name: string; email?: string; image?: string }; url: string; token: string }) => {
 			try {
-				await sendVerificationEmail({ user, url })
+				await sendVerificationEmail({ user: { email: user.email!, name: user.name }, url })
 				console.log(`[Better Auth] Email de verificação enviado para ${user.email}`)
 			} catch (error) {
 				console.error(`[Better Auth] Erro ao enviar email de verificação para ${user.email}:`, error)
@@ -45,9 +45,9 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false, // Permitimos login, mas middleware controla acesso
-		sendResetPassword: async ({ user, url }: { user: { email: string; name?: string }; url: string }) => {
+		sendResetPassword: async ({ user, url }: { user: { id: string; createdAt: Date; updatedAt: Date; emailVerified: boolean; name: string; email?: string; image?: string }; url: string; token: string }) => {
 			try {
-				await sendPasswordResetEmail({ user, url })
+				await sendPasswordResetEmail({ user: { email: user.email!, name: user.name }, url })
 				console.log(`[Better Auth] Email de reset de senha enviado para ${user.email}`)
 			} catch (error) {
 				console.error(`[Better Auth] Erro ao enviar email de reset para ${user.email}:`, error)

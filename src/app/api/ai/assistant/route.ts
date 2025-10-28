@@ -172,8 +172,7 @@ async function processRequest(request: Request): Promise<Response> {
 			// Executa todas as chamadas de função
 			const functionResponses = await Promise.all(
 				functionCalls.map(async (call) => {
-					try {
-						// @ts-expect-error
+						try {
 						const apiResponse = await toolFunctions[call.name](call.args)
 						return {
 							functionResponse: {

@@ -4,7 +4,9 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
 	Apple,
 	Beef,
+	Calculator,
 	Camera,
+	CircleDollarSign,
 	ChefHat,
 	ChevronLeft,
 	ChevronRight,
@@ -66,6 +68,8 @@ const navigation = [
 		icon: ShoppingBag,
 		subItems: [
 			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
+			{ name: "Orçamentos", href: "/orcamentos", icon: CircleDollarSign },
+			{ name: "Cotações", href: "/cotacoes", icon: Calculator },
 			{ name: "Importar NFC-e", href: "/compras/importar", icon: Receipt },
 			{ name: "Lista de Compras", href: "/lista", icon: List },
 		],

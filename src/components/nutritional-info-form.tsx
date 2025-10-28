@@ -138,7 +138,7 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 			// CORREÇÃO: Derivar campos ativos a partir das CHAVES do objeto, não dos VALORES.
 			// Isso garante que campos adicionados (com valor `undefined`) sejam exibidos.
 			const activeKeys = optionalFields
-				.filter((field) => Object.prototype.hasOwnProperty.call(initialData, field.key))
+				.filter((field) => Object.hasOwn(initialData, field.key))
 				.map((field) => field.key)
 			setActiveOptionalFields(activeKeys)
 		}
@@ -182,7 +182,6 @@ export function NutritionalInfoForm({ initialData, onDataChange }: NutritionalIn
 			// e notifica o componente pai.
 			const updatedData = { ...formData }
 			fieldsToAdd.forEach((fieldKey) => {
-				// @ts-expect-error
 				updatedData[fieldKey] = undefined
 			})
 			onDataChange(updatedData)

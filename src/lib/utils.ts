@@ -15,3 +15,10 @@ export function normalizeString(str: string | null | undefined): string {
 		.replace(/\s+/g, " ") // Remove espaços extras
 		.trim()
 }
+
+export function formatCurrency(value: number): string {
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
+	}).format(value)
+}

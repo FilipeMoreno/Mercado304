@@ -3,7 +3,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 // Types
-import type { Brand, Category, Market, Product, ShoppingList } from "@/types"
+import type { Brand, Budget, Category, Market, Product, ShoppingList } from "@/types"
 
 // Query Keys
 export const queryKeys = {
@@ -44,6 +44,15 @@ export const queryKeys = {
 		stock: (id: string) => ["product-kits", id, "stock"],
 		price: (id: string, marketId?: string) => ["product-kits", id, "price", marketId],
 	},
+	budgets: (params?: URLSearchParams) => ["budgets", params?.toString()],
+	budget: (id: string) => ["budgets", id],
+	budgetComparison: (ids: string[]) => ["budgets", "compare", ids.sort().join(",")],
+	budgetStats: () => ["budgets", "stats"],
+	// Quotes (novo)
+	quotes: (params?: URLSearchParams) => ["quotes", params?.toString()],
+	quote: (id: string) => ["quotes", id],
+	quoteComparison: (quoteIds: string[]) => ["quotes", "compare", ...quoteIds],
+	quoteStats: () => ["quotes", "stats"],
 } as const
 
 // API Functions
@@ -1173,9 +1182,7 @@ export const useProductKitPriceQuery = (id: string, marketId?: string) => {
 	return useQuery({
 		queryKey: queryKeys.productKits.price(id, marketId),
 		queryFn: () => {
-			const url = marketId
-				? `/api/product-kits/${id}/price?marketId=${marketId}`
-				: `/api/product-kits/${id}/price`
+			const url = marketId ? `/api/product-kits/${id}/price?marketId=${marketId}` : `/api/product-kits/${id}/price`
 			return fetchWithErrorHandling(url)
 		},
 		staleTime: 2 * 60 * 1000,
@@ -1262,6 +1269,234 @@ export const useDeleteProductKitMutation = () => {
 		},
 		onError: (error) => {
 			toast.error(`Erro ao excluir kit: ${error.message}`)
+		},
+	})
+}
+
+// ============================================
+// BUDGETS (Orçamentos)
+// ============================================
+
+// Deprecated: budgets → useQuotesQuery
+export const useBudgetsQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.budgets(params),
+		queryFn: () => fetchWithErrorHandling(`/api/budgets?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000, // 2 minutos
+	})
+}
+
+// Deprecated: budget → useQuoteQuery
+export const useBudgetQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.budget(id),
+		queryFn: () => fetchWithErrorHandling(`/api/budgets/${id}`),
+		staleTime: 2 * 60 * 1000,
+		enabled: !!id,
+	})
+}
+
+// Deprecated: budget comparison → useQuoteComparisonQuery
+export const useBudgetComparisonQuery = (budgetIds: string[]) => {
+	return useQuery({
+		queryKey: queryKeys.budgetComparison(budgetIds),
+		queryFn: () =>
+			fetchWithErrorHandling("/api/budgets/compare", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ budgetIds }),
+			}),
+		staleTime: 1 * 60 * 1000, // 1 minuto
+		enabled: budgetIds.length >= 2,
+	})
+}
+
+export const useCreateBudgetMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (data: Partial<Budget>) =>
+			fetchWithErrorHandling("/api/budgets", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["budgets"] })
+			toast.success("Orçamento criado com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao criar orçamento: ${error.message}`)
+		},
+	})
+}
+
+export const useUpdateBudgetMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<Budget> }) =>
+			fetchWithErrorHandling(`/api/budgets/${id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["budgets"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.budget(id) })
+			toast.success("Orçamento atualizado com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar orçamento: ${error.message}`)
+		},
+	})
+}
+
+export const useDeleteBudgetMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/budgets/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["budgets"] })
+			toast.success("Orçamento excluído com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir orçamento: ${error.message}`)
+		},
+	})
+}
+
+export const useConvertBudgetToPurchaseMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, paymentMethod, purchaseDate }: { id: string; paymentMethod?: string; purchaseDate?: string }) =>
+			fetchWithErrorHandling(`/api/budgets/${id}/convert`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ paymentMethod, purchaseDate }),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["budgets"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.budget(id) })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.budgetStats() })
+			toast.success("Orçamento convertido em compra com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao converter orçamento: ${error.message}`)
+		},
+	})
+}
+
+export const useBudgetStatsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.budgetStats(),
+		queryFn: () => fetchWithErrorHandling("/api/budgets/stats"),
+		staleTime: 2 * 60 * 1000, // 2 minutos
+	})
+}
+
+// ==============================
+// QUOTES (substitui budgets)
+// ==============================
+
+export const useQuotesQuery = (params?: URLSearchParams) => {
+	return useQuery({
+		queryKey: queryKeys.quotes(params),
+		queryFn: () => fetchWithErrorHandling(`/api/quotes?${params?.toString() || ""}`),
+		staleTime: 2 * 60 * 1000,
+	})
+}
+
+export const useQuoteQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.quote(id),
+		queryFn: () => fetchWithErrorHandling(`/api/quotes/${id}`),
+		staleTime: 2 * 60 * 1000,
+		enabled: !!id,
+	})
+}
+
+export const useQuoteComparisonQuery = (quoteIds: string[]) => {
+	return useQuery({
+		queryKey: queryKeys.quoteComparison(quoteIds),
+		queryFn: () =>
+			fetchWithErrorHandling("/api/quotes/compare", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ quoteIds }),
+			}),
+		staleTime: 1 * 60 * 1000,
+		enabled: quoteIds.length >= 2,
+	})
+}
+
+export const useQuoteStatsQuery = () => {
+	return useQuery({
+		queryKey: queryKeys.quoteStats(),
+		queryFn: () => fetchWithErrorHandling("/api/quotes/stats"),
+		staleTime: 2 * 60 * 1000,
+	})
+}
+
+export const useUpdateQuoteMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<any> }) =>
+			fetchWithErrorHandling(`/api/quotes/${id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["quotes"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.quote(id) })
+			toast.success("Cotação atualizada com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao atualizar cotação: ${error.message}`)
+		},
+	})
+}
+
+export const useDeleteQuoteMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (id: string) =>
+			fetchWithErrorHandling(`/api/quotes/${id}`, {
+				method: "DELETE",
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["quotes"] })
+			toast.success("Cotação excluída com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao excluir cotação: ${error.message}`)
+		},
+	})
+}
+
+export const useConvertQuoteToPurchaseMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, paymentMethod, purchaseDate }: { id: string; paymentMethod?: string; purchaseDate?: string }) =>
+			fetchWithErrorHandling(`/api/quotes/${id}/convert`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ paymentMethod, purchaseDate }),
+			}),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: ["quotes"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.quote(id) })
+			queryClient.invalidateQueries({ queryKey: ["purchases"] })
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.quoteStats() })
+			toast.success("Cotação convertida em compra com sucesso!")
+		},
+		onError: (error) => {
+			toast.error(`Erro ao converter cotação: ${error.message}`)
 		},
 	})
 }

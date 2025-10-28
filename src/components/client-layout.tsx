@@ -52,9 +52,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 				<Sidebar />
 				<main ref={mainRef} className="flex-1 p-2 ml-0 md:ml-0 overflow-y-auto custom-scrollbar">
 					<div
-						className={cn("bg-background rounded-xl p-4 md:p-6", {
-							"rounded-b-none": !isScrolledToBottom,
-						})}
+						className="bg-background rounded-xl p-4 md:p-6 min-h-full"
 					>
 						<div className="pb-6">{children}</div>
 						<ReactQueryDevtools initialIsOpen={false} />

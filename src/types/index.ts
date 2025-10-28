@@ -400,3 +400,134 @@ export interface NotaParanaProdutosResponse {
 		max: string
 	}
 }
+
+// Budget System Types
+// ============================================
+// QUOTES (Cotações/Orçamentos de Compra)
+// ============================================
+
+export enum QuoteType {
+	BY_ITEMS = "BY_ITEMS", // Cotação por itens individuais (padrão)
+	BY_CATEGORY = "BY_CATEGORY", // Cotação focada em uma categoria específica
+	BY_MARKET = "BY_MARKET", // Cotação para um mercado específico
+}
+
+export enum QuoteStatus {
+	DRAFT = "DRAFT", // Rascunho - em edição
+	FINALIZED = "FINALIZED", // Finalizado - pronto para comparação
+	APPROVED = "APPROVED", // Aprovado - selecionado para compra
+	CONVERTED = "CONVERTED", // Convertido - transformado em compra
+	EXPIRED = "EXPIRED", // Expirado - passou da validade
+	CANCELLED = "CANCELLED", // Cancelado
+}
+
+export interface QuoteItem {
+	id: string
+	quoteId: string
+	productId?: string
+	quantity: number
+	unitPrice: number
+	unitDiscount: number
+	totalPrice: number
+	totalDiscount: number
+	finalPrice: number
+	productName: string
+	productUnit: string
+	productCategory?: string
+	brandName?: string
+	notes?: string
+	priority: number
+	createdAt: Date
+	updatedAt: Date
+	product?: Product
+}
+
+export interface Quote {
+	id: string
+	name: string
+	description?: string
+	type: QuoteType
+	marketId?: string
+	categoryId?: string
+	status: QuoteStatus
+	totalEstimated: number
+	totalDiscount: number
+	finalEstimated: number
+	purchaseId?: string
+	quoteDate: Date
+	validUntil?: Date
+	notes?: string
+	createdAt: Date
+	updatedAt: Date
+	market?: Market
+	category?: Category
+	items?: QuoteItem[]
+	_count?: {
+		items: number
+	}
+}
+
+export interface QuoteComparison {
+	quotes: Quote[]
+	comparison: {
+		cheapest: Quote
+		mostExpensive: Quote
+		savings: number
+		savingsPercentage: number
+		itemComparison: {
+			productName: string
+			prices: {
+				quoteId: string
+				quoteName: string
+				price: number
+			}[]
+			cheapest: {
+				quoteId: string
+				price: number
+			}
+			mostExpensive: {
+				quoteId: string
+				price: number
+			}
+		}[]
+	}
+}
+
+// ============================================
+// BUDGETS (Orçamentos de Controle de Gastos)
+// ============================================
+
+export enum BudgetType {
+	CATEGORY = "CATEGORY", // Orçamento por categoria (ex: Frios)
+	MARKET = "MARKET", // Orçamento por mercado (ex: Carrefour)
+	PRODUCT = "PRODUCT", // Orçamento por produto específico (ex: Refrigerante)
+}
+
+export interface Budget {
+	id: string
+	name: string
+	description?: string
+	type: BudgetType
+	targetId: string // ID da categoria, mercado ou produto
+	limitAmount: number // Valor limite do orçamento
+	period: string // Período (ex: "2024-12")
+	startDate: Date
+	endDate: Date
+	isActive: boolean
+	alertAt: number // Alertar quando atingir X% (padrão 90%)
+	createdAt: Date
+	updatedAt: Date
+}
+
+export interface BudgetWithSpent extends Budget {
+	spent: number // Valor já gasto
+	remaining: number // Valor restante
+	percentage: number // Percentagem gasta
+	isOverBudget: boolean // Se ultrapassou o orçamento
+	target?: {
+		// Detalhes do alvo (categoria, mercado ou produto)
+		id: string
+		name: string
+		type: "category" | "market" | "product"
+	}
+}
