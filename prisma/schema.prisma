@@ -649,10 +649,17 @@ model DashboardPreference {
   showDiscountStats    Boolean  @default(true)
   showTemporalComp     Boolean  @default(true)
   showNutritionCard    Boolean  @default(true)
-  showPaymentStats     Boolean  @default(true)
-  showMonthlyStats     Boolean  @default(true)
-  customTitle          String?
-  customSubtitle       String?
+  showPaymentStats           Boolean  @default(true)
+  showMonthlyStats           Boolean  @default(true)
+  showPaymentTransactions    Boolean  @default(false) // Widget de transações de pagamento
+  showPaymentTotalAmount     Boolean  @default(false) // Widget de valor total em pagamentos
+  showPaymentAverageTicket   Boolean  @default(false) // Widget de ticket médio
+  showPaymentMostUsed        Boolean  @default(false) // Widget de método mais usado
+  showPaymentDistribution    Boolean  @default(false) // Widget de distribuição de pagamentos
+  showPaymentDetails         Boolean  @default(false) // Widget de detalhes de pagamento
+  showPaymentInsights        Boolean  @default(false) // Widget de insights de pagamento
+  customTitle                String?
+  customSubtitle             String?
   widgetLayouts        Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
   gridColumns          Int      @default(12) // Número de colunas no grid (padrão 12)
   createdAt            DateTime @default(now())

@@ -101,6 +101,13 @@ export function DashboardWidgetClient() {
 			if (preferences.showTemporalComp) enabled.push("temporal-comparison")
 			if (preferences.showNutritionCard) enabled.push("nutrition-summary")
 			if (preferences.showPaymentStats) enabled.push("payment-stats")
+			if (preferences.showPaymentTransactions) enabled.push("payment-transactions")
+			if (preferences.showPaymentTotalAmount) enabled.push("payment-total-amount")
+			if (preferences.showPaymentAverageTicket) enabled.push("payment-average-ticket")
+			if (preferences.showPaymentMostUsed) enabled.push("payment-most-used")
+			if (preferences.showPaymentDistribution) enabled.push("payment-distribution")
+			if (preferences.showPaymentDetails) enabled.push("payment-details")
+			if (preferences.showPaymentInsights) enabled.push("payment-insights")
 
 			// Adicionar cards principais
 			const mainCards: WidgetType[] = [
@@ -177,6 +184,13 @@ export function DashboardWidgetClient() {
 				showTemporalComp: enabledWidgets.includes("temporal-comparison"),
 				showNutritionCard: enabledWidgets.includes("nutrition-summary"),
 				showPaymentStats: enabledWidgets.includes("payment-stats"),
+				showPaymentTransactions: enabledWidgets.includes("payment-transactions"),
+				showPaymentTotalAmount: enabledWidgets.includes("payment-total-amount"),
+				showPaymentAverageTicket: enabledWidgets.includes("payment-average-ticket"),
+				showPaymentMostUsed: enabledWidgets.includes("payment-most-used"),
+				showPaymentDistribution: enabledWidgets.includes("payment-distribution"),
+				showPaymentDetails: enabledWidgets.includes("payment-details"),
+				showPaymentInsights: enabledWidgets.includes("payment-insights"),
 				hiddenCards: [
 					"total-purchases",
 					"total-spent",

@@ -24,7 +24,7 @@ export const WidgetWrapper = forwardRef<HTMLDivElement, WidgetWrapperProps>(
 				ref={ref}
 				className={cn(
 					"relative overflow-visible transition-all h-full flex flex-col",
-					isEditing && "ring-2 ring-primary/50 shadow-lg rounded-lg",
+					isEditing && "ring-2 ring-inset ring-primary/50 rounded-lg",
 					className,
 				)}
 				style={style}
