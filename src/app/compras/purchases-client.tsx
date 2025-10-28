@@ -73,22 +73,49 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 	const [productsWithoutNutrition, setProductsWithoutNutrition] = useState<
 		Array<{ productId: string; productName: string }>
 	>([])
+	const [searchValue, setSearchValue] = useState(searchParams.search || "")
 	const itemsPerPage = 12
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Purchase>()
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/compras",
 		initialValues: {
-			search: searchParams.search || "",
-			market: searchParams.market || "all",
-			sort: searchParams.sort || "date-desc",
-			period: searchParams.period || "all",
-			dateFrom: searchParams.dateFrom || "",
-			dateTo: searchParams.dateTo || "",
-			page: parseInt(searchParams.page || "1", 10),
+			search: "",
+			market: "all",
+			sort: "date-desc",
+			period: "all",
+			dateFrom: "",
+			dateTo: "",
+			page: 1,
 		},
 	})
+
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Debounce da busca
+	React.useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchValue !== state.search) {
+				const currentState = stateRef.current
+				const newState = {
+					...currentState,
+					search: searchValue,
+					page: 1,
+				}
+				updateState(newState)
+			}
+		}, 500)
+
+		return () => clearTimeout(timer)
+	}, [searchValue, state.search, updateState])
 
 	// Build URLSearchParams for the queries
 	const purchaseParams = useMemo(() => {
@@ -306,8 +333,8 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 					<Input
 						placeholder="Buscar produtos..."
-						value={state.search as string}
-						onChange={(e) => updateSingleValue("search", e.target.value)}
+						value={searchValue}
+						onChange={(e) => setSearchValue(e.target.value)}
 						className="pl-10"
 					/>
 				</div>

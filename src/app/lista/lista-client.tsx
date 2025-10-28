@@ -32,18 +32,45 @@ interface ListaClientProps {
 export function ListaClient({ searchParams }: ListaClientProps) {
 	const router = useRouter()
 	const itemsPerPage = 12
+	const [searchValue, setSearchValue] = React.useState(searchParams.search || "")
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<ShoppingList>()
 
-	const { state, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
+	const { state, updateState, updateSingleValue, clearFilters, hasActiveFilters } = useUrlState({
 		basePath: "/lista",
 		initialValues: {
-			search: searchParams.search || "",
-			sort: searchParams.sort || "date-desc",
-			status: searchParams.status || "all",
-			page: parseInt(searchParams.page || "1", 10),
+			search: "",
+			sort: "date-desc",
+			status: "all",
+			page: 1,
 		},
 	})
+
+	// Referência estável para o state atual
+	const stateRef = React.useRef(state)
+	stateRef.current = state
+
+	// Sincronizar searchValue com mudanças no state.search
+	React.useEffect(() => {
+		setSearchValue(String(state.search))
+	}, [state.search])
+
+	// Debounce da busca
+	React.useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchValue !== state.search) {
+				const currentState = stateRef.current
+				const newState = {
+					...currentState,
+					search: searchValue,
+					page: 1,
+				}
+				updateState(newState)
+			}
+		}, 500)
+
+		return () => clearTimeout(timer)
+	}, [searchValue, state.search, updateState])
 
 	// Build URLSearchParams for the shopping lists query
 	const shoppingListParams = React.useMemo(() => {
@@ -174,8 +201,8 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 						<Input
 							placeholder="Buscar listas..."
-							value={state.search as string}
-							onChange={(e) => updateSingleValue("search", e.target.value)}
+							value={searchValue}
+							onChange={(e) => setSearchValue(e.target.value)}
 							className="pl-10"
 						/>
 					</div>
