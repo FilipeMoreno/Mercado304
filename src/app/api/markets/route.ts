@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { name, legalName, location } = body
+		const { name, legalName, location, imageUrl } = body
 
 		if (!name || !name.trim()) {
 			throw new AppError("MKT_001")
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
 				name,
 				legalName: legalName || null,
 				location: location || null,
+				imageUrl: imageUrl || null,
 			},
 		})
 

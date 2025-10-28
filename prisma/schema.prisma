@@ -13,6 +13,7 @@ model Market {
   name         String // Nome fantasia/nome usado no app
   legalName    String? // Nome de registro/razão social (nome da nota fiscal)
   location     String?
+  imageUrl     String? // URL da imagem do mercado
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   purchases    Purchase[]
@@ -634,47 +635,47 @@ model TrustedDevice {
 }
 
 model DashboardPreference {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
-  cardOrder            String[] // Array com IDs dos cards na ordem desejada
-  hiddenCards          String[] // Array com IDs dos cards ocultos
-  layoutStyle          String   @default("grid") // "grid", "list", "compact"
-  cardsPerRow          Int      @default(5) // Cards por linha no grid
-  showSummaryCard      Boolean  @default(true)
-  showMonthlyChart     Boolean  @default(true)
-  showCategoryStats    Boolean  @default(true)
-  showTopProducts      Boolean  @default(true)
-  showMarketCompare    Boolean  @default(true)
-  showRecentBuys       Boolean  @default(true)
-  showExpirationAlerts Boolean  @default(true)
-  showReplenishment    Boolean  @default(true)
-  showSavingsCard      Boolean  @default(true)
-  showDiscountStats    Boolean  @default(true)
-  showTemporalComp     Boolean  @default(true)
-  showNutritionCard    Boolean  @default(true)
-  showPaymentStats           Boolean  @default(true)
-  showMonthlyStats           Boolean  @default(true)
-  showPaymentTransactions    Boolean  @default(false) // Widget de transações de pagamento
-  showPaymentTotalAmount     Boolean  @default(false) // Widget de valor total em pagamentos
-  showPaymentAverageTicket   Boolean  @default(false) // Widget de ticket médio
-  showPaymentMostUsed        Boolean  @default(false) // Widget de método mais usado
-  showPaymentDistribution    Boolean  @default(false) // Widget de distribuição de pagamentos
-  showPaymentDetails         Boolean  @default(false) // Widget de detalhes de pagamento
-  showPaymentInsights        Boolean  @default(false) // Widget de insights de pagamento
-  showQuoteOverview          Boolean  @default(true) // Widget de visão geral de cotações
-  showQuoteTrend             Boolean  @default(true) // Widget de tendência de cotações
-  showQuoteByMarket          Boolean  @default(true) // Widget de cotações por mercado
-  showQuoteTopQuotes         Boolean  @default(false) // Widget de maiores cotações
-  showQuoteSavings           Boolean  @default(true) // Widget de economia em cotações
-  showBudgetOverview         Boolean  @default(true) // Widget de visão geral de orçamentos (controle de gastos)
-  showBudgetAlerts           Boolean  @default(true) // Widget de alertas de orçamento
-  showBudgetProgress         Boolean  @default(true) // Widget de progresso dos orçamentos
-  customTitle                String?
-  customSubtitle             String?
-  widgetLayouts        Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
-  gridColumns          Int      @default(12) // Número de colunas no grid (padrão 12)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
+  cardOrder                String[] // Array com IDs dos cards na ordem desejada
+  hiddenCards              String[] // Array com IDs dos cards ocultos
+  layoutStyle              String   @default("grid") // "grid", "list", "compact"
+  cardsPerRow              Int      @default(5) // Cards por linha no grid
+  showSummaryCard          Boolean  @default(true)
+  showMonthlyChart         Boolean  @default(true)
+  showCategoryStats        Boolean  @default(true)
+  showTopProducts          Boolean  @default(true)
+  showMarketCompare        Boolean  @default(true)
+  showRecentBuys           Boolean  @default(true)
+  showExpirationAlerts     Boolean  @default(true)
+  showReplenishment        Boolean  @default(true)
+  showSavingsCard          Boolean  @default(true)
+  showDiscountStats        Boolean  @default(true)
+  showTemporalComp         Boolean  @default(true)
+  showNutritionCard        Boolean  @default(true)
+  showPaymentStats         Boolean  @default(true)
+  showMonthlyStats         Boolean  @default(true)
+  showPaymentTransactions  Boolean  @default(false) // Widget de transações de pagamento
+  showPaymentTotalAmount   Boolean  @default(false) // Widget de valor total em pagamentos
+  showPaymentAverageTicket Boolean  @default(false) // Widget de ticket médio
+  showPaymentMostUsed      Boolean  @default(false) // Widget de método mais usado
+  showPaymentDistribution  Boolean  @default(false) // Widget de distribuição de pagamentos
+  showPaymentDetails       Boolean  @default(false) // Widget de detalhes de pagamento
+  showPaymentInsights      Boolean  @default(false) // Widget de insights de pagamento
+  showQuoteOverview        Boolean  @default(true) // Widget de visão geral de cotações
+  showQuoteTrend           Boolean  @default(true) // Widget de tendência de cotações
+  showQuoteByMarket        Boolean  @default(true) // Widget de cotações por mercado
+  showQuoteTopQuotes       Boolean  @default(false) // Widget de maiores cotações
+  showQuoteSavings         Boolean  @default(true) // Widget de economia em cotações
+  showBudgetOverview       Boolean  @default(true) // Widget de visão geral de orçamentos (controle de gastos)
+  showBudgetAlerts         Boolean  @default(true) // Widget de alertas de orçamento
+  showBudgetProgress       Boolean  @default(true) // Widget de progresso dos orçamentos
+  customTitle              String?
+  customSubtitle           String?
+  widgetLayouts            Json?    @default("{}") // Layouts de widgets customizáveis por breakpoint
+  gridColumns              Int      @default(12) // Número de colunas no grid (padrão 12)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -20,6 +20,7 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
@@ -41,6 +42,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { MarketImageFallback } from "@/components/ui/market-image-fallback"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatLocalDate } from "@/lib/date-utils"
@@ -216,14 +218,36 @@ export default function MarketDetailsPage() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-center gap-4">
+			<div className="flex items-start gap-6">
 				<Link href="/mercados">
 					<Button variant="outline" size="sm">
 						<ArrowLeft className="h-4 w-4 mr-2" />
 						Voltar
 					</Button>
 				</Link>
-				<div>
+				
+				{/* Área de imagem - sempre presente */}
+				<div className="flex-shrink-0">
+					<div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-gray-200">
+						{data.market.imageUrl ? (
+							<Image
+								src={data.market.imageUrl}
+								alt={data.market.name}
+								fill
+								className="object-cover"
+								sizes="96px"
+							/>
+						) : (
+							<MarketImageFallback 
+								marketName={data.market.name}
+								className="w-full h-full"
+								size="sm"
+							/>
+						)}
+					</div>
+				</div>
+				
+				<div className="flex-1">
 					<h1 className="text-3xl font-bold flex items-center gap-2">
 						<Store className="h-8 w-8" />
 						{data.market.name}

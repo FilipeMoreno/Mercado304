@@ -3,10 +3,11 @@
 import { ArrowLeft, Save, Store } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useId, useState, useEffect } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -23,6 +24,7 @@ export default function NovoMercadoPage() {
 		name: "",
 		legalName: "",
 		location: "",
+		imageUrl: "",
 	})
 
 	// Auto-preencher com parâmetro da URL
@@ -49,6 +51,7 @@ export default function NovoMercadoPage() {
 				name: formData.name.trim(),
 				legalName: formData.legalName.trim() || undefined,
 				location: formData.location.trim() || undefined,
+				imageUrl: formData.imageUrl.trim() || undefined,
 			})
 
 			toast.success("Mercado criado com sucesso!")
@@ -128,6 +131,16 @@ export default function NovoMercadoPage() {
 								placeholder="Ex: Rua das Flores, 123 - Centro"
 								rows={3}
 							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label>Foto do Mercado</Label>
+							<ImageUpload
+								currentImageUrl={formData.imageUrl}
+								onImageChange={(imageUrl) => setFormData((prev) => ({ ...prev, imageUrl: imageUrl || "" }))}
+								disabled={createMarketMutation.isPending}
+							/>
+							<p className="text-xs text-muted-foreground">Adicione uma foto para identificar o mercado (opcional)</p>
 						</div>
 
 						<div className="flex gap-3 pt-4">

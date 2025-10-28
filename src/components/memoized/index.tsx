@@ -2,7 +2,6 @@
 
 import {
 	BarChart3,
-	Barcode,
 	DollarSign,
 	Edit,
 	ImageIcon,
@@ -20,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MarketImageFallback } from "@/components/ui/market-image-fallback"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // ProductCard memoizado
@@ -249,6 +249,25 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 
 		return (
 			<Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
+				{/* Área de imagem - sempre presente */}
+				<div className="relative h-32 w-full overflow-hidden rounded-t-lg">
+					{market.imageUrl ? (
+						<Image
+							src={market.imageUrl}
+							alt={marketName}
+							fill
+							className="object-cover"
+							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+						/>
+					) : (
+						<MarketImageFallback 
+							marketName={marketName}
+							className="w-full h-full"
+							size="md"
+						/>
+					)}
+				</div>
+				
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
@@ -297,6 +316,7 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 			prevProps.market.id === nextProps.market.id &&
 			prevProps.market.name === nextProps.market.name &&
 			prevProps.market.location === nextProps.market.location &&
+			prevProps.market.imageUrl === nextProps.market.imageUrl &&
 			prevProps.market.updatedAt === nextProps.market.updatedAt
 		)
 	},

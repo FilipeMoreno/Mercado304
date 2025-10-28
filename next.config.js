@@ -115,6 +115,12 @@ const nextConfig = {
         port: '',
         pathname: '/products/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'storage.mercado.filipemoreno.com.br',
+        port: '',
+        pathname: '/**',
+      },
     ],
     qualities: [25, 50, 75, 90, 100],
     formats: ['image/webp', 'image/avif'],

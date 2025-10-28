@@ -7,6 +7,7 @@ import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -27,6 +28,7 @@ export default function EditarMercadoPage() {
 		name: "",
 		legalName: "",
 		location: "",
+		imageUrl: "",
 	})
 
 	useEffect(() => {
@@ -35,6 +37,7 @@ export default function EditarMercadoPage() {
 				name: market.name || "",
 				legalName: market.legalName || "",
 				location: market.location || "",
+				imageUrl: market.imageUrl || "",
 			})
 		}
 	}, [market])
@@ -54,6 +57,7 @@ export default function EditarMercadoPage() {
 					name: formData.name.trim(),
 					legalName: formData.legalName.trim() || undefined,
 					location: formData.location.trim() || undefined,
+					imageUrl: formData.imageUrl.trim() || undefined,
 				},
 			})
 
@@ -173,6 +177,16 @@ export default function EditarMercadoPage() {
 								rows={3}
 							/>
 							<p className="text-xs text-gray-500">Localização do mercado (opcional)</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label>Foto do Mercado</Label>
+							<ImageUpload
+								currentImageUrl={formData.imageUrl}
+								onImageChange={(imageUrl) => setFormData((prev) => ({ ...prev, imageUrl: imageUrl || "" }))}
+								disabled={updateMarketMutation.isPending}
+							/>
+							<p className="text-xs text-gray-500">Adicione uma foto para identificar o mercado (opcional)</p>
 						</div>
 
 						<div className="flex gap-3 pt-6 border-t">
