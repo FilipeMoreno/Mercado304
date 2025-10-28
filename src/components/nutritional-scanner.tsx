@@ -203,6 +203,7 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			onClose={handleClose}
 			title="Scanner Nutricional"
 			isLoading={isProcessing}
+			processingMessage={processingSteps[currentStep]}
 		>
 			<DialogHeader>
 				<div className="flex items-center justify-between">

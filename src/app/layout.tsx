@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "sonner"
 import { ClientLayout } from "@/components/client-layout"
 import { PWASplashWrapper } from "@/components/pwa-splash-wrapper"
+import { MinimizedDialogProvider } from "@/lib/minimized-dialog-manager"
 import { ThemeProvider } from "@/lib/theme"
 import Provider from "./provider"
 
@@ -56,11 +57,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<Analytics />
 				<Provider>
 					<ThemeProvider defaultTheme="system" storageKey="mercado304-theme">
-						<PWASplashWrapper>
-							<ClientLayout>{children}</ClientLayout>
-						</PWASplashWrapper>
-						<ReactQueryDevtools initialIsOpen={false} />
-						<Toaster richColors position="top-right" />
+						<MinimizedDialogProvider>
+							<PWASplashWrapper>
+								<ClientLayout>{children}</ClientLayout>
+							</PWASplashWrapper>
+							<ReactQueryDevtools initialIsOpen={false} />
+							<Toaster richColors position="top-right" />
+						</MinimizedDialogProvider>
 					</ThemeProvider>
 				</Provider>
 			</body>
