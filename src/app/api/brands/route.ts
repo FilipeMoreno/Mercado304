@@ -63,14 +63,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { name } = body
+		const { name, imageUrl } = body
 
 		if (!name) {
 			return NextResponse.json({ error: "Nome da marca é obrigatório" }, { status: 400 })
 		}
 
 		const brand = await prisma.brand.create({
-			data: { name: name.trim() },
+			data: {
+				name: name.trim(),
+				imageUrl: imageUrl || undefined,
+			},
 		})
 
 		return NextResponse.json(brand, { status: 201 })

@@ -13,9 +13,10 @@ interface ImageUploadProps {
 	onUploadStateChange?: (isUploading: boolean) => void
 	disabled?: boolean
 	className?: string
+	folder?: "markets" | "brands" | "products" | "uploads"
 }
 
-export function ImageUpload({ currentImageUrl, onImageChange, onUploadStateChange, disabled = false, className = "" }: ImageUploadProps) {
+export function ImageUpload({ currentImageUrl, onImageChange, onUploadStateChange, disabled = false, className = "", folder = "uploads" }: ImageUploadProps) {
 	const [isUploading, setIsUploading] = useState(false)
 	const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null)
 	const [isDragOver, setIsDragOver] = useState(false)
@@ -54,9 +55,9 @@ export function ImageUpload({ currentImageUrl, onImageChange, onUploadStateChang
 
 			// Upload para o servidor
 			const formData = new FormData()
-			formData.append("image", file)
+			formData.append("file", file)
 
-			const response = await fetch("/api/upload/market-image", {
+			const response = await fetch(`/api/upload/image?folder=${folder}`, {
 				method: "POST",
 				body: formData,
 			})

@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCreateBrandMutation } from "@/hooks"
@@ -18,7 +19,9 @@ export default function NovaMarcaPage() {
 
 	const [formData, setFormData] = useState({
 		name: "",
+		imageUrl: "",
 	})
+	const [isUploadingImage, setIsUploadingImage] = useState(false)
 
 	// Auto-preencher com parâmetro da URL
 	useEffect(() => {
@@ -42,6 +45,7 @@ export default function NovaMarcaPage() {
 		try {
 			await createBrandMutation.mutateAsync({
 				name: formData.name.trim(),
+				imageUrl: formData.imageUrl || undefined,
 			})
 
 			toast.success("Marca criada com sucesso!")
@@ -92,16 +96,28 @@ export default function NovaMarcaPage() {
 							<p className="text-xs text-gray-500">Digite o nome da marca ou fabricante do produto</p>
 						</div>
 
+						<div className="space-y-2">
+							<Label>Logo da Marca (opcional)</Label>
+							<ImageUpload
+								currentImageUrl={formData.imageUrl}
+								onImageChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || "" }))}
+								onUploadStateChange={setIsUploadingImage}
+								disabled={createBrandMutation.isPending}
+								folder="brands"
+							/>
+							<p className="text-xs text-gray-500">Tamanho recomendado: 400x400px (formato quadrado)</p>
+						</div>
+
 						<div className="flex gap-3 pt-6 border-t">
 							<Button
 								type="submit"
-								disabled={createBrandMutation.isPending || !formData.name.trim()}
+								disabled={createBrandMutation.isPending || isUploadingImage || !formData.name.trim()}
 								className="flex-1"
 							>
 								<Save className="h-4 w-4 mr-2" />
-								{createBrandMutation.isPending ? "Criando..." : "Criar Marca"}
+								{isUploadingImage ? "Enviando imagem..." : createBrandMutation.isPending ? "Criando..." : "Criar Marca"}
 							</Button>
-							<Button type="button" variant="outline" onClick={handleCancel} disabled={createBrandMutation.isPending}>
+							<Button type="button" variant="outline" onClick={handleCancel} disabled={createBrandMutation.isPending || isUploadingImage}>
 								<X className="h-4 w-4 mr-2" />
 								Cancelar
 							</Button>

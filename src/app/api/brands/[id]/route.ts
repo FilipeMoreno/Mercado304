@@ -35,12 +35,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
 	try {
 		const body = await request.json()
-		const { name } = body
+		const { name, imageUrl } = body
 
 		const brand = await prisma.brand.update({
 			where: { id: params.id },
 			data: {
 				name,
+				imageUrl: imageUrl !== undefined ? imageUrl : undefined,
 			},
 		})
 

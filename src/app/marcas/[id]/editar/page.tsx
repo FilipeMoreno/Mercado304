@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useBrandQuery, useUpdateBrandMutation } from "@/hooks"
@@ -21,12 +22,15 @@ export default function EditarMarcaPage() {
 
 	const [formData, setFormData] = useState({
 		name: "",
+		imageUrl: "",
 	})
+	const [isUploadingImage, setIsUploadingImage] = useState(false)
 
 	useEffect(() => {
 		if (brand) {
 			setFormData({
 				name: brand.name || "",
+				imageUrl: brand.imageUrl || "",
 			})
 		}
 	}, [brand])
@@ -44,6 +48,7 @@ export default function EditarMarcaPage() {
 				id: brandId,
 				data: {
 					name: formData.name.trim(),
+					imageUrl: formData.imageUrl || undefined,
 				},
 			})
 
@@ -138,16 +143,28 @@ export default function EditarMarcaPage() {
 							<p className="text-xs text-gray-500">Digite o nome da marca ou fabricante do produto</p>
 						</div>
 
+						<div className="space-y-2">
+							<Label>Logo da Marca (opcional)</Label>
+							<ImageUpload
+								currentImageUrl={formData.imageUrl}
+								onImageChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || "" }))}
+								onUploadStateChange={setIsUploadingImage}
+								disabled={updateBrandMutation.isPending}
+								folder="brands"
+							/>
+							<p className="text-xs text-gray-500">Tamanho recomendado: 400x400px (formato quadrado)</p>
+						</div>
+
 						<div className="flex gap-3 pt-6 border-t">
 							<Button
 								type="submit"
-								disabled={updateBrandMutation.isPending || !formData.name.trim()}
+								disabled={updateBrandMutation.isPending || isUploadingImage || !formData.name.trim()}
 								className="flex-1"
 							>
 								<Save className="h-4 w-4 mr-2" />
-								{updateBrandMutation.isPending ? "Atualizando..." : "Atualizar Marca"}
+								{isUploadingImage ? "Enviando imagem..." : updateBrandMutation.isPending ? "Atualizando..." : "Atualizar Marca"}
 							</Button>
-							<Button type="button" variant="outline" onClick={handleCancel} disabled={updateBrandMutation.isPending}>
+							<Button type="button" variant="outline" onClick={handleCancel} disabled={updateBrandMutation.isPending || isUploadingImage}>
 								<X className="h-4 w-4 mr-2" />
 								Cancelar
 							</Button>

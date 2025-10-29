@@ -187,6 +187,7 @@ export default function EditarMercadoPage() {
 								onImageChange={(imageUrl) => setFormData((prev) => ({ ...prev, imageUrl: imageUrl || "" }))}
 								onUploadStateChange={setIsUploadingImage}
 								disabled={updateMarketMutation.isPending}
+								folder="markets"
 							/>
 							<p className="text-xs text-gray-500">Adicione uma foto para identificar o mercado (opcional)</p>
 						</div>
