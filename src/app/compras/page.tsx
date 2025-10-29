@@ -15,11 +15,11 @@ interface ComprasPageProps {
 export default async function ComprasPage({ searchParams }: ComprasPageProps) {
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold">Compras</h1>
-					<p className="text-gray-600 mt-2">Registre e acompanhe suas compras</p>
-				</div>
+			<div className="space-y-2">
+				<h1 className="text-3xl font-bold tracking-tight">Compras</h1>
+				<p className="text-muted-foreground">
+					Registre e acompanhe suas compras
+				</p>
 			</div>
 
 			<PurchasesClient searchParams={searchParams} />

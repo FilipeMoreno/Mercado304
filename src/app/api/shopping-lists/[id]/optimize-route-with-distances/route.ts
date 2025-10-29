@@ -163,45 +163,88 @@ async function calculateDistances(
 	}
 
 	try {
-		// Construir lista de destinos
-		const destinations = markets
-			.map((m) => m.location || m.name)
-			.map((dest) => encodeURIComponent(dest))
-			.join("|")
+		// Calcular distância para cada mercado individualmente usando Routes API
+		const results = await Promise.all(
+			markets.map(async (market) => {
+				try {
+					const destination = market.location || market.name
 
-		// Chamar Google Distance Matrix API
-		const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${destinations}&mode=driving&language=pt-BR&key=${googleMapsApiKey}`
+					// Usar Routes API (Compute Routes) - nova API do Google Maps
+					const url = `https://routes.googleapis.com/directions/v2:computeRoutes`
 
-		const response = await fetch(url)
-		const data = await response.json()
+					const requestBody = {
+						origin: {
+							address: origin,
+						},
+						destination: {
+							address: destination,
+						},
+						travelMode: "DRIVE",
+						routingPreference: "TRAFFIC_AWARE",
+						computeAlternativeRoutes: false,
+						languageCode: "pt-BR",
+						units: "METRIC",
+					}
 
-		if (data.status !== "OK") {
-			console.error("Erro na API do Google Maps:", data)
-			throw new Error("Erro ao calcular distâncias")
-		}
+					const response = await fetch(url, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-Goog-Api-Key": googleMapsApiKey,
+							"X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
+						},
+						body: JSON.stringify(requestBody),
+					})
 
-		// Processar resultados
-		const results = data.rows[0].elements.map((element: { status: string; distance?: { value: number }; duration?: { value: number } }, index: number) => {
-			if (element.status === "OK" && element.distance && element.duration) {
-				return {
-					...markets[index],
-					distanceKm: element.distance.value / 1000, // converter metros para km
-					durationMinutes: element.duration.value / 60, // converter segundos para minutos
+					if (!response.ok) {
+						const errorData = await response.json()
+						console.error(`Erro ao calcular rota para ${market.name}:`, errorData)
+						// Fallback para este mercado específico
+						return {
+							...market,
+							distanceKm: 5,
+							durationMinutes: 15,
+						}
+					}
+
+					const data = await response.json()
+
+					if (data.routes && data.routes.length > 0) {
+						const route = data.routes[0]
+						const distanceMeters = route.distanceMeters || 5000
+						const durationSeconds = route.duration
+							? Number.parseInt(route.duration.replace("s", ""), 10)
+							: 900
+
+						return {
+							...market,
+							distanceKm: distanceMeters / 1000,
+							durationMinutes: durationSeconds / 60,
+						}
+					} else {
+						// Nenhuma rota encontrada
+						console.warn(`Nenhuma rota encontrada para ${market.name}`)
+						return {
+							...market,
+							distanceKm: 5,
+							durationMinutes: 15,
+						}
+					}
+				} catch (marketError) {
+					console.error(`Erro ao processar mercado ${market.name}:`, marketError)
+					return {
+						...market,
+						distanceKm: 5,
+						durationMinutes: 15,
+					}
 				}
-			} else {
-				// Fallback para mercados sem resultado válido
-				return {
-					...markets[index],
-					distanceKm: 5, // distância padrão
-					durationMinutes: 15, // tempo padrão
-				}
-			}
-		})
+			}),
+		)
 
 		return results
 	} catch (error) {
 		console.error("Erro ao calcular distâncias:", error)
-		// Fallback em caso de erro
+		// Fallback em caso de erro geral
 		return markets.map((market) => ({
 			...market,
 			distanceKm: Math.random() * 10 + 1,

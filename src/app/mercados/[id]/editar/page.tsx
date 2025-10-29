@@ -23,6 +23,7 @@ export default function EditarMercadoPage() {
 
 	const { data: market, isLoading } = useMarketQuery(marketId)
 	const updateMarketMutation = useUpdateMarketMutation()
+	const [isUploadingImage, setIsUploadingImage] = useState(false)
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -184,6 +185,7 @@ export default function EditarMercadoPage() {
 							<ImageUpload
 								currentImageUrl={formData.imageUrl}
 								onImageChange={(imageUrl) => setFormData((prev) => ({ ...prev, imageUrl: imageUrl || "" }))}
+								onUploadStateChange={setIsUploadingImage}
 								disabled={updateMarketMutation.isPending}
 							/>
 							<p className="text-xs text-gray-500">Adicione uma foto para identificar o mercado (opcional)</p>
@@ -192,11 +194,11 @@ export default function EditarMercadoPage() {
 						<div className="flex gap-3 pt-6 border-t">
 							<Button
 								type="submit"
-								disabled={updateMarketMutation.isPending || !formData.name.trim()}
+								disabled={updateMarketMutation.isPending || isUploadingImage || !formData.name.trim()}
 								className="flex-1"
 							>
 								<Save className="h-4 w-4 mr-2" />
-								{updateMarketMutation.isPending ? "Atualizando..." : "Atualizar Mercado"}
+								{isUploadingImage ? "Aguardando upload..." : updateMarketMutation.isPending ? "Atualizando..." : "Atualizar Mercado"}
 							</Button>
 							<Button type="button" variant="outline" onClick={handleCancel} disabled={updateMarketMutation.isPending}>
 								<X className="h-4 w-4 mr-2" />

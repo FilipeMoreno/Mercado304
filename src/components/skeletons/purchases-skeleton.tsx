@@ -29,24 +29,28 @@ export function PurchasesSkeleton() {
 			</div>
 
 			{/* Grid de Compras */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-				{Array.from({ length: 9 }).map((_, i) => (
-					<Card key={i} className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
-						<CardHeader className="pb-3">
-							<div className="flex items-start justify-between">
-								<div className="flex-1">
-									<Skeleton className="h-6 w-3/4 mb-2" />
-									<Skeleton className="h-4 w-1/2 mb-1" />
-									<Skeleton className="h-4 w-1/3" />
-								</div>
-								<Skeleton className="h-8 w-8" />
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+				{Array.from({ length: 8 }).map((_, i) => (
+					<Card key={i} className="h-full flex flex-col overflow-hidden border-0">
+						{/* Área superior com gradiente (h-48) */}
+						<div className="relative h-48 w-full bg-gradient-to-br from-green-500/10 via-green-500/5 to-emerald-500/10">
+							<div className="relative h-full flex flex-col items-center justify-center p-6">
+								<Skeleton className="h-16 w-16 rounded-full mb-3" />
+								<Skeleton className="h-8 w-24" />
 							</div>
-						</CardHeader>
-						<CardContent className="pt-0">
-							<div className="text-right mb-3">
-								<Skeleton className="h-6 w-20 ml-auto" />
+							{/* Badge inferior */}
+							<div className="absolute bottom-3 left-3">
+								<Skeleton className="h-7 w-24 rounded-full" />
 							</div>
-							<Skeleton className="h-8 w-full" />
+						</div>
+						{/* Conteúdo */}
+						<CardContent className="flex-1 flex flex-col p-4">
+							<Skeleton className="h-6 w-3/4 mb-3" />
+							<Skeleton className="h-4 w-full mb-2" />
+							<Skeleton className="h-4 w-2/3 mb-3" />
+							<div className="mt-auto pt-3 border-t">
+								<Skeleton className="h-4 w-full" />
+							</div>
 						</CardContent>
 					</Card>
 				))}

@@ -1,15 +1,15 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChevronLeft, ChevronRight, Edit, Eye, Filter, List, MoreVertical, Plus, Search, Trash2 } from "lucide-react"
-import Link from "next/link"
+import { ChevronLeft, ChevronRight, Filter, List, Plus, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { toast } from "sonner"
 import { AiShoppingList } from "@/components/ai-shopping-list"
+import { ShoppingListCardMemo } from "@/components/memoized"
 import { ShoppingListSkeleton } from "@/components/skeletons/shopping-list-skeleton"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,6 @@ import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dial
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteConfirmation, useDeleteShoppingListMutation, useShoppingListsQuery, useUrlState } from "@/hooks"
 import type { ShoppingList } from "@/types"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface ListaClientProps {
 	searchParams: {
@@ -270,7 +269,7 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 						</div>
 
 						<motion.div
-							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"
+							className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6"
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							transition={{ delay: 0.2 }}
@@ -280,50 +279,13 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 									key={list.id}
 									initial={{ opacity: 0, y: 20 }}
 									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: index * 0.05 }}
+									transition={{ delay: index * 0.03, duration: 0.3 }}
 								>
-									<Card>
-										<CardHeader>
-											<div className="flex justify-between items-start">
-												<div>
-													<CardTitle className="flex items-center gap-2">
-														<List className="h-5 w-5" />
-														{list.name}
-													</CardTitle>
-													<CardDescription className="mt-2">
-														{list.items?.length || 0} itens • Criada em{" "}
-														{new Date(list.createdAt).toLocaleDateString("pt-BR")}
-													</CardDescription>
-												</div>
-												<div className="text-right">
-													<div className="text-sm text-gray-500">{list.items?.length || 0} itens</div>
-												</div>
-											</div>
-										</CardHeader>
-										<CardContent className="flex justify-between">
-
-											<Link href={`/lista/${list.id}`}>
-												<Button variant="outline" size="sm" className="w-full">
-													<Eye className="h-4 w-4 mr-1" />
-													Ver Lista
-												</Button>
-											</Link>
-
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-														<MoreVertical className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem onClick={() => openDeleteConfirm(list)} className="text-red-600">
-														<Trash2 className="h-4 w-4 mr-2" />
-														Excluir
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</CardContent>
-									</Card>
+									<ShoppingListCardMemo
+										shoppingList={list}
+										onDelete={openDeleteConfirm}
+										onEdit={() => router.push(`/lista/${list.id}`)}
+									/>
 								</motion.div>
 							))}
 						</motion.div>

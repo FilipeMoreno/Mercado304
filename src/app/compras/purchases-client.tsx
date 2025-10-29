@@ -1,45 +1,29 @@
 "use client"
 
 import { format, startOfMonth, subDays } from "date-fns"
-import { ptBR } from "date-fns/locale"
 import { motion } from "framer-motion"
 import {
-	Calendar,
 	ChevronLeft,
-	ChevronRight,
-	Edit,
-	Eye,
-	Filter,
-	MoreVertical,
-	Plus,
+	ChevronRight, Filter, Plus,
 	Search,
-	ShoppingCart,
-	Store,
-	Trash2,
+	ShoppingCart, Trash2
 } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { useEffect, useId, useMemo, useState } from "react"
+import { PurchaseCardMemo } from "@/components/memoized"
 import { MissingNutritionalInfoDialog } from "@/components/missing-nutritional-info-dialog"
+import { PurchaseDetailsDialog } from "@/components/purchases/purchase-details-dialog"
 import { PurchasesSkeleton } from "@/components/skeletons/purchases-skeleton"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { DateInput } from "@/components/ui/date-input"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 // removed unused imports
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
 	useDeleteConfirmation,
@@ -50,7 +34,6 @@ import {
 	useUrlState,
 } from "@/hooks"
 // removed unused imports
-import { formatLocalDate } from "@/lib/date-utils"
 import type { Purchase } from "@/types"
 
 interface PurchasesClientProps {
@@ -405,98 +388,22 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 							</span>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{purchases.map((purchase: any, index: number) => {
-								// Calcular desconto total real (itens + desconto total da compra)
-								const itemsDiscount =
-									purchase.items?.reduce((sum: number, item: any) => sum + (item.totalDiscount || 0), 0) || 0
-								const totalDiscount = itemsDiscount + (purchase.totalDiscount || 0)
-
-								return (
-									<motion.div
-										key={purchase.id}
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: index * 0.05 }}
-										className="h-full"
-									>
-										<Card className="h-full flex flex-col hover:shadow-md transition-shadow">
-											<CardHeader className="flex-1 pb-3">
-												<div className="flex flex-col gap-3">
-													{/* Cabeçalho */}
-													<div className="flex justify-between items-start">
-														<CardTitle className="flex items-center gap-2 text-base md:text-lg">
-															<ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
-															{purchase.market?.name}
-														</CardTitle>
-														<div className="text-right">
-															<div className="text-lg md:text-xl font-bold text-green-600">
-																R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}
-															</div>
-															{totalDiscount > 0 && (
-																<div className="text-xs md:text-sm text-red-600 font-medium">
-																	Desconto: -R$ {totalDiscount.toFixed(2)}
-																</div>
-															)}
-														</div>
-													</div>
-
-													{/* Informações */}
-													<CardDescription className="space-y-1.5">
-														<div className="flex items-center gap-1.5 text-xs md:text-sm">
-															<Store className="h-3.5 w-3.5" />
-															{purchase.market?.location}
-														</div>
-														<div className="flex items-center gap-1.5 text-xs md:text-sm">
-															<Calendar className="h-3.5 w-3.5" />
-															{formatLocalDate(purchase.purchaseDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-														</div>
-														<div className="text-xs md:text-sm font-medium text-muted-foreground">
-															{purchase.items?.length || 0} {purchase.items?.length === 1 ? "item" : "itens"}
-														</div>
-													</CardDescription>
-												</div>
-											</CardHeader>
-											<CardContent className="pt-0 pb-4">
-												<div className="flex gap-2">
-													<Button
-														variant="outline"
-														size="sm"
-														className="flex-1"
-														onClick={() => viewPurchaseDetails(purchase)}
-													>
-														<Eye className="h-4 w-4 mr-2" />
-														Ver Detalhes
-													</Button>
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild>
-															<Button variant="outline" size="sm">
-																<MoreVertical className="h-4 w-4" />
-															</Button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent align="end">
-															<DropdownMenuItem asChild>
-																<Link href={`/compras/editar/${purchase.id}`} className="cursor-pointer">
-																	<Edit className="h-4 w-4 mr-2" />
-																	Editar
-																</Link>
-															</DropdownMenuItem>
-															<DropdownMenuSeparator />
-															<DropdownMenuItem
-																onClick={() => openDeleteConfirm(purchase)}
-																className="text-destructive focus:text-destructive cursor-pointer"
-															>
-																<Trash2 className="h-4 w-4 mr-2" />
-																Excluir
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												</div>
-											</CardContent>
-										</Card>
-									</motion.div>
-								)
-							})}
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+							{purchases.map((purchase: any, index: number) => (
+								<motion.div
+									key={purchase.id}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.03, duration: 0.3 }}
+								>
+									<PurchaseCardMemo
+										purchase={purchase}
+										onDelete={openDeleteConfirm}
+										onEdit={() => router.push(`/compras/editar/${purchase.id}`)}
+										onView={viewPurchaseDetails}
+									/>
+								</motion.div>
+							))}
 						</div>
 
 						{totalPages > 1 && (
@@ -544,83 +451,12 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				)}
 			</motion.div>
 
-			<ResponsiveDialog
-				open={!!viewingPurchase}
-				onOpenChange={(open) => !open && setViewingPurchase(null)}
-				title="Detalhes da Compra"
-				maxWidth="2xl"
-			>
-				{detailsLoading ? (
-					<div className="space-y-4">
-						<div className="animate-pulse space-y-2">
-							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-							<div className="h-4 bg-gray-200 rounded w-1/2"></div>
-						</div>
-					</div>
-				) : purchaseDetails && !detailsLoading ? (
-					<div className="space-y-4">
-						<div className="grid grid-cols-2 gap-4 pb-4 border-b">
-							<div>
-								<p className="text-sm text-gray-600">Mercado</p>
-								<p className="font-medium">{purchaseDetails.market?.name}</p>
-							</div>
-							<div>
-								<p className="text-sm text-gray-600">Data</p>
-								<p className="font-medium">
-									{formatLocalDate(purchaseDetails.purchaseDate, "dd/MM/yyyy", { locale: ptBR })}
-								</p>
-							</div>
-						</div>
-
-						<div>
-							<h4 className="font-medium mb-3">Itens da Compra</h4>
-							<div className="space-y-2 max-h-60 overflow-y-auto">
-								{purchaseDetails.items?.map((item: any, index: number) => (
-									<div key={item.id ?? `${index}`} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-										<div>
-											<p className="font-medium">
-												{item.product?.name || item.productName}
-												{!item.product && <span className="text-red-500 text-xs ml-1">(produto removido)</span>}
-											</p>
-											<p className="text-sm text-gray-600">
-												{item.quantity} {item.product?.unit || item.productUnit} × R$ {item.unitPrice.toFixed(2)}
-												{item.unitDiscount > 0 && (
-													<span className="text-red-600 ml-1">(-R$ {item.unitDiscount.toFixed(2)})</span>
-												)}
-											</p>
-										</div>
-										<div className="text-right">
-											<p className="font-medium">R$ {(item.finalPrice || item.totalPrice).toFixed(2)}</p>
-											{item.totalDiscount > 0 && (
-												<p className="text-xs text-red-600">Desconto: -R$ {item.totalDiscount.toFixed(2)}</p>
-											)}
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-
-						<div className="space-y-2 pt-4 border-t">
-							{purchaseDetails.totalDiscount > 0 && (
-								<div className="flex justify-between items-center text-sm">
-									<span>Subtotal:</span>
-									<span>R$ {purchaseDetails.totalAmount.toFixed(2)}</span>
-								</div>
-							)}
-							{purchaseDetails.totalDiscount > 0 && (
-								<div className="flex justify-between items-center text-sm text-red-600">
-									<span>Desconto:</span>
-									<span>-R$ {purchaseDetails.totalDiscount.toFixed(2)}</span>
-								</div>
-							)}
-							<div className="flex justify-between items-center text-lg font-bold">
-								<span>Total:</span>
-								<span>R$ {(purchaseDetails.finalAmount || purchaseDetails.totalAmount).toFixed(2)}</span>
-							</div>
-						</div>
-					</div>
-				) : null}
-			</ResponsiveDialog>
+			<PurchaseDetailsDialog
+				purchase={purchaseDetails || viewingPurchase}
+				isOpen={!!viewingPurchase}
+				onClose={() => setViewingPurchase(null)}
+				isLoading={detailsLoading}
+			/>
 
 			<ResponsiveConfirmDialog
 				open={deleteState.show}

@@ -332,8 +332,12 @@ export const useUpdateMarketMutation = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			}),
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
+			// Invalidar a query do mercado específico
+			queryClient.invalidateQueries({ queryKey: ["market", variables.id] })
+			// Invalidar a lista de mercados
 			queryClient.invalidateQueries({ queryKey: ["markets"] })
+			// Invalidar estatísticas do dashboard
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado atualizado com sucesso!")
 		},
@@ -959,6 +963,22 @@ export const useDeleteShoppingListMutation = () => {
 		},
 		onError: (error) => {
 			toast.error(`Erro ao excluir lista: ${error.message}`)
+		},
+	})
+}
+
+export const useAddToShoppingListMutation = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ listId, item }: { listId: string; item: any }) =>
+			fetchWithErrorHandling(`/api/shopping-lists/${listId}/items`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(item),
+			}),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["shopping-lists"] })
+			queryClient.invalidateQueries({ queryKey: ["shopping-list", variables.listId] })
 		},
 	})
 }

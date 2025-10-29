@@ -13,7 +13,7 @@ interface ResponsiveDialogProps {
 	description?: string
 	children: ReactNode
 	// Props específicas para desktop
-	maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl"
+	maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl"
 	maxHeight?: boolean // Se deve controlar altura máxima
 	// Props específicas para mobile
 	dragToClose?: boolean
@@ -61,6 +61,9 @@ export function ResponsiveDialog({
 		lg: "max-w-lg",
 		xl: "max-w-xl",
 		"2xl": "max-w-2xl",
+		"3xl": "max-w-3xl",
+		"4xl": "max-w-4xl",
+		"5xl": "max-w-5xl",
 	}
 
 	const heightClasses = maxHeight ? "max-h-[90vh] overflow-hidden flex flex-col" : ""

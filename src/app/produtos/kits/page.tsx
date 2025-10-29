@@ -1,11 +1,12 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Suspense, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Package, Search, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { KitCardEnhanced } from "@/components/kits/kit-card-enhanced";
+import { KitCardMemo } from "@/components/memoized";
 import { KitListSkeleton } from "@/components/kits/kit-list-skeleton";
 import { useProductKitsQuery, useDeleteProductKitMutation } from "@/hooks/use-react-query";
 import {
@@ -302,13 +303,20 @@ export default function ProductKitsPage() {
       {/* Kits Grid */}
       {!isLoading && filteredKits.length > 0 && (
         <Suspense fallback={<KitListSkeleton count={filteredKits.length} />}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredKits.map((kit) => (
-              <KitCardEnhanced 
-                key={kit.id} 
-                kit={kit}
-                onDelete={handleDelete}
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {filteredKits.map((kit, index) => (
+              <motion.div
+                key={kit.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03, duration: 0.3 }}
+              >
+                <KitCardMemo
+                  kit={kit}
+                  onDelete={handleDelete}
+                  onEdit={() => router.push(`/produtos/kits/${kit.kitProductId}/editar`)}
+                />
+              </motion.div>
             ))}
           </div>
         </Suspense>

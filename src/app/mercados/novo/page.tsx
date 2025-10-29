@@ -20,6 +20,7 @@ export default function NovoMercadoPage() {
 	const nameId = useId()
 	const legalNameId = useId()
 	const locationId = useId()
+	const [isUploadingImage, setIsUploadingImage] = useState(false)
 	const [formData, setFormData] = useState({
 		name: "",
 		legalName: "",
@@ -138,15 +139,16 @@ export default function NovoMercadoPage() {
 							<ImageUpload
 								currentImageUrl={formData.imageUrl}
 								onImageChange={(imageUrl) => setFormData((prev) => ({ ...prev, imageUrl: imageUrl || "" }))}
+								onUploadStateChange={setIsUploadingImage}
 								disabled={createMarketMutation.isPending}
 							/>
 							<p className="text-xs text-muted-foreground">Adicione uma foto para identificar o mercado (opcional)</p>
 						</div>
 
 						<div className="flex gap-3 pt-4">
-							<Button type="submit" disabled={createMarketMutation.isPending || !formData.name.trim()}>
+							<Button type="submit" disabled={createMarketMutation.isPending || isUploadingImage || !formData.name.trim()}>
 								<Save className="h-4 w-4 mr-2" />
-								{createMarketMutation.isPending ? "Criando..." : "Criar Mercado"}
+								{isUploadingImage ? "Aguardando upload..." : createMarketMutation.isPending ? "Criando..." : "Criar Mercado"}
 							</Button>
 							<Link href="/mercados">
 								<Button type="button" variant="outline" disabled={createMarketMutation.isPending}>

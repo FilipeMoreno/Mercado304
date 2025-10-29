@@ -1,7 +1,7 @@
 "use client"
 
-import { AlertCircle, Check, Link as LinkIcon, Package, Plus, X } from "lucide-react"
-import { useState, useEffect } from "react"
+import { AlertCircle, Check, Link as LinkIcon, Package, X } from "lucide-react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { ProductCombobox } from "@/components/ui/product-combobox"
+import { useInfiniteProductsQuery } from "@/hooks"
 
 interface ShoppingListItem {
   id: string
@@ -48,52 +47,42 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
       unitDiscount: 0,
     }))
   )
-  const [products, setProducts] = useState<any[]>([])
-  const [openPopover, setOpenPopover] = useState<number | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
 
-  // Buscar TODOS os produtos (sem paginação)
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products?limit=10000')
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Erro ao buscar produtos:', error)
-      }
-    }
-    fetchProducts()
-  }, [])
+  // Usar infinite scroll query para produtos
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteProductsQuery({
+    search: searchTerm,
+    enabled: true,
+  })
+
+  const products = data?.pages.flatMap((page) => page.products) || []
 
   const unlinkedCount = reviewItems.filter(item => !item.linkedProductId).length
   const linkedCount = reviewItems.filter(item => item.linkedProductId).length
 
-  const handleProductNameChange = (index: number, newName: string) => {
-    const newItems = [...reviewItems]
-    newItems[index].productName = newName
-    // Ao editar o nome manualmente, remove o vínculo
-    if (newItems[index].linkedProductId) {
-      newItems[index].linkedProductId = undefined
-    }
-    setReviewItems(newItems)
-  }
+  const handleProductLink = (index: number, productId: string) => {
+    const product = products.find(p => p.id === productId)
+    if (!product) return
 
-  const handleProductLink = (index: number, product: any) => {
     const newItems = [...reviewItems]
     newItems[index].linkedProductId = product.id
     newItems[index].productName = product.name
 
     toast.success(`Produto vinculado: "${product.name}"`)
     setReviewItems(newItems)
-    setOpenPopover(null)
   }
 
   const handleUnlink = (index: number) => {
     const newItems = [...reviewItems]
+    const originalName = newItems[index].productName
     newItems[index].linkedProductId = undefined
-    toast.info(`Item desvinculado, permanecerá como texto livre`)
+    toast.info(`"${originalName}" desvinculado - permanecerá como texto livre`)
+    setReviewItems(newItems)
+  }
+
+  const handleProductNameChange = (index: number, newName: string) => {
+    const newItems = [...reviewItems]
+    newItems[index].productName = newName
     setReviewItems(newItems)
   }
 
@@ -203,57 +192,23 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Nome do produto (texto livre ou vinculado) */}
+                {/* Vinculação de Produto */}
                 <div className="space-y-2">
-                  <Label>Nome do Produto</Label>
+                  <Label>Vincular a Produto Cadastrado</Label>
                   <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        value={item.productName}
-                        onChange={(e) => handleProductNameChange(index, e.target.value)}
-                        placeholder="Digite o nome do produto..."
-                        className="pr-10"
+                    <div className="flex-1">
+                      <ProductCombobox
+                        products={products}
+                        value={item.linkedProductId || ""}
+                        onValueChange={(productId) => handleProductLink(index, productId)}
+                        placeholder="Buscar e vincular produto..."
+                        searchPlaceholder="Digite nome ou código de barras..."
+                        hasNextPage={hasNextPage}
+                        fetchNextPage={fetchNextPage}
+                        isFetchingNextPage={isFetchingNextPage}
+                        isLoading={isLoading}
+                        onSearchChange={setSearchTerm}
                       />
-                      <Popover open={openPopover === index} onOpenChange={(open) => setOpenPopover(open ? index : null)}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3"
-                            title="Buscar produto cadastrado"
-                          >
-                            <LinkIcon className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[400px] p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Buscar produto..." />
-                            <CommandEmpty>Nenhum produto encontrado</CommandEmpty>
-                            <CommandGroup className="max-h-[300px] overflow-auto">
-                              {products.map((product) => (
-                                <CommandItem
-                                  key={product.id}
-                                  value={product.name}
-                                  onSelect={() => handleProductLink(index, product)}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      item.linkedProductId === product.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  <div className="flex-1">
-                                    <div className="font-medium">{product.name}</div>
-                                    {product.brand && (
-                                      <div className="text-xs text-muted-foreground">{product.brand.name}</div>
-                                    )}
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
                     </div>
                     {isLinked && (
                       <Button
@@ -266,12 +221,29 @@ export function ShoppingListReview({ items, onConfirm, onCancel, isSubmitting }:
                       </Button>
                     )}
                   </div>
-                  {isLinked && (
+                  {isLinked ? (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <Check className="h-3 w-3" />
+                      Vinculado a produto cadastrado
+                    </p>
+                  ) : (
                     <p className="text-xs text-muted-foreground">
-                      ✓ Vinculado a produto cadastrado
+                      Produto permanecerá como texto livre (sem vínculo)
                     </p>
                   )}
                 </div>
+
+                {/* Nome do produto (editável para texto livre) */}
+                {!isLinked && (
+                  <div className="space-y-2">
+                    <Label>Nome do Produto (Texto Livre)</Label>
+                    <Input
+                      value={item.productName}
+                      onChange={(e) => handleProductNameChange(index, e.target.value)}
+                      placeholder="Digite o nome do produto..."
+                    />
+                  </div>
+                )}
 
                 {/* Quantidade e Preços */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

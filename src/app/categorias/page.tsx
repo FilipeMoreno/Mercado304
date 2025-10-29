@@ -11,12 +11,13 @@ interface CategoriasPageProps {
 export default function CategoriasPage({ searchParams }: CategoriasPageProps) {
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold">Categorias</h1>
-					<p className="text-gray-600 mt-2">Gerencie as categorias dos seus produtos</p>
-				</div>
+			<div className="space-y-2">
+				<h1 className="text-3xl font-bold tracking-tight">Categorias</h1>
+				<p className="text-muted-foreground">
+					Gerencie as categorias dos seus produtos
+				</p>
 			</div>
+
 			<CategoriasClient searchParams={searchParams} />
 		</div>
 	)

@@ -11,11 +11,11 @@ interface MarcasPageProps {
 export default function MarcasPage({ searchParams }: MarcasPageProps) {
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold">Marcas</h1>
-					<p className="text-gray-600 mt-2">Gerencie as marcas dos seus produtos</p>
-				</div>
+			<div className="space-y-2">
+				<h1 className="text-3xl font-bold tracking-tight">Marcas</h1>
+				<p className="text-muted-foreground">
+					Gerencie as marcas dos seus produtos
+				</p>
 			</div>
 
 			<MarcasClient searchParams={searchParams} />

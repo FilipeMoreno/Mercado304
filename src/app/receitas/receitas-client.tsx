@@ -1,10 +1,12 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Eye, Search, Sparkles, Trash2 } from "lucide-react"
+import { ChefHat, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { RecipeCardMemo } from "@/components/memoized"
 import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -185,51 +187,20 @@ export function ReceitasClient() {
 							</Empty>
 						)
 					) : (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{recipes?.map((recipe) => (
-								<Card key={recipe.id} className="hover:shadow-md transition-shadow">
-									<CardHeader>
-										<CardTitle className="text-lg">{recipe.name}</CardTitle>
-										<CardDescription className="flex items-center gap-1">
-											<span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{recipe.mealType}</span>
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<p className="text-sm text-gray-600 mb-3 h-10 overflow-hidden">{recipe.description}</p>
-
-										{/* Ingredientes */}
-										{recipe.ingredients && recipe.ingredients.length > 0 && (
-											<div className="mb-3">
-												<p className="text-xs font-medium text-gray-500 mb-1">Ingredientes:</p>
-												<div className="flex flex-wrap gap-1">
-													{recipe.ingredients.slice(0, 3).map((ingredient, index) => (
-														<span
-															key={`${recipe.id}-ingredient-${index}`}
-															className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded"
-														>
-															{ingredient}
-														</span>
-													))}
-													{recipe.ingredients.length > 3 && (
-														<span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
-															+{recipe.ingredients.length - 3} mais
-														</span>
-													)}
-												</div>
-											</div>
-										)}
-
-										<div className="flex gap-2">
-											<Button variant="outline" size="sm" onClick={() => viewRecipe(recipe)} className="flex-1">
-												<Eye className="h-4 w-4 mr-1" />
-												Ver Receita
-											</Button>
-											<Button variant="destructive" size="sm" onClick={() => openDeleteConfirm(recipe)}>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+							{recipes?.map((recipe, index) => (
+								<motion.div
+									key={recipe.id}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.03, duration: 0.3 }}
+								>
+									<RecipeCardMemo
+										recipe={recipe}
+										onView={() => viewRecipe(recipe)}
+										onDelete={() => openDeleteConfirm(recipe)}
+									/>
+								</motion.div>
 							))}
 						</div>
 					)}

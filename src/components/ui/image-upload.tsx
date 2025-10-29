@@ -2,7 +2,7 @@
 
 import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react"
 import Image from "next/image"
-import { useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,16 +10,22 @@ import { Card, CardContent } from "@/components/ui/card"
 interface ImageUploadProps {
 	currentImageUrl?: string
 	onImageChange: (imageUrl: string | null) => void
+	onUploadStateChange?: (isUploading: boolean) => void
 	disabled?: boolean
 	className?: string
 }
 
-export function ImageUpload({ currentImageUrl, onImageChange, disabled = false, className = "" }: ImageUploadProps) {
+export function ImageUpload({ currentImageUrl, onImageChange, onUploadStateChange, disabled = false, className = "" }: ImageUploadProps) {
 	const [isUploading, setIsUploading] = useState(false)
 	const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null)
 	const [isDragOver, setIsDragOver] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const uploadInstructionsId = useId()
+
+	// Sincronizar previewUrl quando currentImageUrl mudar (para edição)
+	useEffect(() => {
+		setPreviewUrl(currentImageUrl || null)
+	}, [currentImageUrl])
 
 	const processFile = async (file: File) => {
 		// Validar tipo de arquivo
@@ -35,6 +41,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, disabled = false, 
 		}
 
 		setIsUploading(true)
+		onUploadStateChange?.(true)
 
 		try {
 			// Criar preview local
@@ -67,6 +74,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, disabled = false, 
 			setPreviewUrl(currentImageUrl || null)
 		} finally {
 			setIsUploading(false)
+			onUploadStateChange?.(false)
 		}
 	}
 
