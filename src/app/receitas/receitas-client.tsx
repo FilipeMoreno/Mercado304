@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { ChefHat, Search, Sparkles, Trash2 } from "lucide-react"
+import { ChefHat, Search, Sparkles, Trash2, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { RecipeCardMemo } from "@/components/memoized"
 import { RecipesSkeleton } from "@/components/skeletons/recipes-skeleton"
 import { Button } from "@/components/ui/button"
@@ -226,6 +227,24 @@ export function ReceitasClient() {
 				</p>
 				<p className="text-sm text-gray-600 mt-2">Todos os dados da receita serão perdidos permanentemente.</p>
 			</ResponsiveConfirmDialog>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				actions={[
+					{
+						icon: Sparkles,
+						label: "Gerar com IA",
+						onClick: () => router.push("/receitas/gerar"),
+						color: "bg-purple-100 text-purple-600",
+					},
+					{
+						icon: Plus,
+						label: "Nova Receita",
+						onClick: () => router.push("/receitas/nova"),
+						color: "bg-green-100 text-green-600",
+					},
+				]}
+			/>
 		</div>
 	)
 }

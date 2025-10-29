@@ -1,8 +1,9 @@
 "use client"
 
-import { AlertTriangle, Plus, RotateCcw, Search, Trash2 } from "lucide-react"
+import { AlertTriangle, Plus, RotateCcw, Search, Trash2, Package } from "lucide-react"
 import * as React from "react"
 import { useMemo, useState } from "react"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { RecipeSuggester } from "@/components/recipe-suggester"
 import { Button } from "@/components/ui/button"
 import { FilterPopover } from "@/components/ui/filter-popover"
@@ -521,6 +522,13 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				onConfirm={handleResetStock}
 				isLoading={resetStockMutation.isPending}
 				variant="destructive"
+			/>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				icon={Package}
+				label="Adicionar ao Estoque"
+				onClick={() => setShowAddDialog(true)}
 			/>
 		</div>
 	)

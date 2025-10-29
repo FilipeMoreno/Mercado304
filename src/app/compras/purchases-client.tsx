@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { DateInput } from "@/components/ui/date-input"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 // removed unused imports
@@ -482,6 +483,12 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 				onClose={handleNutritionalDialogClose}
 				onAddNutritionalInfo={handleAddNutritionalInfo}
 				productsWithoutNutrition={productsWithoutNutrition}
+			/>
+
+			<FloatingActionButton
+				onClick={() => router.push("/compras/nova")}
+				icon={ShoppingCart}
+				label="Nova Compra"
 			/>
 		</>
 	)

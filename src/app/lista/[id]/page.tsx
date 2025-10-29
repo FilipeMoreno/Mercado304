@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
@@ -946,6 +947,13 @@ export default function ListaDetalhesPage() {
 				}}
 				itemId={priceSearchItem?.id || null}
 				itemName={priceSearchItem?.product?.name || priceSearchItem?.productName || ""}
+			/>
+
+			{/* Floating Action Button - Adicionar Item */}
+			<FloatingActionButton
+				icon={Plus}
+				label="Adicionar Item"
+				onClick={() => setShowAddItem(true)}
 			/>
 		</div>
 	)

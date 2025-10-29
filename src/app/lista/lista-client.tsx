@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
@@ -361,6 +362,12 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 					Esta ação não pode ser desfeita e todos os itens da lista serão perdidos.
 				</p>
 			</ResponsiveConfirmDialog>
+
+			<FloatingActionButton
+				onClick={() => router.push("/lista/nova")}
+				icon={List}
+				label="Nova Lista"
+			/>
 		</div>
 	)
 }

@@ -4,6 +4,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
 	Archive,
+	Calculator,
 	CheckCircle2,
 	Clock,
 	Copy,
@@ -45,6 +46,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDeleteQuoteMutation, useMarketsQuery, useQuotesQuery } from "@/hooks/use-react-query"
@@ -84,7 +86,7 @@ export default function QuotesPage() {
 		if (search) params.set("search", search)
 		if (statusFilter && statusFilter !== "ALL") params.set("status", statusFilter)
 		if (marketFilter && marketFilter !== "ALL") params.set("marketId", marketFilter)
-		params.set("sortBy", "QuoteDate")
+		params.set("sortBy", "quoteDate")
 		params.set("sortOrder", "desc")
 		return params
 	}, [search, statusFilter, marketFilter])
@@ -347,6 +349,13 @@ export default function QuotesPage() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				icon={Calculator}
+				label="Nova Cotação"
+				onClick={() => router.push("/cotacoes/novo")}
+			/>
 		</div>
 	)
 }

@@ -178,20 +178,20 @@ export function AiAssistantChat() {
 	}, [])
 
 	return (
-		<div className="fixed bottom-4 right-4 z-50">
+		<div className="fixed bottom-20 md:top-1/2 md:-translate-y-1/2 md:bottom-auto right-0 z-40">
 			<AnimatePresence mode="wait">
 				{isOpen && (
 					<motion.div
 						key="chat"
-						initial={{ opacity: 0, scale: 0.8, y: 20 }}
-						animate={{ opacity: 1, scale: 1, y: 0 }}
-						exit={{ opacity: 0, scale: 0.8, y: 20 }}
+						initial={{ opacity: 0, x: 400 }}
+						animate={{ opacity: 1, x: 0 }}
+						exit={{ opacity: 0, x: 400 }}
 						transition={{
 							type: "spring",
-							stiffness: 400,
+							stiffness: 300,
 							damping: 30,
 						}}
-						className="absolute bottom-4 right-0 w-[calc(100vw-2rem)] sm:w-96 h-[600px] sm:max-w-96"
+						className="absolute bottom-0 md:top-0 right-0 w-screen sm:w-96 h-[600px] sm:max-w-96"
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
@@ -319,26 +319,18 @@ export function AiAssistantChat() {
 					<motion.button
 						key="bubble"
 						onClick={handleOpenChat}
-						initial={{ opacity: 0, scale: 0.5, y: 40 }}
+						initial={{ opacity: 0, x: 50 }}
 						animate={{
 							opacity: 1,
-							scale: 1,
-							y: 0,
-							boxShadow: [
-								"0 4px 20px rgba(59, 130, 246, 0.4)",
-								"0 8px 30px rgba(59, 130, 246, 0.6)",
-								"0 4px 20px rgba(59, 130, 246, 0.4)",
-							],
+							x: 0,
 						}}
 						exit={{
 							opacity: 0,
-							scale: 0.3,
-							y: 40,
+							x: 50,
 							transition: { duration: 0.2 },
 						}}
 						whileHover={{
-							scale: 1.1,
-							boxShadow: "0 10px 40px rgba(59, 130, 246, 0.8)",
+							x: -8,
 						}}
 						whileTap={{ scale: 0.95 }}
 						transition={{
@@ -346,21 +338,60 @@ export function AiAssistantChat() {
 							type: "spring",
 							stiffness: 400,
 							damping: 20,
-							boxShadow: {
-								duration: 2,
-								repeat: Infinity,
-								repeatType: "reverse",
-							},
 						}}
-						className={`w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-2xl border-2 cursor-pointer select-none relative ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+						className={`group h-14 w-10 rounded-l-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-lg border-l-2 border-y-2 cursor-pointer select-none relative overflow-visible ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
 							}`}
+						title="Abrir Zé (Assistente IA)"
 					>
+						{/* Glow Animation - Camada 1 (externa) */}
+						<motion.div
+							className="absolute -left-2 w-12 h-16 rounded-l-full bg-blue-500/30 blur-md"
+							animate={{
+								opacity: [0.3, 0.6, 0.3],
+								scale: [1, 1.1, 1],
+							}}
+							transition={{
+								duration: 3,
+								repeat: Number.POSITIVE_INFINITY,
+								ease: "easeInOut",
+							}}
+						/>
+						{/* Glow Animation - Camada 2 (interna) */}
+						<motion.div
+							className="absolute -left-1 w-11 h-14 rounded-l-full bg-gradient-to-r from-blue-400/40 to-transparent blur-sm"
+							animate={{
+								opacity: [0.4, 0.7, 0.4],
+							}}
+							transition={{
+								duration: 2,
+								repeat: Number.POSITIVE_INFINITY,
+								ease: "easeInOut",
+								delay: 0.5,
+							}}
+						/>
+						{/* Ícone com glow sutil */}
 						{isListening ? (
-							<Mic className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+							<Mic className="h-5 w-5 text-white drop-shadow-lg animate-pulse relative z-10" />
 						) : isSpeaking ? (
-							<Volume2 className="h-7 w-7 text-white drop-shadow-lg animate-pulse" />
+							<Volume2 className="h-5 w-5 text-white drop-shadow-lg animate-pulse relative z-10" />
 						) : (
-							<Sparkles className="h-7 w-7 text-white drop-shadow-lg" />
+							<motion.div
+								animate={{
+									filter: [
+										"drop-shadow(0 0 2px rgba(255,255,255,0.5))",
+										"drop-shadow(0 0 6px rgba(255,255,255,0.8))",
+										"drop-shadow(0 0 2px rgba(255,255,255,0.5))",
+									],
+								}}
+								transition={{
+									duration: 2.5,
+									repeat: Number.POSITIVE_INFINITY,
+									ease: "easeInOut",
+								}}
+								className="relative z-10"
+							>
+								<Sparkles className="h-5 w-5 text-white group-hover:scale-110 transition-transform" />
+							</motion.div>
 						)}
 					</motion.button>
 				)}

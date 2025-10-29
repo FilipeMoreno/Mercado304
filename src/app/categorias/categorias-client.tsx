@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
@@ -424,6 +425,12 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 				products={categoryProducts}
 				onConfirm={handleDeleteCategory}
 				isLoading={deleteCategoryMutation.isPending}
+			/>
+
+			<FloatingActionButton
+				onClick={() => router.push("/categorias/nova")}
+				icon={Tag}
+				label="Nova Categoria"
 			/>
 		</>
 	)

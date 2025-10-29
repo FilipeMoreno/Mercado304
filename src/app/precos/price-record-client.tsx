@@ -13,6 +13,7 @@ import {
 	Pencil,
 	Plus,
 	Receipt,
+	Scan,
 	Search,
 	StickyNote,
 	Store,
@@ -21,8 +22,7 @@ import {
 	X,
 	Zap,
 } from "lucide-react"
-import React from "react"
-import { useCallback, useEffect, useId, useState } from "react"
+import React, { useCallback, useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -52,6 +52,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -63,7 +64,7 @@ function PriceAnalysisCard({
 	className,
 	priceRecords,
 	loading = false,
-	onLoadData
+	onLoadData,
 }: {
 	className?: string
 	priceRecords: PriceRecord[]
@@ -180,7 +181,6 @@ function PriceAnalysisCard({
 
 	return (
 		<div className={`space-y-6 ${className}`}>
-
 			{/* Produtos com Maior Variação */}
 			<Card>
 				<CardHeader>
@@ -201,11 +201,15 @@ function PriceAnalysisCard({
 										</p>
 										{/* Mostrar fontes dos dados */}
 										<div className="flex gap-2 mt-1">
-											{priceRecords.filter(r => r.product === stat.product).some(r => r.source === "manual") && (
-												<Badge variant="outline" className="text-xs">Registros Manuais</Badge>
+											{priceRecords.filter((r) => r.product === stat.product).some((r) => r.source === "manual") && (
+												<Badge variant="outline" className="text-xs">
+													Registros Manuais
+												</Badge>
 											)}
-											{priceRecords.filter(r => r.product === stat.product).some(r => r.source === "purchase") && (
-												<Badge variant="outline" className="text-xs">Dados de Compras</Badge>
+											{priceRecords.filter((r) => r.product === stat.product).some((r) => r.source === "purchase") && (
+												<Badge variant="outline" className="text-xs">
+													Dados de Compras
+												</Badge>
 											)}
 										</div>
 									</div>
@@ -244,14 +248,15 @@ function PriceAnalysisCard({
 						{marketStats.map((stat, index) => (
 							<div key={stat.market} className="flex items-center gap-4 p-3 border rounded-lg">
 								<div
-									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0
-										? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-										: index === 1
-											? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-											: index === 2
-												? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-												: "bg-muted text-muted-foreground"
-										}`}
+									className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+										index === 0
+											? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+											: index === 1
+												? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+												: index === 2
+													? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
+													: "bg-muted text-muted-foreground"
+									}`}
 								>
 									{index + 1}
 								</div>
@@ -260,11 +265,15 @@ function PriceAnalysisCard({
 									<p className="text-sm text-muted-foreground">{stat.recordCount} registros</p>
 									{/* Mostrar fontes dos dados */}
 									<div className="flex gap-2 mt-1">
-										{priceRecords.filter(r => r.market === stat.market).some(r => r.source === "manual") && (
-											<Badge variant="outline" className="text-xs">Registros Manuais</Badge>
+										{priceRecords.filter((r) => r.market === stat.market).some((r) => r.source === "manual") && (
+											<Badge variant="outline" className="text-xs">
+												Registros Manuais
+											</Badge>
 										)}
-										{priceRecords.filter(r => r.market === stat.market).some(r => r.source === "purchase") && (
-											<Badge variant="outline" className="text-xs">Dados de Compras</Badge>
+										{priceRecords.filter((r) => r.market === stat.market).some((r) => r.source === "purchase") && (
+											<Badge variant="outline" className="text-xs">
+												Dados de Compras
+											</Badge>
 										)}
 									</div>
 								</div>
@@ -285,7 +294,7 @@ function BestDayCard({
 	className,
 	priceRecords,
 	loading = false,
-	onLoadData
+	onLoadData,
 }: {
 	className?: string
 	priceRecords: PriceRecord[]
@@ -413,7 +422,6 @@ function BestDayCard({
 
 	return (
 		<div className={`space-y-6 ${className}`}>
-
 			{/* Melhor Dia para Comprar */}
 			<Card>
 				<CardHeader>
@@ -452,14 +460,17 @@ function BestDayCard({
 						{dayStats.map((stat, index) => {
 							// Buscar produtos específicos deste dia
 							const dayProducts = priceRecords
-								.filter(r => new Date(r.recordDate).getDay() === stat.day)
-								.reduce((acc, record) => {
-									if (!acc[record.product]) {
-										acc[record.product] = []
-									}
-									acc[record.product].push(record.price)
-									return acc
-								}, {} as Record<string, number[]>)
+								.filter((r) => new Date(r.recordDate).getDay() === stat.day)
+								.reduce(
+									(acc, record) => {
+										if (!acc[record.product]) {
+											acc[record.product] = []
+										}
+										acc[record.product].push(record.price)
+										return acc
+									},
+									{} as Record<string, number[]>,
+								)
 
 							const dayProductStats = Object.entries(dayProducts)
 								.map(([product, prices]) => ({
@@ -700,7 +711,17 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	// Carregar registros de preços
 	const loadPriceRecords = useCallback(
-		async (page = 1, filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string; search?: string }) => {
+		async (
+			page = 1,
+			filters?: {
+				product?: string
+				market?: string
+				period?: string
+				startDate?: string
+				endDate?: string
+				search?: string
+			},
+		) => {
 			setLoading(true)
 			try {
 				const params = new URLSearchParams()
@@ -944,7 +965,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 	// Recarregar quando filtros mudarem
 	useEffect(() => {
-		const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string; search?: string } = {}
+		const filters: {
+			product?: string
+			market?: string
+			period?: string
+			startDate?: string
+			endDate?: string
+			search?: string
+		} = {}
 		if (selectedProduct && selectedProduct !== "all") {
 			// Buscar o nome do produto pelo ID
 			const product = products.find((p) => p.id === selectedProduct)
@@ -968,7 +996,17 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 
 		// Resetar para página 1 quando filtros mudarem
 		loadPriceRecords(1, filters)
-	}, [selectedProduct, selectedMarket, historyPeriod, historyStartDate, historyEndDate, debouncedSearchTerm, products, markets, loadPriceRecords])
+	}, [
+		selectedProduct,
+		selectedMarket,
+		historyPeriod,
+		historyStartDate,
+		historyEndDate,
+		debouncedSearchTerm,
+		products,
+		markets,
+		loadPriceRecords,
+	])
 
 	if (initialLoading) {
 		return <PriceRecordSkeleton />
@@ -1198,7 +1236,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 										className="flex items-center gap-2"
 									>
 										<Zap className="h-4 w-4" />
-										Scanner IA
+										Scanner
 									</Button>
 								</div>
 
@@ -1207,7 +1245,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<div className="flex items-start gap-3">
 										<Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
 										<div>
-											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Scanner de Etiquetas com IA</h4>
+											<h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Scanner de Etiquetas</h4>
 											<p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
 												Use o scanner para registrar preços automaticamente através de fotos de etiquetas.
 											</p>
@@ -1282,11 +1320,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 										</div>
 										<div>
 											<Label>Data Final</Label>
-											<Input
-												type="date"
-												value={historyEndDate}
-												onChange={(e) => setHistoryEndDate(e.target.value)}
-											/>
+											<Input type="date" value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} />
 										</div>
 									</>
 								)}
@@ -1312,12 +1346,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 											)}
 										</div>
 										{selectedMarket && (
-											<Button
-												variant="outline"
-												size="icon"
-												onClick={() => setSelectedMarket("")}
-												title="Limpar filtro"
-											>
+											<Button variant="outline" size="icon" onClick={() => setSelectedMarket("")} title="Limpar filtro">
 												<X className="h-4 w-4" />
 											</Button>
 										)}
@@ -1549,19 +1578,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<>
 										<div>
 											<Label>Data Inicial</Label>
-											<Input
-												type="date"
-												value={customStartDate}
-												onChange={(e) => setCustomStartDate(e.target.value)}
-											/>
+											<Input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} />
 										</div>
 										<div>
 											<Label>Data Final</Label>
-											<Input
-												type="date"
-												value={customEndDate}
-												onChange={(e) => setCustomEndDate(e.target.value)}
-											/>
+											<Input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} />
 										</div>
 									</>
 								)}
@@ -1569,7 +1590,13 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<div className="flex items-end">
 									<Button
 										onClick={() => {
-											const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+											const filters: {
+												product?: string
+												market?: string
+												period?: string
+												startDate?: string
+												endDate?: string
+											} = {}
 											if (selectedProduct && selectedProduct !== "all") {
 												const product = products.find((p) => p.id === selectedProduct)
 												if (product) filters.product = product.name
@@ -1599,9 +1626,9 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<span className="font-medium">Análise Completa:</span>
 								<span>{allPriceData.length} registros históricos analisados</span>
 								<span>•</span>
-								<span>{new Set(allPriceData.map(r => r.product)).size} produtos únicos</span>
+								<span>{new Set(allPriceData.map((r) => r.product)).size} produtos únicos</span>
 								<span>•</span>
-								<span>{new Set(allPriceData.map(r => r.market)).size} mercados</span>
+								<span>{new Set(allPriceData.map((r) => r.market)).size} mercados</span>
 							</div>
 						</CardFooter>
 					</Card>
@@ -1611,7 +1638,13 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						priceRecords={allPriceData}
 						loading={analysisLoading}
 						onLoadData={() => {
-							const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+							const filters: {
+								product?: string
+								market?: string
+								period?: string
+								startDate?: string
+								endDate?: string
+							} = {}
 							if (selectedProduct && selectedProduct !== "all") {
 								const product = products.find((p) => p.id === selectedProduct)
 								if (product) filters.product = product.name
@@ -1662,19 +1695,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									<>
 										<div>
 											<Label>Data Inicial</Label>
-											<Input
-												type="date"
-												value={customStartDate}
-												onChange={(e) => setCustomStartDate(e.target.value)}
-											/>
+											<Input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} />
 										</div>
 										<div>
 											<Label>Data Final</Label>
-											<Input
-												type="date"
-												value={customEndDate}
-												onChange={(e) => setCustomEndDate(e.target.value)}
-											/>
+											<Input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} />
 										</div>
 									</>
 								)}
@@ -1682,7 +1707,13 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<div className="flex items-end">
 									<Button
 										onClick={() => {
-											const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+											const filters: {
+												product?: string
+												market?: string
+												period?: string
+												startDate?: string
+												endDate?: string
+											} = {}
 											if (selectedProduct && selectedProduct !== "all") {
 												const product = products.find((p) => p.id === selectedProduct)
 												if (product) filters.product = product.name
@@ -1712,9 +1743,9 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								<span className="font-medium">Insights Completos:</span>
 								<span>{allPriceData.length} registros históricos analisados</span>
 								<span>•</span>
-								<span>{new Set(allPriceData.map(r => r.product)).size} produtos únicos</span>
+								<span>{new Set(allPriceData.map((r) => r.product)).size} produtos únicos</span>
 								<span>•</span>
-								<span>{new Set(allPriceData.map(r => r.market)).size} mercados</span>
+								<span>{new Set(allPriceData.map((r) => r.market)).size} mercados</span>
 							</div>
 						</CardFooter>
 					</Card>
@@ -1724,7 +1755,13 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						priceRecords={allPriceData}
 						loading={analysisLoading}
 						onLoadData={() => {
-							const filters: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string } = {}
+							const filters: {
+								product?: string
+								market?: string
+								period?: string
+								startDate?: string
+								endDate?: string
+							} = {}
 							if (selectedProduct && selectedProduct !== "all") {
 								const product = products.find((p) => p.id === selectedProduct)
 								if (product) filters.product = product.name
@@ -1861,6 +1898,9 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton icon={Scan} label="Escanear Etiqueta" onClick={openScanner} />
 		</div>
 	)
 }

@@ -15,6 +15,7 @@ import { ProductsListSkeleton } from "@/components/skeletons/products-list-skele
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton, type FABAction } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
 import { SelectWithSearch } from "@/components/ui/select-with-search"
@@ -324,6 +325,22 @@ export function ProductsClient({ searchParams }: ProductsClientProps) {
 
 			{/* Scanner de código de barras */}
 			<BarcodeScanner isOpen={showScanner} onScan={handleScanResult} onClose={handleCloseScanner} />
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				actions={[
+					{
+						icon: Plus,
+						label: "Novo Produto",
+						onClick: () => router.push("/produtos/novo"),
+					},
+					{
+						icon: QrCode,
+						label: "Escanear Código",
+						onClick: () => setShowScanner(true),
+					},
+				]}
+			/>
 		</>
 	)
 }

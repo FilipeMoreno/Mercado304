@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FilterPopover } from "@/components/ui/filter-popover"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import { OptimizedLoading } from "@/components/ui/optimized-loading"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
@@ -313,6 +314,12 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 				</p>
 				<p className="text-sm text-gray-600 mt-2">Todas as compras relacionadas a este mercado serão afetadas.</p>
 			</ResponsiveConfirmDialog>
+
+			<FloatingActionButton
+				onClick={() => router.push("/mercados/novo")}
+				icon={Store}
+				label="Novo Mercado"
+			/>
 		</>
 	)
 }

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Input } from "@/components/ui/input"
 import {
 	Select,
@@ -190,6 +191,12 @@ export default function BudgetsPage() {
 				confirmVariant="destructive"
 				isLoading={deleteMutation.isPending}
 				icon={<Trash2 className="h-6 w-6 text-destructive" />}
+			/>
+
+			<FloatingActionButton
+				onClick={() => router.push("/orcamentos/novo")}
+				icon={Calculator}
+				label="Novo Orçamento"
 			/>
 		</div>
 	)

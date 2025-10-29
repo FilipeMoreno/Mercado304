@@ -6,6 +6,7 @@ import { Camera, Loader2, QrCode, Receipt, Scan, ShoppingCart, TestTube2, Upload
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { FiscalReceiptScanner } from "@/components/fiscal-receipt-scanner"
 import { NfceBarcodeScanner } from "@/components/nfce-barcode-scanner"
 import NfceItemReview, { type MappedPurchaseItem, type NfceItem } from "@/components/nfce-item-review"
@@ -604,6 +605,24 @@ export default function ImportarCompraPage() {
 				isOpen={isFiscalReceiptScannerOpen}
 				onScanComplete={handleFiscalReceiptScanComplete}
 				onClose={() => setIsFiscalReceiptScannerOpen(false)}
+			/>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				actions={[
+					{
+						icon: QrCode,
+						label: "Escanear QR Code",
+						onClick: () => setIsScannerOpen(true),
+						color: "bg-blue-100 text-blue-600",
+					},
+					{
+						icon: Camera,
+						label: "Fotografar Cupom",
+						onClick: () => setIsFiscalReceiptScannerOpen(true),
+						color: "bg-green-100 text-green-600",
+					},
+				]}
 			/>
 		</div>
 	)

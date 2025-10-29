@@ -1,7 +1,8 @@
 "use client"
 
-import { Plus, Search, Trash2 } from "lucide-react"
+import { Plus, Search, Trash2, AlertTriangle } from "lucide-react"
 import { useMemo, useState } from "react"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveConfirmDialog } from "@/components/ui/responsive-confirm-dialog"
@@ -260,6 +261,13 @@ export default function DesperdiciosClient() {
 					<p className="text-sm text-gray-600">Esta ação não pode ser desfeita.</p>
 				</div>
 			</ResponsiveConfirmDialog>
+
+			{/* Floating Action Button */}
+			<FloatingActionButton
+				icon={AlertTriangle}
+				label="Registrar Desperdício"
+				onClick={() => setShowCreateDialog(true)}
+			/>
 		</div>
 	)
 }

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Suspense, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Package, Search, Filter, X } from "lucide-react";
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { KitCardMemo } from "@/components/memoized";
@@ -352,6 +353,13 @@ export default function ProductKitsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        icon={Plus}
+        label="Novo Kit"
+        onClick={handleCreateNew}
+      />
     </div>
   );
 }
