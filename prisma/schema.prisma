@@ -57,6 +57,7 @@ model Product {
   id                   String  @id @default(cuid())
   name                 String
   barcode              String? @unique
+  imageUrl             String? // URL da imagem do produto (com fundo removido)
   categoryId           String?
   brandId              String?
   unit                 String  @default("unidade")
