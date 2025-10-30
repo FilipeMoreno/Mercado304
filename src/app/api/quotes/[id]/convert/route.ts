@@ -4,15 +4,16 @@ import { prisma } from "@/lib/prisma"
 // POST /api/quotes/[id]/convert - Converter orçamento em compra
 export async function POST(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const body = await request.json()
+		const resolvedParams = await params
 		const { paymentMethod = "MONEY", purchaseDate } = body
 
 		// Buscar cotação com itens
 		const quote = await prisma.quote.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				items: true,
 			},
@@ -89,7 +90,7 @@ export async function POST(
 
 		// Atualizar orçamento para status CONVERTED e vincular compra
 		await prisma.quote.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				status: "CONVERTED",
 				purchaseId: purchase.id,

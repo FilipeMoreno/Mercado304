@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const brandId = params.id
+		const resolvedParams = await params
+		const brandId = resolvedParams.id
 
 		// Buscar a marca primeiro para validar
 		const brand = await prisma.brand.findUnique({

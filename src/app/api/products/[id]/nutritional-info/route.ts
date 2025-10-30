@@ -5,9 +5,10 @@ import { headers } from "next/headers"
 
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
+		const resolvedParams = await params
 		const session = await auth.api.getSession({
 			headers: await headers(),
 		})
@@ -16,7 +17,7 @@ export async function POST(
 			return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 		}
 
-		const productId = params.id
+		const productId = resolvedParams.id
 		const body = await request.json()
 
 		// Verificar se o produto existe

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const listId = params.id
+		const listId = resolvedParams.id
 
 		if (!listId) {
 			return NextResponse.json({ error: "ID da lista é obrigatório" }, { status: 400 })
@@ -40,9 +41,10 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const listId = params.id
+		const listId = resolvedParams.id
 		const body = await request.json()
 		const {
 			productId,

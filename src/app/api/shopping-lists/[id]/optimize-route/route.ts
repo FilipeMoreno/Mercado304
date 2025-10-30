@@ -5,9 +5,10 @@ import { type NextRequest, NextResponse } from "next/server"
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const listId = params.id
+		const listId = resolvedParams.id
 
 		// Buscar a lista com itens e suas relações
 		const shoppingList = await prisma.shoppingList.findUnique({

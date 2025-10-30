@@ -7,11 +7,12 @@ import * as productKitService from "@/services/productKitService";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const nutritionalInfo = await productKitService.calculateKitNutritionalInfo(
-      params.id
+      resolvedParams.id
     );
 
     if (!nutritionalInfo) {

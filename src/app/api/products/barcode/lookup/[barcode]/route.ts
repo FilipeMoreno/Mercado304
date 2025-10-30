@@ -8,10 +8,11 @@ import {
 
 export async function GET(
 	_request: Request,
-	{ params }: { params: { barcode: string } },
+	{ params }: { params: Promise<{ barcode: string }> },
 ) {
 	try {
-		const barcode = params.barcode
+		const resolvedParams = await params
+		const barcode = resolvedParams.barcode
 
 		// Buscar produto na API Cosmos
 		const cosmosProduct = await getProductByBarcode(barcode)

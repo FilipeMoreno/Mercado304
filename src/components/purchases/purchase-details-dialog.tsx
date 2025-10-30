@@ -401,14 +401,6 @@ export function PurchaseDetailsDialog({ purchase, isOpen, onClose, isLoading }: 
 							)}
 						</div>
 					</div>
-
-					{/* Notas */}
-					{purchase.notes && (
-						<div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-							<p className="text-sm font-medium text-yellow-800 mb-1">Observações:</p>
-							<p className="text-sm text-yellow-700">{purchase.notes}</p>
-						</div>
-					)}
 				</div>
 			)}
 		</ResponsiveDialog>

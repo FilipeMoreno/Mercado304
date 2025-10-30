@@ -8,8 +8,9 @@ import { prisma } from "@/lib/prisma"
  * GET /api/assistant/history/[id]
  * Busca uma sessão específica do assistente
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params
     const session = await auth.api.getSession({
       headers: await headers(),
     })
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const chatSession = await prisma.assistantChatSession.findUnique({
       where: {
-        id: params.id,
+        id: resolvedParams.id,
       },
     })
 
@@ -58,8 +59,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  * PUT /api/assistant/history/[id]
  * Atualiza uma sessão existente do assistente
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params
     const session = await auth.api.getSession({
       headers: await headers(),
     })
@@ -73,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Verificar se a sessão existe e pertence ao usuário
     const existingSession = await prisma.assistantChatSession.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     })
 
     if (!existingSession) {
@@ -86,7 +88,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Atualizar sessão
     const updatedSession = await prisma.assistantChatSession.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         ...(title !== undefined && { title }),
         ...(messages !== undefined && { messages }),
@@ -121,8 +123,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/assistant/history/[id]
  * Deleta uma sessão do assistente
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params
     const session = await auth.api.getSession({
       headers: await headers(),
     })
@@ -133,7 +136,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     // Verificar se a sessão existe e pertence ao usuário
     const existingSession = await prisma.assistantChatSession.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     })
 
     if (!existingSession) {
@@ -146,7 +149,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     // Deletar sessão
     await prisma.assistantChatSession.delete({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     })
 
     return NextResponse.json({ message: "Sessão deletada com sucesso" })

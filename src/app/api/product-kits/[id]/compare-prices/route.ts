@@ -5,7 +5,8 @@ import * as productKitService from "@/services/productKitService"
  * POST /api/product-kits/[id]/compare-prices
  * Compara o preço do kit com a soma dos preços individuais dos produtos
  */
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
 		const body = await request.json()
 		const { kitPrice, marketId } = body
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 			)
 		}
 
-		const comparison = await productKitService.compareKitPrices(params.id, kitPrice, marketId)
+		const comparison = await productKitService.compareKitPrices(resolvedParams.id, kitPrice, marketId)
 
 		return NextResponse.json({
 			success: true,

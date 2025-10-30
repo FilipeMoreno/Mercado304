@@ -7,14 +7,15 @@ import * as productKitService from "@/services/productKitService";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const { searchParams } = new URL(request.url);
     const marketId = searchParams.get("marketId") || undefined;
 
     const priceInfo = await productKitService.calculateKitPrice(
-      params.id,
+      resolvedParams.id,
       marketId
     );
 

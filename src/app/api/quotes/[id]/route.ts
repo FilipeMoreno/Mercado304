@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma"
 // GET /api/quotes/[id] - Buscar orçamento específico
 export async function GET(
 	_request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const resolvedParams = await params
 		const quote = await prisma.quote.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				market: true,
 				items: {
@@ -48,9 +49,10 @@ export async function GET(
 // PATCH /api/quotes/[id] - Atualizar orçamento
 export async function PATCH(
 	request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const {
 			name,
@@ -65,7 +67,7 @@ export async function PATCH(
 
 		// Verificar se orçamento existe
 		const existingBudget = await prisma.quote.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!existingBudget) {
@@ -137,7 +139,7 @@ export async function PATCH(
 
 			// Deletar itens antigos e criar novos
 			await prisma.quoteItem.deleteMany({
-				where: { quoteId: params.id },
+				where: { quoteId: resolvedParams.id },
 			})
 
 			updateData.items = {
@@ -147,7 +149,7 @@ export async function PATCH(
 
 		// Atualizar orçamento
 		const quote = await prisma.quote.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: updateData,
 			include: {
 				market: true,
@@ -176,12 +178,13 @@ export async function PATCH(
 // DELETE /api/quotes/[id] - Deletar orçamento
 export async function DELETE(
 	_request: Request,
-	{ params }: { params: { id: string } },
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const resolvedParams = await params
 		// Verificar se orçamento existe
 		const quote = await prisma.quote.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!quote) {
@@ -201,7 +204,7 @@ export async function DELETE(
 
 		// Deletar orçamento (itens são deletados em cascata)
 		await prisma.quote.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ success: true })

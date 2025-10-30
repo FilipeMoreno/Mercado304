@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const productId = params.id
+		const productId = resolvedParams.id
 
 		// Buscar histórico de preços do produto
 		const priceRecords = await prisma.priceRecord.findMany({

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const categoryId = params.id
+    const resolvedParams = await params
+    const categoryId = resolvedParams.id
 
     // Buscar a categoria primeiro para validar
     const category = await prisma.category.findUnique({

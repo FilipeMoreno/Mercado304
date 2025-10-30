@@ -52,9 +52,10 @@ interface RouteWithDistances {
 	}
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const listId = params.id
+		const listId = resolvedParams.id
 		const { userAddress, selectedMarketIds } = await request.json()
 
 		if (!userAddress) {

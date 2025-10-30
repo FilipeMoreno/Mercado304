@@ -6,6 +6,7 @@ export interface Market {
 	name: string
 	legalName?: string // Nome de registro/razão social
 	location?: string
+	imageUrl?: string | null
 	createdAt: Date
 	updatedAt: Date
 }
@@ -13,6 +14,7 @@ export interface Market {
 export interface Brand {
 	id: string
 	name: string
+	imageUrl?: string | null
 	createdAt: Date
 	updatedAt: Date
 	_count?: {

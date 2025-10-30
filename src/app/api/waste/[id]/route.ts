@@ -3,8 +3,9 @@ import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/waste/[id] - Buscar registro específico
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 
 		if (!session?.user) {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 		}
 
 		const wasteRecord = await prisma.wasteRecord.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!wasteRecord) {
@@ -27,8 +28,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/waste/[id] - Atualizar registro
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 
 		if (!session?.user) {
@@ -55,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 		// Verificar se o registro existe
 		const existingRecord = await prisma.wasteRecord.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!existingRecord) {
@@ -64,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 		// Atualizar registro
 		const updatedRecord = await prisma.wasteRecord.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				productId,
 				productName,
@@ -91,8 +93,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/waste/[id] - Remover registro
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 
 		if (!session?.user) {
@@ -101,7 +104,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
 		// Verificar se o registro existe
 		const existingRecord = await prisma.wasteRecord.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!existingRecord) {
@@ -110,7 +113,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
 		// Remover registro
 		await prisma.wasteRecord.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ message: "Waste record deleted successfully" })

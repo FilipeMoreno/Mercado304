@@ -1,4 +1,5 @@
-import { removeBackground } from '@imgly/background-removal'
+// TODO: Install @imgly/background-removal package to enable this feature
+// import { removeBackground } from '@imgly/background-removal'
 
 export interface BackgroundRemovalOptions {
   quality?: number
@@ -13,11 +14,15 @@ export interface BackgroundRemovalResult {
 
 /**
  * Remove o fundo de uma imagem usando IA
+ * NOTE: Requires @imgly/background-removal package to be installed
  */
 export async function removeImageBackground(
   file: File,
   options: BackgroundRemovalOptions = {},
 ): Promise<BackgroundRemovalResult> {
+  throw new Error('Background removal feature is not installed. Please install @imgly/background-removal package.')
+
+  /*
   const startTime = Date.now()
 
   const { quality = 0.9, outputFormat = 'image/png' } = options
@@ -81,6 +86,7 @@ export async function removeImageBackground(
       `Falha ao remover fundo da imagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
     )
   }
+  */
 }
 
 export function isBackgroundRemovalSupported(): boolean {

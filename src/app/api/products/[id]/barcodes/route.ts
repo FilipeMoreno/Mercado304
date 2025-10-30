@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // GET - Buscar todos os barcodes de um produto
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
 		const barcodes = await prisma.productBarcode.findMany({
-			where: { productId: params.id },
+			where: { productId: resolvedParams.id },
 			orderBy: { isPrimary: 'desc' },
 		})
 
@@ -17,7 +18,8 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 }
 
 // POST - Adicionar um novo barcode a um produto existente
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
 		const body = await request.json()
 		const { barcode } = body
@@ -28,7 +30,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
 		// Verificar se o produto existe
 		const product = await prisma.product.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!product) {
@@ -67,13 +69,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
 		// Verificar se já existe algum barcode principal para este produto
 		const hasPrimary = await prisma.productBarcode.findFirst({
-			where: { productId: params.id, isPrimary: true },
+			where: { productId: resolvedParams.id, isPrimary: true },
 		})
 
 		// Criar o barcode
 		const newBarcode = await prisma.productBarcode.create({
 			data: {
-				productId: params.id,
+				productId: resolvedParams.id,
 				barcode,
 				isPrimary: !hasPrimary, // Se não tem principal, este será
 			},
@@ -87,7 +89,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
 }
 
 // DELETE - Remover um barcode
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
 		const url = new URL(request.url)
 		const barcodeId = url.searchParams.get("barcodeId")
@@ -100,7 +103,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 		const barcode = await prisma.productBarcode.findFirst({
 			where: {
 				id: barcodeId,
-				productId: params.id,
+				productId: resolvedParams.id,
 			},
 		})
 
@@ -120,7 +123,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 // PUT - Atualizar (marcar como principal)
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
 		const body = await request.json()
 		const { barcodeId, isPrimary } = body
@@ -133,7 +137,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 		if (isPrimary === true) {
 			await prisma.productBarcode.updateMany({
 				where: {
-					productId: params.id,
+					productId: resolvedParams.id,
 					isPrimary: true,
 				},
 				data: {

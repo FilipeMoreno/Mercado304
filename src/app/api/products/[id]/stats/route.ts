@@ -2,9 +2,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const productId = params.id
+		const resolvedParams = await params
+		const productId = resolvedParams.id
 
 		// Verificar se o produto existe
 		const product = await prisma.product.findUnique({

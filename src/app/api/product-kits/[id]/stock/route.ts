@@ -7,11 +7,12 @@ import * as productKitService from "@/services/productKitService";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const stockInfo = await productKitService.checkKitStockAvailability(
-      params.id
+      resolvedParams.id
     );
 
     return NextResponse.json({
@@ -39,9 +40,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const body = await request.json();
 
     if (!body.quantity || body.quantity <= 0) {
@@ -55,7 +57,7 @@ export async function POST(
     }
 
     const result = await productKitService.consumeKitFromStock(
-      params.id,
+      resolvedParams.id,
       body.quantity,
       body.reason
     );

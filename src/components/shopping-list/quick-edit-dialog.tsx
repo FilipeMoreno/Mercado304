@@ -64,7 +64,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 	const [products, setProducts] = useState<any[]>([])
 	const [openProductPopover, setOpenProductPopover] = useState(false)
 	const [openProductDialog, setOpenProductDialog] = useState(false)
-	const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 	const initialValuesRef = useRef<{
 		productName: string
 		productId?: string

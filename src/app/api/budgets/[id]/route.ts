@@ -3,15 +3,16 @@ import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth-server"
 
 // GET /api/budgets/[id] - Buscar orçamento específico
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 		if (!session) {
 			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 		}
 
 		const budget = await prisma.budget.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!budget) {
@@ -184,8 +185,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PATCH /api/budgets/[id] - Atualizar orçamento
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 		if (!session) {
 			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
@@ -194,7 +196,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 		const body = await request.json()
 
 		const budget = await prisma.budget.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				...body,
 				limitAmount: body.limitAmount ? Number.parseFloat(body.limitAmount) : undefined,
@@ -212,15 +214,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE /api/budgets/[id] - Deletar orçamento
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const session = await getSession()
 		if (!session) {
 			return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 		}
 
 		await prisma.budget.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ success: true })

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const shoppingList = await prisma.shoppingList.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				items: {
 					include: {
@@ -29,8 +30,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const { name, isActive } = body
 
@@ -39,7 +41,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 		}
 
 		const shoppingList = await prisma.shoppingList.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				name: name.trim(),
 				isActive: isActive ?? true,
@@ -52,10 +54,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		await prisma.shoppingList.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ message: "Lista excluída com sucesso" })

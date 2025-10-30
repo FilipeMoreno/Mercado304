@@ -107,8 +107,8 @@ export function VoiceAssistant({ onTimerCommand, onReadRecipe, recipe }: VoiceAs
 				synthRef.current.cancel()
 			}
 		}
-	}, [isMobile, handleVoiceCommand, // Mensagem de boas-vindas
-			addMessage])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isMobile])
 
 	const addMessage = (type: "user" | "assistant", text: string) => {
 		const message: Message = {

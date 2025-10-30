@@ -4,9 +4,10 @@ import { AppError } from "@/lib/errors"
 import { parseOcrText } from "@/lib/gemini-parser"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const productId = params.id
+		const productId = resolvedParams.id
 		const { text } = await request.json()
 
 		if (!text) {
@@ -30,9 +31,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const productId = params.id
+		const productId = resolvedParams.id
 
 		const nutritionalInfo = await prisma.nutritionalInfo.findUnique({
 			where: { productId },
@@ -57,9 +59,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+		const resolvedParams = await params
 	try {
-		const productId = params.id
+		const productId = resolvedParams.id
 
 		await prisma.nutritionalInfo.delete({
 			where: { productId },

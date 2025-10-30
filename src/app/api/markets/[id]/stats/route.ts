@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const marketId = params.id
+		const resolvedParams = await params
+		const marketId = resolvedParams.id
 
 		// Verificar se o mercado existe
 		const market = await prisma.market.findUnique({

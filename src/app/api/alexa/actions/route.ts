@@ -50,7 +50,7 @@ async function addItemToListForUser(listName: string, itemName: string) {
 
 export async function POST(request: Request) {
 	// --- 1. Verificação de Segurança ---
-	const headersList = headers()
+	const headersList = await headers()
 	const authorization = headersList.get("Authorization")
 
 	if (authorization !== `Bearer ${process.env.ALEXA_SKILL_SECRET_KEY}`) {

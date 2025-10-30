@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 import { getProductPriceHistory } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const productId = params.id
+		const resolvedParams = await params
+		const productId = resolvedParams.id
 		const { searchParams } = new URL(request.url)
 		const includeStats = searchParams.get("includeStats") === "true"
 
@@ -201,7 +202,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 						const averagePrice =
 							weekData.prices.reduce((sum: number, price: number) => sum + price, 0) / weekData.prices.length
 						dataPoint[marketData.marketName] = parseFloat(averagePrice.toFixed(2))
-						dataPoint.week = weekData.date
+						dataPoint.week = weekData.date.toISOString()
 						hasData = true
 					}
 				})
@@ -252,8 +253,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const {
 			name,
@@ -287,7 +289,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 					include: { product: true },
 				})
 
-				if (existingBarcode && existingBarcode.product.id !== params.id) {
+				if (existingBarcode && existingBarcode.product.id !== resolvedParams.id) {
 					return NextResponse.json(
 						{
 							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingBarcode.product.name}`,
@@ -306,7 +308,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 					select: { id: true, name: true },
 				})
 
-				if (existingProduct && existingProduct.id !== params.id) {
+				if (existingProduct && existingProduct.id !== resolvedParams.id) {
 					return NextResponse.json(
 						{
 							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingProduct.name}`,
@@ -441,11 +443,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 		// Primeiro, remover todos os barcodes existentes
 		await prisma.productBarcode.deleteMany({
-			where: { productId: params.id },
+			where: { productId: resolvedParams.id },
 		})
 
 		const product = await prisma.product.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				name,
 				categoryId: categoryId || null,
@@ -489,11 +491,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		// Verificar se o produto está vinculado a algum kit
 		const kitCheck = await prisma.productKitItem.findFirst({
-			where: { productId: params.id },
+			where: { productId: resolvedParams.id },
 			include: {
 				kit: {
 					include: {
@@ -520,7 +523,7 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
 
 		// Verificar se o produto é um kit (produto principal de um kit)
 		const isKitProduct = await prisma.productKit.findUnique({
-			where: { kitProductId: params.id },
+			where: { kitProductId: resolvedParams.id },
 			select: {
 				id: true,
 			},
@@ -538,7 +541,7 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
 
 		// Se não está em nenhum kit, pode deletar
 		await prisma.product.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ message: "Produto excluído com sucesso" })

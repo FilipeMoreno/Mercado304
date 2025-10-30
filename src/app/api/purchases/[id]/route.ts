@@ -27,10 +27,11 @@ function normalizePaymentMethod(method: string): any {
 	return mapping[normalizedMethod] || "MONEY"
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const purchase = await prisma.purchase.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				market: true,
 				items: {
@@ -56,8 +57,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const { marketId, items, purchaseDate, paymentMethod, totalDiscount = 0 } = body
 
@@ -90,11 +92,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 		// Deletar itens existentes e criar novos
 		await prisma.purchaseItem.deleteMany({
-			where: { purchaseId: params.id },
+			where: { purchaseId: resolvedParams.id },
 		})
 
 		const purchase = await prisma.purchase.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				marketId,
 				totalAmount,
@@ -144,10 +146,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		await prisma.purchase.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ message: "Compra excluída com sucesso" })

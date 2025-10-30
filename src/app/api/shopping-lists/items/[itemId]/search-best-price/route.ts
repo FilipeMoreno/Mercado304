@@ -3,9 +3,10 @@ import { NextResponse } from "next/server"
 import { getAllProductPrices } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { itemId: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ itemId: string }> }) {
+	const resolvedParams = await params
 	try {
-		const { itemId } = params
+		const { itemId } = resolvedParams
 
 		// Buscar o item da lista de compras
 		const item = await prisma.shoppingListItem.findUnique({

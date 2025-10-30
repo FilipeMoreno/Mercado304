@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // GET - Buscar item específico do estoque
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const { id } = params
+		const resolvedParams = await params
+		const { id } = resolvedParams
 
 		const stockItem = await prisma.stockItem.findUnique({
 			where: { id },
@@ -30,9 +31,10 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 }
 
 // PUT - Atualizar item do estoque
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const { id } = params
+		const resolvedParams = await params
+		const { id } = resolvedParams
 		const data = await request.json()
 		
 		console.log("PUT /api/stock/[id] - Received data:", { id, data })
@@ -141,9 +143,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // DELETE - Remover item do estoque
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const { id } = params
+		const resolvedParams = await params
+		const { id } = resolvedParams
 
 		// Verificar se item existe
 		const existingItem = await prisma.stockItem.findUnique({

@@ -7,10 +7,11 @@ import * as productKitService from "@/services/productKitService";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const checkResult = await productKitService.checkProductInKits(params.id);
+    const resolvedParams = await params
+    const checkResult = await productKitService.checkProductInKits(resolvedParams.id);
 
     return NextResponse.json({
       success: true,

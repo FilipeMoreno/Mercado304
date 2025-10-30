@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { deleteImageFromR2 } from "@/lib/r2-utils"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const market = await prisma.market.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!market) {
@@ -18,8 +19,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const { name, legalName, location, imageUrl } = body
 
@@ -29,7 +31,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 		// Buscar o mercado atual para verificar se há imagem antiga
 		const currentMarket = await prisma.market.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			select: { imageUrl: true },
 		})
 
@@ -42,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 		}
 
 		const market = await prisma.market.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				name,
 				legalName: legalName || null,
@@ -57,11 +59,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		// Buscar o mercado para obter a URL da imagem
 		const market = await prisma.market.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			select: { imageUrl: true },
 		})
 
@@ -74,7 +77,7 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
 
 		// Deletar o mercado do banco
 		await prisma.market.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ message: "Mercado excluído com sucesso" })

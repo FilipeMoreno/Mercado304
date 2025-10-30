@@ -4,10 +4,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(_request: Request, { params }: { params: { jobId: string } }) {
+export async function POST(_request: Request, { params }: { params: Promise<{ jobId: string }> }) {
 	try {
+		const resolvedParams = await params
 		const job = await prisma.syncJob.findUnique({
-			where: { id: params.jobId },
+			where: { id: resolvedParams.jobId },
 		})
 
 		if (!job) {
@@ -29,7 +30,7 @@ export async function POST(_request: Request, { params }: { params: { jobId: str
 
 		// Atualizar status para cancelled
 		const updatedJob = await prisma.syncJob.update({
-			where: { id: params.jobId },
+			where: { id: resolvedParams.jobId },
 			data: {
 				status: "cancelled",
 				completedAt: new Date(),

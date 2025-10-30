@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const category = await prisma.category.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				products: {
 					include: {
@@ -30,13 +31,14 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const { name, icon, color, isFood } = body
 
 		const category = await prisma.category.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				name,
 				icon,
@@ -57,14 +59,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json().catch(() => ({}))
 		const { transferData } = body
 
 		// Verificar se a categoria existe e contar produtos
 		const category = await prisma.category.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			include: {
 				_count: {
 					select: { products: true },
@@ -95,7 +98,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 				}
 
 				await prisma.product.updateMany({
-					where: { categoryId: params.id },
+					where: { categoryId: resolvedParams.id },
 					data: { categoryId: transferData.targetCategoryId },
 				})
 			} else if (transferData.mode === "create-new") {
@@ -114,7 +117,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 				})
 
 				await prisma.product.updateMany({
-					where: { categoryId: params.id },
+					where: { categoryId: resolvedParams.id },
 					data: { categoryId: newCategory.id },
 				})
 			} else if (transferData.mode === "individual") {
@@ -137,7 +140,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 
 		// Agora podemos deletar a categoria com segurança
 		await prisma.category.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ 

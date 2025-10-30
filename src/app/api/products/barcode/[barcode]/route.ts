@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 import { normalizeBarcode } from "@/lib/barcode-utils"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(_request: Request, { params }: { params: { barcode: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ barcode: string }> }) {
 	try {
-		const originalBarcode = params.barcode
+		const resolvedParams = await params
+		const originalBarcode = resolvedParams.barcode
 		const normalizedBarcode = normalizeBarcode(originalBarcode)
 
 		// Buscar produto pelos códigos de barras na nova tabela

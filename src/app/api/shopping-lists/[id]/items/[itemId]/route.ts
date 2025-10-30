@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function PUT(request: Request, { params }: { params: { id: string; itemId: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string; itemId: string }> }) {
 	try {
-		const { id: listId, itemId } = params
+		const resolvedParams = await params
+		const { id: listId, itemId } = resolvedParams
 		const { isChecked, quantity, estimatedPrice, productId, productName, productUnit } = await request.json()
 
 		// Validar os dados recebidos
@@ -68,9 +69,10 @@ export async function PUT(request: Request, { params }: { params: { id: string; 
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string; itemId: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string; itemId: string }> }) {
 	try {
-		const { id: listId, itemId } = params
+		const resolvedParams = await params
+		const { id: listId, itemId } = resolvedParams
 
 		// Verificar se o item existe e pertence à lista
 		const existingItem = await prisma.shoppingListItem.findUnique({

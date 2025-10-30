@@ -6,10 +6,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
 
 export async function GET(
 	_request: Request,
-	{ params }: { params: { barcode: string } },
+	{ params }: { params: Promise<{ barcode: string }> },
 ) {
 	try {
-		const barcode = params.barcode
+		const resolvedParams = await params
+		const barcode = resolvedParams.barcode
 
 		// Validar código de barras (deve ter 8, 12, 13 ou 14 dígitos)
 		const cleanBarcode = barcode.trim()

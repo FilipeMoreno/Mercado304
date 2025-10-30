@@ -7,10 +7,11 @@ import * as productKitService from "@/services/productKitService";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const kit = await productKitService.getProductKitWithDetails(params.id);
+    const resolvedParams = await params
+    const kit = await productKitService.getProductKitWithDetails(resolvedParams.id);
 
     if (!kit) {
       return NextResponse.json(
@@ -44,9 +45,10 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const body = await request.json();
 
     // Validar items se fornecidos
@@ -75,7 +77,7 @@ export async function PUT(
       }
     }
 
-    const kit = await productKitService.updateProductKit(params.id, {
+    const kit = await productKitService.updateProductKit(resolvedParams.id, {
       description: body.description,
       barcode: body.barcode,
       brandId: body.brandId,
@@ -106,11 +108,12 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // params.id é o kitProductId
-    const kitProductId = params.id;
+    const resolvedParams = await params
+    // resolvedParams.id é o kitProductId
+    const kitProductId = resolvedParams.id;
     
     const kit = await productKitService.getProductKitWithDetails(kitProductId);
 

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const brand = await prisma.brand.findUnique({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		if (!brand) {
@@ -12,7 +13,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 		}
 
 		const products = await prisma.product.findMany({
-			where: { brandId: params.id },
+			where: { brandId: resolvedParams.id },
 			include: {
 				brand: true,
 				category: true,
@@ -32,13 +33,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		const body = await request.json()
 		const { name, imageUrl } = body
 
 		const brand = await prisma.brand.update({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 			data: {
 				name,
 				imageUrl: imageUrl !== undefined ? imageUrl : undefined,
@@ -57,10 +59,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 	}
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
 	try {
+		const resolvedParams = await params
 		await prisma.brand.delete({
-			where: { id: params.id },
+			where: { id: resolvedParams.id },
 		})
 
 		return NextResponse.json({ success: true })
