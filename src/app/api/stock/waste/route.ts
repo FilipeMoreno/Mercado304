@@ -12,14 +12,15 @@ export async function GET(request: Request) {
 		// Construir filtros de data
 		let dateFilter: any = {}
 
-		if (startDate && endDate) {
-			dateFilter = {
-				date: {
-					gte: new Date(startDate),
-					lte: new Date(endDate),
-				},
-			}
-		} else {
+        if (startDate && endDate) {
+            // Padronizar para a coluna correta usada no resto do arquivo
+            dateFilter = {
+                wasteDate: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            }
+        } else {
 			// Filtro padrão baseado no período
 			const now = new Date()
 			const startOfPeriod = new Date()

@@ -655,6 +655,7 @@ export default function NovoProdutoPage() {
 						onPrevious={handlePrevious}
 						canGoNext={true}
 						canGoPrevious={currentStep > 0}
+						isSubmitting={loading}
 					>
 						{renderStepContent()}
 					</StepsWizard>

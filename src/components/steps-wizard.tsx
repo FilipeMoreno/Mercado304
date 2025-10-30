@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, ChevronLeft, ChevronRight } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +20,8 @@ interface StepsWizardProps {
 	canGoNext?: boolean
 	canGoPrevious?: boolean
 	allSteps?: Step[] // Array original de todos os steps para referência
+	// Exibe spinner e desabilita o botão de avançar/concluir
+	isSubmitting?: boolean
 }
 
 export function StepsWizard({
@@ -32,6 +34,7 @@ export function StepsWizard({
 	canGoNext = true,
 	canGoPrevious = true,
 	allSteps,
+	isSubmitting = false,
 }: StepsWizardProps) {
 	// Usar allSteps se fornecido, senão usar steps
 	const fullSteps = allSteps || steps
@@ -167,17 +170,26 @@ export function StepsWizard({
 					</div>
 				</div>
 
-				<Button
+                <Button
 					type="button"
 					onClick={handleNext}
-					disabled={!canGoNext}
+					disabled={!canGoNext || isSubmitting}
 					className={cn(
 						"min-w-[100px]",
 						isLastStep && "bg-green-600 hover:bg-green-700",
 					)}
 				>
-					{isLastStep ? "Concluir" : "Avançar"}
-					{!isLastStep && <ChevronRight className="ml-2 h-4 w-4" />}
+					{isSubmitting ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							{isLastStep ? "Concluindo..." : "Avançando..."}
+						</>
+					) : (
+						<>
+							{isLastStep ? "Concluir" : "Avançar"}
+							{!isLastStep && <ChevronRight className="ml-2 h-4 w-4" />}
+						</>
+					)}
 				</Button>
 			</div>
 		</div>
