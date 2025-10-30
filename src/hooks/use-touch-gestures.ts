@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef } from "react"
+import { useRef } from "react"
 
 interface TouchGestureOptions {
 	onSwipeLeft?: () => void
@@ -45,15 +45,16 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 		lastTap: 0,
 	})
 
-	const getDistance = useCallback((touches: React.TouchList) => {
-		if (touches.length < 2) return 0
-		const touch1 = touches[0]
-		const touch2 = touches[1]
-		return Math.sqrt((touch2.clientX - touch1.clientX) ** 2 + (touch2.clientY - touch1.clientY) ** 2)
-	}, [])
+const getDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return 0
+    const touch1 = touches[0]
+    const touch2 = touches[1]
+    return Math.sqrt((touch2.clientX - touch1.clientX) ** 2 + (touch2.clientY - touch1.clientY) ** 2)
+}
 
-	const handleTouchStart = useCallback(
-		(e: React.TouchEvent) => {
+const handleTouchStart = (
+    e: React.TouchEvent,
+) => {
 			const touch = e.touches[0]
 			const now = Date.now()
 
@@ -83,12 +84,11 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 					onLongPress()
 				}, longPressDelay)
 			}
-		},
-		[onDoubleTap, onLongPress, doubleTapDelay, longPressDelay, getDistance],
-	)
+    }
 
-	const handleTouchMove = useCallback(
-		(e: React.TouchEvent) => {
+const handleTouchMove = (
+    e: React.TouchEvent,
+) => {
 			// Cancelar long press se o dedo se mover
 			if (touchData.current.longPressTimer) {
 				clearTimeout(touchData.current.longPressTimer)
@@ -101,12 +101,11 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 				const scale = currentDistance / touchData.current.initialDistance
 				onPinch(scale)
 			}
-		},
-		[onPinch, getDistance],
-	)
+    }
 
-	const handleTouchEnd = useCallback(
-		(e: React.TouchEvent) => {
+const handleTouchEnd = (
+    e: React.TouchEvent,
+) => {
 			// Limpar timer de long press
 			if (touchData.current.longPressTimer) {
 				clearTimeout(touchData.current.longPressTimer)
@@ -148,9 +147,7 @@ export function useTouchGestures(options: TouchGestureOptions = {}) {
 
 			// Reset pinch data
 			touchData.current.initialDistance = undefined
-		},
-		[onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, swipeThreshold],
-	)
+    }
 
 	return {
 		onTouchStart: handleTouchStart,

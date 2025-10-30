@@ -12,7 +12,7 @@ import {
 	RotateCcw,
 	Trash2,
 } from "lucide-react"
-import { useCallback, useEffect, useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { RestoreBackupDialog } from "@/components/admin/RestoreBackupDialog"
 import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
@@ -71,8 +71,8 @@ export default function BackupPage() {
 	// URL do servidor de background
 	const serverUrl = process.env.NEXT_PUBLIC_BACKGROUND_WORKER_SERVER || "http://localhost:3100"
 
-	// Função para carregar backups do servidor de background
-	const loadBackups = useCallback(async () => {
+  // Função para carregar backups do servidor de background
+  const loadBackups = async () => {
 		try {
 			const response = await fetch(`${serverUrl}/api/backup/list`)
 			const data = await response.json()
@@ -86,14 +86,13 @@ export default function BackupPage() {
 		} catch (error) {
 			console.error("Erro ao carregar backups:", error)
 			toast.error("Erro ao carregar lista de backups. Verifique se o servidor de background está rodando.")
-		} finally {
+    } finally {
 			setLoading(false)
 		}
-	}, [serverUrl])
+  }
 
-	// Função para buscar status do job de backup
-	const fetchJobStatus = useCallback(
-		async (jobId: string) => {
+  // Função para buscar status do job de backup
+  const fetchJobStatus = async (jobId: string) => {
 			try {
 				const response = await fetch(`${serverUrl}/api/backup/status/${jobId}`)
 				const data = await response.json()
@@ -108,12 +107,10 @@ export default function BackupPage() {
 						loadBackups() // Recarregar lista de backups
 					}
 				}
-			} catch (error) {
+      } catch (error) {
 				console.error("Erro ao buscar status do job:", error)
-			}
-		},
-		[loadBackups, serverUrl],
-	)
+      }
+    }
 
 	// Função para criar backup via servidor de background
 	const createBackup = async () => {
@@ -164,12 +161,12 @@ export default function BackupPage() {
 	}
 
 	// useEffect para carregar dados iniciais
-	useEffect(() => {
-		loadBackups()
-	}, [loadBackups])
+  useEffect(() => {
+    loadBackups()
+  }, [])
 
 	// useEffect para auto-refresh do status do job
-	useEffect(() => {
+  useEffect(() => {
 		if (
 			!autoRefresh ||
 			!currentJob ||
@@ -185,7 +182,7 @@ export default function BackupPage() {
 		}, 2000) // Atualizar a cada 2 segundos
 
 		return () => clearInterval(interval)
-	}, [autoRefresh, currentJob, fetchJobStatus])
+  }, [autoRefresh, currentJob])
 
 
 	const deleteBackup = async (fileName: string) => {

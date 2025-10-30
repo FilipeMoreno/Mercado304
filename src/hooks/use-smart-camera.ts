@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useState } from "react"
 
 interface UseSmartCameraOptions {
 	onCapture?: (file: File) => void | Promise<void>
@@ -13,16 +13,15 @@ export function useSmartCamera(options: UseSmartCameraOptions = {}) {
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [capturedFile, setCapturedFile] = useState<File | null>(null)
 
-	const open = useCallback(() => {
+const open = () => {
 		setIsOpen(true)
-	}, [])
+}
 
-	const close = useCallback(() => {
+const close = () => {
 		setIsOpen(false)
-	}, [])
+}
 
-	const handleCapture = useCallback(
-		async (file: File) => {
+const handleCapture = async (file: File) => {
 			setCapturedFile(file)
 
 			if (options.onCapture) {
@@ -36,13 +35,11 @@ export function useSmartCamera(options: UseSmartCameraOptions = {}) {
 					setIsProcessing(false)
 				}
 			}
-		},
-		[options.onCapture],
-	)
+		}
 
-	const clear = useCallback(() => {
+const clear = () => {
 		setCapturedFile(null)
-	}, [])
+}
 
 	return {
 		isOpen,

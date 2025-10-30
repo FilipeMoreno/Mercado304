@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, Save, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
@@ -68,11 +68,11 @@ export default function EditarProdutoPage() {
 		fetchCategories()
 	}, [fetchCategories])
 
-	const showNutritionalFields = useMemo(() => {
+const showNutritionalFields = (() => {
 		if (!formData.categoryId || categories.length === 0) return false
 		const selectedCategory = categories.find((cat) => cat.id === formData.categoryId)
 		return selectedCategory?.isFood === true
-	}, [formData.categoryId, categories])
+	})()
 
 	// Funções para gerenciar erros de campos
 	const clearFieldError = (field: string) => {
@@ -136,7 +136,7 @@ export default function EditarProdutoPage() {
 		toast.error(`❌ ${error}`)
 	}
 
-	const fetchData = useCallback(async () => {
+const fetchData = async () => {
 		try {
 			const productRes = await fetch(`/api/products/${productId}`)
 			if (!productRes.ok) {
@@ -180,13 +180,14 @@ export default function EditarProdutoPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [productId, router])
+	}
 
-	useEffect(() => {
+useEffect(() => {
 		if (productId) {
 			fetchData()
 		}
-	}, [productId, fetchData])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [productId])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()

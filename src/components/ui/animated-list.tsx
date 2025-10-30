@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence, LayoutGroup, motion, type Variants } from "framer-motion"
-import { type ReactNode, useCallback, useState } from "react"
+import { type ReactNode, useState } from "react"
 import { cn } from "@/lib/utils"
 import { SwipeableCard } from "./swipeable-card"
 
@@ -79,8 +79,7 @@ export function AnimatedList({
 }: AnimatedListProps) {
 	const [selectedItems, setSelectedItems] = useState<Set<string | number>>(new Set())
 
-	const handleItemSelect = useCallback(
-		(id: string | number, data?: any) => {
+	const handleItemSelect = (id: string | number, data?: any) => {
 			if (onItemSelect) {
 				onItemSelect(id, data)
 			} else {
@@ -95,12 +94,9 @@ export function AnimatedList({
 					return newSet
 				})
 			}
-		},
-		[onItemSelect],
-	)
+		}
 
-	const getSwipeActions = useCallback(
-		(item: ListItem) => {
+	const getSwipeActions = (item: ListItem) => {
 			const leftActions = []
 			const rightActions = []
 
@@ -135,9 +131,7 @@ export function AnimatedList({
 			}
 
 			return { leftActions, rightActions }
-		},
-		[onItemArchive, onItemEdit, onItemDelete],
-	)
+	}
 
 	if (!enableAnimations) {
 		return (

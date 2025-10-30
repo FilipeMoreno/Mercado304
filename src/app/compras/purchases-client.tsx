@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-import { useEffect, useId, useMemo, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { PurchaseCardMemo } from "@/components/memoized"
 import { MissingNutritionalInfoDialog } from "@/components/missing-nutritional-info-dialog"
 import { PurchaseDetailsDialog } from "@/components/purchases/purchase-details-dialog"
@@ -101,32 +101,19 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		return () => clearTimeout(timer)
 	}, [searchValue, state.search, updateState])
 
-	// Build URLSearchParams for the queries
-	const purchaseParams = useMemo(() => {
+	// Params das queries
+	const purchaseParams = (() => {
 		const params: Record<string, string> = {
 			page: String(state.page),
 			limit: itemsPerPage.toString(),
 		}
-
-		// Adicionar apenas parâmetros com valores válidos
-		if (state.search && state.search !== "undefined") {
-			params.search = String(state.search)
-		}
-		if (state.market && state.market !== "all" && state.market !== "undefined") {
-			params.marketId = String(state.market)
-		}
-		if (state.sort && state.sort !== "undefined") {
-			params.sort = String(state.sort)
-		}
-		if (state.dateFrom && state.dateFrom !== "undefined" && state.dateFrom !== "") {
-			params.dateFrom = String(state.dateFrom)
-		}
-		if (state.dateTo && state.dateTo !== "undefined" && state.dateTo !== "") {
-			params.dateTo = String(state.dateTo)
-		}
-
+		if (state.search && state.search !== "undefined") params.search = String(state.search)
+		if (state.market && state.market !== "all" && state.market !== "undefined") params.marketId = String(state.market)
+		if (state.sort && state.sort !== "undefined") params.sort = String(state.sort)
+		if (state.dateFrom && state.dateFrom !== "undefined" && state.dateFrom !== "") params.dateFrom = String(state.dateFrom)
+		if (state.dateTo && state.dateTo !== "undefined" && state.dateTo !== "") params.dateTo = String(state.dateTo)
 		return new URLSearchParams(params)
-	}, [state.search, state.market, state.sort, state.dateFrom, state.dateTo, state.page])
+	})()
 
 	// React Query hooks
 	const { data: purchasesData, isLoading: purchasesLoading, error: purchasesError } = usePurchasesQuery(purchaseParams)
@@ -150,16 +137,10 @@ export function PurchasesClient({ searchParams }: PurchasesClientProps) {
 		{ value: "value-asc", label: "Valor (menor)" },
 	]
 
-	const marketOptions = useMemo(
-		() => [
-			{ value: "all", label: "Todos os mercados" },
-			...(markets || []).map((market: any) => ({
-				value: market.id,
-				label: market.name,
-			})),
-		],
-		[markets],
-	)
+	const marketOptions = [
+		{ value: "all", label: "Todos os mercados" },
+		...(markets || []).map((market: any) => ({ value: market.id, label: market.name })),
+	]
 
 	const handlePeriodChange = (value: string) => {
 		updateSingleValue("period", value)

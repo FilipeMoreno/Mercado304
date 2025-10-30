@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import { ProductCombobox } from "@/components/ui/product-combobox"
@@ -48,31 +48,23 @@ export function ProductSelect({
 			enabled: true,
 		})
 
-	// Flatten all pages into a single array
-	const products = useMemo(() => {
-		return data?.pages.flatMap((page) => page.products) || []
-	}, [data])
+// Flatten all pages into a single array
+const products = data?.pages.flatMap((page) => page.products) || []
 
-	// Encontrar o produto selecionado na lista completa
-	const selectedProduct = useMemo(() => {
-		if (!value) return null
-		return allProducts.find((p: Product) => p.id === value) || null
-	}, [value, allProducts])
+// Encontrar o produto selecionado na lista completa
+const selectedProduct = !value ? null : allProducts.find((p: Product) => p.id === value) || null
 
-	const handleSearchChange = useCallback((searchTerm: string) => {
+const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
-	}, [])
+	}
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback(
-		(newValue: string) => {
-			onValueChange?.(newValue)
-			if (newValue) {
-				setSearch("")
-			}
-		},
-		[onValueChange],
-	)
+const handleValueChange = (newValue: string) => {
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+}
 
 	const [pendingProductName, setPendingProductName] = useState<string | null>(null)
 

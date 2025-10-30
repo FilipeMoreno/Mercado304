@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Apple, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useMemo } from "react"
+ 
 import { useNutritionSummaryQuery } from "@/hooks/use-react-query"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -30,17 +30,15 @@ export function NutritionSummaryCard() {
 	// Fetch nutrition summary using React Query
 	const { data, isLoading: loading } = useNutritionSummaryQuery("30")
 
-	// Calculate summary data from API response
-	const summary = useMemo(() => {
+	// Summary derivado dos dados da API
+	const summary = (() => {
 		if (!data) return null
 
-		// Calculate average health score
 		const avgHealthScore =
 			data.categoryAnalysis?.length > 0
 				? data.categoryAnalysis.reduce((sum: number, cat: any) => sum + cat.healthScore, 0) / data.categoryAnalysis.length
 				: 0
 
-		// Find best category
 		const topCategory =
 			data.categoryAnalysis?.length > 0
 				? data.categoryAnalysis.reduce((best: any, current: any) =>
@@ -60,7 +58,7 @@ export function NutritionSummaryCard() {
 			},
 			topCategory,
 		}
-	}, [data])
+	})()
 
 	const getHealthScoreColor = (score: number) => {
 		if (score >= 80) return "text-green-600"

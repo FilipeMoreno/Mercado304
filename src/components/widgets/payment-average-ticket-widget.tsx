@@ -1,7 +1,6 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePaymentStatsQuery } from "@/hooks/use-react-query"
@@ -16,7 +15,7 @@ export function PaymentAverageTicketWidget({
 	dateTo,
 }: PaymentAverageTicketWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const averageTicket = useMemo(() => data?.summary?.averageTransactionValue ?? 0, [data])
+    const averageTicket = data?.summary?.averageTransactionValue ?? 0
 
     if (isLoading) {
 		return (

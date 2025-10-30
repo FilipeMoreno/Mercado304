@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { Camera, X, RotateCcw, Zap, ZapOff, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,7 +28,7 @@ export function ProductPhotoCapture({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const startCamera = useCallback(async (deviceId?: string) => {
+  const startCamera = async (deviceId?: string) => {
     try {
       // Parar stream anterior se existir
       if (stream) {
@@ -62,16 +62,16 @@ export function ProductPhotoCapture({
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
     }
-  }, [stream, currentDeviceId]);
+  };
 
-  const stopCamera = useCallback(() => {
+  const stopCamera = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
-  }, [stream]);
+  };
 
-  const switchCamera = useCallback(() => {
+  const switchCamera = () => {
     if (devices.length > 1) {
       const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
       const nextIndex = (currentIndex + 1) % devices.length;
@@ -79,9 +79,9 @@ export function ProductPhotoCapture({
       setCurrentDeviceId(nextDevice.deviceId);
       startCamera(nextDevice.deviceId);
     }
-  }, [devices, currentDeviceId, startCamera]);
+  };
 
-  const toggleFlash = useCallback(async () => {
+  const toggleFlash = async () => {
     if (stream) {
       const track = stream.getVideoTracks()[0];
       const capabilities = track.getCapabilities() as any;
@@ -97,9 +97,9 @@ export function ProductPhotoCapture({
         }
       }
     }
-  }, [stream, flashEnabled]);
+  };
 
-  const capturePhoto = useCallback(() => {
+  const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -124,9 +124,9 @@ export function ProductPhotoCapture({
         onPhotoCapture(file);
       }
     }, 'image/jpeg', 0.9);
-  }, [onPhotoCapture]);
+  };
 
-  const handleFileUpload = useCallback((file: File) => {
+  const handleFileUpload = (file: File) => {
     if (file && file.type.startsWith('image/')) {
       // Criar preview da imagem
       const reader = new FileReader();
@@ -137,26 +137,26 @@ export function ProductPhotoCapture({
       
       onPhotoCapture(file);
     }
-  }, [onPhotoCapture]);
+  };
 
-  const handleFileInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       handleFileUpload(file);
     }
-  }, [handleFileUpload]);
+  };
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-  }, []);
+  };
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-  }, []);
+  };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     
@@ -166,12 +166,12 @@ export function ProductPhotoCapture({
     if (imageFile) {
       handleFileUpload(imageFile);
     }
-  }, [handleFileUpload]);
+  };
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     stopCamera();
     onClose();
-  }, [stopCamera, onClose]);
+  };
 
   // Iniciar câmera quando componente monta
   useState(() => {

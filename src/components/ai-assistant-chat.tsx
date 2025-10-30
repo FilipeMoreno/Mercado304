@@ -9,7 +9,7 @@ import {
 	Volume2, X
 } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
@@ -164,7 +164,7 @@ export function AiAssistantChat() {
 		// Implementar lógica de drop
 	}
 
-	const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+const handlePaste = async (e: React.ClipboardEvent) => {
 		const items = Array.from(e.clipboardData.items)
 		const imageItem = items.find(item => item.type.startsWith('image/'))
 
@@ -175,7 +175,7 @@ export function AiAssistantChat() {
 				await handlePhotoCapture(file)
 			}
 		}
-	}, [])
+	}
 
 	return (
 		<div className="fixed bottom-20 md:top-1/2 md:-translate-y-1/2 md:bottom-auto right-0 z-40">

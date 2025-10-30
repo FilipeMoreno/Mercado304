@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 interface PerformanceMetrics {
 	renderTime: number
@@ -41,8 +41,7 @@ export function usePerformanceMonitor(componentName: string) {
 		}
 	})
 
-	const measureAsync = useCallback(
-		async <T>(fn: () => Promise<T>, operationName: string): Promise<T> => {
+const measureAsync = async <T>(fn: () => Promise<T>, operationName: string): Promise<T> => {
 			const start = performance.now()
 			try {
 				const result = await fn()
@@ -67,9 +66,7 @@ export function usePerformanceMonitor(componentName: string) {
 
 				throw error
 			}
-		},
-		[componentName],
-	)
+		}
 
 	return { metrics, measureAsync }
 }
@@ -95,16 +92,13 @@ export function useOptimizedDebounce<T>(value: T, delay: number): T {
 export function useOptimizedThrottle<T extends (...args: any[]) => any>(callback: T, delay: number): T {
 	const [lastCall, setLastCall] = useState<number>(0)
 
-	return useCallback(
-		((...args: Parameters<T>) => {
-			const now = Date.now()
-			if (now - lastCall >= delay) {
-				setLastCall(now)
-				return callback(...args)
-			}
-		}) as T,
-		[],
-	)
+	return ((...args: Parameters<T>) => {
+		const now = Date.now()
+		if (now - lastCall >= delay) {
+			setLastCall(now)
+			return callback(...args)
+		}
+	}) as T
 }
 
 // Hook para intersection observer otimizado
@@ -165,29 +159,26 @@ export function useBatchedUpdates() {
 	const [updates, setUpdates] = useState<(() => void)[]>([])
 	const [isBatching, setIsBatching] = useState(false)
 
-	const batchUpdate = useCallback(
-		(updateFn: () => void) => {
+const batchUpdate = (updateFn: () => void) => {
 			if (isBatching) {
 				setUpdates((prev) => [...prev, updateFn])
 			} else {
 				updateFn()
 			}
-		},
-		[isBatching],
-	)
+		}
 
-	const flushUpdates = useCallback(() => {
+const flushUpdates = () => {
 		if (updates.length > 0) {
 			// Executar todos os updates em batch
 			updates.forEach((update) => update())
 			setUpdates([])
 		}
 		setIsBatching(false)
-	}, [updates])
+	}
 
-	const startBatch = useCallback(() => {
+const startBatch = () => {
 		setIsBatching(true)
-	}, [])
+	}
 
 	return { batchUpdate, flushUpdates, startBatch }
 }

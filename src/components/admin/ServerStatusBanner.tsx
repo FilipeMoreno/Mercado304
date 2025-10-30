@@ -1,7 +1,7 @@
 "use client"
 
 import { RefreshCw } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
 interface ServerHealth {
@@ -36,7 +36,7 @@ export function ServerStatusBanner({
 	const [loading, setLoading] = useState(false)
 
 	// Função para buscar status do servidor de background
-	const fetchServerHealth = useCallback(async () => {
+const fetchServerHealth = async () => {
 		setLoading(true)
 		try {
 			// Buscar informações do servidor (endpoint raiz)
@@ -75,14 +75,14 @@ export function ServerStatusBanner({
 		} finally {
 			setLoading(false)
 		}
-	}, [serverUrl])
+	}
 
 	// useEffect para health check do servidor
 	useEffect(() => {
 		fetchServerHealth()
 		const healthInterval = setInterval(fetchServerHealth, refreshInterval)
 		return () => clearInterval(healthInterval)
-	}, [fetchServerHealth, refreshInterval])
+	}, [serverUrl, refreshInterval])
 
 	if (!serverHealth && !serverInfo) {
 		return null

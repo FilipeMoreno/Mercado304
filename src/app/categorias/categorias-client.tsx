@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, Plus, Search, Tag } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { CategoryDeleteDialog, type CategoryTransferData } from "@/components/category-delete-dialog"
 import { CategoryCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
@@ -84,21 +84,18 @@ export function CategoriasClient({ searchParams }: CategoriasClientProps) {
 		}
 	}, [debouncedSearch, state.search, updateState])
 
-	// Handler otimizado para mudanças no campo de busca
-	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+	// Mudanças no campo de busca
+	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchValue(e.target.value)
-	}, [])
+	}
 
-	// Build URLSearchParams for the query
-	const params = useMemo(() => {
-		const urlParams = new URLSearchParams({
-			search: String(state.search),
-			sort: String(state.sort),
-			page: String(state.page),
-			limit: "12",
-		})
-		return urlParams
-	}, [state.search, state.sort, state.page])
+	// Params da query
+	const params = new URLSearchParams({
+		search: String(state.search),
+		sort: String(state.sort),
+		page: String(state.page),
+		limit: "12",
+	})
 
 	// React Query hooks
 	const { data: categoriesData, isLoading, error } = useCategoriesQuery(params)

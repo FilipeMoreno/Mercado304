@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Package, ShoppingCart, Store, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
 import { DashboardCustomizer } from "@/components/dashboard-customizer"
 import { DiscountStatsCard } from "@/components/discount-stats-card"
@@ -97,26 +97,23 @@ export function DashboardClient() {
 		customSubtitle: undefined,
 	}
 
-	// Função otimizada para renderizar os cards principais
-	const renderMainCard = useCallback(
-		(cardId: string) => {
-			if (currentPrefs.hiddenCards.includes(cardId)) return null
+	// Função para renderizar os cards principais
+	const renderMainCard = (cardId: string) => {
+		if (currentPrefs.hiddenCards.includes(cardId)) return null
 
-			if (cardId === "price-records") {
-				return (
-					<Link key={cardId} href="/precos">
-						<DashboardCardMemo cardId={cardId} stats={stats} />
-					</Link>
-				)
-			}
+		if (cardId === "price-records") {
+			return (
+				<Link key={cardId} href="/precos">
+					<DashboardCardMemo cardId={cardId} stats={stats} />
+				</Link>
+			)
+		}
 
-			return <DashboardCardMemo key={cardId} cardId={cardId} stats={stats} />
-		},
-		[currentPrefs.hiddenCards, stats],
-	)
+		return <DashboardCardMemo key={cardId} cardId={cardId} stats={stats} />
+	}
 
-	// Determinar classe CSS baseada no layout (memoizado)
-	const layoutClassName = useMemo(() => {
+	// Determinar classe CSS baseada no layout
+	const layoutClassName = (() => {
 		switch (currentPrefs.layoutStyle) {
 			case "list":
 				return "grid grid-cols-1 gap-4 md:gap-6"
@@ -126,7 +123,7 @@ export function DashboardClient() {
 				// Layout responsivo melhorado para evitar sobreposição
 				return `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6`
 		}
-	}, [currentPrefs.layoutStyle, currentPrefs.cardsPerRow])
+	})()
 
 	if (statsError) {
 		return (

@@ -1,7 +1,6 @@
 "use client"
 
 import { ArrowDownRight, ArrowUpRight, CreditCard, DollarSign, PieChart, TrendingUp, Wallet } from "lucide-react"
-import { useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"

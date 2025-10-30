@@ -24,7 +24,7 @@ import {
 	XCircle,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { QuotesSkeleton } from "@/components/skeletons/quotes-skeleton"
 import {
 	AlertDialog,
@@ -80,8 +80,8 @@ export default function QuotesPage() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [QuoteToDelete, setQuoteToDelete] = useState<string | null>(null)
 
-	// Construir params para a query
-	const queryParams = useMemo(() => {
+	// Params da query
+	const queryParams = (() => {
 		const params = new URLSearchParams()
 		if (search) params.set("search", search)
 		if (statusFilter && statusFilter !== "ALL") params.set("status", statusFilter)
@@ -89,7 +89,7 @@ export default function QuotesPage() {
 		params.set("sortBy", "quoteDate")
 		params.set("sortOrder", "desc")
 		return params
-	}, [search, statusFilter, marketFilter])
+	})()
 
 	const { data, isLoading, error } = useQuotesQuery(queryParams)
 	const { data: marketsData } = useMarketsQuery()

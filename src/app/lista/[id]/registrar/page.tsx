@@ -3,7 +3,7 @@
 import { ArrowLeft, Package } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ShoppingListReview } from "@/components/shopping-list/shopping-list-review"
 import { Button } from "@/components/ui/button"
@@ -40,7 +40,7 @@ export default function RegistrarCompraListaPage() {
   const [paymentMethod, setPaymentMethod] = useState("MONEY")
   const [totalDiscount, setTotalDiscount] = useState(0)
 
-  const fetchListDetails = useCallback(async () => {
+const fetchListDetails = async () => {
     try {
       const response = await fetch(`/api/shopping-lists/${listId}`)
 
@@ -61,11 +61,11 @@ export default function RegistrarCompraListaPage() {
     } finally {
       setLoading(false)
     }
-  }, [listId, router])
+	}
 
-  useEffect(() => {
-    fetchListDetails()
-  }, [fetchListDetails])
+useEffect(() => {
+		fetchListDetails()
+}, [])
 
   const handleConfirm = async (reviewedItems: any[]) => {
     if (!marketId) {

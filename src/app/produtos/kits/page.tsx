@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Package, Search, Filter, X } from "lucide-react";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
@@ -41,39 +41,32 @@ export default function ProductKitsPage() {
   const { data: kitsData, isLoading, error, refetch } = useProductKitsQuery();
   const deleteKitMutation = useDeleteProductKitMutation();
 
-  // Memoized filtered kits
-  const filteredKits = useMemo(() => {
-    if (!kitsData?.data) return [];
+  // Filtered kits
+  const filteredKits = (() => {
+    if (!kitsData?.data) return [] as ProductKitWithItems[];
 
     let kits = kitsData.data as ProductKitWithItems[];
 
-    // Filtro por busca
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       kits = kits.filter(
         (kit) =>
           kit.kitProduct.name.toLowerCase().includes(search) ||
           kit.description?.toLowerCase().includes(search) ||
-          kit.items.some((item) =>
-            item.product.name.toLowerCase().includes(search)
-          )
+          kit.items.some((item) => item.product.name.toLowerCase().includes(search))
       );
     }
 
-    // Filtro por status
     if (statusFilter !== "all") {
-      kits = kits.filter((kit) =>
-        statusFilter === "active" ? kit.isActive : !kit.isActive
-      );
+      kits = kits.filter((kit) => (statusFilter === "active" ? kit.isActive : !kit.isActive));
     }
 
     return kits;
-  }, [kitsData, searchTerm, statusFilter]);
+  })();
 
   // Stats
-  const stats = useMemo(() => {
+  const stats = (() => {
     if (!kitsData?.data) return { total: 0, active: 0, inactive: 0, totalProducts: 0 };
-
     const kits = kitsData.data as ProductKitWithItems[];
     return {
       total: kits.length,
@@ -81,7 +74,7 @@ export default function ProductKitsPage() {
       inactive: kits.filter((k) => !k.isActive).length,
       totalProducts: kits.reduce((sum, k) => sum + k.items.length, 0),
     };
-  }, [kitsData]);
+  })();
 
   const handleCreateNew = () => {
     router.push("/produtos/kits/novo");

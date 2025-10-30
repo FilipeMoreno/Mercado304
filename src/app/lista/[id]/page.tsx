@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Eye, EyeOff, Package, Plus, } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { OptimizedShoppingRoute } from "@/components/optimized-shopping-route"
 import {
@@ -246,8 +246,7 @@ export default function ListaDetalhesPage() {
 		}
 	}, [searchParams, listId])
 
-	const updateItemInServer = useCallback(
-		async (itemId: string, updatedData: { isChecked?: boolean; quantity?: number; estimatedPrice?: number }) => {
+	const updateItemInServer = async (itemId: string, updatedData: { isChecked?: boolean; quantity?: number; estimatedPrice?: number }) => {
 			try {
 				const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
 					method: "PUT",
@@ -261,12 +260,9 @@ export default function ListaDetalhesPage() {
 				console.error("Erro ao atualizar item:", error)
 				toast.error("Erro ao salvar a alteração. Tente novamente.")
 			}
-		},
-		[listId],
-	)
+		}
 
-	const toggleItem = useCallback(
-		async (itemId: string, currentStatus: boolean) => {
+	const toggleItem = async (itemId: string, currentStatus: boolean) => {
 			if (!list) return
 
 			// Update on server first
@@ -274,11 +270,9 @@ export default function ListaDetalhesPage() {
 
 			// Invalidate cache to refetch
 			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
-		},
-		[list, updateItemInServer, queryClient, listId],
-	)
+		}
 
-	const checkBestPrice = useCallback(async (itemId: string, productId: string, unitPrice: number) => {
+const checkBestPrice = async (itemId: string, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
 
 		try {
@@ -298,19 +292,15 @@ export default function ListaDetalhesPage() {
 		} catch (error) {
 			console.error("Erro ao verificar melhor preço:", error)
 		}
-	}, [])
+	}
 
-	const handleUpdateQuantity = useCallback(
-		async (itemId: string, newQuantity: number) => {
+	const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
 			if (!list) return
 			await updateItemInServer(itemId, { quantity: newQuantity })
 			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
-		},
-		[list, updateItemInServer, queryClient, listId],
-	)
+		}
 
-	const handleUpdateEstimatedPrice = useCallback(
-		async (itemId: string, newPrice: number) => {
+	const handleUpdateEstimatedPrice = async (itemId: string, newPrice: number) => {
 			if (!list) return
 
 			const item = list.items.find((item) => item.id === itemId)
@@ -324,9 +314,7 @@ export default function ListaDetalhesPage() {
 
 			await updateItemInServer(itemId, { estimatedPrice: newPrice })
 			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
-		},
-		[list, checkBestPrice, updateItemInServer, queryClient, listId],
-	)
+		}
 
 	const handleSaveList = async (newName: string) => {
 		if (!list) return
@@ -532,7 +520,7 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
-	const handleFinalizePurchase = useCallback(() => {
+	const handleFinalizePurchase = () => {
 		if (!list) return
 
 		const checkedItems = list.items.filter((item) => item.isChecked)
@@ -553,7 +541,7 @@ export default function ListaDetalhesPage() {
 		})
 
 		router.push(`/compras/nova?storageKey=${storageKey}`)
-	}, [list, router])
+	}
 
 	const completedItems = list?.items.filter((item) => item.isChecked).length || 0
 	const totalItems = list?.items.length || 0

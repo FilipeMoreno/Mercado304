@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { MicrophoneWaveform } from "@/components/ui/waveform"
 import { Trash2, Play, Pause, Send, Mic } from "lucide-react"
@@ -31,7 +31,7 @@ export function AudioRecorder({
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const startRecording = useCallback(async () => {
+  const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
@@ -64,9 +64,9 @@ export function AudioRecorder({
     } catch (error) {
       onError?.(error as Error)
     }
-  }, [onRecordingComplete, onError])
+  }
 
-  const stopRecording = useCallback(() => {
+  const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop()
     }
@@ -86,9 +86,9 @@ export function AudioRecorder({
     setTimeout(() => {
       setIsProcessing(false)
     }, 1000)
-  }, [])
+  }
 
-  const playRecording = useCallback(() => {
+  const playRecording = () => {
     if (audioChunksRef.current.length === 0) return
 
     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
@@ -106,15 +106,15 @@ export function AudioRecorder({
     audio.onpause = () => setIsPlaying(false)
 
     audio.play()
-  }, [])
+  }
 
-  const pauseRecording = useCallback(() => {
+  const pauseRecording = () => {
     if (audioRef.current) {
       audioRef.current.pause()
     }
-  }, [])
+  }
 
-  const deleteRecording = useCallback(() => {
+  const deleteRecording = () => {
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current = null
@@ -124,14 +124,14 @@ export function AudioRecorder({
     setHasRecording(false)
     setRecordingTime(0)
     setIsPlaying(false)
-  }, [])
+  }
 
-  const sendRecording = useCallback(() => {
+  const sendRecording = () => {
     if (audioChunksRef.current.length > 0) {
       const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
       onRecordingComplete?.(audioBlob)
     }
-  }, [onRecordingComplete])
+  }
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)

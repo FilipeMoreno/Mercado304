@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -111,7 +111,7 @@ export default function AdminSyncPrecosPage() {
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-	const fetchLatestJob = useCallback(async () => {
+const fetchLatestJob = async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/admin/sync-precos/latest?debug=${debugMode}&limit=2000`)
@@ -134,9 +134,9 @@ export default function AdminSyncPrecosPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [debugMode])
+	}
 
-	const fetchJobStatus = useCallback(async (jobId: string) => {
+const fetchJobStatus = async (jobId: string) => {
 		try {
 			setPolling(true)
 			setLoading(true)
@@ -154,9 +154,9 @@ export default function AdminSyncPrecosPage() {
 			setPolling(false)
 			setLoading(false)
 		}
-	}, [debugMode])
+	}
 
-    const fetchServerHealth = useCallback(async () => {
+    const fetchServerHealth = async () => {
         const serverUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL
 
         // Se não houver servidor externo configurado, não tente buscar para evitar erros de CORS/conn
@@ -211,7 +211,7 @@ export default function AdminSyncPrecosPage() {
                 services: { database: "disconnected", redis: "disconnected" },
             })
         }
-    }, [])
+    }
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
@@ -224,7 +224,7 @@ export default function AdminSyncPrecosPage() {
 		}
 
 		loadInitialJob()
-	}, [jobIdFromUrl, fetchJobStatus, fetchLatestJob]) // Reexecutar se o jobId da URL mudar
+	}, [jobIdFromUrl])
 
 	// Buscar status de saúde do servidor ao carregar e periodicamente
 	useEffect(() => {
@@ -235,7 +235,7 @@ export default function AdminSyncPrecosPage() {
 		const healthInterval = setInterval(fetchServerHealth, 30000)
 
 		return () => clearInterval(healthInterval)
-	}, [fetchServerHealth])
+	}, [])
 
 	// Atualizar contador de tempo desde última atualização
 	useEffect(() => {
@@ -284,7 +284,7 @@ export default function AdminSyncPrecosPage() {
 				clearInterval(intervalRef.current)
 			}
 		}
-	}, [currentJob, autoRefresh, fetchJobStatus])
+	}, [currentJob, autoRefresh])
 
 	const handleStartSync = async () => {
 		// Verificar se já existe uma sync em andamento

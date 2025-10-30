@@ -2,7 +2,7 @@
 "use client"
 
 import { Calendar, Loader2, MapPin, Search, Store, TrendingDown } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -72,8 +72,7 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 	const { loading: notaParanaLoading, buscarProdutos } = useNotaParana()
 
 	// Buscar produtos no Nota Paraná
-	const handleNotaParanaSearch = useCallback(
-		async (termo: string, periodoCustom?: string) => {
+	const handleNotaParanaSearch = async (termo: string, periodoCustom?: string) => {
 			setSearching(true)
 			try {
 				const categoriasParaBuscar = getCategoriasParaBusca(termo)
@@ -118,12 +117,10 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 			} finally {
 				setSearching(false)
 			}
-		},
-		[buscarProdutos, periodo],
-	)
+		}
 
 	// Buscar dados do item
-	const fetchPriceData = useCallback(async () => {
+	const fetchPriceData = async () => {
 		if (!itemId) return
 
 		setLoading(true)
@@ -147,17 +144,16 @@ export function PriceSearchDialog({ isOpen, onClose, itemId, itemName }: PriceSe
 		} finally {
 			setLoading(false)
 		}
-	}, [itemId, handleNotaParanaSearch])
+	}
 
-	useEffect(() => {
+useEffect(() => {
 		if (isOpen && itemId) {
 			fetchPriceData()
 		} else {
-			// Limpar dados ao fechar
 			setSearchData(null)
 			setNotaParanaProdutos([])
 		}
-	}, [isOpen, itemId, fetchPriceData])
+}, [isOpen, itemId, periodo])
 
 
 	// Formatar data

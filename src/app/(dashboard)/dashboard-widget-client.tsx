@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { DashboardGridLayout } from "@/components/widgets/dashboard-grid-layout"
@@ -139,30 +139,30 @@ export function DashboardWidgetClient() {
 		}
 	}, [preferences])
 
-	const handleLayoutChange = useCallback((newLayouts: ResponsiveWidgetLayouts) => {
+const handleLayoutChange = (newLayouts: ResponsiveWidgetLayouts) => {
 		setLayouts(newLayouts)
-	}, [])
+}
 
-	const handleToggleWidget = useCallback((widgetId: WidgetType) => {
+const handleToggleWidget = (widgetId: WidgetType) => {
 		setEnabledWidgets((prev) => {
 			if (prev.includes(widgetId)) {
 				return prev.filter((id) => id !== widgetId)
 			}
 			return [...prev, widgetId]
 		})
-	}, [])
+}
 
-	const handleAddWidget = useCallback((widgetId: WidgetType) => {
+const handleAddWidget = (widgetId: WidgetType) => {
 		if (!enabledWidgets.includes(widgetId)) {
 			setEnabledWidgets((prev) => [...prev, widgetId])
 		}
-	}, [enabledWidgets])
+}
 
-	const handleRemoveWidget = useCallback((widgetId: WidgetType) => {
+const handleRemoveWidget = (widgetId: WidgetType) => {
 		setEnabledWidgets((prev) => prev.filter((id) => id !== widgetId))
-	}, [])
+}
 
-	const handleSave = useCallback(async () => {
+const handleSave = async () => {
 		try {
 			await updatePreferences.mutateAsync({
 				widgetLayouts: layouts,
@@ -202,9 +202,9 @@ export function DashboardWidgetClient() {
 		} catch (error) {
 			throw error
 		}
-	}, [layouts, gridColumns, customTitle, customSubtitle, enabledWidgets, updatePreferences])
+}
 
-	const handleReset = useCallback(async () => {
+const handleReset = async () => {
 		try {
 			await resetPreferences.mutateAsync()
 			setLayouts({
@@ -221,17 +221,17 @@ export function DashboardWidgetClient() {
 		} catch (error) {
 			throw error
 		}
-	}, [resetPreferences])
+}
 
-	const handleRefresh = useCallback(() => {
+const handleRefresh = () => {
 		router.refresh()
 		AppToasts.info("Atualizando dados do dashboard...")
-	}, [router])
+}
 
-	const handleAddToShoppingList = useCallback(async (productId: string, quantity: number) => {
+const handleAddToShoppingList = async (productId: string, quantity: number) => {
 		console.log(`Adicionando ${quantity} do produto ${productId} à lista.`)
 		AppToasts.success(`Produto adicionado à lista de compras!`)
-	}, [])
+}
 
 	if (isLoading) {
 		return <DashboardSkeleton />

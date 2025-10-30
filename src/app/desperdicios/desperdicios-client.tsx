@@ -1,7 +1,7 @@
 "use client"
 
 import { Plus, Search, Trash2, AlertTriangle } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,8 +50,8 @@ export default function DesperdiciosClient() {
 
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<WasteRecord>()
 
-	// Build URLSearchParams for the waste query
-	const wasteParams = useMemo(() => {
+	// URLSearchParams para a query
+	const wasteParams = (() => {
 		const params = new URLSearchParams({
 			page: currentPage.toString(),
 			limit: pageSize.toString(),
@@ -59,7 +59,7 @@ export default function DesperdiciosClient() {
 		if (searchTerm) params.append("search", searchTerm)
 		if (filterReason !== "all") params.append("reason", filterReason)
 		return params
-	}, [searchTerm, filterReason, currentPage, pageSize])
+	})()
 
 	// React Query hooks
 	const { data: wasteData, isLoading, error } = useWasteQuery(wasteParams)

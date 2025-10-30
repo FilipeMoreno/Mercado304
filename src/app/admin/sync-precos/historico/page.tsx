@@ -2,7 +2,7 @@
 
 import { AlertCircle, ArrowLeft, Ban, CheckCircle, Clock, Loader2, XCircle } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,7 +45,7 @@ export default function SyncHistoricoPage() {
 	const [page, setPage] = useState(0)
 	const limit = 20
 
-	const fetchHistory = useCallback(async (pageNum: number) => {
+  const fetchHistory = async (pageNum: number) => {
 		setLoading(true)
 		try {
 			const offset = pageNum * limit
@@ -72,14 +72,14 @@ export default function SyncHistoricoPage() {
 		} catch (error) {
 			console.error("[Histórico Sync] Erro ao buscar histórico:", error)
 			toast.error("Erro ao carregar histórico de sincronizações")
-		} finally {
+    } finally {
 			setLoading(false)
 		}
-	}, [])
+  }
 
-	useEffect(() => {
-		fetchHistory(page)
-	}, [page, fetchHistory])
+  useEffect(() => {
+    fetchHistory(page)
+  }, [page])
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {

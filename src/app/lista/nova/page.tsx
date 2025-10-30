@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { ArrowLeft, Camera, Check, LinkIcon, List, Plus, Save, Sparkles, Trash2, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { PriceAlert } from "@/components/price-alert"
@@ -83,13 +83,13 @@ export default function NovaListaPage() {
 	)
 	const [priceAlertVisibility, setPriceAlertVisibility] = useState<boolean[]>(new Array(items.length).fill(true))
 
-	const updateItem = useCallback((index: number, field: keyof ShoppingListItem, value: string | number) => {
+const updateItem = (index: number, field: keyof ShoppingListItem, value: string | number) => {
 		setItems((currentItems) => {
 			const newItems = [...currentItems]
 			newItems[index] = { ...newItems[index], [field]: value }
 			return newItems
 		})
-	}, [])
+}
 
 	const handleProductNameChange = (index: number, name: string) => {
 		setItems((currentItems) => {
@@ -161,7 +161,7 @@ export default function NovaListaPage() {
 		}
 	}, [searchParams, updateItem])
 
-	const fetchData = useCallback(async () => {
+const fetchData = async () => {
 		try {
 			// Buscar TODOS os produtos sem paginação
 			const productsRes = await fetch("/api/products?limit=10000")
@@ -175,11 +175,11 @@ export default function NovaListaPage() {
 		} finally {
 			setDataLoading(false)
 		}
-	}, [])
+	}
 
-	useEffect(() => {
+useEffect(() => {
 		fetchData()
-	}, [fetchData])
+}, [])
 
 	const addItem = () => {
 		setItems([...items, { productId: undefined, productName: "", productUnit: "unidade", quantity: 1, estimatedPrice: "", priceAlert: undefined }])

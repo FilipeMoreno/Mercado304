@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Plus, RotateCcw, Search, Trash2, Package } from "lucide-react"
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { RecipeSuggester } from "@/components/recipe-suggester"
 import { Button } from "@/components/ui/button"
@@ -87,18 +87,15 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 		},
 	})
 
-	// Build URLSearchParams for the stock query
-	const stockParams = useMemo(() => {
-		const params: Record<string, string> = {
-			location: String(state.location),
-			search: String(state.search),
-			filter: String(state.filter),
-			includeExpired: String(state.includeExpired),
-			page: currentPage.toString(),
-			limit: pageSize.toString(),
-		}
-		return new URLSearchParams(params)
-	}, [state.location, state.search, state.filter, state.includeExpired, currentPage, pageSize])
+	// URLSearchParams para a query
+	const stockParams = new URLSearchParams({
+		location: String(state.location),
+		search: String(state.search),
+		filter: String(state.filter),
+		includeExpired: String(state.includeExpired),
+		page: currentPage.toString(),
+		limit: pageSize.toString(),
+	})
 
 	// React Query hooks
 	const {
@@ -118,9 +115,7 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 	const products = productsData?.products || []
 	const isLoading = stockLoading || productsLoading
 
-	const stockIngredients = React.useMemo(() => {
-		return stockItems.map((item: StockItem) => item.product.name)
-	}, [stockItems])
+	const stockIngredients = stockItems.map((item: StockItem) => item.product.name)
 
 	const deleteStockItem = async () => {
 		if (!deleteState.item) return

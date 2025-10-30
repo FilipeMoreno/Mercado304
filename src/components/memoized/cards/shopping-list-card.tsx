@@ -1,7 +1,6 @@
 "use client"
 
 import { DollarSign, ShoppingCart, Store } from "lucide-react"
-import { memo, useCallback, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
@@ -14,53 +13,36 @@ interface ShoppingListCardMemoProps {
 	onEdit?: (shoppingList: any) => void
 }
 
-export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
-	({ shoppingList, onDelete, onEdit }) => {
-		const handleDelete = useCallback(() => {
-			onDelete(shoppingList)
-		}, [shoppingList, onDelete])
+export const ShoppingListCardMemo = ({ shoppingList, onDelete, onEdit }: ShoppingListCardMemoProps) => {
+	const handleDelete = () => {
+		onDelete(shoppingList)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(shoppingList)
-		}, [shoppingList, onEdit])
+	const handleEdit = () => {
+		onEdit?.(shoppingList)
+	}
 
-		const handleCardClick = useCallback(() => {
-			window.location.href = `/lista/${shoppingList.id}`
-		}, [shoppingList.id])
+	const handleCardClick = () => {
+		window.location.href = `/lista/${shoppingList.id}`
+	}
 
-		const listName = useMemo(() => {
-			return shoppingList.name || "Lista sem nome"
-		}, [shoppingList.name])
+	const listName = shoppingList.name || "Lista sem nome"
+	const itemCount = shoppingList.items?.length || 0
+	const completedCount = shoppingList.items?.filter((item: any) => item.checked)?.length || 0
+	const totalEstimated = (() => {
+		const total =
+			shoppingList.items?.reduce((sum: number, item: any) => {
+				return sum + (item.estimatedPrice || 0) * (item.quantity || 1)
+			}, 0) || 0
+		return total.toFixed(2)
+	})()
+	const createdAt = new Date(shoppingList.createdAt).toLocaleDateString("pt-BR", {
+		day: "2-digit",
+		month: "short",
+	})
+	const progressPercent = itemCount === 0 ? 0 : Math.round((completedCount / itemCount) * 100)
 
-		const itemCount = useMemo(() => {
-			return shoppingList.items?.length || 0
-		}, [shoppingList.items?.length])
-
-		const completedCount = useMemo(() => {
-			return shoppingList.items?.filter((item: any) => item.checked)?.length || 0
-		}, [shoppingList.items])
-
-		const totalEstimated = useMemo(() => {
-			const total =
-				shoppingList.items?.reduce((sum: number, item: any) => {
-					return sum + (item.estimatedPrice || 0) * (item.quantity || 1)
-				}, 0) || 0
-			return total.toFixed(2)
-		}, [shoppingList.items])
-
-		const createdAt = useMemo(() => {
-			return new Date(shoppingList.createdAt).toLocaleDateString("pt-BR", {
-				day: "2-digit",
-				month: "short",
-			})
-		}, [shoppingList.createdAt])
-
-		const progressPercent = useMemo(() => {
-			if (itemCount === 0) return 0
-			return Math.round((completedCount / itemCount) * 100)
-		}, [completedCount, itemCount])
-
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -131,20 +113,6 @@ export const ShoppingListCardMemo = memo<ShoppingListCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		// Verifica se o número de itens checados mudou
-		const prevChecked = prevProps.shoppingList.items?.filter((item: any) => item.checked)?.length || 0
-		const nextChecked = nextProps.shoppingList.items?.filter((item: any) => item.checked)?.length || 0
-
-		return (
-			prevProps.shoppingList.id === nextProps.shoppingList.id &&
-			prevProps.shoppingList.name === nextProps.shoppingList.name &&
-			prevProps.shoppingList.items?.length === nextProps.shoppingList.items?.length &&
-			prevChecked === nextChecked &&
-			prevProps.shoppingList.updatedAt === nextProps.shoppingList.updatedAt
-		)
-	},
-)
+}
 
 ShoppingListCardMemo.displayName = "ShoppingListCardMemo"

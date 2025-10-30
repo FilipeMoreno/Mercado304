@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Camera, Loader2, Receipt, Upload } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
@@ -42,14 +42,14 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
 	const [currentStep, setCurrentStep] = useState<ProcessingStep>('capturing')
 
-	const stopCamera = useCallback(() => {
+  const stopCamera = () => {
 		if (stream) {
 			stream.getTracks().forEach((track) => track.stop())
 			setStream(null)
 		}
-	}, [stream])
+  }
 
-	const startCamera = useCallback(async () => {
+  const startCamera = async () => {
 		// Garante que a câmara anterior é parada antes de iniciar uma nova
 		if (stream) {
 			stopCamera()
@@ -68,7 +68,7 @@ export function FiscalReceiptScanner({ isOpen, onScanComplete, onClose }: Fiscal
 			console.error("Erro ao acessar a câmera:", err)
 			setError("Não foi possível aceder à câmara. Por favor, verifica as permissões no teu navegador.")
 		}
-	}, [stream, stopCamera])
+  }
 
 	useEffect(() => {
 		if (isOpen) {

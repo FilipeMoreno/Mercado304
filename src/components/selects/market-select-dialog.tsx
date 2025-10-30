@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { useAllMarketsQuery, useCreateMarketMutation } from "@/hooks"
@@ -26,37 +26,33 @@ export function MarketSelectDialog({
   const markets = marketsData?.markets || []
 
   // Filter markets based on search (local filtering)
-  const filteredMarkets = useMemo(() => {
-    if (!search) return markets
-    const searchLower = search.toLowerCase()
-    return markets.filter((market: any) =>
-      market.name.toLowerCase().includes(searchLower) ||
-      (market.location?.toLowerCase().includes(searchLower))
-    )
-  }, [markets, search])
+  const filteredMarkets = !search
+    ? markets
+    : markets.filter((market: any) => {
+        const searchLower = search.toLowerCase()
+        return (
+          market.name.toLowerCase().includes(searchLower) ||
+          (market.location?.toLowerCase().includes(searchLower))
+        )
+      })
 
   // Convert markets to SelectOption format
-  const options: SelectOption[] = useMemo(() => {
-    return filteredMarkets.map((market: any) => ({
-      id: String(market.id), // Garantir que o id seja string
-      label: market.name,
-      sublabel: market.location || undefined,
-      icon: "🏪",
-    }))
-  }, [filteredMarkets])
+  const options: SelectOption[] = filteredMarkets.map((market: any) => ({
+    id: String(market.id),
+    label: market.name,
+    sublabel: market.location || undefined,
+    icon: "🏪",
+  }))
 
-  const handleSearchChange = useCallback((searchTerm: string) => {
+  const handleSearchChange = (searchTerm: string) => {
     setSearch(searchTerm)
-  }, [])
+  }
 
-  const handleValueChange = useCallback(
-    (newValue: string) => {
-      onValueChange?.(newValue)
-      setSearch("")
-      setOpen(false) // Fechar dialog após selecionar
-    },
-    [onValueChange],
-  )
+  const handleValueChange = (newValue: string) => {
+    onValueChange?.(newValue)
+    setSearch("")
+    setOpen(false)
+  }
 
   const handleCreateMarket = async (name: string) => {
     try {

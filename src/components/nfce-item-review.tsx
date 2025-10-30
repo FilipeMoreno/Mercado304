@@ -80,8 +80,8 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 	const [currentItemIndexForCreation, setCurrentItemIndexForCreation] = useState<number | null>(null)
 	const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false)
 
-	// Função para buscar produto por código de barras
-	const fetchProductByBarcode = React.useCallback(async (barcode: string): Promise<Product | null> => {
+    // Função para buscar produto por código de barras
+    const fetchProductByBarcode = async (barcode: string): Promise<Product | null> => {
 		try {
 			// Primeiro tenta com o código original
 			let response = await fetch(`/api/products/barcode/${barcode}`)
@@ -101,8 +101,8 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 		} catch (error) {
 			console.error("Erro ao buscar produto por código de barras:", error)
 			return null
-		}
-	}, [])
+        }
+    }
 
 	// Função para calcular similaridade entre duas strings (usando Levenshtein simplificado)
 	const calculateStringSimilarity = (str1: string, str2: string): number => {
@@ -290,7 +290,7 @@ const NfceItemReview: React.FC<NfceItemReviewProps> = ({ items, onConfirm, onCan
 		}
 
 		initializeProducts()
-	}, [items, mappedItems, isInitialized, fetchProductByBarcode])
+    }, [items, mappedItems, isInitialized])
 
 	// Função para remover um item da lista
 	const handleRemoveItem = (index: number) => {

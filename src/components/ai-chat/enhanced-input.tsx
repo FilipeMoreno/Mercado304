@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
 	Plus,
@@ -114,7 +114,7 @@ export function EnhancedInput({
 		}
 	}, [value])
 
-	const handleSuggestionSelect = useCallback((suggestion: typeof quickSuggestions[0]) => {
+const handleSuggestionSelect = (suggestion: typeof quickSuggestions[0]) => {
 		if (suggestion.action === "photo") {
 			onPhotoCapture()
 		} else if (suggestion.command) {
@@ -122,9 +122,9 @@ export function EnhancedInput({
 			onSuggestionClick(suggestion.command)
 		}
 		setShowSuggestions(false)
-	}, [onChange, onPhotoCapture, onSuggestionClick])
+	}
 
-	const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter' && !e.shiftKey) {
 			e.preventDefault()
 			if (showSuggestions) {
@@ -135,18 +135,18 @@ export function EnhancedInput({
 		} else if (e.key === 'Escape') {
 			setShowSuggestions(false)
 		}
-	}, [onSubmit, showSuggestions])
+	}
 
-	const handleVoiceToggle = useCallback(() => {
+const handleVoiceToggle = () => {
 		if (isListening) {
 			onStopListening?.()
 		} else {
 			onStartListening?.()
 		}
-	}, [isListening, onStartListening, onStopListening])
+	}
 
 	// Função para iniciar gravação de áudio
-	const startAudioRecording = useCallback(async () => {
+const startAudioRecording = async () => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 			const mediaRecorder = new MediaRecorder(stream)
@@ -172,19 +172,19 @@ export function EnhancedInput({
 		} catch (error) {
 			console.error('Erro ao iniciar gravação:', error)
 		}
-	}, [onAudioRecording])
+	}
 
 	// Função para parar gravação de áudio
-	const stopAudioRecording = useCallback(() => {
+const stopAudioRecording = () => {
 		if (mediaRecorderRef.current && isRecording) {
 			mediaRecorderRef.current.stop()
 			setIsRecording(false)
 
 		}
-	}, [isRecording])
+	}
 
 	// Handlers para mouse/touch
-	const handleMouseDown = useCallback(() => {
+const handleMouseDown = () => {
 		if (disabled) return
 
 		// Iniciar timer para detectar se é um clique longo
@@ -193,9 +193,9 @@ export function EnhancedInput({
 			setRecordingMode('audio')
 			startAudioRecording()
 		}, 500) // 500ms para detectar clique longo
-	}, [disabled, startAudioRecording])
+	}
 
-	const handleMouseUp = useCallback(() => {
+const handleMouseUp = () => {
 		if (pressTimerRef.current) {
 			clearTimeout(pressTimerRef.current)
 			pressTimerRef.current = null
@@ -208,9 +208,9 @@ export function EnhancedInput({
 			// Clique curto - toggle speech-to-text
 			handleVoiceToggle()
 		}
-	}, [isRecording, recordingMode, stopAudioRecording, handleVoiceToggle])
+	}
 
-	const handleMouseLeave = useCallback(() => {
+const handleMouseLeave = () => {
 		if (pressTimerRef.current) {
 			clearTimeout(pressTimerRef.current)
 			pressTimerRef.current = null
@@ -218,7 +218,7 @@ export function EnhancedInput({
 		if (isRecording) {
 			stopAudioRecording()
 		}
-	}, [isRecording, stopAudioRecording])
+	}
 
 	// Cleanup
 	useEffect(() => {
@@ -230,7 +230,7 @@ export function EnhancedInput({
 				stopAudioRecording()
 			}
 		}
-	}, [isRecording, stopAudioRecording])
+	}, [isRecording])
 
 	return (
 		<div className="relative">

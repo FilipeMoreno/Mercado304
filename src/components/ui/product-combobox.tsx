@@ -65,8 +65,9 @@ export function ProductCombobox({
 	}, [searchTerm, onSearchChange])
 
 	// Handler para scroll com melhor detecção
-	const handleScroll = React.useCallback(
-		(e: React.UIEvent<HTMLDivElement>) => {
+	const handleScroll = (
+		e: React.UIEvent<HTMLDivElement>,
+	) => {
 			const target = e.currentTarget
 			const { scrollTop, scrollHeight, clientHeight } = target
 
@@ -75,14 +76,11 @@ export function ProductCombobox({
 			if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
 				fetchNextPage?.()
 			}
-		},
-		[hasNextPage, isFetchingNextPage, fetchNextPage],
-	)
+		}
 
 	// Para infinite scroll, usar os produtos diretamente sem filtrar no cliente
 	// O filtro é feito no servidor através do useInfiniteProductsQuery
-	const options: ProductComboboxOption[] = React.useMemo(() => {
-		return products.map((product) => {
+	const options: ProductComboboxOption[] = products.map((product) => {
 			// Usar código de barras primário da nova tabela, ou o primeiro disponível
 			const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
 			const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
@@ -95,26 +93,16 @@ export function ProductCombobox({
 				product,
 			}
 		})
-	}, [products])
+	}
 
 	// Verificar se existe correspondência exata (ignorando códigos de barras)
-	const hasExactMatch = React.useMemo(() => {
-		if (!searchTerm || isBarcode(searchTerm)) return false
-		const normalizedSearchTerm = searchTerm.toLowerCase().trim()
-		return options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
-	}, [options, searchTerm])
+	const normalizedSearchTerm = searchTerm.toLowerCase().trim()
+	const hasExactMatch = !!searchTerm && !isBarcode(searchTerm) && options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
 
 	// Verificar se deve mostrar a opção de criar novo
-	const shouldShowCreateNew = React.useMemo(() => {
-		return onCreateNew && searchTerm && !isBarcode(searchTerm) && !hasExactMatch
-	}, [onCreateNew, searchTerm, hasExactMatch])
+	const shouldShowCreateNew = Boolean(onCreateNew && searchTerm && !isBarcode(searchTerm) && !hasExactMatch)
 
-	const exactBarcodeMatch = React.useMemo(() => {
-		if (isBarcode(searchTerm)) {
-			return products.find((product) => product.barcode === searchTerm)
-		}
-		return null
-	}, [products, searchTerm])
+	const exactBarcodeMatch = isBarcode(searchTerm) ? products.find((product) => product.barcode === searchTerm) : null
 
 	React.useEffect(() => {
 		if (exactBarcodeMatch && !value) {

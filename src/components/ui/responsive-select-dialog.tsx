@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, Plus, Search, X } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -79,28 +79,22 @@ export function ResponsiveSelectDialog({
   }, [searchTerm, onSearchChange])
 
   // Verificar se existe correspondência exata
-  const hasExactMatch = useCallback(() => {
-    if (!searchTerm) return false
-    const normalizedSearchTerm = searchTerm.toLowerCase().trim()
-    return options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
-  }, [options, searchTerm])
+  const normalizedSearchTerm = searchTerm.toLowerCase().trim()
+  const hasExactMatch = !!searchTerm && options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
 
   // Verificar se deve mostrar a opção de criar novo
-  const shouldShowCreateNew = onCreateNew && showCreateNew && searchTerm && !hasExactMatch()
+  const shouldShowCreateNew = Boolean(onCreateNew && showCreateNew && searchTerm && !hasExactMatch)
 
   // Handle scroll infinito
-  const handleScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget
-      const { scrollTop, scrollHeight, clientHeight } = target
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget
+    const { scrollTop, scrollHeight, clientHeight } = target
 
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
-      if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
-        onFetchNextPage?.()
-      }
-    },
-    [hasNextPage, isFetchingNextPage, onFetchNextPage],
-  )
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight
+    if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
+      onFetchNextPage?.()
+    }
+  }
 
   const handleSelect = (optionId: string) => {
     onValueChange(optionId)

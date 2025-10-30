@@ -44,23 +44,16 @@ export function Combobox({
 	const [searchTerm, setSearchTerm] = React.useState("")
 
 	// Filtrar opções baseado no termo de busca normalizado
-	const filteredOptions = React.useMemo(() => {
-		if (!searchTerm) return options
-		const normalizedSearchTerm = normalizeString(searchTerm)
-		return options.filter((option) => normalizeString(option.label).includes(normalizedSearchTerm))
-	}, [options, searchTerm])
+	const normalizedSearchTerm = normalizeString(searchTerm)
+	const filteredOptions = !searchTerm
+		? options
+		: options.filter((option) => normalizeString(option.label).includes(normalizedSearchTerm))
 
 	// Verificar se existe correspondência exata
-	const hasExactMatch = React.useMemo(() => {
-		if (!searchTerm) return false
-		const normalizedSearchTerm = normalizeString(searchTerm)
-		return options.some((option) => normalizeString(option.label) === normalizedSearchTerm)
-	}, [options, searchTerm])
+	const hasExactMatch = !!searchTerm && options.some((option) => normalizeString(option.label) === normalizedSearchTerm)
 
 	// Verificar se deve mostrar a opção de criar novo
-	const shouldShowCreateNew = React.useMemo(() => {
-		return onCreateNew && searchTerm && !hasExactMatch
-	}, [onCreateNew, searchTerm, hasExactMatch])
+	const shouldShowCreateNew = Boolean(onCreateNew && searchTerm && !hasExactMatch)
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>

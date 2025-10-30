@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+ 
 
 interface CardBadgeProps {
 	children: React.ReactNode
@@ -8,7 +8,7 @@ interface CardBadgeProps {
 	color?: string
 }
 
-export const CardBadge = memo<CardBadgeProps>(({ children, className = "", color }) => {
+export const CardBadge = ({ children, className = "", color }: CardBadgeProps) => {
 	const baseClasses =
 		"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md shadow-lg text-xs font-medium border"
 
@@ -28,6 +28,6 @@ export const CardBadge = memo<CardBadgeProps>(({ children, className = "", color
 	}
 
 	return <div className={`${baseClasses} bg-background/90 border-border/50 ${className}`}>{children}</div>
-})
+}
 
 CardBadge.displayName = "CardBadge"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 // Configurações otimizadas para React Query
 export const queryConfig = {
@@ -47,15 +47,15 @@ export function useOptimizedQuery<TData, TError = unknown>(
 export function useSmartPrefetch(queryKey: string[], queryFn: () => Promise<any>) {
 	const queryClient = useQueryClient()
 
-	const prefetch = useCallback(() => {
-		queryClient.prefetchQuery({
-			queryKey,
-			queryFn,
-			staleTime: queryConfig.defaultStaleTime,
-		})
-	}, [queryClient, queryKey, queryFn])
+    const prefetch = () => {
+        queryClient.prefetchQuery({
+            queryKey,
+            queryFn,
+            staleTime: queryConfig.defaultStaleTime,
+        })
+    }
 
-	return { prefetch }
+    return { prefetch }
 }
 
 // Hook para monitorar e otimizar re-renders de componentes
@@ -76,8 +76,10 @@ export function useComponentRenderMonitor(componentName: string) {
 export function useSmartCache() {
 	const queryClient = useQueryClient()
 
-	const invalidateRelated = useCallback(
-		(entityType: string, _entityId?: string) => {
+    const invalidateRelated = (
+        entityType: string,
+        _entityId?: string,
+    ) => {
 			const invalidationMap = {
 				product: [["products"], ["categories"], ["brands"], ["dashboard", "stats"]],
 				market: [["markets"], ["purchases"], ["dashboard", "stats"]],
@@ -91,11 +93,9 @@ export function useSmartCache() {
 			queriesToInvalidate.forEach((queryKey) => {
 				queryClient.invalidateQueries({ queryKey })
 			})
-		},
-		[queryClient],
-	)
+        }
 
-	const clearOldCache = useCallback(() => {
+    const clearOldCache = () => {
 		// Limpar cache antigo baseado em timestamp
 		const now = Date.now()
 		const maxAge = 24 * 60 * 60 * 1000 // 24 horas
@@ -109,7 +109,7 @@ export function useSmartCache() {
 					queryClient.removeQueries({ queryKey: query.queryKey })
 				}
 			})
-	}, [queryClient])
+    }
 
 	return { invalidateRelated, clearOldCache }
 }

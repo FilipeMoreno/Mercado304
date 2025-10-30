@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { ProductEmptyState } from "@/components/products/product-empty-state"
@@ -74,38 +74,35 @@ export function ProductsClient() {
 		}
 	}, [debouncedSearch, state.search, updateState])
 
-	// Handler otimizado para mudanças no campo de busca
-	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+	// Mudanças no campo de busca
+	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchValue(e.target.value)
-	}, [])
+	}
 
 	// Handlers para o scanner
-	const handleScanResult = useCallback((barcode: string) => {
+	const handleScanResult = (barcode: string) => {
 		setSearchValue(barcode)
 		setShowScanner(false)
 		toast.success(`Código escaneado: ${barcode}`)
-	}, [])
+	}
 
-	const handleOpenScanner = useCallback(() => {
+	const handleOpenScanner = () => {
 		setShowScanner(true)
-	}, [])
+	}
 
-	const handleCloseScanner = useCallback(() => {
+	const handleCloseScanner = () => {
 		setShowScanner(false)
-	}, [])
+	}
 
-	// Build URLSearchParams for the query
-	const params = useMemo(() => {
-		const urlParams = new URLSearchParams({
-			search: String(state.search),
-			category: String(state.category),
-			brand: String(state.brand),
-			sort: String(state.sort),
-			page: String(state.page),
-			limit: "12",
-		})
-		return urlParams
-	}, [state.search, state.category, state.brand, state.sort, state.page])
+	// Build URLSearchParams para a query
+	const params = new URLSearchParams({
+		search: String(state.search),
+		category: String(state.category),
+		brand: String(state.brand),
+		sort: String(state.sort),
+		page: String(state.page),
+		limit: "12",
+	})
 
 	// React Query hooks
 	const { data: productsData, isLoading: productsLoading, error: productsError } = useProductsQuery(params)
@@ -120,28 +117,15 @@ export function ProductsClient() {
 		{ value: "date-desc", label: "Mais recente" },
 	]
 
-	const categoryOptions = useMemo(
-		() => [
-			{ value: "all", label: "Todas as categorias", icon: "" },
-			...(categories || []).map((cat: any) => ({
-				value: cat.id,
-				label: cat.name,
-				icon: cat.icon,
-			})),
-		],
-		[categories],
-	)
+	const categoryOptions = [
+		{ value: "all", label: "Todas as categorias", icon: "" },
+		...(categories || []).map((cat: any) => ({ value: cat.id, label: cat.name, icon: cat.icon })),
+	]
 
-	const brandOptions = useMemo(
-		() => [
-			{ value: "all", label: "Todas as marcas" },
-			...(brands || []).map((brand: any) => ({
-				value: brand.id,
-				label: brand.name,
-			})),
-		],
-		[brands],
-	)
+	const brandOptions = [
+		{ value: "all", label: "Todas as marcas" },
+		...(brands || []).map((brand: any) => ({ value: brand.id, label: brand.name })),
+	]
 
 	const deleteProduct = async () => {
 		if (!deleteState.item) return

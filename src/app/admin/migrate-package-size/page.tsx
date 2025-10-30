@@ -1,7 +1,7 @@
 "use client"
 
 import { AlertCircle, CheckCircle, Loader2, Package, RefreshCw, Save } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,7 +25,7 @@ export default function MigratePackageSizePage() {
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 	const [stats, setStats] = useState({ total: 0, detected: 0, applied: 0 })
 
-	const analyzeProducts = useCallback(async () => {
+  const analyzeProducts = async () => {
 		setAnalyzing(true)
 		try {
 			const response = await fetch("/api/admin/migrate-package-size/analyze")
@@ -38,11 +38,11 @@ export default function MigratePackageSizePage() {
 			setAnalyzing(false)
 			setLoading(false)
 		}
-	}, [])
+  }
 
-	useEffect(() => {
-		analyzeProducts()
-	}, [analyzeProducts])
+  useEffect(() => {
+    analyzeProducts()
+  }, [])
 
 	const applyChanges = async (productIds: string[]) => {
 		setApplying(true)

@@ -1,7 +1,7 @@
 "use client"
 
 import { Eye, EyeOff, Fingerprint, Loader2, Shield, Smartphone, Trash2 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,7 +32,7 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 	const isSocialAccount = !!session?.user?.image
 
 	// Função para buscar os passkeys existentes
-	const fetchExistingPasskeys = useCallback(async () => {
+  const fetchExistingPasskeys = async () => {
 		setIsLoading(true)
 		try {
 			const result = await passkey.listUserPasskeys()
@@ -48,17 +48,17 @@ export function PasskeySetup({ onComplete }: PasskeySetupProps) {
 			}
 		} catch (error: unknown) {
 			handleAuthError({ message: (error as Error).message || "Erro ao buscar passkeys existentes" }, "general")
-		} finally {
+    } finally {
 			setIsLoading(false)
 		}
-	}, [])
+  }
 
 	// Carrega os passkeys existentes ao entrar na tela de gerenciamento
-	useEffect(() => {
+  useEffect(() => {
 		if (step === "manage") {
 			fetchExistingPasskeys()
 		}
-	}, [step, fetchExistingPasskeys])
+  }, [step])
 
 	const handleInitialSetup = () => {
 		if (isSocialAccount) {

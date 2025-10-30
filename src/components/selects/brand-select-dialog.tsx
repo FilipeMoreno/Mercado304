@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
@@ -33,31 +33,21 @@ export function BrandSelectDialog({
   const createBrandMutation = useCreateBrandMutation()
 
   // Flatten all pages into a single array
-  const brands = useMemo(() => {
-    return data?.pages.flatMap((page) => page.brands) || []
-  }, [data])
+  const brands = data?.pages.flatMap((page) => page.brands) || []
 
   // Convert brands to SelectOption format
-  const options: SelectOption[] = useMemo(() => {
-    return brands.map((brand) => ({
-      id: brand.id,
-      label: brand.name,
-    }))
-  }, [brands])
+  const options: SelectOption[] = brands.map((brand) => ({ id: brand.id, label: brand.name }))
 
-  const handleSearchChange = useCallback((searchTerm: string) => {
+  const handleSearchChange = (searchTerm: string) => {
     setSearch(searchTerm)
-  }, [])
+  }
 
-  const handleValueChange = useCallback(
-    (newValue: string) => {
-      console.log("[BrandSelectDialog] Value changed:", newValue)
-      onValueChange?.(newValue)
-      setSearch("")
-      setOpen(false) // Fechar dialog após selecionar
-    },
-    [onValueChange],
-  )
+  const handleValueChange = (newValue: string) => {
+    console.log("[BrandSelectDialog] Value changed:", newValue)
+    onValueChange?.(newValue)
+    setSearch("")
+    setOpen(false)
+  }
 
   const handleCreateBrand = async (name: string) => {
     try {

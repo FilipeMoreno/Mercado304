@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useMemo } from "react"
+ 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
@@ -13,63 +13,44 @@ interface RecipeCardMemoProps {
 	onView?: (recipe: any) => void
 }
 
-export const RecipeCardMemo = memo<RecipeCardMemoProps>(
-	({ recipe, onDelete, onEdit, onView }) => {
-		const handleDelete = useCallback(() => {
-			onDelete(recipe)
-		}, [recipe, onDelete])
+export const RecipeCardMemo = ({ recipe, onDelete, onEdit, onView }: RecipeCardMemoProps) => {
+	const handleDelete = () => {
+		onDelete(recipe)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(recipe)
-		}, [recipe, onEdit])
+	const handleEdit = () => {
+		onEdit?.(recipe)
+	}
 
-		const handleCardClick = useCallback(() => {
-			if (onView) {
-				onView(recipe)
-			} else {
-				window.location.href = `/receitas/${recipe.id}`
-			}
-		}, [recipe, onView])
+	const handleCardClick = () => {
+		if (onView) {
+			onView(recipe)
+		} else {
+			window.location.href = `/receitas/${recipe.id}`
+		}
+	}
 
-		const recipeName = useMemo(() => {
-			return recipe.name || "Receita sem nome"
-		}, [recipe.name])
-
-		const ingredientCount = useMemo(() => {
-			return recipe.ingredients?.length || 0
-		}, [recipe.ingredients?.length])
-
-		const prepTime = useMemo(() => {
-			return recipe.prepTime || 0
-		}, [recipe.prepTime])
-
-		const cookTime = useMemo(() => {
-			return recipe.cookTime || 0
-		}, [recipe.cookTime])
-
-		const totalTime = useMemo(() => {
-			return prepTime + cookTime
-		}, [prepTime, cookTime])
-
-		const difficulty = useMemo(() => {
-			const levels: Record<string, { label: string; color: string }> = {
-				FACIL: { label: "Fácil", color: "green" },
-				MEDIO: { label: "Médio", color: "yellow" },
-				DIFICIL: { label: "Difícil", color: "red" },
-			}
-			return (
-				levels[recipe.difficulty] || {
-					label: "Não definido",
-					color: "gray",
-				}
-			)
-		}, [recipe.difficulty])
-
-		const servings = useMemo(() => {
-			return recipe.servings || 0
-		}, [recipe.servings])
-
+	const recipeName = recipe.name || "Receita sem nome"
+	const ingredientCount = recipe.ingredients?.length || 0
+	const prepTime = recipe.prepTime || 0
+	const cookTime = recipe.cookTime || 0
+	const totalTime = prepTime + cookTime
+	const difficulty = (() => {
+		const levels: Record<string, { label: string; color: string }> = {
+			FACIL: { label: "Fácil", color: "green" },
+			MEDIO: { label: "Médio", color: "yellow" },
+			DIFICIL: { label: "Difícil", color: "red" },
+		}
 		return (
+			levels[recipe.difficulty] || {
+				label: "Não definido",
+				color: "gray",
+			}
+		)
+	})()
+	const servings = recipe.servings || 0
+
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -135,16 +116,6 @@ export const RecipeCardMemo = memo<RecipeCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.recipe.id === nextProps.recipe.id &&
-			prevProps.recipe.name === nextProps.recipe.name &&
-			prevProps.recipe.ingredients?.length === nextProps.recipe.ingredients?.length &&
-			prevProps.recipe.prepTime === nextProps.recipe.prepTime &&
-			prevProps.recipe.updatedAt === nextProps.recipe.updatedAt
-		)
-	},
-)
+}
 
 RecipeCardMemo.displayName = "RecipeCardMemo"

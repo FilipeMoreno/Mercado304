@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Search, Store, Trash2 } from "lucide-r
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { MarketCardMemo } from "@/components/memoized"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -68,21 +68,18 @@ export function MercadosClient({ searchParams }: MercadosClientProps) {
 		}
 	}, [debouncedSearch, state.search, updateState])
 
-	// Handler otimizado para mudanças no campo de busca
-	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+	// Mudanças no campo de busca
+	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchValue(e.target.value)
-	}, [])
+	}
 
-	// Build URLSearchParams for the query
-	const params = useMemo(() => {
-		const urlParams = new URLSearchParams({
-			search: String(state.search),
-			sort: String(state.sort),
-			page: String(state.page),
-			limit: "12",
-		})
-		return urlParams
-	}, [state.search, state.sort, state.page])
+	// Params da query
+	const params = new URLSearchParams({
+		search: String(state.search),
+		sort: String(state.sort),
+		page: String(state.page),
+		limit: "12",
+	})
 
 	// React Query hooks
 	const { data: marketsData, isLoading, error } = useMarketsQuery(params)

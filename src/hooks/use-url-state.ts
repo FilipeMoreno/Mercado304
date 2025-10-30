@@ -1,5 +1,5 @@
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useMemo, useRef } from "react"
+import { useRef } from "react"
 
 interface UrlStateConfig {
 	basePath: string
@@ -15,7 +15,7 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 	initialValuesRef.current = initialValues
 
 	// Parse current state from URL parameters
-	const state = useMemo(() => {
+	const state = (() => {
 		const current: Record<string, string | number> = {}
 		const defaults = initialValuesRef.current
 
@@ -29,11 +29,10 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 		}
 
 		return current
-	}, [searchParams]) // Removed initialValues dependency
+	})()
 
 	// Build URL with current parameters - make it more stable
-	const buildUrl = useCallback(
-		(newState: Record<string, string | number>) => {
+	const buildUrl = (newState: Record<string, string | number>) => {
 			const params = new URLSearchParams()
 			const defaults = initialValuesRef.current
 
@@ -54,31 +53,22 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 			}
 
 			return params.toString() ? `${basePath}?${params.toString()}` : basePath
-		},
-		[basePath], // Removed initialValues dependency
-	)
+	}
 
 	// Update URL with new state
-	const updateUrl = useCallback(
-		(newState: Record<string, string | number>) => {
+	const updateUrl = (newState: Record<string, string | number>) => {
 			const newUrl = buildUrl(newState)
 			router.push(newUrl, { scroll: false })
-		},
-		[router, buildUrl],
-	)
+	}
 
 	// Update multiple values at once
-	const updateState = useCallback(
-		(updates: Record<string, string | number>) => {
+	const updateState = (updates: Record<string, string | number>) => {
 			const newState = { ...state, ...updates }
 			updateUrl(newState)
-		},
-		[state, updateUrl],
-	)
+	}
 
 	// Update a single value
-	const updateSingleValue = useCallback(
-		(key: string, value: string | number) => {
+	const updateSingleValue = (key: string, value: string | number) => {
 			// Use a more explicit approach to ensure state preservation
 			const currentState = { ...state }
 			currentState[key] = value
@@ -89,18 +79,16 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 			}
 
 			updateUrl(currentState)
-		},
-		[state, updateUrl],
-	)
+	}
 
 	// Clear all filters and reset to defaults
-	const clearFilters = useCallback(() => {
+	const clearFilters = () => {
 		const resetState = { ...initialValuesRef.current, page: 1 }
 		updateUrl(resetState)
-	}, [updateUrl]) // Removed initialValues dependency
+	}
 
 	// Check if any filters are active
-	const hasActiveFilters = useMemo(() => {
+	const hasActiveFilters = (() => {
 		const defaults = initialValuesRef.current
 		return Object.entries(state).some(([key, value]) => {
 			const defaultValue = defaults[key]
@@ -153,7 +141,7 @@ export function useUrlState({ basePath, initialValues }: UrlStateConfig) {
 
 			return value !== defaultValue && String(value) !== "" && String(value) !== "all"
 		})
-	}, [state, basePath]) // Removed initialValues dependency
+	})()
 
 	return {
 		state,

@@ -1,7 +1,6 @@
 "use client"
 
 import { PieChart } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -17,10 +16,8 @@ export function PaymentMostUsedWidget({
 	dateTo,
 }: PaymentMostUsedWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const mostUsedMethod = useMemo(() => {
-        const s = data?.summary?.mostUsedMethod as { label: string; percentage: number } | undefined
-        return s ? { label: s.label, percentage: s.percentage } : null
-    }, [data])
+    const s = data?.summary?.mostUsedMethod as { label: string; percentage: number } | undefined
+    const mostUsedMethod = s ? { label: s.label, percentage: s.percentage } : null
 
     if (isLoading) {
 		return (

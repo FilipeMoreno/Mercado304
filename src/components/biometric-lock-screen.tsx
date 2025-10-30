@@ -1,7 +1,7 @@
 "use client"
 
 import { Fingerprint, Lock, ShieldAlert } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { signIn, signOut, useSession } from "@/lib/auth-client"
@@ -19,7 +19,7 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 	const [error, setError] = useState<string | null>(null)
 
 	// Função para autenticar com biometria
-	const authenticate = useCallback(async () => {
+  const authenticate = async () => {
 		if (isAuthenticating) return
 
 		setIsAuthenticating(true)
@@ -56,7 +56,7 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 		} finally {
 			setIsAuthenticating(false)
 		}
-	}, [isAuthenticating, onUnlock])
+  }
 
 	// Auto-prompt ao carregar (se habilitado)
 	useEffect(() => {
@@ -69,7 +69,7 @@ export function BiometricLockScreen({ onUnlock, autoPrompt = true }: BiometricLo
 
 			return () => clearTimeout(timer)
 		}
-	}, [autoPrompt, hasPrompted, isAuthenticating, authenticate])
+  }, [autoPrompt, hasPrompted, isAuthenticating])
 
 	// Logout do usuário
 	const handleLogout = async () => {

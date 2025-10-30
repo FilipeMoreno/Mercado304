@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState } from "react"
 import {
 	Grid3X3,
 	List,
@@ -80,7 +80,7 @@ export function WidgetCustomizer({
 		(widget) => selectedCategory === "all" || widget.category === selectedCategory,
 	)
 
-	const handleSave = useCallback(async () => {
+const handleSave = async () => {
 		setIsSaving(true)
 		try {
 			await onSave()
@@ -92,23 +92,23 @@ export function WidgetCustomizer({
 		} finally {
 			setIsSaving(false)
 		}
-	}, [onSave, onEditingChange])
+	}
 
-	const handleReset = useCallback(async () => {
+const handleReset = async () => {
 		try {
 			await onReset()
 			AppToasts.success("Layout restaurado para o padrão")
 		} catch (error) {
 			AppToasts.error("Erro ao restaurar layout")
 		}
-	}, [onReset])
+	}
 
-	const toggleEditMode = useCallback(() => {
+const toggleEditMode = () => {
 		onEditingChange(!isEditing)
 		if (!isEditing) {
 			AppToasts.info("Modo de edição ativado. Arraste e redimensione os widgets.")
 		}
-	}, [isEditing, onEditingChange])
+	}
 
 	return (
 		<>

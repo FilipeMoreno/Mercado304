@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
@@ -57,19 +57,13 @@ export function ProductSelectDialog({
     })
 
   // Flatten all pages into a single array
-  const products = useMemo(() => {
-    return data?.pages.flatMap((page) => page.products) || []
-  }, [data])
+  const products = data?.pages.flatMap((page) => page.products) || []
 
   // Encontrar o produto selecionado na lista completa
-  const selectedProduct = useMemo(() => {
-    if (!value) return null
-    return allProducts.find((p: Product) => p.id === value) || null
-  }, [value, allProducts])
+  const selectedProduct = !value ? null : allProducts.find((p: Product) => p.id === value) || null
 
   // Convert products to SelectOption format
-  const options: SelectOption[] = useMemo(() => {
-    return products.map((product) => {
+  const options: SelectOption[] = products.map((product) => {
       // Construir sublabel com marca, pacote, quantidade e código
       const parts = []
       if (product.brand?.name) {
@@ -95,20 +89,17 @@ export function ProductSelectDialog({
         sublabel: parts.length > 0 ? parts.join(" • ") : undefined,
       }
     })
-  }, [products])
+  })
 
-  const handleSearchChange = useCallback((searchTerm: string) => {
+  const handleSearchChange = (searchTerm: string) => {
     setSearch(searchTerm)
-  }, [])
+  }
 
-  const handleValueChange = useCallback(
-    (newValue: string) => {
-      onValueChange?.(newValue)
-      setSearch("")
-      setOpen(false) // Fechar dialog após selecionar
-    },
-    [onValueChange, setOpen],
-  )
+  const handleValueChange = (newValue: string) => {
+    onValueChange?.(newValue)
+    setSearch("")
+    setOpen(false) // Fechar dialog após selecionar
+  }
 
   const handleCreateProduct = (name: string) => {
     if (preserveFormData) {
@@ -156,7 +147,7 @@ export function ProductSelectDialog({
   }
 
   // Encontrar a opção selecionada atual
-  const _selectedOption = useMemo(() => {
+  const _selectedOption = (() => {
     if (!selectedProduct) return undefined
 
     // Construir sublabel com marca, pacote, quantidade e código
@@ -179,7 +170,7 @@ export function ProductSelectDialog({
       label: selectedProduct.name,
       sublabel: parts.length > 0 ? parts.join(" • ") : undefined,
     }
-  }, [selectedProduct])
+  })()
 
   return (
     <>

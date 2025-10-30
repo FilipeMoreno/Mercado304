@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Message } from "./use-ai-chat"
 
 export interface ChatSession {
@@ -46,16 +46,16 @@ export function useChatHistory() {
 	}, [])
 
 	// Salvar no localStorage sempre que sessions mudar
-	const saveToStorage = useCallback((newSessions: ChatSession[]) => {
+const saveToStorage = (newSessions: ChatSession[]) => {
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(newSessions))
 		} catch (error) {
 			console.error("Erro ao salvar histórico de chat:", error)
 		}
-	}, [])
+	}
 
 	// Criar nova sessão
-	const createNewSession = useCallback((initialMessage?: Message) => {
+const createNewSession = (initialMessage?: Message) => {
 		const newSession: ChatSession = {
 			id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 			title: initialMessage?.content.slice(0, 50) || "Nova conversa",
@@ -84,10 +84,10 @@ export function useChatHistory() {
 
 		setCurrentSessionId(newSession.id)
 		return newSession
-	}, [saveToStorage])
+	}
 
 	// Atualizar sessão existente
-	const updateSession = useCallback((sessionId: string, messages: Message[]) => {
+const updateSession = (sessionId: string, messages: Message[]) => {
 		setSessions(prev => {
 			const newSessions = prev.map(session => {
 				if (session.id === sessionId) {
@@ -108,17 +108,17 @@ export function useChatHistory() {
 			saveToStorage(newSessions)
 			return newSessions
 		})
-	}, [saveToStorage])
+	}
 
 	// Carregar sessão específica
-	const loadSession = useCallback((sessionId: string) => {
+const loadSession = (sessionId: string) => {
 		setCurrentSessionId(sessionId)
 		// Usar o ref para evitar dependência circular
 		return sessionsRef.current.find(s => s.id === sessionId) || null
-	}, [])
+	}
 
 	// Deletar sessão
-	const deleteSession = useCallback((sessionId: string) => {
+const deleteSession = (sessionId: string) => {
 		setSessions(prev => {
 			const newSessions = prev.filter(s => s.id !== sessionId)
 			sessionsRef.current = newSessions
@@ -130,10 +130,10 @@ export function useChatHistory() {
 		if (currentSessionId === sessionId) {
 			setCurrentSessionId(null)
 		}
-	}, [currentSessionId, saveToStorage])
+	}
 
 	// Renomear sessão
-	const renameSession = useCallback((sessionId: string, newTitle: string) => {
+const renameSession = (sessionId: string, newTitle: string) => {
 		setSessions(prev => {
 			const newSessions = prev.map(session => 
 				session.id === sessionId 
@@ -144,26 +144,26 @@ export function useChatHistory() {
 			saveToStorage(newSessions)
 			return newSessions
 		})
-	}, [saveToStorage])
+	}
 
 	// Limpar todo o histórico
-	const clearAllHistory = useCallback(() => {
+const clearAllHistory = () => {
 		setSessions([])
 		sessionsRef.current = []
 		setCurrentSessionId(null)
 		localStorage.removeItem(STORAGE_KEY)
-	}, [])
+	}
 
 	// Obter sessão atual
-	const getCurrentSession = useCallback(() => {
+const getCurrentSession = () => {
 		if (!currentSessionId) return null
 		return sessions.find(s => s.id === currentSessionId) || null
-	}, [currentSessionId, sessions])
+	}
 
 	// Obter sessões ordenadas por data
-	const getOrderedSessions = useCallback(() => {
+const getOrderedSessions = () => {
 		return [...sessions].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-	}, [sessions])
+	}
 
 	return {
 		sessions: getOrderedSessions(),

@@ -68,25 +68,26 @@ const Carousel = React.forwardRef<
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
 
-    const onSelect = React.useCallback((api: CarouselApi) => {
+    const onSelect = (api: CarouselApi) => {
       if (!api) {
         return
       }
 
       setCanScrollPrev(api.canScrollPrev())
       setCanScrollNext(api.canScrollNext())
-    }, [])
+    }
 
-    const scrollPrev = React.useCallback(() => {
+    const scrollPrev = () => {
       api?.scrollPrev()
-    }, [api])
+    }
 
-    const scrollNext = React.useCallback(() => {
+    const scrollNext = () => {
       api?.scrollNext()
-    }, [api])
+    }
 
-    const handleKeyDown = React.useCallback(
-      (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDown = (
+      event: React.KeyboardEvent<HTMLDivElement>,
+    ) => {
         if (event.key === "ArrowLeft") {
           event.preventDefault()
           scrollPrev()
@@ -94,9 +95,7 @@ const Carousel = React.forwardRef<
           event.preventDefault()
           scrollNext()
         }
-      },
-      [scrollPrev, scrollNext]
-    )
+      }
 
     React.useEffect(() => {
       if (!api || !setApi) {
@@ -118,7 +117,7 @@ const Carousel = React.forwardRef<
       return () => {
         api?.off("select", onSelect)
       }
-    }, [api, onSelect])
+    }, [api])
 
     return (
       <CarouselContext.Provider

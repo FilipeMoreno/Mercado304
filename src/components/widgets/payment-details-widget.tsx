@@ -1,7 +1,6 @@
 "use client"
 
 import { CreditCard } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -27,7 +26,7 @@ export function PaymentDetailsWidget({
 	dateTo,
 }: PaymentDetailsWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const paymentStats = useMemo(() => (data?.paymentStats as PaymentMethodStat[]) || [], [data])
+    const paymentStats = (data?.paymentStats as PaymentMethodStat[]) || []
 
 	const colors = [
 		"bg-blue-500",

@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, LinkIcon, Minus, Plus, Trash2, X } from "lucide-react"
-import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
@@ -111,19 +111,17 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 		}
 	}, [item])
 
-	// Auto-save com debounce
-	const autoSave = useCallback(() => {
+// Auto-save com debounce
+	const autoSave = () => {
 		if (!item) return
 
 		const price = estimatedPrice ? parseFloat(estimatedPrice) : undefined
 		const qty = parseFloat(quantity) || 0
 
-		// Validações silenciosas - não salvar se inválido
 		if (qty <= 0 || !productName.trim()) {
 			return
 		}
 
-		// Verificar se houve mudanças
 		const hasChanges =
 			productName !== initialValuesRef.current?.productName ||
 			productId !== initialValuesRef.current?.productId ||
@@ -132,7 +130,6 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 
 		if (!hasChanges) return
 
-		// Atualizar valores iniciais
 		initialValuesRef.current = {
 			productName,
 			productId,
@@ -140,14 +137,18 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 			estimatedPrice,
 		}
 
-		onUpdate(item.id, {
-			productId,
-			productName: productName.trim(),
-			productUnit: item.productUnit,
-			quantity: qty,
-			estimatedPrice: price,
-		}, { closeDialog: false })
-	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])
+		onUpdate(
+			item.id,
+			{
+				productId,
+				productName: productName.trim(),
+				productUnit: item.productUnit,
+				quantity: qty,
+				estimatedPrice: price,
+			},
+			{ closeDialog: false },
+		)
+	}
 
 	// Trigger auto-save quando valores mudarem
 	useEffect(() => {
@@ -166,7 +167,7 @@ export function QuickEditDialog({ item, isOpen, onClose, onUpdate, onDelete }: Q
 				clearTimeout(autoSaveTimeoutRef.current)
 			}
 		}
-	}, [autoSave])
+	}, [item, productId, productName, quantity, estimatedPrice, onUpdate])
 
 	if (!item) return null
 

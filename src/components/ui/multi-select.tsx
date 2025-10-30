@@ -45,9 +45,7 @@ export function MultiSelect({
 		onSelectedChange([])
 	}
 
-	const selectedLabels = React.useMemo(() => {
-		return options.filter((option) => selected.includes(option.value))
-	}, [options, selected])
+	const selectedLabels = options.filter((option) => selected.includes(option.value))
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>

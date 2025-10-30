@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSession } from "@/lib/auth-client"
 
 interface BiometricLockConfig {
@@ -42,7 +42,7 @@ export function useBiometricLock() {
 	const visibilityListenerRef = useRef<(() => void) | null>(null)
 
 	// Carrega configuração do localStorage
-	const loadConfig = useCallback((): BiometricLockConfig => {
+const loadConfig = (): BiometricLockConfig => {
 		if (typeof window === "undefined") return DEFAULT_CONFIG
 
 		try {
@@ -55,10 +55,10 @@ export function useBiometricLock() {
 		}
 
 		return DEFAULT_CONFIG
-	}, [])
+}
 
 	// Salva configuração no localStorage
-	const saveConfig = useCallback((config: BiometricLockConfig) => {
+const saveConfig = (config: BiometricLockConfig) => {
 		if (typeof window === "undefined") return
 
 		try {
@@ -66,10 +66,10 @@ export function useBiometricLock() {
 		} catch (error) {
 			console.error("Erro ao salvar configuração de bloqueio:", error)
 		}
-	}, [])
+}
 
 	// Verifica se tem credencial biométrica registrada
-	const checkCredential = useCallback(async (): Promise<boolean> => {
+const checkCredential = async (): Promise<boolean> => {
 		if (typeof window === "undefined") return false
 
 		try {
@@ -92,17 +92,17 @@ export function useBiometricLock() {
 			console.error("Erro ao verificar credencial biométrica:", error)
 			return false
 		}
-	}, [])
+}
 
 	// Atualiza última atividade
-	const updateActivity = useCallback(() => {
+const updateActivity = () => {
 		const now = Date.now()
 		localStorage.setItem(LAST_ACTIVITY_KEY, now.toString())
 		setState((prev) => ({ ...prev, lastActivity: now }))
-	}, [])
+}
 
 	// Verifica se deve bloquear por inatividade
-	const checkInactivity = useCallback(() => {
+const checkInactivity = () => {
 		if (typeof window === "undefined") return false
 
 		const config = loadConfig()
@@ -116,41 +116,38 @@ export function useBiometricLock() {
 		const timeoutMs = config.inactivityTimeout * 60 * 1000
 
 		return inactiveTime >= timeoutMs
-	}, [loadConfig])
+}
 
 	// Bloqueia o app
-	const lock = useCallback(() => {
+const lock = () => {
 		if (typeof window === "undefined") return
 
 		localStorage.setItem(STORAGE_KEY, "true")
 		setState((prev) => ({ ...prev, isLocked: true, shouldShowLock: true }))
-	}, [])
+}
 
 	// Desbloqueia o app
-	const unlock = useCallback(() => {
+const unlock = () => {
 		if (typeof window === "undefined") return
 
 		localStorage.removeItem(STORAGE_KEY)
 		updateActivity()
 		setState((prev) => ({ ...prev, isLocked: false, shouldShowLock: false }))
-	}, [updateActivity])
+}
 
 	// Atualiza configuração
-	const updateConfig = useCallback(
-		(newConfig: Partial<BiometricLockConfig>) => {
-			const updated = { ...state.config, ...newConfig }
-			saveConfig(updated)
-			setState((prev) => ({ ...prev, config: updated }))
-		},
-		[state.config, saveConfig],
-	)
+const updateConfig = (newConfig: Partial<BiometricLockConfig>) => {
+	const updated = { ...state.config, ...newConfig }
+	saveConfig(updated)
+	setState((prev) => ({ ...prev, config: updated }))
+}
 
 	// Marca que tem credencial biométrica
-	const setHasCredential = useCallback((value: boolean) => {
+const setHasCredential = (value: boolean) => {
 		if (typeof window === "undefined") return
 		localStorage.setItem(HAS_CREDENTIAL_KEY, value.toString())
 		setState((prev) => ({ ...prev, hasCredential: value }))
-	}, [])
+}
 
 	// Inicializa o hook
 	useEffect(() => {
@@ -182,7 +179,7 @@ export function useBiometricLock() {
 		}
 
 		init()
-	}, [session?.user, loadConfig, checkCredential, checkInactivity, updateActivity])
+}, [session?.user])
 
 	// Monitora atividade do usuário
 	useEffect(() => {
@@ -205,7 +202,7 @@ export function useBiometricLock() {
 				document.removeEventListener(event, handleActivity)
 			})
 		}
-	}, [session?.user, state.config.enabled, state.isLocked, updateActivity])
+}, [session?.user, state.config.enabled, state.isLocked])
 
 	// Timer para verificar inatividade
 	useEffect(() => {
@@ -231,7 +228,7 @@ export function useBiometricLock() {
 				clearInterval(activityTimerRef.current)
 			}
 		}
-	}, [session?.user, state.config, state.isLocked, checkInactivity, lock])
+}, [session?.user, state.config, state.isLocked])
 
 	// Monitora quando o app é fechado/minimizado
 	useEffect(() => {
@@ -259,7 +256,7 @@ export function useBiometricLock() {
 		return () => {
 			visibilityListenerRef.current?.()
 		}
-	}, [session?.user, state.config, checkInactivity, lock, updateActivity])
+}, [session?.user, state.config])
 
 	// Limpa estado quando faz logout
 	useEffect(() => {

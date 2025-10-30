@@ -112,7 +112,7 @@ export default function NovaCompraPage() {
 	const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>(["0.00"])
 	const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 
-	const fetchData = React.useCallback(async () => {
+	const fetchData = async () => {
 		try {
 			// Buscar TODOS os produtos sem paginação
 			const productsRes = await fetch("/api/products?limit=10000")
@@ -125,11 +125,11 @@ export default function NovaCompraPage() {
 		} finally {
 			setDataLoading(false)
 		}
-	}, [])
+	}
 
-	useEffect(() => {
+useEffect(() => {
 		fetchData()
-	}, [fetchData])
+}, [])
 	// Restaurar itens do storageKey quando a página carregar
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")

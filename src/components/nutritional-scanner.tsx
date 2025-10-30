@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Camera, Loader2, Minimize2, ScanLine, Upload } from "lucide-react"
 import Image from "next/image"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MinimizedDialog } from "@/components/ui/minimized-dialog"
@@ -48,16 +48,16 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 		console.log("🔄 NutritionalScanner: Estado isProcessing mudou para:", isProcessing)
 	}, [isProcessing])
 
-	const stopCamera = useCallback(() => {
+	const stopCamera = () => {
 		if (stream) {
 			stream.getTracks().forEach((track) => {
 				track.stop()
 			})
 			setStream(null)
 		}
-	}, [stream])
+	}
 
-	const startCamera = useCallback(async () => {
+	const startCamera = async () => {
 		// Garante que a câmara anterior é parada antes de iniciar uma nova
 		if (stream) {
 			stopCamera()
@@ -76,14 +76,14 @@ export function NutritionalScanner({ onScanComplete, onClose }: NutritionalScann
 			console.error("Erro ao acessar a câmera:", err)
 			setError("Não foi possível aceder à câmara. Por favor, verifica as permissões no teu navegador.")
 		}
-	}, [stream, stopCamera])
+	}
 
-	useEffect(() => {
+useEffect(() => {
 		startCamera()
 		return () => {
 			stopCamera()
 		}
-	}, [startCamera, stopCamera])
+}, [])
 
 	// Funções para minimização
 	const handleMinimize = () => {

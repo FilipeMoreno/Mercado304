@@ -2,7 +2,7 @@
 
 import { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType, NotFoundException } from "@zxing/library"
 import { Camera, CameraOff, Flashlight, FlashlightOff, RotateCcw, X } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -25,7 +25,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 	const [isCameraActive, setIsCameraActive] = useState(false)
 
 	// Função para listar câmeras disponíveis
-	const getVideoDevices = useCallback(async () => {
+	const getVideoDevices = async () => {
 		try {
 			// Verificar se a API está disponível
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -84,10 +84,10 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 			setError(errorMessage)
 			return ""
 		}
-	}, [])
+	}
 
 	// Função para alternar flash/lanterna
-	const toggleFlash = useCallback(async () => {
+	const toggleFlash = async () => {
 		if (!streamRef.current) return
 
 		const track = streamRef.current.getVideoTracks()[0]
@@ -104,10 +104,10 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		} catch (err) {
 			console.error("Erro ao controlar flash:", err)
 		}
-	}, [isFlashOn])
+	}
 
 	// Função para alternar câmera
-	const switchCamera = useCallback(async () => {
+	const switchCamera = async () => {
 		const currentIndex = devices.findIndex((device) => device.deviceId === selectedDeviceId)
 		const nextIndex = (currentIndex + 1) % devices.length
 		const nextDevice = devices[nextIndex]
@@ -115,10 +115,10 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		if (nextDevice) {
 			setSelectedDeviceId(nextDevice.deviceId)
 		}
-	}, [devices, selectedDeviceId])
+	}
 
 	// Função para parar stream
-	const stopStream = useCallback(() => {
+	const stopStream = () => {
 		if (animationFrameRef.current) {
 			cancelAnimationFrame(animationFrameRef.current)
 			animationFrameRef.current = undefined
@@ -135,11 +135,10 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 		setIsCameraActive(false)
 		setIsFlashOn(false)
-	}, [])
+	}
 
 	// Função para inicializar câmera
-	const initializeCamera = useCallback(
-		async (deviceId: string) => {
+	const initializeCamera = async (deviceId: string) => {
 			try {
 				setIsLoading(true)
 				setError("")
@@ -369,12 +368,10 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				setError(errorMessage)
 				setIsLoading(false)
 			}
-		},
-		[stopStream],
-	)
+	}
 
 	// Função de scan usando canvas para melhor detecção
-	const scanBarcode = useCallback(async () => {
+	const scanBarcode = async () => {
 		const videoElement = videoRef.current
 
 		if (!videoElement || !codeReader.current || !videoElement.videoWidth || !videoElement.videoHeight) {
@@ -494,7 +491,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 				}
 			}, 150) // Delay de 150ms para melhor processamento
 		}
-	}, [isCameraActive, onScan, onClose, stopStream])
+	}
 
 	// Inicializar ZXing
 	useEffect(() => {
@@ -526,7 +523,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		return () => {
 			stopStream()
 		}
-	}, [isOpen, stopStream])
+	}, [isOpen])
 
 	// Inicializar dispositivos e câmera
 	useEffect(() => {
@@ -547,7 +544,7 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 		}
 
 		initialize()
-	}, [isOpen, getVideoDevices, initializeCamera])
+	}, [isOpen])
 
 	// Trocar câmera quando selectedDeviceId mudar (apenas se já tivermos dispositivos)
 	useEffect(() => {
@@ -555,21 +552,21 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 
 		console.log("Trocando para câmera:", selectedDeviceId)
 		initializeCamera(selectedDeviceId)
-	}, [selectedDeviceId, isOpen, initializeCamera, devices.length, isLoading])
+	}, [selectedDeviceId, isOpen, devices.length, isLoading])
 
 	// Iniciar scanning quando câmera estiver ativa
 	useEffect(() => {
 		if (isCameraActive && !animationFrameRef.current) {
 			animationFrameRef.current = requestAnimationFrame(scanBarcode)
 		}
-	}, [isCameraActive, scanBarcode])
+	}, [isCameraActive])
 
 	// Cleanup
 	useEffect(() => {
 		return () => {
 			stopStream()
 		}
-	}, [stopStream])
+	}, [])
 
 	if (!isOpen) return null
 

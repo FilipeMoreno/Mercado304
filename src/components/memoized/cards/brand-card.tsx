@@ -2,7 +2,7 @@
 
 import { Package } from "lucide-react"
 import Image from "next/image"
-import { memo, useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
 import { CardBadge } from "../shared/card-badge"
@@ -14,35 +14,32 @@ interface BrandCardMemoProps {
 	onEdit?: (brand: any) => void
 }
 
-export const BrandCardMemo = memo<BrandCardMemoProps>(
-	({ brand, onDelete, onEdit }) => {
-		const [imageError, setImageError] = useState(false)
 
-		const handleDelete = useCallback(() => {
-			onDelete(brand)
-		}, [brand, onDelete])
+export const BrandCardMemo = ({ brand, onDelete, onEdit }: BrandCardMemoProps) => {
+	const [imageError, setImageError] = useState(false)
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(brand)
-		}, [brand, onEdit])
+	const handleDelete = () => {
+		onDelete(brand)
+	}
 
-		const handleCardClick = useCallback(() => {
-			window.location.href = `/marcas/${brand.id}`
-		}, [brand.id])
+	const handleEdit = () => {
+		onEdit?.(brand)
+	}
 
-		const brandName = useMemo(() => {
-			return brand.name || "Marca sem nome"
-		}, [brand.name])
+	const handleCardClick = () => {
+		window.location.href = `/marcas/${brand.id}`
+	}
 
-		const brandInitials = useMemo(() => {
-			const words = brandName.split(" ")
-			if (words.length >= 2) {
-				return `${words[0][0]}${words[1][0]}`.toUpperCase()
-			}
-			return brandName.substring(0, 2).toUpperCase()
-		}, [brandName])
+	const brandName = brand.name || "Marca sem nome"
+	const brandInitials = (() => {
+		const words = brandName.split(" ")
+		if (words.length >= 2) {
+			return `${words[0][0]}${words[1][0]}`.toUpperCase()
+		}
+		return brandName.substring(0, 2).toUpperCase()
+	})()
 
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -95,17 +92,6 @@ export const BrandCardMemo = memo<BrandCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.brand.id === nextProps.brand.id &&
-			prevProps.brand.name === nextProps.brand.name &&
-			prevProps.brand.imageUrl === nextProps.brand.imageUrl &&
-			prevProps.brand.description === nextProps.brand.description &&
-			prevProps.brand._count?.products === nextProps.brand._count?.products &&
-			prevProps.brand.updatedAt === nextProps.brand.updatedAt
-		)
-	},
-)
+}
 
 BrandCardMemo.displayName = "BrandCardMemo"

@@ -1,7 +1,7 @@
 "use client"
 
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react"
-import { memo, useCallback } from "react"
+import type React from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -11,22 +11,16 @@ interface CardActionsProps {
 	entityName: string
 }
 
-export const CardActions = memo<CardActionsProps>(({ onEdit, onDelete, entityName }) => {
-	const handleEdit = useCallback(
-		(e: React.MouseEvent) => {
-			e.stopPropagation()
-			onEdit?.()
-		},
-		[onEdit],
-	)
+export const CardActions = ({ onEdit, onDelete, entityName }: CardActionsProps) => {
+	const handleEdit = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		onEdit?.()
+	}
 
-	const handleDelete = useCallback(
-		(e: React.MouseEvent) => {
-			e.stopPropagation()
-			onDelete()
-		},
-		[onDelete],
-	)
+	const handleDelete = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		onDelete()
+	}
 
 	return (
 		<div
@@ -58,6 +52,6 @@ export const CardActions = memo<CardActionsProps>(({ onEdit, onDelete, entityNam
 			</DropdownMenu>
 		</div>
 	)
-})
+}
 
 CardActions.displayName = "CardActions"

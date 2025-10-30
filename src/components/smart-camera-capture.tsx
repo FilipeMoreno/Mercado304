@@ -12,7 +12,7 @@ import {
 	ZapOff,
 } from "lucide-react"
 import Image from "next/image"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -88,17 +88,16 @@ export function SmartCameraCapture({
 		}
 	}, [isOpen, mode, isMobile])
 
-	const stopWebCamera = useCallback(() => {
+const stopWebCamera = () => {
 		if (stream) {
 			stream.getTracks().forEach((track) => {
 				track.stop()
 			})
 			setStream(null)
 		}
-	}, [stream])
+}
 
-	const startWebCamera = useCallback(
-		async (deviceId?: string) => {
+const startWebCamera = async (deviceId?: string) => {
 			try {
 				// Parar stream anterior
 				if (stream) {
@@ -136,9 +135,7 @@ export function SmartCameraCapture({
 				toast.error("Erro ao acessar câmera. Tente outro método.")
 				setCaptureMethod(null)
 			}
-		},
-		[stream, currentDeviceId, maxWidth, maxHeight],
-	)
+	}
 
 	// Iniciar câmera web quando selecionado
 	useEffect(() => {
@@ -149,7 +146,7 @@ export function SmartCameraCapture({
 		return () => {
 			stopWebCamera()
 		}
-	}, [captureMethod, isOpen, startWebCamera, stopWebCamera])
+	}, [captureMethod, isOpen])
 
 	const switchCamera = () => {
 		if (devices.length > 1) {

@@ -73,16 +73,13 @@ export function ListaClient({ searchParams }: ListaClientProps) {
 	}, [searchValue, state.search, updateState])
 
 	// Build URLSearchParams for the shopping lists query
-	const shoppingListParams = React.useMemo(() => {
-		const params: Record<string, string> = {
-			search: String(state.search),
-			sort: String(state.sort),
-			status: String(state.status),
-			page: String(state.page),
-			limit: itemsPerPage.toString(),
-		}
-		return new URLSearchParams(params)
-	}, [state.search, state.sort, state.status, state.page])
+	const shoppingListParams = new URLSearchParams({
+		search: String(state.search),
+		sort: String(state.sort),
+		status: String(state.status),
+		page: String(state.page),
+		limit: itemsPerPage.toString(),
+	})
 
 	// React Query hooks
 	const { data: shoppingListsData, isLoading, error } = useShoppingListsQuery(shoppingListParams)

@@ -2,7 +2,7 @@
 
 import { Store } from "lucide-react"
 import Image from "next/image"
-import { memo, useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
 import { CardFooter } from "../shared/card-footer"
@@ -13,31 +13,25 @@ interface MarketCardMemoProps {
 	onEdit?: (market: any) => void
 }
 
-export const MarketCardMemo = memo<MarketCardMemoProps>(
-	({ market, onDelete, onEdit }) => {
-		const [imageError, setImageError] = useState(false)
+export const MarketCardMemo = ({ market, onDelete, onEdit }: MarketCardMemoProps) => {
+	const [imageError, setImageError] = useState(false)
 
-		const handleDelete = useCallback(() => {
-			onDelete(market)
-		}, [market, onDelete])
+	const handleDelete = () => {
+		onDelete(market)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(market)
-		}, [market, onEdit])
+	const handleEdit = () => {
+		onEdit?.(market)
+	}
 
-		const handleCardClick = useCallback(() => {
-			window.location.href = `/mercados/${market.id}`
-		}, [market.id])
+	const handleCardClick = () => {
+		window.location.href = `/mercados/${market.id}`
+	}
 
-		const marketName = useMemo(() => {
-			return market.name || "Mercado sem nome"
-		}, [market.name])
+	const marketName = market.name || "Mercado sem nome"
+	const marketLocation = market.location || null
 
-		const marketLocation = useMemo(() => {
-			return market.location || null
-		}, [market.location])
-
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -81,16 +75,6 @@ export const MarketCardMemo = memo<MarketCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.market.id === nextProps.market.id &&
-			prevProps.market.name === nextProps.market.name &&
-			prevProps.market.location === nextProps.market.location &&
-			prevProps.market.imageUrl === nextProps.market.imageUrl &&
-			prevProps.market.updatedAt === nextProps.market.updatedAt
-		)
-	},
-)
+}
 
 MarketCardMemo.displayName = "MarketCardMemo"

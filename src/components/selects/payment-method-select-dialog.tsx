@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { PaymentMethod } from "@/types"
@@ -32,16 +32,10 @@ export function PaymentMethodSelectDialog({
   const [search, setSearch] = useState("")
 
   // Filter payment methods based on search
-  const filteredOptions: SelectOption[] = useMemo(() => {
-    const searchLower = search.toLowerCase()
-    return PAYMENT_METHODS.filter((method) =>
-      method.label.toLowerCase().includes(searchLower)
-    ).map((method) => ({
-      id: method.value,
-      label: method.label,
-      icon: method.icon,
-    }))
-  }, [search])
+  const searchLower = search.toLowerCase()
+  const filteredOptions: SelectOption[] = PAYMENT_METHODS.filter((method) =>
+    method.label.toLowerCase().includes(searchLower)
+  ).map((method) => ({ id: method.value, label: method.label, icon: method.icon }))
 
   const handleValueChange = (newValue: string) => {
     onValueChange?.(newValue as PaymentMethod)

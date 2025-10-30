@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 
@@ -34,17 +34,10 @@ export function UnitSelectDialog({
   const [search, setSearch] = useState("")
 
   // Filter units based on search
-  const filteredOptions: SelectOption[] = useMemo(() => {
-    const searchLower = search.toLowerCase()
-    return UNITS.filter(
-      (unit) =>
-        unit.label.toLowerCase().includes(searchLower) || unit.value.toLowerCase().includes(searchLower),
-    ).map((unit) => ({
-      id: unit.value,
-      label: unit.label,
-      icon: unit.icon,
-    }))
-  }, [search])
+const searchLower = search.toLowerCase()
+const filteredOptions: SelectOption[] = UNITS.filter(
+  (unit) => unit.label.toLowerCase().includes(searchLower) || unit.value.toLowerCase().includes(searchLower),
+).map((unit) => ({ id: unit.value, label: unit.label, icon: unit.icon }))
 
   const handleValueChange = (newValue: string) => {
     onValueChange?.(newValue)

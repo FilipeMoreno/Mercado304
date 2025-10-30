@@ -10,7 +10,7 @@ import {
 	TrendingUp,
 	Zap,
 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import {
 	Cell,
 	Legend,
@@ -91,7 +91,7 @@ export default function NutricaoClient() {
 	const [loading, setLoading] = useState(true)
 	const [period, setPeriod] = useState("30")
 
-	const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = async () => {
 		setLoading(true)
 		try {
 			const params = new URLSearchParams({
@@ -105,14 +105,14 @@ export default function NutricaoClient() {
 			}
 		} catch (error) {
 			console.error("Erro ao buscar análise nutricional:", error)
-		} finally {
+    } finally {
 			setLoading(false)
 		}
-	}, [period])
+  }
 
-	useEffect(() => {
-		fetchAnalysis()
-	}, [fetchAnalysis])
+  useEffect(() => {
+    fetchAnalysis()
+  }, [period])
 
 	const getHealthScoreColor = (score: number) => {
 		if (score >= 80) return "text-green-600 bg-green-50 border-green-200"

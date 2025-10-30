@@ -2,7 +2,7 @@
 
 import { Package } from "lucide-react"
 import Image from "next/image"
-import { memo, useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
@@ -14,46 +14,36 @@ interface KitCardMemoProps {
 	onEdit?: (kit: any) => void
 }
 
-export const KitCardMemo = memo<KitCardMemoProps>(
-	({ kit, onDelete, onEdit }) => {
-		const [imageError, setImageError] = useState(false)
+export const KitCardMemo = ({ kit, onDelete, onEdit }: KitCardMemoProps) => {
+	const [imageError, setImageError] = useState(false)
 
-		const handleDelete = useCallback(() => {
-			onDelete(kit)
-		}, [kit, onDelete])
+	const handleDelete = () => {
+		onDelete(kit)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(kit)
-		}, [kit, onEdit])
+	const handleEdit = () => {
+		onEdit?.(kit)
+	}
 
-		const handleCardClick = useCallback(() => {
-			window.location.href = `/produtos/kits/${kit.kitProductId}`
-		}, [kit.kitProductId])
+	const handleCardClick = () => {
+		window.location.href = `/produtos/kits/${kit.kitProductId}`
+	}
 
-		const kitName = useMemo(() => {
-			return kit.kitProduct?.name || "Kit sem nome"
-		}, [kit.kitProduct?.name])
+	const kitName = kit.kitProduct?.name || "Kit sem nome"
+	const itemCount = kit.items?.length || 0
+	const isActive = kit.isActive || false
+	const imageUrl = (() => {
+		if (kit.kitProduct?.barcodes && kit.kitProduct.barcodes.length > 0) {
+			const primaryBarcode = kit.kitProduct.barcodes.find((b: any) => b.isPrimary) || kit.kitProduct.barcodes[0]
+			return `https://cdn-cosmos.bluesoft.com.br/products/${primaryBarcode.barcode}`
+		}
+		if (kit.kitProduct?.barcode) {
+			return `https://cdn-cosmos.bluesoft.com.br/products/${kit.kitProduct.barcode}`
+		}
+		return null
+	})()
 
-		const itemCount = useMemo(() => {
-			return kit.items?.length || 0
-		}, [kit.items?.length])
-
-		const isActive = useMemo(() => {
-			return kit.isActive || false
-		}, [kit.isActive])
-
-		const imageUrl = useMemo(() => {
-			if (kit.kitProduct?.barcodes && kit.kitProduct.barcodes.length > 0) {
-				const primaryBarcode = kit.kitProduct.barcodes.find((b: any) => b.isPrimary) || kit.kitProduct.barcodes[0]
-				return `https://cdn-cosmos.bluesoft.com.br/products/${primaryBarcode.barcode}`
-			}
-			if (kit.kitProduct?.barcode) {
-				return `https://cdn-cosmos.bluesoft.com.br/products/${kit.kitProduct.barcode}`
-			}
-			return null
-		}, [kit.kitProduct?.barcodes, kit.kitProduct?.barcode])
-
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -141,17 +131,6 @@ export const KitCardMemo = memo<KitCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.kit.id === nextProps.kit.id &&
-			prevProps.kit.kitProduct?.name === nextProps.kit.kitProduct?.name &&
-			prevProps.kit.description === nextProps.kit.description &&
-			prevProps.kit.isActive === nextProps.kit.isActive &&
-			prevProps.kit.items?.length === nextProps.kit.items?.length &&
-			prevProps.kit.updatedAt === nextProps.kit.updatedAt
-		)
-	},
-)
+}
 
 KitCardMemo.displayName = "KitCardMemo"

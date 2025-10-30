@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { AppToasts } from "@/lib/toasts"
@@ -32,22 +32,17 @@ export function ShoppingListSelectDialog({
   }, [fetchShoppingLists])
 
   // Convert shopping lists to SelectOption format
-  const options: SelectOption[] = useMemo(() => {
-    return shoppingLists.map((list) => ({
-      id: list.id,
-      label: list.name,
-      sublabel: `${list.items?.length || 0} itens`,
-      icon: "📝",
-    }))
-  }, [shoppingLists])
+  const options: SelectOption[] = shoppingLists.map((list) => ({
+    id: list.id,
+    label: list.name,
+    sublabel: `${list.items?.length || 0} itens`,
+    icon: "📝",
+  }))
 
-  const handleValueChange = useCallback(
-    (newValue: string) => {
-      onValueChange?.(newValue)
-      setOpen(false) // Fechar dialog após selecionar
-    },
-    [onValueChange],
-  )
+const handleValueChange = (newValue: string) => {
+	onValueChange?.(newValue)
+	setOpen(false)
+}
 
   const handleCreateList = async (name: string) => {
     try {

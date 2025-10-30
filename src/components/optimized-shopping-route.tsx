@@ -14,7 +14,7 @@ import {
 	Store,
 	TrendingDown,
 } from "lucide-react"
-import { useCallback, useEffect, useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -90,7 +90,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false)
 	const addressInputId = useId()
 
-	const fetchOptimizedRoute = useCallback(async () => {
+  const fetchOptimizedRoute = async () => {
 		setLoading(true)
 		setHasCalculatedRoute(false)
 		try {
@@ -108,10 +108,10 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 		} catch (error) {
 			console.error("Erro ao buscar roteiro otimizado:", error)
 			toast.error("Erro ao calcular roteiro otimizado")
-		} finally {
+    } finally {
 			setLoading(false)
 		}
-	}, [listId])
+  }
 
 	useEffect(() => {
 		if (isOpen && listId) {
@@ -123,7 +123,7 @@ export function OptimizedShoppingRoute({ listId, listName, isOpen, onClose }: Op
 				setUserAddress(savedAddress)
 			}
 		}
-	}, [isOpen, listId, fetchOptimizedRoute])
+  }, [isOpen, listId])
 
 	const calculateRouteWithDistances = async () => {
 		if (!userAddress.trim()) {

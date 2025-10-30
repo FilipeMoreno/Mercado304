@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useMemo } from "react"
+ 
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
 import { CardBadge } from "../shared/card-badge"
@@ -12,33 +12,24 @@ interface CategoryCardMemoProps {
 	onEdit?: (category: any) => void
 }
 
-export const CategoryCardMemo = memo<CategoryCardMemoProps>(
-	({ category, onDelete, onEdit }) => {
-		const handleDelete = useCallback(() => {
-			onDelete(category)
-		}, [category, onDelete])
+export const CategoryCardMemo = ({ category, onDelete, onEdit }: CategoryCardMemoProps) => {
+	const handleDelete = () => {
+		onDelete(category)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(category)
-		}, [category, onEdit])
+	const handleEdit = () => {
+		onEdit?.(category)
+	}
 
-		const handleCardClick = useCallback(() => {
-			window.location.href = `/categorias/${category.id}`
-		}, [category.id])
+	const handleCardClick = () => {
+		window.location.href = `/categorias/${category.id}`
+	}
 
-		const categoryName = useMemo(() => {
-			return category.name || "Categoria sem nome"
-		}, [category.name])
+	const categoryName = category.name || "Categoria sem nome"
+	const categoryIcon = category.icon || "📦"
+	const categoryColor = category.color || "#6366f1"
 
-		const categoryIcon = useMemo(() => {
-			return category.icon || "📦"
-		}, [category.icon])
-
-		const categoryColor = useMemo(() => {
-			return category.color || "#6366f1"
-		}, [category.color])
-
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -87,15 +78,6 @@ export const CategoryCardMemo = memo<CategoryCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.category.id === nextProps.category.id &&
-			prevProps.category.name === nextProps.category.name &&
-			prevProps.category.icon === nextProps.category.icon &&
-			prevProps.category.updatedAt === nextProps.category.updatedAt
-		)
-	},
-)
+}
 
 CategoryCardMemo.displayName = "CategoryCardMemo"

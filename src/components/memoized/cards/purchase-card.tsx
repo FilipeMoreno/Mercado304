@@ -1,7 +1,6 @@
 "use client"
 
 import { Receipt, ShoppingCart, Store } from "lucide-react"
-import { memo, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CardActions } from "../shared/card-actions"
 import { CardBadge } from "../shared/card-badge"
@@ -14,67 +13,48 @@ interface PurchaseCardMemoProps {
 	onView?: (purchase: any) => void
 }
 
-export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
-	({ purchase, onDelete, onEdit, onView }) => {
-		const handleDelete = useCallback(() => {
-			onDelete(purchase)
-		}, [purchase, onDelete])
+export const PurchaseCardMemo = ({ purchase, onDelete, onEdit, onView }: PurchaseCardMemoProps) => {
+	const handleDelete = () => {
+		onDelete(purchase)
+	}
 
-		const handleEdit = useCallback(() => {
-			onEdit?.(purchase)
-		}, [purchase, onEdit])
+	const handleEdit = () => {
+		onEdit?.(purchase)
+	}
 
-		const handleCardClick = useCallback(() => {
-			if (onView) {
-				onView(purchase)
-			}
-		}, [purchase, onView])
+	const handleCardClick = () => {
+		if (onView) {
+			onView(purchase)
+		}
+	}
 
-		const purchaseDate = useMemo(() => {
-			return new Date(purchase.purchaseDate).toLocaleDateString("pt-BR", {
-				day: "2-digit",
-				month: "short",
-				year: "numeric",
-			})
-		}, [purchase.purchaseDate])
+	const purchaseDate = new Date(purchase.purchaseDate).toLocaleDateString("pt-BR", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+	})
 
-		const totalAmount = useMemo(() => {
-			return purchase.totalAmount?.toFixed(2) || "0.00"
-		}, [purchase.totalAmount])
+	const totalAmount = purchase.totalAmount?.toFixed(2) || "0.00"
+	const totalDiscount = purchase.totalDiscount?.toFixed(2) || "0.00"
+	const hasDiscount = purchase.totalDiscount && purchase.totalDiscount > 0
+	const itemsWithDiscount = (() => {
+		if (!purchase.items) return 0
+		return purchase.items.filter((item: { totalDiscount?: number }) => item.totalDiscount && item.totalDiscount > 0).length
+	})()
+	const itemCount = purchase.items?.length || 0
+	const marketName = purchase.market?.name || "Mercado"
+	const paymentMethod = (() => {
+		const methods: Record<string, string> = {
+			MONEY: "💵 Dinheiro",
+			DEBIT: "💳 Débito",
+			CREDIT: "💳 Crédito",
+			PIX: "📱 PIX",
+			VOUCHER: "🎟️ Vale",
+		}
+		return methods[purchase.paymentMethod] || purchase.paymentMethod
+	})()
 
-		const totalDiscount = useMemo(() => {
-			return purchase.totalDiscount?.toFixed(2) || "0.00"
-		}, [purchase.totalDiscount])
-
-		const hasDiscount = useMemo(() => {
-			return purchase.totalDiscount && purchase.totalDiscount > 0
-		}, [purchase.totalDiscount])
-
-		const itemsWithDiscount = useMemo(() => {
-			if (!purchase.items) return 0
-			return purchase.items.filter((item: { totalDiscount?: number }) => item.totalDiscount && item.totalDiscount > 0).length
-		}, [purchase.items])
-
-		const itemCount = useMemo(() => {
-			return purchase.items?.length || 0
-		}, [purchase.items?.length])
-
-		const marketName = useMemo(() => {
-			return purchase.market?.name || "Mercado"
-		}, [purchase.market?.name])
-
-		const paymentMethod = useMemo(() => {
-			const methods: Record<string, string> = {
-				MONEY: "💵 Dinheiro",
-				DEBIT: "💳 Débito",
-				CREDIT: "💳 Crédito",
-				PIX: "📱 PIX",
-				VOUCHER: "🎟️ Vale",
-			}
-			return methods[purchase.paymentMethod] || purchase.paymentMethod
-		}, [purchase.paymentMethod])
-
-		return (
+	return (
 			<Card
 				className="group h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 bg-card"
 				onClick={handleCardClick}
@@ -123,17 +103,6 @@ export const PurchaseCardMemo = memo<PurchaseCardMemoProps>(
 				</CardContent>
 			</Card>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.purchase.id === nextProps.purchase.id &&
-			prevProps.purchase.totalAmount === nextProps.purchase.totalAmount &&
-			prevProps.purchase.totalDiscount === nextProps.purchase.totalDiscount &&
-			prevProps.purchase.purchaseDate === nextProps.purchase.purchaseDate &&
-			prevProps.purchase.items?.length === nextProps.purchase.items?.length &&
-			prevProps.purchase.updatedAt === nextProps.purchase.updatedAt
-		)
-	},
-)
+}
 
 PurchaseCardMemo.displayName = "PurchaseCardMemo"

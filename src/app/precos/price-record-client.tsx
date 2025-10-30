@@ -22,7 +22,7 @@ import {
 	X,
 	Zap,
 } from "lucide-react"
-import React, { useCallback, useEffect, useId, useRef, useState } from "react"
+import React, { useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -711,53 +711,50 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	})
 
 	// Carregar registros de preços
-	const loadPriceRecords = useCallback(
-		async (
-			page = 1,
-			filters?: {
-				product?: string
-				market?: string
-				period?: string
-				startDate?: string
-				endDate?: string
-				search?: string
-			},
-		) => {
-			setLoading(true)
-			try {
-				const params = new URLSearchParams()
-				if (filters?.product) params.append("product", filters.product)
-				if (filters?.market) params.append("market", filters.market)
-				if (filters?.period) params.append("period", filters.period)
-				if (filters?.startDate) params.append("startDate", filters.startDate)
-				if (filters?.endDate) params.append("endDate", filters.endDate)
-				if (filters?.search) params.append("search", filters.search)
-				params.append("limit", itemsPerPage.toString())
-				params.append("page", page.toString())
-
-				const response = await fetch(`/api/prices/record?${params.toString()}`)
-				const data = await response.json()
-
-				if (data.success) {
-					setPriceRecords(data.priceRecords)
-					setTotalRecords(data.total)
-					setTotalPages(data.totalPages)
-					setCurrentPage(data.page)
-				} else {
-					toast.error("Erro ao carregar registros de preços")
-				}
-			} catch (_error) {
-				toast.error("Erro ao conectar com o servidor")
-			} finally {
-				setLoading(false)
-				setInitialLoading(false)
-			}
+	const loadPriceRecords = async (
+		page = 1,
+		filters?: {
+			product?: string
+			market?: string
+			period?: string
+			startDate?: string
+			endDate?: string
+			search?: string
 		},
-		[itemsPerPage],
-	)
+	) => {
+		setLoading(true)
+		try {
+			const params = new URLSearchParams()
+			if (filters?.product) params.append("product", filters.product)
+			if (filters?.market) params.append("market", filters.market)
+			if (filters?.period) params.append("period", filters.period)
+			if (filters?.startDate) params.append("startDate", filters.startDate)
+			if (filters?.endDate) params.append("endDate", filters.endDate)
+			if (filters?.search) params.append("search", filters.search)
+			params.append("limit", itemsPerPage.toString())
+			params.append("page", page.toString())
+
+			const response = await fetch(`/api/prices/record?${params.toString()}`)
+			const data = await response.json()
+
+			if (data.success) {
+				setPriceRecords(data.priceRecords)
+				setTotalRecords(data.total)
+				setTotalPages(data.totalPages)
+				setCurrentPage(data.page)
+			} else {
+				toast.error("Erro ao carregar registros de preços")
+			}
+		} catch (_error) {
+			toast.error("Erro ao conectar com o servidor")
+		} finally {
+			setLoading(false)
+			setInitialLoading(false)
+		}
+	}
 
 	// Carregar estatísticas gerais do sistema
-	const loadGeneralStats = useCallback(async () => {
+	const loadGeneralStats = async () => {
 		try {
 			const response = await fetch("/api/prices/stats")
 			const data = await response.json()
@@ -768,11 +765,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 		} catch (error) {
 			console.error("Erro ao carregar estatísticas gerais:", error)
 		}
-	}, [])
+	}
 
 	// Carregar todos os dados históricos para análise
-	const loadAllPriceData = useCallback(
-		async (filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
+	const loadAllPriceData = async (filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
 			setAnalysisLoading(true)
 			try {
 				const params = new URLSearchParams()
@@ -799,19 +795,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			} finally {
 				setAnalysisLoading(false)
 			}
-		},
-		[],
-	)
+	}
 
 	// Evita chamadas duplicadas de análise em múltiplos componentes
-	const loadAnalysisOnce = useCallback(
-		(filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
-			if (analysisLoadedRef.current || analysisLoading) return
-			analysisLoadedRef.current = true
-			loadAllPriceData(filters)
-		},
-		[analysisLoading, loadAllPriceData],
-	)
+	const loadAnalysisOnce = (filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
+		if (analysisLoadedRef.current || analysisLoading) return
+		analysisLoadedRef.current = true
+		loadAllPriceData(filters)
+	}
 
 	// Registrar novo preço
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -972,7 +963,8 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	useEffect(() => {
 		loadPriceRecords(1)
 		loadGeneralStats()
-	}, [loadPriceRecords, loadGeneralStats])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	// Recarregar quando filtros mudarem
 	useEffect(() => {
@@ -1016,7 +1008,6 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 		debouncedSearchTerm,
 		products,
 		markets,
-		loadPriceRecords,
 	])
 
 	if (initialLoading) {

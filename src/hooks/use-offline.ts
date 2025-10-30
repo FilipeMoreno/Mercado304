@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 interface OfflineState {
@@ -29,7 +29,7 @@ export function useOffline() {
   const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([])
 
   // Processar fila de sincronização
-  const processSyncQueue = useCallback(async () => {
+const processSyncQueue = async () => {
     if (syncQueue.length === 0) return
 
     const queue = [...syncQueue]
@@ -65,7 +65,7 @@ export function useOffline() {
     if (remainingQueue.length > 0) {
       toast.warning(`${remainingQueue.length} ação(ões) pendente(s)`)
     }
-  }, [syncQueue])
+	}
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -145,7 +145,7 @@ export function useOffline() {
   }, [state.isOnline, processSyncQueue])
 
   // Adicionar à fila de sincronização
-  const addToSyncQueue = useCallback((method: string, url: string, data: unknown) => {
+const addToSyncQueue = (method: string, url: string, data: unknown) => {
     const item: SyncQueueItem = {
       id: `${Date.now()}-${Math.random()}`,
       method,
@@ -161,7 +161,7 @@ export function useOffline() {
     toast.info("Ação adicionada à fila", {
       description: "Será sincronizada quando voltar online.",
     })
-  }, [syncQueue])
+	}
 
   // Limpar fila
   const clearSyncQueue = () => {

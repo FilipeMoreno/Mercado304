@@ -1,7 +1,7 @@
 "use client"
 
 import { DollarSign, Package, Receipt, ShoppingCart, Store } from "lucide-react"
-import { memo, useMemo } from "react"
+import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface DashboardCardMemoProps {
@@ -18,9 +18,9 @@ const iconMap = {
 	Receipt,
 }
 
-export const DashboardCardMemo = memo<DashboardCardMemoProps>(
-	({ cardId, stats, onClick }) => {
-		const cardContent = useMemo(() => {
+
+export function DashboardCardMemo({ cardId, stats, onClick }: DashboardCardMemoProps) {
+		const cardContent = (() => {
 			switch (cardId) {
 				case "total-purchases":
 					return {
@@ -64,7 +64,7 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 				default:
 					return null
 			}
-		}, [cardId, stats])
+		})()
 
 		if (!cardContent) return null
 
@@ -98,18 +98,4 @@ export const DashboardCardMemo = memo<DashboardCardMemoProps>(
 				</Card>
 			</CardComponent>
 		)
-	},
-	(prevProps, nextProps) => {
-		return (
-			prevProps.cardId === nextProps.cardId &&
-			prevProps.stats?.totalPurchases === nextProps.stats?.totalPurchases &&
-			prevProps.stats?.totalSpent === nextProps.stats?.totalSpent &&
-			prevProps.stats?.totalProducts === nextProps.stats?.totalProducts &&
-			prevProps.stats?.totalMarkets === nextProps.stats?.totalMarkets &&
-			prevProps.stats?.priceRecords?.totalRecords === nextProps.stats?.priceRecords?.totalRecords &&
-			prevProps.stats?.priceRecords?.averagePrice === nextProps.stats?.priceRecords?.averagePrice
-		)
-	},
-)
-
-DashboardCardMemo.displayName = "DashboardCardMemo"
+}

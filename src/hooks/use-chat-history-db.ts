@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Message } from "./use-ai-chat"
 import type { ChatSession } from "./use-chat-history"
 
@@ -10,7 +10,7 @@ export function useChatHistoryDB() {
   const [isLoading, setIsLoading] = useState(true)
 
   // Carregar histórico do banco de dados
-  const loadHistory = useCallback(async () => {
+const loadHistory = async () => {
     try {
       setIsLoading(true)
       const response = await fetch("/api/assistant/history")
@@ -28,15 +28,15 @@ export function useChatHistoryDB() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+	}
 
   // Carregar histórico na inicialização
-  useEffect(() => {
-    loadHistory()
-  }, [loadHistory])
+useEffect(() => {
+		loadHistory()
+}, [])
 
   // Criar nova sessão
-  const createNewSession = useCallback(async (initialMessage?: Message) => {
+const createNewSession = async (initialMessage?: Message) => {
     const messages = initialMessage ? [
       {
         role: "assistant" as const,
@@ -79,10 +79,10 @@ export function useChatHistoryDB() {
       console.error("Erro ao criar nova sessão:", error)
     }
     return null
-  }, [])
+	}
 
   // Atualizar sessão existente
-  const updateSession = useCallback(async (sessionId: string, messages: Message[]) => {
+const updateSession = async (sessionId: string, messages: Message[]) => {
     // Gerar título baseado na primeira mensagem do usuário
     const firstUserMessage = messages.find(msg => msg.role === "user")
     const title = firstUserMessage?.content.slice(0, 50) || "Nova conversa"
@@ -114,16 +114,16 @@ export function useChatHistoryDB() {
     } catch (error) {
       console.error("Erro ao atualizar sessão:", error)
     }
-  }, [])
+	}
 
   // Carregar sessão específica
-  const loadSession = useCallback((sessionId: string) => {
+const loadSession = (sessionId: string) => {
     setCurrentSessionId(sessionId)
     return sessions.find(s => s.id === sessionId) || null
-  }, [sessions])
+	}
 
   // Deletar sessão
-  const deleteSession = useCallback(async (sessionId: string) => {
+const deleteSession = async (sessionId: string) => {
     try {
       const response = await fetch(`/api/assistant/history/${sessionId}`, {
         method: "DELETE",
@@ -140,10 +140,10 @@ export function useChatHistoryDB() {
     } catch (error) {
       console.error("Erro ao deletar sessão:", error)
     }
-  }, [currentSessionId])
+	}
 
   // Renomear sessão
-  const renameSession = useCallback(async (sessionId: string, newTitle: string) => {
+const renameSession = async (sessionId: string, newTitle: string) => {
     try {
       const response = await fetch(`/api/assistant/history/${sessionId}`, {
         method: "PUT",
@@ -170,10 +170,10 @@ export function useChatHistoryDB() {
     } catch (error) {
       console.error("Erro ao renomear sessão:", error)
     }
-  }, [])
+	}
 
   // Limpar todo o histórico
-  const clearAllHistory = useCallback(async () => {
+const clearAllHistory = async () => {
     try {
       // Deletar todas as sessões uma por uma
       const deletePromises = sessions.map(session =>
@@ -189,18 +189,18 @@ export function useChatHistoryDB() {
     } catch (error) {
       console.error("Erro ao limpar histórico:", error)
     }
-  }, [sessions])
+	}
 
   // Obter sessão atual
-  const getCurrentSession = useCallback(() => {
+const getCurrentSession = () => {
     if (!currentSessionId) return null
     return sessions.find(s => s.id === currentSessionId) || null
-  }, [currentSessionId, sessions])
+	}
 
   // Obter sessões ordenadas por data
-  const getOrderedSessions = useCallback(() => {
+const getOrderedSessions = () => {
     return [...sessions].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-  }, [sessions])
+	}
 
   return {
     sessions: getOrderedSessions(),

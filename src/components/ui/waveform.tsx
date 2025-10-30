@@ -1,13 +1,6 @@
 "use client"
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type HTMLAttributes,
-} from "react"
+import { useEffect, useRef, useState, type HTMLAttributes } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -396,8 +389,9 @@ export const AudioScrubber = ({
     }
   }, [currentTime, duration, isDragging])
 
-  const handleScrub = useCallback(
-    (clientX: number) => {
+  const handleScrub = (
+    clientX: number,
+  ) => {
       const container = containerRef.current
       if (!container) return
 
@@ -408,9 +402,7 @@ export const AudioScrubber = ({
 
       setLocalProgress(progress)
       onSeek?.(newTime)
-    },
-    [duration, onSeek]
-  )
+    }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -436,7 +428,7 @@ export const AudioScrubber = ({
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [isDragging, duration, handleScrub])
+  }, [isDragging, duration])
 
   const heightStyle = typeof height === "number" ? `${height}px` : height
 
@@ -687,14 +679,12 @@ export const StaticWaveform = ({
   seed = 42,
   ...props
 }: StaticWaveformProps) => {
-  const data = useMemo(() => {
-    const random = (seedValue: number) => {
-      const x = Math.sin(seedValue) * 10000
-      return x - Math.floor(x)
-    }
+  const random = (seedValue: number) => {
+    const x = Math.sin(seedValue) * 10000
+    return x - Math.floor(x)
+  }
 
-    return Array.from({ length: bars }, (_, i) => 0.2 + random(seed + i) * 0.6)
-  }, [bars, seed])
+  const data = Array.from({ length: bars }, (_, i) => 0.2 + random(seed + i) * 0.6)
 
   return <Waveform data={data} {...props} />
 }
@@ -899,8 +889,10 @@ export const LiveMicrophoneWaveform = ({
     }
   }
 
-  const playScrubSound = useCallback(
-    (position: number, direction: number) => {
+  const playScrubSound = (
+    position: number,
+    direction: number,
+  ) => {
       if (
         !enableAudioPlayback ||
         !audioBufferRef.current ||
@@ -938,12 +930,11 @@ export const LiveMicrophoneWaveform = ({
       )
       source.start(0, startTime, 0.1)
       scrubSourceRef.current = source
-    },
-    [enableAudioPlayback]
-  )
+    }
 
-  const playFromPosition = useCallback(
-    (position: number) => {
+  const playFromPosition = (
+    position: number,
+  ) => {
       if (
         !enableAudioPlayback ||
         !audioBufferRef.current ||
@@ -976,9 +967,7 @@ export const LiveMicrophoneWaveform = ({
       source.onended = () => {
         setPlaybackPosition(null)
       }
-    },
-    [enableAudioPlayback, playbackRate]
-  )
+    }
 
   useEffect(() => {
     if (playbackPosition === null || !audioBufferRef.current) return
@@ -1267,8 +1256,6 @@ export const LiveMicrophoneWaveform = ({
     setDragOffset,
     dragOffset,
     enableAudioPlayback,
-    playScrubSound,
-    playFromPosition,
     historyRef,
   ])
 
@@ -1560,8 +1547,9 @@ export const RecordingWaveform = ({
     barColor,
   ])
 
-  const handleScrub = useCallback(
-    (clientX: number) => {
+  const handleScrub = (
+    clientX: number,
+  ) => {
       const container = containerRef.current
       if (!container || recording || !isRecordingComplete) return
 
@@ -1570,9 +1558,7 @@ export const RecordingWaveform = ({
       const position = x / rect.width
 
       setViewPosition(position)
-    },
-    [recording, isRecordingComplete]
-  )
+    }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (recording || !isRecordingComplete) return
@@ -1600,7 +1586,7 @@ export const RecordingWaveform = ({
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [isDragging, handleScrub])
+  }, [isDragging])
 
   return (
     <div

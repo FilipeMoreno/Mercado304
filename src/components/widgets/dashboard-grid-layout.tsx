@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout"
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
@@ -24,26 +24,22 @@ export function DashboardGridLayout({
 }: DashboardGridLayoutProps) {
 	const [currentBreakpoint, setCurrentBreakpoint] = useState<string>("lg")
 
-	const handleLayoutChange = useCallback(
-		(currentLayout: Layout[], allLayouts: any) => {
-			if (isEditing && onLayoutChange) {
-				// Converter para o formato esperado
-				const responsiveLayouts: ResponsiveWidgetLayouts = {
-					lg: allLayouts.lg || [],
-					md: allLayouts.md || [],
-					sm: allLayouts.sm || [],
-					xs: allLayouts.xs || [],
-					xxs: allLayouts.xxs || [],
-				}
-				onLayoutChange(responsiveLayouts)
+const handleLayoutChange = (currentLayout: Layout[], allLayouts: any) => {
+		if (isEditing && onLayoutChange) {
+			const responsiveLayouts: ResponsiveWidgetLayouts = {
+				lg: allLayouts.lg || [],
+				md: allLayouts.md || [],
+				sm: allLayouts.sm || [],
+				xs: allLayouts.xs || [],
+				xxs: allLayouts.xxs || [],
 			}
-		},
-		[isEditing, onLayoutChange],
-	)
+			onLayoutChange(responsiveLayouts)
+		}
+	}
 
-	const handleBreakpointChange = useCallback((breakpoint: string) => {
+const handleBreakpointChange = (breakpoint: string) => {
 		setCurrentBreakpoint(breakpoint)
-	}, [])
+}
 
 	return (
 		<div className="w-full">

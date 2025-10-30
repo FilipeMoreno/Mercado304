@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
 import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
@@ -32,33 +32,26 @@ export function CategorySelectDialog({
   const createCategoryMutation = useCreateCategoryMutation()
 
   // Flatten all pages into a single array
-  const categories = useMemo(() => {
-    return data?.pages.flatMap((page) => page.categories) || []
-  }, [data])
+  const categories = data?.pages.flatMap((page) => page.categories) || []
 
   // Convert categories to SelectOption format
-  const options: SelectOption[] = useMemo(() => {
-    return categories.map((category) => ({
-      id: category.id,
-      label: category.name,
-      icon: category.icon,
-      sublabel: category.isFood ? "Alimento" : undefined,
-    }))
-  }, [categories])
+  const options: SelectOption[] = categories.map((category) => ({
+    id: category.id,
+    label: category.name,
+    icon: category.icon,
+    sublabel: category.isFood ? "Alimento" : undefined,
+  }))
 
-  const handleSearchChange = useCallback((searchTerm: string) => {
+  const handleSearchChange = (searchTerm: string) => {
     setSearch(searchTerm)
-  }, [])
+  }
 
-  const handleValueChange = useCallback(
-    (newValue: string) => {
-      console.log("[CategorySelectDialog] Value changed:", newValue)
-      onValueChange?.(newValue)
-      setSearch("")
-      setOpen(false) // Fechar dialog após selecionar
-    },
-    [onValueChange],
-  )
+  const handleValueChange = (newValue: string) => {
+    console.log("[CategorySelectDialog] Value changed:", newValue)
+    onValueChange?.(newValue)
+    setSearch("")
+    setOpen(false)
+  }
 
   const handleCreateCategory = async (name: string) => {
     try {

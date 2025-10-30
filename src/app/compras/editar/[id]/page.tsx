@@ -3,7 +3,7 @@
 import { ArrowLeft, Edit, Plus, Save, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -77,7 +77,7 @@ export default function EditarCompraPage() {
 	const [unitDiscountInputs, setUnitDiscountInputs] = useState<string[]>([])
 	const [totalDiscountInput, setTotalDiscountInput] = useState<string>("0.00")
 
-	const checkBestPrice = useCallback(async (index: number, productId: string, unitPrice: number) => {
+const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
 		try {
 			const response = await fetch("/api/best-price-check", {
@@ -94,10 +94,13 @@ export default function EditarCompraPage() {
 		} catch (error) {
 			console.error("Erro ao verificar melhor preço:", error)
 		}
-	}, [])
+	}
 
-	const updateItem = useCallback(
-		(index: number, field: keyof PurchaseItem, value: string | number) => {
+	const updateItem = (
+		index: number,
+		field: keyof PurchaseItem,
+		value: string | number,
+	) => {
 			const newItems = [...items]
 			newItems[index] = { ...newItems[index], [field]: value }
 			setItems(newItems)
@@ -110,9 +113,7 @@ export default function EditarCompraPage() {
 					}, 1000)
 				}
 			}
-		},
-		[items, checkBestPrice],
-	)
+		}
 
 	// Carregar dados da compra quando os dados estiverem disponíveis
 	useEffect(() => {

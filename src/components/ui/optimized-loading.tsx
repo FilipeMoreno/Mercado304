@@ -1,11 +1,11 @@
 "use client"
 
-import { memo } from "react"
+import type { ReactNode } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Skeleton otimizado para ProductCard
-export const ProductCardSkeleton = memo(() => (
+export const ProductCardSkeleton = () => (
 	<Card className="h-full">
 		<CardContent className="p-4">
 			<div className="space-y-3">
@@ -21,12 +21,12 @@ export const ProductCardSkeleton = memo(() => (
 			</div>
 		</CardContent>
 	</Card>
-))
+)
 
 ProductCardSkeleton.displayName = "ProductCardSkeleton"
 
 // Skeleton otimizado para MarketCard
-export const MarketCardSkeleton = memo(() => (
+export const MarketCardSkeleton = () => (
 	<Card className="h-full">
 		<CardHeader className="pb-3">
 			<div className="space-y-2">
@@ -38,12 +38,12 @@ export const MarketCardSkeleton = memo(() => (
 			<Skeleton className="h-8 w-full" />
 		</CardContent>
 	</Card>
-))
+)
 
 MarketCardSkeleton.displayName = "MarketCardSkeleton"
 
 // Skeleton otimizado para CategoryCard
-export const CategoryCardSkeleton = memo(() => (
+export const CategoryCardSkeleton = () => (
 	<Card className="h-full">
 		<CardHeader className="pb-3">
 			<div className="flex items-center gap-2">
@@ -55,12 +55,12 @@ export const CategoryCardSkeleton = memo(() => (
 			<Skeleton className="h-8 w-full" />
 		</CardContent>
 	</Card>
-))
+)
 
 CategoryCardSkeleton.displayName = "CategoryCardSkeleton"
 
 // Skeleton otimizado para BrandCard
-export const BrandCardSkeleton = memo(() => (
+export const BrandCardSkeleton = () => (
 	<Card className="h-full">
 		<CardHeader className="pb-3">
 			<Skeleton className="h-6 w-3/4" />
@@ -69,7 +69,7 @@ export const BrandCardSkeleton = memo(() => (
 			<Skeleton className="h-8 w-full" />
 		</CardContent>
 	</Card>
-))
+)
 
 BrandCardSkeleton.displayName = "BrandCardSkeleton"
 
@@ -80,7 +80,7 @@ interface SkeletonGridProps {
 	className?: string
 }
 
-export const SkeletonGrid = memo<SkeletonGridProps>(({ count, type, className }) => {
+export const SkeletonGrid = ({ count, type, className }: SkeletonGridProps) => {
 	const SkeletonComponent = {
 		product: ProductCardSkeleton,
 		market: MarketCardSkeleton,
@@ -102,27 +102,25 @@ export const SkeletonGrid = memo<SkeletonGridProps>(({ count, type, className })
 			))}
 		</div>
 	)
-})
+}
 
 SkeletonGrid.displayName = "SkeletonGrid"
 
 // Loading state otimizado
 interface OptimizedLoadingProps {
 	isLoading: boolean
-	children: React.ReactNode
+	children: ReactNode
 	skeletonCount?: number
 	skeletonType?: "product" | "market" | "category" | "brand"
 	className?: string
 }
 
-export const OptimizedLoading = memo<OptimizedLoadingProps>(
-	({ isLoading, children, skeletonCount = 8, skeletonType = "product", className }) => {
-		if (isLoading) {
-			return <SkeletonGrid count={skeletonCount} type={skeletonType} className={className} />
-		}
+export const OptimizedLoading = ({ isLoading, children, skeletonCount = 8, skeletonType = "product", className }: OptimizedLoadingProps) => {
+	if (isLoading) {
+		return <SkeletonGrid count={skeletonCount} type={skeletonType} className={className} />
+	}
 
-		return <>{children}</>
-	},
-)
+	return <>{children}</>
+}
 
 OptimizedLoading.displayName = "OptimizedLoading"

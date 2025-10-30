@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { CategoryCombobox } from "@/components/ui/category-combobox"
 import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -33,26 +33,21 @@ export function CategorySelect({
 	const createCategoryMutation = useCreateCategoryMutation()
 
 	// Flatten all pages into a single array
-	const categories = useMemo(() => {
-		return data?.pages.flatMap((page) => page.categories) || []
-	}, [data])
+const categories = data?.pages.flatMap((page) => page.categories) || []
 
-	const handleSearchChange = useCallback((searchTerm: string) => {
+const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
-	}, [])
+}
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback(
-		(newValue: string) => {
-			console.log("[CategorySelect] Value changed:", newValue)
-			console.log("[CategorySelect] Categories available:", categories.map(c => ({ id: c.id, name: c.name })))
-			onValueChange?.(newValue)
-			if (newValue) {
-				setSearch("")
-			}
-		},
-		[onValueChange, categories],
-	)
+const handleValueChange = (newValue: string) => {
+		console.log("[CategorySelect] Value changed:", newValue)
+		console.log("[CategorySelect] Categories available:", categories.map(c => ({ id: c.id, name: c.name })))
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+}
 
 	const [pendingCategoryName, setPendingCategoryName] = useState<string | null>(null)
 

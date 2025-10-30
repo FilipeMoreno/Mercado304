@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type {
   ProductKitWithItems,
   CreateProductKitInput,
@@ -21,7 +21,7 @@ export function useProductKits(options: UseProductKitsOptions = {}) {
   const [error, setError] = useState<string | null>(null);
 
   // Carregar lista de kits
-  const loadKits = useCallback(async () => {
+  const loadKits = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -40,11 +40,10 @@ export function useProductKits(options: UseProductKitsOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [includeInactive]);
+  };
 
   // Criar novo kit
-  const createKit = useCallback(
-    async (input: CreateProductKitInput) => {
+  const createKit = async (input: CreateProductKitInput) => {
       setIsLoading(true);
       setError(null);
 
@@ -71,13 +70,10 @@ export function useProductKits(options: UseProductKitsOptions = {}) {
       } finally {
         setIsLoading(false);
       }
-    },
-    [loadKits]
-  );
+    };
 
   // Atualizar itens de um kit
-  const updateKitItems = useCallback(
-    async (
+  const updateKitItems = async (
       kitId: string,
       items: Array<{ productId: string; quantity: number }>
     ) => {
@@ -107,16 +103,14 @@ export function useProductKits(options: UseProductKitsOptions = {}) {
       } finally {
         setIsLoading(false);
       }
-    },
-    [loadKits]
-  );
+    };
 
   // Auto-carregar na montagem se necessário
   useEffect(() => {
     if (autoLoad) {
       loadKits();
     }
-  }, [autoLoad, loadKits]);
+  }, [autoLoad, includeInactive]);
 
   return {
     kits,
@@ -134,7 +128,7 @@ export function useProductKit(kitProductId: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadKit = useCallback(async () => {
+  const loadKit = async () => {
     if (!kitProductId) return;
 
     setIsLoading(true);
@@ -154,11 +148,11 @@ export function useProductKit(kitProductId: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [kitProductId]);
+  };
 
   useEffect(() => {
     loadKit();
-  }, [loadKit]);
+  }, [kitProductId]);
 
   return {
     kit,
@@ -176,7 +170,7 @@ export function useKitNutrition(kitProductId: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadNutrition = useCallback(async () => {
+  const loadNutrition = async () => {
     if (!kitProductId) return;
 
     setIsLoading(true);
@@ -198,11 +192,11 @@ export function useKitNutrition(kitProductId: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [kitProductId]);
+  };
 
   useEffect(() => {
     loadNutrition();
-  }, [loadNutrition]);
+  }, [kitProductId]);
 
   return {
     nutrition,
@@ -218,7 +212,7 @@ export function useKitStock(kitProductId: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadStockInfo = useCallback(async () => {
+  const loadStockInfo = async () => {
     if (!kitProductId) return;
 
     setIsLoading(true);
@@ -238,11 +232,10 @@ export function useKitStock(kitProductId: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [kitProductId]);
+  };
 
   // Função para consumir do estoque
-  const consumeFromStock = useCallback(
-    async (quantity: number, reason?: string) => {
+  const consumeFromStock = async (quantity: number, reason?: string) => {
       if (!kitProductId) throw new Error("Kit ID não fornecido");
 
       setIsLoading(true);
@@ -274,13 +267,11 @@ export function useKitStock(kitProductId: string | null) {
       } finally {
         setIsLoading(false);
       }
-    },
-    [kitProductId, loadStockInfo]
-  );
+    };
 
   useEffect(() => {
     loadStockInfo();
-  }, [loadStockInfo]);
+  }, [kitProductId]);
 
   return {
     stockInfo,
@@ -306,7 +297,7 @@ export function useKitPrice(kitProductId: string | null, marketId?: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPriceInfo = useCallback(async () => {
+  const loadPriceInfo = async () => {
     if (!kitProductId) return;
 
     setIsLoading(true);
@@ -330,11 +321,11 @@ export function useKitPrice(kitProductId: string | null, marketId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [kitProductId, marketId]);
+  };
 
   useEffect(() => {
     loadPriceInfo();
-  }, [loadPriceInfo]);
+  }, [kitProductId, marketId]);
 
   return {
     priceInfo,

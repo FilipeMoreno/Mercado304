@@ -2,7 +2,7 @@
 
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd"
 import { Cog, Eye, EyeOff, Grid3X3, List, Maximize2, RotateCcw, Settings, X } from "lucide-react"
-import { useEffect, useState, useCallback, useRef, useId } from "react"
+import { useEffect, useState, useRef, useId } from "react"
 import { Button } from "@/components/ui/button"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
 import { Input } from "@/components/ui/input"
@@ -203,7 +203,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 	}
 
 	// Auto-save com debounce
-	const debouncedSave = useCallback((preferences: DashboardPreferences) => {
+	const debouncedSave = (preferences: DashboardPreferences) => {
 		if (saveTimeoutRef.current) {
 			clearTimeout(saveTimeoutRef.current)
 		}
@@ -217,7 +217,7 @@ export function DashboardCustomizer({ onPreferencesChange }: DashboardCustomizer
 				console.error("Erro ao salvar preferências:", error)
 			}
 		}, 1000) // 1 segundo de debounce
-	}, [updatePreferences, onPreferencesChange])
+	}
 
 	// Cleanup do timeout ao desmontar
 	useEffect(() => {

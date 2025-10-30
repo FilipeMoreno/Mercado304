@@ -58,8 +58,9 @@ export function CategoryCombobox({
 		onSearchChange?.(searchTerm)
 	}, [searchTerm, onSearchChange])
 
-	const handleScroll = React.useCallback(
-		(e: React.UIEvent<HTMLDivElement>) => {
+	const handleScroll = (
+		e: React.UIEvent<HTMLDivElement>,
+	) => {
 			const target = e.currentTarget
 			const { scrollTop, scrollHeight, clientHeight } = target
 
@@ -67,29 +68,20 @@ export function CategoryCombobox({
 			if (scrollPercentage > 0.85 && hasNextPage && !isFetchingNextPage) {
 				fetchNextPage?.()
 			}
-		},
-		[hasNextPage, isFetchingNextPage, fetchNextPage],
-	)
+		}
 
-	const options: CategoryComboboxOption[] = React.useMemo(() => {
-		return categories.map((category) => ({
-			value: category.id,
-			label: `${category.icon || "📦"} ${category.name}`,
-			category,
-		}))
-	}, [categories])
+	const options: CategoryComboboxOption[] = categories.map((category) => ({
+		value: category.id,
+		label: `${category.icon || "📦"} ${category.name}`,
+		category,
+	}))
 
 	// Verificar se existe correspondência exata
-	const hasExactMatch = React.useMemo(() => {
-		if (!searchTerm) return false
-		const normalizedSearchTerm = searchTerm.toLowerCase().trim()
-		return options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
-	}, [options, searchTerm])
+	const normalizedSearchTerm = searchTerm.toLowerCase().trim()
+	const hasExactMatch = !!searchTerm && options.some((option) => option.label.toLowerCase().trim() === normalizedSearchTerm)
 
 	// Verificar se deve mostrar a opção de criar novo
-	const shouldShowCreateNew = React.useMemo(() => {
-		return onCreateNew && searchTerm && !hasExactMatch
-	}, [onCreateNew, searchTerm, hasExactMatch])
+	const shouldShowCreateNew = Boolean(onCreateNew && searchTerm && !hasExactMatch)
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>

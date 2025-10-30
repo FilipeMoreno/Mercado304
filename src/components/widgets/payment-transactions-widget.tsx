@@ -1,7 +1,6 @@
 "use client"
 
 import { Wallet } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePaymentStatsQuery } from "@/hooks/use-react-query"
@@ -16,7 +15,7 @@ export function PaymentTransactionsWidget({
 	dateTo,
 }: PaymentTransactionsWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const totalTransactions = useMemo(() => data?.summary?.totalTransactions ?? 0, [data])
+    const totalTransactions = data?.summary?.totalTransactions ?? 0
 
     if (isLoading) {
 		return (

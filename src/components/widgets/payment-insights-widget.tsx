@@ -1,7 +1,6 @@
 "use client"
 
 import { TrendingUp, ArrowUpRight, DollarSign } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePaymentStatsQuery } from "@/hooks/use-react-query"
@@ -22,10 +21,10 @@ export function PaymentInsightsWidget({
 	dateTo,
 }: PaymentInsightsWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const insights = useMemo(() => ({
+    const insights = {
         mostUsedMethod: (data?.summary?.mostUsedMethod as PaymentMethodStat) || null,
         highestValueMethod: (data?.summary?.highestValueMethod as PaymentMethodStat) || null,
-    }), [data])
+    }
 
     if (isLoading) {
 		return (

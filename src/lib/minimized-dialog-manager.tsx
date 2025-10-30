@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 
 interface MinimizedDialogInfo {
 	id: string
@@ -23,25 +23,22 @@ const MinimizedDialogContext = createContext<MinimizedDialogContextValue | null>
 export function MinimizedDialogProvider({ children }: { children: React.ReactNode }) {
 	const [dialogs, setDialogs] = useState<MinimizedDialogInfo[]>([])
 
-	const registerDialog = useCallback((dialog: MinimizedDialogInfo) => {
+const registerDialog = (dialog: MinimizedDialogInfo) => {
 		setDialogs((prev) => {
-			// Evitar duplicatas
 			if (prev.some((d) => d.id === dialog.id)) {
 				return prev
 			}
 			return [...prev, dialog]
 		})
-	}, [])
+	}
 
-	const unregisterDialog = useCallback((id: string) => {
+const unregisterDialog = (id: string) => {
 		setDialogs((prev) => prev.filter((d) => d.id !== id))
-	}, [])
+	}
 
-	const updateDialog = useCallback((id: string, updates: Partial<MinimizedDialogInfo>) => {
-		setDialogs((prev) =>
-			prev.map((d) => (d.id === id ? { ...d, ...updates } : d))
-		)
-	}, [])
+const updateDialog = (id: string, updates: Partial<MinimizedDialogInfo>) => {
+		setDialogs((prev) => prev.map((d) => (d.id === id ? { ...d, ...updates } : d)))
+	}
 
 	return (
 		<MinimizedDialogContext.Provider
@@ -97,7 +94,7 @@ export function useMinimizedDialog(
 				isRegistered.current = false
 			}
 		}
-	}, [id, registerDialog, unregisterDialog])
+}, [id])
 
 	// Atualizar informações quando mudarem
 	useEffect(() => {

@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useId, useMemo, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
@@ -123,11 +123,11 @@ export default function NovoProdutoPage() {
 		}
 	}, [searchParams])
 
-	const showNutritionalFields = useMemo(() => {
+const showNutritionalFields = (() => {
 		if (!formData.categoryId || categories.length === 0) return false
 		const selectedCategory = categories.find((cat: Category) => cat.id === formData.categoryId)
 		return selectedCategory?.isFood === true
-	}, [formData.categoryId, categories])
+	})()
 
 	const clearFieldError = (field: string) => {
 		setFieldErrors((prev) => {
@@ -232,7 +232,7 @@ export default function NovoProdutoPage() {
 		// Não disparar autofill automaticamente - usuário deve clicar no botão de IA
 	}
 
-	const handleBarcodeLookup = useCallback(async (barcode: string) => {
+const handleBarcodeLookup = async (barcode: string) => {
 		const cleanBarcode = barcode.trim()
 		if (!/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/.test(cleanBarcode)) {
 			toast.error("Código de barras inválido. Use 8, 12, 13 ou 14 dígitos.")
@@ -242,7 +242,7 @@ export default function NovoProdutoPage() {
 		setIsLookingUpBarcode(true)
 		setBarcodeForLookup(cleanBarcode)
 		setShowAutofillDialog(true)
-	}, [])
+	}
 
 	const handleAutofillApply = async (data: { name?: string; packageSize?: string; brandId?: string; shouldCreateBrand?: boolean; brandName?: string; categoryId?: string }) => {
 		try {

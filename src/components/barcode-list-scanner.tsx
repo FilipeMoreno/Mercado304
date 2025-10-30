@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera, Loader2, Upload, } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -23,8 +23,8 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 	const [capturedImage, setCapturedImage] = useState<string>("")
 	const [error, setError] = useState<string>("")
 
-	// Inicializar câmera
-	const initializeCamera = useCallback(async () => {
+  // Inicializar câmera
+  const initializeCamera = async () => {
 		try {
 			setError("")
 			const stream = await navigator.mediaDevices.getUserMedia({
@@ -40,15 +40,15 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 				streamRef.current = stream
 				setIsCameraActive(true)
 			}
-		} catch (err) {
+    } catch (err) {
 			console.error("Erro ao acessar câmera:", err)
 			setError("Não foi possível acessar a câmera. Você pode fazer upload de uma foto.")
 			toast.error("Erro ao acessar câmera")
 		}
-	}, [])
+  }
 
-	// Parar câmera
-	const stopCamera = useCallback(() => {
+  // Parar câmera
+  const stopCamera = () => {
 		if (streamRef.current) {
 			streamRef.current.getTracks().forEach((track) => {
 				track.stop()
@@ -59,11 +59,10 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 			videoRef.current.srcObject = null
 		}
 		setIsCameraActive(false)
-	}, [])
+  }
 
 	// Processar imagem
-	const processImage = useCallback(
-		async (dataUrl: string) => {
+  const processImage = async (dataUrl: string) => {
 			setCapturedImage(dataUrl)
 			setIsProcessing(true)
 			stopCamera()
@@ -94,16 +93,14 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 				console.error("Erro ao processar imagem:", error)
 				const errorMessage = error instanceof Error ? error.message : "Erro ao processar imagem"
 				toast.error(errorMessage)
-			} finally {
+      } finally {
 				setIsProcessing(false)
 				setCapturedImage("")
 			}
-		},
-		[onScanComplete, stopCamera],
-	)
+  }
 
 	// Capturar foto
-	const takePicture = useCallback(async () => {
+  const takePicture = async () => {
 		const video = videoRef.current
 		const canvas = canvasRef.current
 
@@ -116,13 +113,12 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 		canvas.height = video.videoHeight
 		context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
-		const dataUrl = canvas.toDataURL("image/jpeg", 0.95)
-		await processImage(dataUrl)
-	}, [processImage])
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.95)
+    await processImage(dataUrl)
+  }
 
 	// Upload de arquivo
-	const handleFileUpload = useCallback(
-		async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
 			if (!file) return
 
@@ -132,9 +128,7 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 				await processImage(dataUrl)
 			}
 			reader.readAsDataURL(file)
-		},
-		[processImage],
-	)
+  }
 
 	// Inicializar quando abrir
 	useEffect(() => {
@@ -146,14 +140,14 @@ export function BarcodeListScanner({ isOpen, onScanComplete, onClose }: BarcodeL
 			setIsProcessing(false)
 			setError("")
 		}
-	}, [isOpen, initializeCamera, stopCamera])
+  }, [isOpen])
 
 	// Cleanup
 	useEffect(() => {
 		return () => {
 			stopCamera()
 		}
-	}, [stopCamera])
+  }, [])
 
 	return (
 		<ResponsiveDialog open={isOpen} onOpenChange={onClose} title="Escanear Códigos de Barras" maxWidth="2xl">

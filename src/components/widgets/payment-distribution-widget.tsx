@@ -1,7 +1,6 @@
 "use client"
 
 import { PieChart } from "lucide-react"
-import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePaymentStatsQuery } from "@/hooks/use-react-query"
@@ -25,7 +24,7 @@ export function PaymentDistributionWidget({
 	dateTo,
 }: PaymentDistributionWidgetProps) {
     const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
-    const paymentStats = useMemo(() => (data?.paymentStats as PaymentMethodStat[]) || [], [data])
+    const paymentStats = (data?.paymentStats as PaymentMethodStat[]) || []
 
 	const colors = [
 		"bg-blue-500",

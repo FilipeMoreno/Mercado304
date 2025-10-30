@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { BrandCombobox } from "@/components/ui/brand-combobox"
 import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -34,26 +34,21 @@ export function BrandSelect({
 	const createBrandMutation = useCreateBrandMutation()
 
 	// Flatten all pages into a single array
-	const brands = useMemo(() => {
-		return data?.pages.flatMap((page) => page.brands) || []
-	}, [data])
+const brands = data?.pages.flatMap((page) => page.brands) || []
 
-	const handleSearchChange = useCallback((searchTerm: string) => {
+const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
-	}, [])
+}
 
 	// Reset search when dropdown is closed
-	const handleValueChange = useCallback(
-		(newValue: string) => {
-			console.log("[BrandSelect] Value changed:", newValue)
-			console.log("[BrandSelect] Brands available:", brands.map(b => ({ id: b.id, name: b.name })))
-			onValueChange?.(newValue)
-			if (newValue) {
-				setSearch("")
-			}
-		},
-		[onValueChange, brands],
-	)
+const handleValueChange = (newValue: string) => {
+		console.log("[BrandSelect] Value changed:", newValue)
+		console.log("[BrandSelect] Brands available:", brands.map(b => ({ id: b.id, name: b.name })))
+		onValueChange?.(newValue)
+		if (newValue) {
+			setSearch("")
+		}
+}
 
 	const [pendingBrandName, setPendingBrandName] = useState<string | null>(null)
 

@@ -2,7 +2,7 @@
 
 import { BarChart3, Barcode, Edit, MoreHorizontal, Package, Trash2 } from "lucide-react"
 import Link from "next/link"
-import * as React from "react"
+ 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,7 +14,7 @@ interface ProductCardProps {
 	onDelete?: (product: any) => void
 }
 
-export const ProductCard = React.memo(function ProductCard({ product, onDelete }: ProductCardProps) {
+export const ProductCard = function ProductCard({ product, onDelete }: ProductCardProps) {
 	// Obter código de barras primário
 	const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
 	const barcode = primaryBarcode?.barcode || product.barcode
@@ -106,4 +106,4 @@ export const ProductCard = React.memo(function ProductCard({ product, onDelete }
 			</CardContent>
 		</Card>
 	)
-})
+}
