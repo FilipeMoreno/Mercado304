@@ -87,7 +87,8 @@ const withPWA = require('next-pwa')({
         },
       },
     },
-    // Navegação geral com fallback para offline
+    // Navegação geral - Sem redirecionamento para offline
+    // Permitir que o app funcione offline usando cache
     {
       urlPattern: ({ request }) => request.mode === 'navigate',
       handler: 'NetworkFirst',
@@ -97,10 +98,12 @@ const withPWA = require('next-pwa')({
           maxEntries: 50,
           maxAgeSeconds: 60 * 60 * 24, // 1 dia
         },
+        networkTimeoutSeconds: 3,
         plugins: [
           {
-            handlerDidError: async () => {
-              return Response.redirect('/offline', 302);
+            fetchDidFail: async () => {
+              // Não fazer nada - deixar o browser lidar com erro de rede
+              return undefined;
             },
           },
         ],

@@ -1,8 +1,9 @@
 "use client"
 
-import { ArrowLeft, Database, List, Package, ShoppingCart, WifiOff } from "lucide-react"
+import { ArrowLeft, Database, List, Package, ShoppingCart, Sparkles, WifiOff } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -77,10 +78,51 @@ export default function Offline() {
 			<div className="max-w-2xl w-full space-y-6">
 				{/* Cabeçalho */}
 				<div className="flex flex-col items-center text-center space-y-4">
+					{/* Logo Mercado304 */}
+					<div className="relative mb-4">
+						<motion.div
+							initial={{ scale: 0, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+							className="relative"
+						>
+							{/* Logo Background Card */}
+							<div className="relative flex items-center gap-3 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-2xl shadow-blue-600/20">
+								<ShoppingCart className="h-12 w-12 text-white" strokeWidth={2.5} />
+								<div className="h-10 w-0.5 bg-white/20" />
+								<Package className="h-10 w-10 text-white" strokeWidth={2.5} />
+								
+								{/* Floating Sparkles */}
+								<motion.div
+									animate={{ y: [-3, 3, -3], rotate: [0, 10, 0] }}
+									transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+									className="absolute -right-2 -top-2"
+								>
+									<Sparkles className="h-5 w-5 text-yellow-400 drop-shadow-lg" fill="currentColor" />
+								</motion.div>
+								
+								<motion.div
+									animate={{ y: [3, -3, 3], rotate: [0, -10, 0] }}
+									transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+									className="absolute -left-2 -bottom-2"
+								>
+									<Sparkles className="h-5 w-5 text-yellow-400 drop-shadow-lg" fill="currentColor" />
+								</motion.div>
+							</div>
+							
+							{/* Animated rings */}
+							<motion.div
+								animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.15, 0.3] }}
+								transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+								className="absolute inset-0 rounded-3xl bg-blue-600 blur-2xl -z-10"
+							/>
+						</motion.div>
+					</div>
+					
 					<div className="relative">
-						<WifiOff className="h-24 w-24 text-red-500 animate-pulse" />
+						<WifiOff className="h-16 w-16 text-red-500 animate-pulse" />
 						<div className="absolute -bottom-2 -right-2 bg-red-500 text-white rounded-full p-2">
-							<Database className="h-6 w-6" />
+							<Database className="h-5 w-5" />
 						</div>
 					</div>
 					<div className="space-y-2">

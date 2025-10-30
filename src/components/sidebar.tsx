@@ -2,7 +2,9 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
+	Activity,
 	Apple,
+	BarChart3,
 	Beef,
 	Calculator,
 	Camera,
@@ -135,6 +137,7 @@ const navigation = [
 			{ name: "Nota Paraná", href: "/admin/nota-parana", icon: FileText },
 			{ name: "Backup", href: "/admin/backup", icon: Database },
 			{ name: "Métricas Offline", href: "/admin/offline-metrics", icon: CloudOff },
+			{ name: "Estatísticas Prisma", href: "/admin/prisma-stats", icon: Activity },
 			{
 				name: "Playground",
 				href: "/admin/playground",

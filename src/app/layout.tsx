@@ -48,9 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<meta name="msapplication-TileColor" content="#ffffff" />
 				<meta name="msapplication-config" content="/browserconfig.xml" />
 				
-				{/* PWA Icons para iOS */}
-				<link rel="apple-touch-icon" href="/icon-192x192.png" />
-				<link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+			{/* PWA Icons para iOS */}
+			<link rel="apple-touch-icon" href="/icon-192x192.png" />
+			<link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico" />
+			<link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+			<link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+			<link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+			<link rel="manifest" href="/manifest.json" />
 			</head>
 			<body className={inter.className}>
 				<SpeedInsights />
