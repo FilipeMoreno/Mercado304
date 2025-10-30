@@ -35,7 +35,7 @@ export function useBiometricLock() {
 		shouldShowLock: false,
 		config: DEFAULT_CONFIG,
 		hasCredential: false,
-		lastActivity: Date.now(),
+		lastActivity: 0,
 	})
 
 	const activityTimerRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -171,7 +171,7 @@ export function useBiometricLock() {
 				shouldShowLock: shouldLock,
 				config,
 				hasCredential,
-				lastActivity: lastActivity ? parseInt(lastActivity, 10) : Date.now(),
+				lastActivity: lastActivity ? parseInt(lastActivity, 10) : 0,
 			})
 
 			if (shouldLock) {

@@ -3,8 +3,6 @@ import { NextResponse } from "next/server"
 import { getAllProductPrices } from "@/lib/price-utils"
 import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
-
 export async function GET() {
 	try {
 		const currentMonth = new Date()
@@ -376,7 +374,13 @@ export async function GET() {
 			},
 		}
 
-		return NextResponse.json(stats)
+    return NextResponse.json(stats, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
 	} catch (error) {
 		console.error("Dashboard stats error:", error)
 		return NextResponse.json({ error: "Erro ao buscar estatísticas" }, { status: 500 })

@@ -1,6 +1,7 @@
 node_modules
 .next
 .claude
+.cursor
 CLAUDE.md
 GEMINI.md
 .env
@@ -9,3 +10,5 @@ GEMINI.md
 
 # Render worker build output
 render/dist
+# Sentry Config File
+.env.sentry-build-plugin
