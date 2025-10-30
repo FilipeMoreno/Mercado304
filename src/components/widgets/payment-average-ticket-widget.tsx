@@ -1,9 +1,10 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentAverageTicketWidgetProps {
 	dateFrom?: string
@@ -14,33 +15,10 @@ export function PaymentAverageTicketWidget({
 	dateFrom,
 	dateTo,
 }: PaymentAverageTicketWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [averageTicket, setAverageTicket] = useState(0)
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const averageTicket = useMemo(() => data?.summary?.averageTransactionValue ?? 0, [data])
 
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setAverageTicket(result.summary.averageTransactionValue)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar ticket médio:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardContent className="pt-6">

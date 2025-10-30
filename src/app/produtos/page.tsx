@@ -3,17 +3,7 @@
 import { motion } from "framer-motion"
 import { ProductsClient } from "./products-client"
 
-interface ProductsPageProps {
-	searchParams: {
-		search?: string
-		category?: string
-		brand?: string
-		sort?: string
-		page?: string
-	}
-}
-
-export default function ProdutosPage({ searchParams }: ProductsPageProps) {
+export default function ProdutosPage() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-2">
@@ -23,7 +13,7 @@ export default function ProdutosPage({ searchParams }: ProductsPageProps) {
 				</p>
 			</div>
 
-			<ProductsClient searchParams={searchParams} />
+            <ProductsClient />
 		</div>
 	)
 }

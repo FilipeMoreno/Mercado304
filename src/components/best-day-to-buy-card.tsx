@@ -3,7 +3,7 @@
 import { CalendarDays, Sparkles } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { toast } from "sonner"
+import { useProductBestDayToBuyQuery, useProductBestDayAiAnalysisQuery } from "@/hooks/use-react-query"
 import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -20,65 +20,20 @@ interface BestDayToBuyCardProps {
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
-	const [data, setData] = useState<BestDayAnalysis[] | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
-	const [loadingAi, setLoadingAi] = useState(false)
+	const [shouldFetchAi, setShouldFetchAi] = useState(false)
 
+	// Fetch best day data using React Query
+	const { data, isLoading: loading, isError } = useProductBestDayToBuyQuery(productId)
+
+	// Fetch AI analysis only when data is available
+	const { data: aiAnalysisData, isLoading: loadingAi } = useProductBestDayAiAnalysisQuery(productId, shouldFetchAi)
+
+	// Enable AI analysis fetch when we have data
 	useEffect(() => {
-		async function fetchData() {
-			setLoading(true)
-			setAiAnalysis(null)
-			try {
-				const response = await fetch("/api/products/best-day-to-buy", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ productId }),
-				})
-
-				if (response.ok) {
-					const result = await response.json()
-					if (result.message) {
-						setData(null)
-					} else {
-						setData(result)
-						// Chama a análise da IA depois de obter os dados
-						fetchAiAnalysis()
-					}
-				} else {
-					toast.error("Erro ao buscar análise do dia da semana")
-				}
-			} catch (error) {
-				console.error("Erro ao buscar análise:", error)
-				toast.error("Erro ao carregar dados")
-			} finally {
-				setLoading(false)
-			}
+		if (data && !data.message && Array.isArray(data) && data.length > 0) {
+			setShouldFetchAi(true)
 		}
-
-		async function fetchAiAnalysis() {
-			setLoadingAi(true)
-			try {
-				const response = await fetch("/api/products/best-day-to-buy/ai-analysis", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ productId }),
-				})
-				if (response.ok) {
-					const result = await response.json()
-					setAiAnalysis(result.analysis)
-				}
-			} catch (error) {
-				console.error("Erro ao buscar análise da IA", error)
-			} finally {
-				setLoadingAi(false)
-			}
-		}
-
-		if (productId) {
-			fetchData()
-		}
-	}, [productId])
+	}, [data])
 
 	if (loading) {
 		return (
@@ -97,7 +52,7 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 		)
 	}
 
-	if (!data || data.length === 0) {
+	if (!data || data.message || !Array.isArray(data) || data.length === 0) {
 		return (
 			<Card>
 				<CardHeader>
@@ -167,7 +122,7 @@ export function BestDayToBuyCard({ productId }: BestDayToBuyCardProps) {
 					loading={loadingAi}
 					className="mt-4"
 				>
-					{aiAnalysis}
+					{aiAnalysisData?.analysis}
 				</AiAnalysisCard>
 			</CardContent>
 		</Card>

@@ -14,8 +14,8 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react"
-import React, { useEffect, useState } from "react"
-import { toast } from "sonner"
+import React from "react"
+import { usePriceAnalysisQuery } from "@/hooks/use-react-query"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,39 +27,15 @@ interface PriceAnalysisProps {
 }
 
 export function PriceAnalysisCard({ productId, marketId, className }: PriceAnalysisProps) {
-	const [analysis, setAnalysis] = useState<any>(null)
-	const [insights, setInsights] = useState<any[]>([])
-	const [loading, setLoading] = useState(false)
+	// Fetch price analysis using React Query
+	const { data, isLoading: loading, refetch } = usePriceAnalysisQuery({
+		productId,
+		marketId,
+		days: 90,
+	})
 
-	const loadAnalysis = async () => {
-		if (!productId && !marketId) return
-
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (productId) params.append("productId", productId)
-			if (marketId) params.append("marketId", marketId)
-			params.append("days", "90")
-
-			const response = await fetch(`/api/prices/analysis?${params.toString()}`)
-			const data = await response.json()
-
-			if (data.success) {
-				setAnalysis(data.analysis)
-				setInsights(data.insights)
-			} else {
-				toast.error("Erro ao carregar análise de preços")
-			}
-		} catch (error) {
-			toast.error("Erro ao conectar com o servidor")
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	useEffect(() => {
-		loadAnalysis()
-	}, [productId, marketId])
+	const analysis = data?.analysis
+	const insights = data?.insights || []
 
 	if (loading) {
 		return (
@@ -126,7 +102,7 @@ export function PriceAnalysisCard({ productId, marketId, className }: PriceAnaly
 				<CardTitle className="flex items-center gap-2">
 					<Activity className="h-5 w-5" />
 					Análise de Preços
-					<Button variant="ghost" size="icon" onClick={loadAnalysis} disabled={loading} className="ml-auto h-6 w-6">
+					<Button variant="ghost" size="icon" onClick={() => refetch()} disabled={loading} className="ml-auto h-6 w-6">
 						<RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
 					</Button>
 				</CardTitle>

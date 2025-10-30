@@ -1,11 +1,12 @@
 "use client"
 
 import { CreditCard } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentMethodStat {
 	paymentMethod: string
@@ -25,31 +26,8 @@ export function PaymentDetailsWidget({
 	dateFrom,
 	dateTo,
 }: PaymentDetailsWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [paymentStats, setPaymentStats] = useState<PaymentMethodStat[]>([])
-
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setPaymentStats(result.paymentStats || [])
-			}
-		} catch (error) {
-			console.error("Erro ao buscar detalhes de pagamento:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const paymentStats = useMemo(() => (data?.paymentStats as PaymentMethodStat[]) || [], [data])
 
 	const colors = [
 		"bg-blue-500",
@@ -61,7 +39,7 @@ export function PaymentDetailsWidget({
 		"bg-red-500",
 	]
 
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardHeader>

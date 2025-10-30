@@ -1,9 +1,9 @@
 // src/app/api/dashboard/payment-stats/route.ts
 
-import { PrismaClient } from "@prisma/client"
 import { type NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
-const prisma = new PrismaClient()
+export const revalidate = 300
 
 export async function GET(request: NextRequest) {
 	try {

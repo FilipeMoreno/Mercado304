@@ -1,7 +1,7 @@
 "use client"
 
 import { AlertTriangle, BarChart3, Package, TrendingDown, TrendingUp } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useProductWasteUsageQuery } from "@/hooks/use-react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface WasteUsageStats {
@@ -33,59 +33,8 @@ interface ProductWasteUsageCardProps {
 }
 
 export function ProductWasteUsageCard({ productId }: ProductWasteUsageCardProps) {
-	const [stats, setStats] = useState<WasteUsageStats | null>(null)
-	const [loading, setLoading] = useState(true)
-
-	useEffect(() => {
-		async function fetchWasteUsageStats() {
-			setLoading(true)
-			try {
-				// Buscar desperdícios do produto
-				const wasteResponse = await fetch(`/api/stock/waste?productId=${productId}`)
-				const wasteData = wasteResponse.ok ? await wasteResponse.json() : { wasteRecords: [] }
-
-				// Buscar movimentações de estoque (usos)
-				const stockResponse = await fetch(`/api/stock/history?productId=${productId}`)
-				const stockData = stockResponse.ok ? await stockResponse.json() : { movements: [] }
-
-				// Calcular estatísticas
-				const wasteRecords = wasteData.wasteRecords || []
-				const stockMovements = stockData.movements || []
-
-				const totalWasteValue = wasteRecords.reduce((sum: number, record: any) => sum + (record.totalValue || 0), 0)
-				const totalWasteQuantity = wasteRecords.reduce((sum: number, record: any) => sum + (record.quantity || 0), 0)
-
-				// Contar desperdícios e usos dos últimos 30 dias
-				const thirtyDaysAgo = new Date()
-				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-				const recentWasteCount = wasteRecords.filter((record: any) => 
-					new Date(record.wasteDate) >= thirtyDaysAgo
-				).length
-
-				const recentUsageCount = stockMovements.filter((movement: any) => 
-					movement.type === "USO" && new Date(movement.date) >= thirtyDaysAgo
-				).length
-
-				setStats({
-					wasteRecords: wasteRecords.slice(0, 5), // Últimos 5 desperdícios
-					stockMovements: stockMovements.filter((m: any) => m.type === "USO").slice(0, 5), // Últimos 5 usos
-					totalWasteValue,
-					totalWasteQuantity,
-					recentWasteCount,
-					recentUsageCount,
-				})
-			} catch (error) {
-				console.error("Erro ao buscar estatísticas de desperdício e uso:", error)
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		if (productId) {
-			fetchWasteUsageStats()
-		}
-	}, [productId])
+	// Fetch waste and usage stats using React Query
+	const { data: stats, isLoading: loading } = useProductWasteUsageQuery(productId)
 
 	if (loading) {
 		return (

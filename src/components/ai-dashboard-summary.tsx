@@ -1,34 +1,19 @@
 "use client"
 
 import { Sparkles, Lightbulb } from "lucide-react"
-import { useEffect, useState } from "react"
 import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
+import { useDashboardAISummaryQuery } from "@/hooks/use-react-query"
 
 export function AiDashboardSummary() {
-	const [summary, setSummary] = useState<string | null>(null)
-	const [loading, setLoading] = useState(true)
+	const { data, isLoading, error } = useDashboardAISummaryQuery()
 
-	useEffect(() => {
-		async function fetchSummary() {
-			setLoading(true)
-			try {
-				const response = await fetch("/api/dashboard/ai-summary")
-				if (response.ok) {
-					const data = await response.json()
-					setSummary(data.summary)
-				}
-			} catch (error) {
-				console.error("Erro ao buscar resumo da IA:", error)
-				setSummary("Não foi possível carregar os insights no momento.")
-			} finally {
-				setLoading(false)
-			}
-		}
-		fetchSummary()
-	}, [])
+	// Se há erro, mostra mensagem de erro
+	const summary = error
+		? "Não foi possível carregar os insights no momento."
+		: data?.summary || null
 
 	// Se não há summary e não está loading, mostra o estado vazio
-	if (!summary && !loading) {
+	if (!summary && !isLoading) {
 		return (
 			<AiAnalysisCard
 				title="Insights Inteligentes"
@@ -46,7 +31,7 @@ export function AiDashboardSummary() {
 			title="Insight da Semana"
 			description="Análise personalizada dos seus padrões de compra"
 			icon={Sparkles}
-			loading={loading}
+			loading={isLoading}
 		>
 			{summary}
 		</AiAnalysisCard>

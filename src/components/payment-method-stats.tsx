@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowDownRight, ArrowUpRight, CreditCard, DollarSign, PieChart, TrendingUp, Wallet } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -20,43 +20,12 @@ interface PaymentMethodStatsProps {
 	dateTo?: string
 }
 
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
+
 export function PaymentMethodStats({ dateFrom, dateTo }: PaymentMethodStatsProps) {
-	const [loading, setLoading] = useState(true)
-	const [data, setData] = useState<{
-		paymentStats: PaymentMethodStat[]
-		summary: {
-			totalTransactions: number
-			totalAmount: number
-			averageTransactionValue: number
-			mostUsedMethod: PaymentMethodStat
-			highestValueMethod: PaymentMethodStat
-		}
-	} | null>(null)
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
 
-	useEffect(() => {
-		fetchPaymentStats()
-	}, [dateFrom, dateTo])
-
-	const fetchPaymentStats = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setData(result)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar estatísticas de pagamento:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	if (loading) {
+    if (isLoading) {
 		return (
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<Card>

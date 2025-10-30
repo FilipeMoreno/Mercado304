@@ -24,6 +24,21 @@ const withPWA = require('next-pwa')({
         },
       },
     },
+    // Dashboard payment stats - cache leve com SWR
+    {
+      urlPattern: /^https?:\/\/[^/]+\/api\/dashboard\/payment-stats(\?.*)?$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'dashboard-payment-stats',
+        expiration: {
+          maxEntries: 20,
+          maxAgeSeconds: 60 * 5, // 5 minutos
+        },
+        cacheableResponse: {
+          statuses: [0, 200],
+        },
+      },
+    },
     // Estratégia NetworkFirst para dados de estoque e listas (mais dinâmicos)
     {
       urlPattern: /^https?:\/\/[^/]+\/api\/(stock|shopping-lists|purchases)($|\/).*/i,

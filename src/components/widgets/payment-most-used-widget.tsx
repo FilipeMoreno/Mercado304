@@ -1,10 +1,11 @@
 "use client"
 
 import { PieChart } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentMostUsedWidgetProps {
 	dateFrom?: string
@@ -15,41 +16,13 @@ export function PaymentMostUsedWidget({
 	dateFrom,
 	dateTo,
 }: PaymentMostUsedWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [mostUsedMethod, setMostUsedMethod] = useState<{
-		label: string
-		percentage: number
-	} | null>(null)
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const mostUsedMethod = useMemo(() => {
+        const s = data?.summary?.mostUsedMethod as { label: string; percentage: number } | undefined
+        return s ? { label: s.label, percentage: s.percentage } : null
+    }, [data])
 
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				if (result.summary.mostUsedMethod) {
-					setMostUsedMethod({
-						label: result.summary.mostUsedMethod.label,
-						percentage: result.summary.mostUsedMethod.percentage,
-					})
-				}
-			}
-		} catch (error) {
-			console.error("Erro ao buscar método mais usado:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardContent className="pt-6">

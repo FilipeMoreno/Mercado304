@@ -2,7 +2,8 @@
 
 import { AlertTriangle, Apple, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useMemo } from "react"
+import { useNutritionSummaryQuery } from "@/hooks/use-react-query"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,48 +27,40 @@ interface NutritionSummary {
 }
 
 export function NutritionSummaryCard() {
-	const [summary, setSummary] = useState<NutritionSummary | null>(null)
-	const [loading, setLoading] = useState(true)
+	// Fetch nutrition summary using React Query
+	const { data, isLoading: loading } = useNutritionSummaryQuery("30")
 
-	const fetchNutritionSummary = useCallback(async () => {
-		try {
-			const response = await fetch("/api/nutrition/analysis?period=30")
-			if (response.ok) {
-				const data = await response.json()
+	// Calculate summary data from API response
+	const summary = useMemo(() => {
+		if (!data) return null
 
-				// Calcular score médio de saúde
-				const avgHealthScore =
-					data.categoryAnalysis.length > 0
-						? data.categoryAnalysis.reduce((sum: number, cat: any) => sum + cat.healthScore, 0) /
-							data.categoryAnalysis.length
-						: 0
+		// Calculate average health score
+		const avgHealthScore =
+			data.categoryAnalysis?.length > 0
+				? data.categoryAnalysis.reduce((sum: number, cat: any) => sum + cat.healthScore, 0) / data.categoryAnalysis.length
+				: 0
 
-				// Encontrar melhor categoria
-				const topCategory =
-					data.categoryAnalysis.length > 0
-						? data.categoryAnalysis.reduce((best: any, current: any) =>
-								current.healthScore > best.healthScore ? current : best,
-							)
-						: null
+		// Find best category
+		const topCategory =
+			data.categoryAnalysis?.length > 0
+				? data.categoryAnalysis.reduce((best: any, current: any) =>
+						current.healthScore > best.healthScore ? current : best,
+					)
+				: null
 
-				setSummary({
-					totalProducts: data.summary.totalProducts,
-					totalCalories: data.totals.calories,
-					averageHealthScore: avgHealthScore,
-					qualityIndicators: data.summary.qualityIndicators,
-					topCategory,
-				})
-			}
-		} catch (error) {
-			console.error("Erro ao buscar resumo nutricional:", error)
-		} finally {
-			setLoading(false)
+		return {
+			totalProducts: data.summary?.totalProducts || 0,
+			totalCalories: data.totals?.calories || 0,
+			averageHealthScore: avgHealthScore,
+			qualityIndicators: data.summary?.qualityIndicators || {
+				highSodiumPercentage: 0,
+				highSugarPercentage: 0,
+				highFiberPercentage: 0,
+				highProteinPercentage: 0,
+			},
+			topCategory,
 		}
-	}, [])
-
-	useEffect(() => {
-		fetchNutritionSummary()
-	}, [fetchNutritionSummary])
+	}, [data])
 
 	const getHealthScoreColor = (score: number) => {
 		if (score >= 80) return "text-green-600"

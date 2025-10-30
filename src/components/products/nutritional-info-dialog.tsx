@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import type { NutritionalInfo } from "@/types"
+import { useAnalyzeNutritionalLabelMutation, useSaveNutritionalInfoMutation } from "@/hooks/use-react-query"
 
 interface NutritionalInfoDialogProps {
 	productId: string
@@ -19,32 +20,19 @@ interface NutritionalInfoDialogProps {
 
 export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowScanner }: NutritionalInfoDialogProps) {
 	const [formData, setFormData] = useState<Partial<NutritionalInfo>>({})
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showScanner, setShowScanner] = useState(false)
-	const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+	const analyzeMutation = useAnalyzeNutritionalLabelMutation()
+	const saveMutation = useSaveNutritionalInfoMutation()
 
 	const handleScanResult = async (imageData: string) => {
+		setShowScanner(false)
+
 		try {
-			setIsAnalyzing(true)
-			setShowScanner(false)
-
-			// Chamar API para analisar a imagem com IA
-			const response = await fetch('/api/ai/analyze-nutritional-label', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					image: imageData,
-					productId,
-				}),
+			const result = await analyzeMutation.mutateAsync({
+				image: imageData,
+				productId,
 			})
-
-			if (!response.ok) {
-				throw new Error('Erro ao analisar a imagem')
-			}
-
-			const result = await response.json()
 
 			// Preencher formulário com dados extraídos
 			if (result.nutritionalInfo) {
@@ -59,50 +47,33 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 		} catch (error) {
 			console.error('Error analyzing image:', error)
 			toast.error('Erro ao analisar a imagem')
-		} finally {
-			setIsAnalyzing(false)
 		}
 	}
 
 	const handleSubmit = async () => {
+		// Validar campos obrigatórios
+		const requiredFields = ['calories', 'carbohydrates', 'proteins', 'totalFat', 'saturatedFat', 'transFat', 'fiber', 'sodium']
+		const missingFields = requiredFields.filter(field => !formData[field as keyof NutritionalInfo])
+
+		if (missingFields.length > 0) {
+			toast.error(`Campos obrigatórios não preenchidos: ${missingFields.join(', ')}`)
+			return
+		}
+
 		try {
-			setIsSubmitting(true)
-
-			// Validar campos obrigatórios
-			const requiredFields = ['calories', 'carbohydrates', 'proteins', 'totalFat', 'saturatedFat', 'transFat', 'fiber', 'sodium']
-			const missingFields = requiredFields.filter(field => !formData[field as keyof NutritionalInfo])
-
-			if (missingFields.length > 0) {
-				toast.error(`Campos obrigatórios não preenchidos: ${missingFields.join(', ')}`)
-				return
-			}
-
-			// Enviar dados para a API
-			const response = await fetch(`/api/products/${productId}/nutritional-info`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					...formData,
-					productId,
-				}),
+			await saveMutation.mutateAsync({
+				productId,
+				data: formData,
 			})
-
-			if (!response.ok) {
-				throw new Error('Erro ao salvar informações nutricionais')
-			}
-
-			toast.success('Informações nutricionais salvas com sucesso!')
 			onSuccess?.()
 		} catch (error) {
 			console.error('Error saving nutritional info:', error)
-			toast.error('Erro ao salvar informações nutricionais')
-		} finally {
-			setIsSubmitting(false)
+			// Error toast is handled by the mutation
 		}
 	}
 
+
+	const isLoading = analyzeMutation.isPending || saveMutation.isPending
 
 	return (
 		<>
@@ -111,7 +82,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 				<Button
 					variant="outline"
 					onClick={onShowScanner}
-					disabled={isSubmitting || isAnalyzing}
+					disabled={isLoading}
 					className="flex-1"
 				>
 					<QrCode className="h-4 w-4 mr-2" />
@@ -128,7 +99,7 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 				</Button>
 			</div>
 
-			{isAnalyzing && (
+			{analyzeMutation.isPending && (
 				<div className="text-center py-4 mb-6">
 					<div className="inline-flex items-center gap-2 text-blue-600">
 						<Sparkles className="h-4 w-4 animate-spin" />
@@ -152,15 +123,15 @@ export function NutritionalInfoDialog({ productId, onSuccess, onCancel, onShowSc
 				<Button
 					variant="outline"
 					onClick={onCancel}
-					disabled={isSubmitting || isAnalyzing}
+					disabled={isLoading}
 				>
 					Cancelar
 				</Button>
 				<Button
 					onClick={handleSubmit}
-					disabled={isSubmitting || isAnalyzing}
+					disabled={isLoading}
 				>
-					{isSubmitting ? 'Salvando...' : 'Salvar Informações'}
+					{saveMutation.isPending ? 'Salvando...' : 'Salvar Informações'}
 				</Button>
 			</div>
 		</>

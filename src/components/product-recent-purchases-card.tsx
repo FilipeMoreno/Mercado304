@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale"
 import { BarChart3, ChevronLeft, ChevronRight, Plus, ShoppingCart, Store } from "lucide-react"
 import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
+import { useShoppingListsQuery } from "@/hooks/use-react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -51,40 +52,17 @@ export function ProductRecentPurchasesCard({
 	recentPurchases,
 }: ProductRecentPurchasesCardProps) {
 	const [purchasesPage, setPurchasesPage] = useState(1)
-	const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([])
 	const [selectedListId, setSelectedListId] = useState<string>("")
 	const [quantity, setQuantity] = useState<number>(1)
 	const [isDialogOpen, setIsDialogOpen] = useState(false)
 	const [isAddingToList, setIsAddingToList] = useState(false)
-	const [isLoadingLists, setIsLoadingLists] = useState(false)
 
 	const purchasesPerPage = 5
 	const listSelectId = useId()
 	const quantityId = useId()
 
-
-	// Buscar listas de compras quando o dialog abre
-	useEffect(() => {
-		async function fetchShoppingLists() {
-			setIsLoadingLists(true)
-			try {
-				const response = await fetch("/api/shopping-lists")
-				if (response.ok) {
-					const data = await response.json()
-					setShoppingLists(data.lists || [])
-				}
-			} catch (error) {
-				console.error("Erro ao buscar listas:", error)
-				toast.error("Erro ao buscar listas de compras")
-			} finally {
-				setIsLoadingLists(false)
-			}
-		}
-
-		if (isDialogOpen && shoppingLists.length === 0) {
-			fetchShoppingLists()
-		}
-	}, [isDialogOpen, shoppingLists.length])
+	// Fetch shopping lists using React Query
+	const { data: shoppingListsData, isLoading: isLoadingLists } = useShoppingListsQuery()
 
 	const handleAddToList = async () => {
 		if (!selectedListId) {
@@ -111,7 +89,7 @@ export function ProductRecentPurchasesCard({
 			})
 
 			if (response.ok) {
-				const selectedList = shoppingLists.find((list) => list.id === selectedListId)
+				const selectedList = shoppingLists.find((list: any) => list.id === selectedListId)
 				toast.success(`${productName} adicionado à lista "${selectedList?.name}" com sucesso!`)
 				setIsDialogOpen(false)
 				setSelectedListId("")
@@ -143,7 +121,6 @@ export function ProductRecentPurchasesCard({
 
 			if (response.ok) {
 				const newList = await response.json()
-				setShoppingLists((prev) => [...prev, newList])
 				setSelectedListId(newList.id)
 				toast.success(`Lista "${listName}" criada com sucesso!`)
 			} else {
@@ -154,6 +131,8 @@ export function ProductRecentPurchasesCard({
 			toast.error("Erro ao criar nova lista")
 		}
 	}
+
+	const shoppingLists = shoppingListsData?.lists || []
 
 	// Verificar se há compras válidas
 	const validPurchases = recentPurchases?.filter(purchase => 

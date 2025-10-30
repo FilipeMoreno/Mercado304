@@ -22,7 +22,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
@@ -40,6 +40,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useProductDetailsQuery, useProductNutritionalInfoQuery } from "@/hooks/use-react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import type { NutritionalInfo, Product } from "@/types"
 
 export default function ProdutoDetalhesPage() {
@@ -47,15 +49,27 @@ export default function ProdutoDetalhesPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const productId = params.id as string
+	const queryClient = useQueryClient()
 
-	const [product, setProduct] = useState<Product | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [stats, setStats] = useState<any>(null)
-	const [priceHistory, setPriceHistory] = useState<any[]>([])
-	const [marketComparison, setMarketComparison] = useState<any[]>([])
-	const [recentPurchases, setRecentPurchases] = useState<any[]>([])
-	const [stockAlerts, setStockAlerts] = useState<any>(null)
-	const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo | null>(null)
+	// React Query hooks
+	const {
+		data: productData,
+		isLoading: isLoadingProduct,
+		error: productError,
+	} = useProductDetailsQuery(productId)
+
+	const { data: nutritionalInfoData } = useProductNutritionalInfoQuery(productId)
+
+	// Extract data from query response
+	const product = productData?.product || null
+	const stats = productData?.stats || null
+	const priceHistory = productData?.priceHistory || []
+	const marketComparison = productData?.marketComparison || []
+	const recentPurchases = productData?.recentPurchases || []
+	const stockAlerts = productData?.stockAlerts || null
+	const nutritionalInfo = nutritionalInfoData || null
+	const loading = isLoadingProduct
+
 	const [nutritionalViewMode, setNutritionalViewMode] = useState<"per100" | "perServing" | "tabela">("per100")
 
 	// Estado para o dialog de adicionar código de barras
@@ -94,55 +108,14 @@ export default function ProdutoDetalhesPage() {
 		}
 	}
 
-	const fetchProductDetails = useCallback(async () => {
-		try {
-			const response = await fetch(`/api/products/${productId}?includeStats=true`)
-
-			if (!response.ok) {
-				toast.error("Produto não encontrado")
-				router.push("/produtos")
-				return
-			}
-
-			const data = await response.json()
-			setProduct(data.product)
-			setStats(data.stats)
-			setPriceHistory(data.priceHistory || [])
-			setMarketComparison(data.marketComparison || [])
-			setRecentPurchases(data.recentPurchases || [])
-			setStockAlerts(data.stockAlerts)
-		} catch (error) {
-			console.error("Erro ao buscar detalhes do produto:", error)
-			toast.error("Erro ao carregar detalhes do produto")
-			router.push("/produtos")
-		} finally {
-			setLoading(false)
-		}
-	}, [productId, router])
-
-	const fetchNutritionalInfo = useCallback(async () => {
-		try {
-			const response = await fetch(`/api/products/${productId}/scan-nutrition`)
-
-			if (response.ok) {
-				const data = await response.json()
-				setNutritionalInfo(data)
-			} else {
-				// Não mostrar erro se não houver informações nutricionais
-				setNutritionalInfo(null)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar informações nutricionais:", error)
-			setNutritionalInfo(null)
-		}
-	}, [productId])
-
+	// Handle error - redirect to products page
 	useEffect(() => {
-		if (productId) {
-			fetchProductDetails()
-			fetchNutritionalInfo()
+		if (productError) {
+			console.error("Erro ao buscar detalhes do produto:", productError)
+			toast.error("Produto não encontrado")
+			router.push("/produtos")
 		}
-	}, [productId, fetchProductDetails, fetchNutritionalInfo])
+	}, [productError, router])
 
 	// Detectar parâmetro action=add-barcode na URL
 	useEffect(() => {
@@ -1857,7 +1830,7 @@ export default function ProdutoDetalhesPage() {
 					productName={product.name}
 					initialBarcode={initialBarcodeValue}
 					onSuccess={() => {
-						fetchProductDetails()
+						queryClient.invalidateQueries({ queryKey: ["products", productId, "details"] })
 						toast.success("Produto atualizado!")
 					}}
 				/>

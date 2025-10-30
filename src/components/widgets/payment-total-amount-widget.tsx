@@ -1,9 +1,10 @@
 "use client"
 
 import { DollarSign } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentTotalAmountWidgetProps {
 	dateFrom?: string
@@ -14,33 +15,10 @@ export function PaymentTotalAmountWidget({
 	dateFrom,
 	dateTo,
 }: PaymentTotalAmountWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [totalAmount, setTotalAmount] = useState(0)
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const totalAmount = useMemo(() => data?.summary?.totalAmount ?? 0, [data])
 
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setTotalAmount(result.summary.totalAmount)
-			}
-		} catch (error) {
-			console.error("Erro ao buscar valor total:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardContent className="pt-6">

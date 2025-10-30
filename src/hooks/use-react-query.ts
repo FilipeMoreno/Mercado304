@@ -12,8 +12,11 @@ export const queryKeys = {
 	brands: (params?: URLSearchParams) => ["brands", params?.toString()],
 	allBrands: () => ["brands", "all"],
 	markets: (params?: URLSearchParams) => ["markets", params?.toString()],
+	marketStats: (id: string) => ["markets", id, "stats"],
 	products: (params?: URLSearchParams) => ["products", params?.toString()],
 	product: (id: string) => ["products", id],
+	productDetails: (id: string) => ["products", id, "details"],
+	productNutritionalInfo: (id: string) => ["products", id, "nutritional-info"],
 	purchases: (params?: URLSearchParams) => ["purchases", params?.toString()],
 	purchase: (id: string) => ["purchases", id],
 	shoppingLists: (params?: URLSearchParams) => ["shopping-lists", params?.toString()],
@@ -53,6 +56,18 @@ export const queryKeys = {
 	quote: (id: string) => ["quotes", id],
 	quoteComparison: (quoteIds: string[]) => ["quotes", "compare", ...quoteIds],
 	quoteStats: () => ["quotes", "stats"],
+	// Product Analytics
+	productAnalytics: {
+		recentPurchases: (productId: string) => ["products", productId, "recent-purchases"],
+		bestDayToBuy: (productId: string) => ["products", productId, "best-day-to-buy"],
+		bestDayAiAnalysis: (productId: string) => ["products", productId, "best-day-ai-analysis"],
+		wasteUsage: (productId: string) => ["products", productId, "waste-usage"],
+		relatedProducts: (productId: string) => ["products", productId, "related"],
+	},
+	// Price Analytics
+	priceAnalysis: (params?: URLSearchParams) => ["prices", "analysis", params?.toString()],
+	// Nutrition Analytics
+	nutritionSummary: (period?: string) => ["nutrition", "summary", period],
 } as const
 
 // API Functions
@@ -365,6 +380,15 @@ export const useDeleteMarketMutation = () => {
 	})
 }
 
+export const useMarketStatsQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.marketStats(id),
+		queryFn: () => fetchWithErrorHandling(`/api/markets/${id}/stats`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!id,
+	})
+}
+
 // Products
 export const useProductsQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -380,6 +404,25 @@ export const useProductQuery = (id: string) => {
 		queryFn: () => fetchWithErrorHandling(`/api/products/${id}`),
 		staleTime: 3 * 60 * 1000,
 		enabled: !!id,
+	})
+}
+
+export const useProductDetailsQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.productDetails(id),
+		queryFn: () => fetchWithErrorHandling(`/api/products/${id}?includeStats=true`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!id,
+	})
+}
+
+export const useProductNutritionalInfoQuery = (id: string) => {
+	return useQuery({
+		queryKey: queryKeys.productNutritionalInfo(id),
+		queryFn: () => fetchWithErrorHandling(`/api/products/${id}/scan-nutrition`),
+		staleTime: 5 * 60 * 1000, // 5 minutes - nutritional info doesn't change often
+		enabled: !!id,
+		retry: false, // Don't retry if nutritional info doesn't exist
 	})
 }
 
@@ -838,12 +881,17 @@ export const useDashboardAISummaryQuery = () => {
 	})
 }
 
-export const usePaymentStatsQuery = () => {
+export const usePaymentStatsQuery = (params?: { dateFrom?: string; dateTo?: string }) => {
+	const search = new URLSearchParams()
+	if (params?.dateFrom) search.set("dateFrom", params.dateFrom)
+	if (params?.dateTo) search.set("dateTo", params.dateTo)
+
 	return useQuery({
-		queryKey: queryKeys.dashboard.paymentStats(),
-		queryFn: () => fetchWithErrorHandling("/api/dashboard/payment-stats"),
+		queryKey: [...queryKeys.dashboard.paymentStats(), search.toString()],
+		queryFn: () => fetchWithErrorHandling(`/api/dashboard/payment-stats?${search.toString()}`),
 		staleTime: 5 * 60 * 1000, // 5 minutos
 		gcTime: 10 * 60 * 1000, // 10 minutos
+		refetchOnWindowFocus: false,
 	})
 }
 
@@ -1519,4 +1567,182 @@ export const useConvertQuoteToPurchaseMutation = () => {
 			toast.error(`Erro ao converter cotação: ${error.message}`)
 		},
 	})
+}
+
+// ==============================
+// PRODUCT ANALYTICS
+// ==============================
+
+export const useProductRecentPurchasesQuery = (productId: string) => {
+	return useQuery({
+		queryKey: queryKeys.productAnalytics.recentPurchases(productId),
+		queryFn: () => fetchWithErrorHandling(`/api/products/${productId}/recent-purchases`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!productId,
+	})
+}
+
+export const useProductBestDayToBuyQuery = (productId: string) => {
+	return useQuery({
+		queryKey: queryKeys.productAnalytics.bestDayToBuy(productId),
+		queryFn: () =>
+			fetchWithErrorHandling("/api/products/best-day-to-buy", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId }),
+			}),
+		staleTime: 5 * 60 * 1000, // 5 minutes - data doesn't change often
+		enabled: !!productId,
+	})
+}
+
+export const useProductBestDayAiAnalysisQuery = (productId: string, enabled = false) => {
+	return useQuery({
+		queryKey: queryKeys.productAnalytics.bestDayAiAnalysis(productId),
+		queryFn: () =>
+			fetchWithErrorHandling("/api/products/best-day-to-buy/ai-analysis", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId }),
+			}),
+		staleTime: 10 * 60 * 1000, // 10 minutes - AI analysis is expensive
+		enabled: enabled && !!productId,
+	})
+}
+
+export const useProductWasteUsageQuery = (productId: string) => {
+	return useQuery({
+		queryKey: queryKeys.productAnalytics.wasteUsage(productId),
+		queryFn: async () => {
+			// Fetch waste records
+			const wasteResponse = await fetch(`/api/stock/waste?productId=${productId}`)
+			const wasteData = wasteResponse.ok ? await wasteResponse.json() : { wasteRecords: [] }
+
+			// Fetch stock movements
+			const stockResponse = await fetch(`/api/stock/history?productId=${productId}`)
+			const stockData = stockResponse.ok ? await stockResponse.json() : { movements: [] }
+
+			// Calculate statistics
+			const wasteRecords = wasteData.wasteRecords || []
+			const stockMovements = stockData.movements || []
+
+			const totalWasteValue = wasteRecords.reduce((sum: number, record: any) => sum + (record.totalValue || 0), 0)
+			const totalWasteQuantity = wasteRecords.reduce((sum: number, record: any) => sum + (record.quantity || 0), 0)
+
+			// Count recent waste and usage (last 30 days)
+			const thirtyDaysAgo = new Date()
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+			const recentWasteCount = wasteRecords.filter((record: any) => new Date(record.wasteDate) >= thirtyDaysAgo).length
+
+			const recentUsageCount = stockMovements.filter(
+				(movement: any) => movement.type === "USO" && new Date(movement.date) >= thirtyDaysAgo,
+			).length
+
+			return {
+				wasteRecords: wasteRecords.slice(0, 5), // Last 5 waste records
+				stockMovements: stockMovements.filter((m: any) => m.type === "USO").slice(0, 5), // Last 5 uses
+				totalWasteValue,
+				totalWasteQuantity,
+				recentWasteCount,
+				recentUsageCount,
+			}
+		},
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!productId,
+	})
+}
+
+export const useRelatedProductsQuery = (productId: string) => {
+	return useQuery({
+		queryKey: queryKeys.productAnalytics.relatedProducts(productId),
+		queryFn: () =>
+			fetchWithErrorHandling("/api/products/related", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ productId }),
+			}),
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		enabled: !!productId,
+	})
+}
+
+// ==============================
+// PRICE ANALYTICS
+// ==============================
+
+export const usePriceAnalysisQuery = (params?: { productId?: string; marketId?: string; days?: number }) => {
+	const searchParams = new URLSearchParams()
+	if (params?.productId) searchParams.append("productId", params.productId)
+	if (params?.marketId) searchParams.append("marketId", params.marketId)
+	if (params?.days) searchParams.append("days", params.days.toString())
+
+	return useQuery({
+		queryKey: queryKeys.priceAnalysis(searchParams),
+		queryFn: () => fetchWithErrorHandling(`/api/prices/analysis?${searchParams.toString()}`),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: !!(params?.productId || params?.marketId),
+	})
+}
+
+// ==============================
+// NUTRITION ANALYTICS
+// ==============================
+
+export const useNutritionSummaryQuery = (period = "30") => {
+	return useQuery({
+		queryKey: queryKeys.nutritionSummary(period),
+		queryFn: () => fetchWithErrorHandling(`/api/nutrition/analysis?period=${period}`),
+		staleTime: 5 * 60 * 1000, // 5 minutes
+	})
+}
+
+// ==============================
+// NUTRITIONAL INFO MUTATIONS
+// ==============================
+
+export const useAnalyzeNutritionalLabelMutation = () => {
+	return useMutation({
+		mutationFn: async ({ image, productId }: { image: string; productId: string }) => {
+			return fetchWithErrorHandling("/api/ai/analyze-nutritional-label", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ image, productId }),
+			})
+		},
+	})
+}
+
+export const useSaveNutritionalInfoMutation = () => {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ productId, data }: { productId: string; data: Partial<NutritionalInfo> }) => {
+			return fetchWithErrorHandling(`/api/products/${productId}/nutritional-info`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ...data, productId }),
+			})
+		},
+		onSuccess: (_, variables) => {
+			// Invalidate product query to refetch with new nutritional info
+			queryClient.invalidateQueries({ queryKey: queryKeys.product(variables.productId) })
+			toast.success("Informações nutricionais salvas com sucesso!")
+		},
+		onError: () => {
+			toast.error("Erro ao salvar informações nutricionais")
+		},
+	})
+}
+
+// Type for nutritional info (simplified, should match actual type)
+interface NutritionalInfo {
+	calories?: number
+	carbohydrates?: number
+	proteins?: number
+	totalFat?: number
+	saturatedFat?: number
+	transFat?: number
+	fiber?: number
+	sodium?: number
 }

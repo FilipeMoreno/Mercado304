@@ -1,9 +1,10 @@
 "use client"
 
 import { TrendingUp, ArrowUpRight, DollarSign } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentInsightsWidgetProps {
 	dateFrom?: string
@@ -20,42 +21,13 @@ export function PaymentInsightsWidget({
 	dateFrom,
 	dateTo,
 }: PaymentInsightsWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [insights, setInsights] = useState<{
-		mostUsedMethod: PaymentMethodStat | null
-		highestValueMethod: PaymentMethodStat | null
-	}>({
-		mostUsedMethod: null,
-		highestValueMethod: null,
-	})
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const insights = useMemo(() => ({
+        mostUsedMethod: (data?.summary?.mostUsedMethod as PaymentMethodStat) || null,
+        highestValueMethod: (data?.summary?.highestValueMethod as PaymentMethodStat) || null,
+    }), [data])
 
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setInsights({
-					mostUsedMethod: result.summary.mostUsedMethod || null,
-					highestValueMethod: result.summary.highestValueMethod || null,
-				})
-			}
-		} catch (error) {
-			console.error("Erro ao buscar insights de pagamento:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
-
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardHeader>

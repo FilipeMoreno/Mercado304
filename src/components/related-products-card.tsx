@@ -1,8 +1,7 @@
 "use client"
 
 import { ListPlus, Loader2, Tag, X } from "lucide-react"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { useRelatedProductsQuery } from "@/hooks/use-react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "./ui/button"
@@ -22,38 +21,8 @@ interface RelatedProductsCardProps {
 }
 
 export function RelatedProductsCard({ productId, onAddProduct, onClose }: RelatedProductsCardProps) {
-	const [suggestions, setSuggestions] = useState<RelatedProduct[]>([])
-	const [loading, setLoading] = useState(true)
-
-	useEffect(() => {
-		async function fetchRelatedProducts() {
-			setLoading(true)
-			setSuggestions([])
-			try {
-				const response = await fetch("/api/products/related", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ productId }),
-				})
-
-				if (response.ok) {
-					const result = await response.json()
-					setSuggestions(result)
-				} else {
-					toast.error("Erro ao buscar sugestões de produtos")
-				}
-			} catch (error) {
-				console.error("Erro ao buscar sugestões:", error)
-				toast.error("Erro ao carregar sugestões")
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		if (productId) {
-			fetchRelatedProducts()
-		}
-	}, [productId])
+	// Fetch related products using React Query
+	const { data: suggestions, isLoading: loading } = useRelatedProductsQuery(productId)
 
 	if (loading) {
 		return (
@@ -80,7 +49,7 @@ export function RelatedProductsCard({ productId, onAddProduct, onClose }: Relate
 		)
 	}
 
-	if (suggestions.length === 0) {
+	if (!suggestions || suggestions.length === 0) {
 		return null
 	}
 

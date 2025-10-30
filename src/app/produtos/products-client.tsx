@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Package, Plus, QrCode, Search, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -30,20 +30,11 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Product } from "@/types"
 
-interface ProductsClientProps {
-	searchParams: {
-		search?: string
-		category?: string
-		brand?: string
-		sort?: string
-		page?: string
-	}
-}
-
-export function ProductsClient({ searchParams }: ProductsClientProps) {
+export function ProductsClient() {
 	const router = useRouter()
+    const searchParams = useSearchParams()
 	const { deleteState, openDeleteConfirm, closeDeleteConfirm } = useDeleteConfirmation<Product>()
-	const [searchValue, setSearchValue] = useState(searchParams.search || "")
+    const [searchValue, setSearchValue] = useState(searchParams.get("search") || "")
 	const debouncedSearch = useDebounce(searchValue, 500)
 	const [showScanner, setShowScanner] = useState(false)
 

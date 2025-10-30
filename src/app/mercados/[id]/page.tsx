@@ -23,7 +23,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import {
 	Bar,
 	BarChart,
@@ -46,6 +46,7 @@ import { MarketImageFallback } from "@/components/ui/market-image-fallback"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatLocalDate } from "@/lib/date-utils"
+import { useMarketStatsQuery, usePurchasesQuery } from "@/hooks/use-react-query"
 
 interface MarketStats {
 	market: any
@@ -74,58 +75,32 @@ interface MarketStats {
 export default function MarketDetailsPage() {
 	const params = useParams()
 	const router = useRouter()
-	const [data, setData] = useState<MarketStats | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [allPurchases, setAllPurchases] = useState<any[]>([])
+	const marketId = params.id as string
+
+	// React Query hooks
+	const { data: statsData, isLoading: isLoadingStats, error: statsError } = useMarketStatsQuery(marketId)
+
+	const purchaseParams = new URLSearchParams()
+	purchaseParams.append("marketId", marketId)
+	const { data: purchasesData, isLoading: isLoadingPurchases } = usePurchasesQuery(purchaseParams)
+
+	// Local state for filtering
 	const [filteredPurchases, setFilteredPurchases] = useState<any[]>([])
 	const [searchTerm, setSearchTerm] = useState("")
 	const [dateFilter, setDateFilter] = useState("all")
 	const [sortBy, setSortBy] = useState("date-desc")
 
-	const fetchMarketStats = useCallback(async () => {
-		try {
-			const [statsRes, purchasesRes] = await Promise.all([
-				fetch(`/api/markets/${params.id}/stats`, { cache: "no-store" }),
-				fetch(`/api/purchases?marketId=${params.id}`, { cache: "no-store" }),
-			])
+	const loading = isLoadingStats || isLoadingPurchases
+	const data = statsData
+	const allPurchases = purchasesData?.purchases || []
 
-			if (statsRes.ok) {
-				const statsData = await statsRes.json()
-				setData(statsData)
-
-				if (purchasesRes.ok) {
-					const purchasesData = await purchasesRes.json()
-					setAllPurchases(purchasesData.purchases || [])
-					setFilteredPurchases(purchasesData.purchases || [])
-				}
-			} else {
-				router.push("/mercados")
-			}
-		} catch (error) {
-			console.error("Erro ao carregar dados:", error)
+	// Handle error - redirect to markets page
+	useEffect(() => {
+		if (statsError) {
+			console.error("Erro ao carregar dados:", statsError)
 			router.push("/mercados")
-		} finally {
-			setLoading(false)
 		}
-	}, [params.id, router])
-
-	useEffect(() => {
-		if (params.id) {
-			fetchMarketStats()
-		}
-	}, [params.id, fetchMarketStats])
-
-	// Auto refresh when page gains focus
-	useEffect(() => {
-		const handleFocus = () => {
-			if (!loading && params.id) {
-				fetchMarketStats()
-			}
-		}
-
-		window.addEventListener("focus", handleFocus)
-		return () => window.removeEventListener("focus", handleFocus)
-	}, [loading, params.id, fetchMarketStats])
+	}, [statsError, router])
 
 	// Filtrar compras
 	useEffect(() => {

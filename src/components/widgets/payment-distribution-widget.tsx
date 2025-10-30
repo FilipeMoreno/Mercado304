@@ -1,9 +1,10 @@
 "use client"
 
 import { PieChart } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePaymentStatsQuery } from "@/hooks/use-react-query"
 
 interface PaymentMethodStat {
 	paymentMethod: string
@@ -23,31 +24,8 @@ export function PaymentDistributionWidget({
 	dateFrom,
 	dateTo,
 }: PaymentDistributionWidgetProps) {
-	const [loading, setLoading] = useState(true)
-	const [paymentStats, setPaymentStats] = useState<PaymentMethodStat[]>([])
-
-	useEffect(() => {
-		fetchData()
-	}, [dateFrom, dateTo])
-
-	const fetchData = async () => {
-		setLoading(true)
-		try {
-			const params = new URLSearchParams()
-			if (dateFrom) params.append("dateFrom", dateFrom)
-			if (dateTo) params.append("dateTo", dateTo)
-
-			const response = await fetch(`/api/dashboard/payment-stats?${params}`)
-			if (response.ok) {
-				const result = await response.json()
-				setPaymentStats(result.paymentStats || [])
-			}
-		} catch (error) {
-			console.error("Erro ao buscar distribuição de pagamentos:", error)
-		} finally {
-			setLoading(false)
-		}
-	}
+    const { data, isLoading } = usePaymentStatsQuery({ dateFrom, dateTo })
+    const paymentStats = useMemo(() => (data?.paymentStats as PaymentMethodStat[]) || [], [data])
 
 	const colors = [
 		"bg-blue-500",
@@ -59,7 +37,7 @@ export function PaymentDistributionWidget({
 		"bg-red-500",
 	]
 
-	if (loading) {
+    if (isLoading) {
 		return (
 			<Card>
 				<CardHeader>

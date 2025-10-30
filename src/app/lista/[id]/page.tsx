@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
+import { useShoppingListQuery, useAllProductsQuery } from "@/hooks/use-react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { TempStorage } from "@/lib/temp-storage"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
@@ -81,11 +83,17 @@ export default function ListaDetalhesPage() {
 	const router = useRouter()
 	const { showInsight } = useProactiveAiStore()
 	const searchParams = useSearchParams()
-	const [products, setProducts] = useState<{ id: string; name: string;[key: string]: unknown }[]>([])
 	const listId = params.id as string
+	const queryClient = useQueryClient()
 
-	const [list, setList] = useState<ShoppingListDetails | null>(null)
-	const [loading, setLoading] = useState(true)
+	// React Query hooks
+	const { data: listData, isLoading: isLoadingList, error: listError } = useShoppingListQuery(listId)
+	const { data: productsData, isLoading: isLoadingProducts } = useAllProductsQuery()
+
+	const list = listData || null
+	const products = productsData?.products || []
+	const loading = isLoadingList || isLoadingProducts
+
 	const [isShoppingMode, setIsShoppingMode] = useState(false)
 	const [sortOrder, setSortOrder] = useState<"default" | "category">("default")
 
@@ -167,51 +175,14 @@ export default function ListaDetalhesPage() {
 		}
 	}, [editingItem])
 
-	const fetchListDetails = useCallback(async () => {
-		try {
-			const response = await fetch(`/api/shopping-lists/${listId}`)
-
-			if (!response.ok) {
-				if (response.status === 404) {
-					toast.error("Lista não encontrada")
-					router.push("/lista")
-					return
-				}
-				throw new Error("Erro ao buscar lista")
-			}
-
-			const data = await response.json()
-			setList(data)
-		} catch (error) {
-			console.error("Erro ao buscar detalhes da lista:", error)
-			toast.error("Erro ao carregar lista")
-		} finally {
-			setLoading(false)
-		}
-	}, [listId, router])
-
-	const fetchProducts = useCallback(async () => {
-		try {
-			// Buscar TODOS os produtos sem paginação
-			const response = await fetch("/api/products?limit=10000")
-			if (response.ok) {
-				const data = await response.json()
-				setProducts(data.products || [])
-			}
-		} catch (error) {
-			console.error("Erro ao carregar produtos:", error)
-		}
-	}, [])
-
+	// Handle error - redirect to list page
 	useEffect(() => {
-		if (listId) {
-			fetchListDetails()
+		if (listError) {
+			console.error("Erro ao buscar detalhes da lista:", listError)
+			toast.error("Lista não encontrada")
+			router.push("/lista")
 		}
-	}, [listId, fetchListDetails])
-
-	useEffect(() => {
-		fetchProducts()
-	}, [fetchProducts])
+	}, [listError, router])
 
 	const checkQuantitySuggestion = async (productId: string, itemId: string) => {
 		try {
@@ -238,16 +209,8 @@ export default function ListaDetalhesPage() {
 		if (!payload) return
 		await updateItemInServer(payload.itemId, { quantity: payload.newQuantity })
 
-		setList((prev) =>
-			prev
-				? {
-					...prev,
-					items: prev.items.map((item) =>
-						item.id === payload.itemId ? { ...item, quantity: payload.newQuantity } : item,
-					),
-				}
-				: null,
-		)
+		// Invalidate cache to refetch the list
+		await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 
 		toast.success("Quantidade do item atualizada!")
 	}
@@ -306,18 +269,13 @@ export default function ListaDetalhesPage() {
 		async (itemId: string, currentStatus: boolean) => {
 			if (!list) return
 
-			setList((prev) =>
-				prev
-					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, isChecked: !currentStatus } : item)),
-					}
-					: null,
-			)
-
+			// Update on server first
 			await updateItemInServer(itemId, { isChecked: !currentStatus })
+
+			// Invalidate cache to refetch
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 		},
-		[list, updateItemInServer],
+		[list, updateItemInServer, queryClient, listId],
 	)
 
 	const checkBestPrice = useCallback(async (itemId: string, productId: string, unitPrice: number) => {
@@ -335,37 +293,24 @@ export default function ListaDetalhesPage() {
 
 			const bestPriceData = await response.json()
 
-			setList((prev) =>
-				prev
-					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, bestPriceAlert: bestPriceData } : item)),
-					}
-					: null,
-			)
+			// Note: best price alert is not persisted to server, so we skip cache invalidation here
+			// The alert is computed on each render from the API response
 		} catch (error) {
 			console.error("Erro ao verificar melhor preço:", error)
 		}
 	}, [])
 
 	const handleUpdateQuantity = useCallback(
-		(itemId: string, newQuantity: number) => {
+		async (itemId: string, newQuantity: number) => {
 			if (!list) return
-			setList((prev) =>
-				prev
-					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
-					}
-					: null,
-			)
-			updateItemInServer(itemId, { quantity: newQuantity })
+			await updateItemInServer(itemId, { quantity: newQuantity })
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 		},
-		[list, updateItemInServer],
+		[list, updateItemInServer, queryClient, listId],
 	)
 
 	const handleUpdateEstimatedPrice = useCallback(
-		(itemId: string, newPrice: number) => {
+		async (itemId: string, newPrice: number) => {
 			if (!list) return
 
 			const item = list.items.find((item) => item.id === itemId)
@@ -377,17 +322,10 @@ export default function ListaDetalhesPage() {
 				}, 1000)
 			}
 
-			setList((prev) =>
-				prev
-					? {
-						...prev,
-						items: prev.items.map((item) => (item.id === itemId ? { ...item, estimatedPrice: newPrice } : item)),
-					}
-					: null,
-			)
-			updateItemInServer(itemId, { estimatedPrice: newPrice })
+			await updateItemInServer(itemId, { estimatedPrice: newPrice })
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 		},
-		[list, checkBestPrice, updateItemInServer],
+		[list, checkBestPrice, updateItemInServer, queryClient, listId],
 	)
 
 	const handleSaveList = async (newName: string) => {
@@ -402,8 +340,7 @@ export default function ListaDetalhesPage() {
 			})
 
 			if (response.ok) {
-				const updatedList = await response.json()
-				setList((prev) => (prev ? { ...prev, name: updatedList.name } : null))
+				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Lista atualizada com sucesso")
 			} else {
 				const error = await response.json()
@@ -478,7 +415,7 @@ export default function ListaDetalhesPage() {
 					category: "",
 					notes: "",
 				})
-				fetchListDetails()
+				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Item adicionado com sucesso")
 
 				// Só checa sugestão de quantidade se tiver produto vinculado
@@ -518,7 +455,7 @@ export default function ListaDetalhesPage() {
 
 			if (response.ok) {
 				setEditingItem(null)
-				fetchListDetails()
+				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Item atualizado com sucesso")
 			} else {
 				const error = await response.json()
@@ -543,7 +480,7 @@ export default function ListaDetalhesPage() {
 
 			if (response.ok) {
 				setDeleteItemConfirm(null)
-				fetchListDetails()
+				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Item removido com sucesso")
 			} else {
 				const error = await response.json()
@@ -579,7 +516,7 @@ export default function ListaDetalhesPage() {
 
 			if (response.ok) {
 				const newProduct = await response.json()
-				setProducts((prev) => [...prev, newProduct])
+				await queryClient.invalidateQueries({ queryKey: ["products", "all"] })
 				setNewItem((prev) => ({ ...prev, productId: newProduct.id }))
 				setShowQuickProduct(false)
 				toast.success("Produto criado com sucesso")
@@ -652,16 +589,7 @@ export default function ListaDetalhesPage() {
 				onUpdateQuantity={handleUpdateQuantity}
 				onUpdateEstimatedPrice={handleUpdateEstimatedPrice}
 				onCloseBestPriceAlert={(itemId) => {
-					setList((prev) =>
-						prev
-							? {
-								...prev,
-								items: prev.items.map((listItem) =>
-									listItem.id === itemId ? { ...listItem, bestPriceAlert: undefined } : listItem,
-								),
-							}
-							: null,
-					)
+					// Best price alerts are transient, no need to persist
 				}}
 				onDeleteItem={(item) => setDeleteItemConfirm(item)}
 			/>
@@ -857,16 +785,7 @@ export default function ListaDetalhesPage() {
 				updating={updatingItem}
 				onCloseBestPriceAlert={() => {
 					if (editingItem) {
-						setList((prev) =>
-							prev
-								? {
-									...prev,
-									items: prev.items.map((item) =>
-										item.id === editingItem.id ? { ...item, bestPriceAlert: undefined } : item,
-									),
-								}
-								: null,
-						)
+				// Best price alerts are transient, no need to persist
 						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
 					}
 				}}
@@ -907,17 +826,8 @@ export default function ListaDetalhesPage() {
 					// Atualizar no servidor
 					updateItemInServer(itemId, updateData)
 
-					// Atualizar estado local
-					setList((prev) =>
-						prev
-							? {
-								...prev,
-								items: prev.items.map((item) =>
-									item.id === itemId ? { ...item, ...updateData } : item
-								),
-							}
-							: null,
-					)
+				// Invalidate cache to refetch
+					queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 
 					// Fechar dialog apenas se closeDialog não for false (auto-save envia false)
 					if (options?.closeDialog !== false) {

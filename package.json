@@ -92,7 +92,6 @@
     "resend": "^6.3.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^6.0.1",
     "zustand": "^5.0.8"
   },
@@ -104,7 +103,8 @@
     "@types/tesseract.js": "^2.0.0",
     "postcss": "^8.5.6",
     "prisma": "^6.18.0",
-    "tailwindcss": "^3.4.1",
+    "tailwindcss": "^3.4.18",
+    "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
