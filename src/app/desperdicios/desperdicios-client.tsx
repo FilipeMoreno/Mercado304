@@ -183,19 +183,21 @@ export default function DesperdiciosClient() {
 
 			{/* Lista de desperdícios */}
 			<div className="space-y-4">
-				<WasteGrid
-					records={wasteRecords}
-					isLoading={isLoading}
-					pageSize={pageSize}
-					onViewDetails={handleViewDetails}
-					onEdit={handleEdit}
-					onDelete={handleDelete}
-					hasFilters={searchTerm !== "" || filterReason !== "all"}
-					onCreateNew={() => setShowCreateDialog(true)}
-				/>
+				{(isLoading || wasteRecords.length > 0 || searchTerm !== "" || filterReason !== "all") && (
+					<WasteGrid
+						records={wasteRecords}
+						isLoading={isLoading}
+						pageSize={pageSize}
+						onViewDetails={handleViewDetails}
+						onEdit={handleEdit}
+						onDelete={handleDelete}
+						hasFilters={searchTerm !== "" || filterReason !== "all"}
+						onCreateNew={() => setShowCreateDialog(true)}
+					/>
+				)}
 
 				{/* Paginação */}
-				{wasteData?.pagination && (
+				{wasteData?.pagination && wasteRecords.length > 0 && (
 					<WastePagination
 						currentPage={currentPage}
 						totalPages={wasteData.pagination.totalPages}

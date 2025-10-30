@@ -156,43 +156,62 @@ export default function AdminSyncPrecosPage() {
 		}
 	}, [debugMode])
 
-	const fetchServerHealth = useCallback(async () => {
-		try {
-			// Buscar informações do servidor (endpoint raiz)
-			const serverResponse = await fetch("http://localhost:3100/")
-			if (serverResponse.ok) {
-				const serverData = await serverResponse.json()
-				setServerInfo(serverData)
-			}
+    const fetchServerHealth = useCallback(async () => {
+        const serverUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL
 
-			// Buscar status de saúde
-			const healthResponse = await fetch("http://localhost:3100/health")
-			if (healthResponse.ok) {
-				const health = await healthResponse.json()
-				setServerHealth(health)
-			} else {
-				setServerHealth({
-					status: "unhealthy",
-					timestamp: new Date().toISOString(),
-					services: {
-						database: "unknown",
-						redis: "unknown"
-					}
-				})
-			}
-		} catch (error) {
-			console.error("Erro ao buscar status do servidor:", error)
-			setServerHealth({
-				status: "unhealthy",
-				timestamp: new Date().toISOString(),
-				services: {
-					database: "disconnected",
-					redis: "disconnected"
-				}
-			})
-			setServerInfo(null)
-		}
-	}, [])
+        // Se não houver servidor externo configurado, não tente buscar para evitar erros de CORS/conn
+        if (!serverUrl) {
+            setServerInfo(null)
+            setServerHealth(null)
+            return
+        }
+
+        try {
+            const base = serverUrl.replace(/\/$/, "")
+
+            // Buscar informações do servidor (endpoint raiz)
+            try {
+                const serverResponse = await fetch(`${base}/`, { cache: "no-store" })
+                if (serverResponse.ok) {
+                    const serverData = await serverResponse.json()
+                    setServerInfo(serverData)
+                } else {
+                    setServerInfo(null)
+                }
+            } catch {
+                setServerInfo(null)
+            }
+
+            // Buscar status de saúde
+            try {
+                const healthResponse = await fetch(`${base}/health`, { cache: "no-store" })
+                if (healthResponse.ok) {
+                    const health = await healthResponse.json()
+                    setServerHealth(health)
+                } else {
+                    setServerHealth({
+                        status: "unhealthy",
+                        timestamp: new Date().toISOString(),
+                        services: { database: "unknown", redis: "unknown" },
+                    })
+                }
+            } catch {
+                setServerHealth({
+                    status: "unhealthy",
+                    timestamp: new Date().toISOString(),
+                    services: { database: "disconnected", redis: "disconnected" },
+                })
+            }
+        } catch {
+            // Silenciar erros para evitar "Failed to fetch" no console do usuário
+            setServerInfo(null)
+            setServerHealth({
+                status: "unhealthy",
+                timestamp: new Date().toISOString(),
+                services: { database: "disconnected", redis: "disconnected" },
+            })
+        }
+    }, [])
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {

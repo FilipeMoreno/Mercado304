@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { Suspense } from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import "./grid-layout.css"
@@ -61,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<SpeedInsights />
 				<Analytics />
 				<Provider>
-					<AnalyticsProviders>
+					<Suspense fallback={null}>
 						<ThemeProvider defaultTheme="system" storageKey="mercado304-theme">
 							<MinimizedDialogProvider>
 								<PWASplashWrapper>
@@ -71,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								<Toaster richColors position="top-right" />
 							</MinimizedDialogProvider>
 						</ThemeProvider>
-					</AnalyticsProviders>
+					</Suspense>
 				</Provider>
 			</body>
 		</html>

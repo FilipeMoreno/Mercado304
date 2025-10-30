@@ -22,7 +22,7 @@ import {
 	X,
 	Zap,
 } from "lucide-react"
-import React, { useCallback, useEffect, useId, useState } from "react"
+import React, { useCallback, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { PriceTagScanner } from "@/components/price-tag-scanner"
 import { MarketSelect } from "@/components/selects/market-select"
@@ -654,6 +654,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	const [loading, setLoading] = useState(false)
 	const [initialLoading, setInitialLoading] = useState(true)
 	const [analysisLoading, setAnalysisLoading] = useState(false)
+	const analysisLoadedRef = useRef(false)
 	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedMarket, setSelectedMarket] = useState("")
 	const [selectedProduct, setSelectedProduct] = useState("")
@@ -800,6 +801,16 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			}
 		},
 		[],
+	)
+
+	// Evita chamadas duplicadas de análise em múltiplos componentes
+	const loadAnalysisOnce = useCallback(
+		(filters?: { product?: string; market?: string; period?: string; startDate?: string; endDate?: string }) => {
+			if (analysisLoadedRef.current || analysisLoading) return
+			analysisLoadedRef.current = true
+			loadAllPriceData(filters)
+		},
+		[analysisLoading, loadAllPriceData],
 	)
 
 	// Registrar novo preço
@@ -1588,8 +1599,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								)}
 
 								<div className="flex items-end">
-									<Button
+					<Button
 										onClick={() => {
+							// Reset para permitir novo carregamento com filtros atualizados
+							analysisLoadedRef.current = false
 											const filters: {
 												product?: string
 												market?: string
@@ -1610,7 +1623,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												if (customStartDate) filters.startDate = customStartDate
 												if (customEndDate) filters.endDate = customEndDate
 											}
-											loadAllPriceData(filters)
+							loadAllPriceData(filters)
 										}}
 										disabled={analysisLoading}
 										className="w-full"
@@ -1658,7 +1671,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								if (customStartDate) filters.startDate = customStartDate
 								if (customEndDate) filters.endDate = customEndDate
 							}
-							loadAllPriceData(filters)
+							loadAnalysisOnce(filters)
 						}}
 					/>
 				</TabsContent>
@@ -1705,8 +1718,10 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								)}
 
 								<div className="flex items-end">
-									<Button
+					<Button
 										onClick={() => {
+							// Reset para permitir novo carregamento com filtros atualizados
+							analysisLoadedRef.current = false
 											const filters: {
 												product?: string
 												market?: string
@@ -1727,7 +1742,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												if (customStartDate) filters.startDate = customStartDate
 												if (customEndDate) filters.endDate = customEndDate
 											}
-											loadAllPriceData(filters)
+							loadAllPriceData(filters)
 										}}
 										disabled={analysisLoading}
 										className="w-full"
@@ -1775,7 +1790,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								if (customStartDate) filters.startDate = customStartDate
 								if (customEndDate) filters.endDate = customEndDate
 							}
-							loadAllPriceData(filters)
+							loadAnalysisOnce(filters)
 						}}
 					/>
 				</TabsContent>

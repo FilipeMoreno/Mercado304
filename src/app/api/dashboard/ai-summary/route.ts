@@ -2,8 +2,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
-
 export async function GET() {
 	try {
 		const apiKey = process.env.GEMINI_API_KEY

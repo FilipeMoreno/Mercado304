@@ -1,7 +1,7 @@
 "use client"
 
 import { ptBR } from "date-fns/locale"
-import { Package, Store, } from "lucide-react"
+import { Package, Store, Inbox } from "lucide-react"
 import Link from "next/link"
 import { lazy, Suspense } from "react"
 import { AiDashboardSummary } from "@/components/ai-dashboard-summary"
@@ -128,7 +128,7 @@ export function WidgetMapper({
 	}
 
 	// Widget de gastos por categoria
-	if (widgetId === "category-stats" && stats?.categoryStats) {
+    if (widgetId === "category-stats" && stats?.categoryStats) {
 		return (
 			<Card className="h-full">
 				<CardHeader>
@@ -139,7 +139,13 @@ export function WidgetMapper({
 					<CardDescription>Distribuição de gastos por categoria de produtos</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
+                    <div className="space-y-3">
+                        {stats.categoryStats.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center text-sm text-muted-foreground py-6">
+                                <Inbox className="h-8 w-8 mb-2 opacity-60" />
+                                <span>Sem dados suficientes para exibir categorias.</span>
+                            </div>
+                        ) : null}
 						{stats.categoryStats.slice(0, 8).map((category: CategoryStats, index: number) => {
 							const percentage =
 								(stats?.totalSpent || 0) > 0 ? (category.totalSpent / (stats?.totalSpent || 1)) * 100 : 0
@@ -170,7 +176,7 @@ export function WidgetMapper({
 	}
 
 	// Widget de produtos mais comprados
-	if (widgetId === "top-products") {
+    if (widgetId === "top-products") {
 		return (
 			<Card className="h-full">
 				<CardHeader>
@@ -178,7 +184,13 @@ export function WidgetMapper({
 					<CardDescription>Top 5 produtos mais frequentes</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
+                    <div className="space-y-3">
+                        {(!stats?.topProducts || stats.topProducts.length === 0) ? (
+                            <div className="flex flex-col items-center justify-center text-sm text-muted-foreground py-6">
+                                <Inbox className="h-8 w-8 mb-2 opacity-60" />
+                                <span>Sem dados suficientes para exibir produtos.</span>
+                            </div>
+                        ) : null}
 						{(stats?.topProducts || []).slice(0, 5).map((product: TopProduct, index: number) => (
 							<div key={product.productId || index} className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
@@ -205,7 +217,7 @@ export function WidgetMapper({
 	}
 
 	// Widget de comparação de mercados
-	if (widgetId === "market-compare") {
+    if (widgetId === "market-compare") {
 		return (
 			<Card className="h-full">
 				<CardHeader>
@@ -213,8 +225,14 @@ export function WidgetMapper({
 					<CardDescription>Seus mercados mais frequentados</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
-						{(stats?.marketComparison || [])
+                    <div className="space-y-3">
+                        {(!stats?.marketComparison || stats.marketComparison.length === 0) ? (
+                            <div className="flex flex-col items-center justify-center text-sm text-muted-foreground py-6">
+                                <Inbox className="h-8 w-8 mb-2 opacity-60" />
+                                <span>Sem dados suficientes para exibir mercados.</span>
+                            </div>
+                        ) : null}
+                        {(stats?.marketComparison || [])
 							.sort((a: MarketComparison, b: MarketComparison) => b.totalPurchases - a.totalPurchases)
 							.map((market: MarketComparison, index: number) => {
 								const totalSpent = market.averagePrice * market.totalPurchases
@@ -252,7 +270,7 @@ export function WidgetMapper({
 	}
 
 	// Widget de compras recentes
-	if (widgetId === "recent-purchases") {
+    if (widgetId === "recent-purchases") {
 		return (
 			<Card className="h-full">
 				<CardHeader>
@@ -260,8 +278,14 @@ export function WidgetMapper({
 					<CardDescription>Últimas 5 compras realizadas</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
-						{(stats?.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
+                    <div className="space-y-3">
+                        {(!stats?.recentPurchases || stats.recentPurchases.length === 0) ? (
+                            <div className="flex flex-col items-center justify-center text-sm text-muted-foreground py-6">
+                                <Inbox className="h-8 w-8 mb-2 opacity-60" />
+                                <span>Sem compras recentes para mostrar.</span>
+                            </div>
+                        ) : null}
+                        {(stats?.recentPurchases || []).slice(0, 5).map((purchase: RecentPurchase) => (
 							<div
 								key={purchase.id}
 								className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
