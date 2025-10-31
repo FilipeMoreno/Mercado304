@@ -149,23 +149,33 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 					category: true,
 				},
 			}),
-			prisma.market.findMany({
-				where: { id: { not: marketId } },
-				include: {
-					purchases: {
-						where: {
-							purchaseDate: {
-								gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-							}, // 3 meses
+		prisma.market.findMany({
+			where: { id: { not: marketId } },
+			include: {
+				purchases: {
+					where: {
+						purchaseDate: {
+							gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+						}, // 3 meses
 					},
 					include: {
 						items: true,
 					},
 				},
 			},
-		})
+		}),
+	])
 
-		const priceComparison = otherMarkets
+	// Combinar dados de produtos com informações completas
+	const topProductsWithInfo = topProducts.map((item) => {
+		const productInfo = productsInfo.find((p) => p.id === item.productId)
+		return {
+			...item,
+			product: productInfo || null,
+		}
+	})
+
+	const priceComparison = otherMarkets
 			.filter((market) => market.purchases.length >= 3)
 			.map((market) => {
 				const totalItems = market.purchases.reduce(

@@ -427,11 +427,11 @@ export default function ProdutoDetalhesPage() {
 						</CardContent>
 					</Card>
 
-				{/* Status do Estoque e Desperdícios/Usos */}
-				<div className="space-y-4">
-					{/* Status do Estoque Compacto */}
-					<Activity mode={stockAlerts ? 'visible' : 'hidden'}>
-						<Card>
+		{/* Status do Estoque e Desperdícios/Usos */}
+		<div className="space-y-4">
+			{/* Status do Estoque Compacto */}
+			<Activity mode={stockAlerts ? 'visible' : 'hidden'}>
+				<Card>
 							<CardHeader className="pb-3">
 								<CardTitle className="text-sm flex items-center gap-2">
 									<AlertTriangle className="h-4 w-4" />
@@ -474,11 +474,11 @@ export default function ProdutoDetalhesPage() {
 												<p className="text-lg font-bold">{product.maxStock}</p>
 												<p className="text-[10px] text-gray-600 dark:text-gray-400">Máximo</p>
 											</div>
-										)}
-									</div>
-								</CardContent>
-							</Card>
-						)}
+								)}
+							</div>
+						</CardContent>
+					</Card>
+				</Activity>
 
 						{/* Desperdícios e Usos */}
 						<ProductWasteUsageCard productId={productId} productName={product.name} />

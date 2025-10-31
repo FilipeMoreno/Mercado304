@@ -19,11 +19,11 @@ import {
 	Store,
 	ThermometerSnowflake,
 } from "lucide-react"
-import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { Activity, useEffect, useState } from "react"
 import { toast } from "sonner"
+import { AiAnalysisCard } from "@/components/shared/ai-analysis-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -76,10 +76,6 @@ export default function AnaliseNutricionalPage() {
 	const [data, setData] = useState<ProductData | null>(null)
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		fetchNutritionalAnalysis()
-	}, [productId])
-
 	const fetchNutritionalAnalysis = async () => {
 		try {
 			setLoading(true)
@@ -100,6 +96,10 @@ export default function AnaliseNutricionalPage() {
 			setLoading(false)
 		}
 	}
+
+	useEffect(() => {
+		fetchNutritionalAnalysis()
+	}, [, fetchNutritionalAnalysis])
 
 	if (loading) {
 		return <LoadingSkeleton />
@@ -141,9 +141,9 @@ export default function AnaliseNutricionalPage() {
 				{aiAnalysis.summary}
 			</AiAnalysisCard>
 
-		{/* Cards de Informações Nutricionais */}
-		<Activity mode={nutritionalInfo ? 'visible' : 'hidden'}>
-			<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+			{/* Cards de Informações Nutricionais */}
+			<Activity mode={nutritionalInfo ? "visible" : "hidden"}>
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					{nutritionalInfo.calories && (
 						<Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border-orange-200 dark:border-orange-800">
 							<CardContent className="p-4">
@@ -165,9 +165,7 @@ export default function AnaliseNutricionalPage() {
 									<Apple className="h-4 w-4 text-green-600" />
 									<p className="text-sm font-medium text-green-700 dark:text-green-300">Proteína Média</p>
 								</div>
-								<p className="text-2xl font-bold text-green-900 dark:text-green-100">
-									{nutritionalInfo.proteins}g
-								</p>
+								<p className="text-2xl font-bold text-green-900 dark:text-green-100">{nutritionalInfo.proteins}g</p>
 							</CardContent>
 						</Card>
 					)}
@@ -193,14 +191,12 @@ export default function AnaliseNutricionalPage() {
 									<Leaf className="h-4 w-4 text-purple-600" />
 									<p className="text-sm font-medium text-purple-700 dark:text-purple-300">Gordura Média</p>
 								</div>
-								<p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-									{nutritionalInfo.totalFat}g
-								</p>
+								<p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{nutritionalInfo.totalFat}g</p>
 							</CardContent>
 						</Card>
 					)}
 				</div>
-			)}
+			</Activity>
 
 			{/* Tabs com Índice */}
 			<Tabs defaultValue="nutritional" className="space-y-6">
@@ -269,7 +265,10 @@ export default function AnaliseNutricionalPage() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{aiAnalysis.healthBenefits.map((benefit, index) => (
-								<div key={index} className="flex gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+								<div
+									key={index}
+									className="flex gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800"
+								>
 									<div className="flex-shrink-0 mt-1">
 										<div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
 											<Heart className="h-4 w-4 text-green-600" />
@@ -297,7 +296,10 @@ export default function AnaliseNutricionalPage() {
 							</CardHeader>
 							<CardContent className="space-y-3">
 								{aiAnalysis.healthRisks.map((risk, index) => (
-									<div key={index} className="flex gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
+									<div
+										key={index}
+										className="flex gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800"
+									>
 										<div className="flex-shrink-0 mt-1">
 											<div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
 												<AlertTriangle className="h-4 w-4 text-red-600" />
@@ -355,7 +357,10 @@ export default function AnaliseNutricionalPage() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{aiAnalysis.buyingTips.map((tip, index) => (
-								<div key={index} className="flex gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800">
+								<div
+									key={index}
+									className="flex gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800"
+								>
 									<div className="flex-shrink-0 mt-1">
 										<div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
 											<ShoppingBag className="h-4 w-4 text-purple-600" />
@@ -385,7 +390,10 @@ export default function AnaliseNutricionalPage() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{aiAnalysis.storageTips.map((tip, index) => (
-								<div key={index} className="flex gap-3 p-4 rounded-lg bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800">
+								<div
+									key={index}
+									className="flex gap-3 p-4 rounded-lg bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800"
+								>
 									<div className="flex-shrink-0 mt-1">
 										<div className="h-8 w-8 rounded-full bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
 											<Package className="h-4 w-4 text-cyan-600" />
@@ -426,8 +434,7 @@ export default function AnaliseNutricionalPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<ChefHat className="h-5 w-5 text-pink-600" />
-								O que fazer com os restos de comida
+								<ChefHat className="h-5 w-5 text-pink-600" />O que fazer com os restos de comida
 								<Badge variant="secondary" className="ml-auto">
 									<Sparkles className="h-3 w-3 mr-1" />
 									IA
@@ -437,7 +444,10 @@ export default function AnaliseNutricionalPage() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{aiAnalysis.leftoversIdeas.map((idea, index) => (
-								<div key={index} className="flex gap-3 p-4 rounded-lg bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800">
+								<div
+									key={index}
+									className="flex gap-3 p-4 rounded-lg bg-pink-50 dark:bg-pink-950 border border-pink-200 dark:border-pink-800"
+								>
 									<div className="flex-shrink-0 mt-1">
 										<div className="h-8 w-8 rounded-full bg-pink-100 dark:bg-pink-900 flex items-center justify-center">
 											<ChefHat className="h-4 w-4 text-pink-600" />
@@ -471,7 +481,6 @@ export default function AnaliseNutricionalPage() {
 					</div>
 				</CardContent>
 			</Card>
-		</Activity>
 		</div>
 	)
 }

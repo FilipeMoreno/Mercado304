@@ -57,11 +57,12 @@ export async function GET() {
 				},
 				orderBy: { purchaseDate: "desc" },
 				take: 10,
-			}),
+		}),
 
-			prisma.purchaseItem.groupBy({
-				by: ["productId"],
-				where: { productId: { not: null } }, // Garante que não pegamos itens sem produto
+		// @ts-expect-error - Prisma groupBy tem um problema conhecido de tipagem circular
+		prisma.purchaseItem.groupBy({
+			by: ["productId"],
+			where: { productId: { not: null } }, // Garante que não pegamos itens sem produto
 				_count: {
 					productId: true,
 				},
@@ -76,11 +77,12 @@ export async function GET() {
 						productId: "desc",
 					},
 				},
-				take: 10,
-			}),
+		take: 10,
+		}),
 
-			prisma.purchase.groupBy({
-				by: ["marketId"],
+		// @ts-expect-error - Prisma groupBy tem um problema conhecido de tipagem circular
+		prisma.purchase.groupBy({
+			by: ["marketId"],
 				_count: {
 					id: true,
 				},

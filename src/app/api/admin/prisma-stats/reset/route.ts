@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import { resetPrismaQueryCounter } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
-
 export async function POST() {
 	try {
 		resetPrismaQueryCounter()

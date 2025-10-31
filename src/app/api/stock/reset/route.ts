@@ -2,8 +2,6 @@ import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth-server"
 import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
-
 /**
  * DELETE /api/stock/reset
  * Reseta todo o estoque (deleta todos os itens)

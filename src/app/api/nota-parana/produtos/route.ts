@@ -5,6 +5,8 @@ import type { NotaParanaProdutosResponse } from "@/types"
 
 const NOTA_PARANA_BASE_URL = "https://menorpreco.notaparana.pr.gov.br/api/v1"
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url)

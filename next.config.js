@@ -114,8 +114,8 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone', // Enable standalone output for Docker
-  cacheComponents: true,
+  // output: 'standalone', // Comentado temporariamente - problema com Windows e caracteres : em nomes de arquivo
+  cacheComponents: false,
   reactCompiler: true,
   turbo: {
     rules: {
