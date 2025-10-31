@@ -81,19 +81,18 @@ export function ProductCombobox({
 	// Para infinite scroll, usar os produtos diretamente sem filtrar no cliente
 	// O filtro é feito no servidor através do useInfiniteProductsQuery
 	const options: ProductComboboxOption[] = products.map((product) => {
-			// Usar código de barras primário da nova tabela, ou o primeiro disponível
-			const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
-			const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
+		// Usar código de barras primário da nova tabela, ou o primeiro disponível
+		const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
+		const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
 
-			return {
-				value: product.id,
-				label: product.name,
-				brand: product.brand?.name || "",
-				barcode,
-				product,
-			}
-		})
-	}
+		return {
+			value: product.id,
+			label: product.name,
+			brand: product.brand?.name || "",
+			barcode,
+			product,
+		}
+	})
 
 	// Verificar se existe correspondência exata (ignorando códigos de barras)
 	const normalizedSearchTerm = searchTerm.toLowerCase().trim()

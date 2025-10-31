@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Combobox } from "@/components/ui/combobox"
-import { useAllMarketsQuery, useCreateMarketMutation } from "@/hooks"
+import { useMarketsQuery, useCreateMarketMutation } from "@/hooks"
 
 interface MarketSelectProps {
 	value?: string
@@ -19,7 +19,7 @@ export function MarketSelect({
 	className = "w-full",
 	disabled = false,
 }: MarketSelectProps) {
-	const { data: marketsData, isLoading } = useAllMarketsQuery()
+	const { data: marketsData, isLoading } = useMarketsQuery()
 	const createMarketMutation = useCreateMarketMutation()
 
 	const markets = marketsData?.markets || []

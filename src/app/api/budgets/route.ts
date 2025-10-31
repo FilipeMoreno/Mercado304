@@ -29,32 +29,33 @@ export async function GET(request: NextRequest) {
 			},
 		})
 
-		// OTIMIZADO: Buscar todos os targets de uma vez
-		const categoryIds = budgets.filter((b) => b.type === "CATEGORY").map((b) => b.targetId)
-		const marketIds = budgets.filter((b) => b.type === "MARKET").map((b) => b.targetId)
-		const productIds = budgets.filter((b) => b.type === "PRODUCT").map((b) => b.targetId)
+	// OTIMIZADO: Buscar todos os targets de uma vez
+	const categoryIds = budgets.filter((b) => b.type === "CATEGORY").map((b) => b.targetId)
+	const marketIds = budgets.filter((b) => b.type === "MARKET").map((b) => b.targetId)
+	const productIds = budgets.filter((b) => b.type === "PRODUCT").map((b) => b.targetId)
 
-		const [categories, markets, products] = await prisma.$transaction([
-			categoryIds.length > 0
-				? prisma.category.findMany({
-						where: { id: { in: categoryIds } },
-					})
-				: Promise.resolve([]),
-			marketIds.length > 0
-				? prisma.market.findMany({
-						where: { id: { in: marketIds } },
-					})
-				: Promise.resolve([]),
-			productIds.length > 0
-				? prisma.product.findMany({
-						where: { id: { in: productIds } },
-					})
-				: Promise.resolve([]),
-		])
+	// Executar queries condicionalmente em paralelo
+	const [categories, markets, products] = await Promise.all([
+		categoryIds.length > 0
+			? prisma.category.findMany({
+					where: { id: { in: categoryIds } },
+				})
+			: Promise.resolve([]),
+		marketIds.length > 0
+			? prisma.market.findMany({
+					where: { id: { in: marketIds } },
+				})
+			: Promise.resolve([]),
+		productIds.length > 0
+			? prisma.product.findMany({
+					where: { id: { in: productIds } },
+				})
+			: Promise.resolve([]),
+	])
 
-		const categoriesMap = new Map(categories.map((c) => [c.id, c]))
-		const marketsMap = new Map(markets.map((m) => [m.id, m]))
-		const productsMap = new Map(products.map((p) => [p.id, p]))
+	const categoriesMap = new Map(categories.map((c) => [c.id, c]))
+	const marketsMap = new Map(markets.map((m) => [m.id, m]))
+	const productsMap = new Map(products.map((p) => [p.id, p]))
 
 		// Calcular gastos para cada orçamento
 		// NOTA: As queries de compras são específicas para cada orçamento (período diferente)

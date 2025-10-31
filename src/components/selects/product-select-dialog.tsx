@@ -64,31 +64,30 @@ export function ProductSelectDialog({
 
   // Convert products to SelectOption format
   const options: SelectOption[] = products.map((product) => {
-      // Construir sublabel com marca, pacote, quantidade e código
-      const parts = []
-      if (product.brand?.name) {
-        parts.push(product.brand.name)
-      }
-      if (product.unit) {
-        parts.push(product.unit)
-      }
-      if (product.packageSize) {
-        parts.push(product.packageSize)
-      }
+    // Construir sublabel com marca, pacote, quantidade e código
+    const parts = []
+    if (product.brand?.name) {
+      parts.push(product.brand.name)
+    }
+    if (product.unit) {
+      parts.push(product.unit)
+    }
+    if (product.packageSize) {
+      parts.push(product.packageSize)
+    }
 
-      // Usar código de barras primário da nova tabela
-      const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
-      const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
-      if (barcode) {
-        parts.push(barcode)
-      }
+    // Usar código de barras primário da nova tabela
+    const primaryBarcode = product.barcodes?.find((b: any) => b.isPrimary) || product.barcodes?.[0]
+    const barcode = primaryBarcode?.barcode || product.barcode // Fallback para campo antigo
+    if (barcode) {
+      parts.push(barcode)
+    }
 
-      return {
-        id: product.id,
-        label: product.name,
-        sublabel: parts.length > 0 ? parts.join(" • ") : undefined,
-      }
-    })
+    return {
+      id: product.id,
+      label: product.name,
+      sublabel: parts.length > 0 ? parts.join(" • ") : undefined,
+    }
   })
 
   const handleSearchChange = (searchTerm: string) => {

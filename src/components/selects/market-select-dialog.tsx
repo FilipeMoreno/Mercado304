@@ -3,7 +3,7 @@
 import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
-import { useAllMarketsQuery, useCreateMarketMutation } from "@/hooks"
+import { useMarketsQuery, useCreateMarketMutation } from "@/hooks"
 
 interface MarketSelectDialogProps {
   value?: string
@@ -20,7 +20,7 @@ export function MarketSelectDialog({
 }: MarketSelectDialogProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const { data: marketsData, isLoading } = useAllMarketsQuery()
+  const { data: marketsData, isLoading } = useMarketsQuery()
   const createMarketMutation = useCreateMarketMutation()
 
   const markets = marketsData?.markets || []
