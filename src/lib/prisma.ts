@@ -69,9 +69,16 @@ const prismaClientSingleton = () => {
 		log: process.env.NODE_ENV === "production" ? ["error"] : ["error", "warn"],
 	})
 
-	return client.$extends(
-		withAccelerate()
-	).$extends({
+	// Verificar se deve usar o Prisma Accelerate
+	const useAccelerate = process.env.PRISMA_ACCELERATE_ENABLED === "true"
+
+	// Se Accelerate estiver habilitado, aplicar a extensão
+	const clientWithExtensions = useAccelerate 
+		? client.$extends(withAccelerate())
+		: client
+
+	// Aplicar extensão de contador de queries
+	return clientWithExtensions.$extends({
 		query: {
 			async $allOperations({ operation, model, args, query }: any) {
 				const start = Date.now()
