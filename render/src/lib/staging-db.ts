@@ -3,14 +3,9 @@
 
 import Database from "better-sqlite3"
 import { randomUUID } from "crypto"
-import { existsSync, unlinkSync, readFileSync, createReadStream, readdirSync, statSync } from "fs"
+import { existsSync, unlinkSync, readdirSync, statSync } from "fs"
 import { join } from "path"
-import { gzip } from "zlib"
-import { promisify } from "util"
 import type { PrismaClient } from "@prisma/client"
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
-
-const gzipAsync = promisify(gzip)
 
 interface PriceRecordStaging {
 	productId: string
@@ -26,7 +21,6 @@ export class StagingDatabase {
 	private insertStmt: Database.Statement
 	private recordCount = 0
 	private syncJobId: string
-	private s3Client: S3Client | null = null
 
 	constructor(syncJobId: string) {
 		this.syncJobId = syncJobId
@@ -61,18 +55,6 @@ export class StagingDatabase {
 			INSERT INTO price_records (productId, marketId, price, recordDate, notes)
 			VALUES (?, ?, ?, ?, ?)
 		`)
-		
-		// Inicializar S3 Client (R2) se configurado
-		if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
-			this.s3Client = new S3Client({
-				region: "auto",
-				endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-				credentials: {
-					accessKeyId: process.env.R2_ACCESS_KEY_ID,
-					secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-				},
-			})
-		}
 		
 		console.log(`📦 Staging database criado: ${this.dbPath}`)
 	}
@@ -448,84 +430,13 @@ export class StagingDatabase {
 	}
 
 	/**
-	 * Fazer backup do staging database para R2 (comprimido)
-	 */
-	async backupToR2(bucketName = "mercado304-staging-backups"): Promise<{ success: boolean; url?: string; size?: number; compressedSize?: number }> {
-		if (!this.s3Client) {
-			console.warn("⚠️ R2 não configurado. Backup ignorado.")
-			return { success: false }
-		}
-
-		try {
-			// Fechar conexão antes de ler o arquivo
-			this.db.close()
-
-			console.log(`📦 Criando backup do staging database...`)
-			
-			// Ler arquivo SQLite
-			const dbBuffer = readFileSync(this.dbPath)
-			const originalSize = dbBuffer.length
-			
-			// Comprimir com gzip (reduz 60-80% do tamanho)
-			console.log(`🗜️ Comprimindo ${(originalSize / 1024 / 1024).toFixed(2)} MB...`)
-			const compressed = await gzipAsync(dbBuffer)
-			const compressedSize = compressed.length
-			
-			const compressionRatio = ((1 - compressedSize / originalSize) * 100).toFixed(1)
-			console.log(`✅ Comprimido: ${(compressedSize / 1024 / 1024).toFixed(2)} MB (redução de ${compressionRatio}%)`)
-			
-			// Nome do arquivo no R2
-			const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-			const fileName = `staging-${this.syncJobId}-${timestamp}.db.gz`
-			
-			// Upload para R2
-			console.log(`☁️ Fazendo upload para R2...`)
-			await this.s3Client.send(
-				new PutObjectCommand({
-					Bucket: bucketName,
-					Key: `price-sync/${new Date().toISOString().split("T")[0]}/${fileName}`,
-					Body: compressed,
-					ContentType: "application/gzip",
-					ContentEncoding: "gzip",
-					Metadata: {
-						syncJobId: this.syncJobId,
-						originalSize: originalSize.toString(),
-						compressedSize: compressedSize.toString(),
-						recordCount: this.recordCount.toString(),
-						timestamp: new Date().toISOString(),
-					},
-				})
-			)
-			
-			const url = `https://${bucketName}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/price-sync/${fileName}`
-			console.log(`✅ Backup salvo no R2: ${fileName}`)
-			
-			return {
-				success: true,
-				url,
-				size: originalSize,
-				compressedSize,
-			}
-		} catch (error) {
-			console.error(`❌ Erro ao fazer backup no R2:`, error)
-			return { success: false }
-		}
-	}
-
-	/**
 	 * Fechar e limpar o banco temporário
 	 * @param deleteFile - Se true, deleta o arquivo local
-	 * @param backupToR2 - Se true, faz backup no R2 antes de deletar
 	 * @param retentionDays - Se > 0, mantém o arquivo por X dias (persistent staging)
 	 */
-	async close(deleteFile = true, backupToR2 = true, retentionDays = 0): Promise<void> {
-		// Fazer backup no R2 antes de deletar (se configurado)
-		if (backupToR2 && this.s3Client && deleteFile && retentionDays === 0) {
-			await this.backupToR2()
-		} else {
-			// Fechar conexão se não fez backup
-			this.db.close()
-		}
+	async close(deleteFile = true, retentionDays = 0): Promise<void> {
+		// Fechar conexão
+		this.db.close()
 		
 		// PERSISTENT STAGING: Manter arquivo por X dias
 		if (retentionDays > 0) {
@@ -599,7 +510,6 @@ export function openExistingStagingDb(dbPath: string): StagingDatabase | null {
 			db,
 			dbPath,
 			syncJobId,
-			s3Client: null,
 			recordCount: countResult.count,
 		})
 
@@ -709,7 +619,7 @@ export async function reimportFromStagingDb(
 	} finally {
 		// Fechar conexão (não deletar)
 		if (stagingDb) {
-			await stagingDb.close(false, false, 0)
+			await stagingDb.close(false, 0)
 		}
 	}
 }

@@ -114,11 +114,8 @@ export interface JobProgress {
     workersActive: number
   }
   backupProgress?: {
-    status: 'pending' | 'compressing' | 'uploading' | 'completed' | 'skipped'
-    originalSize?: number
-    compressedSize?: number
-    compressionRatio?: number
-    url?: string
+    status: 'pending' | 'completed' | 'skipped'
+    url?: string // RDS Snapshot identifier
   }
   persistentStaging?: {
     enabled: boolean

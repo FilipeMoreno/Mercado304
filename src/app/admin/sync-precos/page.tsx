@@ -94,11 +94,8 @@ interface SyncJob {
 			workersActive: number
 		}
 		backupProgress?: {
-			status: "pending" | "compressing" | "uploading" | "completed" | "skipped"
-			originalSize?: number
-			compressedSize?: number
-			compressionRatio?: number
-			url?: string
+			status: "pending" | "completed" | "skipped"
+			url?: string // Snapshot identifier
 		}
 		persistentStaging?: {
 			enabled: boolean
@@ -449,7 +446,7 @@ export default function AdminSyncPrecosPage() {
 	}
 
 	// Formatar bytes
-	const formatBytes = (bytes: number) => {
+	const _formatBytes = (bytes: number) => {
 		if (bytes === 0) return "0 Bytes"
 		const k = 1024
 		const sizes = ["Bytes", "KB", "MB", "GB"]
@@ -626,7 +623,7 @@ export default function AdminSyncPrecosPage() {
 									<br />
 									<strong>Importação Paralela:</strong> 4 workers simultâneos (2-4x mais rápido)
 									<br />
-									<strong>Backup Automático:</strong> Salvamento comprimido no Cloudflare R2
+									<strong>Backup Automático:</strong> Snapshot automático do banco de dados RDS
 									<br />
 									<strong>Persistent Staging:</strong> Arquivo mantido por 2 dias para recovery
 									<br />
@@ -678,7 +675,7 @@ export default function AdminSyncPrecosPage() {
 										</div>
 										<div>
 											<p className="font-medium">☁️ Backup automático</p>
-											<p className="text-xs text-muted-foreground">Compressão e envio para R2</p>
+											<p className="text-xs text-muted-foreground">Snapshot do banco de dados RDS</p>
 										</div>
 									</div>
 									<div className="flex items-start gap-3">
@@ -914,12 +911,9 @@ export default function AdminSyncPrecosPage() {
 																		: "text-orange-900"
 															}
 														>
-															{currentJob.detalhes.backupProgress.status === "completed" && "✅ Backup Concluído"}
-															{currentJob.detalhes.backupProgress.status === "compressing" && "Comprimindo arquivo..."}
-															{currentJob.detalhes.backupProgress.status === "uploading" &&
-																"Enviando para Cloudflare R2..."}
-															{currentJob.detalhes.backupProgress.status === "pending" && "Preparando backup..."}
-															{currentJob.detalhes.backupProgress.status === "skipped" && "Backup R2 não configurado"}
+															{currentJob.detalhes.backupProgress.status === "completed" && "✅ Snapshot RDS Criado"}
+															{currentJob.detalhes.backupProgress.status === "pending" && "Criando snapshot do RDS..."}
+															{currentJob.detalhes.backupProgress.status === "skipped" && "Backup RDS não configurado"}
 														</AlertTitle>
 														<AlertDescription
 															className={
@@ -931,34 +925,18 @@ export default function AdminSyncPrecosPage() {
 															}
 														>
 															{currentJob.detalhes.backupProgress.status === "completed" &&
-																"Arquivo salvo com sucesso no Cloudflare R2"}
+																currentJob.detalhes.backupProgress.url && 
+																`Snapshot: ${currentJob.detalhes.backupProgress.url}`}
+															{currentJob.detalhes.backupProgress.status === "completed" &&
+																!currentJob.detalhes.backupProgress.url && 
+																"Snapshot do banco de dados criado com sucesso"}
 															{currentJob.detalhes.backupProgress.status === "skipped" &&
-																"Configure R2_ACCOUNT_ID e R2_ACCESS_KEY_ID para habilitar backups"}
+																"Configure AWS_REGION, AWS_ACCESS_KEY_ID e RDS_DB_INSTANCE_ID para habilitar backups"}
 															{currentJob.detalhes.backupProgress.status !== "completed" &&
 																currentJob.detalhes.backupProgress.status !== "skipped" &&
-																"Aguarde..."}
+																"Aguarde enquanto o snapshot do RDS é criado..."}
 														</AlertDescription>
 													</Alert>
-												)}
-
-												{/* Compressão */}
-												{currentJob.detalhes.backupProgress?.compressionRatio !== undefined && (
-													<div className="bg-blue-50 p-4 rounded border border-blue-200">
-														<h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-															<Database className="h-4 w-4" />
-															Compressão
-														</h4>
-														<div className="flex justify-between items-center">
-															<span className="text-sm text-blue-700">Tamanho:</span>
-															<span className="font-bold text-blue-900">
-																{formatBytes(currentJob.detalhes.backupProgress.originalSize || 0)} →{" "}
-																{formatBytes(currentJob.detalhes.backupProgress.compressedSize || 0)}
-															</span>
-														</div>
-														<div className="text-xs text-blue-600 mt-1 text-right">
-															{((1 - currentJob.detalhes.backupProgress.compressionRatio) * 100).toFixed(0)}% de redução
-														</div>
-													</div>
 												)}
 
 												{/* Persistent Staging */}

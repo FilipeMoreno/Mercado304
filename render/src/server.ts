@@ -5,6 +5,7 @@ import cors from "cors"
 import express from "express"
 import { healthCheck } from "./health"
 import backupRoutes from "./routes/backup"
+import rdsSnapshotsRoutes from "./routes/rds-snapshots"
 
 const app = express()
 const _PORT = process.env.PORT || 3333
@@ -45,6 +46,7 @@ app.get("/health", async (_req, res) => {
 
 // API Routes
 app.use("/api/backup", backupRoutes)
+app.use("/api/rds/snapshots", rdsSnapshotsRoutes)
 
 // Root endpoint
 app.get("/", (_req, res) => {

@@ -3,6 +3,7 @@
 
 import type { Job } from "bullmq"
 import { LOCAL_PADRAO, NOTA_PARANA_BASE_URL, PERIODO_PADRAO, RAIO_PADRAO } from "../lib/nota-parana-config"
+import { createRDSBackupManager } from "../lib/rds-backup"
 import { createStagingDb, type StagingDatabase } from "../lib/staging-db"
 import type { JobProgress, JobResult, PriceSyncJobData } from "../types/jobs"
 import { BaseHandler } from "./BaseHandler"
@@ -26,7 +27,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			backupProgress: progress.backupProgress,
 			persistentStaging: progress.persistentStaging,
 		})
-		
+
 		console.log(`[${job.name}] ${progress.stage}: ${progress.message} (${progress.percentage}%)`)
 
 		// Atualizar também na tabela SyncJob com informações estendidas
@@ -53,12 +54,12 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 	// Método auxiliar para preservar detalhes existentes
 	private async getCurrentDetails(): Promise<any> {
 		if (!this.syncJobId) return {}
-		
+
 		const current = await this.prisma.syncJob.findUnique({
 			where: { id: this.syncJobId },
 			select: { detalhes: true },
 		})
-		
+
 		return current?.detalhes || {}
 	}
 
@@ -106,18 +107,18 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					startedAt: new Date(),
 				},
 			})
-		this.syncJobId = syncJob.id
-		const startTime = Date.now()
+			this.syncJobId = syncJob.id
+			const startTime = Date.now()
 
-		// 🚀 OTIMIZAÇÃO: Criar staging database SQLite para inserções rápidas
-		this.stagingDb = createStagingDb(syncJob.id)
-		await this.logInfo(job, "📦 Staging database criado - todas as inserções serão feitas localmente primeiro")
+			// 🚀 OTIMIZAÇÃO: Criar staging database SQLite para inserções rápidas
+			this.stagingDb = createStagingDb(syncJob.id)
+			await this.logInfo(job, "📦 Staging database criado - todas as inserções serão feitas localmente primeiro")
 
 			await this.updateProgress(job, {
 				percentage: 5,
 				stage: "INIT",
 				message: "Iniciando sincronização de preços",
-				currentPhase: 'collecting',
+				currentPhase: "collecting",
 				stagingStats: {
 					totalRecords: 0,
 					uniqueProducts: 0,
@@ -139,56 +140,56 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				},
 			})
 
-		await this.logInfo(job, `Encontrados ${mercados.length} mercados com razão social`)
+			await this.logInfo(job, `Encontrados ${mercados.length} mercados com razão social`)
 
-		if (mercados.length === 0) {
-			// Fechar staging database
-			if (this.stagingDb) {
-				await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não há dados)
-				this.stagingDb = null
-			}
+			if (mercados.length === 0) {
+				// Fechar staging database
+				if (this.stagingDb) {
+					await this.stagingDb.close(true) // deleteFile=true
+					this.stagingDb = null
+				}
 
-			// Atualizar progresso final
-			await this.updateProgress(job, {
-				percentage: 100,
-				stage: "COMPLETED",
-				message: "Sincronização encerrada: nenhum mercado com razão social",
-				currentPhase: 'completed',
-			})
+				// Atualizar progresso final
+				await this.updateProgress(job, {
+					percentage: 100,
+					stage: "COMPLETED",
+					message: "Sincronização encerrada: nenhum mercado com razão social",
+					currentPhase: "completed",
+				})
 
-			// Atualizar status no banco
-			if (this.syncJobId) {
-				await this.prisma.syncJob.update({
-					where: { id: this.syncJobId },
-					data: {
-						status: "completed",
-						progresso: 100,
-						mercadosProcessados: 0,
-						produtosProcessados: 0,
-						precosRegistrados: 0,
-						detalhes: {
-							estatisticas: {
-								produtosTotal: 0,
-								produtosEncontrados: 0,
-								produtosNaoEncontrados: 0,
-								precosColetados: 0,
-								precosImportados: 0,
-								precosIgnorados: 0,
-								tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+				// Atualizar status no banco
+				if (this.syncJobId) {
+					await this.prisma.syncJob.update({
+						where: { id: this.syncJobId },
+						data: {
+							status: "completed",
+							progresso: 100,
+							mercadosProcessados: 0,
+							produtosProcessados: 0,
+							precosRegistrados: 0,
+							detalhes: {
+								estatisticas: {
+									produtosTotal: 0,
+									produtosEncontrados: 0,
+									produtosNaoEncontrados: 0,
+									precosColetados: 0,
+									precosImportados: 0,
+									precosIgnorados: 0,
+									tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+								},
 							},
+							completedAt: new Date(),
+							updatedAt: new Date(),
 						},
-						completedAt: new Date(),
-						updatedAt: new Date(),
-					},
+					})
+				}
+
+				return this.createSuccessResult("Nenhum mercado com razão social cadastrada", {
+					mercadosProcessados: 0,
+					produtosProcessados: 0,
+					precosRegistrados: 0,
 				})
 			}
-
-			return this.createSuccessResult("Nenhum mercado com razão social cadastrada", {
-				mercadosProcessados: 0,
-				produtosProcessados: 0,
-				precosRegistrados: 0,
-			})
-		}
 
 			// 2. Buscar produtos
 			const produtos = await this.prisma.product.findMany({
@@ -202,69 +203,69 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				},
 			})
 
-		await this.logInfo(job, `Encontrados ${produtos.length} produtos com código de barras`)
+			await this.logInfo(job, `Encontrados ${produtos.length} produtos com código de barras`)
 
-		if (produtos.length === 0) {
-			// Fechar staging database
-			if (this.stagingDb) {
-				await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não há dados)
-				this.stagingDb = null
-			}
+			if (produtos.length === 0) {
+				// Fechar staging database
+				if (this.stagingDb) {
+					await this.stagingDb.close(true) // deleteFile=true
+					this.stagingDb = null
+				}
 
-			// Atualizar progresso final
-			await this.updateProgress(job, {
-				percentage: 100,
-				stage: "COMPLETED",
-				message: "Sincronização encerrada: nenhum produto com código de barras",
-				currentPhase: 'completed',
-			})
+				// Atualizar progresso final
+				await this.updateProgress(job, {
+					percentage: 100,
+					stage: "COMPLETED",
+					message: "Sincronização encerrada: nenhum produto com código de barras",
+					currentPhase: "completed",
+				})
 
-			// Atualizar status no banco
-			if (this.syncJobId) {
-				await this.prisma.syncJob.update({
-					where: { id: this.syncJobId },
-					data: {
-						status: "completed",
-						progresso: 100,
-						mercadosProcessados: mercados.length,
-						produtosProcessados: 0,
-						precosRegistrados: 0,
-						detalhes: {
-							estatisticas: {
-								produtosTotal: 0,
-								produtosEncontrados: 0,
-								produtosNaoEncontrados: 0,
-								precosColetados: 0,
-								precosImportados: 0,
-								precosIgnorados: 0,
-								tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+				// Atualizar status no banco
+				if (this.syncJobId) {
+					await this.prisma.syncJob.update({
+						where: { id: this.syncJobId },
+						data: {
+							status: "completed",
+							progresso: 100,
+							mercadosProcessados: mercados.length,
+							produtosProcessados: 0,
+							precosRegistrados: 0,
+							detalhes: {
+								estatisticas: {
+									produtosTotal: 0,
+									produtosEncontrados: 0,
+									produtosNaoEncontrados: 0,
+									precosColetados: 0,
+									precosImportados: 0,
+									precosIgnorados: 0,
+									tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+								},
 							},
+							completedAt: new Date(),
+							updatedAt: new Date(),
 						},
-						completedAt: new Date(),
-						updatedAt: new Date(),
-					},
+					})
+				}
+
+				return this.createSuccessResult("Nenhum produto com código de barras cadastrado", {
+					mercadosProcessados: mercados.length,
+					produtosProcessados: 0,
+					precosRegistrados: 0,
 				})
 			}
-
-			return this.createSuccessResult("Nenhum produto com código de barras cadastrado", {
-				mercadosProcessados: mercados.length,
-				produtosProcessados: 0,
-				precosRegistrados: 0,
-			})
-		}
 
 			await this.updateProgress(job, {
 				percentage: 10,
 				stage: "PROCESSING",
 				message: "Iniciando processamento de produtos",
-				currentPhase: 'collecting',
+				currentPhase: "collecting",
 			})
 
-		// 3. Processar produtos em paralelo (batches)
-		let precosRegistrados = 0
-		const detalhes: any[] = []
-		const produtosNaoEncontrados: any[] = []
-		let produtosProcessados = 0
+			// 3. Processar produtos em paralelo (batches)
+			let precosRegistrados = 0
+			const detalhes: any[] = []
+			const produtosNaoEncontrados: any[] = []
+			let produtosProcessados = 0
 
 			// Dividir produtos em batches
 			const batches: (typeof produtos)[] = []
@@ -302,15 +303,15 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					if (currentSyncJob?.status === "cancelled") {
 						await this.logInfo(job, `🛑 Sincronização cancelada pelo usuário`)
 
-					// Limpar staging database em caso de cancelamento
-					if (this.stagingDb) {
-						try {
-							await this.stagingDb.close(true, true) // Fazer backup mesmo se cancelado (dados podem ser úteis)
-							this.stagingDb = null
-						} catch (cleanupError) {
-							console.error("⚠️ Erro ao limpar staging database:", cleanupError)
+						// Limpar staging database em caso de cancelamento
+						if (this.stagingDb) {
+							try {
+								await this.stagingDb.close(true) // deleteFile=true
+								this.stagingDb = null
+							} catch (cleanupError) {
+								console.error("⚠️ Erro ao limpar staging database:", cleanupError)
+							}
 						}
-					}
 
 						return this.createSuccessResult("Sincronização cancelada pelo usuário", {
 							mercadosProcessados: mercados.length,
@@ -457,13 +458,15 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					percentage: progresso,
 					stage: "PROCESSING",
 					message: `Processados ${produtosProcessados}/${produtos.length} produtos (${precosRegistrados} preços registrados) - Tempo decorrido: ${formatarTempo(tempoDecorrido)} - Estimativa restante: ${formatarTempo(estimativaSegundos)}`,
-					currentPhase: 'collecting',
-					stagingStats: this.stagingDb ? {
-						totalRecords: this.stagingDb.getRecordCount(),
-						uniqueProducts: 0, // Será atualizado no final
-						uniqueMarkets: 0,
-						avgPrice: 0,
-					} : undefined,
+					currentPhase: "collecting",
+					stagingStats: this.stagingDb
+						? {
+								totalRecords: this.stagingDb.getRecordCount(),
+								uniqueProducts: 0, // Será atualizado no final
+								uniqueMarkets: 0,
+								avgPrice: 0,
+							}
+						: undefined,
 				})
 
 				// Delay entre batches
@@ -490,7 +493,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					percentage: 95,
 					stage: "IMPORTING",
 					message: "Importando dados do staging database para PostgreSQL...",
-					currentPhase: 'importing',
+					currentPhase: "importing",
 					parallelWorkers,
 					stagingStats: {
 						totalRecords: stats.totalRecords,
@@ -517,7 +520,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 								percentage: 95 + Math.floor((imported / total) * 4),
 								stage: "IMPORTING",
 								message: `Importando: ${imported}/${total} registros (${Math.round((imported / total) * 100)}%)`,
-								currentPhase: 'importing',
+								currentPhase: "importing",
 								parallelWorkers,
 								stagingStats: {
 									totalRecords: stats.totalRecords,
@@ -550,7 +553,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					percentage: 99,
 					stage: "IMPORTING",
 					message: "Importação concluída",
-					currentPhase: 'backing_up',
+					currentPhase: "backing_up",
 					parallelWorkers,
 					stagingStats: {
 						totalRecords: stats.totalRecords,
@@ -566,44 +569,93 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					},
 				})
 
-				// 💾 PERSISTENT STAGING & ☁️ BACKUP R2
+				// 💾 PERSISTENT STAGING & ☁️ BACKUP RDS
 				const retentionDays = 2
 				const willDeleteAt = new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000)
 
-				// Informar sobre backup R2
-				const hasR2 = process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID
-				
-				await this.updateProgress(job, {
-					percentage: 99,
-					stage: "BACKUP",
-					message: hasR2 ? "Fazendo backup no R2..." : "Finalizando (R2 não configurado)",
-					currentPhase: 'backing_up',
-					backupProgress: {
-						status: hasR2 ? 'pending' : 'skipped',
-					},
-					persistentStaging: {
-						enabled: true,
-						retentionDays,
-						willDeleteAt: willDeleteAt.toISOString(),
-					},
-				})
+				// Fechar staging database (persistent - mantém por 2 dias)
+				if (this.stagingDb) {
+					await this.stagingDb.close(false /* deleteFile */, 2 /* retentionDays */)
+				}
 
-				// Fechar e limpar staging database (com backup)
-				await this.stagingDb.close(
-					false, // não deletar (persistent)
-					true, // fazer backup no R2
-					retentionDays // manter por 2 dias
-				)
+				// Criar backup do RDS
+				const rdsBackupManager = createRDSBackupManager()
 
-				// Se R2 está configurado, atualizar progresso do backup
-				if (hasR2) {
+				if (rdsBackupManager) {
 					await this.updateProgress(job, {
 						percentage: 99,
 						stage: "BACKUP",
-						message: "Backup concluído",
-						currentPhase: 'backing_up',
+						message: "Criando snapshot do RDS...",
+						currentPhase: "backing_up",
 						backupProgress: {
-							status: 'completed',
+							status: "pending",
+						},
+						persistentStaging: {
+							enabled: true,
+							retentionDays,
+							willDeleteAt: willDeleteAt.toISOString(),
+						},
+					})
+
+					try {
+						// Criar snapshot com tags
+						const snapshot = await rdsBackupManager.createSnapshot({
+							syncJobId: this.syncJobId || "unknown",
+							produtosProcessados: produtosProcessados.toString(),
+							precosRegistrados: precosRegistrados.toString(),
+							mercadosProcessados: mercados.length.toString(),
+						})
+
+						await this.logInfo(job, `✅ Snapshot RDS criado: ${snapshot.snapshotIdentifier}`)
+
+						await this.updateProgress(job, {
+							percentage: 99,
+							stage: "BACKUP",
+							message: `Snapshot RDS criado: ${snapshot.snapshotIdentifier}`,
+							currentPhase: "backing_up",
+							backupProgress: {
+								status: "completed",
+								url: snapshot.snapshotIdentifier,
+							},
+							persistentStaging: {
+								enabled: true,
+								retentionDays,
+								willDeleteAt: willDeleteAt.toISOString(),
+							},
+						})
+
+						// Limpar snapshots antigos em background (não esperar)
+						rdsBackupManager.cleanupOldSnapshots().catch((error) => {
+							console.error("[RDS Backup] Erro ao limpar snapshots antigos:", error)
+						})
+					} catch (error) {
+						await this.logError(job, error as Error, "Erro ao criar snapshot RDS")
+
+						await this.updateProgress(job, {
+							percentage: 99,
+							stage: "BACKUP",
+							message: "Erro ao criar snapshot (sincronização concluída)",
+							currentPhase: "backing_up",
+							backupProgress: {
+								status: "skipped",
+							},
+							persistentStaging: {
+								enabled: true,
+								retentionDays,
+								willDeleteAt: willDeleteAt.toISOString(),
+							},
+						})
+					}
+				} else {
+					await this.logInfo(job, "⚠️ RDS backup não configurado (sync concluída)")
+
+					await this.updateProgress(job, {
+						percentage: 99,
+						stage: "BACKUP",
+						message: "Finalizando (RDS backup não configurado)",
+						currentPhase: "backing_up",
+						backupProgress: {
+							status: "skipped",
 						},
 						persistentStaging: {
 							enabled: true,
@@ -620,7 +672,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				percentage: 100,
 				stage: "COMPLETED",
 				message: "Sincronização concluída com sucesso",
-				currentPhase: 'completed',
+				currentPhase: "completed",
 				importProgress: {
 					imported: precosImportados,
 					skipped: precosIgnorados,
@@ -677,7 +729,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			// Limpar staging database em caso de erro
 			if (this.stagingDb) {
 				try {
-					await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não fazer backup em caso de erro)
+					await this.stagingDb.close(true) // deleteFile=true
 					this.stagingDb = null
 				} catch (cleanupError) {
 					console.error("⚠️ Erro ao limpar staging database:", cleanupError)
