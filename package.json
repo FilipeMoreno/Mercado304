@@ -1,6 +1,6 @@
 {
   "name": "mercado304",
-  "version": "1.5.1",
+  "version": "2.1.2",
   "private": true,
   "scripts": {
     "dev": "npx prisma generate && next dev",
