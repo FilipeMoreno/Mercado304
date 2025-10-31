@@ -71,6 +71,7 @@ const prismaClientSingleton = () => {
 
 	// Verificar se deve usar o Prisma Accelerate
 	const useAccelerate = process.env.PRISMA_ACCELERATE_ENABLED === "true"
+	console.log("useAccelerate", useAccelerate)
 
 	// Se Accelerate estiver habilitado, aplicar a extensão
 	const clientWithExtensions = useAccelerate 

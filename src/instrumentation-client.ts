@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import posthog from "posthog-js"
 
 posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -7,3 +8,6 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
   capture_exceptions: true,
   debug: process.env.NODE_ENV === "development",
 });
+
+// Hook necessário para o Sentry capturar transições de rota
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
