@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import { Activity } from "react"
 import { Button } from "./button"
 import { ResponsiveDialog } from "./responsive-dialog"
 
@@ -57,30 +58,30 @@ export function ResponsiveFormDialog({
 			maxWidth={maxWidth}
 		>
 			<div className="space-y-4">
-				{/* Conteúdo do formulário */}
-				<div className="space-y-4">{children}</div>
+			{/* Conteúdo do formulário */}
+			<div className="space-y-4">{children}</div>
 
-				{/* Botões de ação (apenas se onSubmit for fornecido) */}
-				{onSubmit && (
-					<div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t">
-						<Button
-							variant={submitVariant}
-							onClick={handleSubmit}
-							disabled={isLoading || isSubmitDisabled}
-							className="w-full sm:flex-1 order-2 sm:order-1"
-						>
-							{isLoading ? "Salvando..." : submitText}
-						</Button>
-						<Button
-							variant="outline"
-							onClick={handleCancel}
-							disabled={isLoading}
-							className="w-full sm:w-auto order-1 sm:order-2"
-						>
-							{cancelText}
-						</Button>
-					</div>
-				)}
+			{/* Botões de ação (apenas se onSubmit for fornecido) */}
+			<Activity mode={onSubmit ? 'visible' : 'hidden'}>
+				<div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t">
+					<Button
+						variant={submitVariant}
+						onClick={handleSubmit}
+						disabled={isLoading || isSubmitDisabled}
+						className="w-full sm:flex-1 order-2 sm:order-1"
+					>
+						{isLoading ? "Salvando..." : submitText}
+					</Button>
+					<Button
+						variant="outline"
+						onClick={handleCancel}
+						disabled={isLoading}
+						className="w-full sm:w-auto order-1 sm:order-2"
+					>
+						{cancelText}
+					</Button>
+				</div>
+			</Activity>
 			</div>
 		</ResponsiveDialog>
 	)

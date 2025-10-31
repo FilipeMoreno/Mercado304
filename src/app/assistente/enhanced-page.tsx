@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
 	ArrowLeft,
@@ -383,15 +383,15 @@ export default function EnhancedAssistentePage() {
 										</div>
 									))}
 
-									{/* Indicador de Digitação Melhorado */}
-									{isLoading && (
-										<EnhancedTypingIndicator
-											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
-												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
-													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-														undefined}
-										/>
-									)}
+								{/* Indicador de Digitação Melhorado */}
+								<Activity mode={isLoading ? 'visible' : 'hidden'}>
+									<EnhancedTypingIndicator
+										context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
+											lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+												lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
+													undefined}
+									/>
+								</Activity>
 								</div>
 							</ScrollArea>
 

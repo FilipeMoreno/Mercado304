@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { toast } from "sonner"
 
 export function useDataFetch<T>(url: string, initialData: T) {
@@ -6,7 +6,8 @@ export function useDataFetch<T>(url: string, initialData: T) {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
-	const fetchData = async () => {
+	// useEffectEvent para fetchData - sempre vê as props/state mais recentes
+	const onFetchData = useEffectEvent(async () => {
 		setLoading(true)
 		setError(null)
 		try {
@@ -24,15 +25,15 @@ export function useDataFetch<T>(url: string, initialData: T) {
 		} finally {
 			setLoading(false)
 		}
-	}
+	})
 
 	const refetch = () => {
-		fetchData()
+		onFetchData()
 	}
 
 	useEffect(() => {
-		fetchData()
-	}, [url])
+		onFetchData()
+	}, [url]) // ✅ onFetchData não é dependência (Effect Event)
 
 	return {
 		data,

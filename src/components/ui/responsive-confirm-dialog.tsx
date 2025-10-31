@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import { Activity } from "react"
 import { Button } from "./button"
 import { ResponsiveDialog } from "./responsive-dialog"
 
@@ -55,14 +56,16 @@ export function ResponsiveConfirmDialog({
 		>
 			<div className="space-y-4">
 				{/* Icon para mobile */}
-				{icon && (
+				<Activity mode={icon ? 'visible' : 'hidden'}>
 					<div className="flex items-center justify-center w-16 h-16 mx-auto bg-gray-100 rounded-full sm:hidden">
 						{icon}
 					</div>
-				)}
+				</Activity>
 
 				{/* Conteúdo personalizado */}
-				{children && <div className="text-center sm:text-left">{children}</div>}
+				<Activity mode={children ? 'visible' : 'hidden'}>
+					<div className="text-center sm:text-left">{children}</div>
+				</Activity>
 
 				{/* Botões de ação */}
 				<div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">

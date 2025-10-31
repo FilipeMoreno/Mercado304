@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera, Loader2, Upload, } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"

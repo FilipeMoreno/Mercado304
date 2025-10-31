@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Camera, Loader2, Receipt, Upload } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 

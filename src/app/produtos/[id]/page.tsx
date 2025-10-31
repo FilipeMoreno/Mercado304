@@ -22,7 +22,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Activity } from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { AnvisaNutritionalTable } from "@/components/AnvisaNutritionalTable"
@@ -221,17 +221,17 @@ export default function ProdutoDetalhesPage() {
 					</DropdownMenu>
 				</div>
 
-				{/* Avisos ANVISA e Ícones de Alérgenos */}
-				{nutritionalInfo && (
-					<div className="space-y-3">
-						<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
-						{(nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (
-							<div>
-								<AllergenIcons nutritionalInfo={nutritionalInfo} />
-							</div>
-						)}
-					</div>
-				)}
+			{/* Avisos ANVISA e Ícones de Alérgenos */}
+			<Activity mode={nutritionalInfo ? 'visible' : 'hidden'}>
+				<div className="space-y-3">
+					<AnvisaWarnings nutritionalInfo={nutritionalInfo} unit={product.unit} layout="horizontal-inline" />
+					{(nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (
+						<div>
+							<AllergenIcons nutritionalInfo={nutritionalInfo} />
+						</div>
+					)}
+				</div>
+			</Activity>
 			</div>
 
 			{/* Grid: Imagem + Stats + Info + Estoque */}
@@ -292,26 +292,26 @@ export default function ProdutoDetalhesPage() {
 					</Card>
 
 				{/* Coluna Direita: Stats + Informações + Estoque */}
-				<div className="space-y-4">
-					{/* Cards de Estatísticas Compactos */}
-					{stats && (
-						<div className="grid grid-cols-2 gap-3">
-							<Card>
-								<CardContent className="p-4">
-									<div className="flex items-center gap-2">
-										<div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded">
-											<ShoppingCart className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-										</div>
-										<div className="flex-1 min-w-0">
-											<p className="text-lg font-bold leading-none">{stats.totalPurchases || 0}</p>
-											<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Compras</p>
-										</div>
+			<div className="space-y-4">
+				{/* Cards de Estatísticas Compactos */}
+				<Activity mode={stats ? 'visible' : 'hidden'}>
+					<div className="grid grid-cols-2 gap-3">
+						<Card>
+							<CardContent className="p-4">
+								<div className="flex items-center gap-2">
+									<div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded">
+										<ShoppingCart className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
 									</div>
-								</CardContent>
-							</Card>
+									<div className="flex-1 min-w-0">
+										<p className="text-lg font-bold leading-none">{stats.totalPurchases || 0}</p>
+										<p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Compras</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
 
-							<Card>
-								<CardContent className="p-4">
+						<Card>
+							<CardContent className="p-4">
 									<div className="flex items-center gap-2">
 										<div className="p-1.5 bg-green-100 dark:bg-green-900 rounded">
 											<DollarSign className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
@@ -371,7 +371,7 @@ export default function ProdutoDetalhesPage() {
 								</CardContent>
 							</Card>
 						</div>
-					)}
+					</Activity>
 
 					{/* Informações Gerais Compactas */}
 					<Card>
@@ -427,19 +427,19 @@ export default function ProdutoDetalhesPage() {
 						</CardContent>
 					</Card>
 
-					{/* Status do Estoque e Desperdícios/Usos */}
-					<div className="space-y-4">
-						{/* Status do Estoque Compacto */}
-						{stockAlerts && (
-							<Card>
-								<CardHeader className="pb-3">
-									<CardTitle className="text-sm flex items-center gap-2">
-										<AlertTriangle className="h-4 w-4" />
-										Status do Estoque
-									</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<div className="grid grid-cols-3 gap-3">
+				{/* Status do Estoque e Desperdícios/Usos */}
+				<div className="space-y-4">
+					{/* Status do Estoque Compacto */}
+					<Activity mode={stockAlerts ? 'visible' : 'hidden'}>
+						<Card>
+							<CardHeader className="pb-3">
+								<CardTitle className="text-sm flex items-center gap-2">
+									<AlertTriangle className="h-4 w-4" />
+									Status do Estoque
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-3 gap-3">
 										<div className="flex flex-col items-center text-center">
 											<div
 												className={`p-2 rounded-lg mb-1 ${
@@ -589,14 +589,14 @@ export default function ProdutoDetalhesPage() {
 				recentPurchases={recentPurchases}
 			/>
 
-			{/* Informações Nutricionais Completas */}
-			{nutritionalInfo && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Package className="h-5 w-5 text-green-600" />
-							Informações Nutricionais Completas
-						</CardTitle>
+		{/* Informações Nutricionais Completas */}
+		<Activity mode={nutritionalInfo ? 'visible' : 'hidden'}>
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Package className="h-5 w-5 text-green-600" />
+						Informações Nutricionais Completas
+					</CardTitle>
 						<CardDescription className="mt-2">
 							{nutritionalInfo.servingsPerPackage && (
 								<>Porções por embalagem: {nutritionalInfo.servingsPerPackage} • </>
@@ -1790,51 +1790,50 @@ export default function ProdutoDetalhesPage() {
 									<AnvisaNutritionalTable nutritionalInfo={nutritionalInfo} />
 								</div>
 							</TabsContent>
-						</Tabs>
-					</CardContent>
-				</Card>
-			)}
+					</Tabs>
+				</CardContent>
+			</Card>
+		</Activity>
 
-			{/* Análise Nutricional do Zé - apenas para alimentos */}
+		{/* Análise Nutricional do Zé - apenas para alimentos */}
 			{product.category?.isFood && (
 				<NutritionAiAnalysis productId={productId} productName={product.name} nutritionalInfo={nutritionalInfo} />
 			)}
 
-			{/* Informações sobre Alérgenos */}
-			{nutritionalInfo &&
-				(nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) && (
-					<Card className="border-2 overflow-hidden">
-						<CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-b">
-							<CardTitle className="flex items-center gap-2.5">
-								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
-									<AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-								</div>
-								<span className="text-lg">Informações sobre Alérgenos</span>
-							</CardTitle>
-							<CardDescription className="mt-2">
-								Informações importantes para pessoas com alergias alimentares
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="pt-6">
-							<AllergenIcons nutritionalInfo={nutritionalInfo} />
-						</CardContent>
-					</Card>
-				)}
+		{/* Informações sobre Alérgenos */}
+		<Activity mode={nutritionalInfo && (nutritionalInfo.allergensContains?.length > 0 || nutritionalInfo.allergensMayContain?.length > 0) ? 'visible' : 'hidden'}>
+				<Card className="border-2 overflow-hidden">
+					<CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-b">
+						<CardTitle className="flex items-center gap-2.5">
+							<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
+								<AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+							</div>
+							<span className="text-lg">Informações sobre Alérgenos</span>
+						</CardTitle>
+						<CardDescription className="mt-2">
+							Informações importantes para pessoas com alergias alimentares
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="pt-6">
+						<AllergenIcons nutritionalInfo={nutritionalInfo} />
+					</CardContent>
+				</Card>
+			</Activity>
 
-			{/* Dialog para adicionar código de barras */}
-			{product && (
-				<AddBarcodeDialog
-					isOpen={showAddBarcodeDialog}
-					onClose={() => setShowAddBarcodeDialog(false)}
-					productId={productId}
+		{/* Dialog para adicionar código de barras */}
+		<Activity mode={product ? 'visible' : 'hidden'}>
+			<AddBarcodeDialog
+				isOpen={showAddBarcodeDialog}
+				onClose={() => setShowAddBarcodeDialog(false)}
+				productId={productId}
 					productName={product.name}
-					initialBarcode={initialBarcodeValue}
-					onSuccess={() => {
-						queryClient.invalidateQueries({ queryKey: ["products", productId, "details"] })
-						toast.success("Produto atualizado!")
-					}}
-				/>
-			)}
-		</div>
-	)
+				initialBarcode={initialBarcodeValue}
+				onSuccess={() => {
+					queryClient.invalidateQueries({ queryKey: ["products", productId, "details"] })
+					toast.success("Produto atualizado!")
+				}}
+			/>
+		</Activity>
+	</div>
+)
 }

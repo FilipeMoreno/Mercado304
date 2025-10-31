@@ -2,7 +2,7 @@
 
 import { AlertCircle, ArrowLeft, Loader2, Package, Save } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Activity } from "react"
 import { toast } from "sonner"
 import { ProductSelector, type SelectedProduct } from "@/components/kits/product-selector"
 import { BrandSelect } from "@/components/selects/brand-select"
@@ -365,19 +365,21 @@ export default function EditProductKitPage() {
 					</CardContent>
 				</Card>
 
-				{/* Preview */}
-				{kitName && selectedProducts.length > 0 && (
-					<Card className="border-primary/50">
-						<CardHeader>
-							<CardTitle className="text-lg">Preview do Kit</CardTitle>
-							<CardDescription>Veja como o kit ficará após as alterações</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-3">
-								<div className="flex items-start justify-between">
-									<div>
-										<h3 className="font-semibold">{kitName}</h3>
-										{kitDescription && <p className="text-sm text-muted-foreground mt-1">{kitDescription}</p>}
+			{/* Preview */}
+			<Activity mode={kitName && selectedProducts.length > 0 ? 'visible' : 'hidden'}>
+				<Card className="border-primary/50">
+					<CardHeader>
+						<CardTitle className="text-lg">Preview do Kit</CardTitle>
+						<CardDescription>Veja como o kit ficará após as alterações</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							<div className="flex items-start justify-between">
+								<div>
+									<h3 className="font-semibold">{kitName}</h3>
+									<Activity mode={kitDescription ? 'visible' : 'hidden'}>
+										<p className="text-sm text-muted-foreground mt-1">{kitDescription}</p>
+									</Activity>
 									</div>
 									<Badge variant={isActive ? "default" : "secondary"}>{isActive ? "Ativo" : "Inativo"}</Badge>
 								</div>
@@ -406,7 +408,7 @@ export default function EditProductKitPage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				</Activity>
 
 				{/* Actions */}
 				<div className="flex items-center justify-between">

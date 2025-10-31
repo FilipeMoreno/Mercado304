@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, Search, X, XCircle } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -141,7 +141,7 @@ export function ResponsiveMultiSelect({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-9"
             />
-            {searchTerm && (
+            <Activity mode={searchTerm ? 'visible' : 'hidden'}>
               <Button
                 type="button"
                 variant="ghost"
@@ -151,7 +151,7 @@ export function ResponsiveMultiSelect({
               >
                 <X className="h-4 w-4" />
               </Button>
-            )}
+            </Activity>
           </div>
 
           {/* Selected Count */}

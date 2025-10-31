@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Plus, RotateCcw, Search, Trash2, Package } from "lucide-react"
 import * as React from "react"
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { RecipeSuggester } from "@/components/recipe-suggester"
 import { Button } from "@/components/ui/button"
@@ -344,36 +344,38 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 				/>
 			</ResponsiveDialog>
 
-			{/* Diálogo de Editar */}
-			<ResponsiveDialog open={showEditDialog} onOpenChange={setShowEditDialog} title="Editar Item do Estoque" maxWidth="md">
-				{selectedItem && (
-					<StockForm
-						initialData={selectedItem}
-						products={products}
-						onSubmit={handleUpdateStock}
-						onCancel={() => {
-							setShowEditDialog(false)
-							setSelectedItem(null)
-						}}
-					/>
-				)}
+		{/* Diálogo de Editar */}
+		<ResponsiveDialog open={showEditDialog} onOpenChange={setShowEditDialog} title="Editar Item do Estoque" maxWidth="md">
+			<Activity mode={selectedItem ? 'visible' : 'hidden'}>
+				<StockForm
+					initialData={selectedItem}
+					products={products}
+					onSubmit={handleUpdateStock}
+					onCancel={() => {
+						setShowEditDialog(false)
+						setSelectedItem(null)
+					}}
+				/>
+			</Activity>
 			</ResponsiveDialog>
 
-			{/* Diálogo de Detalhes */}
-			<ResponsiveDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog} title="Detalhes do Item" maxWidth="lg">
-				{selectedItem && <StockDetails item={selectedItem} />}
-			</ResponsiveDialog>
+		{/* Diálogo de Detalhes */}
+		<ResponsiveDialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog} title="Detalhes do Item" maxWidth="lg">
+			<Activity mode={selectedItem ? 'visible' : 'hidden'}>
+				<StockDetails item={selectedItem} />
+			</Activity>
+		</ResponsiveDialog>
 
-			{/* Diálogo de Usar Produto */}
-			<ResponsiveDialog open={showUseDialog} onOpenChange={setShowUseDialog} title="Usar Produto" maxWidth="sm">
-				{selectedItem && (
-					<div className="space-y-4">
-						<div className="text-center">
-							<h3 className="text-lg font-semibold">{selectedItem.product.name}</h3>
-							<p className="text-sm text-gray-600">
-								Quantidade disponível: {selectedItem.quantity} {selectedItem.product.unit}
-							</p>
-						</div>
+		{/* Diálogo de Usar Produto */}
+		<ResponsiveDialog open={showUseDialog} onOpenChange={setShowUseDialog} title="Usar Produto" maxWidth="sm">
+			<Activity mode={selectedItem ? 'visible' : 'hidden'}>
+				<div className="space-y-4">
+					<div className="text-center">
+						<h3 className="text-lg font-semibold">{selectedItem.product.name}</h3>
+						<p className="text-sm text-gray-600">
+							Quantidade disponível: {selectedItem.quantity} {selectedItem.product.unit}
+						</p>
+					</div>
 						<div>
 							<label className="text-sm font-medium">Quantidade a usar</label>
 							<input
@@ -400,12 +402,12 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 										: "border-gray-300 focus:ring-blue-500"
 								}`}
 								placeholder="Digite a quantidade"
-							/>
-							{isQuantityExceeding && (
-								<p className="text-sm text-red-600 mt-1">
-									⚠️ Quantidade excede o estoque disponível ({selectedItem?.quantity} {selectedItem?.product.unit})
-								</p>
-							)}
+						/>
+						<Activity mode={isQuantityExceeding ? 'visible' : 'hidden'}>
+							<p className="text-sm text-red-600 mt-1">
+								⚠️ Quantidade excede o estoque disponível ({selectedItem?.quantity} {selectedItem?.product.unit})
+							</p>
+						</Activity>
 						</div>
 						<div className="flex justify-end gap-3">
 							<Button variant="outline" onClick={() => setShowUseDialog(false)}>
@@ -429,25 +431,25 @@ export function EstoqueClient({ searchParams }: EstoqueClientProps) {
 								className={isQuantityExceeding ? "bg-orange-600 hover:bg-orange-700" : ""}
 							>
 								{isQuantityExceeding ? "⚠️ Usar (Estoque Negativo)" : "Confirmar Uso"}
-							</Button>
-						</div>
-					</div>
-				)}
-			</ResponsiveDialog>
+					</Button>
+				</div>
+			</div>
+			</Activity>
+		</ResponsiveDialog>
 
-			{/* Diálogo de Desperdício */}
-			{wasteItem && (
-				<WasteDialog
-					stockItem={wasteItem}
-					open={showWasteDialog}
-					onOpenChange={setShowWasteDialog}
-					onSuccess={() => {
-						setShowWasteDialog(false)
-						setWasteItem(null)
-						refetchStock()
-					}}
-				/>
-			)}
+		{/* Diálogo de Desperdício */}
+		<Activity mode={wasteItem ? 'visible' : 'hidden'}>
+			<WasteDialog
+				stockItem={wasteItem}
+				open={showWasteDialog}
+				onOpenChange={setShowWasteDialog}
+				onSuccess={() => {
+					setShowWasteDialog(false)
+					setWasteItem(null)
+					refetchStock()
+				}}
+			/>
+		</Activity>
 
 			{/* Diálogo de Confirmação de Exclusão */}
 			<ResponsiveConfirmDialog

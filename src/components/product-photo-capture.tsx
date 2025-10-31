@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, Activity } from 'react';
 import { Camera, X, RotateCcw, Zap, ZapOff, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -243,14 +243,14 @@ export function ProductPhotoCapture({
                 </div>
               </div>
 
-              {isProcessing && (
+              <Activity mode={isProcessing ? 'visible' : 'hidden'}>
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-white text-center">
                     <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
                     <p>Analisando produto...</p>
                   </div>
                 </div>
-              )}
+              </Activity>
             </div>
 
             {/* Controles da câmera */}
@@ -307,14 +307,14 @@ export function ProductPhotoCapture({
                       alt="Produto selecionado" 
                       className="w-full max-h-96 object-contain rounded-lg border-2 border-gray-200"
                     />
-                    {isProcessing && (
+                    <Activity mode={isProcessing ? 'visible' : 'hidden'}>
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                         <div className="text-white text-center">
                           <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
                           <p>Analisando produto...</p>
                         </div>
                       </div>
-                    )}
+                    </Activity>
                   </div>
                   
                   <div className="flex gap-2 justify-center">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { toast } from "sonner"
 
 interface OfflineState {
@@ -67,6 +67,49 @@ const processSyncQueue = async () => {
     }
 	}
 
+  // useEffectEvent para handlers de eventos - sempre vê props/state mais recentes
+  const onOnline = useEffectEvent(async () => {
+    const now = new Date()
+    
+    setState(prev => ({
+      ...prev,
+      isOnline: true,
+      wasOffline: !prev.isOnline,
+      lastOnline: now,
+    }))
+
+    // Verificar velocidade da conexão
+    if ("connection" in navigator) {
+      interface NavigatorConnection {
+        effectiveType?: string
+      }
+      const conn = (navigator as Navigator & { connection?: NavigatorConnection }).connection
+      const speed = conn?.effectiveType || "unknown"
+      setState(prev => ({ ...prev, connectionSpeed: speed }))
+    }
+
+    toast.success("Conexão restaurada!", {
+      description: "Sincronizando dados...",
+    })
+
+    // Processar fila de sincronização
+    await processSyncQueue()
+  })
+
+  const onOffline = useEffectEvent(() => {
+    setState(prev => ({
+      ...prev,
+      isOnline: false,
+      wasOffline: true,
+      lastOnline: new Date(),
+    }))
+
+    toast.error("Você está offline", {
+      description: "Seus dados serão salvos e sincronizados quando voltar online.",
+      duration: 5000,
+    })
+  })
+
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -80,46 +123,12 @@ const processSyncQueue = async () => {
       }
     }
 
-    const handleOnline = async () => {
-      const now = new Date()
-      
-      setState(prev => ({
-        ...prev,
-        isOnline: true,
-        wasOffline: !prev.isOnline,
-        lastOnline: now,
-      }))
-
-      // Verificar velocidade da conexão
-      if ("connection" in navigator) {
-        interface NavigatorConnection {
-          effectiveType?: string
-        }
-        const conn = (navigator as Navigator & { connection?: NavigatorConnection }).connection
-        const speed = conn?.effectiveType || "unknown"
-        setState(prev => ({ ...prev, connectionSpeed: speed }))
-      }
-
-      toast.success("Conexão restaurada!", {
-        description: "Sincronizando dados...",
-      })
-
-      // Processar fila de sincronização
-      await processSyncQueue()
+    const handleOnline = () => {
+      onOnline()
     }
 
     const handleOffline = () => {
-      setState(prev => ({
-        ...prev,
-        isOnline: false,
-        wasOffline: true,
-        lastOnline: new Date(),
-      }))
-
-      toast.error("Você está offline", {
-        description: "Seus dados serão salvos e sincronizados quando voltar online.",
-        duration: 5000,
-      })
+      onOffline()
     }
 
     // Adicionar listeners
@@ -130,9 +139,9 @@ const processSyncQueue = async () => {
     const intervalId = setInterval(() => {
       if (navigator.onLine !== state.isOnline) {
         if (navigator.onLine) {
-          handleOnline()
+          onOnline()
         } else {
-          handleOffline()
+          onOffline()
         }
       }
     }, 5000)
@@ -142,7 +151,7 @@ const processSyncQueue = async () => {
       window.removeEventListener("offline", handleOffline)
       clearInterval(intervalId)
     }
-  }, [state.isOnline, processSyncQueue])
+  }, [state.isOnline]) // ✅ Effect Events não são dependências
 
   // Adicionar à fila de sincronização
 const addToSyncQueue = (method: string, url: string, data: unknown) => {

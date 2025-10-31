@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Activity } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "@/lib/theme"
 import {
@@ -555,7 +555,7 @@ export default function CleanAssistentePage() {
 									</motion.div>
 								))}
 
-								{isLoading && (
+								<Activity mode={isLoading ? 'visible' : 'hidden'}>
 									<motion.div
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}
@@ -567,7 +567,7 @@ export default function CleanAssistentePage() {
 														undefined}
 										/>
 									</motion.div>
-								)}
+								</Activity>
 							</div>
 						</ScrollArea>
 					)}

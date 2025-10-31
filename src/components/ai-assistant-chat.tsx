@@ -9,7 +9,7 @@ import {
 	Volume2, X
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
 import { SelectionCard } from "@/components/ai-chat/selection-cards"
@@ -282,15 +282,15 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 													</div>
 												)}
 											</div>
-										))}
-										{isLoading && (
-											<EnhancedTypingIndicator
-												context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
-													lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
-														lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-															undefined}
-											/>
-										)}
+									))}
+									<Activity mode={isLoading ? 'visible' : 'hidden'}>
+										<EnhancedTypingIndicator
+											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
+												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
+													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
+														undefined}
+										/>
+									</Activity>
 									</div>
 								</ScrollArea>
 

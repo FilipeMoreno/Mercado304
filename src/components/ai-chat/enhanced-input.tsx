@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Activity } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
 	Plus,
@@ -234,15 +234,15 @@ const handleMouseLeave = () => {
 
 	return (
 		<div className="relative">
-			{/* Sugestões */}
-			<AnimatePresence>
-				{showSuggestions && (
-					<motion.div
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: 10 }}
-						className="absolute bottom-full left-0 right-0 mb-2 bg-background border rounded-lg shadow-lg p-2 z-50"
-					>
+		{/* Sugestões */}
+		<AnimatePresence>
+			<Activity mode={showSuggestions ? 'visible' : 'hidden'}>
+				<motion.div
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					exit={{ opacity: 0, y: 10 }}
+					className="absolute bottom-full left-0 right-0 mb-2 bg-background border rounded-lg shadow-lg p-2 z-50"
+				>
 						<div className="space-y-1">
 							{quickSuggestions.map((suggestion) => (
 								<Button
@@ -260,12 +260,12 @@ const handleMouseLeave = () => {
 									</span>
 								</Button>
 							))}
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+					</div>
+				</motion.div>
+			</Activity>
+		</AnimatePresence>
 
-			{/* Input Container */}
+		{/* Input Container */}
 			<div className={`flex items-end gap-2 p-3 border rounded-2xl bg-muted transition-all ${isFocused ? 'bg-background border-primary' : 'border-input'
 				} ${isListening ? 'border-red-300 bg-red-50 dark:bg-red-950/20' : ''}`}>
 

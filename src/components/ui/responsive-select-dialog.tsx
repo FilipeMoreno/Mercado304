@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, Plus, Search, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog"
@@ -113,7 +113,7 @@ export function ResponsiveSelectDialog({
   return (
     <>
       {/* Trigger Button */}
-      {renderTrigger && (
+      <Activity mode={renderTrigger ? 'visible' : 'hidden'}>
         <Button
           type="button"
           variant="outline"
@@ -132,7 +132,7 @@ export function ResponsiveSelectDialog({
           </span>
           <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
-      )}
+      </Activity>
 
       {/* Dialog */}
       <ResponsiveDialog
@@ -158,7 +158,7 @@ export function ResponsiveSelectDialog({
               autoCapitalize="off"
               spellCheck="false"
             />
-            {searchTerm && (
+            <Activity mode={searchTerm ? 'visible' : 'hidden'}>
               <Button
                 type="button"
                 variant="ghost"
@@ -168,7 +168,7 @@ export function ResponsiveSelectDialog({
               >
                 <X className="h-4 w-4" />
               </Button>
-            )}
+            </Activity>
           </div>
 
           {/* Options List */}
@@ -190,7 +190,7 @@ export function ResponsiveSelectDialog({
               ) : options.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-sm text-muted-foreground mb-4">{emptyText}</p>
-                  {shouldShowCreateNew && (
+                  <Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
                     <Button
                       type="button"
                       variant="default"
@@ -201,7 +201,7 @@ export function ResponsiveSelectDialog({
                       <Plus className="h-4 w-4" />
                       {createNewText} "{searchTerm}"
                     </Button>
-                  )}
+                  </Activity>
                 </div>
               ) : (
                 <>
@@ -232,7 +232,7 @@ export function ResponsiveSelectDialog({
                     </button>
                   ))}
 
-                  {isFetchingNextPage && (
+                  <Activity mode={isFetchingNextPage ? 'visible' : 'hidden'}>
                     <div className="space-y-2 p-2 border-t pt-2">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <div key={`loading-${i}`} className="flex items-center gap-3 px-3 py-2.5">
@@ -245,9 +245,9 @@ export function ResponsiveSelectDialog({
                         </div>
                       ))}
                     </div>
-                  )}
+                  </Activity>
 
-                  {shouldShowCreateNew && (
+                  <Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
                     <div className="pt-2 border-t">
                       <Button
                         type="button"
@@ -260,7 +260,7 @@ export function ResponsiveSelectDialog({
                         {createNewText} "{searchTerm}"
                       </Button>
                     </div>
-                  )}
+                  </Activity>
                 </>
               )}
             </div>

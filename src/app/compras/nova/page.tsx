@@ -7,7 +7,7 @@ import { ArrowLeft, Box, Package, Plus, Save, Settings2, Trash2 } from "lucide-r
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import * as React from "react"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useEffectEvent, useId, useState } from "react"
 import { toast } from "sonner"
 import { BestPriceAlert } from "@/components/best-price-alert"
 import { PriceAiInsight } from "@/components/price-ai-insight"
@@ -191,7 +191,8 @@ useEffect(() => {
 		setUnitDiscountInputs((prev) => [...prev, "0.00"])
 	}
 
-	const fetchAiAnalysis = async (index: number, productId: string, unitPrice: number) => {
+	// useEffectEvent para análise de IA - não precisa estar nas dependências
+	const onFetchAiAnalysis = useEffectEvent(async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
 
 		setItems((current) =>
@@ -213,7 +214,7 @@ useEffect(() => {
 		} finally {
 			setItems((current) => current.map((item, i) => (i === index ? { ...item, isAiLoading: false } : item)))
 		}
-	}
+	})
 
 	const removeItem = (index: number) => {
 		if (items.length > 1) {
@@ -225,7 +226,8 @@ useEffect(() => {
 		}
 	}
 
-	const checkPrice = async (index: number, productId: string, unitPrice: number) => {
+	// useEffectEvent para verificação de preço - sempre vê formData.marketId atualizado
+	const onCheckPrice = useEffectEvent(async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice || !formData.marketId) return
 
 		setCheckingPrices((current) => current.map((c, i) => (i === index ? true : c)))
@@ -250,9 +252,10 @@ useEffect(() => {
 		} finally {
 			setCheckingPrices((current) => current.map((c, i) => (i === index ? false : c)))
 		}
-	}
+	})
 
-	const checkBestPrice = async (index: number, productId: string, unitPrice: number) => {
+	// useEffectEvent para verificação de melhor preço - sempre vê state atualizado
+	const onCheckBestPrice = useEffectEvent(async (index: number, productId: string, unitPrice: number) => {
 		if (!productId || !unitPrice) return
 
 		try {
@@ -268,7 +271,7 @@ useEffect(() => {
 		} catch (error) {
 			console.error("Erro ao verificar melhor preço:", error)
 		}
-	}
+	})
 
 	const updateItem = (
 		index: number,
@@ -325,13 +328,13 @@ useEffect(() => {
 
 			newItems[index] = currentItem
 
-			if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice > 0) {
-				setTimeout(() => {
-					checkBestPrice(index, currentItem.productId, currentItem.unitPrice)
-					checkPrice(index, currentItem.productId, currentItem.unitPrice)
-					fetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice)
-				}, 1000)
-			}
+		if ((field === "unitPrice" || field === "productId") && currentItem.productId && currentItem.unitPrice > 0) {
+			setTimeout(() => {
+				onCheckBestPrice(index, currentItem.productId, currentItem.unitPrice)
+				onCheckPrice(index, currentItem.productId, currentItem.unitPrice)
+				onFetchAiAnalysis(index, currentItem.productId, currentItem.unitPrice)
+			}, 1000)
+		}
 
 			return newItems
 		})

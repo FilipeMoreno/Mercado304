@@ -2,7 +2,7 @@
 
 import { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType, NotFoundException } from "@zxing/library"
 import { Camera, CameraOff, Flashlight, FlashlightOff, RotateCcw, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -627,21 +627,21 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 						</div>
 					) : (
 						<div>
-							<div className="w-full h-80 bg-black rounded-lg mb-4 overflow-hidden relative">
-								{isLoading && (
-									<div className="absolute inset-0 flex items-center justify-center bg-black">
-										<div className="text-white text-center">
-											<Camera className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-											<p>Inicializando câmera...</p>
-										</div>
+						<div className="w-full h-80 bg-black rounded-lg mb-4 overflow-hidden relative">
+							<Activity mode={isLoading ? 'visible' : 'hidden'}>
+								<div className="absolute inset-0 flex items-center justify-center bg-black">
+									<div className="text-white text-center">
+										<Camera className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+										<p>Inicializando câmera...</p>
 									</div>
-								)}
+								</div>
+							</Activity>
 
-								<video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
+							<video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
 
-								{/* Overlay de scanning otimizado */}
-								{isCameraActive && (
-									<div className="absolute inset-0 flex items-center justify-center">
+							{/* Overlay de scanning otimizado */}
+							<Activity mode={isCameraActive ? 'visible' : 'hidden'}>
+								<div className="absolute inset-0 flex items-center justify-center">
 										{/* Área de foco principal - quadrada para QR code */}
 										<div className="relative w-64 h-64 border-2 border-green-400 rounded-lg bg-green-400/10">
 											{/* Cantos do scanner mais destacados */}
@@ -699,16 +699,18 @@ export function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScannerProps)
 										{devices.length > 0 &&
 											`Câmera ${devices.findIndex((d) => d.deviceId === selectedDeviceId) + 1}/${devices.length}`}
 									</div>
-									{isFlashOn && (
+									<Activity mode={isFlashOn ? 'visible' : 'hidden'}>
 										<div className="bg-black/70 px-2 py-1 rounded flex items-center gap-1">
 											<span>🔦</span>
 											<span>Flash ativo</span>
 										</div>
-									)}
+									</Activity>
 								</div>
 							</div>
-						</div>
-					)}
+						</Activity>
+					</div>
+				)}
+					
 				</CardContent>
 			</Card>
 		</div>

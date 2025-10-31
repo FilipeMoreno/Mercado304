@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Package, Save } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { toast } from "sonner"
 import { ProductSelector, type SelectedProduct } from "@/components/kits/product-selector"
 import { BarcodeManager } from "@/components/products/barcode-manager"
@@ -243,18 +243,20 @@ export default function NewProductKitPage() {
 					</CardContent>
 				</Card>
 
-				{/* Preview */}
-				{kitName && selectedProducts.length > 0 && (
-					<Card className="border-primary/50">
-						<CardHeader>
-							<CardTitle className="text-lg">Preview do Kit</CardTitle>
-							<CardDescription>Veja como o kit ficará antes de salvar</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-3">
-								<div>
-									<h3 className="font-semibold">{kitName}</h3>
-									{kitDescription && <p className="text-sm text-muted-foreground mt-1">{kitDescription}</p>}
+			{/* Preview */}
+			<Activity mode={kitName && selectedProducts.length > 0 ? 'visible' : 'hidden'}>
+				<Card className="border-primary/50">
+					<CardHeader>
+						<CardTitle className="text-lg">Preview do Kit</CardTitle>
+						<CardDescription>Veja como o kit ficará antes de salvar</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							<div>
+								<h3 className="font-semibold">{kitName}</h3>
+								<Activity mode={kitDescription ? 'visible' : 'hidden'}>
+									<p className="text-sm text-muted-foreground mt-1">{kitDescription}</p>
+								</Activity>
 								</div>
 
 								<Separator />
@@ -288,7 +290,7 @@ export default function NewProductKitPage() {
 							</div>
 						</CardContent>
 					</Card>
-				)}
+				</Activity>
 
 				{/* Actions */}
 				<div className="flex items-center justify-end gap-3">

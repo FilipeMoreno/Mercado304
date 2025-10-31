@@ -1,7 +1,7 @@
 "use client"
 
 import { Calendar, Edit, MapPin, Receipt, Save, ShoppingCart, Trash2, X } from "lucide-react"
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { toast } from "sonner"
 import { OCRScanner } from "@/components/ocr-scanner"
 import { Badge } from "@/components/ui/badge"

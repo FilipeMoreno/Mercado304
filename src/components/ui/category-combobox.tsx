@@ -2,6 +2,7 @@
 
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import * as React from "react"
+import { Activity } from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -127,7 +128,7 @@ export function CategoryCombobox({
 							<CommandEmpty>
 								<div className="py-6 text-center text-sm">
 									<p className="text-muted-foreground">{emptyText}</p>
-									{shouldShowCreateNew && (
+									<Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
 										<Button
 											variant="ghost"
 											size="sm"
@@ -140,7 +141,7 @@ export function CategoryCombobox({
 										>
 											{createNewText} "{searchTerm}"
 										</Button>
-									)}
+									</Activity>
 								</div>
 							</CommandEmpty>
 						) : (
@@ -168,14 +169,14 @@ export function CategoryCombobox({
 											</div>
 										</CommandItem>
 									))}
-									{isFetchingNextPage && (
+									<Activity mode={isFetchingNextPage ? 'visible' : 'hidden'}>
 										<div className="py-2 text-center">
 											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
 											<p className="text-xs text-muted-foreground mt-1">Carregando mais categorias...</p>
 										</div>
-									)}
+									</Activity>
 								</CommandGroup>
-								{shouldShowCreateNew && (
+								<Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
 									<CommandGroup>
 										<CommandItem
 											value="create-new"
@@ -191,7 +192,7 @@ export function CategoryCombobox({
 											</div>
 										</CommandItem>
 									</CommandGroup>
-								)}
+								</Activity>
 							</>
 						)}
 					</CommandList>

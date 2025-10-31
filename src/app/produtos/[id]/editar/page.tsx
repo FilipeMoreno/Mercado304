@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, Save, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Activity } from "react"
 import { toast } from "sonner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
@@ -497,13 +497,13 @@ useEffect(() => {
 							</div>
 						</div>
 					</CardContent>
-				</Card>
+			</Card>
 
-				{showNutritionalFields && (
-					<>
-						<Card>
-							<CardHeader>
-								<CardTitle>Scanner de Rótulo</CardTitle>
+			<Activity mode={showNutritionalFields ? 'visible' : 'hidden'}>
+				<>
+					<Card>
+						<CardHeader>
+							<CardTitle>Scanner de Rótulo</CardTitle>
 								<p className="text-sm text-gray-600">Escaneie o rótulo para preencher ou atualizar os campos abaixo.</p>
 							</CardHeader>
 							<CardContent>
@@ -529,11 +529,11 @@ useEffect(() => {
 							</CardContent>
 						</Card>
 
-						<NutritionalInfoForm initialData={nutritionalData} onDataChange={(data) => setNutritionalData(data)} />
-					</>
-				)}
+					<NutritionalInfoForm initialData={nutritionalData} onDataChange={(data) => setNutritionalData(data)} />
+				</>
+			</Activity>
 
-				<div className="flex gap-3 pt-4">
+			<div className="flex gap-3 pt-4">
 					<Button type="submit" disabled={saving}>
 						<Save className="h-4 w-4 mr-2" />
 						{saving ? "Salvando..." : "Salvar Alterações"}

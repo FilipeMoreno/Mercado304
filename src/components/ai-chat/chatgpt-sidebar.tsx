@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Activity } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "@/lib/theme"
 import {
@@ -351,33 +351,33 @@ export function ChatGPTSidebar({
 																}}
 																className="text-popover-foreground hover:bg-accent"
 															>
-																<Edit3 className="h-4 w-4 mr-2" />
-																Renomear
-															</DropdownMenuItem>
-															{onPinSession && (
-																<DropdownMenuItem
-																	onClick={(e) => {
-																		e.stopPropagation()
-																		onPinSession(session.id)
-																	}}
-																	className="text-popover-foreground hover:bg-accent"
-																>
-																	<Pin className="h-4 w-4 mr-2" />
-																	Desafixar
-																</DropdownMenuItem>
-															)}
-															{onArchiveSession && (
-																<DropdownMenuItem
-																	onClick={(e) => {
-																		e.stopPropagation()
-																		onArchiveSession(session.id)
-																	}}
-																	className="text-popover-foreground hover:bg-accent"
-																>
-																	<Archive className="h-4 w-4 mr-2" />
-																	Arquivar
-																</DropdownMenuItem>
-															)}
+														<Edit3 className="h-4 w-4 mr-2" />
+														Renomear
+													</DropdownMenuItem>
+													<Activity mode={onPinSession ? 'visible' : 'hidden'}>
+														<DropdownMenuItem
+															onClick={(e) => {
+																e.stopPropagation()
+																onPinSession(session.id)
+															}}
+															className="text-popover-foreground hover:bg-accent"
+														>
+															<Pin className="h-4 w-4 mr-2" />
+															Desafixar
+														</DropdownMenuItem>
+													</Activity>
+													<Activity mode={onArchiveSession ? 'visible' : 'hidden'}>
+														<DropdownMenuItem
+															onClick={(e) => {
+																e.stopPropagation()
+																onArchiveSession(session.id)
+															}}
+															className="text-popover-foreground hover:bg-accent"
+														>
+															<Archive className="h-4 w-4 mr-2" />
+															Arquivar
+														</DropdownMenuItem>
+													</Activity>
 															<DropdownMenuItem
 																onClick={(e) => {
 																	e.stopPropagation()

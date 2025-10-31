@@ -141,9 +141,9 @@ export default function AnaliseNutricionalPage() {
 				{aiAnalysis.summary}
 			</AiAnalysisCard>
 
-			{/* Cards de Informações Nutricionais */}
-			{nutritionalInfo && (
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+		{/* Cards de Informações Nutricionais */}
+		<Activity mode={nutritionalInfo ? 'visible' : 'hidden'}>
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					{nutritionalInfo.calories && (
 						<Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border-orange-200 dark:border-orange-800">
 							<CardContent className="p-4">
@@ -471,6 +471,7 @@ export default function AnaliseNutricionalPage() {
 					</div>
 				</CardContent>
 			</Card>
+		</Activity>
 		</div>
 	)
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera } from "lucide-react"
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
@@ -195,7 +195,7 @@ export function ProductSelectDialog({
             showCreateNew={true}
           />
         </div>
-        {showScanButton && (
+        <Activity mode={showScanButton ? 'visible' : 'hidden'}>
           <Button
             type="button"
             variant="outline"
@@ -207,12 +207,12 @@ export function ProductSelectDialog({
           >
             <Camera className="h-4 w-4" />
           </Button>
-        )}
+        </Activity>
       </div>
 
-      {showScanButton && (
+      <Activity mode={showScanButton ? 'visible' : 'hidden'}>
         <BarcodeScanner isOpen={isScannerOpen} onScan={handleBarcodeScanned} onClose={() => setIsScannerOpen(false)} />
-      )}
+      </Activity>
     </>
   )
 }

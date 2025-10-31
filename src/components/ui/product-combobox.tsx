@@ -2,6 +2,7 @@
 
 import { Barcode, Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import * as React from "react"
+import { Activity } from "react"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -59,10 +60,14 @@ export function ProductCombobox({
 	const [searchTerm, setSearchTerm] = React.useState("")
 	const scrollRef = React.useRef<HTMLDivElement>(null)
 
-	// Notificar mudanças de search imediatamente (debounce é feito no ProductSelect)
-	React.useEffect(() => {
+	// useEffectEvent para notificar mudanças de search - sempre vê onSearchChange atualizado
+	const onNotifySearchChange = React.useEffectEvent(() => {
 		onSearchChange?.(searchTerm)
-	}, [searchTerm, onSearchChange])
+	})
+
+	React.useEffect(() => {
+		onNotifySearchChange()
+	}, [searchTerm]) // ✅ onSearchChange não é dependência (Effect Event)
 
 	// Handler para scroll com melhor detecção
 	const handleScroll = (
@@ -164,7 +169,7 @@ export function ProductCombobox({
 									{isBarcode(searchTerm) && (
 										<p className="text-xs text-blue-600 mt-1">🔍 Buscando por código de barras: {searchTerm}</p>
 									)}
-									{shouldShowCreateNew && (
+									<Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
 										<Button
 											type="button"
 											variant="ghost"
@@ -178,7 +183,7 @@ export function ProductCombobox({
 										>
 											{createNewText} "{searchTerm}"
 										</Button>
-									)}
+									</Activity>
 								</div>
 							</CommandEmpty>
 						) : (
@@ -213,14 +218,14 @@ export function ProductCombobox({
 											</div>
 										</CommandItem>
 									))}
-									{isFetchingNextPage && (
+									<Activity mode={isFetchingNextPage ? 'visible' : 'hidden'}>
 										<div className="py-2 text-center">
 											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
 											<p className="text-xs text-muted-foreground mt-1">Carregando mais produtos...</p>
 										</div>
-									)}
+									</Activity>
 								</CommandGroup>
-								{shouldShowCreateNew && (
+								<Activity mode={shouldShowCreateNew ? 'visible' : 'hidden'}>
 									<CommandGroup>
 										<CommandItem
 											value="create-new"
@@ -236,7 +241,7 @@ export function ProductCombobox({
 											</div>
 										</CommandItem>
 									</CommandGroup>
-								)}
+								</Activity>
 							</>
 						)}
 					</CommandList>

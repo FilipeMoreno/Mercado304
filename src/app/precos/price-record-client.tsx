@@ -1283,14 +1283,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 											value={searchTerm}
 											onChange={(e) => setSearchTerm(e.target.value)}
 											placeholder="Digite o nome do produto ou mercado para buscar..."
-											className="pl-10 w-full"
-										/>
-									</div>
-									{searchTerm && (
-										<p className="text-xs text-muted-foreground mt-1">
-											{debouncedSearchTerm ? "Buscando..." : "Digite para pesquisar"}
-										</p>
-									)}
+									className="pl-10 w-full"
+								/>
+							</div>
+							<Activity mode={searchTerm ? 'visible' : 'hidden'}>
+								<p className="text-xs text-muted-foreground mt-1">
+									{debouncedSearchTerm ? "Buscando..." : "Digite para pesquisar"}
+								</p>
+							</Activity>
 								</div>
 
 								<div>
@@ -1345,13 +1345,13 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 													onValueChange={setSelectedMarket}
 													placeholder="Todos os mercados"
 												/>
-											)}
-										</div>
-										{selectedMarket && (
-											<Button variant="outline" size="icon" onClick={() => setSelectedMarket("")} title="Limpar filtro">
-												<X className="h-4 w-4" />
-											</Button>
-										)}
+									)}
+								</div>
+								<Activity mode={selectedMarket ? 'visible' : 'hidden'}>
+									<Button variant="outline" size="icon" onClick={() => setSelectedMarket("")} title="Limpar filtro">
+										<X className="h-4 w-4" />
+									</Button>
+								</Activity>
 									</div>
 								</div>
 
@@ -1371,18 +1371,18 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 													onValueChange={setSelectedProduct}
 													placeholder="Todos os produtos"
 												/>
-											)}
-										</div>
-										{selectedProduct && (
-											<Button
-												variant="outline"
-												size="icon"
-												onClick={() => setSelectedProduct("")}
-												title="Limpar filtro"
-											>
-												<X className="h-4 w-4" />
-											</Button>
 										)}
+									</div>
+									<Activity mode={selectedProduct ? 'visible' : 'hidden'}>
+										<Button
+											variant="outline"
+											size="icon"
+											onClick={() => setSelectedProduct("")}
+											title="Limpar filtro"
+										>
+											<X className="h-4 w-4" />
+										</Button>
+									</Activity>
 									</div>
 								</div>
 							</div>
@@ -1803,26 +1803,26 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 							<Edit className="h-5 w-5" />
 							Editar Registro de Preço
 						</DialogTitle>
-						<DialogDescription>Atualize as informações do registro de preço selecionado.</DialogDescription>
-					</DialogHeader>
-					{editingRecord && (
-						<div className="space-y-4">
-							<div className="p-4 bg-muted rounded-lg space-y-2">
-								<div className="flex items-center gap-2">
-									<Package className="h-4 w-4 text-muted-foreground" />
-									<span className="font-semibold">{editingRecord.product}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Store className="h-4 w-4 text-muted-foreground" />
-									<span className="text-sm text-muted-foreground">{editingRecord.market}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Calendar className="h-4 w-4 text-muted-foreground" />
-									<span className="text-sm text-muted-foreground">
-										{new Date(editingRecord.recordDate).toLocaleDateString("pt-BR")}
-									</span>
-								</div>
+					<DialogDescription>Atualize as informações do registro de preço selecionado.</DialogDescription>
+				</DialogHeader>
+				<Activity mode={editingRecord ? 'visible' : 'hidden'}>
+					<div className="space-y-4">
+						<div className="p-4 bg-muted rounded-lg space-y-2">
+							<div className="flex items-center gap-2">
+								<Package className="h-4 w-4 text-muted-foreground" />
+								<span className="font-semibold">{editingRecord.product}</span>
 							</div>
+							<div className="flex items-center gap-2">
+								<Store className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm text-muted-foreground">{editingRecord.market}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Calendar className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm text-muted-foreground">
+									{new Date(editingRecord.recordDate).toLocaleDateString("pt-BR")}
+								</span>
+							</div>
+						</div>
 
 							<div>
 								<Label>Preço (R$) *</Label>
@@ -1845,16 +1845,16 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									placeholder="Ex: Promoção, produto vencendo..."
 								/>
 							</div>
-						</div>
-					)}
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSubmitting}>
-							Cancelar
-						</Button>
-						<Button onClick={handleEditSave} disabled={isSubmitting}>
-							{isSubmitting ? "Salvando..." : "Salvar Alterações"}
-						</Button>
-					</DialogFooter>
+				</div>
+			</Activity>
+			<DialogFooter>
+				<Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSubmitting}>
+					Cancelar
+				</Button>
+				<Button onClick={handleEditSave} disabled={isSubmitting}>
+					{isSubmitting ? "Salvando..." : "Salvar Alterações"}
+				</Button>
+			</DialogFooter>
 				</DialogContent>
 			</Dialog>
 
@@ -1867,31 +1867,31 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 							Confirmar Exclusão
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							Tem certeza que deseja deletar este registro de preço? Esta ação não pode ser desfeita.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					{deletingRecord && (
-						<div className="p-4 bg-muted rounded-lg space-y-2">
-							<div className="flex items-center gap-2">
-								<Package className="h-4 w-4 text-muted-foreground" />
-								<span className="font-semibold">{deletingRecord.product}</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<Store className="h-4 w-4 text-muted-foreground" />
-								<span className="text-sm text-muted-foreground">{deletingRecord.market}</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-muted-foreground" />
-								<span className="text-sm font-bold text-green-600">R$ {deletingRecord.price.toFixed(2)}</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<Calendar className="h-4 w-4 text-muted-foreground" />
-								<span className="text-sm text-muted-foreground">
-									{new Date(deletingRecord.recordDate).toLocaleDateString("pt-BR")}
-								</span>
-							</div>
-						</div>
-					)}
+					Tem certeza que deseja deletar este registro de preço? Esta ação não pode ser desfeita.
+				</AlertDialogDescription>
+			</AlertDialogHeader>
+			<Activity mode={deletingRecord ? 'visible' : 'hidden'}>
+				<div className="p-4 bg-muted rounded-lg space-y-2">
+					<div className="flex items-center gap-2">
+						<Package className="h-4 w-4 text-muted-foreground" />
+						<span className="font-semibold">{deletingRecord.product}</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<Store className="h-4 w-4 text-muted-foreground" />
+						<span className="text-sm text-muted-foreground">{deletingRecord.market}</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<DollarSign className="h-4 w-4 text-muted-foreground" />
+						<span className="text-sm font-bold text-green-600">R$ {deletingRecord.price.toFixed(2)}</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<Calendar className="h-4 w-4 text-muted-foreground" />
+						<span className="text-sm text-muted-foreground">
+							{new Date(deletingRecord.recordDate).toLocaleDateString("pt-BR")}
+						</span>
+					</div>
+				</div>
+			</Activity>
 					<AlertDialogFooter>
 						<AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
 						<AlertDialogAction

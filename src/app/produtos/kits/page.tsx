@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Suspense, useState } from "react";
+import { Suspense, useState, Activity } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Package, Search, Filter, X } from "lucide-react";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
@@ -204,29 +204,29 @@ export default function ProductKitsPage() {
                 <SelectItem value="active">Ativos</SelectItem>
                 <SelectItem value="inactive">Inativos</SelectItem>
               </SelectContent>
-            </Select>
+          </Select>
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <Button variant="ghost" size="icon" onClick={clearFilters}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          {/* Clear Filters */}
+          <Activity mode={hasActiveFilters ? 'visible' : 'hidden'}>
+            <Button variant="ghost" size="icon" onClick={clearFilters}>
+              <X className="h-4 w-4" />
+            </Button>
+          </Activity>
+        </div>
 
-          {/* Active Filters Display */}
-          {hasActiveFilters && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-              <span className="text-sm text-muted-foreground">Filtros ativos:</span>
-              {searchTerm && (
-                <Badge variant="secondary">
-                  Busca: {searchTerm}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                    onClick={() => setSearchTerm("")}
-                  />
-                </Badge>
-              )}
+        {/* Active Filters Display */}
+        <Activity mode={hasActiveFilters ? 'visible' : 'hidden'}>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+            <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+            <Activity mode={searchTerm ? 'visible' : 'hidden'}>
+              <Badge variant="secondary">
+                Busca: {searchTerm}
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
+                  onClick={() => setSearchTerm("")}
+                />
+              </Badge>
+            </Activity>
               {statusFilter !== "all" && (
                 <Badge variant="secondary">
                   Status: {statusFilter === "active" ? "Ativo" : "Inativo"}
@@ -235,34 +235,36 @@ export default function ProductKitsPage() {
                     onClick={() => setStatusFilter("all")}
                   />
                 </Badge>
-              )}
+            )}
+          </div>
+        </Activity>
+      </CardContent>
+    </Card>
+
+    {/* Error State */}
+    <Activity mode={error ? 'visible' : 'hidden'}>
+      <Card className="border-destructive">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <div className="flex-1">
+              <p className="font-semibold text-destructive">Erro ao carregar kits</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {error instanceof Error ? error.message : "Erro desconhecido"}
+              </p>
             </div>
-          )}
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Tentar Novamente
+            </Button>
+          </div>
         </CardContent>
       </Card>
+    </Activity>
 
-      {/* Error State */}
-      {error && (
-        <Card className="border-destructive">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              <div className="flex-1">
-                <p className="font-semibold text-destructive">Erro ao carregar kits</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {error instanceof Error ? error.message : "Erro desconhecido"}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                Tentar Novamente
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loading State */}
-      {isLoading && <KitListSkeleton count={6} />}
+    {/* Loading State */}
+    <Activity mode={isLoading ? 'visible' : 'hidden'}>
+      <KitListSkeleton count={6} />
+    </Activity>
 
       {/* Empty State */}
       {!isLoading && !error && filteredKits.length === 0 && (

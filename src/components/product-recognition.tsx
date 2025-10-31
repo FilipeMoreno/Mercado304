@@ -1,7 +1,7 @@
 "use client"
 
 import { Brain, Camera, CameraOff, Eye, Loader2, RotateCcw, Upload } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, Activity } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

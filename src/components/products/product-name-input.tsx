@@ -2,7 +2,7 @@
 
 import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useEffectEvent, useId, useState } from "react"
 import { ProductDuplicateDialog } from "@/components/products/product-duplicate-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -46,8 +46,8 @@ export function ProductNameInput({
 		categoryId
 	})
 
-	// Abrir dialog automaticamente quando encontrar duplicata
-	useEffect(() => {
+	// useEffectEvent para abrir dialog - sempre vê as props mais recentes
+	const onHandleDuplicateDialog = useEffectEvent(() => {
 		if (duplicateProduct && !dialogShown && !fieldError && value.length >= 3) {
 			setShowDialog(true)
 			setDialogShown(true)
@@ -57,7 +57,11 @@ export function ProductNameInput({
 		if (!duplicateProduct) {
 			setDialogShown(false)
 		}
-	}, [duplicateProduct, dialogShown, fieldError, value])
+	})
+
+	useEffect(() => {
+		onHandleDuplicateDialog()
+	}, [duplicateProduct]) // ✅ dialogShown, fieldError, value não são dependências (Effect Event)
 
 	const showDuplicateIndicator = value.length >= 3 && duplicateProduct && !fieldError
 

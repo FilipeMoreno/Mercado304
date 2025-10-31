@@ -2,7 +2,7 @@
 
 import { Check, Tag, X } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, Activity } from "react"
 import { toast } from "sonner"
 import { SmartCameraCapture } from "@/components/smart-camera-capture"
 import { Badge } from "@/components/ui/badge"

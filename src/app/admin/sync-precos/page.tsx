@@ -15,14 +15,21 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useId, useRef, useState } from "react"
+import { Activity, useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -111,7 +118,7 @@ export default function AdminSyncPrecosPage() {
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-const fetchLatestJob = async () => {
+	const fetchLatestJob = async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/admin/sync-precos/latest?debug=${debugMode}&limit=2000`)
@@ -122,11 +129,9 @@ const fetchLatestJob = async () => {
 					setLastUpdateTime(new Date()) // Marcar hora da atualização
 
 					if (data.job._logsInfo) {
-
 					}
 				} else {
 					setCurrentJob(null)
-
 				}
 			}
 		} catch (error) {
@@ -136,7 +141,7 @@ const fetchLatestJob = async () => {
 		}
 	}
 
-const fetchJobStatus = async (jobId: string) => {
+	const fetchJobStatus = async (jobId: string) => {
 		try {
 			setPolling(true)
 			setLoading(true)
@@ -156,62 +161,62 @@ const fetchJobStatus = async (jobId: string) => {
 		}
 	}
 
-    const fetchServerHealth = async () => {
-        const serverUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL
+	const fetchServerHealth = async () => {
+		const serverUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL
 
-        // Se não houver servidor externo configurado, não tente buscar para evitar erros de CORS/conn
-        if (!serverUrl) {
-            setServerInfo(null)
-            setServerHealth(null)
-            return
-        }
+		// Se não houver servidor externo configurado, não tente buscar para evitar erros de CORS/conn
+		if (!serverUrl) {
+			setServerInfo(null)
+			setServerHealth(null)
+			return
+		}
 
-        try {
-            const base = serverUrl.replace(/\/$/, "")
+		try {
+			const base = serverUrl.replace(/\/$/, "")
 
-            // Buscar informações do servidor (endpoint raiz)
-            try {
-                const serverResponse = await fetch(`${base}/`, { cache: "no-store" })
-                if (serverResponse.ok) {
-                    const serverData = await serverResponse.json()
-                    setServerInfo(serverData)
-                } else {
-                    setServerInfo(null)
-                }
-            } catch {
-                setServerInfo(null)
-            }
+			// Buscar informações do servidor (endpoint raiz)
+			try {
+				const serverResponse = await fetch(`${base}/`, { cache: "no-store" })
+				if (serverResponse.ok) {
+					const serverData = await serverResponse.json()
+					setServerInfo(serverData)
+				} else {
+					setServerInfo(null)
+				}
+			} catch {
+				setServerInfo(null)
+			}
 
-            // Buscar status de saúde
-            try {
-                const healthResponse = await fetch(`${base}/health`, { cache: "no-store" })
-                if (healthResponse.ok) {
-                    const health = await healthResponse.json()
-                    setServerHealth(health)
-                } else {
-                    setServerHealth({
-                        status: "unhealthy",
-                        timestamp: new Date().toISOString(),
-                        services: { database: "unknown", redis: "unknown" },
-                    })
-                }
-            } catch {
-                setServerHealth({
-                    status: "unhealthy",
-                    timestamp: new Date().toISOString(),
-                    services: { database: "disconnected", redis: "disconnected" },
-                })
-            }
-        } catch {
-            // Silenciar erros para evitar "Failed to fetch" no console do usuário
-            setServerInfo(null)
-            setServerHealth({
-                status: "unhealthy",
-                timestamp: new Date().toISOString(),
-                services: { database: "disconnected", redis: "disconnected" },
-            })
-        }
-    }
+			// Buscar status de saúde
+			try {
+				const healthResponse = await fetch(`${base}/health`, { cache: "no-store" })
+				if (healthResponse.ok) {
+					const health = await healthResponse.json()
+					setServerHealth(health)
+				} else {
+					setServerHealth({
+						status: "unhealthy",
+						timestamp: new Date().toISOString(),
+						services: { database: "unknown", redis: "unknown" },
+					})
+				}
+			} catch {
+				setServerHealth({
+					status: "unhealthy",
+					timestamp: new Date().toISOString(),
+					services: { database: "disconnected", redis: "disconnected" },
+				})
+			}
+		} catch {
+			// Silenciar erros para evitar "Failed to fetch" no console do usuário
+			setServerInfo(null)
+			setServerHealth({
+				status: "unhealthy",
+				timestamp: new Date().toISOString(),
+				services: { database: "disconnected", redis: "disconnected" },
+			})
+		}
+	}
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
@@ -224,7 +229,7 @@ const fetchJobStatus = async (jobId: string) => {
 		}
 
 		loadInitialJob()
-	}, [jobIdFromUrl])
+	}, [jobIdFromUrl, fetchLatestJob, fetchJobStatus])
 
 	// Buscar status de saúde do servidor ao carregar e periodicamente
 	useEffect(() => {
@@ -235,7 +240,7 @@ const fetchJobStatus = async (jobId: string) => {
 		const healthInterval = setInterval(fetchServerHealth, 30000)
 
 		return () => clearInterval(healthInterval)
-	}, [])
+	}, [fetchServerHealth])
 
 	// Atualizar contador de tempo desde última atualização
 	useEffect(() => {
@@ -284,7 +289,7 @@ const fetchJobStatus = async (jobId: string) => {
 				clearInterval(intervalRef.current)
 			}
 		}
-	}, [currentJob, autoRefresh])
+	}, [currentJob, autoRefresh, fetchJobStatus])
 
 	const handleStartSync = async () => {
 		// Verificar se já existe uma sync em andamento
@@ -336,7 +341,6 @@ const fetchJobStatus = async (jobId: string) => {
 				method: "POST",
 			})
 
-
 			if (!response.ok) {
 				const error = await response.json()
 				throw new Error(error.error || "Erro ao cancelar sincronização")
@@ -347,7 +351,7 @@ const fetchJobStatus = async (jobId: string) => {
 
 			// Atualizar status do job
 			setCurrentJob(data.job)
-			
+
 			// Fechar dialog
 			setShowCancelDialog(false)
 		} catch (error) {
@@ -433,12 +437,14 @@ const fetchJobStatus = async (jobId: string) => {
 							Sincronize automaticamente os preços dos seus produtos com dados do Nota Paraná
 						</p>
 					</div>
-					{currentJob && (
+					<Activity mode={currentJob ? "visible" : "hidden"}>
 						<div className="flex items-center gap-2">
 							{getStatusBadge(currentJob.status)}
-							{polling && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+							<Activity mode={polling ? "visible" : "hidden"}>
+								<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+							</Activity>
 						</div>
-					)}
+					</Activity>
 				</div>
 
 				{/* Switch de Debug Mode */}
@@ -450,9 +456,9 @@ const fetchJobStatus = async (jobId: string) => {
 						</Label>
 						<p className="text-xs text-muted-foreground">Exibe logs detalhados do servidor, API e processamento</p>
 					</div>
-					<Switch 
-						id={debugSwitchId} 
-						checked={debugMode} 
+					<Switch
+						id={debugSwitchId}
+						checked={debugMode}
 						onCheckedChange={(checked) => {
 							setDebugMode(checked)
 							// Recarregar dados com novo modo de debug
@@ -461,7 +467,7 @@ const fetchJobStatus = async (jobId: string) => {
 							} else {
 								fetchLatestJob()
 							}
-						}} 
+						}}
 					/>
 				</div>
 			</div>
@@ -494,20 +500,24 @@ const fetchJobStatus = async (jobId: string) => {
 								)}
 							</Button>
 
-							{isRunning && (
-								<>
+							<Activity mode={isRunning ? "visible" : "hidden"}>
+								
 									<Button onClick={handleCancelSync} variant="destructive" size="lg" className="w-full">
 										<Ban className="mr-2 h-4 w-4" />
 										Cancelar Sincronização
 									</Button>
 
 									<div className="flex items-center gap-2">
-										<Button 
-											variant="outline" 
-											size="sm" 
-											onClick={() => setAutoRefresh(!autoRefresh)} 
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => setAutoRefresh(!autoRefresh)}
 											className="flex-1"
-											title={autoRefresh ? "Pausar atualização automática da página" : "Retomar atualização automática da página"}
+											title={
+												autoRefresh
+													? "Pausar atualização automática da página"
+													: "Retomar atualização automática da página"
+											}
 										>
 											{autoRefresh ? (
 												<>
@@ -531,8 +541,8 @@ const fetchJobStatus = async (jobId: string) => {
 											<RefreshCw className={`h-3 w-3 ${polling ? "animate-spin" : ""}`} />
 										</Button>
 									</div>
-								</>
-							)}
+								
+							</Activity>
 
 							<Alert>
 								<AlertCircle className="h-4 w-4" />
@@ -541,13 +551,14 @@ const fetchJobStatus = async (jobId: string) => {
 									A sincronização processa múltiplos produtos simultaneamente (5 por vez) para maior velocidade. Você
 									pode navegar pelo app enquanto isso acontece.
 									<br />
-									<strong>Botões:</strong> "Cancelar" para interromper a sync, "Pausar Auto-Refresh" para parar as atualizações automáticas da página.
+									<strong>Botões:</strong> "Cancelar" para interromper a sync, "Pausar Auto-Refresh" para parar as
+									atualizações automáticas da página.
 								</AlertDescription>
 							</Alert>
 						</CardContent>
 					</Card>
 
-					{currentJob && (
+					<Activity mode={currentJob ? "visible" : "hidden"}>
 						<Card>
 							<CardHeader>
 								<CardTitle>Como Funciona</CardTitle>
@@ -581,13 +592,13 @@ const fetchJobStatus = async (jobId: string) => {
 								</div>
 							</CardContent>
 						</Card>
-					)}
+					</Activity>
 				</div>
 
 				{/* Coluna da direita - Status e Resultados */}
 				<div className="lg:col-span-2 space-y-6">
-					{currentJob && (
-						<>
+					<Activity mode={currentJob ? "visible" : "hidden"}>
+						
 							{/* Progresso */}
 							<Card>
 								<CardHeader>
@@ -624,16 +635,22 @@ const fetchJobStatus = async (jobId: string) => {
 											</div>
 										)}
 
-										{isRunning &&
-											currentJob.detalhes?.estimativaSegundos !== undefined &&
-											currentJob.detalhes.estimativaSegundos > 0 && (
-												<div>
-													<span className="text-muted-foreground">Tempo estimado:</span>
-													<span className="ml-2 font-medium text-blue-600">
-														~{formatarTempoEstimado(currentJob.detalhes.estimativaSegundos)}
-													</span>
-												</div>
-											)}
+										<Activity
+											mode={
+												isRunning &&
+												currentJob.detalhes?.estimativaSegundos !== undefined &&
+												currentJob.detalhes.estimativaSegundos > 0
+													? "visible"
+													: "hidden"
+											}
+										>
+											<div>
+												<span className="text-muted-foreground">Tempo estimado:</span>
+												<span className="ml-2 font-medium text-blue-600">
+													~{formatarTempoEstimado(currentJob.detalhes.estimativaSegundos)}
+												</span>
+											</div>
+										</Activity>
 
 										{currentJob.detalhes?.estatisticas?.tempoTotalSegundos && (
 											<div>
@@ -645,11 +662,11 @@ const fetchJobStatus = async (jobId: string) => {
 										)}
 									</div>
 
-									{isRunning && (
+									<Activity mode={isRunning ? "visible" : "hidden"}>
 										<p className="text-xs text-muted-foreground text-center">
 											Atualização automática a cada 2 segundos • Última atualização: {timeSinceUpdate}
 										</p>
-									)}
+									</Activity>
 								</CardContent>
 							</Card>
 
@@ -760,65 +777,71 @@ const fetchJobStatus = async (jobId: string) => {
 								currentJob.detalhes.produtosNaoEncontrados.length > 0) ||
 								(currentJob.detalhes?.estatisticas?.produtosNaoEncontrados &&
 									currentJob.detalhes.estatisticas.produtosNaoEncontrados > 0)) && (
-									<Card className="border-orange-200 bg-orange-50/30">
-										<CardHeader>
-											<CardTitle className="flex items-center justify-between">
-												<span className="flex items-center gap-2">
-													<AlertCircle className="h-5 w-5 text-orange-600" />
-													Produtos Não Encontrados
-												</span>
-												<Badge variant="outline" className="border-orange-600 text-orange-600">
-													{currentJob.detalhes?.estatisticas?.produtosNaoEncontrados ||
-														(Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
-															? currentJob.detalhes.produtosNaoEncontrados.length
-															: 0)}
-												</Badge>
-											</CardTitle>
-											<CardDescription>
-												Produtos com código de barras que não foram encontrados na API do Nota Paraná
-											</CardDescription>
-										</CardHeader>
-										<CardContent>
-											<Button
-												variant="outline"
-												onClick={() => setShowProdutosNaoEncontrados(!showProdutosNaoEncontrados)}
-												className="w-full mb-3"
-											>
-												{showProdutosNaoEncontrados ? "Ocultar Lista" : "Ver Lista Completa"}
-											</Button>
+								<Card className="border-orange-200 bg-orange-50/30">
+									<CardHeader>
+										<CardTitle className="flex items-center justify-between">
+											<span className="flex items-center gap-2">
+												<AlertCircle className="h-5 w-5 text-orange-600" />
+												Produtos Não Encontrados
+											</span>
+											<Badge variant="outline" className="border-orange-600 text-orange-600">
+												{currentJob.detalhes?.estatisticas?.produtosNaoEncontrados ||
+													(Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
+														? currentJob.detalhes.produtosNaoEncontrados.length
+														: 0)}
+											</Badge>
+										</CardTitle>
+										<CardDescription>
+											Produtos com código de barras que não foram encontrados na API do Nota Paraná
+										</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<Button
+											variant="outline"
+											onClick={() => setShowProdutosNaoEncontrados(!showProdutosNaoEncontrados)}
+											className="w-full mb-3"
+										>
+											{showProdutosNaoEncontrados ? "Ocultar Lista" : "Ver Lista Completa"}
+										</Button>
 
-											{showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados) && (
-												<ScrollArea className="h-[300px] border rounded p-4">
-													<div className="space-y-2">
-														{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
-															<div
-																key={produto.id}
-																className="flex justify-between items-center p-3 bg-background rounded text-sm"
-															>
-																<div>
-																	<div className="font-medium">{produto.nome}</div>
-																	<div className="text-xs text-muted-foreground">EAN: {produto.barcode}</div>
-																</div>
-																<Badge variant="outline" className="text-orange-600">
-																	Não encontrado
-																</Badge>
+										<Activity
+											mode={
+												showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
+													? "visible"
+													: "hidden"
+											}
+										>
+											<ScrollArea className="h-[300px] border rounded p-4">
+												<div className="space-y-2">
+													{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
+														<div
+															key={produto.id}
+															className="flex justify-between items-center p-3 bg-background rounded text-sm"
+														>
+															<div>
+																<div className="font-medium">{produto.nome}</div>
+																<div className="text-xs text-muted-foreground">EAN: {produto.barcode}</div>
 															</div>
-														))}
-													</div>
-												</ScrollArea>
-											)}
+															<Badge variant="outline" className="text-orange-600">
+																Não encontrado
+															</Badge>
+														</div>
+													))}
+												</div>
+											</ScrollArea>
+										</Activity>
 
-											{!showProdutosNaoEncontrados && (
-												<Alert>
-													<AlertDescription className="text-sm">
-														💡 Esses produtos podem não estar cadastrados nos estabelecimentos próximos ou o código de
-														barras pode estar incorreto.
-													</AlertDescription>
-												</Alert>
-											)}
-										</CardContent>
-									</Card>
-								)}
+										{!showProdutosNaoEncontrados && (
+											<Alert>
+												<AlertDescription className="text-sm">
+													💡 Esses produtos podem não estar cadastrados nos estabelecimentos próximos ou o código de
+													barras pode estar incorreto.
+												</AlertDescription>
+											</Alert>
+										)}
+									</CardContent>
+								</Card>
+							)}
 
 							{/* Logs */}
 							<Card>
@@ -826,9 +849,7 @@ const fetchJobStatus = async (jobId: string) => {
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-2">
 											<FileText className="h-5 w-5" />
-											<CardTitle>
-												{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}
-											</CardTitle>
+											<CardTitle>{debugMode ? "Logs Detalhados (Debug)" : "Logs de Execução"}</CardTitle>
 											<Badge variant="outline">
 												{Array.isArray(currentJob.logs) ? currentJob.logs.length : 0}
 												{currentJob._logsInfo && (
@@ -839,12 +860,7 @@ const fetchJobStatus = async (jobId: string) => {
 											</Badge>
 										</div>
 										<div className="flex items-center gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => setDebugMode(!debugMode)}
-												className="text-xs"
-											>
+											<Button variant="outline" size="sm" onClick={() => setDebugMode(!debugMode)} className="text-xs">
 												<Bug className="h-3 w-3 mr-1" />
 												{debugMode ? "Modo Normal" : "Modo Debug"}
 											</Button>
@@ -858,15 +874,14 @@ const fetchJobStatus = async (jobId: string) => {
 											<span className="block text-xs text-muted-foreground mt-1">
 												Exibindo {currentJob._logsInfo.filteredLogs} de {currentJob._logsInfo.totalLogs} logs
 												{currentJob._logsInfo.totalLogs > currentJob._logsInfo.limit &&
-													` (limitado a ${currentJob._logsInfo.limit})`
-												}
+													` (limitado a ${currentJob._logsInfo.limit})`}
 											</span>
 										)}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									{/* Estatísticas de logs no modo debug */}
-									{debugMode && currentJob._logsInfo && (
+									<Activity mode={debugMode && currentJob._logsInfo ? "visible" : "hidden"}>
 										<div className="mb-4 p-3 bg-muted/50 rounded-lg border">
 											<h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
 												<Bug className="h-4 w-4" />
@@ -879,7 +894,9 @@ const fetchJobStatus = async (jobId: string) => {
 												</div>
 												<div>
 													<span className="text-muted-foreground">Exibindo:</span>
-													<span className="ml-1 font-mono font-semibold text-blue-600">{currentJob._logsInfo.filteredLogs}</span>
+													<span className="ml-1 font-mono font-semibold text-blue-600">
+														{currentJob._logsInfo.filteredLogs}
+													</span>
 												</div>
 												<div>
 													<span className="text-muted-foreground">Filtrados:</span>
@@ -893,7 +910,7 @@ const fetchJobStatus = async (jobId: string) => {
 												</div>
 											</div>
 										</div>
-									)}
+									</Activity>
 
 									<ScrollArea className="h-[300px] w-full rounded border p-4">
 										<div className="space-y-1 font-mono text-xs whitespace-pre-wrap break-all">
@@ -936,28 +953,32 @@ const fetchJobStatus = async (jobId: string) => {
 													}
 
 													// No modo debug, adicionar informações extras
-													const showDebugInfo = debugMode && (log.includes("[DEBUG]") || log.includes("[API]") || log.includes("[SERVER]"))
+													const showDebugInfo =
+														debugMode && (log.includes("[DEBUG]") || log.includes("[API]") || log.includes("[SERVER]"))
 
 													return (
-														<div key={`log-${currentJob.id}-${index}`} className={`${colorClass} ${showDebugInfo ? 'bg-muted/30 p-2 rounded border-l-2 border-current' : ''}`}>
-															{debugMode && (
+														<div
+															key={`log-${currentJob.id}-${index}`}
+															className={`${colorClass} ${showDebugInfo ? "bg-muted/30 p-2 rounded border-l-2 border-current" : ""}`}
+														>
+															<Activity mode={debugMode ? "visible" : "hidden"}>
 																<div className="flex items-center gap-2 mb-1">
 																	<span className="text-xs opacity-70">#{index + 1}</span>
-																	{icon && <span className="text-sm">{icon}</span>}
+																	<Activity mode={icon ? "visible" : "hidden"}>
+																		<span className="text-sm">{icon}</span>
+																	</Activity>
 																	<span className="text-xs opacity-70">
-																		{new Date().toLocaleTimeString('pt-BR', {
+																		{new Date().toLocaleTimeString("pt-BR", {
 																			hour12: false,
-																			hour: '2-digit',
-																			minute: '2-digit',
-																			second: '2-digit'
+																			hour: "2-digit",
+																			minute: "2-digit",
+																			second: "2-digit",
 																		})}
 																	</span>
 																</div>
-															)}
-															<div className={debugMode ? 'ml-4' : ''}>
-																{log}
-															</div>
-															{showDebugInfo && (
+															</Activity>
+															<div className={debugMode ? "ml-4" : ""}>{log}</div>
+															<Activity mode={showDebugInfo ? "visible" : "hidden"}>
 																<div className="text-xs opacity-60 mt-1 ml-4">
 																	{log.includes("[DEBUG]") && "🔧 Informação técnica detalhada"}
 																	{log.includes("[API]") && "🌐 Comunicação com API externa"}
@@ -965,7 +986,7 @@ const fetchJobStatus = async (jobId: string) => {
 																	{log.includes("[BATCH]") && "📦 Processamento em lotes"}
 																	{log.includes("[PARSING]") && "🔍 Análise e processamento de dados"}
 																</div>
-															)}
+															</Activity>
 														</div>
 													)
 												})
@@ -1021,8 +1042,8 @@ const fetchJobStatus = async (jobId: string) => {
 									</div>
 								</CardContent>
 							</Card>
-						</>
-					)}
+						
+					</Activity>
 
 					{!currentJob && (
 						<Card>
@@ -1066,18 +1087,10 @@ const fetchJobStatus = async (jobId: string) => {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className="flex-col sm:flex-row gap-2">
-						<Button
-							variant="outline"
-							onClick={() => setShowCancelDialog(false)}
-							className="w-full sm:w-auto"
-						>
+						<Button variant="outline" onClick={() => setShowCancelDialog(false)} className="w-full sm:w-auto">
 							Manter Executando
 						</Button>
-						<Button
-							variant="destructive"
-							onClick={confirmCancelSync}
-							className="w-full sm:w-auto"
-						>
+						<Button variant="destructive" onClick={confirmCancelSync} className="w-full sm:w-auto">
 							<Ban className="h-4 w-4 mr-2" />
 							Sim, Cancelar
 						</Button>
