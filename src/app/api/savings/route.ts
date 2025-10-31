@@ -22,24 +22,29 @@ export async function GET() {
 			take: 10,
 		})
 
+		// OTIMIZADO: Buscar todos os produtos de uma vez
+		const productIds = topProducts.map((item) => item.productId).filter((id): id is string => id !== null)
+		const productsData = await prisma.product.findMany({
+			where: { id: { in: productIds } },
+			include: {
+				brand: true,
+				category: true,
+			},
+		})
+		const productsMap = new Map(productsData.map((p) => [p.id, p]))
+
 		// Para cada produto, buscar preços em diferentes mercados
 		const savingsAnalysis = await Promise.all(
 			topProducts.map(async (item) => {
 				if (!item.productId) return null
 
-				// Buscar produto info
-				const product = await prisma.product.findUnique({
-					where: { id: item.productId },
-					include: {
-						brand: true,
-						category: true,
-					},
-				})
+				// Usar produto já carregado
+				const product = productsMap.get(item.productId)
 
 				if (!product) return null
 
-				// Buscar preços combinados (compras + registros) nos últimos 3 meses
-				const [purchases, priceRecords] = await Promise.all([
+				// Buscar preços combinados (compras + registros) nos últimos 3 meses - OTIMIZADO: agrupar queries simples em transação
+				const [purchases, priceRecords] = await prisma.$transaction([
 					prisma.purchaseItem.findMany({
 						where: {
 							productId: item.productId,

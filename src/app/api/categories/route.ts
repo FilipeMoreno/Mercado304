@@ -31,7 +31,8 @@ export async function GET(request: Request) {
 				break
 		}
 
-		const [categories, totalCount] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [categories, totalCount] = await prisma.$transaction([
 			prisma.category.findMany({
 				where,
 				orderBy,

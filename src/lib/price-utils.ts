@@ -5,45 +5,48 @@ import { prisma } from "@/lib/prisma"
  * Considera tanto compras quanto registros de preços manuais
  */
 export async function getLatestPrice(productId: string, marketId: string) {
-	// Buscar o preço mais recente de compras
-	const purchaseItem = await prisma.purchaseItem.findFirst({
-		where: {
-			productId,
-			purchase: {
-				marketId,
-			},
-		},
-		orderBy: {
-			purchase: {
-				purchaseDate: "desc",
-			},
-		},
-		select: {
-			unitPrice: true,
-			purchase: {
-				select: {
-					purchaseDate: true,
-					id: true,
+	// OTIMIZAÇÃO: Agrupar queries simples em transação
+	const [purchaseItem, priceRecord] = await prisma.$transaction([
+		// Buscar o preço mais recente de compras
+		prisma.purchaseItem.findFirst({
+			where: {
+				productId,
+				purchase: {
+					marketId,
 				},
 			},
-		},
-	})
+			orderBy: {
+				purchase: {
+					purchaseDate: "desc",
+				},
+			},
+			select: {
+				unitPrice: true,
+				purchase: {
+					select: {
+						purchaseDate: true,
+						id: true,
+					},
+				},
+			},
+		}),
 
-	// Buscar o registro de preço manual mais recente
-	const priceRecord = await prisma.priceRecord.findFirst({
-		where: {
-			productId,
-			marketId,
-		},
-		orderBy: {
-			recordDate: "desc",
-		},
-		select: {
-			price: true,
-			recordDate: true,
-			id: true,
-		},
-	})
+		// Buscar o registro de preço manual mais recente
+		prisma.priceRecord.findFirst({
+			where: {
+				productId,
+				marketId,
+			},
+			orderBy: {
+				recordDate: "desc",
+			},
+			select: {
+				price: true,
+				recordDate: true,
+				id: true,
+			},
+		}),
+	])
 
 	// Comparar as datas e retornar o mais recente
 	if (!purchaseItem && !priceRecord) {
@@ -94,14 +97,13 @@ export async function getLatestPrice(productId: string, marketId: string) {
  * Considera tanto compras quanto registros de preços manuais
  */
 export async function getAllProductPrices(productId: string, marketIds?: string[]) {
-	const marketFilter = marketIds ? { in: marketIds } : {}
-
-	// Buscar todos os mercados disponíveis se não especificado
+	// OTIMIZAÇÃO: Buscar todos os mercados disponíveis em uma query
 	const markets = await prisma.market.findMany({
-		where: marketIds ? { id: marketFilter } : {},
+		where: marketIds ? { id: { in: marketIds } } : {},
 		select: { id: true, name: true, location: true },
 	})
 
+	// OTIMIZAÇÃO: Executar buscas de preços em paralelo (getLatestPrice já faz queries internas otimizadas)
 	const pricesWithMarkets = await Promise.all(
 		markets.map(async (market) => {
 			const latestPrice = await getLatestPrice(productId, market.id)
@@ -125,48 +127,51 @@ export async function getAllProductPrices(productId: string, marketIds?: string[
  * Inclui tanto compras quanto registros manuais em ordem cronológica
  */
 export async function getProductPriceHistory(productId: string, marketId: string, limit?: number) {
-	// Buscar compras
-	const purchases = await prisma.purchaseItem.findMany({
-		where: {
-			productId,
-			purchase: {
-				marketId,
-			},
-		},
-		select: {
-			unitPrice: true,
-			purchase: {
-				select: {
-					purchaseDate: true,
-					id: true,
+	// OTIMIZAÇÃO: Agrupar queries simples em transação
+	const [purchases, records] = await prisma.$transaction([
+		// Buscar compras
+		prisma.purchaseItem.findMany({
+			where: {
+				productId,
+				purchase: {
+					marketId,
 				},
 			},
-		},
-		orderBy: {
-			purchase: {
-				purchaseDate: "desc",
+			select: {
+				unitPrice: true,
+				purchase: {
+					select: {
+						purchaseDate: true,
+						id: true,
+					},
+				},
 			},
-		},
-		take: limit,
-	})
+			orderBy: {
+				purchase: {
+					purchaseDate: "desc",
+				},
+			},
+			take: limit,
+		}),
 
-	// Buscar registros manuais
-	const records = await prisma.priceRecord.findMany({
-		where: {
-			productId,
-			marketId,
-		},
-		select: {
-			price: true,
-			recordDate: true,
-			notes: true,
-			id: true,
-		},
-		orderBy: {
-			recordDate: "desc",
-		},
-		take: limit,
-	})
+		// Buscar registros manuais
+		prisma.priceRecord.findMany({
+			where: {
+				productId,
+				marketId,
+			},
+			select: {
+				price: true,
+				recordDate: true,
+				notes: true,
+				id: true,
+			},
+			orderBy: {
+				recordDate: "desc",
+			},
+			take: limit,
+		}),
+	])
 
 	// Combinar e ordenar por data
 	const allPrices = [

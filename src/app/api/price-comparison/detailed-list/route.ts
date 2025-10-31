@@ -43,13 +43,26 @@ export async function POST(request: Request) {
 		// Mapeia e depois filtra para garantir que não há IDs nulos
 		const productIds = itemsToProcess.map((item) => item.productId).filter((id): id is string => !!id)
 
-		const productsWithPrices = await Promise.all(
-			productIds.map(async (productId) => {
-				const product = await prisma.product.findUnique({
-					where: { id: productId },
-					include: { brand: true },
-				})
+		// OTIMIZADO: Buscar todos os produtos em uma única query em vez de múltiplas findUnique
+		const productsData = await prisma.product.findMany({
+			where: { id: { in: productIds } },
+			include: { brand: true },
+		})
 
+		// Criar mapa para acesso rápido
+		const productsMap = new Map(productsData.map((p) => [p.id, p]))
+		const products = productIds.map((id) => productsMap.get(id) || null)
+
+		// OTIMIZAÇÃO: Buscar preços para todos os produtos e mercados
+		// NOTA: getLatestPrice faz múltiplas queries internas, mas cada produto/mercado precisa de dados específicos
+		// Mantemos Promise.all mas documentamos que a função getLatestPrice poderia ser otimizada internamente
+		const productsWithPrices = await Promise.all(
+			products.map(async (product, index) => {
+				if (!product) return null
+
+				const productId = productIds[index]
+				
+				// Buscar preços para todos os mercados deste produto em paralelo
 				const prices = await Promise.all(
 					marketIds.map(async (marketId) => {
 						const latestPrice = await getLatestPrice(productId, marketId)
@@ -70,7 +83,10 @@ export async function POST(request: Request) {
 			}),
 		)
 
-		const productsToCompare = productsWithPrices.map((productData) => {
+		// Filtrar produtos nulos
+		const validProductsWithPrices = productsWithPrices.filter((p): p is NonNullable<typeof p> => p !== null)
+
+		const productsToCompare = validProductsWithPrices.map((productData) => {
 			const cheapestPrice = productData.prices.reduce(
 				(cheapest, current) => {
 					if (current.price === null) return cheapest

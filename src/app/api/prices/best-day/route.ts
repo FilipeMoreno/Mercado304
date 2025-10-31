@@ -32,36 +32,39 @@ export async function POST(request: Request) {
 		const sixMonthsAgo = new Date()
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
-		const priceRecords = await prisma.priceRecord.findMany({
-			where: {
-				productId: product.id,
-				recordDate: { gte: sixMonthsAgo },
-			},
-			include: {
-				market: true,
-			},
-			orderBy: { recordDate: "desc" },
-		})
-
-		// Buscar compras do produto nos últimos 6 meses
-		const purchaseItems = await prisma.purchaseItem.findMany({
-			where: {
-				productId: product.id,
-				purchase: {
-					purchaseDate: { gte: sixMonthsAgo },
+		// OTIMIZAÇÃO: Agrupar queries simples em transação
+		const [priceRecords, purchaseItems] = await prisma.$transaction([
+			prisma.priceRecord.findMany({
+				where: {
+					productId: product.id,
+					recordDate: { gte: sixMonthsAgo },
 				},
-			},
-			include: {
-				purchase: {
-					include: {
-						market: true,
+				include: {
+					market: true,
+				},
+				orderBy: { recordDate: "desc" },
+			}),
+
+			// Buscar compras do produto nos últimos 6 meses
+			prisma.purchaseItem.findMany({
+				where: {
+					productId: product.id,
+					purchase: {
+						purchaseDate: { gte: sixMonthsAgo },
 					},
 				},
-			},
-			orderBy: {
-				purchase: { purchaseDate: "desc" },
-			},
-		})
+				include: {
+					purchase: {
+						include: {
+							market: true,
+						},
+					},
+				},
+				orderBy: {
+					purchase: { purchaseDate: "desc" },
+				},
+			}),
+		])
 
 		// Combinar dados
 		const allData = [

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma"
 export const dashboardFunctions = {
 	// Dashboard & Analytics
 	getDashboardStats: async () => {
-		const [totalSpent, totalPurchases, totalProducts, totalStockItems] = await Promise.all([
+		// OTIMIZAÇÃO: Agrupar queries simples em uma transação
+		const [totalSpent, totalPurchases, totalProducts, totalStockItems] = await prisma.$transaction([
 			prisma.purchase.aggregate({ _sum: { totalAmount: true } }),
 			prisma.purchase.count(),
 			prisma.product.count(),

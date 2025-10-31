@@ -866,27 +866,28 @@ export async function quickPriceAnalysis(input: {
 		throw new Error("Kit não encontrado")
 	}
 
-	// Registrar todos os preços em uma transação
+	// OTIMIZADO: Registrar todos os preços em uma única operação
 	await prisma.$transaction(async (tx) => {
-		// Registrar preço do kit (kitProduct)
-		await tx.priceRecord.create({
-			data: {
+		// Preparar todos os registros de preço
+		const priceRecordsToCreate = [
+			// Preço do kit
+			{
 				productId: input.kitProductId,
 				marketId: input.marketId,
 				price: input.kitPrice,
 			},
-		})
+			// Preços dos itens individuais
+			...input.itemPrices.map((itemPrice) => ({
+				productId: itemPrice.productId,
+				marketId: input.marketId,
+				price: itemPrice.price,
+			})),
+		]
 
-		// Registrar preços dos itens individuais
-		for (const itemPrice of input.itemPrices) {
-			await tx.priceRecord.create({
-				data: {
-					productId: itemPrice.productId,
-					marketId: input.marketId,
-					price: itemPrice.price,
-				},
-			})
-		}
+		// Criar todos os registros de uma vez
+		await tx.priceRecord.createMany({
+			data: priceRecordsToCreate,
+		})
 	})
 
 	// Calcular análise com os novos preços

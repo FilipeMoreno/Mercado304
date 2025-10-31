@@ -12,8 +12,8 @@ export async function GET() {
 		const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 		const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
 
-		// Buscar dados do mês atual
-		const [currentMonthPurchases, currentMonthSpent] = await Promise.all([
+		// OTIMIZADO: Agrupar todas as queries simples em uma única transação
+		const [currentMonthPurchases, currentMonthSpent, lastMonthPurchases, lastMonthSpent] = await prisma.$transaction([
 			prisma.purchase.count({
 				where: {
 					purchaseDate: {
@@ -31,10 +31,6 @@ export async function GET() {
 				},
 				_sum: { totalAmount: true },
 			}),
-		])
-
-		// Buscar dados do mês passado
-		const [lastMonthPurchases, lastMonthSpent] = await Promise.all([
 			prisma.purchase.count({
 				where: {
 					purchaseDate: {
@@ -66,8 +62,8 @@ export async function GET() {
 		const lastAvgTicket = lastMonthPurchases > 0 ? lastSpent / lastMonthPurchases : 0
 		const avgTicketChange = lastAvgTicket > 0 ? ((currentAvgTicket - lastAvgTicket) / lastAvgTicket) * 100 : 0
 
-		// Buscar produtos mais comprados em cada mês
-		const [currentTopProducts, lastTopProducts] = await Promise.all([
+		// OTIMIZADO: Agrupar queries de produtos mais comprados em transação
+		const [currentTopProducts, lastTopProducts] = await prisma.$transaction([
 			prisma.purchaseItem.groupBy({
 				by: ["productId"],
 				where: {
@@ -130,8 +126,8 @@ export async function GET() {
 			}
 		})
 
-		// Buscar mercados mais utilizados
-		const [currentTopMarkets, lastTopMarkets] = await Promise.all([
+		// OTIMIZADO: Agrupar queries de mercados mais utilizados em transação
+		const [currentTopMarkets, lastTopMarkets] = await prisma.$transaction([
 			prisma.purchase.groupBy({
 				by: ["marketId"],
 				where: {

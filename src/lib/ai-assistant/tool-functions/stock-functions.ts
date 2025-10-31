@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma"
 export const stockFunctions = {
 	// Stock Management
 	getStockAlerts: async () => {
-		const [lowStockItems, expiringSoonItems, expiredItems] = await Promise.all([
+		// OTIMIZAÇÃO: Agrupar queries simples em transação
+		const [lowStockItems, expiringSoonItems, expiredItems] = await prisma.$transaction([
 			prisma.stockItem.count({ where: { isLowStock: true } }),
 			prisma.stockItem.count({
 				where: {
@@ -95,7 +96,10 @@ export const stockFunctions = {
 				remainingToRemove -= removeFromItem
 			}
 
-			await Promise.all(updates)
+			// OTIMIZAÇÃO: Agrupar updates em transação
+			if (updates.length > 0) {
+				await prisma.$transaction(updates)
+			}
 
 			return {
 				success: true,

@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		// Buscar histórico de movimentações do estoque
-		const [historyRecords, total] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [historyRecords, total] = await prisma.$transaction([
 			prisma.stockMovement.findMany({
 				where: whereConditions,
 				include: {
@@ -155,7 +155,8 @@ export async function GET(request: NextRequest) {
 				}
 			}
 
-			const [wasteData, wasteCount] = await Promise.all([
+			// OTIMIZADO: Agrupar queries simples em transação
+			const [wasteData, wasteCount] = await prisma.$transaction([
 				prisma.wasteRecord.findMany({
 					where: wasteWhereConditions,
 					orderBy: { wasteDate: "desc" },
@@ -215,29 +216,30 @@ export async function GET(request: NextRequest) {
 			take: 10,
 		})
 
-		// Buscar informações dos produtos
-		const topProductsWithInfo = await Promise.all(
-			topProducts.map(async (item) => {
-				const stockItem = await prisma.stockItem.findUnique({
-					where: { id: item.stockItemId },
+		// OTIMIZADO: Buscar todos os stockItems de uma vez em vez de fazer múltiplas queries
+		const stockItemIds = topProducts.map((item) => item.stockItemId)
+		const stockItems = await prisma.stockItem.findMany({
+			where: { id: { in: stockItemIds } },
+			include: {
+				product: {
 					include: {
-						product: {
-							include: {
-								brand: true,
-								category: true,
-							},
-						},
+						brand: true,
+						category: true,
 					},
-				})
-				return {
-					productName: stockItem?.product.name || "Produto não encontrado",
-					brand: stockItem?.product.brand?.name,
-					category: stockItem?.product.category?.name,
-					movementCount: item._count.id,
-					totalQuantity: item._sum.quantity,
-				}
-			})
-		)
+				},
+			},
+		})
+
+		const topProductsWithInfo = topProducts.map((item) => {
+			const stockItem = stockItems.find((si) => si.id === item.stockItemId)
+			return {
+				productName: stockItem?.product.name || "Produto não encontrado",
+				brand: stockItem?.product.brand?.name,
+				category: stockItem?.product.category?.name,
+				movementCount: item._count.id,
+				totalQuantity: item._sum.quantity,
+			}
+		})
 
 		// Localizações mais utilizadas
 		const topLocations = await prisma.stockMovement.groupBy({
@@ -254,19 +256,20 @@ export async function GET(request: NextRequest) {
 			take: 5,
 		})
 
-		// Buscar informações das localizações
-		const topLocationsWithInfo = await Promise.all(
-			topLocations.map(async (item) => {
-				const stockItem = await prisma.stockItem.findUnique({
-					where: { id: item.stockItemId },
-					select: { location: true },
-				})
-				return {
-					location: stockItem?.location || "Localização não encontrada",
-					movementCount: item._count.id,
-				}
-			})
-		)
+		// OTIMIZADO: Buscar todos os stockItems de uma vez em vez de fazer múltiplas queries
+		const locationStockItemIds = topLocations.map((item) => item.stockItemId)
+		const locationStockItems = await prisma.stockItem.findMany({
+			where: { id: { in: locationStockItemIds } },
+			select: { id: true, location: true },
+		})
+
+		const topLocationsWithInfo = topLocations.map((item) => {
+			const stockItem = locationStockItems.find((si) => si.id === item.stockItemId)
+			return {
+				location: stockItem?.location || "Localização não encontrada",
+				movementCount: item._count.id,
+			}
+		})
 
 		// Combinar e ordenar registros de movimento e desperdício
 		const combinedRecords = [

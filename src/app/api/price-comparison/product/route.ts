@@ -22,44 +22,47 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 })
 		}
 
-		// Buscar compras dos últimos 6 meses para este produto
+		// OTIMIZADO: Agrupar queries simples em transação
 		const sixMonthsAgo = new Date()
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
-		const purchaseItems = await prisma.purchaseItem.findMany({
-			where: {
-				productId: productId,
-				purchase: {
-					purchaseDate: { gte: sixMonthsAgo },
-				},
-			},
-			include: {
-				purchase: {
-					include: {
-						market: true,
+		const [purchaseItems, priceRecords] = await prisma.$transaction([
+			// Buscar compras dos últimos 6 meses para este produto
+			prisma.purchaseItem.findMany({
+				where: {
+					productId: productId,
+					purchase: {
+						purchaseDate: { gte: sixMonthsAgo },
 					},
 				},
-			},
-			orderBy: {
-				purchase: {
-					purchaseDate: "desc",
+				include: {
+					purchase: {
+						include: {
+							market: true,
+						},
+					},
 				},
-			},
-		})
+				orderBy: {
+					purchase: {
+						purchaseDate: "desc",
+					},
+				},
+			}),
 
-		// Buscar registros de preços dos últimos 6 meses para este produto
-		const priceRecords = await prisma.priceRecord.findMany({
-			where: {
-				productId: productId,
-				recordDate: { gte: sixMonthsAgo },
-			},
-			include: {
-				market: true,
-			},
-			orderBy: {
-				recordDate: "desc",
-			},
-		})
+			// Buscar registros de preços dos últimos 6 meses para este produto
+			prisma.priceRecord.findMany({
+				where: {
+					productId: productId,
+					recordDate: { gte: sixMonthsAgo },
+				},
+				include: {
+					market: true,
+				},
+				orderBy: {
+					recordDate: "desc",
+				},
+			}),
+		])
 
 		// Agrupar por mercado e calcular estatísticas (incluindo registros de preços)
 		const marketPrices = purchaseItems.reduce((acc: any, item) => {

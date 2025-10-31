@@ -29,7 +29,36 @@ export async function GET(request: NextRequest) {
 			},
 		})
 
+		// OTIMIZADO: Buscar todos os targets de uma vez
+		const categoryIds = budgets.filter((b) => b.type === "CATEGORY").map((b) => b.targetId)
+		const marketIds = budgets.filter((b) => b.type === "MARKET").map((b) => b.targetId)
+		const productIds = budgets.filter((b) => b.type === "PRODUCT").map((b) => b.targetId)
+
+		const [categories, markets, products] = await prisma.$transaction([
+			categoryIds.length > 0
+				? prisma.category.findMany({
+						where: { id: { in: categoryIds } },
+					})
+				: Promise.resolve([]),
+			marketIds.length > 0
+				? prisma.market.findMany({
+						where: { id: { in: marketIds } },
+					})
+				: Promise.resolve([]),
+			productIds.length > 0
+				? prisma.product.findMany({
+						where: { id: { in: productIds } },
+					})
+				: Promise.resolve([]),
+		])
+
+		const categoriesMap = new Map(categories.map((c) => [c.id, c]))
+		const marketsMap = new Map(markets.map((m) => [m.id, m]))
+		const productsMap = new Map(products.map((p) => [p.id, p]))
+
 		// Calcular gastos para cada orçamento
+		// NOTA: As queries de compras são específicas para cada orçamento (período diferente)
+		// então mantemos Promise.all mas já temos os targets carregados
 		const budgetsWithSpent = await Promise.all(
 			budgets.map(async (budget) => {
 				let spent = 0
@@ -37,10 +66,8 @@ export async function GET(request: NextRequest) {
 
 				// Calcular gastos com base no tipo
 				if (budget.type === "CATEGORY") {
-					// Buscar categoria
-					const category = await prisma.category.findUnique({
-						where: { id: budget.targetId },
-					})
+					// Usar categoria já carregada
+					const category = categoriesMap.get(budget.targetId)
 
 					if (category) {
 						target = {
@@ -66,10 +93,8 @@ export async function GET(request: NextRequest) {
 						spent = purchases.reduce((sum, item) => sum + item.finalPrice, 0)
 					}
 				} else if (budget.type === "MARKET") {
-					// Buscar mercado
-					const market = await prisma.market.findUnique({
-						where: { id: budget.targetId },
-					})
+					// Usar mercado já carregado
+					const market = marketsMap.get(budget.targetId)
 
 					if (market) {
 						target = {
@@ -91,10 +116,8 @@ export async function GET(request: NextRequest) {
 						spent = purchases.reduce((sum, p) => sum + p.finalAmount, 0)
 					}
 				} else if (budget.type === "PRODUCT") {
-					// Buscar produto
-					const product = await prisma.product.findUnique({
-						where: { id: budget.targetId },
-					})
+					// Usar produto já carregado
+					const product = productsMap.get(budget.targetId)
 
 					if (product) {
 						target = {

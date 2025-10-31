@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		const [wasteRecords, totalCount] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [wasteRecords, totalCount] = await prisma.$transaction([
 			prisma.wasteRecord.findMany({
 				where,
 				orderBy: { wasteDate: "desc" },

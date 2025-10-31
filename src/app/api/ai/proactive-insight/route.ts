@@ -9,8 +9,8 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Dados inválidos." }, { status: 400 })
 		}
 
-		// 1. Buscar histórico de preços de AMBAS as fontes
-		const [historicalPurchases, historicalRecords] = await Promise.all([
+		// 1. Buscar histórico de preços de AMBAS as fontes - OTIMIZADO: agrupar queries simples em transação
+		const [historicalPurchases, historicalRecords] = await prisma.$transaction([
 			prisma.purchaseItem.findMany({
 				where: { productId },
 				select: { unitPrice: true },
@@ -34,26 +34,30 @@ export async function POST(request: Request) {
 
 		// 4. Definir o gatilho: se o preço atual é 20% mais caro que a média
 		if (price > avgPrice * 1.2) {
-			// 5. Buscar a melhor alternativa em AMBAS as tabelas
-			const [cheapestPurchase] = await prisma.purchaseItem.findMany({
-				where: {
-					productId,
-					unitPrice: { lt: price },
-				},
-				include: { purchase: { include: { market: true } } },
-				orderBy: { unitPrice: "asc" },
-				take: 1,
-			})
+			// 5. Buscar a melhor alternativa em AMBAS as tabelas - OTIMIZADO: agrupar queries simples em transação
+			const [purchaseResults, recordResults] = await prisma.$transaction([
+				prisma.purchaseItem.findMany({
+					where: {
+						productId,
+						unitPrice: { lt: price },
+					},
+					include: { purchase: { include: { market: true } } },
+					orderBy: { unitPrice: "asc" },
+					take: 1,
+				}),
+				prisma.priceRecord.findMany({
+					where: {
+						productId,
+						price: { lt: price },
+					},
+					include: { market: true },
+					orderBy: { price: "asc" },
+					take: 1,
+				}),
+			])
 
-			const [cheapestRecord] = await prisma.priceRecord.findMany({
-				where: {
-					productId,
-					price: { lt: price },
-				},
-				include: { market: true },
-				orderBy: { price: "asc" },
-				take: 1,
-			})
+			const [cheapestPurchase] = purchaseResults
+			const [cheapestRecord] = recordResults
 
 			// Determinar qual é a melhor sugestão (a mais barata de todas)
 			let bestSuggestion = null

@@ -11,30 +11,40 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Product ID é obrigatório" }, { status: 400 })
 		}
 
-		// Buscar todas as compras que contêm o produto inicial
-		const purchasesWithProduct = await prisma.purchaseItem.findMany({
-			where: { productId },
-			select: {
-				purchaseId: true,
-			},
-		})
+		// OTIMIZADO: Buscar purchaseIds e itens relacionados em uma única transação
+		const [purchasesWithProduct, relatedItems] = await prisma.$transaction(async (tx) => {
+			// Buscar todas as compras que contêm o produto inicial
+			const purchases = await tx.purchaseItem.findMany({
+				where: { productId },
+				select: {
+					purchaseId: true,
+				},
+			})
 
-		const purchaseIds = purchasesWithProduct.map((p) => p.purchaseId)
+			const purchaseIds = purchases.map((p) => p.purchaseId)
 
-		// Encontrar todos os outros itens nessas mesmas compras
-		const relatedItems = await prisma.purchaseItem.findMany({
-			where: {
-				purchaseId: { in: purchaseIds },
-				productId: { not: productId },
-			},
-			include: {
-				product: {
-					include: {
-						brand: true,
-						category: true,
+			// Se não há compras, retornar vazio
+			if (purchaseIds.length === 0) {
+				return [[], []]
+			}
+
+			// Encontrar todos os outros itens nessas mesmas compras
+			const items = await tx.purchaseItem.findMany({
+				where: {
+					purchaseId: { in: purchaseIds },
+					productId: { not: productId },
+				},
+				include: {
+					product: {
+						include: {
+							brand: true,
+							category: true,
+						},
 					},
 				},
-			},
+			})
+
+			return [purchases, items]
 		})
 
 		// Contar a frequência dos produtos relacionados e filtrar

@@ -56,7 +56,8 @@ export async function GET(request: Request) {
 			includeConfig.nutritionalInfo = true
 		}
 
-		const [products, totalCount] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [products, totalCount] = await prisma.$transaction([
 			prisma.product.findMany({
 				where,
 				include: includeConfig,
@@ -106,45 +107,41 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
 		}
 
-		// Verificar se algum código de barras já existe na nova tabela
+		// OTIMIZADO: Verificar todos os códigos de barras de uma vez
 		const allBarcodes = barcodes || (barcode ? [barcode] : [])
+		const validBarcodes = allBarcodes.filter(Boolean)
 
-		if (allBarcodes.length > 0) {
-			for (const barcodeValue of allBarcodes) {
-				if (!barcodeValue) continue
+		if (validBarcodes.length > 0) {
+			// Buscar todos os códigos de barras existentes na nova tabela
+			const existingBarcodes = await prisma.productBarcode.findMany({
+				where: { barcode: { in: validBarcodes } },
+				include: { product: true },
+			})
 
-				const existingBarcode = await prisma.productBarcode.findUnique({
-					where: { barcode: barcodeValue },
-					include: { product: true },
-				})
-
-				if (existingBarcode) {
-					return NextResponse.json(
-						{
-							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingBarcode.product.name}`,
-						},
-						{ status: 409 },
-					)
-				}
+			if (existingBarcodes.length > 0) {
+				const conflictingBarcode = existingBarcodes[0]
+				return NextResponse.json(
+					{
+						error: `Código de barras "${conflictingBarcode.barcode}" já cadastrado para o produto: ${conflictingBarcode.product.name}`,
+					},
+					{ status: 409 },
+				)
 			}
 
 			// Fallback: verificar no campo barcode antigo (compatibilidade)
-			for (const barcodeValue of allBarcodes) {
-				if (!barcodeValue) continue
+			const existingProducts = await prisma.product.findMany({
+				where: { barcode: { in: validBarcodes } },
+				select: { id: true, name: true, barcode: true },
+			})
 
-				const existingProduct = await prisma.product.findUnique({
-					where: { barcode: barcodeValue },
-					select: { id: true, name: true },
-				})
-
-				if (existingProduct) {
-					return NextResponse.json(
-						{
-							error: `Código de barras "${barcodeValue}" já cadastrado para o produto: ${existingProduct.name}`,
-						},
-						{ status: 409 },
-					)
-				}
+			if (existingProducts.length > 0) {
+				const conflictingProduct = existingProducts[0]
+				return NextResponse.json(
+					{
+						error: `Código de barras "${conflictingProduct.barcode}" já cadastrado para o produto: ${conflictingProduct.name}`,
+					},
+					{ status: 409 },
+				)
 			}
 		}
 

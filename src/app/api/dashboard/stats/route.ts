@@ -15,6 +15,8 @@ export async function GET() {
 		const twelveMonthsAgo = new Date()
 		twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
 
+		// OTIMIZAÇÃO: Agrupar todas as queries simples em uma transação
+		// Isso garante que apenas uma conexão seja usada para todas elas
 		const [
 			totalPurchases,
 			totalSpent,
@@ -29,9 +31,7 @@ export async function GET() {
 			lastMonthStats,
 			monthlySpending,
 			priceRecordsStats,
-			combinedPriceStats,
-			discountStats,
-		] = await Promise.all([
+		] = await prisma.$transaction([
 			prisma.purchase.count(),
 
 			prisma.purchase.aggregate({
@@ -149,7 +149,11 @@ export async function GET() {
 				_min: { price: true },
 				_max: { price: true },
 			}),
+		])
 
+		// OTIMIZAÇÃO: Executar funções complexas (IIFEs) fora da transação
+		// Essas funções têm múltiplos awaits internos ou lógica assíncrona complexa
+		const [combinedPriceStats, discountStats] = await Promise.all([
 			// Estatísticas combinadas de preços (produtos com dados tanto de compra quanto registro)
 			(async () => {
 				const productsWithBothSources = await prisma.product.findMany({
@@ -165,16 +169,15 @@ export async function GET() {
 				}
 			})(),
 
-			// Estatísticas de descontos
+			// Estatísticas de descontos (IIFE complexa com múltiplas queries internas)
 			(async () => {
-				// Calcular descontos totais incluindo descontos de compra E descontos de itens
+				// Agrupar queries simples dentro da IIFE em uma transação
 				const [
 					purchaseDiscounts,
 					itemDiscounts,
-					totalPurchasesCount,
 					monthlyDiscounts,
 					topDiscountMarkets,
-				] = await Promise.all([
+				] = await prisma.$transaction([
 					// Descontos ao nível da compra
 					prisma.purchase.aggregate({
 						_sum: { totalDiscount: true },
@@ -183,8 +186,6 @@ export async function GET() {
 					prisma.purchaseItem.aggregate({
 						_sum: { totalDiscount: true },
 					}),
-					// Total de compras
-					prisma.purchase.count(),
 					// Descontos mensais (compra + itens)
 					prisma.$queryRaw`
 						SELECT 
@@ -212,10 +213,14 @@ export async function GET() {
 					`,
 				])
 
+				// OTIMIZAÇÃO: Reutilizar totalPurchases já obtido anteriormente
+				const totalPurchasesCount = totalPurchases
+
 				// Calcular total de descontos (compra + itens)
 				const totalDiscountsValue = (purchaseDiscounts._sum.totalDiscount || 0) + (itemDiscounts._sum.totalDiscount || 0)
 
-				// Contar compras com desconto (qualquer tipo)
+				// OTIMIZADO: Contar compras com desconto dentro da transação (movido para depois das outras queries para usar resultados anteriores)
+				// Esta query precisa dos resultados anteriores, mas pode ser executada em sequência após a transação principal
 				const purchasesWithDiscountsCount = await prisma.purchase.count({
 					where: {
 						OR: [
@@ -253,8 +258,8 @@ export async function GET() {
 		const productIds = topProducts.map((item) => item.productId).filter((id): id is string => id !== null)
 		const marketIds = marketComparison.map((item) => item.marketId)
 
-		// OTIMIZAÇÃO: Fazer duas consultas únicas para buscar todos os detalhes de uma vez
-		const [productsInfo, marketsInfo] = await Promise.all([
+		// OTIMIZAÇÃO: Executar consultas que dependem de resultados anteriores em uma transação
+		const [productsInfo, marketsInfo] = await prisma.$transaction([
 			prisma.product.findMany({
 				where: { id: { in: productIds } },
 				include: {
@@ -330,11 +335,13 @@ export async function GET() {
 			totalSpent: parseFloat(data.totalSpent),
 		}))
 
-		// Buscar nomes dos mercados com mais descontos
+		// Buscar nomes dos mercados com mais descontos (consulta que precisa rodar depois do primeiro bloco)
 		const topDiscountMarketIds = discountStats.topDiscountMarkets.map((m) => m.marketId)
-		const topDiscountMarketsInfo = await prisma.market.findMany({
-			where: { id: { in: topDiscountMarketIds } },
-		})
+		const topDiscountMarketsInfo = topDiscountMarketIds.length > 0
+			? await prisma.market.findMany({
+					where: { id: { in: topDiscountMarketIds } },
+				})
+			: []
 
 		const topDiscountMarketsWithNames = discountStats.topDiscountMarkets.map((market) => {
 			const marketInfo = topDiscountMarketsInfo.find((m) => m.id === market.marketId)

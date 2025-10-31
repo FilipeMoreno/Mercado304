@@ -35,8 +35,8 @@ export async function GET(request: Request) {
 			where.marketId = marketId
 		}
 
-		// Buscar orçamentos
-		const [quotes, total] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [quotes, total] = await prisma.$transaction([
 			prisma.quote.findMany({
 				where,
 				skip,

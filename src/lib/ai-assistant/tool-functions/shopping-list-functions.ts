@@ -211,8 +211,8 @@ export const shoppingListFunctions = {
 				}
 			}
 
-			// Executa as operações
-			await Promise.all([
+			// OTIMIZADO: Executar todas as operações em uma única transação
+			await prisma.$transaction([
 				...itemsToUpdate.map(item =>
 					prisma.shoppingListItem.update({
 						where: { id: item.id },

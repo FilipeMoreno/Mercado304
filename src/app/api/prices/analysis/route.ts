@@ -61,16 +61,7 @@ export async function GET(request: Request) {
 			priceRecordWhere.recordDate = dateFilter
 		}
 
-		// Buscar todos os registros manuais de preços
-		const priceRecords = await prisma.priceRecord.findMany({
-			where: priceRecordWhere,
-			include: {
-				product: true,
-				market: true,
-			},
-			orderBy: { recordDate: "desc" },
-		})
-
+		// OTIMIZADO: Agrupar queries em transação quando includePurchases é true
 		let allPriceData: Array<{
 			id: string
 			product: string
@@ -79,17 +70,8 @@ export async function GET(request: Request) {
 			recordDate: Date
 			notes: string | null
 			source: "manual" | "purchase"
-		}> = priceRecords.map((record) => ({
-			id: record.id,
-			product: record.product.name,
-			market: record.market.name,
-			price: record.price,
-			recordDate: record.recordDate,
-			notes: record.notes,
-			source: "manual" as const,
-		}))
+		}>
 
-		// Se solicitado, incluir também dados de compras
 		if (includePurchases) {
 			const purchaseWhere: {
 				product?: { name: { contains: string; mode: "insensitive" } }
@@ -120,18 +102,38 @@ export async function GET(request: Request) {
 				}
 			}
 
-			const purchaseItems = await prisma.purchaseItem.findMany({
-				where: purchaseWhere,
-				include: {
-					product: true,
-					purchase: {
-						include: {
-							market: true,
+			const [priceRecords, purchaseItems] = await prisma.$transaction([
+				prisma.priceRecord.findMany({
+					where: priceRecordWhere,
+					include: {
+						product: true,
+						market: true,
+					},
+					orderBy: { recordDate: "desc" },
+				}),
+				prisma.purchaseItem.findMany({
+					where: purchaseWhere,
+					include: {
+						product: true,
+						purchase: {
+							include: {
+								market: true,
+							},
 						},
 					},
-				},
-				orderBy: { purchase: { purchaseDate: "desc" } },
-			})
+					orderBy: { purchase: { purchaseDate: "desc" } },
+				}),
+			])
+
+			const priceData = priceRecords.map((record) => ({
+				id: record.id,
+				product: record.product.name,
+				market: record.market.name,
+				price: record.price,
+				recordDate: record.recordDate,
+				notes: record.notes,
+				source: "manual" as const,
+			}))
 
 			const purchaseData = purchaseItems.map((item) => ({
 				id: item.id,
@@ -143,7 +145,27 @@ export async function GET(request: Request) {
 				source: "purchase" as const,
 			}))
 
-			allPriceData = [...allPriceData, ...purchaseData]
+			allPriceData = [...priceData, ...purchaseData]
+		} else {
+			// Se não incluir compras, buscar apenas registros manuais
+			const priceRecords = await prisma.priceRecord.findMany({
+				where: priceRecordWhere,
+				include: {
+					product: true,
+					market: true,
+				},
+				orderBy: { recordDate: "desc" },
+			})
+
+			allPriceData = priceRecords.map((record) => ({
+				id: record.id,
+				product: record.product.name,
+				market: record.market.name,
+				price: record.price,
+				recordDate: record.recordDate,
+				notes: record.notes,
+				source: "manual" as const,
+			}))
 		}
 
 		// Ordenar por data (mais recente primeiro)

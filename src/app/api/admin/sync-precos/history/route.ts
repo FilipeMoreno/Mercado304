@@ -12,7 +12,8 @@ export async function GET(request: Request) {
 
 		console.log(`[Sync History] Buscando histórico: limit=${limit}, offset=${offset}`)
 
-		const [jobs, total] = await Promise.all([
+		// OTIMIZADO: Agrupar queries simples em transação
+		const [jobs, total] = await prisma.$transaction([
 			prisma.syncJob.findMany({
 				orderBy: {
 					createdAt: "desc",

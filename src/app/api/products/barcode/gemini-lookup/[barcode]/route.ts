@@ -21,8 +21,8 @@ export async function GET(
 			)
 		}
 
-		// Buscar todas as categorias e marcas do sistema
-		const [categories, brands] = await Promise.all([
+		// OTIMIZAÇÃO: Buscar todas as categorias e marcas do sistema em uma transação
+		const [categories, brands] = await prisma.$transaction([
 			prisma.category.findMany({
 				select: {
 					id: true,

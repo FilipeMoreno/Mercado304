@@ -110,58 +110,68 @@ export async function GET(request: Request) {
 		const sortedProducts = productsWithHealthScore.sort((a, b) => b.healthScore - a.healthScore).slice(0, limit)
 
 		// Buscar preços médios dos últimos 3 meses para cada produto
+		// NOTA: Mantemos Promise.all aqui pois cada query tem um productId diferente
+		// e não podem ser facilmente agrupadas em uma única transação
 		const threeMontshAgo = new Date()
 		threeMontshAgo.setMonth(threeMontshAgo.getMonth() - 3)
 
-		const productsWithPrices = await Promise.all(
-			sortedProducts.map(async (product) => {
-				const averagePrice = await prisma.purchaseItem.aggregate({
-					where: {
-						productId: product.id,
-						purchase: {
-							purchaseDate: {
-								gte: threeMontshAgo,
-							},
-						},
+		const productIds = sortedProducts.map((p) => p.id)
+		// OTIMIZADO: Buscar todos os preços de uma vez com uma query agregada
+		const allPriceData = await prisma.purchaseItem.groupBy({
+			by: ["productId"],
+			where: {
+				productId: { in: productIds },
+				purchase: {
+					purchaseDate: {
+						gte: threeMontshAgo,
 					},
-					_avg: {
-						unitPrice: true,
-					},
-					_count: {
-						id: true,
-					},
-				})
+				},
+			},
+			_avg: {
+				unitPrice: true,
+			},
+			_count: {
+				id: true,
+			},
+		})
 
-				return {
-					id: product.id,
-					name: product.name,
-					unit: product.unit,
-					barcode: product.barcode,
-					brand: product.brand,
-					category: product.category,
-					healthScore: product.healthScore,
-					nutritionalInfo: {
-						calories: product.nutritionalInfo?.calories,
-						proteins: product.nutritionalInfo?.proteins,
-						carbohydrates: product.nutritionalInfo?.carbohydrates,
-						totalFat: product.nutritionalInfo?.totalFat,
-						saturatedFat: product.nutritionalInfo?.saturatedFat,
-						transFat: product.nutritionalInfo?.transFat,
-						fiber: product.nutritionalInfo?.fiber,
-						sodium: product.nutritionalInfo?.sodium,
-						totalSugars: product.nutritionalInfo?.totalSugars,
-						servingSize: product.nutritionalInfo?.servingSize,
-						allergensContains: product.nutritionalInfo?.allergensContains || [],
-						allergensMayContain: product.nutritionalInfo?.allergensMayContain || [],
-					},
-					averagePrice: averagePrice._avg.unitPrice || null,
-					purchaseCount: averagePrice._count || 0,
+		const priceMap = new Map(allPriceData.map((data) => [data.productId, data]))
 
-					// Razões pelas quais é mais saudável
-					healthReasons: getHealthReasons(product.nutritionalInfo!, product.healthScore),
-				}
-			}),
-		)
+		const productsWithPrices = sortedProducts.map((product) => {
+			const priceData = priceMap.get(product.id)
+			const averagePrice = priceData
+				? { _avg: { unitPrice: priceData._avg.unitPrice }, _count: priceData._count.id }
+				: { _avg: { unitPrice: null }, _count: 0 }
+
+			return {
+				id: product.id,
+				name: product.name,
+				unit: product.unit,
+				barcode: product.barcode,
+				brand: product.brand,
+				category: product.category,
+				healthScore: product.healthScore,
+				nutritionalInfo: {
+					calories: product.nutritionalInfo?.calories,
+					proteins: product.nutritionalInfo?.proteins,
+					carbohydrates: product.nutritionalInfo?.carbohydrates,
+					totalFat: product.nutritionalInfo?.totalFat,
+					saturatedFat: product.nutritionalInfo?.saturatedFat,
+					transFat: product.nutritionalInfo?.transFat,
+					fiber: product.nutritionalInfo?.fiber,
+					sodium: product.nutritionalInfo?.sodium,
+					totalSugars: product.nutritionalInfo?.totalSugars,
+					servingSize: product.nutritionalInfo?.servingSize,
+					allergensContains: product.nutritionalInfo?.allergensContains || [],
+					allergensMayContain: product.nutritionalInfo?.allergensMayContain || [],
+				},
+				averagePrice: averagePrice._avg.unitPrice || null,
+				purchaseCount: averagePrice._count || 0,
+
+				// Razões pelas quais é mais saudável
+				healthReasons: getHealthReasons(product.nutritionalInfo!, product.healthScore),
+			}
+		})
 
 		return NextResponse.json({
 			alternatives: productsWithPrices,

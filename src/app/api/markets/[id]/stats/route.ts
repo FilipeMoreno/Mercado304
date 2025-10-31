@@ -16,8 +16,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 		}
 
 		// Buscar estatísticas básicas
+		// OTIMIZAÇÃO: Agrupar queries simples em uma transação
 		const [totalPurchases, totalSpent, lastPurchase, recentPurchases, topProducts, averageTicket, categoryStats] =
-			await Promise.all([
+			await prisma.$transaction([
 				// Total de compras
 				prisma.purchase.count({
 					where: { marketId },
@@ -138,34 +139,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 			return acc
 		}, [])
 
-		// Buscar informações dos produtos mais comprados
+		// OTIMIZADO: Buscar produtos e outros mercados em uma única transação
 		const productIds = topProducts.map((item) => item.productId).filter((id): id is string => id !== null)
-		const productsInfo = await prisma.product.findMany({
-			where: { id: { in: productIds } },
-			include: {
-				brand: true,
-				category: true,
-			},
-		})
-
-		// Combinar dados dos produtos
-		const topProductsWithInfo = topProducts.map((item) => {
-			const product = productsInfo.find((p) => p.id === item.productId)
-			return {
-				...item,
-				product,
-			}
-		})
-
-		// Comparação com outros mercados (buscar todos os mercados)
-		const otherMarkets = await prisma.market.findMany({
-			where: { id: { not: marketId } },
-			include: {
-				purchases: {
-					where: {
-						purchaseDate: {
-							gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-						}, // 3 meses
+		const [productsInfo, otherMarkets] = await prisma.$transaction([
+			prisma.product.findMany({
+				where: { id: { in: productIds } },
+				include: {
+					brand: true,
+					category: true,
+				},
+			}),
+			prisma.market.findMany({
+				where: { id: { not: marketId } },
+				include: {
+					purchases: {
+						where: {
+							purchaseDate: {
+								gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+							}, // 3 meses
 					},
 					include: {
 						items: true,

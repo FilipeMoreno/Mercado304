@@ -15,34 +15,55 @@ export const purchaseFunctions = {
 
 			const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
 
+			// OTIMIZADO: Buscar/criar todos os produtos primeiro em uma única transação
+			const productNames = items.map((item: any) => item.productName)
+			const existingProducts = await prisma.product.findMany({
+				where: {
+					name: { in: productNames, mode: "insensitive" },
+				},
+			})
+
+			const productsMap = new Map(existingProducts.map((p) => [p.name.toLowerCase(), p]))
+			const productsToCreate = items.filter(
+				(item: any) => !productsMap.has(item.productName.toLowerCase()),
+			)
+
+			const createdProducts = productsToCreate.length > 0
+				? await prisma.product.createMany({
+						data: productsToCreate.map((item: any) => ({ name: item.productName })),
+						skipDuplicates: true,
+					})
+				: { count: 0 }
+
+			// Buscar os produtos recém-criados se necessário
+			if (createdProducts.count > 0) {
+				const newlyCreated = await prisma.product.findMany({
+					where: {
+						name: { in: productsToCreate.map((i: any) => i.productName), mode: "insensitive" },
+					},
+				})
+				newlyCreated.forEach((p) => productsMap.set(p.name.toLowerCase(), p))
+			}
+
+			// Preparar itens da compra
+			const purchaseItems = items.map((item: any) => {
+				const product = productsMap.get(item.productName.toLowerCase())
+				return {
+					productId: product?.id || null,
+					quantity: item.quantity,
+					unitPrice: item.unitPrice,
+					totalPrice: item.quantity * item.unitPrice,
+					productName: item.productName,
+				}
+			})
+
 			const purchase = await prisma.purchase.create({
 				data: {
 					marketId: market.id,
 					purchaseDate: new Date(),
 					totalAmount,
 					items: {
-						create: await Promise.all(
-							items.map(async (item: any) => {
-								let product = await prisma.product.findFirst({
-									where: {
-										name: { contains: item.productName, mode: "insensitive" },
-									},
-								})
-
-								if (!product) {
-									product = await prisma.product.create({
-										data: { name: item.productName },
-									})
-								}
-
-								return {
-									productId: product.id,
-									quantity: item.quantity,
-									unitPrice: item.unitPrice,
-									totalPrice: item.quantity * item.unitPrice,
-								}
-							}),
-						),
+						create: purchaseItems,
 					},
 				},
 				include: { items: { include: { product: true } } },
