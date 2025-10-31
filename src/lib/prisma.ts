@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { withAccelerate } from "@prisma/extension-accelerate"
 
 const globalForPrisma = globalThis as unknown as {
 	prisma: PrismaClient | undefined
@@ -69,17 +68,8 @@ const prismaClientSingleton = () => {
 		log: process.env.NODE_ENV === "production" ? ["error"] : ["error", "warn"],
 	})
 
-	// Verificar se deve usar o Prisma Accelerate
-	const useAccelerate = process.env.PRISMA_ACCELERATE_ENABLED === "true"
-	console.log("useAccelerate", useAccelerate)
-
-	// Se Accelerate estiver habilitado, aplicar a extensão
-	const clientWithExtensions = useAccelerate 
-		? client.$extends(withAccelerate())
-		: client
-
 	// Aplicar extensão de contador de queries
-	return clientWithExtensions.$extends({
+	return client.$extends({
 		query: {
 			async $allOperations({ operation, model, args, query }: any) {
 				const start = Date.now()
