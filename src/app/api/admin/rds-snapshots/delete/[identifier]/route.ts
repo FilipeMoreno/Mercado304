@@ -2,9 +2,9 @@ import { NextResponse } from "next/server"
 
 const WORKER_SERVER_URL = process.env.BACKGROUND_WORKER_SERVER || "http://localhost:3100"
 
-export async function DELETE(_request: Request, { params }: { params: { identifier: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ identifier: string }> }) {
 	try {
-		const { identifier } = params
+		const { identifier } = await params
 
 		if (!identifier) {
 			return NextResponse.json(
