@@ -161,11 +161,13 @@ export default function BackupPage() {
 	}
 
 	// useEffect para carregar dados iniciais
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Executar apenas na montagem inicial
   useEffect(() => {
     loadBackups()
   }, [])
 
 	// useEffect para auto-refresh do status do job
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchJobStatus é estável e não precisa estar nas dependências
   useEffect(() => {
 		if (
 			!autoRefresh ||

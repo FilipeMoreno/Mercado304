@@ -500,7 +500,7 @@ function BestDayCard({
 										<div className="mt-2 pt-2 border-t">
 											<p className="text-xs text-muted-foreground mb-1">Melhores produtos:</p>
 											<div className="space-y-1">
-												{dayProductStats.map((product, idx) => (
+												{dayProductStats.map((product) => (
 													<div key={product.product} className="flex items-center justify-between text-xs">
 														<span className="truncate flex-1">{product.product}</span>
 														<div className="flex items-center gap-2 ml-2">
@@ -960,13 +960,14 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 	}
 
 	// Carregar dados iniciais
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Executar apenas na montagem inicial
 	useEffect(() => {
 		loadPriceRecords(1)
 		loadGeneralStats()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	// Recarregar quando filtros mudarem
+	// biome-ignore lint/correctness/useExhaustiveDependencies: loadPriceRecords é estável e não precisa estar nas dependências
 	useEffect(() => {
 		const filters: {
 			product?: string
@@ -993,7 +994,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 			if (historyStartDate) filters.startDate = historyStartDate
 			if (historyEndDate) filters.endDate = historyEndDate
 		}
-		if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+		if (debouncedSearchTerm?.trim()) {
 			filters.search = debouncedSearchTerm.trim()
 		}
 
