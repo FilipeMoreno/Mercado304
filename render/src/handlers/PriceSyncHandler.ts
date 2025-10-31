@@ -3,6 +3,7 @@
 
 import type { Job } from "bullmq"
 import { LOCAL_PADRAO, NOTA_PARANA_BASE_URL, PERIODO_PADRAO, RAIO_PADRAO } from "../lib/nota-parana-config"
+import { createStagingDb, type StagingDatabase } from "../lib/staging-db"
 import type { JobProgress, JobResult, PriceSyncJobData } from "../types/jobs"
 import { BaseHandler } from "./BaseHandler"
 
@@ -10,24 +11,63 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 	private readonly BATCH_SIZE = 5
 	private readonly DELAY_BETWEEN_BATCHES = 500
 	private syncJobId: string | null = null
+	private stagingDb: StagingDatabase | null = null
 
 	protected async updateProgress(job: Job<PriceSyncJobData>, progress: JobProgress): Promise<void> {
-		await job.updateProgress(progress.percentage)
+		// Enviar progresso completo para o BullMQ (frontend pode acessar via API)
+		await job.updateProgress({
+			percentage: progress.percentage,
+			stage: progress.stage,
+			message: progress.message,
+			currentPhase: progress.currentPhase,
+			parallelWorkers: progress.parallelWorkers,
+			stagingStats: progress.stagingStats,
+			importProgress: progress.importProgress,
+			backupProgress: progress.backupProgress,
+			persistentStaging: progress.persistentStaging,
+		})
+		
 		console.log(`[${job.name}] ${progress.stage}: ${progress.message} (${progress.percentage}%)`)
 
-		// Atualizar também na tabela SyncJob se disponível
+		// Atualizar também na tabela SyncJob com informações estendidas
 		if (this.syncJobId) {
 			await this.prisma.syncJob.update({
 				where: { id: this.syncJobId },
 				data: {
 					progresso: progress.percentage,
+					detalhes: {
+						...(await this.getCurrentDetails()),
+						currentPhase: progress.currentPhase,
+						parallelWorkers: progress.parallelWorkers,
+						stagingStats: progress.stagingStats,
+						importProgress: progress.importProgress,
+						backupProgress: progress.backupProgress,
+						persistentStaging: progress.persistentStaging,
+					},
 					updatedAt: new Date(),
 				},
 			})
 		}
 	}
 
-	protected async logInfo(job: Job<PriceSyncJobData>, message: string, data?: unknown, debugLogs?: string[]): Promise<void> {
+	// Método auxiliar para preservar detalhes existentes
+	private async getCurrentDetails(): Promise<any> {
+		if (!this.syncJobId) return {}
+		
+		const current = await this.prisma.syncJob.findUnique({
+			where: { id: this.syncJobId },
+			select: { detalhes: true },
+		})
+		
+		return current?.detalhes || {}
+	}
+
+	protected async logInfo(
+		job: Job<PriceSyncJobData>,
+		message: string,
+		data?: unknown,
+		debugLogs?: string[],
+	): Promise<void> {
 		console.log(`[${job.name}] ${message}`, data ? JSON.stringify(data, null, 2) : "")
 
 		// Salvar log também na tabela SyncJob se disponível
@@ -39,10 +79,10 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 
 			const currentLogs = Array.isArray(currentSyncJob?.logs) ? (currentSyncJob.logs as string[]) : []
 			let newLogs = [...currentLogs, `[${new Date().toISOString()}] ${message}`]
-			
+
 			// Adicionar logs de debug se fornecidos
 			if (debugLogs && debugLogs.length > 0) {
-				newLogs = [...newLogs, ...debugLogs.map(log => `[${new Date().toISOString()}] ${log}`)]
+				newLogs = [...newLogs, ...debugLogs.map((log) => `[${new Date().toISOString()}] ${log}`)]
 			}
 
 			await this.prisma.syncJob.update({
@@ -66,12 +106,24 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					startedAt: new Date(),
 				},
 			})
-			this.syncJobId = syncJob.id
+		this.syncJobId = syncJob.id
+		const startTime = Date.now()
+
+		// 🚀 OTIMIZAÇÃO: Criar staging database SQLite para inserções rápidas
+		this.stagingDb = createStagingDb(syncJob.id)
+		await this.logInfo(job, "📦 Staging database criado - todas as inserções serão feitas localmente primeiro")
 
 			await this.updateProgress(job, {
 				percentage: 5,
 				stage: "INIT",
 				message: "Iniciando sincronização de preços",
+				currentPhase: 'collecting',
+				stagingStats: {
+					totalRecords: 0,
+					uniqueProducts: 0,
+					uniqueMarkets: 0,
+					avgPrice: 0,
+				},
 			})
 
 			// 1. Buscar mercados
@@ -87,15 +139,56 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				},
 			})
 
-			await this.logInfo(job, `Encontrados ${mercados.length} mercados com razão social`)
+		await this.logInfo(job, `Encontrados ${mercados.length} mercados com razão social`)
 
-			if (mercados.length === 0) {
-				return this.createSuccessResult("Nenhum mercado com razão social cadastrada", {
-					mercadosProcessados: 0,
-					produtosProcessados: 0,
-					precosRegistrados: 0,
+		if (mercados.length === 0) {
+			// Fechar staging database
+			if (this.stagingDb) {
+				await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não há dados)
+				this.stagingDb = null
+			}
+
+			// Atualizar progresso final
+			await this.updateProgress(job, {
+				percentage: 100,
+				stage: "COMPLETED",
+				message: "Sincronização encerrada: nenhum mercado com razão social",
+				currentPhase: 'completed',
+			})
+
+			// Atualizar status no banco
+			if (this.syncJobId) {
+				await this.prisma.syncJob.update({
+					where: { id: this.syncJobId },
+					data: {
+						status: "completed",
+						progresso: 100,
+						mercadosProcessados: 0,
+						produtosProcessados: 0,
+						precosRegistrados: 0,
+						detalhes: {
+							estatisticas: {
+								produtosTotal: 0,
+								produtosEncontrados: 0,
+								produtosNaoEncontrados: 0,
+								precosColetados: 0,
+								precosImportados: 0,
+								precosIgnorados: 0,
+								tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+							},
+						},
+						completedAt: new Date(),
+						updatedAt: new Date(),
+					},
 				})
 			}
+
+			return this.createSuccessResult("Nenhum mercado com razão social cadastrada", {
+				mercadosProcessados: 0,
+				produtosProcessados: 0,
+				precosRegistrados: 0,
+			})
+		}
 
 			// 2. Buscar produtos
 			const produtos = await this.prisma.product.findMany({
@@ -109,28 +202,69 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				},
 			})
 
-			await this.logInfo(job, `Encontrados ${produtos.length} produtos com código de barras`)
+		await this.logInfo(job, `Encontrados ${produtos.length} produtos com código de barras`)
 
-			if (produtos.length === 0) {
-				return this.createSuccessResult("Nenhum produto com código de barras cadastrado", {
-					mercadosProcessados: mercados.length,
-					produtosProcessados: 0,
-					precosRegistrados: 0,
+		if (produtos.length === 0) {
+			// Fechar staging database
+			if (this.stagingDb) {
+				await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não há dados)
+				this.stagingDb = null
+			}
+
+			// Atualizar progresso final
+			await this.updateProgress(job, {
+				percentage: 100,
+				stage: "COMPLETED",
+				message: "Sincronização encerrada: nenhum produto com código de barras",
+				currentPhase: 'completed',
+			})
+
+			// Atualizar status no banco
+			if (this.syncJobId) {
+				await this.prisma.syncJob.update({
+					where: { id: this.syncJobId },
+					data: {
+						status: "completed",
+						progresso: 100,
+						mercadosProcessados: mercados.length,
+						produtosProcessados: 0,
+						precosRegistrados: 0,
+						detalhes: {
+							estatisticas: {
+								produtosTotal: 0,
+								produtosEncontrados: 0,
+								produtosNaoEncontrados: 0,
+								precosColetados: 0,
+								precosImportados: 0,
+								precosIgnorados: 0,
+								tempoTotalSegundos: Math.round((Date.now() - startTime) / 1000),
+							},
+						},
+						completedAt: new Date(),
+						updatedAt: new Date(),
+					},
 				})
 			}
+
+			return this.createSuccessResult("Nenhum produto com código de barras cadastrado", {
+				mercadosProcessados: mercados.length,
+				produtosProcessados: 0,
+				precosRegistrados: 0,
+			})
+		}
 
 			await this.updateProgress(job, {
 				percentage: 10,
 				stage: "PROCESSING",
 				message: "Iniciando processamento de produtos",
+				currentPhase: 'collecting',
 			})
 
-			// 3. Processar produtos em paralelo (batches)
-			let precosRegistrados = 0
-			const detalhes: any[] = []
-			const produtosNaoEncontrados: any[] = []
-			const startTime = Date.now()
-			let produtosProcessados = 0
+		// 3. Processar produtos em paralelo (batches)
+		let precosRegistrados = 0
+		const detalhes: any[] = []
+		const produtosNaoEncontrados: any[] = []
+		let produtosProcessados = 0
 
 			// Dividir produtos em batches
 			const batches: (typeof produtos)[] = []
@@ -138,8 +272,11 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				batches.push(produtos.slice(i, i + this.BATCH_SIZE))
 			}
 
-			await this.logInfo(job, `🚀 Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${this.BATCH_SIZE} produtos por batch)`)
-			
+			await this.logInfo(
+				job,
+				`🚀 Processando ${produtos.length} produtos em ${batches.length} batches paralelos (${this.BATCH_SIZE} produtos por batch)`,
+			)
+
 			// Atualizar contadores iniciais na tabela SyncJob
 			if (this.syncJobId) {
 				await this.prisma.syncJob.update({
@@ -161,9 +298,20 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 						where: { id: this.syncJobId },
 						select: { status: true },
 					})
-					
+
 					if (currentSyncJob?.status === "cancelled") {
 						await this.logInfo(job, `🛑 Sincronização cancelada pelo usuário`)
+
+					// Limpar staging database em caso de cancelamento
+					if (this.stagingDb) {
+						try {
+							await this.stagingDb.close(true, true) // Fazer backup mesmo se cancelado (dados podem ser úteis)
+							this.stagingDb = null
+						} catch (cleanupError) {
+							console.error("⚠️ Erro ao limpar staging database:", cleanupError)
+						}
+					}
+
 						return this.createSuccessResult("Sincronização cancelada pelo usuário", {
 							mercadosProcessados: mercados.length,
 							produtosProcessados,
@@ -202,13 +350,13 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				)
 
 				// Coletar todos os logs de debug do batch
-				const allDebugLogs = batchResults.flatMap(result => result.debugLogs || [])
+				const allDebugLogs = batchResults.flatMap((result) => result.debugLogs || [])
 				if (allDebugLogs.length > 0) {
 					await this.logInfo(job, `🔍 Logs detalhados do batch ${batchIndex + 1}:`, undefined, allDebugLogs)
 				}
 
 				const batchElapsed = Date.now() - batchStartTime
-				
+
 				// Contar resultados do batch
 				for (const result of batchResults) {
 					if (result.encontrou) {
@@ -219,7 +367,10 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					}
 				}
 
-				await this.logInfo(job, `✅ Batch ${batchIndex + 1} concluído em ${batchElapsed}ms - ${batchProdutosEncontrados} produtos encontrados, ${batchPrecosRegistrados} preços registrados, ${batchProdutosNaoEncontrados} não encontrados`)
+				await this.logInfo(
+					job,
+					`✅ Batch ${batchIndex + 1} concluído em ${batchElapsed}ms - ${batchProdutosEncontrados} produtos encontrados, ${batchPrecosRegistrados} preços registrados, ${batchProdutosNaoEncontrados} não encontrados`,
+				)
 
 				// Consolidar resultados do batch
 				for (let i = 0; i < batch.length; i++) {
@@ -261,7 +412,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				// Calcular estimativa de tempo restante
 				const tempoDecorrido = Math.round((Date.now() - startTime) / 1000)
 				const progressoAtual = produtosProcessados / produtos.length
-				const estimativaSegundos = progressoAtual > 0 ? Math.round((tempoDecorrido / progressoAtual) - tempoDecorrido) : 0
+				const estimativaSegundos = progressoAtual > 0 ? Math.round(tempoDecorrido / progressoAtual - tempoDecorrido) : 0
 
 				// Atualizar contadores em tempo real na tabela SyncJob
 				if (this.syncJobId) {
@@ -301,11 +452,18 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					const segs = segundos % 60
 					return `${minutos}m ${segs}s`
 				}
-				
+
 				await this.updateProgress(job, {
 					percentage: progresso,
 					stage: "PROCESSING",
 					message: `Processados ${produtosProcessados}/${produtos.length} produtos (${precosRegistrados} preços registrados) - Tempo decorrido: ${formatarTempo(tempoDecorrido)} - Estimativa restante: ${formatarTempo(estimativaSegundos)}`,
+					currentPhase: 'collecting',
+					stagingStats: this.stagingDb ? {
+						totalRecords: this.stagingDb.getRecordCount(),
+						uniqueProducts: 0, // Será atualizado no final
+						uniqueMarkets: 0,
+						avgPrice: 0,
+					} : undefined,
 				})
 
 				// Delay entre batches
@@ -314,10 +472,161 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 				}
 			}
 
+			// 🚀 IMPORTAÇÃO: Transferir dados do staging database para PostgreSQL
+			let precosImportados = 0
+			let precosIgnorados = 0
+
+			if (this.stagingDb) {
+				const stats = this.stagingDb.getStats()
+				await this.logInfo(job, `📊 Estatísticas do staging database:`, stats)
+				await this.logInfo(
+					job,
+					`🔄 Iniciando importação de ${this.stagingDb.getRecordCount()} registros para PostgreSQL...`,
+				)
+
+				const parallelWorkers = 4
+
+				await this.updateProgress(job, {
+					percentage: 95,
+					stage: "IMPORTING",
+					message: "Importando dados do staging database para PostgreSQL...",
+					currentPhase: 'importing',
+					parallelWorkers,
+					stagingStats: {
+						totalRecords: stats.totalRecords,
+						uniqueProducts: stats.uniqueProducts,
+						uniqueMarkets: stats.uniqueMarkets,
+						avgPrice: stats.avgPrice || 0,
+					},
+					importProgress: {
+						imported: 0,
+						skipped: 0,
+						errors: 0,
+						workersActive: parallelWorkers,
+					},
+				})
+
+				const importStartTime = Date.now()
+				const result = await this.stagingDb.importToPostgres(this.prisma, {
+					batchSize: 1000,
+					checkExisting: true,
+					parallelWorkers,
+					onProgress: async (imported, total) => {
+						if (imported % 5000 === 0) {
+							await this.updateProgress(job, {
+								percentage: 95 + Math.floor((imported / total) * 4),
+								stage: "IMPORTING",
+								message: `Importando: ${imported}/${total} registros (${Math.round((imported / total) * 100)}%)`,
+								currentPhase: 'importing',
+								parallelWorkers,
+								stagingStats: {
+									totalRecords: stats.totalRecords,
+									uniqueProducts: stats.uniqueProducts,
+									uniqueMarkets: stats.uniqueMarkets,
+									avgPrice: stats.avgPrice || 0,
+								},
+								importProgress: {
+									imported,
+									skipped: 0,
+									errors: 0,
+									workersActive: parallelWorkers,
+								},
+							})
+						}
+					},
+				})
+
+				precosImportados = result.imported
+				precosIgnorados = result.skipped
+				const importElapsed = Math.round((Date.now() - importStartTime) / 1000)
+
+				await this.logInfo(
+					job,
+					`✅ Importação concluída em ${importElapsed}s: ${precosImportados} inseridos, ${precosIgnorados} ignorados, ${result.errors} erros`,
+				)
+
+				// Atualizar com resultados finais da importação
+				await this.updateProgress(job, {
+					percentage: 99,
+					stage: "IMPORTING",
+					message: "Importação concluída",
+					currentPhase: 'backing_up',
+					parallelWorkers,
+					stagingStats: {
+						totalRecords: stats.totalRecords,
+						uniqueProducts: stats.uniqueProducts,
+						uniqueMarkets: stats.uniqueMarkets,
+						avgPrice: stats.avgPrice || 0,
+					},
+					importProgress: {
+						imported: precosImportados,
+						skipped: precosIgnorados,
+						errors: result.errors,
+						workersActive: 0,
+					},
+				})
+
+				// 💾 PERSISTENT STAGING & ☁️ BACKUP R2
+				const retentionDays = 2
+				const willDeleteAt = new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000)
+
+				// Informar sobre backup R2
+				const hasR2 = process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID
+				
+				await this.updateProgress(job, {
+					percentage: 99,
+					stage: "BACKUP",
+					message: hasR2 ? "Fazendo backup no R2..." : "Finalizando (R2 não configurado)",
+					currentPhase: 'backing_up',
+					backupProgress: {
+						status: hasR2 ? 'pending' : 'skipped',
+					},
+					persistentStaging: {
+						enabled: true,
+						retentionDays,
+						willDeleteAt: willDeleteAt.toISOString(),
+					},
+				})
+
+				// Fechar e limpar staging database (com backup)
+				await this.stagingDb.close(
+					false, // não deletar (persistent)
+					true, // fazer backup no R2
+					retentionDays // manter por 2 dias
+				)
+
+				// Se R2 está configurado, atualizar progresso do backup
+				if (hasR2) {
+					await this.updateProgress(job, {
+						percentage: 99,
+						stage: "BACKUP",
+						message: "Backup concluído",
+						currentPhase: 'backing_up',
+						backupProgress: {
+							status: 'completed',
+						},
+						persistentStaging: {
+							enabled: true,
+							retentionDays,
+							willDeleteAt: willDeleteAt.toISOString(),
+						},
+					})
+				}
+
+				this.stagingDb = null
+			}
+
 			await this.updateProgress(job, {
 				percentage: 100,
 				stage: "COMPLETED",
 				message: "Sincronização concluída com sucesso",
+				currentPhase: 'completed',
+				importProgress: {
+					imported: precosImportados,
+					skipped: precosIgnorados,
+					errors: 0,
+					workersActive: 0,
+				},
 			})
 
 			const tempoTotal = Math.round((Date.now() - startTime) / 1000)
@@ -332,7 +641,7 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 						progresso: 100,
 						mercadosProcessados: mercados.length,
 						produtosProcessados: produtos.length,
-						precosRegistrados,
+						precosRegistrados: precosImportados, // Usar quantidade real importada
 						detalhes: {
 							mercados: detalhes, // Lista de mercados com preços encontrados
 							produtosNaoEncontrados,
@@ -340,7 +649,9 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 								produtosTotal: produtos.length,
 								produtosEncontrados: produtos.length - produtosNaoEncontrados.length,
 								produtosNaoEncontrados: produtosNaoEncontrados.length,
-								precosRegistrados,
+								precosColetados: precosRegistrados,
+								precosImportados: precosImportados,
+								precosIgnorados: precosIgnorados,
 								tempoTotalSegundos: tempoTotal,
 							},
 						},
@@ -353,13 +664,25 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 			return this.createSuccessResult("Sincronização de preços concluída com sucesso", {
 				mercadosProcessados: mercados.length,
 				produtosProcessados: produtos.length,
-				precosRegistrados,
+				precosColetados: precosRegistrados,
+				precosImportados: precosImportados,
+				precosIgnorados: precosIgnorados,
 				produtosNaoEncontrados: produtosNaoEncontrados.length,
 				tempoTotalSegundos: tempoTotal,
 				detalhes,
 			})
 		} catch (error) {
 			await this.logError(job, error as Error, "Erro durante sincronização de preços")
+
+			// Limpar staging database em caso de erro
+			if (this.stagingDb) {
+				try {
+					await this.stagingDb.close(true, false) // deleteFile=true, backupToR2=false (não fazer backup em caso de erro)
+					this.stagingDb = null
+				} catch (cleanupError) {
+					console.error("⚠️ Erro ao limpar staging database:", cleanupError)
+				}
+			}
 
 			// Atualizar status de erro na tabela SyncJob
 			if (this.syncJobId) {
@@ -411,7 +734,9 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 					debugLogs.push(`[API] ❌ Nenhum produto encontrado para ${produto.name} (EAN: ${produto.barcode})`)
 				} else {
 					encontrouProduto = true
-					debugLogs.push(`[API] ✅ Produto encontrado: ${produto.name} - ${dataInicial.produtos.length} resultados na API`)
+					debugLogs.push(
+						`[API] ✅ Produto encontrado: ${produto.name} - ${dataInicial.produtos.length} resultados na API`,
+					)
 
 					// Processar produtos encontrados
 					const produtosPorCategoria = new Map<number, any[]>()
@@ -443,29 +768,23 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 						// Encontrar mercado correspondente
 						const melhorMatch = this.encontrarMelhorMatch(mercados, nomeEstabelecimento, enderecoEstabelecimento)
 						if (!melhorMatch) {
-							debugLogs.push(`[PARSING] ⚠️ Nenhum mercado correspondente para "${nomeEstabelecimento}" (produto: ${produto.name})`)
+							debugLogs.push(
+								`[PARSING] ⚠️ Nenhum mercado correspondente para "${nomeEstabelecimento}" (produto: ${produto.name})`,
+							)
 							continue
 						}
 
 						const mercadoMatch = melhorMatch.mercado
-						debugLogs.push(`[PARSING] ✅ Mercado encontrado: ${mercadoMatch.name} para "${nomeEstabelecimento}" (score: ${melhorMatch.score})`)
+						debugLogs.push(
+							`[PARSING] ✅ Mercado encontrado: ${mercadoMatch.name} para "${nomeEstabelecimento}" (score: ${melhorMatch.score})`,
+						)
 
 						// Calcular preço
 						const preco = parseFloat(produtoNP.valor_tabela) - parseFloat(produtoNP.valor_desconto)
 						if (preco <= 0) continue
 
-						// Verificar se já existe registro recente
-						const dataLimite = new Date()
-						dataLimite.setHours(dataLimite.getHours() - 24)
-
-						const registroExistente = await this.prisma.priceRecord.findFirst({
-							where: {
-								productId: produto.id,
-								marketId: mercadoMatch.id,
-								recordDate: { gte: dataLimite },
-							},
-						})
-
+						// 🚀 OTIMIZAÇÃO: Inserir no staging database (muito mais rápido)
+						// A verificação de duplicados será feita na importação final
 						const dataAPI = new Date(produtoNP.datahora)
 						const dataFormatada = dataAPI.toLocaleString("pt-BR", {
 							day: "2-digit",
@@ -475,16 +794,13 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 							minute: "2-digit",
 						})
 
-						// Registrar preço se não existe ou mudou significativamente
-						if (!registroExistente || Math.abs(registroExistente.price - preco) > 0.01) {
-							await this.prisma.priceRecord.create({
-								data: {
-									productId: produto.id,
-									marketId: mercadoMatch.id,
-									price: preco,
-									recordDate: dataAPI,
-									notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
-								},
+						if (this.stagingDb) {
+							this.stagingDb.insert({
+								productId: produto.id,
+								marketId: mercadoMatch.id,
+								price: preco,
+								recordDate: dataAPI,
+								notes: `Sincronizado - Nota Paraná em ${dataFormatada}`,
 							})
 
 							precosEncontrados.push({
@@ -494,9 +810,9 @@ export class PriceSyncHandler extends BaseHandler<PriceSyncJobData> {
 								data: produtoNP.datahora,
 							})
 
-							debugLogs.push(`[PRICE] 💰 Preço registrado: ${produto.name} - R$ ${preco.toFixed(2)} no ${mercadoMatch.name}`)
-						} else {
-							debugLogs.push(`[PRICE] ⏭️ Preço já existe: ${produto.name} - R$ ${preco.toFixed(2)} no ${mercadoMatch.name}`)
+							debugLogs.push(
+								`[PRICE] 💰 Preço coletado: ${produto.name} - R$ ${preco.toFixed(2)} no ${mercadoMatch.name}`,
+							)
 						}
 					}
 				}

@@ -11,6 +11,9 @@ export async function GET() {
 
 		// Buscar as últimas 15 compras para ter um bom contexto
 		const recentPurchases = await prisma.purchase.findMany({
+			where: {
+				marketId: { not: null }, // Filtrar apenas compras com mercado definido
+			},
 			orderBy: { purchaseDate: "desc" },
 			take: 15,
 			include: {

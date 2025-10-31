@@ -98,4 +98,31 @@ export interface JobProgress {
   stage: string
   message: string
   data?: unknown
+  // 🚀 NOVO: Informações detalhadas sobre as etapas
+  currentPhase?: 'collecting' | 'importing' | 'backing_up' | 'cleanup' | 'completed'
+  parallelWorkers?: number
+  stagingStats?: {
+    totalRecords: number
+    uniqueProducts: number
+    uniqueMarkets: number
+    avgPrice: number
+  }
+  importProgress?: {
+    imported: number
+    skipped: number
+    errors: number
+    workersActive: number
+  }
+  backupProgress?: {
+    status: 'pending' | 'compressing' | 'uploading' | 'completed' | 'skipped'
+    originalSize?: number
+    compressedSize?: number
+    compressionRatio?: number
+    url?: string
+  }
+  persistentStaging?: {
+    enabled: boolean
+    retentionDays?: number
+    willDeleteAt?: string
+  }
 }

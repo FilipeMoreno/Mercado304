@@ -5,17 +5,21 @@ import {
 	Ban,
 	Bug,
 	CheckCircle,
+	Cloud,
+	Database,
 	FileText,
 	History,
 	Loader2,
 	Pause,
 	Play,
 	RefreshCw,
+	Rocket,
+	Upload,
 	XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Activity, useEffect, useId, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ServerStatusBanner } from "@/components/admin/ServerStatusBanner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -74,6 +78,33 @@ interface SyncJob {
 			precosRegistrados: number
 			tempoTotalSegundos: number
 		}
+		// 🚀 NOVOS CAMPOS - Progresso Detalhado
+		currentPhase?: "collecting" | "importing" | "backing_up" | "cleanup" | "completed"
+		parallelWorkers?: number
+		stagingStats?: {
+			totalRecords: number
+			uniqueProducts: number
+			uniqueMarkets: number
+			avgPrice: number
+		}
+		importProgress?: {
+			imported: number
+			skipped: number
+			errors: number
+			workersActive: number
+		}
+		backupProgress?: {
+			status: "pending" | "compressing" | "uploading" | "completed" | "skipped"
+			originalSize?: number
+			compressedSize?: number
+			compressionRatio?: number
+			url?: string
+		}
+		persistentStaging?: {
+			enabled: boolean
+			retentionDays?: number
+			willDeleteAt?: string
+		}
 	}
 	startedAt?: string
 	completedAt?: string
@@ -118,7 +149,8 @@ export default function AdminSyncPrecosPage() {
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-	const fetchLatestJob = async () => {
+	// useEffectEvent - funções estáveis para usar em effects sem causar re-renders
+	const fetchLatestJob = useEffectEvent(async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/admin/sync-precos/latest?debug=${debugMode}&limit=2000`)
@@ -139,9 +171,9 @@ export default function AdminSyncPrecosPage() {
 		} finally {
 			setLoading(false)
 		}
-	}
+	})
 
-	const fetchJobStatus = async (jobId: string) => {
+	const fetchJobStatus = useEffectEvent(async (jobId: string) => {
 		try {
 			setPolling(true)
 			setLoading(true)
@@ -159,9 +191,9 @@ export default function AdminSyncPrecosPage() {
 			setPolling(false)
 			setLoading(false)
 		}
-	}
+	})
 
-	const fetchServerHealth = async () => {
+	const fetchServerHealth = useEffectEvent(async () => {
 		const serverUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL
 
 		// Se não houver servidor externo configurado, não tente buscar para evitar erros de CORS/conn
@@ -216,7 +248,7 @@ export default function AdminSyncPrecosPage() {
 				services: { database: "disconnected", redis: "disconnected" },
 			})
 		}
-	}
+	})
 
 	// Buscar job ao carregar (se tiver jobId na URL, busca ele, senão busca o último)
 	useEffect(() => {
@@ -229,7 +261,7 @@ export default function AdminSyncPrecosPage() {
 		}
 
 		loadInitialJob()
-	}, [jobIdFromUrl, fetchLatestJob, fetchJobStatus])
+	}, [jobIdFromUrl])
 
 	// Buscar status de saúde do servidor ao carregar e periodicamente
 	useEffect(() => {
@@ -240,7 +272,7 @@ export default function AdminSyncPrecosPage() {
 		const healthInterval = setInterval(fetchServerHealth, 30000)
 
 		return () => clearInterval(healthInterval)
-	}, [fetchServerHealth])
+	}, [])
 
 	// Atualizar contador de tempo desde última atualização
 	useEffect(() => {
@@ -289,7 +321,7 @@ export default function AdminSyncPrecosPage() {
 				clearInterval(intervalRef.current)
 			}
 		}
-	}, [currentJob, autoRefresh, fetchJobStatus])
+	}, [currentJob?.id, currentJob?.status, autoRefresh, currentJob])
 
 	const handleStartSync = async () => {
 		// Verificar se já existe uma sync em andamento
@@ -416,6 +448,50 @@ export default function AdminSyncPrecosPage() {
 		}).format(valor)
 	}
 
+	// Formatar bytes
+	const formatBytes = (bytes: number) => {
+		if (bytes === 0) return "0 Bytes"
+		const k = 1024
+		const sizes = ["Bytes", "KB", "MB", "GB"]
+		const i = Math.floor(Math.log(bytes) / Math.log(k))
+		return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
+	}
+
+	// Obter badge da fase atual
+	const getPhaseBadge = (phase?: string) => {
+		switch (phase) {
+			case "collecting":
+				return (
+					<Badge variant="default" className="bg-blue-600">
+						📦 Coletando Preços
+					</Badge>
+				)
+			case "importing":
+				return (
+					<Badge variant="default" className="bg-purple-600">
+						<Rocket className="h-3 w-3 mr-1" />
+						Importação Paralela
+					</Badge>
+				)
+			case "backing_up":
+				return (
+					<Badge variant="default" className="bg-orange-600">
+						<Cloud className="h-3 w-3 mr-1" />
+						Backup & Finalização
+					</Badge>
+				)
+			case "completed":
+				return (
+					<Badge variant="default" className="bg-green-600">
+						<CheckCircle className="h-3 w-3 mr-1" />
+						Concluído
+					</Badge>
+				)
+			default:
+				return null
+		}
+	}
+
 	return (
 		<div className="container mx-auto py-8 px-4 max-w-6xl">
 			{/* Banner de Status do Servidor */}
@@ -437,14 +513,12 @@ export default function AdminSyncPrecosPage() {
 							Sincronize automaticamente os preços dos seus produtos com dados do Nota Paraná
 						</p>
 					</div>
-					<Activity mode={currentJob ? "visible" : "hidden"}>
+					{currentJob && (
 						<div className="flex items-center gap-2">
 							{getStatusBadge(currentJob.status)}
-							<Activity mode={polling ? "visible" : "hidden"}>
-								<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-							</Activity>
+							{polling && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
 						</div>
-					</Activity>
+					)}
 				</div>
 
 				{/* Switch de Debug Mode */}
@@ -500,8 +574,8 @@ export default function AdminSyncPrecosPage() {
 								)}
 							</Button>
 
-							<Activity mode={isRunning ? "visible" : "hidden"}>
-								
+							{isRunning && (
+								<>
 									<Button onClick={handleCancelSync} variant="destructive" size="lg" className="w-full">
 										<Ban className="mr-2 h-4 w-4" />
 										Cancelar Sincronização
@@ -541,64 +615,98 @@ export default function AdminSyncPrecosPage() {
 											<RefreshCw className={`h-3 w-3 ${polling ? "animate-spin" : ""}`} />
 										</Button>
 									</div>
-								
-							</Activity>
+								</>
+							)}
 
 							<Alert>
 								<AlertCircle className="h-4 w-4" />
-								<AlertTitle>🚀 Processamento Paralelo</AlertTitle>
+								<AlertTitle>🚀 Sistema Otimizado</AlertTitle>
 								<AlertDescription className="text-xs">
-									A sincronização processa múltiplos produtos simultaneamente (5 por vez) para maior velocidade. Você
-									pode navegar pelo app enquanto isso acontece.
+									<strong>Staging Database:</strong> Coleta ultra-rápida em SQLite local
 									<br />
-									<strong>Botões:</strong> "Cancelar" para interromper a sync, "Pausar Auto-Refresh" para parar as
-									atualizações automáticas da página.
+									<strong>Importação Paralela:</strong> 4 workers simultâneos (2-4x mais rápido)
+									<br />
+									<strong>Backup Automático:</strong> Salvamento comprimido no Cloudflare R2
+									<br />
+									<strong>Persistent Staging:</strong> Arquivo mantido por 2 dias para recovery
+									<br />
+									<br />
+									<strong>Botões:</strong> "Cancelar" para interromper, "Pausar Auto-Refresh" para parar atualizações.
 								</AlertDescription>
 							</Alert>
 						</CardContent>
 					</Card>
 
-					<Activity mode={currentJob ? "visible" : "hidden"}>
+					{currentJob && (
 						<Card>
 							<CardHeader>
-								<CardTitle>Como Funciona</CardTitle>
+								<CardTitle>Como Funciona 🚀</CardTitle>
+								<CardDescription>Processo otimizado com staging database</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3 text-sm">
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-xs">
 											1
 										</div>
-										<p className="text-muted-foreground">Busca mercados com razão social</p>
+										<div>
+											<p className="font-medium">Busca mercados e produtos</p>
+											<p className="text-xs text-muted-foreground">Razão social e códigos de barras</p>
+										</div>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-xs">
 											2
 										</div>
-										<p className="text-muted-foreground">Busca produtos com código de barras</p>
+										<div>
+											<p className="font-medium">📦 Coleta rápida no staging</p>
+											<p className="text-xs text-muted-foreground">SQLite local para máxima velocidade</p>
+										</div>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center flex-shrink-0 text-xs">
 											3
 										</div>
-										<p className="text-muted-foreground">Busca preços na API do Nota Paraná</p>
+										<div>
+											<p className="font-medium">🚀 Importação paralela</p>
+											<p className="text-xs text-muted-foreground">4 workers simultâneos no PostgreSQL</p>
+										</div>
 									</div>
 									<div className="flex items-start gap-3">
-										<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+										<div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0 text-xs">
 											4
 										</div>
-										<p className="text-muted-foreground">Registra preços no banco de dados</p>
+										<div>
+											<p className="font-medium">☁️ Backup automático</p>
+											<p className="text-xs text-muted-foreground">Compressão e envio para R2</p>
+										</div>
+									</div>
+									<div className="flex items-start gap-3">
+										<div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 text-xs">
+											5
+										</div>
+										<div>
+											<p className="font-medium">💾 Persistent staging</p>
+											<p className="text-xs text-muted-foreground">Mantido por 2 dias para recovery</p>
+										</div>
 									</div>
 								</div>
+
+								<Alert className="mt-4 bg-purple-50 border-purple-200">
+									<Rocket className="h-4 w-4 text-purple-600" />
+									<AlertDescription className="text-xs text-purple-700">
+										<strong>2-4x mais rápido</strong> que o método tradicional graças à importação paralela!
+									</AlertDescription>
+								</Alert>
 							</CardContent>
 						</Card>
-					</Activity>
+					)}
 				</div>
 
 				{/* Coluna da direita - Status e Resultados */}
 				<div className="lg:col-span-2 space-y-6">
-					<Activity mode={currentJob ? "visible" : "hidden"}>
-						
+					{currentJob && (
+						<>
 							{/* Progresso */}
 							<Card>
 								<CardHeader>
@@ -635,22 +743,16 @@ export default function AdminSyncPrecosPage() {
 											</div>
 										)}
 
-										<Activity
-											mode={
-												isRunning &&
-												currentJob.detalhes?.estimativaSegundos !== undefined &&
-												currentJob.detalhes.estimativaSegundos > 0
-													? "visible"
-													: "hidden"
-											}
-										>
-											<div>
-												<span className="text-muted-foreground">Tempo estimado:</span>
-												<span className="ml-2 font-medium text-blue-600">
-													~{formatarTempoEstimado(currentJob.detalhes.estimativaSegundos)}
-												</span>
-											</div>
-										</Activity>
+										{isRunning &&
+											currentJob.detalhes?.estimativaSegundos !== undefined &&
+											currentJob.detalhes.estimativaSegundos > 0 && (
+												<div>
+													<span className="text-muted-foreground">Tempo estimado:</span>
+													<span className="ml-2 font-medium text-blue-600">
+														~{formatarTempoEstimado(currentJob.detalhes.estimativaSegundos)}
+													</span>
+												</div>
+											)}
 
 										{currentJob.detalhes?.estatisticas?.tempoTotalSegundos && (
 											<div>
@@ -662,13 +764,257 @@ export default function AdminSyncPrecosPage() {
 										)}
 									</div>
 
-									<Activity mode={isRunning ? "visible" : "hidden"}>
+									{isRunning && (
 										<p className="text-xs text-muted-foreground text-center">
 											Atualização automática a cada 2 segundos • Última atualização: {timeSinceUpdate}
 										</p>
-									</Activity>
+									)}
 								</CardContent>
 							</Card>
+
+							{/* 🚀 NOVO: Fase Atual Destacada */}
+							{currentJob.detalhes?.currentPhase && (
+								<Card className="border-2 border-primary">
+									<CardHeader>
+										<div className="flex items-center justify-between">
+											<CardTitle>Fase Atual</CardTitle>
+											{getPhaseBadge(currentJob.detalhes.currentPhase)}
+										</div>
+									</CardHeader>
+									<CardContent>
+										{/* Durante Coleta */}
+										{currentJob.detalhes.currentPhase === "collecting" && currentJob.detalhes.stagingStats && (
+											<div className="space-y-4">
+												<Alert className="bg-blue-50 border-blue-200">
+													<Database className="h-4 w-4 text-blue-600" />
+													<AlertTitle className="text-blue-900">Staging Database Ativo</AlertTitle>
+													<AlertDescription className="text-blue-700 text-sm">
+														Coletando preços em banco local SQLite para máxima velocidade. Importação para PostgreSQL
+														será feita após a coleta.
+													</AlertDescription>
+												</Alert>
+
+												<div className="grid grid-cols-2 gap-4">
+													<div className="bg-blue-50 p-4 rounded-lg text-center">
+														<div className="text-3xl font-bold text-blue-600">
+															{currentJob.detalhes.stagingStats.totalRecords.toLocaleString()}
+														</div>
+														<div className="text-sm text-muted-foreground">Preços Coletados</div>
+													</div>
+													<div className="bg-purple-50 p-4 rounded-lg text-center">
+														<div className="text-3xl font-bold text-purple-600">
+															{currentJob.detalhes.stagingStats.uniqueProducts.toLocaleString()}
+														</div>
+														<div className="text-sm text-muted-foreground">Produtos Únicos</div>
+													</div>
+													<div className="bg-green-50 p-4 rounded-lg text-center">
+														<div className="text-3xl font-bold text-green-600">
+															{currentJob.detalhes.stagingStats.uniqueMarkets}
+														</div>
+														<div className="text-sm text-muted-foreground">Mercados</div>
+													</div>
+													<div className="bg-orange-50 p-4 rounded-lg text-center">
+														<div className="text-3xl font-bold text-orange-600">
+															{formatarPreco(currentJob.detalhes.stagingStats.avgPrice)}
+														</div>
+														<div className="text-sm text-muted-foreground">Preço Médio</div>
+													</div>
+												</div>
+											</div>
+										)}
+
+										{/* Durante Importação */}
+										{currentJob.detalhes.currentPhase === "importing" && (
+											<div className="space-y-4">
+												{/* DESTAQUE: Workers Paralelos */}
+												{currentJob.detalhes.parallelWorkers && (
+													<Alert className="bg-purple-50 border-purple-200">
+														<Rocket className="h-5 w-5 text-purple-600" />
+														<AlertTitle className="text-purple-900">🚀 Importação Paralela Ativa</AlertTitle>
+														<AlertDescription className="text-purple-700">
+															<strong>{currentJob.detalhes.parallelWorkers} workers</strong> processando simultaneamente
+															para importação <strong>{currentJob.detalhes.parallelWorkers}x mais rápida</strong>!
+														</AlertDescription>
+													</Alert>
+												)}
+
+												{/* Progresso da Importação */}
+												{currentJob.detalhes.importProgress && (
+													<div className="space-y-3">
+														<div className="flex justify-between text-sm">
+															<span className="text-muted-foreground">Registros importados...</span>
+															<span className="font-medium">
+																{currentJob.detalhes.importProgress.imported.toLocaleString()} /{" "}
+																{currentJob.detalhes.stagingStats?.totalRecords.toLocaleString() || "..."}
+															</span>
+														</div>
+														<Progress
+															value={
+																currentJob.detalhes.stagingStats
+																	? (currentJob.detalhes.importProgress.imported /
+																			currentJob.detalhes.stagingStats.totalRecords) *
+																		100
+																	: 0
+															}
+															className="h-2"
+														/>
+
+														<div className="grid grid-cols-3 gap-2">
+															<div className="bg-green-50 p-3 rounded text-center">
+																<div className="text-2xl font-bold text-green-700">
+																	{currentJob.detalhes.importProgress.imported.toLocaleString()}
+																</div>
+																<div className="text-xs text-green-600">Importados</div>
+															</div>
+															<div className="bg-yellow-50 p-3 rounded text-center">
+																<div className="text-2xl font-bold text-yellow-700">
+																	{currentJob.detalhes.importProgress.skipped.toLocaleString()}
+																</div>
+																<div className="text-xs text-yellow-600">Duplicados</div>
+															</div>
+															<div className="bg-blue-50 p-3 rounded text-center">
+																<div className="text-2xl font-bold text-blue-700">
+																	{currentJob.detalhes.importProgress.workersActive}
+																</div>
+																<div className="text-xs text-blue-600">Workers Ativos</div>
+															</div>
+														</div>
+													</div>
+												)}
+											</div>
+										)}
+
+										{/* Durante Backup */}
+										{currentJob.detalhes.currentPhase === "backing_up" && (
+											<div className="space-y-4">
+												{/* Status do Backup */}
+												{currentJob.detalhes.backupProgress && (
+													<Alert
+														className={
+															currentJob.detalhes.backupProgress.status === "completed"
+																? "bg-green-50 border-green-200"
+																: currentJob.detalhes.backupProgress.status === "skipped"
+																	? "bg-gray-50 border-gray-200"
+																	: "bg-orange-50 border-orange-200"
+														}
+													>
+														{currentJob.detalhes.backupProgress.status === "completed" ? (
+															<CheckCircle className="h-4 w-4 text-green-600" />
+														) : currentJob.detalhes.backupProgress.status === "skipped" ? (
+															<AlertCircle className="h-4 w-4 text-gray-600" />
+														) : (
+															<Upload className="h-4 w-4 text-orange-600 animate-pulse" />
+														)}
+														<AlertTitle
+															className={
+																currentJob.detalhes.backupProgress.status === "completed"
+																	? "text-green-900"
+																	: currentJob.detalhes.backupProgress.status === "skipped"
+																		? "text-gray-900"
+																		: "text-orange-900"
+															}
+														>
+															{currentJob.detalhes.backupProgress.status === "completed" && "✅ Backup Concluído"}
+															{currentJob.detalhes.backupProgress.status === "compressing" && "Comprimindo arquivo..."}
+															{currentJob.detalhes.backupProgress.status === "uploading" &&
+																"Enviando para Cloudflare R2..."}
+															{currentJob.detalhes.backupProgress.status === "pending" && "Preparando backup..."}
+															{currentJob.detalhes.backupProgress.status === "skipped" && "Backup R2 não configurado"}
+														</AlertTitle>
+														<AlertDescription
+															className={
+																currentJob.detalhes.backupProgress.status === "completed"
+																	? "text-green-700"
+																	: currentJob.detalhes.backupProgress.status === "skipped"
+																		? "text-gray-700"
+																		: "text-orange-700"
+															}
+														>
+															{currentJob.detalhes.backupProgress.status === "completed" &&
+																"Arquivo salvo com sucesso no Cloudflare R2"}
+															{currentJob.detalhes.backupProgress.status === "skipped" &&
+																"Configure R2_ACCOUNT_ID e R2_ACCESS_KEY_ID para habilitar backups"}
+															{currentJob.detalhes.backupProgress.status !== "completed" &&
+																currentJob.detalhes.backupProgress.status !== "skipped" &&
+																"Aguarde..."}
+														</AlertDescription>
+													</Alert>
+												)}
+
+												{/* Compressão */}
+												{currentJob.detalhes.backupProgress?.compressionRatio !== undefined && (
+													<div className="bg-blue-50 p-4 rounded border border-blue-200">
+														<h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+															<Database className="h-4 w-4" />
+															Compressão
+														</h4>
+														<div className="flex justify-between items-center">
+															<span className="text-sm text-blue-700">Tamanho:</span>
+															<span className="font-bold text-blue-900">
+																{formatBytes(currentJob.detalhes.backupProgress.originalSize || 0)} →{" "}
+																{formatBytes(currentJob.detalhes.backupProgress.compressedSize || 0)}
+															</span>
+														</div>
+														<div className="text-xs text-blue-600 mt-1 text-right">
+															{((1 - currentJob.detalhes.backupProgress.compressionRatio) * 100).toFixed(0)}% de redução
+														</div>
+													</div>
+												)}
+
+												{/* Persistent Staging */}
+												{currentJob.detalhes.persistentStaging?.enabled && (
+													<Alert className="bg-indigo-50 border-indigo-200">
+														<Database className="h-4 w-4 text-indigo-600" />
+														<AlertTitle className="text-indigo-900">Arquivo Mantido para Recovery</AlertTitle>
+														<AlertDescription className="text-indigo-700">
+															O arquivo ficará disponível por{" "}
+															<strong>{currentJob.detalhes.persistentStaging.retentionDays} dias</strong>
+															<br />
+															Será deletado em:{" "}
+															{currentJob.detalhes.persistentStaging.willDeleteAt &&
+																new Date(currentJob.detalhes.persistentStaging.willDeleteAt).toLocaleString("pt-BR")}
+														</AlertDescription>
+													</Alert>
+												)}
+											</div>
+										)}
+
+										{/* Fase Concluída */}
+										{currentJob.detalhes.currentPhase === "completed" && currentJob.detalhes.importProgress && (
+											<div className="space-y-4">
+												<Alert className="bg-green-50 border-green-200">
+													<CheckCircle className="h-4 w-4 text-green-600" />
+													<AlertTitle className="text-green-900">🎉 Sincronização Concluída!</AlertTitle>
+													<AlertDescription className="text-green-700">
+														Todos os preços foram coletados e importados com sucesso.
+													</AlertDescription>
+												</Alert>
+
+												<div className="grid grid-cols-3 gap-4">
+													<div className="text-center">
+														<div className="text-3xl font-bold text-green-600">
+															{currentJob.detalhes.importProgress.imported.toLocaleString()}
+														</div>
+														<div className="text-sm text-muted-foreground">Preços Importados</div>
+													</div>
+													<div className="text-center">
+														<div className="text-3xl font-bold text-yellow-600">
+															{currentJob.detalhes.importProgress.skipped.toLocaleString()}
+														</div>
+														<div className="text-sm text-muted-foreground">Duplicados</div>
+													</div>
+													<div className="text-center">
+														<div className="text-3xl font-bold text-red-600">
+															{currentJob.detalhes.importProgress.errors}
+														</div>
+														<div className="text-sm text-muted-foreground">Erros</div>
+													</div>
+												</div>
+											</div>
+										)}
+									</CardContent>
+								</Card>
+							)}
 
 							{/* Estatísticas */}
 							<Card>
@@ -804,13 +1150,7 @@ export default function AdminSyncPrecosPage() {
 											{showProdutosNaoEncontrados ? "Ocultar Lista" : "Ver Lista Completa"}
 										</Button>
 
-										<Activity
-											mode={
-												showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados)
-													? "visible"
-													: "hidden"
-											}
-										>
+										{showProdutosNaoEncontrados && Array.isArray(currentJob.detalhes?.produtosNaoEncontrados) && (
 											<ScrollArea className="h-[300px] border rounded p-4">
 												<div className="space-y-2">
 													{currentJob.detalhes.produtosNaoEncontrados.map((produto) => (
@@ -829,7 +1169,7 @@ export default function AdminSyncPrecosPage() {
 													))}
 												</div>
 											</ScrollArea>
-										</Activity>
+										)}
 
 										{!showProdutosNaoEncontrados && (
 											<Alert>
@@ -881,7 +1221,7 @@ export default function AdminSyncPrecosPage() {
 								</CardHeader>
 								<CardContent>
 									{/* Estatísticas de logs no modo debug */}
-									<Activity mode={debugMode && currentJob._logsInfo ? "visible" : "hidden"}>
+									{debugMode && currentJob._logsInfo && (
 										<div className="mb-4 p-3 bg-muted/50 rounded-lg border">
 											<h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
 												<Bug className="h-4 w-4" />
@@ -910,7 +1250,7 @@ export default function AdminSyncPrecosPage() {
 												</div>
 											</div>
 										</div>
-									</Activity>
+									)}
 
 									<ScrollArea className="h-[300px] w-full rounded border p-4">
 										<div className="space-y-1 font-mono text-xs whitespace-pre-wrap break-all">
@@ -961,12 +1301,10 @@ export default function AdminSyncPrecosPage() {
 															key={`log-${currentJob.id}-${index}`}
 															className={`${colorClass} ${showDebugInfo ? "bg-muted/30 p-2 rounded border-l-2 border-current" : ""}`}
 														>
-															<Activity mode={debugMode ? "visible" : "hidden"}>
+															{debugMode && (
 																<div className="flex items-center gap-2 mb-1">
 																	<span className="text-xs opacity-70">#{index + 1}</span>
-																	<Activity mode={icon ? "visible" : "hidden"}>
-																		<span className="text-sm">{icon}</span>
-																	</Activity>
+																	{icon && <span className="text-sm">{icon}</span>}
 																	<span className="text-xs opacity-70">
 																		{new Date().toLocaleTimeString("pt-BR", {
 																			hour12: false,
@@ -976,9 +1314,9 @@ export default function AdminSyncPrecosPage() {
 																		})}
 																	</span>
 																</div>
-															</Activity>
+															)}
 															<div className={debugMode ? "ml-4" : ""}>{log}</div>
-															<Activity mode={showDebugInfo ? "visible" : "hidden"}>
+															{showDebugInfo && (
 																<div className="text-xs opacity-60 mt-1 ml-4">
 																	{log.includes("[DEBUG]") && "🔧 Informação técnica detalhada"}
 																	{log.includes("[API]") && "🌐 Comunicação com API externa"}
@@ -986,7 +1324,7 @@ export default function AdminSyncPrecosPage() {
 																	{log.includes("[BATCH]") && "📦 Processamento em lotes"}
 																	{log.includes("[PARSING]") && "🔍 Análise e processamento de dados"}
 																</div>
-															</Activity>
+															)}
 														</div>
 													)
 												})
@@ -1042,8 +1380,8 @@ export default function AdminSyncPrecosPage() {
 									</div>
 								</CardContent>
 							</Card>
-						
-					</Activity>
+						</>
+					)}
 
 					{!currentJob && (
 						<Card>

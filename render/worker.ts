@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client"
 import { type ConnectionOptions, Queue, Worker } from "bullmq"
 import { HandlerFactory } from "./src/handlers/HandlerFactory"
 import app from "./src/server"
+import { cleanupOldStagingDatabases } from "./src/lib/staging-db"
 
 const { REDIS_URL, DATABASE_URL, PORT = "3100", NODE_ENV = "development" } = process.env
 
@@ -243,6 +244,26 @@ async function main() {
 	console.log(`🌎 Ambiente: ${NODE_ENV}`)
 
 	await bootstrapWorkers()
+
+	// 🧹 PERSISTENT STAGING: Limpeza automática de stagings antigos (a cada 6 horas)
+	const cleanupInterval = 6 * 60 * 60 * 1000 // 6 horas
+	setInterval(() => {
+		try {
+			console.log("🧹 Executando limpeza automática de staging databases...")
+			cleanupOldStagingDatabases(2) // Deletar stagings com mais de 2 dias
+		} catch (error) {
+			console.error("❌ Erro na limpeza automática:", error)
+		}
+	}, cleanupInterval)
+
+	// Executar limpeza na inicialização também
+	setTimeout(() => {
+		try {
+			cleanupOldStagingDatabases(2)
+		} catch (error) {
+			console.error("❌ Erro na limpeza inicial:", error)
+		}
+	}, 5000) // 5 segundos após inicialização
 
 	httpServer = app.listen(Number(PORT), () => console.log(`📊 Health check ON — Porta ${PORT}`))
 }
