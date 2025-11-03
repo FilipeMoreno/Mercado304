@@ -20,7 +20,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUIPreferences } from "@/hooks"
+import { useUIPreferences, useUpdateProductMutation } from "@/hooks"
 import { parseGeminiResponse } from "@/lib/gemini-parser"
 import { useDataStore } from "@/store/useDataStore"
 import type { NutritionalInfo, Product } from "@/types"
@@ -38,7 +38,9 @@ export default function EditarProdutoPage() {
 
 	const [product, setProduct] = useState<Product | null>(null)
 	const [loading, setLoading] = useState(true)
-	const [saving, setSaving] = useState(false)
+
+	// Hook do React Query para atualizar produto
+	const updateProductMutation = useUpdateProductMutation()
 
 	const [showNutritionalScanner, setShowNutritionalScanner] = useState(false)
 	const [isScanning, setIsScanning] = useState(false)
@@ -201,7 +203,6 @@ useEffect(() => {
 			return
 		}
 
-		setSaving(true)
 		try {
 			const hasNutritionalData = Object.values(nutritionalData || {}).some(
 				(v) => v !== undefined && v !== "" && (Array.isArray(v) ? v.length > 0 : true),
@@ -214,24 +215,36 @@ useEffect(() => {
 				defaultShelfLifeDays: formData.defaultShelfLifeDays ? parseInt(formData.defaultShelfLifeDays, 10) : null,
 				nutritionalInfo: hasNutritionalData ? nutritionalData : null,
 			}
-			const response = await fetch(`/api/products/${productId}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(dataToSubmit),
+
+			// Usar o hook do React Query para atualizar
+			await updateProductMutation.mutateAsync({
+				id: productId,
+				data: dataToSubmit,
 			})
-			if (response.ok) {
-				toast.success("Produto atualizado com sucesso!")
-				router.push(`/produtos/${productId}`)
-				router.refresh()
+
+			// Redirecionar após sucesso
+			router.push(`/produtos/${productId}`)
+		} catch (error: unknown) {
+			// Tratar erro do React Query
+			if (error instanceof Error) {
+				const errorMessage = error.message
+
+				// Detectar código de status do erro
+				let statusCode = 500
+				if (errorMessage.includes("409")) {
+					statusCode = 409
+				} else if (errorMessage.includes("400")) {
+					statusCode = 400
+				} else if (errorMessage.includes("404")) {
+					statusCode = 404
+				}
+
+				// Usar a função parseApiError para tratamento consistente
+				parseApiError(errorMessage, statusCode)
 			} else {
-				const errorData = await response.json()
-				parseApiError(errorData.error || "Erro ao atualizar produto", response.status)
+				console.error("Erro ao atualizar produto:", error)
+				toast.error("Erro inesperado ao atualizar produto")
 			}
-		} catch (error) {
-			console.error("Erro ao atualizar produto:", error)
-			toast.error("Erro ao atualizar produto")
-		} finally {
-			setSaving(false)
 		}
 	}
 
@@ -534,9 +547,9 @@ useEffect(() => {
 			</Activity>
 
 			<div className="flex gap-3 pt-4">
-					<Button type="submit" disabled={saving}>
+					<Button type="submit" disabled={updateProductMutation.isPending}>
 						<Save className="h-4 w-4 mr-2" />
-						{saving ? "Salvando..." : "Salvar Alterações"}
+						{updateProductMutation.isPending ? "Salvando..." : "Salvar Alterações"}
 					</Button>
 					<Link href={`/produtos/${productId}`}>
 						<Button type="button" variant="outline">

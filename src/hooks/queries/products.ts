@@ -85,7 +85,7 @@ export const useCreateProductMutation = () => {
 export const useUpdateProductMutation = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) =>
+		mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
 			fetchWithErrorHandling(`/api/products/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
