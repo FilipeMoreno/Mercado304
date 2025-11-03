@@ -77,6 +77,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://mercado304:mercado304_password@postgres:5432/mercado304
       - PRISMA_DATABASE_URL=postgresql://mercado304:mercado304_password@postgres:5432/mercado304
+      - PRISMA_CLIENT_ENGINE_TYPE=dataproxy
+      - PRISMA_ACCELERATE_URL=${PRISMA_ACCELERATE_URL}
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
       - NEXT_PUBLIC_BACKGROUND_WORKER_SERVER=http://worker:3100

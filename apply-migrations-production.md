@@ -6,7 +6,7 @@
 
 ```bash
 # PostgreSQL
-pg_dump $DIRECT_DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Ou usando pgAdmin/outro cliente visual de sua preferência
 ```
@@ -41,8 +41,7 @@ Todas as migrações foram escritas com:
 
 ```bash
 # 1. Configure a variável de ambiente de produção
-export DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=..."
-export DIRECT_DATABASE_URL="postgresql://..."
+export DATABASE_URL="postgresql://user:password@host:5432/database?schema=public"
 
 # 2. Aplique as migrações
 npx prisma migrate deploy
@@ -57,7 +56,7 @@ Se preferir aplicar manualmente para ter controle total:
 
 ```bash
 # 1. Conecte ao banco de produção
-psql $DIRECT_DATABASE_URL
+psql $DATABASE_URL
 
 # 2. Aplique cada migração na ordem:
 \i prisma/migrations/20250116000001_add_discount_fields/migration.sql
@@ -95,7 +94,7 @@ Se algo der errado (improvável com essas migrações seguras):
 
 ```bash
 # Restaurar do backup
-psql $DIRECT_DATABASE_URL < backup_YYYYMMDD_HHMMSS.sql
+psql $DATABASE_URL < backup_YYYYMMDD_HHMMSS.sql
 ```
 
 ## 📞 Notas Finais
@@ -108,7 +107,7 @@ psql $DIRECT_DATABASE_URL < backup_YYYYMMDD_HHMMSS.sql
 ## 🎯 Checklist de Aplicação
 
 - [ ] Backup do banco feito
-- [ ] Variáveis DATABASE_URL e DIRECT_DATABASE_URL configuradas
+- [ ] Variável DATABASE_URL configurada
 - [ ] `npx prisma migrate deploy` executado
 - [ ] Aplicação funcionando corretamente
 - [ ] Logs verificados

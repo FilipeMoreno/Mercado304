@@ -62,6 +62,45 @@ export function resetPrismaQueryCounter() {
 	queryCounter.queries = []
 }
 
+// Validação de variáveis de ambiente relacionadas ao Prisma/Accelerate
+(() => {
+	const databaseUrl = process.env.DATABASE_URL || ""
+	const accelerateUrl = process.env.PRISMA_ACCELERATE_URL || ""
+	const engineType = process.env.PRISMA_CLIENT_ENGINE_TYPE || ""
+
+	const hasApiKey = (url: string) => /[?&]api_key=/.test(url)
+
+	if (databaseUrl.startsWith("prisma://") && !hasApiKey(databaseUrl)) {
+		throw new Error(`
+[Prisma/Accelerate] DATABASE_URL está no formato prisma:// mas sem api_key.
+Opções corretas:
+1) Use PRISMA_ACCELERATE_URL=prisma://...?...&api_key=SEU_API_KEY e mantenha DATABASE_URL=postgresql://...
+   e defina PRISMA_CLIENT_ENGINE_TYPE=dataproxy.
+2) Ou use DATABASE_URL=postgresql://... (sem Accelerate).
+`)
+	}
+
+	if (engineType === "dataproxy" && !accelerateUrl) {
+		throw new Error(`
+[Prisma/Accelerate] PRISMA_CLIENT_ENGINE_TYPE=dataproxy definido, mas PRISMA_ACCELERATE_URL não foi informado.
+Defina PRISMA_ACCELERATE_URL=prisma://...?...&api_key=SEU_API_KEY.
+`)
+	}
+
+	if (accelerateUrl?.startsWith("prisma://") && !hasApiKey(accelerateUrl)) {
+		throw new Error(`
+[Prisma/Accelerate] PRISMA_ACCELERATE_URL está sem api_key. Informe ?api_key=SEU_API_KEY.
+`)
+	}
+
+	if (accelerateUrl && !engineType) {
+		console.warn(`
+[Prisma/Accelerate] PRISMA_ACCELERATE_URL foi definido, mas PRISMA_CLIENT_ENGINE_TYPE não.
+Defina PRISMA_CLIENT_ENGINE_TYPE=dataproxy para usar o Accelerate.
+`)
+	}
+})()
+
 const prismaClientSingleton = () => {
 	const client = new PrismaClient({
 		// Apenas logar erros em produção
