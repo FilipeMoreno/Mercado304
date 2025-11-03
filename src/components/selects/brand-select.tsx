@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { BrandCombobox } from "@/components/ui/brand-combobox"
-import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
+import { useAllBrandsQuery, useCreateBrandMutation } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Brand } from "@/types"
 
@@ -24,31 +24,29 @@ export function BrandSelect({
 	const [search, setSearch] = useState("")
 	const debouncedSearch = useDebounce(search, 300)
 
-	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } = useInfiniteBrandsQuery(
-		{
-			search: debouncedSearch,
-			enabled: true,
-		},
-	)
+	// Buscar todas as marcas de uma vez (sem paginação)
+	const { data: allBrandsData, isLoading } = useAllBrandsQuery()
+	const allBrands = (allBrandsData as Brand[] | undefined) || []
 
 	const createBrandMutation = useCreateBrandMutation()
 
-	// Flatten all pages into a single array
-const brands = data?.pages.flatMap((page) => page.brands) || []
+	// Filtrar brands baseado na busca
+	const brands = debouncedSearch
+		? allBrands.filter((brand) =>
+			brand.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+		)
+		: allBrands
 
-const handleSearchChange = (searchTerm: string) => {
+	const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
-}
+	}
 
-	// Reset search when dropdown is closed
-const handleValueChange = (newValue: string) => {
-		console.log("[BrandSelect] Value changed:", newValue)
-		console.log("[BrandSelect] Brands available:", brands.map(b => ({ id: b.id, name: b.name })))
+	const handleValueChange = (newValue: string) => {
 		onValueChange?.(newValue)
 		if (newValue) {
 			setSearch("")
 		}
-}
+	}
 
 	const [pendingBrandName, setPendingBrandName] = useState<string | null>(null)
 
@@ -93,10 +91,10 @@ const handleValueChange = (newValue: string) => {
 			createNewText="Criar marca"
 			className={className}
 			disabled={disabled}
-			hasNextPage={hasNextPage}
-			fetchNextPage={fetchNextPage}
-			isFetchingNextPage={isFetchingNextPage}
-			isLoading={isLoading || isPlaceholderData}
+			hasNextPage={false}
+			fetchNextPage={undefined}
+			isFetchingNextPage={false}
+			isLoading={isLoading}
 			onSearchChange={handleSearchChange}
 			pendingBrandName={pendingBrandName ?? undefined}
 		/>

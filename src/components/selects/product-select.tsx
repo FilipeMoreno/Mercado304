@@ -5,7 +5,7 @@ import { useState } from "react"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import { ProductCombobox } from "@/components/ui/product-combobox"
-import { useInfiniteProductsQuery, useAllProductsQuery } from "@/hooks"
+import { useAllProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
 import type { Product } from "@/types"
@@ -37,24 +37,22 @@ export function ProductSelect({
 	const [isScannerOpen, setIsScannerOpen] = useState(false)
 	const debouncedSearch = useDebounce(search, 300)
 
-	// Query para todos os produtos (para encontrar o produto selecionado)
-	const { data: allProductsData } = useAllProductsQuery()
+	// Buscar todos os produtos de uma vez (sem paginação)
+	const { data: allProductsData, isLoading } = useAllProductsQuery()
 	const allProducts = allProductsData?.products || []
 
-	// Query infinita para o dropdown (com busca)
-	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
-		useInfiniteProductsQuery({
-			search: debouncedSearch,
-			enabled: true,
-		})
+	// Filtrar produtos baseado na busca
+	const products = debouncedSearch
+		? allProducts.filter((product) =>
+			product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+			product.barcodes?.some((b) => b.barcode.includes(debouncedSearch))
+		)
+		: allProducts
 
-// Flatten all pages into a single array
-const products = data?.pages.flatMap((page) => page.products) || []
+	// Encontrar o produto selecionado
+	const selectedProduct = !value ? null : allProducts.find((p: Product) => p.id === value) || null
 
-// Encontrar o produto selecionado na lista completa
-const selectedProduct = !value ? null : allProducts.find((p: Product) => p.id === value) || null
-
-const handleSearchChange = (searchTerm: string) => {
+	const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
 	}
 
@@ -112,7 +110,8 @@ const handleValueChange = (newValue: string) => {
 		setIsScannerOpen(false)
 	}
 
-	if (isLoading && products.length === 0) {
+	// Show loading skeleton if either query is loading and we don't have the data yet
+	if ((isLoading && products.length === 0) || (isLoadingAll && allProducts.length === 0 && value)) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 

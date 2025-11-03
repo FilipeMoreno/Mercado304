@@ -31,6 +31,7 @@ interface BrandComboboxProps {
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
 	pendingBrandName?: string
+	selectedLabel?: string
 }
 
 export function BrandCombobox({
@@ -50,6 +51,7 @@ export function BrandCombobox({
 	isLoading = false,
 	onSearchChange,
 	pendingBrandName,
+	selectedLabel,
 }: BrandComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -96,7 +98,7 @@ export function BrandCombobox({
 				>
 					<span className="truncate flex-1 text-left font-normal">
 						{value && value !== ""
-							? (() => {
+							? selectedLabel || (() => {
 								const selectedBrand = brands.find((b) => b.id === value)
 								if (!selectedBrand) {
 									// Se não encontrou a marca na lista, pode ser uma marca recém-criada

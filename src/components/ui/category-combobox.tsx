@@ -31,6 +31,7 @@ interface CategoryComboboxProps {
 	isLoading?: boolean
 	onSearchChange?: (search: string) => void
 	pendingCategoryName?: string
+	selectedLabel?: string
 }
 
 export function CategoryCombobox({
@@ -50,6 +51,7 @@ export function CategoryCombobox({
 	isLoading = false,
 	onSearchChange,
 	pendingCategoryName,
+	selectedLabel,
 }: CategoryComboboxProps) {
 	const [open, setOpen] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState("")
@@ -96,7 +98,7 @@ export function CategoryCombobox({
 				>
 					<span className="truncate flex-1 text-left font-normal">
 						{value && value !== ""
-							? (() => {
+							? selectedLabel || (() => {
 								const selectedCategory = categories.find((c) => c.id === value)
 								if (!selectedCategory) {
 									// Se não encontrou a categoria na lista, pode ser uma categoria recém-criada

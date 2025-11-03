@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { CategoryCombobox } from "@/components/ui/category-combobox"
-import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
+import { useAllCategoriesQuery, useCreateCategoryMutation } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import type { Category } from "@/types"
 
@@ -24,30 +24,29 @@ export function CategorySelect({
 	const [search, setSearch] = useState("")
 	const debouncedSearch = useDebounce(search, 300)
 
-	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
-		useInfiniteCategoriesQuery({
-			search: debouncedSearch,
-			enabled: true,
-		})
+	// Buscar todas as categorias de uma vez (sem paginação)
+	const { data: allCategoriesData, isLoading } = useAllCategoriesQuery()
+	const allCategories = (allCategoriesData as Category[] | undefined) || []
 
 	const createCategoryMutation = useCreateCategoryMutation()
 
-	// Flatten all pages into a single array
-const categories = data?.pages.flatMap((page) => page.categories) || []
+	// Filtrar categories baseado na busca
+	const categories = debouncedSearch
+		? allCategories.filter((category) =>
+			category.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+		)
+		: allCategories
 
-const handleSearchChange = (searchTerm: string) => {
+	const handleSearchChange = (searchTerm: string) => {
 		setSearch(searchTerm)
-}
+	}
 
-	// Reset search when dropdown is closed
-const handleValueChange = (newValue: string) => {
-		console.log("[CategorySelect] Value changed:", newValue)
-		console.log("[CategorySelect] Categories available:", categories.map(c => ({ id: c.id, name: c.name })))
+	const handleValueChange = (newValue: string) => {
 		onValueChange?.(newValue)
 		if (newValue) {
 			setSearch("")
 		}
-}
+	}
 
 	const [pendingCategoryName, setPendingCategoryName] = useState<string | null>(null)
 
@@ -94,10 +93,10 @@ const handleValueChange = (newValue: string) => {
 			createNewText="Criar categoria"
 			className={className}
 			disabled={disabled}
-			hasNextPage={hasNextPage}
-			fetchNextPage={fetchNextPage}
-			isFetchingNextPage={isFetchingNextPage}
-			isLoading={isLoading || isPlaceholderData}
+			hasNextPage={false}
+			fetchNextPage={undefined}
+			isFetchingNextPage={false}
+			isLoading={isLoading}
 			onSearchChange={handleSearchChange}
 			pendingCategoryName={pendingCategoryName ?? undefined}
 		/>
