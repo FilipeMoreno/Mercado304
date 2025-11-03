@@ -83,12 +83,19 @@ export default function EditProductKitPage() {
 		setIsSubmitting(true)
 
 		try {
-			// Step 1: Update the kit product name if changed
-			if (kitData?.data.kitProduct.name !== kitName) {
+			// Step 1: Update the kit product (nome, marca, categoria) para sincronizar com o kit
+			const productNeedsUpdate =
+				kitData?.data.kitProduct.name !== kitName ||
+				kitData?.data.kitProduct.brandId !== kitBrandId ||
+				kitData?.data.kitProduct.categoryId !== kitCategoryId
+
+			if (productNeedsUpdate) {
 				await updateProductMutation.mutateAsync({
 					id: kitData.data.kitProductId,
 					data: {
 						name: kitName,
+						brandId: kitBrandId || null,
+						categoryId: kitCategoryId || null,
 					},
 				})
 			}

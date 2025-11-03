@@ -490,6 +490,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 			},
 		})
 
+		// Sincronizar com ProductKit se este produto for um kit
+		const existingKit = await prisma.productKit.findUnique({
+			where: { kitProductId: resolvedParams.id },
+		})
+
+		if (existingKit) {
+			await prisma.productKit.update({
+				where: { id: existingKit.id },
+				data: {
+					brandId: brandId || null,
+					categoryId: categoryId || null,
+					// Nota: barcode do kit não é sincronizado automaticamente pois pode ser diferente
+				},
+			})
+			console.log(`✅ Kit sincronizado: ${name}`)
+		}
+
 		return NextResponse.json(product)
 	} catch (error) {
 		console.error("Erro ao atualizar produto:", error)

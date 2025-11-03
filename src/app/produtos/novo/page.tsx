@@ -3,13 +3,13 @@
 import { ArrowLeft, Loader2, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { NutritionalInfoForm } from "@/components/nutritional-info-form"
 import { NutritionalScanner } from "@/components/nutritional-scanner"
 import { BarcodeAutofillDialog } from "@/components/products/barcode-autofill-dialog"
-import { BarcodeManager } from "@/components/products/barcode-manager"
+import { BarcodeManager, type BarcodeManagerRef } from "@/components/products/barcode-manager"
 import { ProductNameInput } from "@/components/products/product-name-input"
 import { BrandSelect } from "@/components/selects/brand-select"
 import { BrandSelectDialog } from "@/components/selects/brand-select-dialog"
@@ -68,6 +68,9 @@ export default function NovoProdutoPage() {
 	const minStockId = useId()
 	const maxStockId = useId()
 	const shelfLifeId = useId()
+
+	// Ref para o BarcodeManager
+	const barcodeManagerRef = useRef<BarcodeManagerRef>(null)
 
 	const [currentStep, setCurrentStep] = useState(0)
 	const [loading, setLoading] = useState(false)
@@ -299,6 +302,15 @@ const handleBarcodeLookup = async (barcode: string) => {
 	}
 
 	const handleNext = () => {
+		// Auto-adicionar código de barras pendente antes de avançar (se estiver no step principal)
+		if (currentStep === 0 && barcodeManagerRef.current) {
+			const pendingBarcode = barcodeManagerRef.current.getPendingBarcode()
+			if (pendingBarcode && pendingBarcode.trim()) {
+				barcodeManagerRef.current.addPendingBarcode()
+				console.log("✅ Código de barras adicionado automaticamente:", pendingBarcode)
+			}
+		}
+
 		// Determinar os steps filtrados
 		const filteredSteps = steps.filter((step) => step.id !== "nutritional" || showNutritionalFields)
 		const currentFilteredIndex = filteredSteps.findIndex((s) => s.id === steps[currentStep].id)
@@ -381,6 +393,7 @@ const handleBarcodeLookup = async (barcode: string) => {
 						{/* Barcode */}
 						<div className="space-y-3 pt-2">
 							<BarcodeManager
+								ref={barcodeManagerRef}
 								initialBarcodes={barcodes.map((barcode) => ({
 									id: Math.random().toString(),
 									barcode,

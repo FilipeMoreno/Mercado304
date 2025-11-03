@@ -774,7 +774,7 @@ model ProductKit {
   isActive     Boolean @default(true) // Se o kit está ativo ou não
 
   // Campos adicionais para o kit (independentes do kitProduct)
-  barcode    String? // Código de barras específico do kit
+  barcode    String? // DEPRECATED: Código de barras único (usar ProductKitBarcode)
   brandId    String? // Marca do kit
   categoryId String? // Categoria do kit
 
@@ -782,10 +782,11 @@ model ProductKit {
   updatedAt DateTime @updatedAt
 
   // Relações
-  kitProduct Product          @relation("KitProduct", fields: [kitProductId], references: [id], onDelete: Cascade)
-  items      ProductKitItem[] // Produtos que compõem o kit
-  brand      Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  category   Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  kitProduct Product             @relation("KitProduct", fields: [kitProductId], references: [id], onDelete: Cascade)
+  items      ProductKitItem[]    // Produtos que compõem o kit
+  brand      Brand?              @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category   Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  barcodes   ProductKitBarcode[] // Códigos de barras do kit (novo padrão)
 
   @@index([kitProductId])
   @@index([isActive])
@@ -793,6 +794,22 @@ model ProductKit {
   @@index([brandId])
   @@index([categoryId])
   @@map("product_kits")
+}
+
+model ProductKitBarcode {
+  id        String   @id @default(cuid())
+  kitId     String
+  barcode   String   @unique // GTIN/EAN - deve ser único
+  isPrimary Boolean  @default(false) // Indica se é o código principal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kit ProductKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+
+  @@index([kitId])
+  @@index([barcode])
+  @@index([isPrimary])
+  @@map("product_kit_barcodes")
 }
 
 model ProductKitItem {

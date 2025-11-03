@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera, Plus, Sparkles, Star, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react"
 import { toast } from "sonner"
 import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
@@ -21,11 +21,29 @@ interface BarcodeManagerProps {
 	onBarcodeLookup?: (barcode: string) => void // Callback para buscar informações do produto
 }
 
-export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChange, onBarcodeLookup }: BarcodeManagerProps) {
+export interface BarcodeManagerRef {
+	addPendingBarcode: () => void
+	getPendingBarcode: () => string
+}
+
+export const BarcodeManager = forwardRef<BarcodeManagerRef, BarcodeManagerProps>(function BarcodeManager(
+	{ productId, initialBarcodes = [], onBarcodesChange, onBarcodeLookup },
+	ref,
+) {
 	const [barcodes, setBarcodes] = useState<Barcode[]>(initialBarcodes)
 	const [newBarcode, setNewBarcode] = useState("")
 	const [showScanner, setShowScanner] = useState(false)
 	const [isAdding, setIsAdding] = useState(false)
+
+	// Expor métodos via ref
+	useImperativeHandle(ref, () => ({
+		addPendingBarcode: () => {
+			if (newBarcode && newBarcode.trim()) {
+				addBarcode(newBarcode)
+			}
+		},
+		getPendingBarcode: () => newBarcode,
+	}))
 
 	const addBarcode = async (barcode: string) => {
 		if (!barcode || !barcode.trim()) return
@@ -250,4 +268,4 @@ export function BarcodeManager({ productId, initialBarcodes = [], onBarcodesChan
 
 		</div>
 	)
-}
+})

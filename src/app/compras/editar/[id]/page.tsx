@@ -21,12 +21,14 @@ import {
 	useAllProductsQuery,
 	useMarketsQuery,
 	usePurchaseQuery,
+	usePurchaseDraft,
 	useUIPreferences,
 	useUpdatePurchaseMutation,
 } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod } from "@/types"
+import { PurchaseDraftDialog } from "@/components/purchase-draft-dialog"
 
 interface PurchaseItem {
 	productId: string
@@ -45,6 +47,12 @@ export default function EditarCompraPage() {
 	const { selectStyle } = useUIPreferences()
 
 	const [loading, setLoading] = useState(false)
+
+	// Hook para gerenciar rascunhos
+	const { hasDraft, draftData, saveDraft, restoreDraft, discardDraft, clearDraft } = usePurchaseDraft(
+		"edit",
+		purchaseId,
+	)
 
 	// React Query hooks
 	const { data: productsData } = useAllProductsQuery()
@@ -152,6 +160,7 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 			const preservedData = TempStorage.get(storageKey)
 			if (preservedData) {
 				try {
+					// Restaurar formData
 					if (preservedData.formData) {
 						setFormData((prev) => ({
 							marketId: preservedData.formData.marketId || prev.marketId,
@@ -160,12 +169,38 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 							totalDiscount: preservedData.formData.totalDiscount || prev.totalDiscount,
 						}))
 					}
-					if (preservedData.items) setItems(preservedData.items)
-					if (preservedData.newProductId && preservedData.targetItemIndex !== undefined) {
-						setTimeout(() => {
-							updateItem(preservedData.targetItemIndex, "productId", preservedData.newProductId)
-						}, 1000)
+
+					// Restaurar itens
+					if (preservedData.items) {
+						let restoredItems = [...preservedData.items]
+
+						// Se tem newProductId, atualizar o item correspondente IMEDIATAMENTE
+						if (preservedData.newProductId && preservedData.targetItemIndex !== undefined) {
+							console.log("🆕 Produto criado, ID:", preservedData.newProductId, "Item index:", preservedData.targetItemIndex)
+
+							restoredItems = restoredItems.map((item: PurchaseItem, index: number) => {
+								if (index === preservedData.targetItemIndex) {
+									console.log("✅ Atualizando item", index, "com produto", preservedData.newProductId)
+									return {
+										...item,
+										productId: preservedData.newProductId,
+									}
+								}
+								return item
+							})
+
+							toast.success("Produto criado e adicionado à compra!")
+						}
+
+						// Atualizar items de uma vez
+						setItems(restoredItems)
+
+						// Atualizar inputs
+						setQuantityInputs(restoredItems.map((item: PurchaseItem) => String(item.quantity || "1.000")))
+						setUnitPriceInputs(restoredItems.map((item: PurchaseItem) => String(item.unitPrice || "0.00")))
+						setUnitDiscountInputs(restoredItems.map((item: PurchaseItem) => String(item.unitDiscount || "0.00")))
 					}
+
 					TempStorage.remove(storageKey)
 					window.history.replaceState({}, "", `/compras/editar/${params.id}`)
 				} catch (error) {
@@ -174,7 +209,7 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 				}
 			}
 		}
-	}, [searchParams, params.id, updateItem])
+	}, [searchParams, params.id])
 
 	// Verificar se há erro ao carregar a compra
 	useEffect(() => {
@@ -183,6 +218,39 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 			router.push("/compras")
 		}
 	}, [purchaseError, router])
+
+	// Salvar rascunho automaticamente quando houver mudanças
+	useEffect(() => {
+		// Só salvar depois que os dados da compra forem carregados
+		if (!purchaseLoading && formData.marketId) {
+			saveDraft(formData, items)
+		}
+	}, [formData, items, purchaseLoading, saveDraft])
+
+	// Handlers para o dialog de rascunho
+	const handleRestoreDraft = () => {
+		const draft = restoreDraft()
+		if (draft) {
+			setFormData({
+				...draft.formData,
+				paymentMethod: draft.formData.paymentMethod as PaymentMethod,
+			})
+			setItems(draft.items)
+
+			// Restaurar inputs também
+			setQuantityInputs(draft.items.map((item: PurchaseItem) => String(item.quantity || "1.000")))
+			setUnitPriceInputs(draft.items.map((item: PurchaseItem) => String(item.unitPrice || "0.00")))
+			setUnitDiscountInputs(draft.items.map((item: PurchaseItem) => String(item.unitDiscount || "0.00")))
+			setTotalDiscountInput(String(draft.formData.totalDiscount || "0.00"))
+
+			toast.success("Rascunho restaurado com sucesso!")
+		}
+	}
+
+	const handleDiscardDraft = () => {
+		discardDraft()
+		toast.info("Rascunho descartado")
+	}
 
 	const addItem = () => {
 		setItems([...items, { productId: "", quantity: 1, unitPrice: 0, unitDiscount: 0, bestPriceAlert: null }])
@@ -249,6 +317,9 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 					totalDiscount: formData.totalDiscount || 0,
 				},
 			})
+			// Limpar rascunho após salvar com sucesso
+			clearDraft()
+
 			toast.success("Compra atualizada com sucesso!")
 			// Pequeno delay para garantir que a invalidação seja processada
 			setTimeout(() => {
@@ -267,6 +338,17 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 	}
 
 	return (
+		<>
+			{/* Dialog de restauração de rascunho */}
+			{hasDraft && draftData && (
+				<PurchaseDraftDialog
+					open={hasDraft}
+					onRestore={handleRestoreDraft}
+					onDiscard={handleDiscardDraft}
+					timestamp={draftData.timestamp}
+					itemCount={draftData.items.length}
+				/>
+			)}
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
 				<Link href="/compras">
@@ -601,5 +683,6 @@ const checkBestPrice = async (index: number, productId: string, unitPrice: numbe
 				</Card>
 			</form>
 		</div>
+		</>
 	)
 }

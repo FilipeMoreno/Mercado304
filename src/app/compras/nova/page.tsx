@@ -25,10 +25,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUIPreferences } from "@/hooks"
+import { useUIPreferences, usePurchaseDraft } from "@/hooks"
 import { toDateInputValue } from "@/lib/date-utils"
 import { TempStorage } from "@/lib/temp-storage"
 import { PaymentMethod, type Product } from "@/types"
+import { PurchaseDraftDialog } from "@/components/purchase-draft-dialog"
 
 interface PurchaseItem {
 	id?: string
@@ -77,6 +78,9 @@ export default function NovaCompraPage() {
 	const [loading, setLoading] = useState(false)
 	const [dataLoading, setDataLoading] = useState(true)
 	const restoredRef = React.useRef(false)
+
+	// Hook para gerenciar rascunhos
+	const { hasDraft, draftData, saveDraft, restoreDraft, discardDraft, clearDraft } = usePurchaseDraft("new")
 
 	const [stockDialogState, setStockDialogState] = useState<{
 		isOpen: boolean
@@ -130,45 +134,141 @@ export default function NovaCompraPage() {
 useEffect(() => {
 		fetchData()
 }, [])
-	// Restaurar itens do storageKey quando a página carregar
+	// Restaurar dados do storageKey quando a página carregar (lista de compras ou retorno de criação de produto)
 	useEffect(() => {
 		const storageKey = searchParams.get("storageKey")
 		if (storageKey && !restoredRef.current) {
 			restoredRef.current = true
 			const storedData = TempStorage.get(storageKey)
 
-			if (storedData?.items) {
-				console.log("Restaurando itens do storageKey:", storedData.items)
+			if (storedData) {
+				console.log("Restaurando dados do storageKey:", storedData)
 
-				// Transformar os itens da lista em itens de compra
-				const purchaseItems = storedData.items.map(
-					(item: { productId?: string; quantity?: number; unitPrice?: number }) => ({
-						id: Math.random().toString(),
-						productId: item.productId || "",
-						quantity: item.quantity || 1,
-						unitPrice: item.unitPrice || 0,
-					}),
-				)
+				// Se tem formData, restaurar os dados completos da compra (retorno de criar produto)
+				if (storedData.formData) {
+					setFormData(storedData.formData)
 
-				// Adicionar um item vazio no final se não houver
-				if (purchaseItems.length > 0) {
-					purchaseItems.push({
-						id: Math.random().toString(),
-						productId: "",
-						quantity: 1,
-						unitPrice: 0,
-					})
+					// Restaurar itens
+					let restoredItems = storedData.items ? [...storedData.items] : []
+
+					// Se tem newProductId, atualizar o item correspondente
+					if (storedData.newProductId && storedData.targetItemIndex !== undefined) {
+						console.log("🆕 Produto criado, ID:", storedData.newProductId, "Item index:", storedData.targetItemIndex)
+
+						restoredItems = restoredItems.map((item: PurchaseItem, index: number) => {
+							if (index === storedData.targetItemIndex) {
+								console.log("✅ Atualizando item", index, "com produto", storedData.newProductId)
+								return {
+									...item,
+									productId: storedData.newProductId,
+									// Garantir que outros campos sejam preservados
+									quantity: item.quantity || 1,
+									unitPrice: item.unitPrice || 0,
+									unitDiscount: item.unitDiscount || 0,
+									addToStock: item.addToStock || false,
+									stockEntries: item.stockEntries || [],
+									aiInsight: item.aiInsight || null,
+									isAiLoading: item.isAiLoading || false,
+								}
+							}
+							return item
+						})
+
+						// Atualizar o state imediatamente
+						setItems(restoredItems)
+
+						// Restaurar inputs DEPOIS de atualizar items
+						setQuantityInputs(restoredItems.map((item: PurchaseItem) => String(item.quantity || "1.000")))
+						setUnitPriceInputs(restoredItems.map((item: PurchaseItem) => String(item.unitPrice || "0.00")))
+						setUnitDiscountInputs(restoredItems.map((item: PurchaseItem) => String(item.unitDiscount || "0.00")))
+						setTotalDiscountInput(String(storedData.formData.totalDiscount || "0.00"))
+
+						toast.success("Produto criado e adicionado à compra!")
+					} else {
+						// Se não tem produto novo, apenas restaurar normalmente
+						setItems(restoredItems)
+
+						// Restaurar inputs
+						setQuantityInputs(restoredItems.map((item: PurchaseItem) => String(item.quantity || "1.000")))
+						setUnitPriceInputs(restoredItems.map((item: PurchaseItem) => String(item.unitPrice || "0.00")))
+						setUnitDiscountInputs(restoredItems.map((item: PurchaseItem) => String(item.unitDiscount || "0.00")))
+						setTotalDiscountInput(String(storedData.formData.totalDiscount || "0.00"))
+					}
 				}
+				// Senão, é uma lista de compras sendo importada
+				else if (storedData.items) {
+					// Transformar os itens da lista em itens de compra
+					const purchaseItems = storedData.items.map(
+						(item: { productId?: string; quantity?: number; unitPrice?: number }) => ({
+							id: Math.random().toString(),
+							productId: item.productId || "",
+							quantity: item.quantity || 1,
+							unitPrice: item.unitPrice || 0,
+							unitDiscount: 0,
+							addToStock: false,
+							stockEntries: [],
+							aiInsight: null,
+							isAiLoading: false,
+						}),
+					)
 
-				setItems(purchaseItems)
+					// Adicionar um item vazio no final se não houver
+					if (purchaseItems.length > 0) {
+						purchaseItems.push({
+							id: Math.random().toString(),
+							productId: "",
+							quantity: 1,
+							unitPrice: 0,
+							unitDiscount: 0,
+							addToStock: false,
+							stockEntries: [],
+							aiInsight: null,
+							isAiLoading: false,
+						})
+					}
+
+					setItems(purchaseItems)
+					toast.success(`${storedData.items.length} itens carregados da lista de compras!`)
+				}
 
 				// Remover dados temporários após uso
 				TempStorage.remove(storageKey)
-
-				toast.success(`${storedData.items.length} itens carregados da lista de compras!`)
 			}
 		}
 	}, [searchParams])
+
+	// Salvar rascunho automaticamente quando houver mudanças
+	useEffect(() => {
+		// Só salvar depois que os dados iniciais forem carregados
+		if (!dataLoading && !restoredRef.current) {
+			saveDraft(formData, items)
+		}
+	}, [formData, items, dataLoading, saveDraft])
+
+	// Handlers para o dialog de rascunho
+	const handleRestoreDraft = () => {
+		const draft = restoreDraft()
+		if (draft) {
+			setFormData({
+				...draft.formData,
+				paymentMethod: draft.formData.paymentMethod as PaymentMethod,
+			})
+			setItems(draft.items)
+
+			// Restaurar inputs também
+			setQuantityInputs(draft.items.map((item: PurchaseItem) => String(item.quantity || "1.000")))
+			setUnitPriceInputs(draft.items.map((item: PurchaseItem) => String(item.unitPrice || "0.00")))
+			setUnitDiscountInputs(draft.items.map((item: PurchaseItem) => String(item.unitDiscount || "0.00")))
+			setTotalDiscountInput(String(draft.formData.totalDiscount || "0.00"))
+
+			toast.success("Rascunho restaurado com sucesso!")
+		}
+	}
+
+	const handleDiscardDraft = () => {
+		discardDraft()
+		toast.info("Rascunho descartado")
+	}
 
 	const addItem = () => {
 		setItems([
@@ -424,6 +524,9 @@ useEffect(() => {
 			await queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] })
 			await queryClient.invalidateQueries({ queryKey: ["stock"] })
 
+			// Limpar rascunho após salvar com sucesso
+			clearDraft()
+
 			toast.success("Compra registrada com sucesso!")
 
 			// Verificar se há produtos sem informações nutricionais e armazenar no sessionStorage
@@ -455,6 +558,17 @@ useEffect(() => {
 
 	return (
 		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
+			{/* Dialog de restauração de rascunho */}
+			{hasDraft && draftData && (
+				<PurchaseDraftDialog
+					open={hasDraft}
+					onRestore={handleRestoreDraft}
+					onDiscard={handleDiscardDraft}
+					timestamp={draftData.timestamp}
+					itemCount={draftData.items.length}
+				/>
+			)}
+
 			{/* Header fixo para mobile */}
 			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
 				<div className="px-4 py-4 md:px-0">
