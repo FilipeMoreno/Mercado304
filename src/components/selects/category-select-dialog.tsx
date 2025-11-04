@@ -3,8 +3,9 @@
 import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
-import { useCreateCategoryMutation, useInfiniteCategoriesQuery } from "@/hooks"
+import { useCreateCategoryMutation, useAllCategoriesQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
+import type { Category } from "@/types"
 
 interface CategorySelectDialogProps {
   value?: string
@@ -23,16 +24,18 @@ export function CategorySelectDialog({
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
-    useInfiniteCategoriesQuery({
-      search: debouncedSearch,
-      enabled: true,
-    })
+  // Buscar todas as categorias de uma vez (sem paginação)
+  const { data: allCategoriesData, isLoading } = useAllCategoriesQuery()
+  const allCategories = (allCategoriesData as Category[] | undefined) || []
 
   const createCategoryMutation = useCreateCategoryMutation()
 
-  // Flatten all pages into a single array
-  const categories = data?.pages.flatMap((page) => page.categories) || []
+  // Filtrar categories baseado na busca
+  const categories = debouncedSearch
+    ? allCategories.filter((category) =>
+      category.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+    )
+    : allCategories
 
   // Convert categories to SelectOption format
   const options: SelectOption[] = categories.map((category) => ({
@@ -47,7 +50,6 @@ export function CategorySelectDialog({
   }
 
   const handleValueChange = (newValue: string) => {
-    console.log("[CategorySelectDialog] Value changed:", newValue)
     onValueChange?.(newValue)
     setSearch("")
     setOpen(false)
@@ -84,9 +86,9 @@ export function CategorySelectDialog({
       searchPlaceholder="Buscar categoria..."
       emptyText="Nenhuma categoria encontrada."
       isLoading={isLoading && categories.length === 0}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      onFetchNextPage={fetchNextPage}
+      hasNextPage={false}
+      isFetchingNextPage={false}
+      onFetchNextPage={undefined}
       onSearchChange={handleSearchChange}
       onCreateNew={handleCreateCategory}
       createNewText="Criar categoria"

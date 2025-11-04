@@ -3,8 +3,9 @@
 import { useState } from "react"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
-import { useCreateBrandMutation, useInfiniteBrandsQuery } from "@/hooks"
+import { useCreateBrandMutation, useAllBrandsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
+import type { Brand } from "@/types"
 
 interface BrandSelectDialogProps {
   value?: string
@@ -23,17 +24,18 @@ export function BrandSelectDialog({
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } = useInfiniteBrandsQuery(
-    {
-      search: debouncedSearch,
-      enabled: true,
-    },
-  )
+  // Buscar todas as marcas de uma vez (sem paginação)
+  const { data: allBrandsData, isLoading } = useAllBrandsQuery()
+  const allBrands = (allBrandsData as Brand[] | undefined) || []
 
   const createBrandMutation = useCreateBrandMutation()
 
-  // Flatten all pages into a single array
-  const brands = data?.pages.flatMap((page) => page.brands) || []
+  // Filtrar brands baseado na busca
+  const brands = debouncedSearch
+    ? allBrands.filter((brand) =>
+      brand.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+    )
+    : allBrands
 
   // Convert brands to SelectOption format
   const options: SelectOption[] = brands.map((brand) => ({ id: brand.id, label: brand.name }))
@@ -43,7 +45,6 @@ export function BrandSelectDialog({
   }
 
   const handleValueChange = (newValue: string) => {
-    console.log("[BrandSelectDialog] Value changed:", newValue)
     onValueChange?.(newValue)
     setSearch("")
     setOpen(false)
@@ -78,9 +79,9 @@ export function BrandSelectDialog({
       searchPlaceholder="Buscar marca..."
       emptyText="Nenhuma marca encontrada."
       isLoading={isLoading && brands.length === 0}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      onFetchNextPage={fetchNextPage}
+      hasNextPage={false}
+      isFetchingNextPage={false}
+      onFetchNextPage={undefined}
       onSearchChange={handleSearchChange}
       onCreateNew={handleCreateBrand}
       createNewText="Criar marca"

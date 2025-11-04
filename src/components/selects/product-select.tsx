@@ -56,13 +56,12 @@ export function ProductSelect({
 		setSearch(searchTerm)
 	}
 
-	// Reset search when dropdown is closed
-const handleValueChange = (newValue: string) => {
+	const handleValueChange = (newValue: string) => {
 		onValueChange?.(newValue)
 		if (newValue) {
 			setSearch("")
 		}
-}
+	}
 
 	const [pendingProductName, setPendingProductName] = useState<string | null>(null)
 
@@ -110,8 +109,7 @@ const handleValueChange = (newValue: string) => {
 		setIsScannerOpen(false)
 	}
 
-	// Show loading skeleton if either query is loading and we don't have the data yet
-	if ((isLoading && products.length === 0) || (isLoadingAll && allProducts.length === 0 && value)) {
+	if (isLoading && products.length === 0) {
 		return <div className={`h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
 	}
 
@@ -129,10 +127,10 @@ const handleValueChange = (newValue: string) => {
 					createNewText="Criar produto"
 					className={className}
 					disabled={disabled}
-					hasNextPage={hasNextPage}
-					fetchNextPage={fetchNextPage}
-					isFetchingNextPage={isFetchingNextPage}
-					isLoading={isLoading || isPlaceholderData}
+					hasNextPage={false}
+					fetchNextPage={undefined}
+					isFetchingNextPage={false}
+					isLoading={isLoading}
 					onSearchChange={handleSearchChange}
 					selectedProduct={selectedProduct}
 					pendingProductName={pendingProductName || undefined}

@@ -6,7 +6,7 @@ import { BarcodeScanner } from "@/components/barcode-scanner"
 import { Button } from "@/components/ui/button"
 import type { SelectOption } from "@/components/ui/responsive-select-dialog"
 import { ResponsiveSelectDialog } from "@/components/ui/responsive-select-dialog"
-import { useAllProductsQuery, useInfiniteProductsQuery } from "@/hooks"
+import { useAllProductsQuery } from "@/hooks"
 import { useDebounce } from "@/hooks/use-debounce"
 import { TempStorage } from "@/lib/temp-storage"
 import type { Product } from "@/types"
@@ -40,26 +40,24 @@ export function ProductSelectDialog({
   const [search, setSearch] = useState("")
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
-  
+
   // Se open e onOpenChange forem fornecidos, usá-los; caso contrário, usar estado interno
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = controlledOnOpenChange || setInternalOpen
 
-  // Query para todos os produtos (para encontrar o produto selecionado)
-  const { data: allProductsData } = useAllProductsQuery()
+  // Buscar todos os produtos de uma vez (sem paginação)
+  const { data: allProductsData, isLoading } = useAllProductsQuery()
   const allProducts = allProductsData?.products || []
 
-  // Query infinita para o dropdown (com busca)
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
-    useInfiniteProductsQuery({
-      search: debouncedSearch,
-      enabled: true,
-    })
+  // Filtrar produtos baseado na busca
+  const products = debouncedSearch
+    ? allProducts.filter((product) =>
+      product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      product.barcodes?.some((b) => b.barcode.includes(debouncedSearch))
+    )
+    : allProducts
 
-  // Flatten all pages into a single array
-  const products = data?.pages.flatMap((page) => page.products) || []
-
-  // Encontrar o produto selecionado na lista completa
+  // Encontrar o produto selecionado
   const selectedProduct = !value ? null : allProducts.find((p: Product) => p.id === value) || null
 
   // Convert products to SelectOption format
@@ -186,9 +184,9 @@ export function ProductSelectDialog({
             searchPlaceholder="Buscar produto ou código de barras..."
             emptyText="Nenhum produto encontrado."
             isLoading={isLoading && products.length === 0}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            onFetchNextPage={fetchNextPage}
+            hasNextPage={false}
+            isFetchingNextPage={false}
+            onFetchNextPage={undefined}
             onSearchChange={handleSearchChange}
             onCreateNew={handleCreateProduct}
             createNewText="Criar produto"
