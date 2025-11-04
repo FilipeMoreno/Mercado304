@@ -28,7 +28,7 @@ export const ShoppingListCardMemo = ({ shoppingList, onDelete, onEdit }: Shoppin
 
 	const listName = shoppingList.name || "Lista sem nome"
 	const itemCount = shoppingList.items?.length || 0
-	const completedCount = shoppingList.items?.filter((item: any) => item.checked)?.length || 0
+	const completedCount = shoppingList.items?.filter((item: any) => item.isChecked)?.length || 0
 	const totalEstimated = (() => {
 		const total =
 			shoppingList.items?.reduce((sum: number, item: any) => {
@@ -83,16 +83,16 @@ export const ShoppingListCardMemo = ({ shoppingList, onDelete, onEdit }: Shoppin
 					</div>
 
 					<CardActions onEdit={onEdit ? handleEdit : undefined} onDelete={handleDelete} entityName="Lista" />
-
-					<div className="absolute bottom-3 left-3">
-						<CardBadge>📅 {createdAt}</CardBadge>
-					</div>
 				</div>
 
 				<CardContent className="flex-1 flex flex-col p-4">
-					<h3 className="font-semibold text-lg line-clamp-2 mb-3 group-hover:text-primary transition-colors">
+					<h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
 						{listName}
 					</h3>
+
+					<div className="mb-3">
+						<CardBadge>📅 {createdAt}</CardBadge>
+					</div>
 
 					<div className="flex items-center justify-between mb-3">
 						{parseFloat(totalEstimated) > 0 && (
