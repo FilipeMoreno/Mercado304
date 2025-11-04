@@ -1,20 +1,7 @@
 "use client"
 
-import { useQueryClient } from "@tanstack/react-query"
-import { AnimatePresence, motion } from "framer-motion"
-import {
-	ArrowLeft,
-	Check,
-	ChevronRight,
-	Edit3,
-	MoreVertical,
-	Package,
-	Plus,
-	Search,
-	ShoppingCart,
-	Trash2,
-	X,
-} from "lucide-react"
+import { motion } from "framer-motion"
+import { Eye, EyeOff, Package, Plus, } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -26,21 +13,21 @@ import {
 	EditItemDialog,
 	EditListDialog,
 	PriceSearchDialog,
+	ProgressBar,
 	QuickEditDialog,
 	QuickProductDialog,
+	ShoppingListHeader,
+	ShoppingListItemComponent,
+	ShoppingMode,
+	ShoppingSummary,
 } from "@/components/shopping-list"
 import { Button } from "@/components/ui/button"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { useAllProductsQuery, useShoppingListQuery } from "@/hooks/use-react-query"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { FloatingActionButton } from "@/components/ui/floating-action-button"
+import { useShoppingListQuery, useAllProductsQuery } from "@/hooks/use-react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { TempStorage } from "@/lib/temp-storage"
-import { cn } from "@/lib/utils"
 import { useProactiveAiStore } from "@/store/useProactiveAiStore"
 
 interface ExtendedShoppingListItem {
@@ -54,12 +41,24 @@ interface ExtendedShoppingListItem {
 	brand?: string
 	category?: string
 	notes?: string
+	bestPriceAlert?: {
+		isBestPrice: boolean
+		previousBestPrice?: number
+		totalRecords?: number
+		isFirstRecord?: boolean
+	}
 	product?: {
 		id: string
 		name: string
 		unit: string
-		brand?: { name: string }
-		category?: { id: string; name: string; icon?: string }
+		brand?: {
+			name: string
+		}
+		category?: {
+			id: string
+			name: string
+			icon?: string
+		}
 	}
 }
 
@@ -69,6 +68,14 @@ interface EditItemData {
 	productUnit: string
 	quantity: number
 	estimatedPrice: number
+}
+
+interface ShoppingListDetails {
+	id: string
+	name: string
+	isActive: boolean
+	createdAt: string
+	items: ExtendedShoppingListItem[]
 }
 
 export default function ListaDetalhesPage() {
@@ -87,13 +94,16 @@ export default function ListaDetalhesPage() {
 	const products = productsData?.products || []
 	const loading = isLoadingList || isLoadingProducts
 
-	// Estados
-	const [searchQuery, setSearchQuery] = useState("")
-	const [showCompleted, setShowCompleted] = useState(true)
+	const [isShoppingMode, setIsShoppingMode] = useState(false)
+	const [sortOrder, setSortOrder] = useState<"default" | "category">("default")
+
+	// Estados para modais
 	const [editingList, setEditingList] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [deleteConfirm, setDeleteConfirm] = useState(false)
 	const [deleting, setDeleting] = useState(false)
+
+	// Estados para adicionar item
 	const [showAddItem, setShowAddItem] = useState(false)
 	const [newItem, setNewItem] = useState<{
 		productId?: string
@@ -115,6 +125,8 @@ export default function ListaDetalhesPage() {
 		notes: undefined,
 	})
 	const [addingItem, setAddingItem] = useState(false)
+
+	// Estados para editar item
 	const [editingItem, setEditingItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [editItemData, setEditItemData] = useState<EditItemData>({
 		productId: undefined,
@@ -124,8 +136,12 @@ export default function ListaDetalhesPage() {
 		estimatedPrice: 0,
 	})
 	const [updatingItem, setUpdatingItem] = useState(false)
+
+	// Estados para excluir item
 	const [deleteItemConfirm, setDeleteItemConfirm] = useState<ExtendedShoppingListItem | null>(null)
 	const [deletingItem, setDeletingItem] = useState(false)
+
+	// Estados para produto rápido
 	const [showQuickProduct, setShowQuickProduct] = useState(false)
 	const [quickProduct, setQuickProduct] = useState({
 		name: "",
@@ -134,8 +150,15 @@ export default function ListaDetalhesPage() {
 		brandId: "",
 	})
 	const [savingQuickProduct, setSavingQuickProduct] = useState(false)
+
+	// Estados para roteiro otimizado
 	const [showOptimizedRoute, setShowOptimizedRoute] = useState(false)
+
+	// Estados para edição rápida e toggle de itens marcados
 	const [quickEditingItem, setQuickEditingItem] = useState<ExtendedShoppingListItem | null>(null)
+	const [showCompletedItems, setShowCompletedItems] = useState(true)
+
+	// Estados para busca de preços
 	const [priceSearchItem, setPriceSearchItem] = useState<ExtendedShoppingListItem | null>(null)
 	const [showPriceSearch, setShowPriceSearch] = useState(false)
 
@@ -152,7 +175,7 @@ export default function ListaDetalhesPage() {
 		}
 	}, [editingItem])
 
-	// Handle error
+	// Handle error - redirect to list page
 	useEffect(() => {
 		if (listError) {
 			console.error("Erro ao buscar detalhes da lista:", listError)
@@ -185,11 +208,15 @@ export default function ListaDetalhesPage() {
 	const handleUpdateQuantityFromInsight = async (payload: { itemId: string; newQuantity: number }) => {
 		if (!payload) return
 		await updateItemInServer(payload.itemId, { quantity: payload.newQuantity })
+
+		// Invalidate cache to refetch the list
 		await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+
 		toast.success("Quantidade do item atualizada!")
 	}
 
 	useEffect(() => {
+		// Restaurar dados preservados após criação de produto
 		const storageKey = searchParams.get("storageKey")
 		if (storageKey) {
 			const preservedData = TempStorage.get(storageKey)
@@ -198,12 +225,17 @@ export default function ListaDetalhesPage() {
 					if (preservedData.newItem) {
 						setNewItem(preservedData.newItem)
 					}
+
 					if (preservedData.newProductId) {
 						setTimeout(() => {
-							setNewItem((prev) => ({ ...prev, productId: preservedData.newProductId }))
+							setNewItem((prev) => ({
+								...prev,
+								productId: preservedData.newProductId,
+							}))
 							setShowAddItem(true)
 						}, 1000)
 					}
+
 					TempStorage.remove(storageKey)
 					window.history.replaceState({}, "", `/lista/${listId}`)
 				} catch (error) {
@@ -214,50 +246,79 @@ export default function ListaDetalhesPage() {
 		}
 	}, [searchParams, listId])
 
-	const updateItemInServer = async (
-		itemId: string,
-		updatedData: { isChecked?: boolean; quantity?: number; estimatedPrice?: number },
-	) => {
-		try {
-			const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(updatedData),
-			})
-			if (!response.ok) {
-				throw new Error("Falha ao atualizar item no servidor")
+	const updateItemInServer = async (itemId: string, updatedData: { isChecked?: boolean; quantity?: number; estimatedPrice?: number }) => {
+			try {
+				const response = await fetch(`/api/shopping-lists/${listId}/items/${itemId}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(updatedData),
+				})
+				if (!response.ok) {
+					throw new Error("Falha ao atualizar item no servidor")
+				}
+			} catch (error) {
+				console.error("Erro ao atualizar item:", error)
+				toast.error("Erro ao salvar a alteração. Tente novamente.")
 			}
-		} catch (error) {
-			console.error("Erro ao atualizar item:", error)
-			toast.error("Erro ao salvar a alteração. Tente novamente.")
 		}
-	}
 
 	const toggleItem = async (itemId: string, currentStatus: boolean) => {
-		if (!list) return
+			if (!list) return
 
-		// Atualização otimista - atualiza a UI imediatamente
-		queryClient.setQueryData(["shopping-lists", listId], (oldData: any) => {
-			if (!oldData) return oldData
-			return {
-				...oldData,
-				items: oldData.items.map((item: ExtendedShoppingListItem) =>
-					item.id === itemId ? { ...item, isChecked: !currentStatus } : item,
-				),
-			}
-		})
-
-		// Atualiza no servidor em background
-		try {
+			// Update on server first
 			await updateItemInServer(itemId, { isChecked: !currentStatus })
-		} catch (_error) {
-			// Reverte em caso de erro
-			queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+
+			// Invalidate cache to refetch
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+		}
+
+const checkBestPrice = async (itemId: string, productId: string, unitPrice: number) => {
+		if (!productId || !unitPrice) return
+
+		try {
+			const response = await fetch("/api/best-price-check", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					productId,
+					currentPrice: unitPrice,
+				}),
+			})
+
+			const bestPriceData = await response.json()
+
+			// Note: best price alert is not persisted to server, so we skip cache invalidation here
+			// The alert is computed on each render from the API response
+		} catch (error) {
+			console.error("Erro ao verificar melhor preço:", error)
 		}
 	}
+
+	const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+			if (!list) return
+			await updateItemInServer(itemId, { quantity: newQuantity })
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+		}
+
+	const handleUpdateEstimatedPrice = async (itemId: string, newPrice: number) => {
+			if (!list) return
+
+			const item = list.items.find((item) => item.id === itemId)
+			if (item?.product?.id && newPrice > 0) {
+				setTimeout(() => {
+					if (item.product?.id) {
+						checkBestPrice(itemId, item.product.id, newPrice)
+					}
+				}, 1000)
+			}
+
+			await updateItemInServer(itemId, { estimatedPrice: newPrice })
+			await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+		}
 
 	const handleSaveList = async (newName: string) => {
 		if (!list) return
+
 		setSaving(true)
 		try {
 			const response = await fetch(`/api/shopping-lists/${list.id}`, {
@@ -265,6 +326,7 @@ export default function ListaDetalhesPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: newName }),
 			})
+
 			if (response.ok) {
 				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Lista atualizada com sucesso")
@@ -282,9 +344,13 @@ export default function ListaDetalhesPage() {
 
 	const handleDeleteList = async () => {
 		if (!list) return
+
 		setDeleting(true)
 		try {
-			const response = await fetch(`/api/shopping-lists/${list.id}`, { method: "DELETE" })
+			const response = await fetch(`/api/shopping-lists/${list.id}`, {
+				method: "DELETE",
+			})
+
 			if (response.ok) {
 				toast.success("Lista excluída com sucesso")
 				router.push("/lista")
@@ -305,6 +371,7 @@ export default function ListaDetalhesPage() {
 			toast.error("Informe o nome do item e a quantidade")
 			return
 		}
+
 		setAddingItem(true)
 		try {
 			const response = await fetch(`/api/shopping-lists/${listId}/items`, {
@@ -321,9 +388,11 @@ export default function ListaDetalhesPage() {
 					notes: newItem.notes?.trim() || null,
 				}),
 			})
+
 			if (response.ok) {
 				const addedItem = await response.json()
 				setShowAddItem(false)
+				// Resetar formulário
 				setNewItem({
 					productId: undefined,
 					productName: "",
@@ -336,6 +405,8 @@ export default function ListaDetalhesPage() {
 				})
 				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
 				toast.success("Item adicionado com sucesso")
+
+				// Só checa sugestão de quantidade se tiver produto vinculado
 				if (addedItem.productId) {
 					checkQuantitySuggestion(addedItem.productId, addedItem.id)
 				}
@@ -351,8 +422,11 @@ export default function ListaDetalhesPage() {
 		}
 	}
 
+	// Funções de itens temporários removidas - agora todos itens funcionam da mesma forma
+
 	const handleUpdateItem = async () => {
 		if (!editingItem) return
+
 		setUpdatingItem(true)
 		try {
 			const response = await fetch(`/api/shopping-lists/${listId}/items/${editingItem.id}`, {
@@ -366,6 +440,7 @@ export default function ListaDetalhesPage() {
 					estimatedPrice: editItemData.estimatedPrice,
 				}),
 			})
+
 			if (response.ok) {
 				setEditingItem(null)
 				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
@@ -384,11 +459,13 @@ export default function ListaDetalhesPage() {
 
 	const handleDeleteItem = async () => {
 		if (!deleteItemConfirm) return
+
 		setDeletingItem(true)
 		try {
 			const response = await fetch(`/api/shopping-lists/${listId}/items/${deleteItemConfirm.id}`, {
 				method: "DELETE",
 			})
+
 			if (response.ok) {
 				setDeleteItemConfirm(null)
 				await queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
@@ -410,7 +487,9 @@ export default function ListaDetalhesPage() {
 			toast.error("Nome do produto é obrigatório")
 			return
 		}
+
 		setSavingQuickProduct(true)
+
 		try {
 			const response = await fetch("/api/products", {
 				method: "POST",
@@ -422,6 +501,7 @@ export default function ListaDetalhesPage() {
 					brandId: quickProduct.brandId || null,
 				}),
 			})
+
 			if (response.ok) {
 				const newProduct = await response.json()
 				await queryClient.invalidateQueries({ queryKey: ["products", "all"] })
@@ -442,29 +522,26 @@ export default function ListaDetalhesPage() {
 
 	const handleFinalizePurchase = () => {
 		if (!list) return
+
 		const checkedItems = list.items.filter((item) => item.isChecked)
+
 		if (checkedItems.length === 0) {
 			toast.info("Marque os itens comprados na lista para finalizar a compra.")
 			return
 		}
+
 		const purchaseItems = checkedItems.map((item) => ({
 			productId: item.product?.id || "",
 			quantity: item.quantity,
 			unitPrice: item.estimatedPrice || 0,
 		}))
-		const storageKey = TempStorage.save({ items: purchaseItems })
+
+		const storageKey = TempStorage.save({
+			items: purchaseItems,
+		})
+
 		router.push(`/compras/nova?storageKey=${storageKey}`)
 	}
-
-	// Filtrar itens
-	const filteredItems = list?.items.filter((item) => {
-		const matchesSearch =
-			!searchQuery ||
-			item.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			item.product?.name.toLowerCase().includes(searchQuery.toLowerCase())
-		const matchesCompleted = showCompleted || !item.isChecked
-		return matchesSearch && matchesCompleted
-	})
 
 	const completedItems = list?.items.filter((item) => item.isChecked).length || 0
 	const totalItems = list?.items.length || 0
@@ -472,263 +549,178 @@ export default function ListaDetalhesPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-background">
-				<div className="h-14 bg-white border-b animate-pulse" />
-				<div className="p-4 space-y-4">
-					<div className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
-					<div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
-					<div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
+			<div className="space-y-6">
+				<div className="flex items-center gap-4">
+					<div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
+					<div className="animate-pulse h-8 w-60 bg-gray-200 rounded"></div>
 				</div>
+				<div className="animate-pulse h-40 bg-gray-200 rounded"></div>
 			</div>
 		)
 	}
 
-	if (!list) return null
+	if (!list) {
+		return null
+	}
 
+	// --- MODO DE COMPRA FOCADO ---
+	if (isShoppingMode) {
+		return (
+			<ShoppingMode
+				listName={list.name}
+				items={list.items}
+				sortOrder={sortOrder}
+				onBack={() => setIsShoppingMode(false)}
+				onSortChange={setSortOrder}
+				onToggleItem={toggleItem}
+				onFinalizePurchase={handleFinalizePurchase}
+				onUpdateQuantity={handleUpdateQuantity}
+				onUpdateEstimatedPrice={handleUpdateEstimatedPrice}
+				onCloseBestPriceAlert={(itemId) => {
+					// Best price alerts are transient, no need to persist
+				}}
+				onDeleteItem={(item) => setDeleteItemConfirm(item)}
+			/>
+		)
+	}
+
+	// --- VISUALIZAÇÃO PADRÃO ---
 	return (
-		<div className="min-h-screen bg-background pb-[200px] md:pb-24">
-			{/* Header e Busca Fixos Juntos - Mobile First */}
-			<motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-30 bg-white border-b w-full"
-      >
-				<div className="w-full max-w-screen-xl mx-auto">
-					{/* Header */}
-					<div className="px-4 py-3 flex items-center gap-3">
-						<Button variant="ghost" size="icon" className="shrink-0" onClick={() => router.back()}>
-							<ArrowLeft className="h-5 w-5" />
-						</Button>
-						<div className="flex-1 min-w-0">
-							<h1 className="text-lg font-semibold truncate">{list.name}</h1>
-							<p className="text-xs text-muted-foreground">
-								{completedItems} de {totalItems} itens
-							</p>
-						</div>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="icon" className="shrink-0">
-									<MoreVertical className="h-5 w-5" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-48">
-								<DropdownMenuItem onClick={() => setEditingList(true)}>
-									<Edit3 className="h-4 w-4 mr-2" />
-									Editar lista
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => setShowOptimizedRoute(true)}>
-									<Package className="h-4 w-4 mr-2" />
-									Roteiro otimizado
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => router.push(`/lista/${listId}/registrar`)}>
-									<ShoppingCart className="h-4 w-4 mr-2" />
-									Registrar compra
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => setDeleteConfirm(true)} className="text-red-600">
-									<Trash2 className="h-4 w-4 mr-2" />
-									Excluir lista
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-
-					{/* Barra de Progresso */}
-					<div className="px-4 pb-3">
-						<div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-							<motion.div
-								initial={{ width: 0 }}
-								animate={{ width: `${progress}%` }}
-								transition={{ duration: 0.5, ease: "easeOut" }}
-								className={cn(
-									"absolute inset-y-0 left-0 rounded-full transition-colors",
-									progress === 100 ? "bg-green-500" : "bg-primary",
-								)}
-							/>
-						</div>
-					</div>
-
-					{/* Barra de Busca e Filtros */}
-					<div className="px-4 pb-3">
-						<div className="flex gap-2 pt-3">
-							<div className="relative flex-1">
-								<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-								<Input
-									placeholder="Buscar itens..."
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									className="pl-9 h-10 rounded-full border-gray-200 bg-white"
-								/>
-								{searchQuery && (
-									<Button
-										variant="ghost"
-										size="icon"
-										className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-										onClick={() => setSearchQuery("")}
-									>
-										<X className="h-4 w-4" />
-									</Button>
-								)}
-							</div>
-							{completedItems > 0 && (
-								<Button
-									variant={showCompleted ? "secondary" : "outline"}
-									size="icon"
-									onClick={() => setShowCompleted(!showCompleted)}
-									className="shrink-0 h-10 w-10 rounded-full"
-								>
-									<Check className="h-4 w-4" />
-								</Button>
-							)}
-						</div>
-					</div>
+		<div className="min-h-screen bg-gray-50/50 pb-20 md:pb-6">
+			{/* Header fixo para mobile */}
+			<div className="sticky top-0 z-10 bg-white border-b shadow-sm md:relative md:shadow-none md:border-none">
+				<div className="px-4 py-4 md:px-0">
+					<ShoppingListHeader
+						listName={list.name}
+						totalItems={totalItems}
+						completedItems={completedItems}
+						progress={progress}
+						listId={listId}
+						onStartShopping={() => setIsShoppingMode(true)}
+						onOpenOptimizedRoute={() => setShowOptimizedRoute(true)}
+						onEditList={() => setEditingList(true)}
+						onDeleteList={() => setDeleteConfirm(true)}
+						onRegisterPurchase={() => router.push(`/lista/${listId}/registrar`)}
+					/>
 				</div>
-			</motion.div>
+			</div>
 
-			{/* Lista de Itens - Design Minimalista */}
-			<div className="p-4 max-w-screen-xl mx-auto w-full">
-				{!filteredItems || filteredItems.length === 0 ? (
-					<motion.div
-						initial={{ opacity: 0, scale: 0.95 }}
-						animate={{ opacity: 1, scale: 1 }}
-						className="flex flex-col items-center justify-center py-16 text-center"
-					>
-						<div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-							<Package className="h-8 w-8 text-gray-400" />
-						</div>
-						<h3 className="text-lg font-semibold mb-2">{searchQuery ? "Nenhum item encontrado" : "Lista vazia"}</h3>
-						<p className="text-sm text-muted-foreground mb-6">
-							{searchQuery ? "Tente buscar com outros termos" : "Adicione itens para começar suas compras"}
-						</p>
-						{!searchQuery && (
-							<Button onClick={() => setShowAddItem(true)} size="lg" className="rounded-full">
-								<Plus className="h-5 w-5 mr-2" />
-								Adicionar Item
-							</Button>
-						)}
-					</motion.div>
-				) : (
-					<div className="space-y-2">
-						<AnimatePresence mode="popLayout">
-							{filteredItems.map((item, index) => (
-								<motion.div
-									key={item.id}
-									layout
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, scale: 0.95 }}
-									transition={{ delay: index * 0.02 }}
-									className={cn(
-										"group relative bg-white rounded-2xl p-4 border transition-all",
-										item.isChecked
-											? "border-green-200 bg-green-50/30"
-											: "border-gray-200 hover:border-primary/30 hover:shadow-sm",
-									)}
-								>
-									<div className="flex items-start gap-3">
-										{/* Checkbox customizado */}
-										<button
-											onClick={() => toggleItem(item.id, item.isChecked)}
-											className={cn(
-												"shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-												item.isChecked ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-primary",
-											)}
+			<div className="px-4 md:px-0 space-y-6">
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+					<ProgressBar completedItems={completedItems} totalItems={totalItems} progress={progress} />
+				</motion.div>
+
+				{/* Lista de Itens */}
+				<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+					<Card>
+						<CardHeader>
+							<div className="flex justify-between items-center">
+								<CardTitle className="flex items-center gap-2">
+									<Package className="h-5 w-5" />
+									Itens da Lista
+								</CardTitle>
+								<div className="flex gap-2">
+									{/* Toggle para mostrar itens concluídos */}
+									{list.items.filter(item => item.isChecked).length > 0 && (
+										<Button
+											onClick={() => setShowCompletedItems(!showCompletedItems)}
+											variant="outline"
+											size="sm"
+											className="flex items-center gap-2"
 										>
-											{item.isChecked && <Check className="h-4 w-4 text-white" />}
-										</button>
-
-										{/* Conteúdo do Item */}
-										<div className="flex-1 min-w-0">
-											<div className="flex items-start justify-between gap-2">
-												<div className="flex-1 min-w-0">
-													<h4
-														className={cn(
-															"font-medium text-sm leading-snug",
-															item.isChecked && "line-through text-muted-foreground",
-														)}
-													>
-														{item.product?.name || item.productName}
-													</h4>
-													{item.product?.brand && (
-														<p className="text-xs text-muted-foreground mt-0.5">{item.product.brand.name}</p>
-													)}
-												</div>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-													onClick={() => setQuickEditingItem(item)}
-												>
-													<ChevronRight className="h-4 w-4" />
-												</Button>
-											</div>
-
-											{/* Quantidade e Preço */}
-											<div className="flex items-center gap-3 mt-2">
-												<span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs font-medium">
-													<Package className="h-3 w-3" />
-													{item.quantity} {item.productUnit || "un"}
-												</span>
-												{item.estimatedPrice && (
-													<span className="text-xs font-semibold text-primary">
-														{new Intl.NumberFormat("pt-BR", {
-															style: "currency",
-															currency: "BRL",
-														}).format(item.estimatedPrice * item.quantity)}
-													</span>
-												)}
-											</div>
+											{showCompletedItems ? (
+												<>
+													<EyeOff className="h-4 w-4" />
+													<span className="hidden sm:inline">Ocultar Concluídos</span>
+												</>
+											) : (
+												<>
+													<Eye className="h-4 w-4" />
+													<span className="hidden sm:inline">Mostrar Concluídos</span>
+												</>
+											)}
+											<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+												{list.items.filter(item => item.isChecked).length}
+											</span>
+										</Button>
+									)}
+									<Button onClick={() => setShowAddItem(true)} size="sm" className="hidden md:flex">
+										<Plus className="h-4 w-4 mr-2" />
+										Adicionar Item
+									</Button>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent>
+							{list.items.length === 0 ? (
+								<Empty className="border border-dashed py-10">
+									<EmptyHeader>
+										<EmptyMedia variant="icon">
+											<Package className="h-6 w-6" />
+										</EmptyMedia>
+										<EmptyTitle>Lista vazia</EmptyTitle>
+										<EmptyDescription>Adicione itens para começar suas compras</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<div className="flex gap-2 justify-center">
+											<Button onClick={() => setShowAddItem(true)} size="sm">
+												<Plus className="h-4 w-4 mr-1" />
+												Adicionar Item
+											</Button>
 										</div>
-									</div>
-								</motion.div>
-							))}
-						</AnimatePresence>
-					</div>
+									</EmptyContent>
+								</Empty>
+							) : (
+								<div className="space-y-3">
+									{list.items
+										.filter(item => showCompletedItems || !item.isChecked)
+										.map((item, index) => (
+											<motion.div
+												key={item.id}
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{ delay: 0.3 + index * 0.05 }}
+											>
+												<ShoppingListItemComponent
+													item={item}
+													onToggle={toggleItem}
+													onEdit={(item) => setQuickEditingItem(item)}
+													onDelete={(item) => setDeleteItemConfirm(item)}
+													onSearchPrice={(item) => {
+														setPriceSearchItem(item)
+														setShowPriceSearch(true)
+													}}
+												/>
+											</motion.div>
+										))}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				</motion.div>
+
+				{/* Resumo */}
+				{list.items.length > 0 && (
+					<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+						<ShoppingSummary items={list.items} totalItems={totalItems} completedItems={completedItems} />
+					</motion.div>
 				)}
 			</div>
 
-			{/* Resumo Fixo - Bottom Sheet Style */}
-			{totalItems > 0 && (
-				<motion.div
-					initial={{ y: 100 }}
-					animate={{ y: 0 }}
-					className="fixed bottom-0 left-0 right-0 md:left-64 z-40 bg-white border-t shadow-2xl"
-				>
-					<div className="p-4 space-y-3 max-w-screen-xl mx-auto">
-						{/* Totais */}
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="text-sm text-muted-foreground">Total estimado</p>
-								<p className="text-2xl font-bold">
-									{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-										list.items.reduce((sum, item) => sum + (item.estimatedPrice || 0) * item.quantity, 0),
-									)}
-								</p>
-							</div>
-							<div className="text-right">
-								<p className="text-sm text-muted-foreground">Progresso</p>
-								<p className="text-2xl font-bold text-primary">{Math.round(progress)}%</p>
-							</div>
-						</div>
-
-						{/* Botões de Ação */}
-						<div className="flex gap-2">
-							<Button onClick={() => setShowAddItem(true)} variant="outline" className="flex-1 rounded-full h-12">
-								<Plus className="h-5 w-5 mr-2" />
-								Adicionar
-							</Button>
-							<Button
-								onClick={handleFinalizePurchase}
-								disabled={completedItems === 0}
-								className="flex-1 rounded-full h-12 bg-green-600 hover:bg-green-700"
-							>
-								<ShoppingCart className="h-5 w-5 mr-2" />
-								Finalizar ({completedItems})
-							</Button>
-						</div>
-					</div>
-				</motion.div>
-			)}
+			{/* Barra fixa na parte inferior para mobile */}
+			<div className="fixed bottom-0 left-0 right-0 z-20 bg-white dark:bg-gray-900 border-t shadow-lg md:hidden">
+				<div className="px-4 py-3">
+					{/* Botão de adicionar item */}
+					<Button
+						onClick={() => setShowAddItem(true)}
+						className="w-full bg-primary hover:bg-primary/90"
+						size="lg"
+					>
+						<Plus className="h-5 w-5 mr-2" />
+						Adicionar Item
+					</Button>
+				</div>
+			</div>
 
 			{/* Dialogs */}
 			<EditListDialog
@@ -738,6 +730,7 @@ export default function ListaDetalhesPage() {
 				onSave={handleSaveList}
 				saving={saving}
 			/>
+
 			<DeleteListDialog
 				isOpen={deleteConfirm}
 				onClose={() => setDeleteConfirm(false)}
@@ -745,6 +738,7 @@ export default function ListaDetalhesPage() {
 				onDelete={handleDeleteList}
 				deleting={deleting}
 			/>
+
 			<AddItemDialog
 				isOpen={showAddItem}
 				onClose={() => setShowAddItem(false)}
@@ -754,7 +748,12 @@ export default function ListaDetalhesPage() {
 				onAdd={handleAddItem}
 				adding={addingItem}
 				onCreateQuickProduct={() => {
-					setQuickProduct({ name: "", categoryId: "", unit: "unidade", brandId: "" })
+					setQuickProduct({
+						name: "",
+						categoryId: "",
+						unit: "unidade",
+						brandId: "",
+					})
 					setShowQuickProduct(true)
 				}}
 				preserveFormData={{
@@ -763,6 +762,7 @@ export default function ListaDetalhesPage() {
 					returnContext: "listDetails",
 				}}
 			/>
+
 			<EditItemDialog
 				isOpen={!!editingItem}
 				onClose={() => setEditingItem(null)}
@@ -773,11 +773,13 @@ export default function ListaDetalhesPage() {
 				updating={updatingItem}
 				onCloseBestPriceAlert={() => {
 					if (editingItem) {
+				// Best price alerts are transient, no need to persist
 						setEditingItem((prev) => (prev ? { ...prev, bestPriceAlert: undefined } : null))
 					}
 				}}
-				onCheckBestPrice={() => {}}
+				onCheckBestPrice={checkBestPrice}
 			/>
+
 			<DeleteItemDialog
 				isOpen={!!deleteItemConfirm}
 				onClose={() => setDeleteItemConfirm(null)}
@@ -785,6 +787,7 @@ export default function ListaDetalhesPage() {
 				onDelete={handleDeleteItem}
 				deleting={deletingItem}
 			/>
+
 			<QuickProductDialog
 				isOpen={showQuickProduct}
 				onClose={() => setShowQuickProduct(false)}
@@ -793,19 +796,28 @@ export default function ListaDetalhesPage() {
 				onCreateProduct={handleCreateQuickProduct}
 				saving={savingQuickProduct}
 			/>
+
+			{/* Dialog de Edição Rápida */}
 			<QuickEditDialog
 				item={quickEditingItem}
 				isOpen={!!quickEditingItem}
 				onClose={() => setQuickEditingItem(null)}
 				onUpdate={(itemId, updates, options) => {
+					// Atualiza todos os campos (nome, produto vinculado, quantidade, preço)
 					const updateData: Record<string, unknown> = {}
 					if (updates.productId !== undefined) updateData.productId = updates.productId
 					if (updates.productName !== undefined) updateData.productName = updates.productName
 					if (updates.productUnit !== undefined) updateData.productUnit = updates.productUnit
 					if (updates.quantity !== undefined) updateData.quantity = updates.quantity
 					if (updates.estimatedPrice !== undefined) updateData.estimatedPrice = updates.estimatedPrice
+
+					// Atualizar no servidor
 					updateItemInServer(itemId, updateData)
+
+				// Invalidate cache to refetch
 					queryClient.invalidateQueries({ queryKey: ["shopping-lists", listId] })
+
+					// Fechar dialog apenas se closeDialog não for false (auto-save envia false)
 					if (options?.closeDialog !== false) {
 						setQuickEditingItem(null)
 					}
@@ -815,12 +827,16 @@ export default function ListaDetalhesPage() {
 					setQuickEditingItem(null)
 				}}
 			/>
+
+			{/* Componente de Roteiro Otimizado */}
 			<OptimizedShoppingRoute
 				listId={listId}
 				listName={list.name}
 				isOpen={showOptimizedRoute}
 				onClose={() => setShowOptimizedRoute(false)}
 			/>
+
+			{/* Dialog de Busca de Preços */}
 			<PriceSearchDialog
 				isOpen={showPriceSearch}
 				onClose={() => {
@@ -829,6 +845,13 @@ export default function ListaDetalhesPage() {
 				}}
 				itemId={priceSearchItem?.id || null}
 				itemName={priceSearchItem?.product?.name || priceSearchItem?.productName || ""}
+			/>
+
+			{/* Floating Action Button - Adicionar Item */}
+			<FloatingActionButton
+				icon={Plus}
+				label="Adicionar Item"
+				onClick={() => setShowAddItem(true)}
 			/>
 		</div>
 	)
