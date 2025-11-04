@@ -4,14 +4,13 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
 	Activity,
 	Apple,
-	BarChart3,
 	Beef,
 	Calculator,
 	Camera,
-	CircleDollarSign,
 	ChefHat,
 	ChevronLeft,
 	ChevronRight,
+	CircleDollarSign,
 	CloudOff,
 	Database,
 	DollarSign,
@@ -70,10 +69,10 @@ const navigation = [
 		icon: ShoppingBag,
 		subItems: [
 			{ name: "Minhas Compras", href: "/compras", icon: ShoppingCart },
+			{ name: "Lista de Compras", href: "/lista", icon: List },
+			{ name: "Importar NFC-e", href: "/compras/importar", icon: Receipt },
 			{ name: "Orçamentos", href: "/orcamentos", icon: CircleDollarSign },
 			{ name: "Cotações", href: "/cotacoes", icon: Calculator },
-			{ name: "Importar NFC-e", href: "/compras/importar", icon: Receipt },
-			{ name: "Lista de Compras", href: "/lista", icon: List },
 		],
 	},
 	{
@@ -528,12 +527,12 @@ function SidebarContent({ collapsed = false, onToggleCollapse }: SidebarProps) {
 			<div className={cn("mt-auto flex flex-col gap-2 p-4", collapsed && "p-2 items-center")}>
 				<SyncStatusIndicator collapsed={collapsed} />
 				<UserNav collapsed={collapsed} />
-		
+
 				<div className="flex items-center justify-center">
-						<Badge variant="outline" className="font-normal text-muted-foreground">
-							v{APP_VERSION}
-						</Badge>
-					</div>
+					<Badge variant="outline" className="font-normal text-muted-foreground">
+						v{APP_VERSION}
+					</Badge>
+				</div>
 			</div>
 		</div>
 	)

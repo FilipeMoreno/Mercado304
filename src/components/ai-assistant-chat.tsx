@@ -191,7 +191,7 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 							stiffness: 300,
 							damping: 30,
 						}}
-						className="absolute bottom-0 md:top-0 right-0 w-screen sm:w-96 h-[600px] sm:max-w-96"
+						className="absolute bottom-0 md:top-0 right-1 sm:right-0 w-[calc(100vw-2rem)] sm:w-96 max-w-[calc(100vw-2rem)] sm:max-w-96 h-[600px]"
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}

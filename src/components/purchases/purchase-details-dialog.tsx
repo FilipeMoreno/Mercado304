@@ -367,38 +367,65 @@ export function PurchaseDetailsDialog({ purchase, isOpen, onClose, isLoading }: 
 						</div>
 
 						<div className="space-y-3">
-							{purchase.totalDiscount > 0 && (
-								<div className="flex justify-between items-center">
-									<span className="text-muted-foreground">Subtotal:</span>
-									<span className="font-medium">R$ {purchase.totalAmount.toFixed(2)}</span>
-								</div>
-							)}
+							{/* Calcular subtotal (soma dos totalPrice sem descontos) */}
+							{(() => {
+								const subtotal = purchase.items?.reduce((sum: number, item: any) => sum + item.totalPrice, 0) || 0
+								const totalItemDiscounts = purchase.items?.reduce((sum: number, item: any) => sum + (item.totalDiscount || 0), 0) || 0
+								const totalDiscount = totalItemDiscounts + (purchase.totalDiscount || 0)
+								const finalAmount = purchase.finalAmount || purchase.totalAmount
 
-							{purchase.totalDiscount > 0 && (
-								<div className="flex justify-between items-center text-red-600">
-									<span className="flex items-center gap-2">
-										<TrendingDown className="h-4 w-4" />
-										Desconto Total:
-									</span>
-									<span className="font-semibold">-R$ {purchase.totalDiscount.toFixed(2)}</span>
-								</div>
-							)}
+								return (
+									<>
+										<div className="flex justify-between items-center">
+											<span className="text-muted-foreground">Subtotal:</span>
+											<span className="font-medium">R$ {subtotal.toFixed(2)}</span>
+										</div>
 
-							<Separator />
+										{totalItemDiscounts > 0 && (
+											<div className="flex justify-between items-center text-orange-600">
+												<span className="flex items-center gap-2">
+													<TrendingDown className="h-4 w-4" />
+													Descontos nos itens:
+												</span>
+												<span className="font-semibold">-R$ {totalItemDiscounts.toFixed(2)}</span>
+											</div>
+										)}
 
-							<div className="flex justify-between items-center text-xl font-bold text-green-700">
-								<span className="flex items-center gap-2">
-									<DollarSign className="h-6 w-6" />
-									Total Pago:
-								</span>
-								<span>R$ {(purchase.finalAmount || purchase.totalAmount).toFixed(2)}</span>
-							</div>
+										{purchase.totalDiscount > 0 && (
+											<div className="flex justify-between items-center text-orange-600">
+												<span className="flex items-center gap-2">
+													<TrendingDown className="h-4 w-4" />
+													Desconto geral:
+												</span>
+												<span className="font-semibold">-R$ {purchase.totalDiscount.toFixed(2)}</span>
+											</div>
+										)}
 
-							{purchase.totalDiscount > 0 && (
-								<p className="text-sm text-green-600 text-center mt-2">
-									Você economizou R$ {purchase.totalDiscount.toFixed(2)} nesta compra! 🎉
-								</p>
-							)}
+										{totalDiscount > 0 && (
+											<div className="flex justify-between items-center text-red-600 font-semibold">
+												<span>Desconto Total:</span>
+												<span>-R$ {totalDiscount.toFixed(2)}</span>
+											</div>
+										)}
+
+										<Separator />
+
+										<div className="flex justify-between items-center text-xl font-bold text-green-700">
+											<span className="flex items-center gap-2">
+												<DollarSign className="h-6 w-6" />
+												Total Pago:
+											</span>
+											<span>R$ {finalAmount.toFixed(2)}</span>
+										</div>
+
+										{totalDiscount > 0 && (
+											<p className="text-sm text-green-600 text-center mt-2">
+												Você economizou R$ {totalDiscount.toFixed(2)} nesta compra! 🎉
+											</p>
+										)}
+									</>
+								)
+							})()}
 						</div>
 					</div>
 				</div>
