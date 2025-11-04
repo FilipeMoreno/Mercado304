@@ -1287,11 +1287,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 									className="pl-10 w-full"
 								/>
 							</div>
-							<Activity mode={searchTerm ? 'visible' : 'hidden'}>
+							{searchTerm && (
 								<p className="text-xs text-muted-foreground mt-1">
 									{debouncedSearchTerm ? "Buscando..." : "Digite para pesquisar"}
 								</p>
-							</Activity>
+							)}
 								</div>
 
 								<div>
@@ -1348,11 +1348,11 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												/>
 									)}
 								</div>
-								<Activity mode={selectedMarket ? 'visible' : 'hidden'}>
+								{selectedMarket && (
 									<Button variant="outline" size="icon" onClick={() => setSelectedMarket("")} title="Limpar filtro">
 										<X className="h-4 w-4" />
 									</Button>
-								</Activity>
+								)}
 									</div>
 								</div>
 
@@ -1374,7 +1374,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 												/>
 										)}
 									</div>
-									<Activity mode={selectedProduct ? 'visible' : 'hidden'}>
+									{selectedProduct && (
 										<Button
 											variant="outline"
 											size="icon"
@@ -1383,7 +1383,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 										>
 											<X className="h-4 w-4" />
 										</Button>
-									</Activity>
+									)}
 									</div>
 								</div>
 							</div>
@@ -1806,7 +1806,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						</DialogTitle>
 					<DialogDescription>Atualize as informações do registro de preço selecionado.</DialogDescription>
 				</DialogHeader>
-				<Activity mode={editingRecord ? 'visible' : 'hidden'}>
+				{editingRecord && (
 					<div className="space-y-4">
 						<div className="p-4 bg-muted rounded-lg space-y-2">
 							<div className="flex items-center gap-2">
@@ -1847,7 +1847,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 								/>
 							</div>
 				</div>
-			</Activity>
+			)}
 			<DialogFooter>
 				<Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSubmitting}>
 					Cancelar
@@ -1871,7 +1871,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 					Tem certeza que deseja deletar este registro de preço? Esta ação não pode ser desfeita.
 				</AlertDialogDescription>
 			</AlertDialogHeader>
-			<Activity mode={deletingRecord ? 'visible' : 'hidden'}>
+			{deletingRecord && (
 				<div className="p-4 bg-muted rounded-lg space-y-2">
 					<div className="flex items-center gap-2">
 						<Package className="h-4 w-4 text-muted-foreground" />
@@ -1892,7 +1892,7 @@ export function PriceRecordClient({ initialProducts, initialMarkets }: PriceReco
 						</span>
 					</div>
 				</div>
-			</Activity>
+			)}
 					<AlertDialogFooter>
 						<AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
 						<AlertDialogAction
