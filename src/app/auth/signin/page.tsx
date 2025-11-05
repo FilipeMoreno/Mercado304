@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { oneTap, passkey, signIn, twoFactor, useSession } from "@/lib/auth-client"
 import { handleAuthError, showAuthSuccess } from "@/lib/auth-errors"
+import { cacheSession } from "@/lib/offline-session"
 
 export default function SignInPage() {
 	const { isPending: sessionLoading } = useSession()
@@ -102,6 +103,17 @@ export default function SignInPage() {
 			// Salva o método de login usado
 			localStorage.setItem("lastLoginMethod", "email")
 			setLastLoginMethod("email")
+
+			// Cachear sessão para uso offline
+			if (result.data?.user) {
+				cacheSession({
+					id: result.data.user.id,
+					email: result.data.user.email,
+					name: result.data.user.name,
+					emailVerified: result.data.user.emailVerified,
+					image: result.data.user.image,
+				})
+			}
 
 			// Registra no histórico de auditoria
 			fetch("/api/auth/log-auth-event", {

@@ -5,6 +5,7 @@ import type { Market } from "@/types"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useMarketsQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -25,15 +26,26 @@ export const useMarketQuery = (id: string) => {
 
 export const useCreateMarketMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: Omit<Market, "id" | "createdAt" | "updatedAt">) =>
-			fetchWithErrorHandling("/api/markets", {
+		mutationFn: async (data: Omit<Market, "id" | "createdAt" | "updatedAt">) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/markets", data, "market")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/markets", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (newMarket: Market) => {
-			await invalidateRefetchFamily(queryClient, ["markets"]) 
+			})
+		},
+		onSuccess: async (newMarket: Market | { success: boolean; queued: boolean }) => {
+			if ('queued' in newMarket && newMarket.queued) {
+				toast.info("Mercado salvo offline", { description: "Será criado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["markets"])
 			toast.success("Mercado criado com sucesso!")
 			return newMarket
 		},
@@ -45,16 +57,27 @@ export const useCreateMarketMutation = () => {
 
 export const useUpdateMarketMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<Market> }) =>
-			fetchWithErrorHandling(`/api/markets/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: Partial<Market> }) => {
+			if (!isOnline) {
+				await addToQueue("PUT", `/api/markets/${id}`, data, "market", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/markets/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, variables) => {
+			})
+		},
+		onSuccess: async (result, variables) => {
+			if ('queued' in result && result.queued) {
+				toast.info("Mercado atualizado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
 			queryClient.invalidateQueries({ queryKey: ["market", variables.id] })
-			await invalidateRefetchFamily(queryClient, ["markets"]) 
+			await invalidateRefetchFamily(queryClient, ["markets"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado atualizado com sucesso!")
 		},
@@ -66,13 +89,24 @@ export const useUpdateMarketMutation = () => {
 
 export const useDeleteMarketMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/markets/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/markets/${id}`, {}, "market", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/markets/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["markets"]) 
+			})
+		},
+		onSuccess: async (result) => {
+			if (result?.queued) {
+				toast.info("Mercado excluído offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["markets"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Mercado excluído com sucesso!")
 		},

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useQuotesQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -46,15 +47,26 @@ export const useQuoteStatsQuery = () => {
 
 export const useUpdateQuoteMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<any> }) =>
-			fetchWithErrorHandling(`/api/quotes/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: Partial<any> }) => {
+			if (!isOnline) {
+				await addToQueue("PATCH", `/api/quotes/${id}`, data, "quote", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/quotes/${id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, { id }) => {
-			await invalidateRefetchFamily(queryClient, ["quotes"]) 
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Cotação atualizada offline", { description: "Será sincronizada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["quotes"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.quote(id) })
 			toast.success("Cotação atualizada com sucesso!")
 		},
@@ -66,13 +78,24 @@ export const useUpdateQuoteMutation = () => {
 
 export const useDeleteQuoteMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/quotes/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/quotes/${id}`, {}, "quote", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/quotes/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["quotes"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Cotação excluída offline", { description: "Será sincronizada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["quotes"])
 			toast.success("Cotação excluída com sucesso!")
 		},
 		onError: (error) => {

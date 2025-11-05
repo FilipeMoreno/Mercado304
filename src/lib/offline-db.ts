@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = "mercado304-offline"
-const DB_VERSION = 1
+const DB_VERSION = 2 // Incrementado para adicionar nova store
 
 export interface CachedData {
   key: string
@@ -13,9 +13,21 @@ export interface CachedData {
   expiresAt: number | null
 }
 
+export interface PendingSync {
+  id: string
+  method: string
+  url: string
+  data: unknown
+  timestamp: number
+  retries: number
+  entityType: string // 'product', 'purchase', 'shopping-list', etc.
+  entityId?: string
+}
+
 class OfflineDB {
   private db: IDBDatabase | null = null
   private readonly storeName = "cache"
+  private readonly syncStoreName = "pending-sync"
 
   async init(): Promise<void> {
     if (typeof window === "undefined") return
@@ -38,6 +50,14 @@ class OfflineDB {
           const store = db.createObjectStore(this.storeName, { keyPath: "key" })
           store.createIndex("timestamp", "timestamp", { unique: false })
           store.createIndex("expiresAt", "expiresAt", { unique: false })
+        }
+
+        // Criar store para sincronização pendente
+        if (!db.objectStoreNames.contains(this.syncStoreName)) {
+          const syncStore = db.createObjectStore(this.syncStoreName, { keyPath: "id" })
+          syncStore.createIndex("timestamp", "timestamp", { unique: false })
+          syncStore.createIndex("entityType", "entityType", { unique: false })
+          syncStore.createIndex("retries", "retries", { unique: false })
         }
       }
     })
@@ -212,6 +232,140 @@ class OfflineDB {
       }
       const transaction = this.db.transaction([this.storeName], "readonly")
       const store = transaction.objectStore(this.storeName)
+      const request = store.count()
+
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  // ===== Métodos para gerenciar fila de sincronização =====
+
+  async addToSyncQueue(sync: Omit<PendingSync, "id" | "timestamp" | "retries">): Promise<string> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    const id = `sync-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const pendingSync: PendingSync = {
+      ...sync,
+      id,
+      timestamp: Date.now(),
+      retries: 0,
+    }
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readwrite")
+      const store = transaction.objectStore(this.syncStoreName)
+      const request = store.add(pendingSync)
+
+      request.onsuccess = () => resolve(id)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async getSyncQueue(): Promise<PendingSync[]> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readonly")
+      const store = transaction.objectStore(this.syncStoreName)
+      const request = store.getAll()
+
+      request.onsuccess = () => resolve(request.result as PendingSync[])
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async removeSyncItem(id: string): Promise<void> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readwrite")
+      const store = transaction.objectStore(this.syncStoreName)
+      const request = store.delete(id)
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async updateSyncItem(id: string, updates: Partial<PendingSync>): Promise<void> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readwrite")
+      const store = transaction.objectStore(this.syncStoreName)
+      const getRequest = store.get(id)
+
+      getRequest.onsuccess = () => {
+        const existing = getRequest.result as PendingSync
+        if (!existing) {
+          reject(new Error("Sync item not found"))
+          return
+        }
+
+        const updated: PendingSync = {
+          ...existing,
+          ...updates,
+        }
+
+        const putRequest = store.put(updated)
+        putRequest.onsuccess = () => resolve()
+        putRequest.onerror = () => reject(putRequest.error)
+      }
+
+      getRequest.onerror = () => reject(getRequest.error)
+    })
+  }
+
+  async clearSyncQueue(): Promise<void> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readwrite")
+      const store = transaction.objectStore(this.syncStoreName)
+      const request = store.clear()
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async getSyncQueueSize(): Promise<number> {
+    await this.init()
+    if (!this.db) throw new Error("Database not initialized")
+
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"))
+        return
+      }
+      const transaction = this.db.transaction([this.syncStoreName], "readonly")
+      const store = transaction.objectStore(this.syncStoreName)
       const request = store.count()
 
       request.onsuccess = () => resolve(request.result)

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useStockQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -32,16 +33,27 @@ export const useStockHistoryQuery = (params?: URLSearchParams) => {
 
 export const useCreateStockMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: any) =>
-			fetchWithErrorHandling("/api/stock", {
+		mutationFn: async (data: any) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/stock", data, "stock")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/stock", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Item salvo offline", { description: "Será adicionado ao estoque quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["stock"])
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.expiration.alerts() })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Item adicionado ao estoque!")
@@ -54,17 +66,28 @@ export const useCreateStockMutation = () => {
 
 export const useUpdateStockMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: any }) =>
-			fetchWithErrorHandling(`/api/stock/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: any }) => {
+			if (!isOnline) {
+				await addToQueue("PUT", `/api/stock/${id}`, data, "stock", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/stock/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, { id }) => {
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Estoque atualizado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["stock"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.stockItem(id) })
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.expiration.alerts() })
 			toast.success("Estoque atualizado com sucesso!")
 		},
@@ -76,14 +99,25 @@ export const useUpdateStockMutation = () => {
 
 export const useDeleteStockMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/stock/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/stock/${id}`, {}, "stock", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/stock/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Item removido offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["stock"])
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.expiration.alerts() })
 			toast.success("Item removido do estoque!")
 		},

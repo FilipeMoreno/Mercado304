@@ -5,6 +5,7 @@ import type { Category } from "@/types"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useCategoriesQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -33,17 +34,28 @@ export const useAllCategoriesQuery = () => {
 
 export const useCreateCategoryMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: Omit<Category, "id" | "createdAt" | "updatedAt">) =>
-			fetchWithErrorHandling("/api/categories", {
+		mutationFn: async (data: Omit<Category, "id" | "createdAt" | "updatedAt">) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/categories", data, "category")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/categories", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (newCategory: Category) => {
-			await invalidateRefetchFamily(queryClient, ["categories"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Categoria salva offline", { description: "Será criada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["categories"])
 			toast.success("Categoria criada com sucesso!")
-			return newCategory
+			return result
 		},
 		onError: (error) => {
 			toast.error(`Erro ao criar categoria: ${error.message}`)
@@ -53,17 +65,28 @@ export const useCreateCategoryMutation = () => {
 
 export const useUpdateCategoryMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
-			fetchWithErrorHandling(`/api/categories/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: Partial<Category> }) => {
+			if (!isOnline) {
+				await addToQueue("PUT", `/api/categories/${id}`, data, "category", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/categories/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["categories"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Categoria atualizada offline", { description: "Será sincronizada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["categories"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			await invalidateRefetchFamily(queryClient, ["products"]) 
+			await invalidateRefetchFamily(queryClient, ["products"])
 			toast.success("Categoria atualizada com sucesso!")
 		},
 		onError: (error) => {
@@ -74,18 +97,29 @@ export const useUpdateCategoryMutation = () => {
 
 export const useDeleteCategoryMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, transferData }: { id: string; transferData?: any }) =>
-			fetchWithErrorHandling(`/api/categories/${id}`, {
+		mutationFn: async ({ id, transferData }: { id: string; transferData?: any }) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/categories/${id}`, { transferData }, "category", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/categories/${id}`, {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ transferData }),
-			}),
-		onSuccess: async (data: { message?: string }) => {
-			await invalidateRefetchFamily(queryClient, ["categories"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Categoria excluída offline", { description: "Será sincronizada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["categories"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.allCategories() })
-			await invalidateRefetchFamily(queryClient, ["products"]) 
-			toast.success(data.message || "Categoria excluída com sucesso!")
+			await invalidateRefetchFamily(queryClient, ["products"])
+			toast.success(result.message || "Categoria excluída com sucesso!")
 		},
 		onError: (error) => {
 			toast.error(`Erro ao excluir categoria: ${error.message}`)

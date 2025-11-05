@@ -57,6 +57,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
 				<link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
 				<link rel="manifest" href="/manifest.json" />
+
+				{/* Service Worker de Desenvolvimento */}
+				<script src="/register-sw-dev.js" defer />
 			</head>
 			<body className={inter.className}>
 				<SpeedInsights />

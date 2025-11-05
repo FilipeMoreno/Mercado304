@@ -1,24 +1,18 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import {
-	Bot,
-	Camera,
-	ExternalLink,
-	Mic, Sparkles,
-	Volume2, X
-} from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Bot, Camera, ExternalLink, Mic, Sparkles, Volume2, X } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef, useState, Activity } from "react"
+import { Activity, useEffect, useRef, useState } from "react"
+import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
 import { ChatMessage } from "@/components/ai-chat/chat-message"
 import { ChurrascoCard } from "@/components/ai-chat/churrasco-card"
-import { SelectionCard } from "@/components/ai-chat/selection-cards"
-import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
-import { CarouselSuggestions } from "@/components/ai-chat/carousel-suggestions"
 import { EnhancedInput } from "@/components/ai-chat/enhanced-input"
+import { EnhancedTypingIndicator } from "@/components/ai-chat/enhanced-typing-indicator"
+import { SelectionCard } from "@/components/ai-chat/selection-cards"
 import { ProductPhotoCapture } from "@/components/product-photo-capture"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAiChat, useChatHistoryDB } from "@/hooks"
 
@@ -26,29 +20,22 @@ export function AiAssistantChat() {
 	const [input, setInput] = useState("")
 	const [isOpen, setIsOpen] = useState(false)
 	const [showPhotoCapture, setShowPhotoCapture] = useState(false)
-	const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)
-	const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null)
-	const [recognizedProduct, setRecognizedProduct] = useState<any>(null)
+	const [isProcessingPhoto, _setIsProcessingPhoto] = useState(false)
+	const [_capturedImagePreview, _setCapturedImagePrevieww] = useState<string | null>(null)
+	const [_recognizedProduct, _setRecognizedProductt] = useState<any>(null)
 	const [isDragOver, setIsDragOver] = useState(false)
-	const [showHistorySidebar, setShowHistorySidebar] = useState(false)
+	const [_showHistorySidebar, _setShowHistorySidebarr] = useState(false)
 	const [isListening, setIsListening] = useState(false)
 	const [isSpeaking, setIsSpeaking] = useState(false)
 	const [isVoiceSupported, setIsVoiceSupported] = useState(false)
-	const [isVoiceInitialized, setIsVoiceInitialized] = useState(false)
+	const [_isVoiceInitialized, setIsVoiceInitialized] = useState(false)
 
 	const recognitionRef = useRef<any>(null)
 	const synthRef = useRef<SpeechSynthesis | null>(null)
-	const inputRef = useRef<HTMLInputElement>(null)
+	const _inputRef = useRef<HTMLInputElement>(null)
 
-	const {
-		sessions,
-		currentSessionId,
-		createNewSession,
-		loadSession,
-		deleteSession,
-		renameSession,
-		clearAllHistory,
-	} = useChatHistoryDB()
+	const { sessions, currentSessionId, createNewSession, loadSession, deleteSession, renameSession, clearAllHistory } =
+		useChatHistoryDB()
 
 	const {
 		messages,
@@ -67,11 +54,11 @@ export function AiAssistantChat() {
 	// Handlers
 	const handleOpenChat = () => setIsOpen(true)
 	const handleCloseChat = () => setIsOpen(false)
-	const handleNewChat = () => startNewChat()
+	const _handleNewChat = () => startNewChat()
 
 	const handleSuggestionClick = (suggestion: string) => {
 		setInput(suggestion)
-		handleSendMessage(new Event('submit') as any)
+		handleSendMessage(new Event("submit") as any)
 	}
 
 	const handleSendMessage = async (e: React.FormEvent) => {
@@ -83,7 +70,7 @@ export function AiAssistantChat() {
 		await sendMessage(message)
 	}
 
-	const handlePhotoCapture = async (file: File) => {
+	const handlePhotoCapture = async (_file: File) => {
 		// Implementar lógica de captura de foto
 		setShowPhotoCapture(false)
 	}
@@ -120,7 +107,7 @@ export function AiAssistantChat() {
 			}
 
 			recognition.onerror = (event: any) => {
-				console.error('Erro no reconhecimento de voz:', event.error)
+				console.error("Erro no reconhecimento de voz:", event.error)
 				setIsListening(false)
 			}
 
@@ -142,13 +129,12 @@ export function AiAssistantChat() {
 		}
 	}
 
-	const stopSpeaking = () => {
+	const _stopSpeaking = () => {
 		if (synthRef.current) {
 			synthRef.current.cancel()
 			setIsSpeaking(false)
 		}
 	}
-
 
 	// Drag and drop handlers
 	const handleDragOver = (e: React.DragEvent) => {
@@ -164,9 +150,9 @@ export function AiAssistantChat() {
 		// Implementar lógica de drop
 	}
 
-const handlePaste = async (e: React.ClipboardEvent) => {
+	const _handlePaste = async (e: React.ClipboardEvent) => {
 		const items = Array.from(e.clipboardData.items)
-		const imageItem = items.find(item => item.type.startsWith('image/'))
+		const imageItem = items.find((item) => item.type.startsWith("image/"))
 
 		if (imageItem) {
 			e.preventDefault()
@@ -178,130 +164,161 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 	}
 
 	return (
-		<div className="fixed bottom-20 md:top-1/2 md:-translate-y-1/2 md:bottom-auto right-0 z-40">
+		<>
 			<AnimatePresence mode="wait">
 				{isOpen && (
-					<motion.div
-						key="chat"
-						initial={{ opacity: 0, x: 400 }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: 400 }}
-						transition={{
-							type: "spring",
-							stiffness: 300,
-							damping: 30,
-						}}
-						className="absolute bottom-0 md:top-0 right-1 sm:right-0 w-[calc(100vw-2rem)] sm:w-96 max-w-[calc(100vw-2rem)] sm:max-w-96 h-[600px]"
-						onDragOver={handleDragOver}
-						onDragLeave={handleDragLeave}
-						onDrop={handleDrop}
-					>
-						<Card className="shadow-2xl border bg-background/95 backdrop-blur-md relative flex flex-col h-full">
-							{/* Overlay para drag and drop */}
-							{isDragOver && (
-								<div className="absolute inset-0 bg-primary/20 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
-									<div className="text-center">
-										<Camera className="h-12 w-12 text-primary mx-auto mb-2" />
-										<p className="text-primary font-medium">Solte a imagem aqui para enviar</p>
-									</div>
-								</div>
-							)}
+					<>
+						{/* Overlay backdrop - clique para fechar */}
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+							onClick={handleCloseChat}
+						/>
 
-							<CardHeader className="flex flex-row items-center justify-between bg-accent border-b rounded-t-lg flex-shrink-0">
-								<CardTitle className="flex items-center gap-2">
-									<div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-										<Bot className="h-4 w-4 text-white" />
-									</div>
-									<div className="flex flex-col">
-										<span className="text-sm font-semibold text-foreground">Zé, o assistente</span>
-										{currentSession && (
-											<span className="text-xs text-muted-foreground truncate max-w-32">
-												{currentSession.title}
-											</span>
-										)}
-									</div>
-								</CardTitle>
-								<div className="flex items-center gap-1">
-									<Link href="/assistente">
-										<Button
-											variant="ghost"
-											size="icon"
-											className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-											title="Abrir em página completa"
-										>
-											<ExternalLink className="h-4 w-4" />
-										</Button>
-									</Link>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={handleCloseChat}
-										className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-									>
-										<X className="h-4 w-4" />
-									</Button>
-								</div>
-							</CardHeader>
-
-							<CardContent className="p-0 flex-1 flex flex-col min-h-0">
-								<ScrollArea className="flex-1 min-h-0">
-									<div className="p-4 space-y-4">
-										{/* Sugestões em Carrossel */}
-										<CarouselSuggestions
-											onSuggestionClick={handleSuggestionClick}
-											isLoading={isLoading}
-											hasMessages={messages.length > 1}
-										/>
-
-										{messages.map((msg, index) => (
-											<div key={`${msg.role}-${index}`}>
-												<ChatMessage
-													role={msg.role}
-													content={msg.content}
-													isError={msg.isError}
-													isStreaming={msg.isStreaming}
-													onRetry={retryLastMessage}
-													canRetry={msg.isError && !!lastUserMessage && !isLoading}
-													imagePreview={msg.imagePreview}
-													productData={msg.productData}
-													onAddMessage={addMessage}
-												/>
-												{msg.selectionCard && (
-													<div className="mt-3 ml-8">
-														{msg.selectionCard.type === "churrascometro" ? (
-															<ChurrascoCard onCalculate={handleChurrascoCalculate} />
-														) : (
-															<SelectionCard
-																type={msg.selectionCard.type}
-																options={msg.selectionCard.options}
-																searchTerm={msg.selectionCard.searchTerm}
-																context={msg.selectionCard.context}
-																onSelect={handleSelection}
-															/>
-														)}
-													</div>
+						{/* Chat Container */}
+						<motion.div
+							key="chat"
+							initial={{ opacity: 0, scale: 0.95, y: 20 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.95, y: 20 }}
+							transition={{
+								type: "spring",
+								stiffness: 300,
+								damping: 25,
+							}}
+							className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-2xl h-[90vh] max-h-[800px] z-50"
+							onDragOver={handleDragOver}
+							onDragLeave={handleDragLeave}
+							onDrop={handleDrop}
+							onClick={(e) => e.stopPropagation()}
+						>
+							<Card className="h-full flex flex-col shadow-2xl border-2 bg-background/95 backdrop-blur-xl">
+								{/* Header minimalista */}
+								<CardHeader className="flex-shrink-0 p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-3">
+											<div className="relative">
+												<div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+													<Bot className="h-5 w-5 text-white" />
+												</div>
+												<div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+											</div>
+											<div>
+												<h3 className="text-base font-semibold text-foreground">Zé, o assistente</h3>
+												{currentSession && (
+													<p className="text-xs text-muted-foreground truncate max-w-[200px]">{currentSession.title}</p>
 												)}
 											</div>
-									))}
-									<Activity mode={isLoading ? 'visible' : 'hidden'}>
-										<EnhancedTypingIndicator
-											context={lastUserMessage?.toLowerCase().includes('preço') ? 'price' :
-												lastUserMessage?.toLowerCase().includes('lista') ? 'list' :
-													lastUserMessage?.toLowerCase().includes('churrasco') ? 'churrasco' :
-														undefined}
-										/>
-									</Activity>
+										</div>
+										<div className="flex items-center gap-1">
+											<Link href="/assistente">
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-9 w-9 rounded-full hover:bg-white/50 dark:hover:bg-black/20"
+													title="Abrir em página completa"
+												>
+													<ExternalLink className="h-4 w-4" />
+												</Button>
+											</Link>
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={handleCloseChat}
+												className="h-9 w-9 rounded-full hover:bg-white/50 dark:hover:bg-black/20"
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</div>
 									</div>
-								</ScrollArea>
+								</CardHeader>
 
-								<div className="p-4 border-t flex-shrink-0">
+								{/* Drag and Drop Overlay */}
+								{isDragOver && (
+									<motion.div
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										className="absolute inset-0 bg-primary/10 border-4 border-dashed border-primary rounded-lg flex items-center justify-center z-20 backdrop-blur-sm"
+									>
+										<div className="text-center">
+											<Camera className="h-16 w-16 text-primary mx-auto mb-3" />
+											<p className="text-lg font-semibold text-primary">Solte a imagem aqui</p>
+										</div>
+									</motion.div>
+								)}
+
+								{/* Messages Area */}
+								<CardContent className="flex-1 p-0 min-h-0 overflow-hidden">
+									<ScrollArea className="h-full">
+										<div className="p-4 space-y-4">
+											{/* Sugestões */}
+											<CarouselSuggestions
+												onSuggestionClick={handleSuggestionClick}
+												isLoading={isLoading}
+												hasMessages={messages.length > 1}
+											/>
+
+											{/* Messages */}
+											{messages.map((msg, index) => (
+												<div key={`${msg.role}-${index}`}>
+													<ChatMessage
+														role={msg.role}
+														content={msg.content}
+														isError={msg.isError}
+														isStreaming={msg.isStreaming}
+														onRetry={retryLastMessage}
+														canRetry={msg.isError && !!lastUserMessage && !isLoading}
+														imagePreview={msg.imagePreview}
+														productData={msg.productData}
+														onAddMessage={addMessage}
+													/>
+													{msg.selectionCard && (
+														<div className="mt-3 ml-8">
+															{msg.selectionCard.type === "churrascometro" ? (
+																<ChurrascoCard onCalculate={handleChurrascoCalculate} />
+															) : (
+																<SelectionCard
+																	type={msg.selectionCard.type}
+																	options={msg.selectionCard.options}
+																	searchTerm={msg.selectionCard.searchTerm}
+																	context={msg.selectionCard.context}
+																	onSelect={handleSelection}
+																/>
+															)}
+														</div>
+													)}
+												</div>
+											))}
+
+											{/* Loading Indicator */}
+											<Activity mode={isLoading ? "visible" : "hidden"}>
+												<EnhancedTypingIndicator
+													context={
+														lastUserMessage?.toLowerCase().includes("preço")
+															? "price"
+															: lastUserMessage?.toLowerCase().includes("lista")
+																? "list"
+																: lastUserMessage?.toLowerCase().includes("churrasco")
+																	? "churrasco"
+																	: undefined
+													}
+												/>
+											</Activity>
+										</div>
+									</ScrollArea>
+								</CardContent>
+
+								{/* Input Area */}
+								<div className="flex-shrink-0 p-4 border-t bg-muted/30">
 									<EnhancedInput
 										value={input}
 										onChange={setInput}
 										onSubmit={handleSendMessage}
 										onPhotoCapture={() => setShowPhotoCapture(true)}
 										onSuggestionClick={handleSuggestionClick}
-										placeholder="Como posso ajudar?"
+										placeholder="Digite sua mensagem..."
 										disabled={isLoading}
 										isLoading={isLoading}
 										isListening={isListening}
@@ -310,12 +327,15 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 										isVoiceSupported={isVoiceSupported}
 									/>
 								</div>
-							</CardContent>
-						</Card>
-					</motion.div>
+							</Card>
+						</motion.div>
+					</>
 				)}
+			</AnimatePresence>
 
-				{!isOpen && (
+			{/* Botão Flutuante */}
+			{!isOpen && (
+				<div className="fixed bottom-20 md:top-1/2 md:-translate-y-1/2 md:bottom-auto right-0 z-40">
 					<motion.button
 						key="bubble"
 						onClick={handleOpenChat}
@@ -339,8 +359,9 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 							stiffness: 400,
 							damping: 20,
 						}}
-						className={`group h-14 w-10 rounded-l-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-lg border-l-2 border-y-2 cursor-pointer select-none relative overflow-visible ${isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
-							}`}
+						className={`group h-14 w-10 rounded-l-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 flex items-center justify-center shadow-lg border-l-2 border-y-2 cursor-pointer select-none relative overflow-visible ${
+							isListening || isSpeaking ? "border-red-400 shadow-red-400/50" : "border-white/20"
+						}`}
 						title="Abrir Zé (Assistente IA)"
 					>
 						{/* Glow Animation - Camada 1 (externa) */}
@@ -394,8 +415,8 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 							</motion.div>
 						)}
 					</motion.button>
-				)}
-			</AnimatePresence>
+				</div>
+			)}
 
 			{/* Modal de Captura de Fotos */}
 			{showPhotoCapture && (
@@ -403,11 +424,7 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 					<div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
 						<div className="p-4 border-b flex items-center justify-between">
 							<h3 className="text-lg font-semibold">Capturar Produto</h3>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setShowPhotoCapture(false)}
-							>
+							<Button variant="ghost" size="icon" onClick={() => setShowPhotoCapture(false)}>
 								<X className="h-4 w-4" />
 							</Button>
 						</div>
@@ -421,6 +438,6 @@ const handlePaste = async (e: React.ClipboardEvent) => {
 					</div>
 				</div>
 			)}
-		</div>
+		</>
 	)
 }

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useProductKitsQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -55,16 +56,27 @@ export const useProductKitPriceQuery = (id: string, marketId?: string) => {
 
 export const useCreateProductKitMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: any) =>
-			fetchWithErrorHandling("/api/product-kits", {
+		mutationFn: async (data: any) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/product-kits", data, "productKit")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/product-kits", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["product-kits"]) 
-			await invalidateRefetchFamily(queryClient, ["products"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Kit salvo offline", { description: "Será criado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["product-kits"])
+			await invalidateRefetchFamily(queryClient, ["products"])
 			toast.success("Kit criado com sucesso!")
 		},
 		onError: (error) => {
@@ -75,15 +87,26 @@ export const useCreateProductKitMutation = () => {
 
 export const useUpdateProductKitMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: any }) =>
-			fetchWithErrorHandling(`/api/product-kits/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: any }) => {
+			if (!isOnline) {
+				await addToQueue("PUT", `/api/product-kits/${id}`, data, "productKit", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/product-kits/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, { id }) => {
-			await invalidateRefetchFamily(queryClient, ["product-kits"]) 
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Kit atualizado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["product-kits"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.productKits.detail(id) })
 			toast.success("Kit atualizado com sucesso!")
 		},
@@ -95,17 +118,28 @@ export const useUpdateProductKitMutation = () => {
 
 export const useConsumeKitStockMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, quantity, reason }: { id: string; quantity: number; reason?: string }) =>
-			fetchWithErrorHandling(`/api/product-kits/${id}/stock/consume`, {
+		mutationFn: async ({ id, quantity, reason }: { id: string; quantity: number; reason?: string }) => {
+			if (!isOnline) {
+				await addToQueue("POST", `/api/product-kits/${id}/stock/consume`, { quantity, reason }, "kitStock", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/product-kits/${id}/stock/consume`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ quantity, reason }),
-			}),
-		onSuccess: async (_, { id }) => {
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Consumo registrado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
 			queryClient.invalidateQueries({ queryKey: queryKeys.productKits.stock(id) })
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			await invalidateRefetchFamily(queryClient, ["stock"])
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			toast.success("Kit consumido do estoque com sucesso!")
 		},
 		onError: (error) => {
@@ -116,14 +150,25 @@ export const useConsumeKitStockMutation = () => {
 
 export const useDeleteProductKitMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/product-kits/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/product-kits/${id}`, {}, "productKit", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/product-kits/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["product-kits"]) 
-			await invalidateRefetchFamily(queryClient, ["products"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Kit excluído offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["product-kits"])
+			await invalidateRefetchFamily(queryClient, ["products"])
 			toast.success("Kit excluído com sucesso!")
 		},
 		onError: (error) => {

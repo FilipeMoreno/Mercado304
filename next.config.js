@@ -2,7 +2,8 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  // IMPORTANTE: Desabilitar em dev facilita o debug, mas para testar offline precisa estar habilitado
+  disable: false, // Mudado para false para permitir testes offline em dev
   // Configurações adicionais para melhor compatibilidade
   scope: '/',
   sw: 'sw.js',
@@ -16,8 +17,8 @@ const withPWA = require('next-pwa')({
       options: {
         cacheName: 'api-data-cache',
         expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 60 * 60 * 24 * 7, // 7 dias
+          maxEntries: 200,
+          maxAgeSeconds: 60 * 60 * 24 * 30, // 30 dias para melhor suporte offline
         },
         cacheableResponse: {
           statuses: [0, 200],
@@ -41,18 +42,18 @@ const withPWA = require('next-pwa')({
     },
     // Estratégia NetworkFirst para dados de estoque e listas (mais dinâmicos)
     {
-      urlPattern: /^https?:\/\/[^/]+\/api\/(stock|shopping-lists|purchases)($|\/).*/i,
+      urlPattern: /^https?:\/\/[^/]+\/api\/(stock|shopping-lists|purchases|desperdicios|recipes)($|\/).*/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'dynamic-data-cache',
         expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 60 * 60 * 24 * 2, // 2 dias
+          maxEntries: 100,
+          maxAgeSeconds: 60 * 60 * 24 * 7, // 7 dias para melhor suporte offline
         },
         cacheableResponse: {
           statuses: [0, 200],
         },
-        networkTimeoutSeconds: 5,
+        networkTimeoutSeconds: 10, // Timeout maior para dar mais tempo em conexões lentas
       },
     },
     // Estratégia CacheFirst para imagens
@@ -67,9 +68,25 @@ const withPWA = require('next-pwa')({
         },
       },
     },
-    // Estratégia NetworkOnly para APIs de autenticação e sensíveis
+    // Estratégia NetworkFirst para APIs de autenticação (com fallback para offline)
     {
-      urlPattern: /^https?:\/\/[^/]+\/api\/(auth|user|admin)($|\/).*/i,
+      urlPattern: /^https?:\/\/[^/]+\/api\/auth\/get-session/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'auth-session-cache',
+        expiration: {
+          maxEntries: 1,
+          maxAgeSeconds: 60 * 60 * 24, // 1 dia
+        },
+        cacheableResponse: {
+          statuses: [200],
+        },
+        networkTimeoutSeconds: 3,
+      },
+    },
+    // Outras APIs de auth e admin sem cache (NetworkOnly)
+    {
+      urlPattern: /^https?:\/\/[^/]+\/api\/(auth\/(?!get-session)|user|admin)($|\/).*/i,
       handler: 'NetworkOnly',
       options: {
         cacheName: 'auth-no-cache',
@@ -87,22 +104,28 @@ const withPWA = require('next-pwa')({
         },
       },
     },
-    // Navegação geral - Sem redirecionamento para offline
-    // Permitir que o app funcione offline usando cache
+    // Navegação geral - Suporte completo offline
     {
       urlPattern: ({ request }) => request.mode === 'navigate',
       handler: 'NetworkFirst',
       options: {
         cacheName: 'pages-cache',
         expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 60 * 60 * 24, // 1 dia
+          maxEntries: 100,
+          maxAgeSeconds: 60 * 60 * 24 * 7, // 7 dias
         },
-        networkTimeoutSeconds: 3,
+        networkTimeoutSeconds: 5, // Timeout maior para conexões lentas
         plugins: [
           {
-            fetchDidFail: async () => {
-              // Não fazer nada - deixar o browser lidar com erro de rede
+            fetchDidFail: async ({ request }) => {
+              // Em caso de falha, tentar buscar do cache
+              const cache = await caches.open('pages-cache');
+              const cachedResponse = await cache.match(request);
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Se não há cache, redirecionar para página offline não funciona aqui
+              // O middleware irá lidar com acesso offline
               return undefined;
             },
           },

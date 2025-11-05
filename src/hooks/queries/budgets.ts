@@ -5,6 +5,7 @@ import type { Budget } from "@/types"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 // Deprecated in favor of Quotes, mantido por compatibilidade
 export const useBudgetsQuery = (params?: URLSearchParams) => {
@@ -40,15 +41,26 @@ export const useBudgetComparisonQuery = (budgetIds: string[]) => {
 
 export const useCreateBudgetMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: Partial<Budget>) =>
-			fetchWithErrorHandling("/api/budgets", {
+		mutationFn: async (data: Partial<Budget>) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/budgets", data, "budget")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/budgets", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["budgets"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Orçamento salvo offline", { description: "Será criado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["budgets"])
 			toast.success("Orçamento criado com sucesso!")
 		},
 		onError: (error) => {
@@ -59,15 +71,26 @@ export const useCreateBudgetMutation = () => {
 
 export const useUpdateBudgetMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<Budget> }) =>
-			fetchWithErrorHandling(`/api/budgets/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: Partial<Budget> }) => {
+			if (!isOnline) {
+				await addToQueue("PATCH", `/api/budgets/${id}`, data, "budget", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/budgets/${id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, { id }) => {
-			await invalidateRefetchFamily(queryClient, ["budgets"]) 
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Orçamento atualizado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["budgets"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.budget(id) })
 			toast.success("Orçamento atualizado com sucesso!")
 		},
@@ -79,13 +102,24 @@ export const useUpdateBudgetMutation = () => {
 
 export const useDeleteBudgetMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/budgets/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/budgets/${id}`, {}, "budget", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/budgets/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["budgets"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Orçamento excluído offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["budgets"])
 			toast.success("Orçamento excluído com sucesso!")
 		},
 		onError: (error) => {

@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useRecipesQuery = () => {
 	return useQuery({
@@ -24,15 +25,26 @@ export const useRecipeQuery = (id: string) => {
 
 export const useCreateRecipeMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: any) =>
-			fetchWithErrorHandling("/api/recipes", {
+		mutationFn: async (data: any) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/recipes", data, "recipe")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/recipes", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["recipes"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Receita salva offline", { description: "Será criada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["recipes"])
 			toast.success("Receita salva com sucesso!")
 		},
 		onError: (error) => {
@@ -43,13 +55,24 @@ export const useCreateRecipeMutation = () => {
 
 export const useDeleteRecipeMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/recipes/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/recipes/${id}`, {}, "recipe", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/recipes/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["recipes"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Receita excluída offline", { description: "Será sincronizada quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["recipes"])
 			toast.success("Receita excluída com sucesso!")
 		},
 		onError: (error) => {

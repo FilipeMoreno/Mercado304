@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { queryKeys } from "./query-keys"
 import { fetchWithErrorHandling } from "./fetch"
 import { invalidateRefetchFamily } from "./utils"
+import { useOfflineSync } from "../use-offline-sync"
 
 export const useWasteQuery = (params?: URLSearchParams) => {
 	return useQuery({
@@ -24,17 +25,28 @@ export const useWasteItemQuery = (id: string) => {
 
 export const useCreateWasteMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (data: any) =>
-			fetchWithErrorHandling("/api/waste", {
+		mutationFn: async (data: any) => {
+			if (!isOnline) {
+				await addToQueue("POST", "/api/waste", data, "waste")
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling("/api/waste", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["waste"]) 
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Desperdício salvo offline", { description: "Será registrado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["waste"])
+			await invalidateRefetchFamily(queryClient, ["stock"])
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício registrado com sucesso!")
 		},
@@ -46,15 +58,26 @@ export const useCreateWasteMutation = () => {
 
 export const useUpdateWasteMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: any }) =>
-			fetchWithErrorHandling(`/api/waste/${id}`, {
+		mutationFn: async ({ id, data }: { id: string; data: any }) => {
+			if (!isOnline) {
+				await addToQueue("PUT", `/api/waste/${id}`, data, "waste", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/waste/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
-			}),
-		onSuccess: async (_, { id }) => {
-			await invalidateRefetchFamily(queryClient, ["waste"]) 
+			})
+		},
+		onSuccess: async (result: any, { id }) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Desperdício atualizado offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["waste"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.wasteItem(id) })
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício atualizado com sucesso!")
@@ -67,15 +90,26 @@ export const useUpdateWasteMutation = () => {
 
 export const useDeleteWasteMutation = () => {
 	const queryClient = useQueryClient()
+	const { isOnline, addToQueue } = useOfflineSync()
+
 	return useMutation({
-		mutationFn: (id: string) =>
-			fetchWithErrorHandling(`/api/waste/${id}`, {
+		mutationFn: async (id: string) => {
+			if (!isOnline) {
+				await addToQueue("DELETE", `/api/waste/${id}`, {}, "waste", id)
+				return { success: true, queued: true }
+			}
+			return fetchWithErrorHandling(`/api/waste/${id}`, {
 				method: "DELETE",
-			}),
-		onSuccess: async () => {
-			await invalidateRefetchFamily(queryClient, ["waste"]) 
-			await invalidateRefetchFamily(queryClient, ["stock"]) 
-			await invalidateRefetchFamily(queryClient, ["stock-history"]) 
+			})
+		},
+		onSuccess: async (result: any) => {
+			if (result?.queued || ('queued' in result && result.queued)) {
+				toast.info("Desperdício excluído offline", { description: "Será sincronizado quando voltar online" })
+				return
+			}
+			await invalidateRefetchFamily(queryClient, ["waste"])
+			await invalidateRefetchFamily(queryClient, ["stock"])
+			await invalidateRefetchFamily(queryClient, ["stock-history"])
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats() })
 			toast.success("Desperdício excluído com sucesso!")
 		},

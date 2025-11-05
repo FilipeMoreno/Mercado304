@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useSession } from "@/lib/auth-client"
 import { showAuthSuccess } from "@/lib/auth-errors"
+import { cacheSession } from "@/lib/offline-session"
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -21,6 +22,15 @@ export default function AuthCallbackPage() {
 
       // Salva o método de login usado
       localStorage.setItem("lastLoginMethod", provider)
+
+      // Cachear sessão para uso offline
+      cacheSession({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        emailVerified: session.user.emailVerified,
+        image: session.user.image,
+      })
 
       // Registra no histórico de auditoria
       fetch("/api/auth/log-auth-event", {

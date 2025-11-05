@@ -5,14 +5,15 @@ import { CheckCircle2, CloudOff, RefreshCw, Wifi, WifiOff } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useOffline } from "@/hooks/use-offline"
+import { useOfflineSync } from "@/hooks/use-offline-sync"
 import { cn } from "@/lib/utils"
 
 export function OfflineIndicator() {
-	const { isOnline, wasOffline, syncQueueCount, processSyncQueue, clearSyncQueue } = useOffline()
+	const { isOnline, isSyncing, syncQueueCount, processQueue, clearQueue } = useOfflineSync()
 
-	// Não mostrar nada se estiver online e nunca ficou offline
-	if (isOnline && !wasOffline && syncQueueCount === 0) {
+	// Não mostrar nada - apenas a barra inferior será exibida
+	// Este componente agora só mostra quando tem sincronização pendente
+	if (!isOnline || syncQueueCount === 0) {
 		return null
 	}
 
@@ -28,8 +29,10 @@ export function OfflineIndicator() {
 						transition={{ duration: 0.2 }}
 					>
 						<Alert className="shadow-lg border-2 border-blue-500 bg-blue-50">
-							<RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-							<AlertTitle className="font-bold text-blue-900">Sincronizando</AlertTitle>
+							<RefreshCw className={cn("h-4 w-4 text-blue-600", isSyncing && "animate-spin")} />
+							<AlertTitle className="font-bold text-blue-900">
+								{isSyncing ? "Sincronizando..." : "Pronto para Sincronizar"}
+							</AlertTitle>
 							<AlertDescription className="space-y-2">
 								<p className="text-sm text-blue-800">{syncQueueCount} ação(ões) na fila de sincronização.</p>
 								<div className="flex gap-2">
@@ -37,15 +40,17 @@ export function OfflineIndicator() {
 										size="sm"
 										variant="default"
 										className="bg-blue-600 hover:bg-blue-700"
-										onClick={() => processSyncQueue()}
+										onClick={() => processQueue()}
+										disabled={isSyncing}
 									>
-										Sincronizar Agora
+										{isSyncing ? "Sincronizando..." : "Sincronizar Agora"}
 									</Button>
 									<Button
 										size="sm"
 										variant="outline"
 										className="border-blue-600 text-blue-600"
-										onClick={() => clearSyncQueue()}
+										onClick={() => clearQueue()}
+										disabled={isSyncing}
 									>
 										Limpar Fila
 									</Button>
@@ -55,7 +60,7 @@ export function OfflineIndicator() {
 					</motion.div>
 				)}
 
-				{isOnline && wasOffline && syncQueueCount === 0 && (
+				{isOnline && syncQueueCount === 0 && isSyncing && (
 					<motion.div
 						key="online"
 						initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -79,7 +84,7 @@ export function OfflineIndicator() {
 
 // Componente compacto para a barra de status
 export function OfflineStatusBar() {
-	const { isOnline, syncQueueCount } = useOffline()
+	const { isOnline, isSyncing, syncQueueCount } = useOfflineSync()
 
 	if (isOnline && syncQueueCount === 0) {
 		return null
@@ -103,10 +108,10 @@ export function OfflineStatusBar() {
 							</Badge>
 						)}
 					</>
-				) : syncQueueCount > 0 ? (
+				) : syncQueueCount > 0 || isSyncing ? (
 					<>
-						<RefreshCw className="h-4 w-4 animate-spin" />
-						<span>Sincronizando {syncQueueCount} item(s)...</span>
+						<RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+						<span>{isSyncing ? "Sincronizando" : "Aguardando sincronização"} {syncQueueCount > 0 && `- ${syncQueueCount} item(s)`}</span>
 					</>
 				) : (
 					<>
@@ -121,11 +126,11 @@ export function OfflineStatusBar() {
 
 // Hook para usar offline indicator programaticamente
 export function useOfflineIndicator() {
-	const { isOnline, syncQueueCount } = useOffline()
+	const { isOnline, isSyncing, syncQueueCount } = useOfflineSync()
 
 	const getStatus = () => {
 		if (!isOnline) return "offline"
-		if (syncQueueCount > 0) return "syncing"
+		if (syncQueueCount > 0 || isSyncing) return "syncing"
 		return "online"
 	}
 
@@ -148,6 +153,7 @@ export function useOfflineIndicator() {
 		statusColor: getStatusColor(),
 		StatusIcon: getStatusIcon(),
 		isOnline,
+		isSyncing,
 		syncQueueCount,
 	}
 }
